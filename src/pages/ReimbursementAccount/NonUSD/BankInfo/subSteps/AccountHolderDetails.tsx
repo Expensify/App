@@ -1,6 +1,3 @@
-import {SafeString} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -8,19 +5,27 @@ import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Fo
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CorpayFormField} from '@src/types/onyx';
+
+import {SafeString} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {COUNTRY, ACCOUNT_HOLDER_NAME} = INPUT_IDS.ADDITIONAL_DATA;

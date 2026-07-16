@@ -1,13 +1,18 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setColumnName} from '@libs/actions/ImportSpreadsheet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Text from './Text';
 
 // cspell:disable
@@ -267,7 +272,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                     <View style={styles.ml2}>
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             shouldShowRadioButton
                             menuHeaderText={columnHeader}
                             isSplitButton={false}
@@ -276,7 +281,6 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             }}
                             defaultSelectedIndex={selectedIndex}
                             options={options}
-                            success={false}
                             shouldPopoverUseScrollView={options.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         />
                     </View>

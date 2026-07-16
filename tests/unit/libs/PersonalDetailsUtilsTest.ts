@@ -1,10 +1,7 @@
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import {
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     createDisplayName,
-    createPersonalDetailsLookupByAccountID,
     getAccountIDsByLogins,
     getDisplayNameOrYou,
     getEffectiveDisplayName,
@@ -14,10 +11,15 @@ import {
     newGetPersonalDetailsByIDs,
     temporaryGetDisplayNameOrDefault,
 } from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -163,7 +165,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '2': {
                                 accountID: 2,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_18.png',
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/generated/letter/v1/ice700/T.png',
                                 displayName: 'test2@test.com',
                                 isOptimisticPersonalDetail: true,
                                 login: 'test2@test.com',
@@ -679,52 +681,6 @@ describe('PersonalDetailsUtils', () => {
         it('should return undefined when email is undefined', async () => {
             const result = getPersonalDetailByEmail(undefined);
             expect(result).toBeUndefined();
-        });
-    });
-
-    describe('createPersonalDetailsLookupByAccountID', () => {
-        it('should create a lookup map from an array of personal details', () => {
-            const details: PersonalDetails[] = [
-                {accountID: 1, login: 'user1@example.com', displayName: 'User One'},
-                {accountID: 2, login: 'user2@example.com', displayName: 'User Two'},
-                {accountID: 3, login: 'user3@example.com', displayName: 'User Three'},
-            ];
-
-            const result = createPersonalDetailsLookupByAccountID(details);
-
-            expect(result[1]).toEqual({accountID: 1, login: 'user1@example.com', displayName: 'User One'});
-            expect(result[2]).toEqual({accountID: 2, login: 'user2@example.com', displayName: 'User Two'});
-            expect(result[3]).toEqual({accountID: 3, login: 'user3@example.com', displayName: 'User Three'});
-        });
-
-        it('should return an empty object for an empty array', () => {
-            const result = createPersonalDetailsLookupByAccountID([]);
-            expect(result).toEqual({});
-        });
-
-        it('should allow O(1) lookup by accountID', () => {
-            const details: PersonalDetails[] = [{accountID: 100, login: 'test@example.com', displayName: 'Test User'}];
-
-            const map = createPersonalDetailsLookupByAccountID(details);
-
-            // Direct access should work
-            expect(map[100]).toBeDefined();
-            expect(map[100].displayName).toBe('Test User');
-
-            // Non-existent key should be undefined
-            expect(map[999]).toBeUndefined();
-        });
-
-        it('should handle duplicate accountIDs by keeping the last occurrence', () => {
-            const details: PersonalDetails[] = [
-                {accountID: 1, login: 'first@example.com', displayName: 'First'},
-                {accountID: 1, login: 'second@example.com', displayName: 'Second'},
-            ];
-
-            const result = createPersonalDetailsLookupByAccountID(details);
-
-            // The second entry should overwrite the first
-            expect(result[1]).toEqual({accountID: 1, login: 'second@example.com', displayName: 'Second'});
         });
     });
 

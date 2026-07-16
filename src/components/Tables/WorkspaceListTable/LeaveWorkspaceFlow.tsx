@@ -1,17 +1,22 @@
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {close} from '@libs/actions/Modal';
 import {leaveWorkspace} from '@libs/actions/Policy/Policy';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
 
 type LeaveWorkspaceFlowProps = {
     /** ID of the workspace being left */

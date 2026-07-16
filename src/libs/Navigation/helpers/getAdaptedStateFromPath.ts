@@ -1,17 +1,21 @@
-import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
-import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getSearchParamFromPath} from '@libs/Url';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
+
+import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
+
+import pick from 'lodash/pick';
+
 import buildTabNavigatorNestedState from './buildTabNavigatorNestedState';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAdaptedState';
@@ -56,11 +60,11 @@ function getTabNavigatorState(selectedTabRoute: NavigationPartialRoute): Navigat
     return {name: NAVIGATORS.TAB_NAVIGATOR, state: buildTabNavigatorNestedState(selectedTabRoute)};
 }
 
-function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
+function isRouteWithBackToParam(route: NavigationRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
 }
 
-function isRouteWithReportID(route: NavigationPartialRoute): route is Route<string, {reportID: string}> {
+function isRouteWithReportID(route: NavigationRoute): route is Route<string, {reportID: string}> {
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
@@ -70,7 +74,7 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
  * When a split tab route is accessed from search context (path contains '/search'),
  * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
  */
-function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
+function getSearchScreenNameForRoute(route: NavigationRoute): string {
     const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
     const isSplitTabRoute = splitTabNames.includes(route.name);
 
@@ -81,7 +85,7 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
     return route.name;
 }
 
-function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
+function getMatchingFullScreenRoute(route: NavigationRoute) {
     const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
 
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
@@ -222,9 +226,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (route.path) {
         const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
         for (const suffixMatch of allSuffixMatches) {
-            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
-            // suffix and the registered pattern so query params can be resolved correctly.
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(suffixMatch.pathUsedForMatching, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 continue;
@@ -263,7 +265,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 // It is the reports split navigator with report. If the reportID is defined in the focused route, we want to use it for the default report.
 // This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
 // We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
-function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
+function getDefaultFullScreenRoute(route?: NavigationRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 

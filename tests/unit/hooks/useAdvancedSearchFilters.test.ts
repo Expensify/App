@@ -1,13 +1,19 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {renderHook, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists} from '@src/types/onyx';
 import type {PolicyCategory} from '@src/types/onyx/PolicyCategory';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -209,7 +215,7 @@ describe('useAdvancedSearchFilters', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, {value: ['1'], isNegated: false}), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -222,7 +228,7 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, {value: ['1'], isNegated: false}), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();

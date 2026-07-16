@@ -1,9 +1,3 @@
-import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
-import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
@@ -12,6 +6,7 @@ import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
@@ -27,10 +22,11 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,6 +43,7 @@ import {
     isGroupPolicy,
     isPendingDeletePolicy,
     isPerDiemEnabled,
+    isPolicyAdmin,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -54,8 +51,10 @@ import {
 } from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,7 +65,17 @@ import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
@@ -163,6 +172,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
+    const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress(connectionSyncProgress, policy), isPolicyAdmin(policy));
+    const getHRBrickRoadIndicator = () => {
+        if (hasHRError) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+        if (isMergeHRCompleteSetupNeeded(policy)) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+    };
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
@@ -305,7 +323,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.hr',
-                brickRoadIndicator: isMergeHRCompleteSetupNeeded(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
+                brickRoadIndicator: getHRBrickRoadIndicator(),
                 icon: expensifyIcons.Users,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.HR,

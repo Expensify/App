@@ -1,6 +1,3 @@
-import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -9,6 +6,7 @@ import FixedFooter from '@components/FixedFooter';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -23,6 +21,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -35,14 +34,22 @@ import {hasAccountingConnections, isGroupPolicy, isPolicyAdmin} from '@libs/Poli
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepCategoryProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY> &
@@ -81,6 +88,8 @@ function IOURequestStepCategory({
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const policyData = usePolicyData(policy?.id);
@@ -178,6 +187,8 @@ function IOURequestStepCategory({
                     isASAPSubmitBetaEnabled,
                     hash: currentSearchHash,
                     delegateAccountID,
+                    reportPolicyTags,
+                    isTrackIntentUser,
                 });
                 navigateBack();
                 return;

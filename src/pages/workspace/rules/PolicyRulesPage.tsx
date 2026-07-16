@@ -1,8 +1,6 @@
-import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,18 +10,27 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
+
 import AgentRulesSection from './AgentRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';

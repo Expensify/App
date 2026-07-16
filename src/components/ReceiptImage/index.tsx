@@ -1,6 +1,3 @@
-import React, {useRef, useState} from 'react';
-import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import EReceiptStaticThumbnail from '@components/EReceiptStaticThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
@@ -11,12 +8,21 @@ import PDFThumbnail from '@components/PDFThumbnail';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import ThumbnailImage from '@components/ThumbnailImage';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts';
 
 // It is used to avoid updating the image width in a loop.

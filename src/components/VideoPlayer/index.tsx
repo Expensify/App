@@ -1,8 +1,11 @@
-import React, {useState} from 'react';
 import {Root as PopoverMenuRoot} from '@components/PopoverMenu/v2';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
-import BaseVideoPlayer from './BaseVideoPlayer';
+
+import React, {useState} from 'react';
+
 import type VideoPlayerProps from './types';
+
+import BaseVideoPlayer from './BaseVideoPlayer';
 
 function VideoPlayer(props: VideoPlayerProps) {
     // `fakeReportID` is a getter that increments each access — freeze it per instance.

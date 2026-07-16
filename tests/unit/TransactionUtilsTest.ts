@@ -1,14 +1,19 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
-import * as TransactionUtils from '../../src/libs/TransactionUtils';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
+
+import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -410,6 +415,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 policy: fakePolicy,
                 transactionChanges: {category},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then the updated transaction should contain the tax from the matched rule
@@ -458,6 +464,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then: quantity should be updated
@@ -480,6 +487,100 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
+            // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
+            // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
+            // returns that resolved currency when the default P2P rate is loaded, so seed it here.
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                // transaction.currency is deliberately USD so a passing result proves the EUR came from
+                // personalPolicyOutputCurrency, not from the transaction itself.
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                    },
+                });
+
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {distance: 20},
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
+                // (The merchant shows the "EUR" code rather than the € glyph because the currency list isn't loaded in this unit test.)
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
+        it('uses the resolved personal-policy currency (not transaction.currency) when recalculating a P2P expense from edited waypoints', async () => {
+            // Regression: the waypoint/route branch used to format the merchant with transaction.currency and never set
+            // modifiedCurrency, so a P2P expense whose personal currency differs from transaction.currency would show a
+            // rate in the old currency for an amount computed in the new one (visible offline / before the server responds).
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                        waypoints: {waypoint0: {address: 'Old A'}, waypoint1: {address: 'Old B'}},
+                    },
+                });
+
+                // 32186.88 m ≈ 20 mi; at the EUR P2P rate of 30¢ the amount is 600.
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {
+                        waypoints: {waypoint0: {address: 'New A'}, waypoint1: {address: 'New B'}},
+                        routes: {
+                            route0: {
+                                distance: 32186.88,
+                                geometry: {
+                                    coordinates: [
+                                        [0, 0],
+                                        [1, 1],
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
             const transaction = generateTransaction();
             const newAmount = 500;
@@ -488,6 +589,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -501,6 +603,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -513,6 +616,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -527,6 +631,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');
@@ -750,6 +855,7 @@ describe('TransactionUtils', () => {
             };
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
                 [transaction1, transaction2],
+                undefined,
                 undefined,
                 policy,
                 transactionViolations,
@@ -3524,6 +3630,41 @@ describe('TransactionUtils', () => {
             const result = TransactionUtils.mergeProhibitedViolations(violations);
 
             expect(result).toEqual(violations);
+        });
+    });
+
+    describe('isPending', () => {
+        it('returns true for a BYOC pending transaction (non-Expensify Card with status Pending)', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(true);
+        });
+
+        it('returns true for an Expensify Card pending transaction', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(true);
+        });
+
+        it('returns false for a posted transaction', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(false);
+        });
+
+        it('returns false for a transaction with no status', () => {
+            const transaction = generateTransaction();
+            expect(TransactionUtils.isPending(transaction)).toBe(false);
+        });
+
+        it('returns false for undefined transaction', () => {
+            expect(TransactionUtils.isPending(undefined)).toBe(false);
         });
     });
 

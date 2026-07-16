@@ -1,9 +1,13 @@
-import React, {useState} from 'react';
 import type {DecisionModalProps} from '@components/DecisionModal';
 import DecisionModal from '@components/DecisionModal';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {ModalActions} from './ModalContext';
+
+import React, {useState} from 'react';
+
 import type {ModalProps} from './ModalContext';
+
+import {ModalActions} from './ModalContext';
 
 type DecisionModalWrapperProps = ModalProps & Omit<DecisionModalProps, 'onClose' | 'onSecondOptionSubmit' | 'onFirstOptionSubmit' | 'isVisible' | 'isSmallScreenWidth'>;
 

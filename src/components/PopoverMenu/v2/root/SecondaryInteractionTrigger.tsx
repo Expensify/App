@@ -1,9 +1,14 @@
-import React from 'react';
+import {PressResponder} from '@components/Pressable/PressResponder';
+
+import CONST from '@src/CONST';
+
 import type {ReactNode} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {PressResponder} from '@components/Pressable/PressResponder';
-import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {AnchorRect} from './RootContext';
+
 import {useRootMeta, useRootVisibility} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
 

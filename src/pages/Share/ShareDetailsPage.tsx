@@ -1,7 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPreview from '@components/AttachmentPreview';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -11,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -21,6 +18,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -28,10 +26,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {isDraftReport} from '@libs/ReportUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,6 +39,14 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isDraftReportSelector} from '@selectors/Report';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import ShareButton from './ShareButton';
 import {showErrorAlert} from './ShareRootPage';
 import useShareFileSizeValidation from './useShareFileSizeValidation';
@@ -55,7 +63,9 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
@@ -114,8 +124,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         return <NotFoundPage />;
     }
 
-    const isDraft = isDraftReport(reportOrAccountID);
-
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
@@ -130,6 +138,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: personalDetail.accountID,
                 delegateAccountID,
+                conciergeReportID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
@@ -140,7 +149,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             fileSource,
             validateFileName,
             (file) => {
-                if (isDraft) {
+                if (isDraftReport) {
                     openReport({
                         reportID: report.reportID,
                         introSelected,
@@ -165,6 +174,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         text: message,
                         timezone: personalDetail.timezone,
                         delegateAccountID,
+                        conciergeReportID,
                     });
                 }
 

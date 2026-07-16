@@ -1,5 +1,6 @@
-import polyfillNumberFormat from './polyfillNumberFormat';
 import type IntlPolyfill from './types';
+
+import polyfillNumberFormat from './polyfillNumberFormat';
 
 /**
  * Polyfill the Intl API if the ICU version is old.

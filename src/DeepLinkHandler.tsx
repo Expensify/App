@@ -1,6 +1,10 @@
-import {useEffect, useRef} from 'react';
 import type {NativeEventSubscription} from 'react-native';
+
+import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
+
+import type {Route} from './ROUTES';
+
 import CONST from './CONST';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useOnyx from './hooks/useOnyx';
@@ -10,7 +14,6 @@ import {hasAuthToken} from './libs/actions/Session';
 import Log from './libs/Log';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
-import type {Route} from './ROUTES';
 import {hasSeenTourSelector} from './selectors/Onboarding';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 

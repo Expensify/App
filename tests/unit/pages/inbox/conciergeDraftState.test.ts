@@ -1,11 +1,5 @@
-import {
-    applyConciergeDraftEvent,
-    getCachedDraft,
-    getNextVisibleConciergeDraftBodyMarkdown,
-    getNextVisibleConciergeDraftMarkdown,
-    setCachedDraft,
-    stripIncompleteMarkdown,
-} from '@pages/inbox/conciergeDraftState';
+import {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown} from '@pages/inbox/conciergeDraftState';
+
 import CONST from '@src/CONST';
 
 const REPORT_ID = '123';
@@ -151,27 +145,6 @@ describe('conciergeDraftState', () => {
         );
 
         expect(otherReportDraft).toBe(initialDraft);
-    });
-
-    describe('getNextVisibleConciergeDraftBodyMarkdown', () => {
-        it('handles normal reveal, code points, and corrections', () => {
-            // Given representative pacing inputs
-            const longTarget = 'a'.repeat(200);
-
-            // When calculating the next visible body
-            const firstSlice = getNextVisibleConciergeDraftBodyMarkdown('', 'Hello');
-            const secondSlice = getNextVisibleConciergeDraftBodyMarkdown('H', 'Hello');
-            const emojiSlice = getNextVisibleConciergeDraftBodyMarkdown('Hi ', 'Hi 😃 there');
-            const longBacklogSlice = getNextVisibleConciergeDraftBodyMarkdown('', longTarget);
-            const correctedSlice = getNextVisibleConciergeDraftBodyMarkdown('Old draft', 'New draft');
-
-            // Then each pacing path preserves its expected reveal behavior
-            expect(firstSlice).toBe('H');
-            expect(secondSlice).toBe('He');
-            expect(emojiSlice).toBe('Hi 😃');
-            expect(longBacklogSlice).toBe('a');
-            expect(correctedSlice).toBe('New draft');
-        });
     });
 
     describe('getNextVisibleConciergeDraftMarkdown', () => {

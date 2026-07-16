@@ -1,7 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,6 +11,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -30,23 +27,35 @@ import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCo
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {formatSubscriptionEndDate, getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import variables from '@styles/variables';
+
 import {navigateToConciergeChat} from '@userActions/Report';
 import {clearUpdateSubscriptionSizeError, requestTaxExempt, updateSubscriptionAddNewUsersAutomatically, updateSubscriptionAutoRenew, updateSubscriptionType} from '@userActions/Subscription';
+
 import CONST from '@src/CONST';
 import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();

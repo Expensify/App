@@ -1,13 +1,19 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
-import type {UseOnyxResult} from 'react-native-onyx';
+
 import MoneyReportHeaderMoreContent from '@components/MoneyReportHeaderMoreContent';
 import MoneyReportHeaderNextStep from '@components/MoneyReportHeaderNextStep';
+
 import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
 import useOnyx from '@hooks/useOnyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+
+import type {UseOnyxResult} from 'react-native-onyx';
+
+import React from 'react';
+
 import createRandomPolicy from '../../utils/collections/policies';
 
 const TEST_REPORT_ID = '1001';

@@ -1,10 +1,14 @@
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useTheme from '@hooks/useTheme';
+
+import type {ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {VictoryChartContainerLayout, VictoryChartContainerThemeStyles} from './types';
 
 /**

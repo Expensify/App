@@ -1,13 +1,19 @@
-import type {KeyValueMapping} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
+
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
+
+import type {KeyValueMapping} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
@@ -57,7 +63,6 @@ import {
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import shouldDisplayNewMarkerOnReportAction, {getUnreadMarkerReportAction} from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
-import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -2099,6 +2104,58 @@ describe('ReportActionsUtils', () => {
                     `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
             });
+        });
+    });
+
+    describe('doesReportHaveVisibleActions', () => {
+        const reportID = 'report_1';
+        const visibleComment: ReportAction = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2025-01-01 00:00:00.000',
+            message: [{type: 'COMMENT', html: 'hello', text: 'hello'}],
+        };
+        const createdAction: ReportAction = {
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            created: '2025-01-01 00:00:01.000',
+            message: [{type: 'COMMENT', html: '', text: ''}],
+        };
+        const taskCompletedAction: ReportAction = {
+            reportActionID: '3',
+            actionName: CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED,
+            created: '2025-01-01 00:00:02.000',
+            message: [{type: 'COMMENT', html: 'completed', text: 'completed'}],
+        };
+
+        it('returns false when reportActions is undefined', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, undefined)).toBe(false);
+        });
+
+        it('returns false when reportActions is empty', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {})).toBe(false);
+        });
+
+        it('returns true when there is a visible comment action', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[visibleComment.reportActionID]: visibleComment})).toBe(true);
+        });
+
+        it('returns false when the only action is the CREATED system message', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[createdAction.reportActionID]: createdAction})).toBe(false);
+        });
+
+        it('returns false when the only action is a task system message', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[taskCompletedAction.reportActionID]: taskCompletedAction})).toBe(false);
+        });
+
+        it('returns true when a visible comment coexists with system messages', () => {
+            expect(
+                ReportActionsUtils.doesReportHaveVisibleActions(reportID, {
+                    [createdAction.reportActionID]: createdAction,
+                    [taskCompletedAction.reportActionID]: taskCompletedAction,
+                    [visibleComment.reportActionID]: visibleComment,
+                }),
+            ).toBe(true);
         });
     });
 
@@ -5278,58 +5335,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getTimeOfChronosTimerRunningFromVisibleActions', () => {
-        const currentUserAccountID = 100;
-
-        function makeUserTimerComment(text: string, actorAccountID: number = currentUserAccountID, overrides: Partial<ReportAction> = {}): ReportAction {
-            return getFakeReportAction(actorAccountID, {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID,
-                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
-                ...overrides,
-            });
-        }
-
-        it('returns null when there are no matching comments', () => {
-            expect(getTimeOfChronosTimerRunningFromVisibleActions([], currentUserAccountID)).toBeNull();
-            expect(getTimeOfChronosTimerRunningFromVisibleActions([makeUserTimerComment('hello')], currentUserAccountID)).toBeNull();
-        });
-
-        it('returns the created timestamp of the newest start command when sorted newest-first', () => {
-            const startCreated = '2024-01-03 10:00:00.000';
-            const sortedNewestFirst = [
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: startCreated}),
-                makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
-            ];
-            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(startCreated);
-        });
-
-        it('returns null when the newest timer command is stop', () => {
-            const sortedNewestFirst = [
-                makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
-            ];
-            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
-        });
-
-        it('ignores comments from other users', () => {
-            const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
-            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
-        });
-
-        it('ignores non-ADD_COMMENT actions', () => {
-            const sortedNewestFirst = [
-                getFakeReportAction(currentUserAccountID, {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    actorAccountID: currentUserAccountID,
-                    message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
-                }),
-            ];
-            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
-        });
-    });
-
     describe('shouldHideNewMarker', () => {
         it('returns true when reportAction is undefined', () => {
             expect(shouldHideNewMarker(undefined, false)).toBe(true);
@@ -5999,6 +6004,51 @@ describe('ReportActionsUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             } as ReportAction;
             expect(getModerationFlagState(action)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+    });
+
+    describe('isPolicyCopyReportAction', () => {
+        function buildAction(actionName: ReportAction['actionName']): ReportAction {
+            return {
+                actionName,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+            } as unknown as ReportAction;
+        }
+
+        it.each([
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL,
+        ])('returns true for the policy copy action %s', (actionName) => {
+            expect(ReportActionsUtils.isPolicyCopyReportAction(buildAction(actionName))).toBe(true);
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME, CONST.REPORT.ACTIONS.TYPE.CREATED])(
+            'returns false for the non-copy action %s',
+            (actionName) => {
+                expect(ReportActionsUtils.isPolicyCopyReportAction(buildAction(actionName))).toBe(false);
+            },
+        );
+
+        it('returns false for an undefined action', () => {
+            expect(ReportActionsUtils.isPolicyCopyReportAction(undefined)).toBe(false);
         });
     });
 });

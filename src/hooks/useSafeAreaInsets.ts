@@ -1,6 +1,8 @@
 import type {EdgeInsets} from 'react-native-safe-area-context';
+
 // eslint-disable-next-line no-restricted-imports
 import {useSafeAreaInsets as useSafeAreaInsetsInternal} from 'react-native-safe-area-context';
+
 import useStyleUtils from './useStyleUtils';
 
 /**

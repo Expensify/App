@@ -1,7 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
-import type {ScrollView as RNScrollView} from 'react-native';
-import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -9,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
+
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -18,17 +15,26 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {FormInputErrors, FormOnyxValues} from './Form/types';
+
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PlanTypeSelector from './PlanTypeSelector';

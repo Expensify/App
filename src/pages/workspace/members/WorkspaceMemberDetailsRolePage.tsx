@@ -1,22 +1,28 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
+
 import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberAssignRole} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE> & {

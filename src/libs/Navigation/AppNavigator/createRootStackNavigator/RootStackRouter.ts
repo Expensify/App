@@ -1,26 +1,18 @@
-import {CommonActions, StackRouter} from '@react-navigation/native';
-import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import {getTabScreenParam} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {
-    handleDismissModalAction,
-    handleNavigatingToModalFromModal,
-    handlePushFullscreenAction,
-    handleRemoveFullscreenUnderRHP,
-    handleReplaceFullscreenUnderRHP,
-    handleReplaceReportsSplitNavigatorAction,
-    handleToggleMfaModalNavigatorWithHistoryAction,
-    handleToggleModalWithHistoryAction,
-    handleToggleSidePanelWithHistoryAction,
-} from './GetStateForActionHandlers';
-import syncBrowserHistory from './syncBrowserHistory';
+
+import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/routers';
+
+import {CommonActions, StackRouter} from '@react-navigation/native';
+
 import type {
     DismissModalActionType,
     PreloadActionType,
@@ -34,6 +26,19 @@ import type {
     ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
+
+import {
+    handleDismissModalAction,
+    handleNavigatingToModalFromModal,
+    handlePushFullscreenAction,
+    handleRemoveFullscreenUnderRHP,
+    handleReplaceFullscreenUnderRHP,
+    handleReplaceReportsSplitNavigatorAction,
+    handleToggleMfaModalNavigatorWithHistoryAction,
+    handleToggleModalWithHistoryAction,
+    handleToggleSidePanelWithHistoryAction,
+} from './GetStateForActionHandlers';
+import syncBrowserHistory from './syncBrowserHistory';
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;

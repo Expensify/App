@@ -1,14 +1,18 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import useSplitParticipants from '@components/MoneyRequestConfirmationList/hooks/useSplitParticipants';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useThemeStyles', () => ({

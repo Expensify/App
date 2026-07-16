@@ -1,13 +1,18 @@
-import React, {useRef} from 'react';
 import CenteredModalLayout from '@components/CenteredModalLayout';
 import FeatureTrainingContent from '@components/FeatureTrainingContent';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {openExternalLink} from '@userActions/Link';
 import {setNameValuePair} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useRef} from 'react';
 
 const VIDEO_ASPECT_RATIO = 1560 / 1280;
 

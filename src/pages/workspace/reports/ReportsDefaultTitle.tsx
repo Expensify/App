@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,23 +8,33 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import {clearPolicyTitleFieldError, setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReportsDefaultTitleModalForm';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
 
 type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE>;
 

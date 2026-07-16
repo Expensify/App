@@ -1,13 +1,10 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {policyChatRoomsSelector} from '@selectors/Report';
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -17,6 +14,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {openPolicyRoomsPage} from '@libs/actions/Policy/Room';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,12 +22,20 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {policyChatRoomsSelector} from '@selectors/Report';
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
 
@@ -121,6 +127,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
 
                 <WorkspaceRoomsTable
                     rooms={rooms}
+                    policyID={policyID}
                     highlightedReportID={highlightedReportID}
                 />
             </ScreenWrapper>

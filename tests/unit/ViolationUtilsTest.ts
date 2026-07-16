@@ -1,14 +1,18 @@
 import {beforeEach} from '@jest/globals';
-import Onyx from 'react-native-onyx';
+
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -1243,6 +1247,20 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
+        it('should add missingCategory violation when category is the Uncategorized sentinel and categories are required', () => {
+            transaction.category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+            expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
+        });
+
         it('should not add categoryOutOfPolicy violation when category is none', () => {
             transaction.category = 'none';
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -1768,7 +1786,7 @@ describe('getViolationsOnyxData', () => {
             });
             expect(result.value).toEqual([]);
         });
-        it('should not return tagOutOfPolicy when the selected tag level has no enabled tags', () => {
+        it('should return tagOutOfPolicy when the selected tag is disabled and its level has no enabled tags left', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
 
@@ -1782,7 +1800,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toEqual([]);
+            expect(result.value).toEqual([{...tagOutOfPolicyViolation, data: {tagName: 'Department'}}]);
         });
 
         it('should return tagOutOfPolicy when selected tag is disabled and another tag in that level is enabled', () => {
@@ -1806,7 +1824,9 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).toEqual([violation]);
         });
-        it('should not return tagOutOfPolicy when no tags are enabled in the policy', () => {
+        it('should return a single tagOutOfPolicy for the first stale level when the Tags feature is disabled and no tags are enabled', () => {
+            // The backend emits one tagOutOfPolicy for the whole multi-level tag (the first out-of-policy level by
+            // orderWeight), so the optimistic recompute must match it instead of flagging every level.
             policyTags.Department.tags.Accounting.enabled = false;
             policyTags.Region.tags.Africa.enabled = false;
             policyTags.Project.tags.Project1.enabled = false;
@@ -1822,7 +1842,8 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toEqual([]);
+            // Region has the lowest orderWeight (1), so it is the level the violation is reported on.
+            expect(result.value).toEqual([{...tagOutOfPolicyViolation, data: {tagName: 'Region'}}]);
         });
         it('should not return allTagLevelsRequired when only non-required dependent tag levels are empty', () => {
             // Make Department non-required
@@ -2349,6 +2370,30 @@ describe('getViolationsOnyxData', () => {
                     isInvoiceTransaction: false,
                 });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should keep taxOutOfPolicy violation when the tax rate is disabled but still present in the policy', () => {
+                // Disabling a tax rate keeps its key in the policy with `isDisabled: true` - it is no longer valid,
+                // so an unrelated client-side recompute (e.g. deleting a tag offline) must not drop the violation.
+                transaction.taxCode = 'TAX_10';
+                policy.taxRates = {
+                    name: 'Taxes',
+                    defaultExternalID: 'TAX_10',
+                    defaultValue: '10%',
+                    foreignTaxDefault: 'TAX_10',
+                    taxes: {TAX_10: {name: '10%', value: '10%', isDisabled: true}},
+                };
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
             });
         });
 
@@ -2913,7 +2958,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined, undefined);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -2954,7 +2999,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, CARLOS_EMAIL, policy);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -3567,6 +3612,15 @@ describe('getIsViolationFixed', () => {
                 taxCode: 'CUSTOM_TAX',
                 taxValue: '15',
                 policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the taxCode exists but its rate is disabled', () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'TAX_10',
+                policyTaxRates: {TAX_10: {name: '10%', value: '10', isDisabled: true}},
             });
             expect(result).toBe(false);
         });

@@ -1,10 +1,14 @@
-import React from 'react';
 import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseContent from './BaseContent';
+
+import React from 'react';
+
 import type {BasePopoverProps} from './BaseContent';
+
+import BaseContent from './BaseContent';
 import useMaxHeightStyle from './useMaxHeightStyle';
 
 type ContentProps = BasePopoverProps;

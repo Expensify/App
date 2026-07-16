@@ -1,11 +1,16 @@
-import React, {useState} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
 import StatusBar from '@libs/StatusBar';
+
 import CONST from '@src/CONST';
-import BaseModal from './BaseModal';
+
+import React, {useState} from 'react';
+
 import type BaseModalProps from './types';
+
+import BaseModal from './BaseModal';
 import useSyncModalWithHistory from './useSyncModalWithHistory';
 
 type WebModalAnimation = Pick<BaseModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'>;

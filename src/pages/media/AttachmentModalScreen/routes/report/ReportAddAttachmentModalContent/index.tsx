@@ -1,24 +1,30 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {openReport} from '@libs/actions/Report';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
+
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import useNavigateToReportOnRefresh from '@pages/media/AttachmentModalScreen/routes/hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from '@pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {View} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+
 import AddAttachmentModalCarouselView from './AddAttachmentModalCarouselView';
 
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ADD_ATTACHMENT>) {
@@ -53,13 +59,15 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
     const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
 
+    const hasReportActions = !!reportActions;
+
     const shouldFetchReport = useMemo(() => {
         return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
     }, [reportActions, reportActionID]);
 
     const fetchReport = useCallback(() => {
-        openReport({reportID, introSelected, reportActionID, betas});
-    }, [reportID, introSelected, reportActionID, betas]);
+        openReport({reportID, introSelected, reportActionID, betas, hasReportActions});
+    }, [reportID, introSelected, reportActionID, betas, hasReportActions]);
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
     useEffect(() => {

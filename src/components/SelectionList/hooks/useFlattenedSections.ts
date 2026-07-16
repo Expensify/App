@@ -1,7 +1,9 @@
-import {useMemo} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {FlattenedItem, Section, SectionListItem} from '@components/SelectionList/SelectionListWithSections/types';
+
 import CONST from '@src/CONST';
+
+import {useMemo} from 'react';
 
 function isItemSelected<TItem extends ListItem>(item: TItem): boolean {
     return item?.isSelected ?? false;
@@ -16,34 +18,23 @@ function shouldTreatItemAsDisabled<TItem extends ListItem>(item: TItem | Flatten
     return !!item?.isDisabled && !isItemSelected(item as TItem);
 }
 
-type UseFlattenedSectionsResult<TItem extends ListItem> = {
-    /** Flattened array of headers and items for FlashList */
-    flattenedData: Array<FlattenedItem<TItem>>;
-
-    /** Indices of disabled items (headers + disabled items) for arrow key navigation */
+type UseFlattenedSectionsResult = {
+    flattenedData: Array<FlattenedItem<ListItem>>;
     disabledIndexes: number[];
-
-    /** Total count of row items (excluding headers) */
     itemsCount: number;
-
-    /** Array of selected items */
-    selectedItems: TItem[];
-
-    /** Index of initially focused item in flattenedData, or -1 if none */
+    selectedItems: ListItem[];
     initialFocusedIndex: number;
-
-    /** Index of the first focusable (non-header) item in flattenedData. Returns 0 if no items exist. */
     firstFocusableIndex: number;
 };
 
 /**
- * Hook that flattens sections with headers and items into a single array for FlashList.
- * Also computes disabled indexes, selected items, and initial focus index.
+ * Non-generic implementation so OXC's React Compiler can memoize the hook.
+ * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
  */
-function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TItem>>, initiallyFocusedItemKey?: string | null): UseFlattenedSectionsResult<TItem> {
+function useFlattenedSectionsImpl(sections: Array<Section<ListItem>>, initiallyFocusedItemKey?: string | null): UseFlattenedSectionsResult {
     return useMemo(() => {
-        const data: Array<FlattenedItem<TItem>> = [];
-        const selectedOptions: TItem[] = [];
+        const data: Array<FlattenedItem<ListItem>> = [];
+        const selectedOptions: ListItem[] = [];
         const disabledIndices: number[] = [];
         let focusedIndex = -1;
         let firstNonHeaderIndex = -1;
@@ -72,7 +63,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                     type: CONST.SECTION_LIST_ITEM_TYPE.ROW,
                     isDisabled: section.isDisabled === true || item.isDisabled === true,
                     flatListKey: `${section.sectionIndex}-${item.keyForList}`,
-                } as SectionListItem<TItem>;
+                } as SectionListItem<ListItem>;
                 data.push(itemData);
 
                 if (firstNonHeaderIndex === -1) {
@@ -103,6 +94,23 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
             firstFocusableIndex: firstNonHeaderIndex === -1 ? 0 : firstNonHeaderIndex,
         };
     }, [initiallyFocusedItemKey, sections]);
+}
+
+type UseFlattenedSectionsResultGeneric<TItem extends ListItem> = {
+    flattenedData: Array<FlattenedItem<TItem>>;
+    disabledIndexes: number[];
+    itemsCount: number;
+    selectedItems: TItem[];
+    initialFocusedIndex: number;
+    firstFocusableIndex: number;
+};
+
+/**
+ * Hook that flattens sections with headers and items into a single array for FlashList.
+ * Also computes disabled indexes, selected items, and initial focus index.
+ */
+function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TItem>>, initiallyFocusedItemKey?: string | null): UseFlattenedSectionsResultGeneric<TItem> {
+    return useFlattenedSectionsImpl(sections as Array<Section<ListItem>>, initiallyFocusedItemKey) as UseFlattenedSectionsResultGeneric<TItem>;
 }
 
 export default useFlattenedSections;

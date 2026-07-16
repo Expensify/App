@@ -1,6 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,9 +17,11 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
 import {
     formatDefaultTaxRateText,
@@ -38,14 +38,22 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type CategorySettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS>
@@ -62,6 +70,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
     const {canWrite: canWriteCategories, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -410,50 +420,59 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 />
                             )}
 
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
-                                <MenuItemWithTopDescription
-                                    title={flagAmountsOverText}
-                                    description={translate('workspace.rules.categoryRules.flagAmountsOver')}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
-                                <MenuItemWithTopDescription
-                                    title={requireReceiptsOverText}
-                                    description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
-                                <MenuItemWithTopDescription
-                                    title={requireItemizedReceiptsOverText}
-                                    description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
-                                <MenuItemWithTopDescription
-                                    title={requiredFieldsTitle}
-                                    description={translate('workspace.rules.categoryRules.requireFields')}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
-                            </OfflineWithFeedback>
+                            {/*
+                             * Rules Revamp R2: category-based rule creation moves to Workspace > Rules.
+                             * When removing the RULES_REVAMP beta, delete this entire block (and the related useMemo
+                             * values above) instead of keeping the legacy Category settings entry points.
+                             */}
+                            {!isRulesRevampEnabled && (
+                                <>
+                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
+                                        <MenuItemWithTopDescription
+                                            title={flagAmountsOverText}
+                                            description={translate('workspace.rules.categoryRules.flagAmountsOver')}
+                                            onPress={() => {
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
+                                            }}
+                                            interactive={canWriteCategories}
+                                            shouldShowRightIcon={canWriteCategories}
+                                        />
+                                    </OfflineWithFeedback>
+                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
+                                        <MenuItemWithTopDescription
+                                            title={requireReceiptsOverText}
+                                            description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
+                                            onPress={() => {
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
+                                            }}
+                                            interactive={canWriteCategories}
+                                            shouldShowRightIcon={canWriteCategories}
+                                        />
+                                    </OfflineWithFeedback>
+                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
+                                        <MenuItemWithTopDescription
+                                            title={requireItemizedReceiptsOverText}
+                                            description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
+                                            onPress={() => {
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
+                                            }}
+                                            interactive={canWriteCategories}
+                                            shouldShowRightIcon={canWriteCategories}
+                                        />
+                                    </OfflineWithFeedback>
+                                    <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
+                                        <MenuItemWithTopDescription
+                                            title={requiredFieldsTitle}
+                                            description={translate('workspace.rules.categoryRules.requireFields')}
+                                            onPress={() => {
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
+                                            }}
+                                            interactive={canWriteCategories}
+                                            shouldShowRightIcon={canWriteCategories}
+                                        />
+                                    </OfflineWithFeedback>
+                                </>
+                            )}
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
                                 <MenuItemWithTopDescription
                                     title={policyCategory?.commentHint}

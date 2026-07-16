@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+
 import FileUtils from '../../scripts/utils/FileUtils';
 
 let tmpDir: string;

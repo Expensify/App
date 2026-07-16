@@ -1,5 +1,6 @@
-import {useCallback, useRef} from 'react';
 import type {SetStateAction} from 'react';
+
+import {useCallback, useRef} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 
 function useCarouselContextEvents(setShouldShowArrows?: (show?: SetStateAction<boolean>) => void) {

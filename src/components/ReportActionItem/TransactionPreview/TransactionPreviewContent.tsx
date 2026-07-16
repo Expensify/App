@@ -1,7 +1,3 @@
-import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,6 +6,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -21,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -38,11 +36,20 @@ import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {cardByIdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
+
+import truncate from 'lodash/truncate';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -52,6 +59,7 @@ function TransactionPreviewContent({
     chatReport,
     personalDetails,
     report,
+    policy,
     transaction,
     violations,
     transactionRawAmount,
@@ -75,7 +83,6 @@ function TransactionPreviewContent({
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
         () => getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
@@ -83,8 +90,11 @@ function TransactionPreviewContent({
     );
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getStableReportSelector});
+    const filteredViolations = filterReceiptViolations(violations);
+    const firstViolation = filteredViolations.at(0);
+    const cardID = firstViolation?.data?.cardID;
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: getStableReportSelector});
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
@@ -121,15 +131,11 @@ function TransactionPreviewContent({
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
-    const filteredViolations = filterReceiptViolations(violations);
-    const firstViolation = filteredViolations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
-    const cardID = firstViolation?.data?.cardID;
-    const card = cardID ? cardList?.[cardID] : undefined;
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation

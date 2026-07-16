@@ -1,8 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import HttpUtils from './HttpUtils';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './Middleware/types';
+
+import HttpUtils from './HttpUtils';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 
@@ -16,11 +19,7 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 }
 
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
-    let result = makeXHR(request);
-    for (const middleware of middlewares) {
-        result = middleware(result, request, isFromSequentialQueue);
-    }
-    return result;
+    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
 }
 
 function addMiddleware(middleware: Middleware) {

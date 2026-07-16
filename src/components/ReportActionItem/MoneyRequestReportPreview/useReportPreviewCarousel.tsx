@@ -1,18 +1,24 @@
-import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {ViewToken} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getCreated} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ViewToken} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {MoneyRequestReportPreviewStyleType} from './types';
 
 const MAX_PREVIEWS_NUMBER = 10;

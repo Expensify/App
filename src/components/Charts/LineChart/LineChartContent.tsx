@@ -1,10 +1,3 @@
-import React, {useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import {GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
-import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
@@ -25,10 +18,23 @@ import {
 } from '@components/Charts/hooks';
 import {getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {CartesianChart, Line} from 'victory-native';
+
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Inner dot radius for line chart data points */

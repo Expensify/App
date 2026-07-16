@@ -213,6 +213,14 @@ Yes. When a tag is changed manually, the update appears in the expense chat.
 
 It will be removed from the workspace’s tag list. However, it will still appear on expenses or reports where it was previously applied.
 
+## What happens to an expense if its tag is disabled on the workspace?
+
+If tags are disabled on the workspace while an expense still has a tag applied, the **Tag** field stays on the expense with a **Tag no longer valid** violation.
+
+To resolve the violation, select the **Tag** field on the expense. A **Tag disabled** alert appears with options for managing the disabled tag.
+
+Alternatively, you can enable tags on the workspace to edit the tag directly.
+
 ## Why can’t I enable multi-level tags?
 
 Multi-level tags are available on Control workspaces only. If your Control workspace is connected to an accounting integration, you will need to manage tags in your accounting system and sync them into Expensify.

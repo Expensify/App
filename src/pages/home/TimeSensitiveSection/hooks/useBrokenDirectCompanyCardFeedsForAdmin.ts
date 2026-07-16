@@ -1,7 +1,10 @@
-import {useMemo} from 'react';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
+
 import {getCardFeedWithDomainID, isDirectFeed} from '@libs/CardUtils';
+
 import type {Policy} from '@src/types/onyx';
+
+import {useMemo} from 'react';
 
 type BrokenCompanyCardConnection = {
     /** The policy ID associated with this connection */

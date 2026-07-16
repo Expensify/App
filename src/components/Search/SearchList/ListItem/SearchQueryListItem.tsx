@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OptionData} from '@libs/ReportUtils';
-import type CONST from '@src/CONST';
+
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
@@ -65,7 +70,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         src={item.singleIcon}
                         fill={item.shouldIconApplyFill !== false ? theme.icon : undefined}
                         additionalStyles={styles.mr3}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>

@@ -1,10 +1,14 @@
+import useLocalize from '@hooks/useLocalize';
+
+import {cleanFileName} from '@libs/fileDownload/FileUtils';
+
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import React, {useCallback, useRef} from 'react';
 import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
-import useLocalize from '@hooks/useLocalize';
-import {cleanFileName} from '@libs/fileDownload/FileUtils';
-import type {FileObject} from '@src/types/utils/Attachment';
+
 import type FilePickerProps from './types';
 
 type LocalCopy = {

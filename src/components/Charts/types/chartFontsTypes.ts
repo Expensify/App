@@ -1,4 +1,5 @@
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
 import type {ChartDefaultTypeface} from './chartSkiaTypefaceTypes';
 
 type ChartFontsValue = {

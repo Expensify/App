@@ -1,6 +1,9 @@
-import type {ReactElement} from 'react';
-import React from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ReactElement} from 'react';
+
+import React from 'react';
+
 import LinearGradientEmptyStateBackground from './LinearGradientEmptyStateBackground';
 
 /**

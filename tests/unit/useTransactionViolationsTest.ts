@@ -1,12 +1,17 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import type * as ViolationsUtilsExports from '@libs/Violations/ViolationsUtils';
+
 import type CONST_TYPE from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Violations/ViolationsUtils', () => {
@@ -58,13 +63,14 @@ jest.mock('@libs/TransactionUtils', () => {
         currentUserEmail: string,
         currentUserAccountID: number,
         iouReport: Report | undefined,
+        iouReportOwnerLogin: string | undefined,
         policy: Policy | undefined,
         shouldShowRterForSettledReport = true,
     ) =>
         mergeProhibitedViolations(
             transactionViolations.filter(
                 (violation) =>
-                    !mockIsViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                    !mockIsViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
                     mockShouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
             ),
         );

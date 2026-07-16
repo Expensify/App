@@ -1,6 +1,7 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const transactionViolationsByIDsSelector =
     (transactionIDs: string[]) =>

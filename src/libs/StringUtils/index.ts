@@ -1,8 +1,12 @@
+import {isSafari} from '@libs/Browser';
+
+import CONST from '@src/CONST';
+
+import type {KebabCase} from 'type-fest';
+
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
-import type {KebabCase} from 'type-fest';
-import {isSafari} from '@libs/Browser';
-import CONST from '@src/CONST';
+
 import decodeUnicode from './decodeUnicode';
 import hash from './hash';
 
