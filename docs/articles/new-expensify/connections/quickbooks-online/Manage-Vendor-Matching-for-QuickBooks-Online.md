@@ -20,7 +20,7 @@ If QuickBooks Online isn't connected yet, learn how to [connect to QuickBooks On
 
 Expensify assigns vendors automatically in the following order:
 
- - If a workspce merchant rule specifies a vendor, that vendor is assigned.
+ - If a workspace merchant rule specifies a vendor, that vendor is assigned.
  - Otherwise, Expensify automatically matches the merchant name against your imported QuickBooks Online vendor list. For example, **STARBUCKS #456 DOWNTOWN** matches **Starbucks**.
  - If no match is found, the **Vendor** field remains empty until a Workspace Admin selects one.
 
