@@ -117,6 +117,21 @@ const DotLottieAnimations = {
         w: 550,
         h: 550,
     },
+    ConciergeThinkingScanOuterGlow: {
+        file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingScanOuterGlow.lottie'),
+        w: 550,
+        h: 550,
+    },
+    ConciergeThinkingInceptionTriangle: {
+        file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingInceptionTriangle.lottie'),
+        w: 550,
+        h: 550,
+    },
+    ConciergeThinkingHypnotized: {
+        file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingHypnotized.lottie'),
+        w: 550,
+        h: 550,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;
