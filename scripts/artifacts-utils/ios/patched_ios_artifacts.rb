@@ -41,8 +41,11 @@ module PatchedIOSArtifacts
 end
 
 class ReactNativeCoreUtils
-    def self.setup_rncore(react_native_path, _react_native_version)
+    def self.setup_rncore(react_native_path, react_native_version)
         @@react_native_path = react_native_path
+        # Base RN version (e.g. 0.85.3) — used by RN's install flow as a non-empty guard. The actual
+        # download URL uses @@patched_version via our stable_tarball_url override, so this stays the plain version.
+        @@react_native_version = react_native_version
         @@build_from_source = @@patched_build_from_source
         @@download_dsyms = ENV['RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'] == '1'
     end
