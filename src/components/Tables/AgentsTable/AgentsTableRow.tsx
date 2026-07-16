@@ -1,6 +1,7 @@
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -20,8 +21,8 @@ import {View} from 'react-native';
 import type {AgentRowData} from '.';
 
 type AgentsTableRowProps = {
-    /** Data about the agent */
-    item: AgentRowData;
+    /** Data about the agent (wrapped by the table, so it also carries row state such as `selected`) */
+    item: TableRow<AgentRowData>;
 
     /** The index of the row relative to all other rows */
     rowIndex: number;
@@ -42,6 +43,9 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const isPendingAddOrDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
     const areActionsDisabled = isPendingAddOrDelete || item.accountID <= 0 || !item.login;
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
+    // A selected row uses `activeComponentBG`, which is the same color as the default button background, so the action
+    // buttons would blend into the row. Give them a contrasting background while the row is selected to keep them visible.
+    const selectedButtonInnerStyle = item.selected ? styles.buttonDefaultHovered : undefined;
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
         styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
@@ -94,6 +98,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.onChatPress}
                                     isDisabled={areActionsDisabled}
+                                    innerStyles={selectedButtonInnerStyle}
                                     accessibilityLabel={translate('editAgentPage.chatWithAgent')}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.CHAT}
                                 >
@@ -103,6 +108,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.onCopilotPress}
                                     isDisabled={areActionsDisabled}
+                                    innerStyles={selectedButtonInnerStyle}
                                     accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.COPILOT}
                                 >
@@ -112,6 +118,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.action}
                                     isDisabled={isPendingDeletion}
+                                    innerStyles={selectedButtonInnerStyle}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.EDIT}
                                 >
                                     <Button.Text>{translate('common.edit')}</Button.Text>
