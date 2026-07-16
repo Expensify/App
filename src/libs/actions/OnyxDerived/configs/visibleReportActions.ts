@@ -55,7 +55,8 @@ export default createOnyxDerivedValueConfig({
         if (sessionUpdates) {
             const result: VisibleReportActionsDerivedValue = {};
 
-            for (const [reportActionsKey, reportActions] of Object.entries(allReportActions)) {
+            for (const reportActionsKey of Object.keys(allReportActions)) {
+                const reportActions = allReportActions[reportActionsKey];
                 if (!reportActions) {
                     continue;
                 }
@@ -63,7 +64,8 @@ export default createOnyxDerivedValueConfig({
                 const reportID = reportActionsKey.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
                 const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID, clonedReportIDs);
 
-                for (const [actionID, action] of Object.entries(reportActions)) {
+                for (const actionID of Object.keys(reportActions)) {
+                    const action = reportActions[actionID];
                     if (action) {
                         if (actionID !== action.reportActionID) {
                             continue;
