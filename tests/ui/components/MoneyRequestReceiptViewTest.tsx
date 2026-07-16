@@ -347,4 +347,49 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
         });
     });
+
+    // A report-creation failure sets report.errorFields.createChat. Because a receipt is present, the view synthesizes a
+    // fallback receipt-upload error - but distance expenses only carry a generated map receipt, so they must not surface it.
+    describe('fallback receipt-upload error on report-creation failure', () => {
+        const reportWithCreationError: Report = {
+            ...testReport,
+            errorFields: {
+                createChat: {'1739520725165000': 'report.genericCreateReportFailureMessage'},
+            },
+        };
+
+        it('shows the receipt-upload error for a regular receipt expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+        });
+
+        it('does not show the receipt-upload error for a distance expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMapDistanceReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.error.saveReceipt'))).toBeNull();
+        });
+    });
 });
