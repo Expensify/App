@@ -43,7 +43,7 @@ function getGroupCount(group: unknown): number {
 
 // The live default-currency figure a row contributes to the footer total (also what the footer falls back to before a
 // conversion arrives). The footer stamps each conversion against this value and compares it on every render, so an
-// inline edit that moves it is detected and the cached conversion is refetched.
+// inline edit that moves it is detected and the cached conversion is fetched again.
 function getEntrySource(entry: SelectedTransactionInfo): number {
     return entry.groupAmount ?? -Math.abs(entry.amount);
 }

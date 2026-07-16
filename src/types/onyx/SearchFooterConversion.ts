@@ -16,7 +16,7 @@ type ConvertedTotalByCurrency = Record<string, ConvertedTotal>;
 /**
  * The default-currency source figure a cached conversion was computed from, keyed by target currency code. The
  * footer writes this when it requests a conversion and compares it to the live snapshot value on every render; a
- * mismatch (e.g. after an inline edit) means the cached conversion is stale and must be refetched.
+ * mismatch (e.g. after an inline edit) means the cached conversion is stale and must be fetched again.
  */
 type SourceByCurrency = Record<string, number>;
 
