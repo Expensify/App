@@ -108,6 +108,7 @@ type UpdateSplitTransactionsParams = {
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
@@ -138,6 +139,7 @@ function updateSplitTransactions({
     transactionReport,
     expenseReport: expenseReportFromParams,
     isOffline,
+    delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
 }: UpdateSplitTransactionsParams) {
@@ -595,7 +597,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            delegateAccountID: undefined,
+            delegateAccountID,
             isTrackIntentUser,
         } as MoneyRequestInformationParams;
 
@@ -709,9 +711,8 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            delegateAccountID: undefined,
+            delegateAccountID,
             isTrackIntentUser,
-            formatPhoneNumber,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
@@ -806,7 +807,7 @@ function updateSplitTransactions({
                     isSplitTransaction: true,
                     isSelfDMSplit,
                     isOffline,
-                    delegateAccountID: undefined,
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
                 if (currentSplit) {
@@ -887,7 +888,7 @@ function updateSplitTransactions({
                 actorAccountID: commentAction.actorAccountID,
                 reportID: transactionThreadReportID,
                 reportActionID: newReportActionID,
-                delegateAccountIDParam: undefined,
+                delegateAccountIDParam: delegateAccountID,
             });
             const reportActionComment = {
                 ...reportComment.reportAction,
