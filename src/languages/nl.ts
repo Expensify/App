@@ -7613,7 +7613,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
-                defaultRuleSummary: 'Categorieën zoals erotische diensten, geldautomaten, gokken en...',
+                defaultRuleSummary: 'Categorieën zoals diensten voor volwassenen, geldautomaten, gokken en geldoverdrachten',
                 findRule: 'Regel zoeken',
                 defaultSection: 'Standaard',
                 customRulesSection: 'Aangepaste regels',

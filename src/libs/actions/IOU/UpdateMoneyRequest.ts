@@ -1350,6 +1350,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -1376,6 +1377,7 @@ function updateMoneyRequestAmountAndCurrency({
     parentReportNextStep,
     hash,
     delegateAccountID,
+    reportPolicyTags,
     isTrackIntentUser,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
@@ -1398,8 +1400,7 @@ function updateMoneyRequestAmountAndCurrency({
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories: policyCategories ?? null,
             allowNegative,
             currentUserAccountIDParam,

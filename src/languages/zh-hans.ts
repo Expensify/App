@@ -7391,7 +7391,7 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
-                defaultRuleSummary: '包括成人服务、ATM、赌博等在内的类别',
+                defaultRuleSummary: '包括成人服务、ATM、赌博和转账在内的类别',
                 findRule: '查找规则',
                 defaultSection: '默认',
                 customRulesSection: '自定义规则',

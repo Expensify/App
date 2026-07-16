@@ -7652,7 +7652,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
-                defaultRuleSummary: 'Kategorien einschließlich Erwachsenendienste, Geldautomaten, Glücksspiel und ...',
+                defaultRuleSummary: 'Kategorien einschließlich Erotikdienstleistungen, Geldautomaten, Glücksspiel und Geldüberweisungen',
                 findRule: 'Regel suchen',
                 defaultSection: 'Standard',
                 customRulesSection: 'Benutzerdefinierte Regeln',

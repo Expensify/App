@@ -730,6 +730,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
@@ -912,6 +913,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
@@ -1108,6 +1110,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
@@ -1327,6 +1330,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
 
