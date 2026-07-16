@@ -793,6 +793,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     chatReportPolicy: chatReportPolicyFromChat(chatReport),
                     chatReportActions: undefined,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();
