@@ -81,7 +81,15 @@ function SubmitActionButtonContent() {
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, policy);
+    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(
+        transactions,
+        transactionViolations,
+        currentUserEmail,
+        currentUserAccountID,
+        iouReport,
+        submitterLogin,
+        policy,
+    );
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
@@ -116,6 +124,7 @@ function SubmitActionButtonContent() {
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 submitterLogin,
+                isTrackIntentUser,
             });
         });
     };

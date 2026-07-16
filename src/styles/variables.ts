@@ -291,6 +291,7 @@ export default {
     wideConfirmModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
+    submitPlanWelcomeModalIllustrationAspectRatio: 400 / 242,
     transactionReceiptButtonWidth: 100,
 
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
