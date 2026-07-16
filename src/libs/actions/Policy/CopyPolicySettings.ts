@@ -13,7 +13,7 @@ import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-export type Part =
+type Part =
     | 'overview'
     | 'currency'
     | 'members'
@@ -472,3 +472,4 @@ function copyPolicySettings(
 }
 
 export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings, PART_TO_POLICY_FEATURE};
+export type {Part};
