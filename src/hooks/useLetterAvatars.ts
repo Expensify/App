@@ -21,7 +21,7 @@ type LetterAvatarsResult = {
 };
 
 /**
- * Returns the current user's letter-avatar initials and one pickable option per palette color scheme.
+ * Returns the current user's letter-avatar initials and one selectable option per palette color scheme.
  */
 function useLetterAvatars(): LetterAvatarsResult {
     const {firstName, lastName, login} = useCurrentUserPersonalDetails();
@@ -41,4 +41,3 @@ function useLetterAvatars(): LetterAvatarsResult {
 }
 
 export default useLetterAvatars;
-export type {LetterAvatarOption};

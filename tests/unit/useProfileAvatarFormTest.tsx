@@ -84,7 +84,7 @@ describe('useProfileAvatarForm', () => {
         expect(result.current.selected).toBeUndefined();
     });
 
-    it('resends an unchanged color when an uploaded photo still needs clearing', () => {
+    it('sends an unchanged color again when an uploaded photo still needs clearing', () => {
         currentUserPersonalDetails.avatarStyle = {color: 'green400'};
         const {result} = renderHook(() => useProfileAvatarForm());
 

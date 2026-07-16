@@ -21,12 +21,6 @@ jest.mock('@hooks/useLetterAvatars', () => ({
     default: () => mockUseLetterAvatars() as unknown,
 }));
 
-const mockIsBetaEnabled = jest.fn<boolean, [string]>();
-jest.mock('@hooks/usePermissions', () => ({
-    __esModule: true,
-    default: () => ({isBetaEnabled: mockIsBetaEnabled}),
-}));
-
 const letterAvatarsResult = {
     initials: 'AB',
     options: LETTER_AVATAR_COLOR_KEYS.map((id) => ({
@@ -46,7 +40,6 @@ describe('AvatarSelector', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockIsBetaEnabled.mockReturnValue(false);
         mockUseLetterAvatars.mockReturnValue(emptyLetterAvatarsResult);
     });
 
@@ -128,7 +121,6 @@ describe('AvatarSelector', () => {
 
     describe('letter avatars', () => {
         beforeEach(() => {
-            mockIsBetaEnabled.mockReturnValue(true);
             mockUseLetterAvatars.mockReturnValue(letterAvatarsResult);
         });
 
@@ -184,18 +176,6 @@ describe('AvatarSelector', () => {
             const firstUserAvatarId = USER_AVATARS.ordered.at(0)?.id;
             expect(screen.getByTestId(`AvatarSelector_${firstUserAvatarId}`)).toBeOnTheScreen();
             expect(screen.getByTestId(`AvatarSelector_${LETTER_AVATAR_COLOR_KEYS.at(0)}`)).toBeOnTheScreen();
-        });
-    });
-
-    describe('when LETTER_AVATARS beta is disabled', () => {
-        it('does not render any letter avatars even when options exist', async () => {
-            mockUseLetterAvatars.mockReturnValue(letterAvatarsResult);
-            renderAvatarSelector();
-            await waitForBatchedUpdates();
-
-            for (const schemeKey of LETTER_AVATAR_COLOR_KEYS) {
-                expect(screen.queryByTestId(`AvatarSelector_${schemeKey}`)).not.toBeOnTheScreen();
-            }
         });
     });
 });

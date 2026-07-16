@@ -1,6 +1,5 @@
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -42,7 +41,6 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {initials, options: letterAvatarOptions} = useLetterAvatars();
-    const {isBetaEnabled} = usePermissions();
 
     const iconSize = StyleUtils.getAvatarSize(size);
 
