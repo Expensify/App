@@ -47,11 +47,12 @@ You can filter the member list by role to quickly find specific groups of member
    - **Approvers** – Members who are designated approvers.
    - **Card Admins** – Members with the Card Admin role (Control workspaces only).
    - **People Admins** – Members with the People Admin role (Control workspaces only).
+   - **Payments admins** – Shows only members with the Payments admin role (Control workspaces only).
    - **Auditors** – Members with the Auditor role (Control workspaces only).
    - **Editors** – Members with the Editor role (Submit workspaces only).
    - **Members** – Members with the Member role.
 
-Each selected role appears as a filter chip in the filter bar, and the member list updates immediately to show only members matching the selected roles. To remove a filter, click the **X** on its chip. You can also combine role filters with the search bar to narrow results further.
+Each selected role appears in the filter bar, and the member list updates immediately to show only members matching the selected roles. To remove a filter, click the **X**. You can also combine role filters with the search bar to narrow results further.
 
 The roles available depend on your workspace type, so the options change if you switch your workspace plan.
 
