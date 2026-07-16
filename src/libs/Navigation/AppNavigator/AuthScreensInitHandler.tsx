@@ -79,6 +79,8 @@ function AuthScreensInitHandler() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -127,7 +129,12 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            () => reportAttributesRef.current,
+        );
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -150,7 +157,12 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            () => reportAttributesRef.current,
+        ).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -188,6 +200,7 @@ function AuthScreensInitHandler() {
             hasActiveAdminPolicies,
             lastWorkspaceNumber,
             translate,
+            conciergeChat,
         );
 
         Download.clearDownloads();

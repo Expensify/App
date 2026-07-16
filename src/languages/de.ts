@@ -5621,6 +5621,35 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
             syncTravelInvoicingSettlements: 'Abrechnungen für Reiseabrechnungen synchronisieren',
             travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Workspace-Konto für diese Kartenprogramme überschreiben.',
+                descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Programme verwenden das Standardkonto';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Programm mit benutzerdefiniertem Konto`;
+                    }
+                    return `${customAccountsCount} Programme mit benutzerdefinierten Konten`;
+                },
+            },
+            cardAccount: {
+                label: 'Kontotyp pro Karte',
+                description: 'Programmkonto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programmkonto für diese Karten überschreiben.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Karten verwenden Programmkonten';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Karte mit individuellem Konto`;
+                    }
+                    return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
+                },
+            },
         },
         type: {
             free: 'Kostenlos',
