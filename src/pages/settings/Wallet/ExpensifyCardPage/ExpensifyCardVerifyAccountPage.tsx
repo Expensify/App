@@ -24,8 +24,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import React, {useState} from 'react';
 
 type ExpensifyCardVerifyAccountPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE>
-    | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE>
+    | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE>;
 
 function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageProps) {
     const {cardID} = route.params;
@@ -36,7 +36,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const navigateBack = () => {
-        if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE) {
+        if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE) {
             Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID));
             return;
         }

@@ -526,7 +526,7 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
 }
 
 /**
- * Request a new validate / magic code for user to sign in via passwordless flow
+ * Request a new validateCode for user to sign in via passwordless flow
  */
 function resendValidateCode(login = credentials.login) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
@@ -1176,7 +1176,7 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
 }
 
 /**
- * Request a new validation link / magic code to unlink an unvalidated secondary login from a primary login
+ * Request a new validation link / validateCode to unlink an unvalidated secondary login from a primary login
  */
 function requestUnlinkValidationLink() {
     const optimisticData = [

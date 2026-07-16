@@ -135,7 +135,7 @@ const ONYXKEYS = {
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
-    /** Store the information of magic code */
+    /** Store the information of validateCode */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
     /** Stores 2FA code validation errors in domain 2FA settings */

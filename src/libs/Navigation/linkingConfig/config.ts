@@ -162,7 +162,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
-                            path: ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.route,
+                            path: ROUTES.SETTINGS_MERGE_ACCOUNTS_VALIDATE_CODE.route,
                         },
                         [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
                             path: ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.route,
@@ -199,8 +199,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
@@ -211,7 +211,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE]: {
+                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: {
                             path: ROUTES.SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
@@ -287,8 +287,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
@@ -447,8 +447,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
@@ -462,8 +462,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
+                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
@@ -485,14 +485,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
                             path: ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.route,
                         },
-                        [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.route,
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
                         },
-                        [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE.route,
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
                             path: ROUTES.SETTINGS_STATUS,
@@ -840,7 +840,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT]: DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path,
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
                         },
@@ -1594,8 +1594,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS]: {
                             path: ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.route,
                         },
-                        [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.route,
                         },
                     },
                 },
@@ -1997,7 +1997,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
                         [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS]: DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.path,
-                        [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.path,
+                        [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: {

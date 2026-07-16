@@ -30,10 +30,10 @@ type ValidateCodeActionFormProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
-    /** Function is called when validate code modal is mounted and on magic code resend */
+    /** Function is called when validateCode modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
-    /** If the magic code has been resent previously */
+    /** If the validateCode has been resent previously */
     hasValidateCodeBeenSent?: boolean;
 
     /** Whether the form is loading or not */
@@ -51,7 +51,7 @@ type ValidateCodeActionFormProps = {
     /** Skip the call to sendValidateCode fn on initial render */
     shouldSkipInitialValidation?: boolean;
 
-    /** Ref for validate code form */
+    /** Ref for validateCode form */
     ref?: ForwardedRef<ValidateCodeFormHandle>;
 };
 

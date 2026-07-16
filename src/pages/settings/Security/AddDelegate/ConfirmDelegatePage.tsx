@@ -48,7 +48,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             style={styles.mt6}
             pressOnEnter
             onPress={() => {
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE.getRoute(login, role));
+                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE.getRoute(login, role));
             }}
         />
     );

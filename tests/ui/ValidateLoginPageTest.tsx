@@ -100,7 +100,7 @@ describe('ValidateLoginPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('Should show not found view when the magic code is invalid and there is an exitTo param', async () => {
+    it('Should show not found view when the validateCode is invalid and there is an exitTo param', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 autoAuthState: CONST.AUTO_AUTH_STATE.NOT_STARTED,
@@ -182,7 +182,7 @@ describe('ValidateLoginPage', () => {
             });
         });
 
-        // Mount first (autoAuthState NOT_STARTED → shows the magic-code screen).
+        // Mount first (autoAuthState NOT_STARTED → shows the validateCode screen).
         renderPage({accountID: '1', validateCode: '123456'});
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByTestId('validate-code')).toBeOnTheScreen();
@@ -201,7 +201,7 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
-    it('Should show the 2FA-required prompt (not an infinite loader) when 2FA is needed and no validate code is cached', async () => {
+    it('Should show the 2FA-required prompt (not an infinite loader) when 2FA is needed and no validateCode is cached', async () => {
         // Genuinely-stuck fallback: 2FA is required but there's no cached `credentials.validateCode`, so
         // the sign-in page can't render the authenticator stage and there's nowhere to send the user.
         // Surface the informational "2FA required" prompt and never redirect Home or loop on a loader.
@@ -220,7 +220,7 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
-    it('Should redirect to the sign-in page to enter the 2FA code when a validate code is cached', async () => {
+    it('Should redirect to the sign-in page to enter the 2FA code when a validateCode is cached', async () => {
         // Initiating browser: the magic-link attempt stored `credentials.validateCode` and 2FA is
         // required. SignInPage reuses that code to render the authenticator-code stage, so we replace
         // the consumed /v/ route with the sign-in page instead of the dead-end "2FA required" modal.
@@ -277,7 +277,7 @@ describe('ValidateLoginPage', () => {
         expect(handleExitToNavigation).toHaveBeenCalledWith('concierge');
     });
 
-    it('Should NOT redirect to the sign-in page when the cached validate code is for a different link (stale code on a failed attempt)', async () => {
+    it('Should NOT redirect to the sign-in page when the cached validateCode is for a different link (stale code on a failed attempt)', async () => {
         // A 2FA account can keep an old `credentials.validateCode` from an earlier attempt. A later /v/
         // link that fails leaves that stale code in Onyx (failureData doesn't touch it) while
         // `requiresTwoFactorAuth` lingers — so the redirect must NOT fire for a code that isn't this

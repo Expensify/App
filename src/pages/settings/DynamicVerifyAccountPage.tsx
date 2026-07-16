@@ -19,8 +19,8 @@ function DynamicVerifyAccountPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
     let forwardPath = useDynamicForwardPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
 
-    if (forwardPath === ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route) {
-        forwardPath = ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(route.params?.backTo);
+    if (forwardPath === ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.route) {
+        forwardPath = ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.getRoute(route.params?.backTo);
     } else if (backPath === ROUTES.SETTINGS_WALLET) {
         forwardPath = ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute();
     }

@@ -155,7 +155,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     };
 
     /**
-     * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
+     * Trigger the reset validateCode flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
         userActionsResendValidateCode(credentials?.login ?? '');
@@ -321,7 +321,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
     return (
         <SafariFormWrapper>
-            {/* At this point, show 2FA only after the user has submitted a magic code and account requires 2FA */}
+            {/* At this point, show 2FA only after the user has submitted a validateCode and account requires 2FA */}
             {account?.requiresTwoFactorAuth && !!credentials?.validateCode ? (
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (

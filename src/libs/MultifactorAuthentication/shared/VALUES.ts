@@ -9,7 +9,7 @@ import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthenticatio
  */
 const BACKEND_MESSAGE = {
     REGISTRATION_REQUIRED: 'Registration required',
-    INVALID_VALIDATE_CODE: 'Invalid validate code',
+    INVALID_VALIDATE_CODE: 'Invalid validateCode',
     TRANSACTION_EXPIRED: 'Transaction review period expired',
     TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
     TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
@@ -27,7 +27,7 @@ const REASON = {
     /** HTTP 4xx errors from the backend (not front-end errors despite the "Client" prefix). */
     CLIENT_ERRORS: {
         REGISTRATION_REQUIRED: 'Client: Registration required',
-        INVALID_VALIDATE_CODE: 'Client: Invalid validate code',
+        INVALID_VALIDATE_CODE: 'Client: Invalid validateCode',
         TRANSACTION_EXPIRED: 'Client: Transaction review period has expired',
         ALREADY_APPROVED_APPROVE_ATTEMPTED: 'Client: Already approved, approve attempted',
         ALREADY_APPROVED_DENY_ATTEMPTED: 'Client: Already approved, deny attempted',
@@ -247,7 +247,7 @@ const SHARED_VALUES = {
 
     /**
      * One of these parameters are always present in any MFA request.
-     * Validate code in the registration and signedChallenge in the authentication.
+     * ValidateCode in the registration and signedChallenge in the authentication.
      */
     BASE_PARAMETERS: {
         SIGNED_CHALLENGE: 'signedChallenge',

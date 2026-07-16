@@ -62,16 +62,16 @@ function TravelCVVPage() {
     const isLoadingLockAccountDetails = isLoadingOnyxValue(lockAccountDetailsMetadata);
     const isVerifyAccountInStack = useNavigationState((state) => state.routes.some((route) => route.name === SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT));
 
-    // Auto-navigate to the magic code screen on first mount so the user
+    // Auto-navigate to the validateCode screen on first mount so the user
     // doesn't have to click "Reveal Details" manually.
     const hasAutoNavigatedRef = useRef(false);
     useEffect(() => {
         if (hasAutoNavigatedRef.current) {
             return;
         }
-        // If the verify-account (magic code) screen is already in the navigation
+        // If the verify-account (validateCode) screen is already in the navigation
         // stack, the user has previously visited it during this mount cycle (e.g.
-        // they completed or cancelled the magic code flow and returned here).
+        // they completed or cancelled the validateCode flow and returned here).
         // Skip auto-navigation so we don't push a duplicate screen. This check
         // runs before the loading guards because it doesn't depend on Onyx data.
         if (isVerifyAccountInStack) {

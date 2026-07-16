@@ -27,7 +27,7 @@ import TextInput from './TextInput';
 const TEXT_INPUT_EMPTY_STATE = '';
 
 /**
- * Trims whitespace from pasted magic codes
+ * Trims whitespace from pasted validateCodes
  */
 const useValidateCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, onChangeText: (value: string) => void) => {
     useEffect(() => {
@@ -304,7 +304,7 @@ function ValidateCodeInput({
         });
 
     /**
-     * Updates the magic inputs with the contents written in the
+     * Updates the validateCode inputs with the contents written in the
      * input. It spreads each number into each input and updates
      * the focused input on the next empty one, if exists.
      * It handles both fast typing and only one digit at a time

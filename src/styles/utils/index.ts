@@ -1728,7 +1728,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /**
-     * Return the height of magic code input container
+     * Return the height of validateCode input container
      */
     getHeightOfValidateCodeInput: (): ViewStyle => ({height: styles.validateCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
 

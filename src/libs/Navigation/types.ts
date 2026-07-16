@@ -79,7 +79,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
         fieldToFocus?: string;
     };
-    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
         country?: Country | '';
     };
@@ -100,7 +100,7 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE]: {
         newContactMethod: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -157,7 +157,7 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
         /** cardID of selected card */
         cardID: string;
     };
@@ -1239,7 +1239,7 @@ type SettingsNavigatorParamList = {
         login: string;
         currentRole: string;
     };
-    [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE]: {
         login: string;
         currentRole: string;
         newRole: string;
@@ -1248,7 +1248,7 @@ type SettingsNavigatorParamList = {
         login: string;
         role: string;
     };
-    [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_VALIDATE_CODE]: {
         login: string;
         role: string;
     };
@@ -1259,7 +1259,7 @@ type SettingsNavigatorParamList = {
         /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
         isFromDomainCardDetail?: string;
     };
-    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: {
         /** cardID of selected card */
         cardID: string;
 
@@ -1327,7 +1327,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
@@ -1801,7 +1801,7 @@ type DomainCardNavigatorParamList = {
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
         cardID: string;
     };
-    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
         cardID: string;
     };
 };
@@ -3260,7 +3260,7 @@ type MissingPersonalDetailsParamList = {
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE]: {
         cardID: string;
     };
 };
@@ -3361,7 +3361,7 @@ type MultifactorAuthenticationParamList = {
 };
 
 type MultifactorAuthenticationModalNavigatorParamList = {
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {

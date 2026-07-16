@@ -73,7 +73,7 @@ function PrivatePersonalDetailsConfirmValidateCodePage() {
             validateError={submitError}
             clearError={clearError}
             onClose={() => {
-                // Plain goBack pops the magic-code RHP screen. Passing the SETTINGS_PRIVATE_PERSONAL_DETAILS route
+                // Plain goBack pops the confirm-validate-code RHP screen. Passing the SETTINGS_PRIVATE_PERSONAL_DETAILS route
                 // here would compare params against the existing PrivatePersonalDetails route (which carries a
                 // fieldToFocus param), miss, and REPLACE — leaving a duplicate PrivatePersonalDetails on the stack
                 // so the next back-press only pops the duplicate.

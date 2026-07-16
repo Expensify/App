@@ -16,7 +16,7 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
 
-type NewContactMethodConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE>;
+type NewContactMethodConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE>;
 
 function NewContactMethodConfirmValidateCodePage({route}: NewContactMethodConfirmValidateCodePageProps) {
     const {translate} = useLocalize();

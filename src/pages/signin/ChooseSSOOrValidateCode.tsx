@@ -26,7 +26,7 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
 type ChooseSSOOrValidateCodeProps = {
-    /** Function that returns whether the user is using SAML or magic codes to log in */
+    /** Function that returns whether the user is using SAML or validateCodes to log in */
     setIsUsingValidateCode: (value: boolean) => void;
 };
 

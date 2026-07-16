@@ -24,7 +24,7 @@ import React, {useEffect} from 'react';
 
 import SuccessReportCardLost from './SuccessReportCardLost';
 
-type ReportCardLostConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE>;
+type ReportCardLostConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE>;
 
 function ReportCardLostConfirmValidateCodePage({
     route: {

@@ -18,10 +18,10 @@ type ValidateCodeActionContentProps = {
     /** The pending action we're trying to validate */
     validatePendingAction?: PendingAction;
 
-    /** The error of submitting, this holds any error specific to the flow (e.g invalid reason when replacing a card) but NOT an incorrect magic code  */
+    /** The error of submitting, this holds any error specific to the flow (e.g invalid reason when replacing a card) but NOT an incorrect validateCode  */
     validateError?: Errors;
 
-    /** The errorField name of validateCodeAction.errorFields, e.g. "addLogin" to store the magic code error when adding a new contact method */
+    /** The errorField name of validateCodeAction.errorFields, e.g. "addLogin" to store the validateCode error when adding a new contact method */
     validateCodeActionErrorField: string;
 
     /** Function is called when submitting form  */
@@ -30,7 +30,7 @@ type ValidateCodeActionContentProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
-    /** Function is called when validate code modal is mounted and on magic code resend */
+    /** Function is called when validateCode modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
     /** Whether the form is loading or not */

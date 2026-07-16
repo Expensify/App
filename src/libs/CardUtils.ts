@@ -1592,7 +1592,7 @@ function isActionableVirtualExpensifyCard(card: Card | undefined): boolean {
 
 function hasVirtualExpensifyCardMissingPersonalDetails(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails, isActingAsDelegate?: boolean) {
     // Delegates can't complete the missing-personal-details flow (it requires the original
-    // account's magic code), so surfacing a brick road in the wallet would be misleading.
+    // account's validateCode), so surfacing a brick road in the wallet would be misleading.
     // Mirrors the same gate applied in useTimeSensitiveCards for the home prompt.
     if (isActingAsDelegate) {
         return false;

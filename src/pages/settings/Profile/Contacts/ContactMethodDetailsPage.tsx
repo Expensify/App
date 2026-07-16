@@ -94,7 +94,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
 
     /**
-     * Navigate to the magic code verification page before setting contact method as default
+     * Navigate to the validateCode verification page before setting contact method as default
      */
     const navigateToSetDefaultConfirm = useCallback(() => {
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod, backTo));
@@ -154,8 +154,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         }
 
         if (isFocused) {
-            // Navigate to methods page on successful magic code verification.
-            // The validatedDate property indicates successful magic code verification.
+            // Navigate to methods page on successful validateCode verification.
+            // The validatedDate property indicates successful validateCode verification.
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
         } else {
             // Set flag to navigate when screen regains focus

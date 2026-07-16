@@ -173,7 +173,7 @@ describe('actions/User', () => {
 
     describe('verifyAddSecondaryLoginCode', () => {
         it('should call API.write with correct parameters', async () => {
-            // Given a validate code
+            // Given a validateCode
             const validateCode = '123456';
 
             // When verifyAddSecondaryLoginCode is called
@@ -193,7 +193,7 @@ describe('actions/User', () => {
         });
 
         it('should apply optimisticData correctly', async () => {
-            // Given a validate code
+            // Given a validateCode
             const validateCode = '123456';
 
             // When verifyAddSecondaryLoginCode is called
@@ -221,7 +221,7 @@ describe('actions/User', () => {
         });
 
         it('should have correct successData structure', async () => {
-            // Given a validate code
+            // Given a validateCode
             const validateCode = '123456';
 
             // When verifyAddSecondaryLoginCode is called
@@ -246,7 +246,7 @@ describe('actions/User', () => {
         });
 
         it('should have correct failureData structure', async () => {
-            // Given a validate code
+            // Given a validateCode
             const validateCode = '123456';
 
             // When verifyAddSecondaryLoginCode is called
@@ -271,7 +271,7 @@ describe('actions/User', () => {
         });
 
         it('should apply optimisticData to Onyx when API.write applies it', async () => {
-            // Given a validate code and mock API.write that applies optimisticData
+            // Given a validateCode and mock API.write that applies optimisticData
             const validateCode = '123456';
 
             // Mock API.write to apply optimisticData
@@ -343,7 +343,7 @@ describe('actions/User', () => {
 
     describe('addNewContactMethod', () => {
         it('should call API.write with correct parameters when validateCode is provided', async () => {
-            // Given a contact method and validate code
+            // Given a contact method and validateCode
             const contactMethod = 'test@example.com';
             const validateCode = '123456';
 
@@ -364,7 +364,7 @@ describe('actions/User', () => {
         });
 
         it('should call API.write with empty validateCode when validateCode is not provided', async () => {
-            // Given a contact method without validate code
+            // Given a contact method without validateCode
             const contactMethod = 'test@example.com';
 
             // When addNewContactMethod is called without validateCode

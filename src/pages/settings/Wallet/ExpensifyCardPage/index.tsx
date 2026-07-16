@@ -544,10 +544,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                             }
 
                                                             if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
-                                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
+                                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)));
                                                                 return;
                                                             }
-                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
+                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)));
                                                         }}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
@@ -577,7 +577,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 !isSignedInAsDelegate ? (
                                                     <Button
                                                         text={translate('cardPage.cardDetails.revealCvv')}
-                                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)))}
+                                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)))}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
                                                     />

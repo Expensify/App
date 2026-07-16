@@ -57,15 +57,15 @@ type ValidateCodeFormProps = {
 
     hasValidateCodeBeenSent?: boolean;
 
-    /** The pending action of magic code being sent
+    /** The pending action of validateCode being sent
      * if not supplied, we will retrieve it from the validateCodeAction above: `validateCodeAction.pendingFields.validateCodeSent`
      */
     validatePendingAction?: PendingAction;
 
-    /** The field where any magic code error will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
+    /** The field where any validateCode error will be stored. e.g. if replacing a card and validateCode fails, it'll be stored in:
      * {"errorFields": {"replaceLostCard": {<timestamp>}}}
      * If replacing a virtual card, the errorField wil be 'reportVirtualCard', etc.
-     * These values are set in the backend, please reach out to an internal engineer if you're adding a validate code modal to a flow.
+     * These values are set in the backend, please reach out to an internal engineer if you're adding a validateCode modal to a flow.
      */
     validateCodeActionErrorField: string;
 
@@ -87,7 +87,7 @@ type ValidateCodeFormProps = {
     /** Text for the verify button  */
     submitButtonText?: string;
 
-    /** Function is called when validate code modal is mounted and on magic code resend */
+    /** Function is called when validateCode modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
     /** Whether the form is loading or not */
@@ -145,13 +145,13 @@ function BaseValidateCodeForm({
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
     // A request stamps `lastValidateCodeRequestedAt` and reverts it to null on failure, so a present timestamp with no in-flight request and no error means the code was sent successfully.
     const isCodeSentSuccessfully = !!lastValidateCodeRequestedAt && !validateCodeAction?.isLoading && isEmptyObject(defaultValidateCodeError);
-    // Flows that supply `hasValidateCodeBeenSent` track the magic code outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
+    // Flows that supply `hasValidateCodeBeenSent` track the validateCode outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
     const validateCodeSent = hasValidateCodeBeenSent ?? isCodeSentSuccessfully;
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
     const isFirstCountdownRunRef = useRef(true);
 
     const clearDefaultValidationCodeError = useCallback(() => {
-        // Clear "Failed to send magic code" error
+        // Clear "Failed to send validateCode" error
 
         if (isEmptyObject(defaultValidateCodeError)) {
             return;
@@ -264,7 +264,7 @@ function BaseValidateCodeForm({
     }, [validateCodeSent, wideRHPRouteKeys.length, isInPageModal]);
 
     /**
-     * Request a validate code / magic code be sent to verify this contact method
+     * Request a validateCode be sent to verify this contact method
      */
     const resendValidateCode = () => {
         sendValidateCode();
@@ -285,7 +285,7 @@ function BaseValidateCodeForm({
                 // Clear flow specific error
                 clearError();
 
-                // Clear "incorrect magic code" error
+                // Clear "incorrect validateCode" error
                 clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
@@ -299,7 +299,7 @@ function BaseValidateCodeForm({
         // Clear flow specific error
         clearError();
 
-        // Clear "incorrect magic" code error
+        // Clear "incorrect validateCode" error
         clearValidateCodeActionError(validateCodeActionErrorField);
 
         clearDefaultValidationCodeError();
@@ -334,7 +334,7 @@ function BaseValidateCodeForm({
         setIsCountdownRunning(false);
     }, []);
 
-    // latestValidateCodeError only holds an error related to bad magic code
+    // latestValidateCodeError only holds an error related to bad validateCode
     // while validateError holds flow-specific errors
     const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
     return (

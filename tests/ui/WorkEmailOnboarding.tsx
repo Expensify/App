@@ -740,7 +740,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding workspaces page when validate code step is successful and there is no signupQualifier', async () => {
+    it('should navigate to Onboarding workspaces page when validateCode step is successful and there is no signupQualifier', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -798,7 +798,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding employee page when validate code step is successful and user is routed app via smb', async () => {
+    it('should navigate to Onboarding employee page when validateCode step is successful and user is routed app via smb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {

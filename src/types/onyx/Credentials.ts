@@ -9,7 +9,7 @@ type Credentials = {
     /** The two factor auth code */
     twoFactorAuthCode?: string;
 
-    /** The validate code */
+    /** The validateCode */
     validateCode?: string;
 
     /** The auto-generated login. */

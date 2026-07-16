@@ -190,7 +190,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // - Scenario is not set,
         // - There's a continuable error:
         //      Pause flow and wait for the user to fix it.
-        //      Continuable errors (like invalid validate code) are displayed on the current screen
+        //      Continuable errors (like invalid validateCode) are displayed on the current screen
         //      and don't stop the entire flow - the user can retry without restarting
         if (isFlowComplete || !scenario || isOffline || continuableError) {
             return;
@@ -237,11 +237,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const isRegistrationRequired = !(await biometrics.areLocalCredentialsKnownToServer()) && !isRegistrationComplete;
 
         if (isRegistrationRequired) {
-            // Need validate code before registration
+            // Need validateCode before registration
             if (!validateCode) {
-                addMFABreadcrumb('Validate code requested');
+                addMFABreadcrumb('ValidateCode requested');
                 requestValidateCodeAction();
-                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
                 return;
             }
 

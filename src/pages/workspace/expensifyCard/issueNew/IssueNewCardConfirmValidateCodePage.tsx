@@ -25,7 +25,10 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useCallback, useEffect} from 'react';
 
-type IssueNewCardConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE>;
+type IssueNewCardConfirmValidateCodePageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE
+>;
 
 function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidateCodePageProps) {
     const {translate} = useLocalize();
@@ -44,7 +47,7 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
     const personalDetails = usePersonalDetails();
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path);
 
     useEffect(() => {
         if (!isSuccessful) {

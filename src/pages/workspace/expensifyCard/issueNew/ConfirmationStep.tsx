@@ -90,10 +90,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         if (hasError) {
             const errorMessage = getLatestErrorMessage(issueNewCard);
 
-            // Redirect to the magic code page when there is an error with the user's validateCode authentication
+            // Redirect to the validateCode page when there is an error with the user's validateCode authentication
             if (errorMessage.toLowerCase().includes('request a new code')) {
                 clearIssueNewCardError(policyID);
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
             }
         }
     }, [issueNewCard, isSuccessful, policyID]);
@@ -104,12 +104,12 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         }
 
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
-            // Attempt to issue directly without magic code when user has extended access
-            // If this fails, the effect above will redirect to the magic code page
+            // Attempt to issue directly without validateCode when user has extended access
+            // If this fails, the effect above will redirect to the validateCode page
             issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
         } else {
-            // Navigate to magic code page
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path));
+            // Navigate to validateCode page
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
         }
     }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone]);
 

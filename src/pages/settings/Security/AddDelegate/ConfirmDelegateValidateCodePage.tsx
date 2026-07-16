@@ -21,7 +21,7 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
 
-type ConfirmDelegateValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE>;
+type ConfirmDelegateValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_VALIDATE_CODE>;
 
 function ConfirmDelegateValidateCodePage({route}: ConfirmDelegateValidateCodePageProps) {
     const {translate} = useLocalize();
@@ -39,7 +39,7 @@ function ConfirmDelegateValidateCodePage({route}: ConfirmDelegateValidateCodePag
             return;
         }
 
-        // Dismiss modal on successful magic code verification
+        // Dismiss modal on successful validateCode verification
         Navigation.goBack(ROUTES.SETTINGS_COPILOT);
     }, [login, currentDelegate, role, addDelegateErrors]);
 

@@ -178,7 +178,7 @@ function SignInPage({ref}: SignInPageProps) {
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
 
-    /** This state is needed to keep track of whether the user has opted to use magic codes
+    /** This state is needed to keep track of whether the user has opted to use validateCodes
      * instead of signing in via SAML when SAML is enabled and not required */
     const [isUsingValidateCode, setIsUsingValidateCode] = useState(false);
 
@@ -250,7 +250,7 @@ function SignInPage({ref}: SignInPageProps) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.getStarted');
         welcomeText = shouldUseNarrowLayout ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
-        // Only show the authenticator prompt after the magic code has been submitted
+        // Only show the authenticator prompt after the validateCode has been submitted
         const isTwoFactorStage = account?.requiresTwoFactorAuth && !!credentials?.validateCode;
         if (isTwoFactorStage) {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
