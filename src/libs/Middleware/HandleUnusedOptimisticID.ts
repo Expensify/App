@@ -1,7 +1,6 @@
 import {prepareOnyxDataForCleanUpOptimisticParticipants} from '@libs/actions/Report';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import type {Middleware} from '@libs/Request';
 
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -190,20 +189,6 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: restoredPersonalDetails,
                 });
-            }
-        }
-        // OpenPublicProfilePage never populates login, so a login: '' from it is serializer noise — don't let it blank out a known login
-        if (request?.command === READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE) {
-            for (const update of response?.onyxData ?? []) {
-                if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST || !isRecord(update.value)) {
-                    continue;
-                }
-                for (const [accountID, detail] of Object.entries(update.value)) {
-                    if (!isRecord(detail) || detail.login !== '' || !getLoginByAccountID(Number(accountID))) {
-                        continue;
-                    }
-                    delete detail.login;
-                }
             }
         }
         return response;

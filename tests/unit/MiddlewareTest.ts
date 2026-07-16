@@ -699,7 +699,7 @@ describe('Middleware', () => {
             expect(personalDetails?.[settledAccountID]?.login).toBe('');
         });
 
-        test('OpenReport restores the invited login when the participant is already known without one from a server search', async () => {
+        test('OpenReport restores the invited login when the participant is already known without a login key', async () => {
             const optimisticReportID = '1234';
             const knownAccountID = 333;
             const invitedEmail = 'invited@example.com';
@@ -711,8 +711,6 @@ describe('Middleware', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [knownAccountID]: {
                         accountID: knownAccountID,
-                        login: '',
-                        displayName: '',
                     },
                 },
             });
@@ -756,13 +754,21 @@ describe('Middleware', () => {
             expect(personalDetails?.[knownAccountID]?.login).toBe(invitedEmail);
         });
 
-        test('OpenPublicProfilePage does not blank out a login the client already knows', async () => {
+        test('OpenReport does not restore the invited login when the participant is already known with an explicitly empty one', async () => {
+            const optimisticReportID = '1234';
             const knownAccountID = 333;
-            const knownLogin = 'known@example.com';
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [knownAccountID]: {
-                    accountID: knownAccountID,
-                    login: knownLogin,
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [knownAccountID]: {
+                        accountID: knownAccountID,
+                        login: '',
+                        displayName: '',
+                    },
                 },
             });
 
@@ -770,8 +776,8 @@ describe('Middleware', () => {
             Request.addMiddleware(SaveResponseInOnyx);
 
             SequentialQueue.push({
-                command: 'OpenPublicProfilePage',
-                data: {authToken: 'testToken', accountID: knownAccountID},
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
                 requestIndex: 16,
             });
 
@@ -780,63 +786,10 @@ describe('Middleware', () => {
                 onyxData: [
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
                         value: {
-                            [knownAccountID]: {
-                                accountID: knownAccountID,
-                                login: '',
-                            },
-                        },
-                    },
-                ],
-            });
-
-            SequentialQueue.unpause();
-            await SequentialQueue.waitForIdle();
-            await waitForBatchedUpdates();
-
-            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    callback: (data) => {
-                        Onyx.disconnect(connection);
-                        resolve(data);
-                    },
-                });
-            });
-            expect(personalDetails?.[knownAccountID]?.login).toBe(knownLogin);
-        });
-
-        test('A command other than OpenPublicProfilePage is not touched by the empty-login sanitizer', async () => {
-            const knownAccountID = 333;
-            const knownLogin = 'known@example.com';
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [knownAccountID]: {
-                    accountID: knownAccountID,
-                    login: knownLogin,
-                },
-            });
-
-            Request.addMiddleware(handleUnusedOptimisticID);
-            Request.addMiddleware(SaveResponseInOnyx);
-
-            SequentialQueue.push({
-                command: 'SomeOtherCommand',
-                data: {authToken: 'testToken'},
-                requestIndex: 17,
-            });
-
-            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
-                jsonCode: 200,
-                onyxData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: {
-                            [knownAccountID]: {
-                                accountID: knownAccountID,
-                                login: '',
-                            },
+                            reportID: optimisticReportID,
+                            participants: {[knownAccountID]: {notificationPreference: 'always'}},
                         },
                     },
                 ],

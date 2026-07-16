@@ -2144,8 +2144,7 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
         if (personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             settledPersonalDetails[accountID] = null;
             redundantParticipants[accountID] = null;
-        } else if (personalDetails?.[accountID] && !personalDetails[accountID].login) {
-            // '' counts as missing: SearchForReports seeds login: '' for unvalidated accounts, and in Onyx the two are indistinguishable
+        } else if (personalDetails?.[accountID] && !Object.hasOwn(personalDetails[accountID], 'login')) {
             missingLoginParticipants.push(Number(accountID));
         }
     }
