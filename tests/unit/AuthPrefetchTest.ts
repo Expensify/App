@@ -29,6 +29,8 @@ describe('auth startup prefetch cleanup', () => {
     });
 
     it('clears native startup prefetches before replacing session auth tokens', async () => {
+        const creationDate = 123456789;
+        const getTimeSpy = jest.spyOn(Date.prototype, 'getTime').mockReturnValue(creationDate);
         const updateSessionAuthTokens = (await import('@userActions/Session/updateSessionAuthTokens')).default;
 
         await updateSessionAuthTokens('authToken', 'encryptedAuthToken');
@@ -37,9 +39,10 @@ describe('auth startup prefetch cleanup', () => {
         expect(mockMerge).toHaveBeenCalledWith(ONYXKEYS.SESSION, {
             authToken: 'authToken',
             encryptedAuthToken: 'encryptedAuthToken',
-            creationDate: expect.any(Number),
+            creationDate,
         });
         expect(mockClearPrefetchOnAppStart.mock.invocationCallOrder.at(0)).toBeLessThan(mockMerge.mock.invocationCallOrder.at(0) ?? 0);
+        getTimeSpy.mockRestore();
     });
 
     it('clears native startup prefetches before resetting Onyx for an identity transition', async () => {
