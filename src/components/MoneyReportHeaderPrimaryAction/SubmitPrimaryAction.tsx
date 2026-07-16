@@ -142,6 +142,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 submitterLogin,
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
