@@ -11,6 +11,7 @@ import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProg
 
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import {getIssuedCardFeedCountry} from '@libs/CardUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -64,9 +65,7 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
 
     const handleSubmit = useCallback(
         (validateCode: string) => {
-            // A feed can hold both a US and a GB program, so pass the selected program's country to route the card to the
-            // right one. Without the EU/UK beta only US exists, so keep sending US explicitly.
-            const feedCountry = isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? selectedProgramKey : CONST.COUNTRY.US;
+            const feedCountry = getIssuedCardFeedCountry(isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK), selectedProgramKey);
             issueExpensifyCard(defaultFundID, policyID, feedCountry, validateCode, assigneeTimeZone, data);
         },
         [isBetaEnabled, selectedProgramKey, data, defaultFundID, policyID, assigneeTimeZone],

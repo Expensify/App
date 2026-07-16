@@ -1501,6 +1501,14 @@ function getSelectableCardProgramKey(programKey: string | undefined): CardProgra
     return programKey === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : CONST.COUNTRY.US;
 }
 
+/**
+ * Resolves which program's country a newly issued card should be routed to. A feed can hold both a US and a GB program,
+ * so pass the selected program's country when the EU/UK beta is on. Without the beta only US exists, so keep sending US explicitly.
+ */
+function getIssuedCardFeedCountry(isEuUkEnabled: boolean, selectedProgramKey: CardProgramKey): CardProgramKey {
+    return isEuUkEnabled ? selectedProgramKey : CONST.COUNTRY.US;
+}
+
 function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
@@ -2177,6 +2185,7 @@ export {
     filterCardsListByProgram,
     getExpensifyCardProgramLabelSuffix,
     getSelectableCardProgramKey,
+    getIssuedCardFeedCountry,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getLinkedPolicyIDsForExpensifyCardProgram,
     getPreferredPolicyFromExpensifyCardSettings,

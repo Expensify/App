@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getIssuedCardFeedCountry, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
@@ -108,9 +108,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without magic code when user has extended access
             // If this fails, the effect above will redirect to the magic code page
-            // A feed can hold both a US and a GB program, so pass the selected program's country to route the card to the
-            // right one. Without the EU/UK beta only US exists, so keep sending US explicitly.
-            const feedCountry = isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? selectedProgramKey : CONST.COUNTRY.US;
+            const feedCountry = getIssuedCardFeedCountry(isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK), selectedProgramKey);
             issueExpensifyCard(defaultFundID, policyID, feedCountry, '', assigneeTimeZone, data);
         } else {
             // Navigate to magic code page
