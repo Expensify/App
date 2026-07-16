@@ -102,7 +102,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const actualPopoverWidth = customPopoverWidth ?? popoverWidth ?? CONST.POPOVER_DROPDOWN_WIDTH;
     const containerStyles = isSmallScreenWidth ? styles.w100 : {width: actualPopoverWidth};
 
-    const popoverContent = hasEverExpanded ? PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth}) : null;
+    const popoverContent = PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
 
     return (
         <View
@@ -112,8 +112,9 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             {/* Dropdown Trigger */}
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
-            {/* Dropdown overlay */}
-            {isFocused && (
+            {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted
+                until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden. */}
+            {isFocused && hasEverExpanded && (
                 <PopoverWithMeasuredContent
                     anchorRef={triggerRef}
                     avoidKeyboard
