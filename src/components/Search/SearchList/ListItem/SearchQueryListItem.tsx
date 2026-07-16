@@ -94,6 +94,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         />
                     )}
                 </View>
+                {!!item.rightElement && <View style={[styles.alignItemsCenter, styles.ml2, styles.flexShrink1]}>{item.rightElement}</View>}
             </>
         </BaseListItem>
     );
