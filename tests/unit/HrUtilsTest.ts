@@ -8,6 +8,7 @@ import {
     isAnyHRReadOnlyWorkflowMode,
     isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
+    isMergeHRManualSyncLimitReached,
     shouldShowHRConnectionError,
 } from '@libs/HRUtils';
 
@@ -19,11 +20,13 @@ import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import ROUTES from '@src/ROUTES';
 import type {
     ConnectionLastSync,
+    ConnectionName,
     Connections,
     GustoConnectionConfig,
     MergeHRConnectionConfig,
     MergeHRConnectionLastSync,
     PolicyConnectionSyncProgress,
+    PolicyConnectionSyncStage,
     ZenefitsConnectionConfig,
 } from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
@@ -47,10 +50,7 @@ const SYNC_TIMEOUT = CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
 type GetHRCardsParams = Parameters<typeof getHRCards>[0];
 
-// `Connections` marks every integration as required, but a real policy only carries the connections it has
-// actually set up (a type bug to fix one day). We accept a partial `connections` and let the single `as Policy`
-// cast below absorb it here, so individual tests can pass just the connection(s) they care about.
-function makePolicy(overrides: Partial<Omit<Policy, 'connections'>> & {connections?: Partial<Connections>} = {}): Policy {
+function makePolicy(overrides: Partial<Policy> = {}): Policy {
     return {
         id: POLICY_ID,
         name: 'Test Workspace',
@@ -61,7 +61,7 @@ function makePolicy(overrides: Partial<Omit<Policy, 'connections'>> & {connectio
         isPolicyExpenseChatEnabled: true,
         outputCurrency: 'USD',
         ...overrides,
-    } as Policy;
+    };
 }
 
 function makeLastSync(overrides: Partial<ConnectionLastSync> = {}): ConnectionLastSync {
@@ -103,17 +103,18 @@ function makeMergeHRConnection({
             ...makeLastSync(lastSync),
             syncStatus: lastSync?.syncStatus,
             syncType: lastSync?.syncType,
+            manualSyncTimestamps: lastSync?.manualSyncTimestamps,
         },
     };
 }
 
-function makeSyncProgress(connectionName: string, stage: string, minutesAgo = 1): PolicyConnectionSyncProgress {
+function makeSyncProgress(connectionName: ConnectionName, stage: PolicyConnectionSyncStage, minutesAgo = 1): PolicyConnectionSyncProgress {
     const timestamp = new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
     return {
         stageInProgress: stage,
         connectionName,
         timestamp,
-    } as PolicyConnectionSyncProgress;
+    };
 }
 
 const stubGetLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'] = (datetime) => (datetime ? new Date(datetime) : new Date(0));
@@ -465,6 +466,44 @@ describe('HRUtils', () => {
                 connections: {zenefits: makeZenefitsConnection({lastSync: {isSuccessful: false, errorDate: new Date().toISOString()}})},
             });
             expect(shouldShowHRConnectionError(policy, true, true)).toBe(false);
+        });
+    });
+
+    describe('isMergeHRManualSyncLimitReached', () => {
+        const dbTimeHoursAgo = (hoursAgo: number) => new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
+
+        const makeMergePolicyWithSyncTimestamps = (manualSyncTimestamps?: string[]) =>
+            makePolicy({
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {manualSyncTimestamps}})},
+            });
+
+        it('returns false for undefined policy', () => {
+            expect(isMergeHRManualSyncLimitReached(undefined)).toBe(false);
+        });
+
+        it('returns false when there is no merge_hris connection', () => {
+            expect(isMergeHRManualSyncLimitReached(makePolicy())).toBe(false);
+        });
+
+        it('returns false when there are no manual sync timestamps', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps(undefined))).toBe(false);
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([]))).toBe(false);
+        });
+
+        it('returns false when only one sync happened within the last 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(1)]))).toBe(false);
+        });
+
+        it('returns false when both syncs are older than 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(25), dbTimeHoursAgo(48)]))).toBe(false);
+        });
+
+        it('returns false when only one of the two syncs falls within the window', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(2), dbTimeHoursAgo(30)]))).toBe(false);
+        });
+
+        it('returns true when two syncs happened within the last 24 hours', () => {
+            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(1), dbTimeHoursAgo(10)]))).toBe(true);
         });
     });
 });

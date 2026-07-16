@@ -2776,6 +2776,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }).not.toThrow();
         });
@@ -2848,6 +2849,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }).not.toThrow();
         });
@@ -2890,6 +2892,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }).not.toThrow();
         });
@@ -2932,6 +2935,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }).not.toThrow();
         });
