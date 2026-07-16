@@ -37,7 +37,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleBankAccountShareRecipient, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
@@ -134,7 +134,7 @@ function WalletPage() {
     const shouldShowGBDisclaimer = countryByIp === CONST.COUNTRY.GB;
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
-    const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
+    const hasEligibleShareRecipient = hasEligibleBankAccountShareRecipient(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
     const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', shouldShowLoadingSpinner};
 
@@ -494,7 +494,7 @@ function WalletPage() {
                       },
                   ]
                 : []),
-            ...(shouldShowShareButton && hasEligibleActiveAdmin
+            ...(shouldShowShareButton && hasEligibleShareRecipient
                 ? [
                       {
                           text: translate('common.share'),
@@ -571,7 +571,7 @@ function WalletPage() {
             icons.Trashcan,
             icons.Globe,
             shouldShowShareButton,
-            hasEligibleActiveAdmin,
+            hasEligibleShareRecipient,
             shouldShowUnshareButton,
             shouldShowEnableGlobalReimbursementsButton,
             isAccountLocked,

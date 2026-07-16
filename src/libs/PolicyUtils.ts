@@ -386,77 +386,64 @@ function getPolicyForDistanceRateID(customUnitRateID: string | undefined, polici
     });
 }
 
-/**
- * Return admins from active policies
- */
-function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
-    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
-    if (!activePolicies) {
+/** Return the emails that can receive a shared bank account from the current user. */
+function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): string[] {
+    if (!currentUserLogin) {
         return [];
     }
-    const adminMap = new Map<string, MemberForList>();
-    // O(1) checks for already-shared emails
+
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const activePolicies = getActivePolicies(policies, currentUserLogin).filter(
+        (policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS),
+    );
+    const recipientEmails = new Set<string>();
     const shareesSet = new Set(currentBankAccount?.accountData?.sharees ?? []);
-    for (const policy of Object.values(activePolicies)) {
-        for (const admin of getAdminEmployees(policy)) {
-            const email = admin?.email;
-            // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
+
+    for (const policy of activePolicies) {
+        for (const [email, employee] of Object.entries(policy.employeeList ?? {})) {
             if (
-                !email ||
+                employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                !canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS) ||
                 email === currentUserLogin ||
-                adminMap.has(email) ||
+                recipientEmails.has(email) ||
                 shareesSet.has(email) ||
                 (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))
             ) {
                 continue;
             }
-            const personalDetails = getPersonalDetailByEmail(email);
-            if (!personalDetails) {
-                continue;
-            }
-            adminMap.set(
-                email,
-                formatMemberForList({
-                    text: personalDetails.displayName,
-                    alternateText: personalDetails.login,
-                    keyForList: personalDetails.login ?? String(personalDetails.accountID),
-                    accountID: personalDetails.accountID,
-                    login: personalDetails.login,
-                    pendingAction: personalDetails.pendingAction,
-                    reportID: '',
-                }),
-            );
+
+            recipientEmails.add(email);
         }
     }
 
-    return Array.from(adminMap.values());
+    return Array.from(recipientEmails);
 }
 
-/**
- * Return true if there is at least one eligible admin in active policies
- */
-function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
-    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
-    if (!activePolicies) {
-        return false;
-    }
-    // Normalize sharees to a Set for O(1) lookups
-    const alreadySharedSharees = new Set(currentBankAccount?.accountData?.sharees ?? []);
-    for (const policy of Object.values(activePolicies)) {
-        const admins = getAdminEmployees(policy);
-        for (const admin of admins) {
-            const email = admin?.email;
-            if (!email || email === currentUserLogin || alreadySharedSharees.has(email) || (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))) {
-                continue;
-            }
-
-            return true;
+/** Return members who can receive a shared bank account from the current user. */
+function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
+    return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, bankAccountID).flatMap((email) => {
+        const personalDetails = getPersonalDetailByEmail(email);
+        if (!personalDetails) {
+            return [];
         }
-    }
 
-    return false;
+        return [
+            formatMemberForList({
+                text: personalDetails.displayName,
+                alternateText: personalDetails.login,
+                keyForList: personalDetails.login ?? String(personalDetails.accountID),
+                accountID: personalDetails.accountID,
+                login: personalDetails.login,
+                pendingAction: personalDetails.pendingAction,
+                reportID: '',
+            }),
+        ];
+    });
+}
+
+/** Return whether the current user has someone they can share a bank account with. */
+function hasEligibleBankAccountShareRecipient(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
+    return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, bankAccountID).length > 0;
 }
 
 /**
@@ -2874,7 +2861,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
-    hasEligibleActiveAdminFromWorkspaces,
+    hasEligibleBankAccountShareRecipient,
     isPolicyEmployee,
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
