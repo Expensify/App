@@ -12752,6 +12752,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const ActionUtils = __importStar(__nccwpck_require__(6981));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const PromisePool_1 = __importDefault(__nccwpck_require__(6468));
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const memoize_1 = __importDefault(__nccwpck_require__(9885));
@@ -12789,7 +12790,8 @@ const getCommit = (0, memoize_1.default)(GithubUtils_1.default.octokit.git.getCo
  * Process deploy checklist comments for a list of PRs
  */
 async function commentOnDeployChecklistPRs(prList, repoName, recentTags, getDeployMessage) {
-    for (const prNumber of prList) {
+    const pool = new PromisePool_1.default(8);
+    const commentPromises = prList.map((prNumber) => pool.add(async () => {
         try {
             const { data: pr } = await GithubUtils_1.default.octokit.pulls.get({
                 owner: CONST_1.default.GITHUB_OWNER,
@@ -12831,7 +12833,8 @@ async function commentOnDeployChecklistPRs(prList, repoName, recentTags, getDepl
                 throw error;
             }
         }
-    }
+    }));
+    await Promise.all(commentPromises);
 }
 async function run() {
     const prList = ActionUtils.getJSONInput('PR_LIST', { required: true }).map((num) => Number.parseInt(num, 10));
@@ -12886,16 +12889,13 @@ async function run() {
         }
         // who closed the last deploy checklist?
         const deployer = await GithubUtils_1.default.getActorWhoClosedIssue(previousChecklistID);
-        // Create comment on each pull request (one at a time to avoid throttling issues)
+        // Create comment on each pull request (up to 8 at a time via PromisePool to avoid throttling issues)
         const deployMessage = getDeployMessage(deployer, 'Deployed');
-        for (const pr of prList) {
-            await commentPR(pr, deployMessage);
-        }
+        const pool = new PromisePool_1.default(8);
+        await Promise.all(prList.map((pr) => pool.add(() => commentPR(pr, deployMessage))));
         console.log(`✅ Added production deploy comment on ${prList.length} App PRs`);
         // Comment on Mobile-Expensify PRs as well
-        for (const pr of mobileExpensifyPRList) {
-            await commentPR(pr, deployMessage, CONST_1.default.MOBILE_EXPENSIFY_REPO);
-        }
+        await Promise.all(mobileExpensifyPRList.map((pr) => pool.add(() => commentPR(pr, deployMessage, CONST_1.default.MOBILE_EXPENSIFY_REPO))));
         if (mobileExpensifyPRList.length > 0) {
             console.log(`✅ Added production deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
         }
@@ -13556,6 +13556,45 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
+
+
+/***/ }),
+
+/***/ 6468:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+class PromisePool {
+    /**
+     * The maximum number of concurrent async operations.
+     */
+    concurrency;
+    /**
+     * The set of currently-executing async operations.
+     */
+    executing = new Set();
+    constructor(concurrency = 8) {
+        this.concurrency = concurrency;
+    }
+    /**
+     * Execute an async task and return a promise with the result.
+     * If there are more async operations in the pool than allowed when this function is called,
+     * wait for one to finish before starting another.
+     */
+    async add(task) {
+        if (this.executing.size >= this.concurrency) {
+            await Promise.race(this.executing);
+        }
+        const p = task();
+        this.executing.add(p);
+        return p.finally(() => {
+            this.executing.delete(p);
+        });
+    }
+}
+exports["default"] = PromisePool;
 
 
 /***/ }),
