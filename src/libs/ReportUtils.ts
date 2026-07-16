@@ -11746,6 +11746,7 @@ type PrepareOnboardingOnyxDataParams = {
     adminsChatReport?: OnyxEntry<Report>;
     /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
     selfDMReport?: OnyxEntry<Report>;
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
 };
 

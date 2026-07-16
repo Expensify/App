@@ -666,6 +666,7 @@ function isWhisperAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 /**
  * Checks whether the report action is a whisper targeting someone other than the current user.
  */
+// TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
 function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     if (!isWhisperAction(reportAction)) {
         return false;
@@ -1236,6 +1237,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
+// TODO: Remove optional (?) on currentUserAccountID once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66408
 function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, currentUserAccountID?: number): boolean {
     if (!reportAction) {
         return false;
@@ -1338,6 +1340,7 @@ function isReportActionVisible(
     reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): boolean {
     if (!reportAction?.reportActionID) {
@@ -1381,6 +1384,7 @@ function isReportActionVisibleAsLastAction(
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
     reportID?: string,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): boolean {
     if (!reportAction) {
@@ -1437,6 +1441,7 @@ function getLastVisibleAction(
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
@@ -1471,6 +1476,7 @@ function getLastVisibleActionIncludingTransactionThread(
     reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     transactionThreadReportID?: string,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): OnyxEntry<ReportAction> {
     const parentLastAction = getLastVisibleAction(reportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData, currentUserAccountID);
@@ -1515,6 +1521,7 @@ function getLastVisibleMessage(
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
 ): LastVisibleMessage {
     const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, undefined, visibleReportActionsData, currentUserAccountID);
