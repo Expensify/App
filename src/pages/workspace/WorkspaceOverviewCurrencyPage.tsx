@@ -3,7 +3,9 @@ import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
@@ -17,6 +19,7 @@ import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 import {isCurrencySupportedForGlobalReimbursement, updateGeneralSettings} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {getReviewWorkspaceSettingsTaskCompletionData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,13 +46,15 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode);
+        updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode, getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID));
         clearCorpayBankAccountFields();
 
         if (isForcedToChangeCurrency) {

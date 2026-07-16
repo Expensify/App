@@ -515,6 +515,10 @@ function buildTaskData(
 
 /**
  * Complete a task
+ *
+ * Pass `shouldSendCompleteTaskRequest: false` when the backend already completes the task as a side effect of
+ * another command. The returned data is then purely optimistic and must be merged into that command's onyxData;
+ * sending CompleteTask as well would be a redundant request.
  */
 function completeTask(
     taskReport: OnyxEntry<OnyxTypes.Report>,
@@ -524,6 +528,7 @@ function completeTask(
     delegateEmail: string | undefined,
     reportIDFromAction?: string,
     shouldPlaySound = true,
+    shouldSendCompleteTaskRequest = true,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
@@ -543,7 +548,9 @@ function completeTask(
     if (shouldPlaySound) {
         playSound(SOUNDS.SUCCESS);
     }
-    API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    if (shouldSendCompleteTaskRequest) {
+        API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    }
     return {optimisticData, successData, failureData};
 }
 
@@ -1471,6 +1478,44 @@ function clearTaskErrors(
     });
 }
 
+/** Onboarding task info resolved by the `useOnboardingTaskInformation` hook. */
+type OnboardingTaskInformation = {
+    taskReport: OnyxEntry<OnyxTypes.Report>;
+    taskParentReport: OnyxEntry<OnyxTypes.Report>;
+    isOnboardingTaskParentReportArchived: boolean;
+    hasOutstandingChildTask: boolean;
+    parentReportAction: OnyxEntry<ReportAction> | undefined;
+};
+
+/**
+ * Build the optimistic Onyx data that completes the "Review your workspace settings" onboarding task.
+ * Resolve `taskInformation` in the calling component with `useOnboardingTaskInformation(REVIEW_WORKSPACE_SETTINGS)`
+ * and spread the result into the onyxData of a workspace-settings write command. The backend already completes
+ * this task when it processes that command, hence `shouldSendCompleteTaskRequest: false`.
+ */
+function getReviewWorkspaceSettingsTaskCompletionData(
+    taskInformation: OnboardingTaskInformation,
+    currentUserAccountID: number,
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
+    const {taskReport, taskParentReport, isOnboardingTaskParentReportArchived, hasOutstandingChildTask, parentReportAction} = taskInformation;
+    return getFinishOnboardingTaskOnyxData(
+        taskReport,
+        taskParentReport,
+        isOnboardingTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        undefined,
+        false,
+    );
+}
+
+/**
+ * Build the Onyx data that completes an onboarding task.
+ *
+ * Pass `shouldSendCompleteTaskRequest: false` when the backend already completes the task as a side effect of
+ * another command. The returned data is then purely optimistic and must be merged into that command's onyxData.
+ */
 function getFinishOnboardingTaskOnyxData(
     taskReport: OnyxEntry<OnyxTypes.Report>,
     taskParentReport: OnyxEntry<OnyxTypes.Report>,
@@ -1479,11 +1524,21 @@ function getFinishOnboardingTaskOnyxData(
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     delegateEmail: string | undefined,
+    shouldSendCompleteTaskRequest = true,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, undefined, false);
+                return completeTask(
+                    taskReport,
+                    taskParentReport?.hasOutstandingChildTask ?? false,
+                    hasOutstandingChildTask,
+                    parentReportAction,
+                    delegateEmail,
+                    undefined,
+                    false,
+                    shouldSendCompleteTaskRequest,
+                );
             }
         }
     }
@@ -1525,6 +1580,7 @@ export {
     reopenTask,
     buildTaskData,
     completeTask,
+    getReviewWorkspaceSettingsTaskCompletionData,
     clearOutTaskInfoAndNavigate,
     startOutCreateTaskQuickAction,
     getAssignee,

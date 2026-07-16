@@ -5,10 +5,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateGeneralSettings} from '@libs/actions/Policy/Policy';
+import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
@@ -29,6 +32,8 @@ type Props = WithPolicyProps;
 
 function WorkspaceNamePage({policy}: Props) {
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
     const {translate} = useLocalize();
 
     const submit = useCallback(
@@ -37,11 +42,16 @@ function WorkspaceNamePage({policy}: Props) {
                 return;
             }
 
-            updateGeneralSettings(policy, values.name.trim(), policy.outputCurrency);
+            updateGeneralSettings(
+                policy,
+                values.name.trim(),
+                policy.outputCurrency,
+                getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
+            );
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
-        [policy],
+        [policy, reviewWorkspaceSettingsTaskInformation, currentUserAccountID],
     );
 
     const validate = useCallback(
