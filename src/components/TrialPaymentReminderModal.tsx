@@ -53,6 +53,7 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
             isVisible={isVisible}
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            shouldHandleNavigationBack
         >
             <View style={[styles.alignItemsCenter, styles.wAuto, {backgroundColor: colors.blue800, height: CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}, styles.pb7]}>
                 <ImageSVG
