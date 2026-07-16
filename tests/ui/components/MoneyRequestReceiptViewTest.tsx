@@ -5,6 +5,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -354,7 +356,7 @@ describe('MoneyRequestReceiptView', () => {
         const reportWithCreationError: Report = {
             ...testReport,
             errorFields: {
-                createChat: {'1739520725165000': 'report.genericCreateReportFailureMessage'},
+                createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage', 1739520725165000),
             },
         };
 
