@@ -194,6 +194,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     // Localization
     const {translate, toLocaleDigit} = useLocalize();
+    const delegateAccountID = useDelegateAccountID();
 
     // Permissions
     const {isBetaEnabled} = usePermissions();
@@ -281,7 +282,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
-    const delegateAccountID = useDelegateAccountID();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     // Onboarding task data
@@ -874,6 +874,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         participantsPolicyTags,
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
+                        delegateAccountID,
                     });
                 }
             }
@@ -914,6 +915,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
             }
@@ -952,6 +954,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
             }
