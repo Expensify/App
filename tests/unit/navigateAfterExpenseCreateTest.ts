@@ -106,7 +106,7 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Growl.success).not.toHaveBeenCalled();
     });
 
-    it('should show the expense added growl on the non-global path when shouldAlwaysShowFeedback is set', () => {
+    it('should show the expense added growl on the non-global path when shouldAlwaysShowFeedback is set', async () => {
         navigateAfterExpenseCreate({
             activeReportID: 'report-123',
             transactionID: 'txn-1',
@@ -117,6 +117,7 @@ describe('navigateAfterExpenseCreate', () => {
         });
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
+        await waitForBatchedUpdates();
         const [growlText, growlDuration, growlAction] = jest.mocked(Growl.success).mock.calls.at(0) ?? [];
         expect(growlText).toEqual(expect.any(String));
         expect(growlDuration).toEqual(expect.any(Number));
@@ -124,7 +125,7 @@ describe('navigateAfterExpenseCreate', () => {
         expect(growlAction?.onPress).toEqual(expect.any(Function));
     });
 
-    it('should defer thread materialization to View press instead of growl-show time', () => {
+    it('should defer thread materialization to View press instead of growl-show time', async () => {
         const {setOptimisticTransactionThread} = require('@libs/actions/Report') as {setOptimisticTransactionThread: jest.Mock};
 
         navigateAfterExpenseCreate({
@@ -135,12 +136,14 @@ describe('navigateAfterExpenseCreate', () => {
             hasMultipleTransactions: false,
             shouldAlwaysShowFeedback: true,
         });
+        await waitForBatchedUpdates();
 
         // Showing the growl must not touch the thread report.
         expect(setOptimisticTransactionThread).not.toHaveBeenCalled();
 
         const growlAction = jest.mocked(Growl.success).mock.calls.at(0)?.[2];
         growlAction?.onPress();
+        await waitForBatchedUpdates();
 
         expect(setOptimisticTransactionThread).toHaveBeenCalledWith('thread-1', undefined, undefined, undefined);
     });

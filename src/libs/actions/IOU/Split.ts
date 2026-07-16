@@ -2272,12 +2272,16 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     } else {
         // Dismiss-first paths (orchestrator owns navigation). Surface feedback wherever the user lands:
         // highlight the new row for in-report adds, otherwise the "Expense added" growl with "View".
-        surfaceExpenseCreatedFeedback({
-            iouReportID: parameters.iouReportID,
-            transactionID: parameters.transactionID,
-            transactionThreadReportID: parameters.transactionThreadReportID,
-            isMoneyRequestReport,
-        });
+        // Splits fan out into one transaction thread per participant, so there's no single thread for
+        // "View" to open - skip the growl for them entirely.
+        if (iouType !== CONST.IOU.TYPE.SPLIT) {
+            surfaceExpenseCreatedFeedback({
+                iouReportID: parameters.iouReportID,
+                transactionID: parameters.transactionID,
+                transactionThreadReportID: parameters.transactionThreadReportID,
+                isMoneyRequestReport,
+            });
+        }
         removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 

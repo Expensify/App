@@ -8,16 +8,21 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport, getReportTransactions} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getReportTransactions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
+import type {Beta, IntroSelected, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
 import getTopmostFullScreenRoute from './getTopmostFullScreenRoute';
@@ -163,6 +168,10 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
  * its OpenReport write) when the user actually presses "View" — matching how every other thread
  * navigation entry point builds the thread at navigation time, and keeping untapped growls free
  * of Onyx/API side effects.
+ *
+ * Callers must only invoke this for expenses that resolve to a single transaction thread (a provided
+ * thread ID, an IOU report to build one from, or the created transaction). Splits fan out into one
+ * thread per participant, so they skip the growl at the call site rather than showing a dead "View".
  */
 function showExpenseAddedGrowl({
     iouReportID,
@@ -178,55 +187,69 @@ function showExpenseAddedGrowl({
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
     const growlMessage = isInvoice ? translateLocal('iou.invoiceSent') : translateLocal('iou.expenseAdded');
 
-    const buildThreadFromOnyx = (): string | undefined => {
-        const iouReport = iouReportID ? getReportOrDraftReport(iouReportID) : undefined;
-        const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
-        let threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
-        if (!threadReportID) {
-            const optimisticThread = createTransactionThreadReport({
-                introSelected: buildTransactionThreadParams?.introSelected,
-                currentUserLogin: buildTransactionThreadParams?.currentUserLogin ?? '',
-                currentUserAccountID: buildTransactionThreadParams?.currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                betas: buildTransactionThreadParams?.betas,
-                iouReport,
-                iouReportAction: iouAction,
-                transaction: buildTransactionThreadParams?.transaction,
-            });
-            threadReportID = optimisticThread?.reportID;
-        } else {
-            setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
+    // Reads the freshest IOU report and its IOU action - the server-created transaction thread's
+    // childReportID lands on the IOU action only after creation, so a value captured at growl-show time
+    // would be stale and would fabricate a duplicate optimistic thread.
+    const resolveIOUReportAndAction = async (): Promise<{iouReport: OnyxEntry<Report>; iouAction: OnyxEntry<ReportAction>}> => {
+        if (!iouReportID) {
+            return {iouReport: undefined, iouAction: undefined};
         }
-        return threadReportID;
+        const [iouReport, iouReportActions] = await Promise.all([
+            new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            }),
+            new Promise<OnyxEntry<ReportActions>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            }),
+        ]);
+        const iouAction = getIOUActionForTransactionID(Object.values(iouReportActions ?? {}), transactionID);
+        return {iouReport, iouAction};
     };
 
-    // Pure mirror of buildThreadFromOnyx's requirements, used at show time to decide whether "View"
-    // can be offered without materializing anything: a known thread ID, or an anchor to build one
-    // from (the IOU report, or the passed-in transaction for tracked/unreported expenses).
-    const canResolveThread = (): boolean => {
-        const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
-        if (providedTransactionThreadReportID ?? iouAction?.childReportID) {
-            return true;
+    const buildThreadFromOnyx = async (): Promise<string | undefined> => {
+        const {iouReport, iouAction} = await resolveIOUReportAndAction();
+        const threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
+        if (threadReportID) {
+            setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
+            return threadReportID;
         }
-        return !!(iouReportID && getReportOrDraftReport(iouReportID)) || !!buildTransactionThreadParams?.transaction;
+        const optimisticThread = createTransactionThreadReport({
+            introSelected: buildTransactionThreadParams?.introSelected,
+            currentUserLogin: buildTransactionThreadParams?.currentUserLogin ?? '',
+            currentUserAccountID: buildTransactionThreadParams?.currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            betas: buildTransactionThreadParams?.betas,
+            iouReport,
+            iouReportAction: iouAction,
+            transaction: buildTransactionThreadParams?.transaction,
+        });
+        return optimisticThread?.reportID;
     };
 
     const showGrowl = () => {
-        if (!canResolveThread()) {
-            Log.warn('[showExpenseAddedGrowl] Unable to resolve transaction thread reportID; growl without View.');
-            Growl.success(growlMessage, CONST.GROWL.DURATION_LONG);
-            return;
-        }
         const navigateToExpenseRHP = () => {
             // Everything resolves at press time (not growl-show time): the thread is only materialized
             // if the user actually taps "View" (with the freshest data available by then), and navigation
             // matches whatever surface the user is looking at, even if they switched tabs while the
             // growl was up.
-            const threadReportID = buildThreadFromOnyx();
-            if (!threadReportID) {
-                Log.warn('[showExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
-                return;
-            }
-            navigateToCreatedExpense({threadReportID, transactionID, iouReportID});
+            buildThreadFromOnyx().then((threadReportID) => {
+                if (!threadReportID) {
+                    Log.warn('[showExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
+                    return;
+                }
+                navigateToCreatedExpense({threadReportID, transactionID, iouReportID});
+            });
         };
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
         Growl.success(growlMessage, CONST.GROWL.DURATION_WITH_ACTION, {label: translateLocal('common.view'), onPress: navigateToExpenseRHP});
