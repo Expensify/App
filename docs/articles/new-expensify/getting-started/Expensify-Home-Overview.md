@@ -110,6 +110,8 @@ If these conditions aren’t met, the section won’t appear.
 
 The checklist items vary based on the intent selected during onboarding. Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, and inviting an accountant.
 
+Users who chose **manage my team** see tasks for creating a workspace, connecting accounting or customizing categories, linking company cards, issuing Expensify cards, configuring an approval workflow, and setting up spend rules. Each step appears only when the matching feature is enabled on the workspace, so the list adjusts as you turn features on or off in **More features**. The **Configure approval workflow** step is marked complete once the workspace has at least one custom approval workflow.
+
 ---
 
 ## How the Discover section works on Home
