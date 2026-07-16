@@ -84,7 +84,6 @@ import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PhoneNumber from '@libs/PhoneNumber';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
@@ -2126,13 +2125,14 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number | undefined,
-): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
+): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>; missingLoginParticipants: number[]} | undefined {
     const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
         return undefined;
     }
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const redundantParticipants: Record<number, null> = {};
+    const missingLoginParticipants: number[] = [];
     for (const accountID in existingReport.participants) {
         // Never clean up the current user's own personal details. Removing them here (even momentarily) drops the
         // current user's avatar down to the fallback avatar until the real details settle, which is what caused the
@@ -2140,13 +2140,14 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
         if (Number(accountID) === currentUserAccountID) {
             continue;
         }
-        if (!personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
-            continue;
+        if (personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+            settledPersonalDetails[accountID] = null;
+            redundantParticipants[accountID] = null;
+        } else if (personalDetails?.[accountID] && !Object.hasOwn(personalDetails[accountID], 'login')) {
+            missingLoginParticipants.push(Number(accountID));
         }
-        settledPersonalDetails[accountID] = null;
-        redundantParticipants[accountID] = null;
     }
-    return {settledPersonalDetails, redundantParticipants};
+    return {settledPersonalDetails, redundantParticipants, missingLoginParticipants};
 }
 
 /**
@@ -2443,6 +2444,7 @@ function navigateToAndOpenReportWithAccountIDs(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     shouldRevalidateExistingChat = false,
@@ -2468,6 +2470,7 @@ function navigateToAndOpenReportWithAccountIDs(
             reportID: fallbackChat.reportID,
             introSelected,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             newReportObject: fallbackChat,
             parentReportActionID: '0',
             participants,
@@ -2509,7 +2512,7 @@ function navigateToAndOpenReportWithAccountIDs(
     });
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas});
     navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
@@ -3528,12 +3531,13 @@ function toggleSubscribeToChildReport(
     parentReport: OnyxEntry<Report>,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     prevNotificationPreference: NotificationPreference | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed});
+        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -3578,6 +3582,7 @@ function toggleSubscribeToChildReport(
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             betas,
         });
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
@@ -3659,6 +3664,7 @@ function updateReportField({
     hasViolationsParam,
     recentlyUsedReportFields,
     shouldFixViolations = false,
+    isTrackIntentUser,
 }: {
     report: Report;
     reportField: PolicyReportField;
@@ -3670,6 +3676,7 @@ function updateReportField({
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
     shouldFixViolations: boolean | undefined;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
@@ -3698,6 +3705,7 @@ function updateReportField({
         currentUserEmailParam: email,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     const optimisticData: Array<
@@ -4019,6 +4027,7 @@ function buildNewReportOptimisticData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
+    isTrackIntentUser: boolean | undefined,
     reportName?: string,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
@@ -4038,6 +4047,7 @@ function buildNewReportOptimisticData(
         currentUserEmailParam: email ?? '',
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     if (optimisticNextStep) {
         optimisticReportData.nextStep = optimisticNextStep;
@@ -4262,6 +4272,7 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
+    isTrackIntentUser: boolean | undefined,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     reportName?: string,
@@ -4279,6 +4290,7 @@ function createNewReport(
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         betas,
+        isTrackIntentUser,
         reportName,
     );
 
@@ -4960,7 +4972,8 @@ function leaveRoom(
 function buildInviteToRoomOnyxData(
     report: Report,
     inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    newAccountIDs: number[],
+    newLogins: string[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     const reportID = report.reportID;
@@ -4971,9 +4984,6 @@ function buildInviteToRoomOnyxData(
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
-
-    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs, personalDetailsList);
 
     const participantsAfterInvitation = inviteeAccountIDs.reduce(
         (reportParticipants: Participants, accountID: number) => {
@@ -5057,22 +5067,18 @@ function buildInviteToRoomOnyxData(
         },
     ];
 
-    return {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs};
+    return {optimisticData, successData, failureData, isGroupChat, inviteeEmails};
 }
 
 /** Invites people to a room */
 function inviteToRoom(
     report: Report,
     inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    newAccountIDs: number[],
+    newLogins: string[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(
-        report,
-        inviteeEmailsToAccountIDs,
-        personalDetailsList,
-        formatPhoneNumber,
-    );
+    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails} = buildInviteToRoomOnyxData(report, inviteeEmailsToAccountIDs, newAccountIDs, newLogins, formatPhoneNumber);
 
     if (isGroupChat) {
         const parameters: InviteToGroupChatParams = {
@@ -5180,10 +5186,11 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
 function inviteToGroupChat(
     report: Report,
     inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    newAccountIDs: number[],
+    newLogins: string[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    inviteToRoom(report, inviteeEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
+    inviteToRoom(report, inviteeEmailsToAccountIDs, newAccountIDs, newLogins, formatPhoneNumber);
 }
 
 /** Removes people from a room
@@ -6765,7 +6772,6 @@ function moveIOUReportToPolicy(
 function moveIOUReportToPolicyAndInviteSubmitter(
     iouReport: OnyxEntry<Report>,
     policy: Policy,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: OnyxCollection<ReportActions>,
     reportPreviewAction: OnyxEntry<ReportAction>,
     currentUserAccountID: number,
@@ -6835,10 +6841,6 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     // Set up new member optimistic data
     const role = CONST.POLICY.ROLE.USER;
 
-    // Get personal details onyx data (similar to addMembersToWorkspace)
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLogin], [submitterAccountID], {[submitterAccountID]: {accountID: submitterAccountID}});
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
-
     // Build announce room members data for the new member
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, [submitterAccountID]);
 
@@ -6897,8 +6899,8 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         },
     });
 
-    optimisticData.push(...(newPersonalDetailsOnyxData.optimisticData ?? []), ...policyExpenseChats.onyxOptimisticData, ...(announceRoomMembers.optimisticData ?? []));
-    successData.push(...(newPersonalDetailsOnyxData.finallyData ?? []), ...policyExpenseChats.onyxSuccessData, ...(announceRoomMembers.successData ?? []));
+    optimisticData.push(...policyExpenseChats.onyxOptimisticData, ...(announceRoomMembers.optimisticData ?? []));
+    successData.push(...policyExpenseChats.onyxSuccessData, ...(announceRoomMembers.successData ?? []));
     failureData.push(...policyExpenseChats.onyxFailureData, ...(announceRoomMembers.failureData ?? []));
 
     const {
@@ -7204,6 +7206,7 @@ function buildOptimisticChangePolicyData({
     reportNextStep,
     optimisticPolicyExpenseChatReport,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7218,6 +7221,7 @@ function buildOptimisticChangePolicyData({
     reportNextStep?: ReportNextStepDeprecated;
     optimisticPolicyExpenseChatReport?: Report;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7338,6 +7342,7 @@ function buildOptimisticChangePolicyData({
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -7716,6 +7721,7 @@ function changeReportPolicy({
     reportNextStep,
     isReportLastVisibleArchived = false,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7730,6 +7736,7 @@ function changeReportPolicy({
     reportNextStep?: ReportNextStepDeprecated;
     isReportLastVisibleArchived?: boolean;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
@@ -7748,6 +7755,7 @@ function changeReportPolicy({
         isReportLastVisibleArchived,
         reportNextStep,
         reportPreviewAction,
+        isTrackIntentUser,
     });
 
     const params = {
@@ -7770,7 +7778,6 @@ function changeReportPolicyAndInviteSubmitter({
     report,
     parentReport,
     policy,
-    personalDetails,
     currentUser,
     submitterLogin,
     managerLogin,
@@ -7778,16 +7785,15 @@ function changeReportPolicyAndInviteSubmitter({
     isChangePolicyTrainingModalDismissed,
     isASAPSubmitBetaEnabled,
     employeeList,
-    formatPhoneNumber,
     isReportLastVisibleArchived,
     reportNextStep,
     reportActionsList,
     reportPreviewAction,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
     policy: Policy;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUser: CurrentUser;
     submitterLogin: string | undefined;
     managerLogin: string | undefined;
@@ -7795,11 +7801,11 @@ function changeReportPolicyAndInviteSubmitter({
     isChangePolicyTrainingModalDismissed: boolean;
     isASAPSubmitBetaEnabled: boolean;
     employeeList: PolicyEmployeeList | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     reportActionsList: OnyxCollection<ReportActions>;
     reportPreviewAction: OnyxEntry<ReportAction>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID || !submitterLogin) {
         return;
@@ -7814,11 +7820,13 @@ function changeReportPolicyAndInviteSubmitter({
         membersChats,
     } = buildAddMembersToWorkspaceOnyxData(
         {[submitterLogin]: report.ownerAccountID},
+        // We pass empty new personal details here because we already retrieved the submitter login
+        // from the personal details and returned early above if submitter login is falsy.
+        // Reaching this point means the submitter's personal details already exist.
+        {},
         policy,
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
-        formatPhoneNumber,
-        personalDetails,
         currentUser,
         reportActionsList,
         undefined,
@@ -7851,6 +7859,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportNextStep,
         optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
         reportPreviewAction,
+        isTrackIntentUser,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
@@ -7984,10 +7993,6 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
-function setConciergeThinkingKickoff() {
-    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, true);
-}
-
 function clearConciergeThinkingKickoff() {
     Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, null);
 }
@@ -8079,7 +8084,6 @@ export {
     subscribeToReportLeavingEvents,
     clearAgentZeroProcessingIndicator,
     clearConciergeThinkingKickoff,
-    setConciergeThinkingKickoff,
     subscribeToReportReasoningEvents,
     unsubscribeFromReportReasoningChannel,
     subscribeToReportTypingEvents,
