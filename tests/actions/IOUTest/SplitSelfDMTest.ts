@@ -219,6 +219,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber: (n: string) => n,
         });
@@ -309,6 +310,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber: (n: string) => n,
         });
@@ -420,6 +422,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber: (n: string) => n,
         });
@@ -516,6 +519,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber: (n: string) => n,
         });
@@ -578,6 +582,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber: (n: string) => n,
         });
@@ -671,6 +676,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber: (n: string) => n,
         });
