@@ -15,6 +15,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 
@@ -34,6 +35,8 @@ let observedActiveOnboardingThisSession = false;
 function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    // Only used for its load metadata: the promo must wait for ACCOUNT to load so a copilot/delegate session is detected before eligibility is decided
+    const [, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
     const [onboarding, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -67,7 +70,7 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
         observedActiveOnboardingThisSession = true;
     }, [hasCompletedOnboarding]);
 
-    const isAllOnyxLoaded = !isLoadingOnyxValue(isLoadingAppMetadata, dismissedProductTrainingMetadata, tryNewDotMetadata, onboardingMetadata);
+    const isAllOnyxLoaded = !isLoadingOnyxValue(isLoadingAppMetadata, accountMetadata, dismissedProductTrainingMetadata, tryNewDotMetadata, onboardingMetadata);
 
     const isEligible =
         isAllOnyxLoaded &&
