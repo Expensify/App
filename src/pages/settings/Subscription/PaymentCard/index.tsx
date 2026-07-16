@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -26,6 +27,7 @@ import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpir
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 
@@ -36,7 +38,7 @@ import SCREENS from '@src/SCREENS';
 import {useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 function AddPaymentCard() {
     const route = useRoute();
@@ -46,6 +48,7 @@ function AddPaymentCard() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [isVerifyingSetupIntent] = useOnyx(ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING);
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -79,6 +82,8 @@ function AddPaymentCard() {
               });
 
     useNavigateToCardAuthenticationOnLink();
+
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddPaymentCard', isVerifyingSetupIntent: !!isVerifyingSetupIntent};
 
     useEffect(() => {
         clearPaymentCardFormErrorAndSubmit();
@@ -125,6 +130,14 @@ function AddPaymentCard() {
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
                     <View style={styles.containerWithSpaceBetween}>
+                        {!!isVerifyingSetupIntent && (
+                            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    reasonAttributes={reasonAttributes}
+                                />
+                            </View>
+                        )}
                         <PaymentCardForm
                             shouldShowPaymentCardForm
                             addPaymentCard={addPaymentCard}
