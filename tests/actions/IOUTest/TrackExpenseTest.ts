@@ -2315,6 +2315,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -2915,6 +2916,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }).not.toThrow();
         });
@@ -2987,6 +2989,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }).not.toThrow();
         });
@@ -3029,6 +3032,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }).not.toThrow();
         });
@@ -3071,6 +3075,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }).not.toThrow();
         });
