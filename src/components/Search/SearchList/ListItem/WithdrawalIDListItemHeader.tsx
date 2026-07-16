@@ -61,7 +61,11 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function WithdrawalIDListItemHeaderImpl({
     withdrawalID: withdrawalIDItem,
     onCheckboxPress,
     isDisabled,
@@ -71,7 +75,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
     columns,
-}: WithdrawalIDListItemHeaderProps<TItem>) {
+}: WithdrawalIDListItemHeaderProps<ListItem>) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -192,7 +196,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(withdrawalIDItem as ListItem)}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
@@ -255,6 +259,10 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
             )}
         </View>
     );
+}
+
+function WithdrawalIDListItemHeader<TItem extends ListItem>(props: WithdrawalIDListItemHeaderProps<TItem>) {
+    return <WithdrawalIDListItemHeaderImpl {...(props as WithdrawalIDListItemHeaderProps<ListItem>)} />;
 }
 
 export default WithdrawalIDListItemHeader;
