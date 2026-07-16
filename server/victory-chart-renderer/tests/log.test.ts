@@ -15,13 +15,6 @@ const TEST_CONFIG = {
     callerTag: 'test',
 } as const;
 
-const VCR_CONFIG = {
-    processName: 'victory-chart-renderer',
-    scriptName: 'victory-chart-renderer',
-    sourceTag: 'script',
-    callerTag: 'vcr',
-} as const;
-
 type CapturedStderr = {
     writes: string[];
     restore: () => void;
@@ -61,11 +54,11 @@ describe('Log', () => {
 
     test('exports the levels the CLI relies on', () => {
         const log = new Log(TEST_CONFIG);
-        const logger = log as Record<string, unknown>;
 
-        for (const methodName of ['info', 'alert', 'warn', 'hmmm']) {
-            expect(typeof logger[methodName]).toBe('function');
-        }
+        expect(typeof log.info).toBe('function');
+        expect(typeof log.alert).toBe('function');
+        expect(typeof log.warn).toBe('function');
+        expect(typeof log.hmmm).toBe('function');
     });
 
     test('formats the prefix like Log.php with an empty email field', () => {
