@@ -30,7 +30,7 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
     const [authTokenType] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
-    // Capture once so render stays pure (Date.now is impure). Fine for a 30-day cooldown gate.
+    // Capture once so render stays pure (Date.now is impure). Fine for a 30-day cool-down gate.
     const [timeAtMount] = useState(Date.now);
 
     let shouldShowModal = true;
