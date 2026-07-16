@@ -110,7 +110,12 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     }, [isEditing, moveTo, pageIndex, prevPage]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnterSignerInfo', isRedirecting}} />;
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton
+                reasonAttributes={{context: 'EnterSignerInfo', isRedirecting}}
+            />
+        );
     }
 
     return (
