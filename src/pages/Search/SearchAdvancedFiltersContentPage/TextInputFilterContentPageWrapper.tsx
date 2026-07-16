@@ -10,6 +10,7 @@ function TextInputFilterContentPageWrapper({filterKey, value, onChange}: TextInp
             value={value}
             autoFocus
             largeButton
+            shouldFillAvailableHeight
             onChange={onChange}
         />
     );
