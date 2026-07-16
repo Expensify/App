@@ -1,5 +1,3 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-
 import * as API from '@libs/API';
 import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -8,6 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -244,7 +243,6 @@ type PerDiemExpenseInformation = {
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type PerDiemExpenseInformationParams = {
@@ -269,7 +267,6 @@ type PerDiemExpenseInformationParams = {
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -327,7 +324,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         optimisticTransactionID: uiProvidedOptimisticTransactionID,
         delegateAccountID,
         isTrackIntentUser,
-        formatPhoneNumber,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -936,7 +932,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticTransactionID,
         delegateAccountID,
         isTrackIntentUser,
-        formatPhoneNumber,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -990,7 +985,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticTransactionID,
         delegateAccountID,
         isTrackIntentUser,
-        formatPhoneNumber,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;

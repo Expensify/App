@@ -32,7 +32,6 @@ import {useCallback} from 'react';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useEnvironment from './useEnvironment';
-import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -73,7 +72,6 @@ function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[]
  * All data must be provided through function parameters
  */
 function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransactionsParams) {
-    const {formatPhoneNumber} = useLocalize();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -328,7 +326,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isOffline,
                     delegateAccountID,
                     isTrackIntentUser,
-                    formatPhoneNumber,
                 });
             }
 
@@ -405,7 +402,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             personalPolicy?.outputCurrency,
             delegateAccountID,
             isTrackIntentUser,
-            formatPhoneNumber,
         ],
     );
 

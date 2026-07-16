@@ -108,7 +108,6 @@ type UpdateSplitTransactionsParams = {
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
-    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
@@ -139,7 +138,6 @@ function updateSplitTransactions({
     transactionReport,
     expenseReport: expenseReportFromParams,
     isOffline,
-    delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
 }: UpdateSplitTransactionsParams) {
@@ -597,7 +595,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            delegateAccountID,
+            delegateAccountID: undefined,
             isTrackIntentUser,
         } as MoneyRequestInformationParams;
 
@@ -711,7 +709,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            delegateAccountID,
+            delegateAccountID: undefined,
             isTrackIntentUser,
             formatPhoneNumber,
         });
@@ -808,7 +806,7 @@ function updateSplitTransactions({
                     isSplitTransaction: true,
                     isSelfDMSplit,
                     isOffline,
-                    delegateAccountID,
+                    delegateAccountID: undefined,
                     isTrackIntentUser,
                 });
                 if (currentSplit) {
@@ -889,7 +887,7 @@ function updateSplitTransactions({
                 actorAccountID: commentAction.actorAccountID,
                 reportID: transactionThreadReportID,
                 reportActionID: newReportActionID,
-                delegateAccountIDParam: delegateAccountID,
+                delegateAccountIDParam: undefined,
             });
             const reportActionComment = {
                 ...reportComment.reportAction,

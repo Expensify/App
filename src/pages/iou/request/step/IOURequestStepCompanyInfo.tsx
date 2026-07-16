@@ -48,7 +48,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {backTo, reportID} = route.params;
 
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -120,7 +120,6 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             policyRecentlyUsedTags,
             isFromGlobalCreate,
             senderPolicyTags: policyTags ?? {},
-            formatPhoneNumber,
         });
         cleanupAndNavigateAfterExpenseCreate({
             report: undefined,

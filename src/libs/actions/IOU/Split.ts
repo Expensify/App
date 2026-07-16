@@ -144,7 +144,6 @@ type CreateDistanceRequestInformation = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -197,22 +196,6 @@ type StartSplitBilActionParams = {
     policyRecentlyUsedCurrencies: string[];
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    delegateAccountID: number | undefined;
-};
-
-type CompleteSplitBillActionParams = {
-    chatReportID: string;
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
-    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
-    sessionAccountID: number;
-    isASAPSubmitBetaEnabled: boolean;
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    delegateAccountID: number | undefined;
-    isTrackIntentUser: boolean | undefined;
-    sessionEmail?: string;
 };
 
 type SplitBillActionsParams = {
@@ -248,6 +231,20 @@ type SplitBillActionsParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
+type CompleteSplitBillInformation = {
+    chatReportID: string;
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    sessionAccountID: number;
+    isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    isTrackIntentUser: boolean | undefined;
+    sessionEmail?: string;
 };
 
 /**
@@ -511,7 +508,6 @@ function startSplitBill({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     formatPhoneNumber,
-    delegateAccountID,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -553,7 +549,7 @@ function startSplitBill({
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
         iouReportID: splitChatReport.reportID,
-        delegateAccountIDParam: delegateAccountID,
+        delegateAccountIDParam: undefined,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -702,7 +698,6 @@ function startSplitBill({
         policyRecentlyUsedCurrencies,
         policyRecentlyUsedTags,
         participantsPolicyTags,
-        delegateAccountID,
     };
 
     if (existingSplitChatReport) {
@@ -900,10 +895,9 @@ function completeSplitBill({
     transactionViolations,
     betas,
     personalDetails,
-    delegateAccountID,
     isTrackIntentUser,
     sessionEmail,
-}: CompleteSplitBillActionParams) {
+}: CompleteSplitBillInformation) {
     if (!reportAction) {
         return;
     }
@@ -1106,14 +1100,14 @@ function completeSplitBill({
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
                 currentUserAccountID: sessionAccountID,
-                delegateAccountIDParam: delegateAccountID,
+                delegateAccountIDParam: undefined,
             });
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, undefined);
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1149,7 +1143,7 @@ function completeSplitBill({
             },
             quickAction,
             personalDetails,
-            delegateAccountID,
+            delegateAccountID: undefined,
             isTrackIntentUser,
         });
 
@@ -1969,7 +1963,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         previousOdometerDraft,
         delegateAccountID,
         isTrackIntentUser,
-        formatPhoneNumber,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2062,7 +2055,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             participantsPolicyTags: buildParticipantsPolicyTags(participants),
             delegateAccountID,
             isTrackIntentUser,
-            formatPhoneNumber,
         });
         onyxData = splitOnyxData;
 
@@ -2156,7 +2148,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             optimisticReportPreviewActionID,
             delegateAccountID,
             isTrackIntentUser,
-            formatPhoneNumber,
         });
 
         onyxData = moneyRequestOnyxData;

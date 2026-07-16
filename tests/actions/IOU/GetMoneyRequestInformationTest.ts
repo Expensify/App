@@ -70,7 +70,6 @@ const baseParams = {
     personalDetails: {},
     delegateAccountID: undefined,
     isTrackIntentUser: false,
-    formatPhoneNumber: (n: string) => n,
 } as const;
 
 describe('getMoneyRequestInformation', () => {

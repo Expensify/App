@@ -1,11 +1,10 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -88,7 +87,6 @@ type SendInvoiceOptions = {
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -593,7 +591,6 @@ function getSendInvoiceInformation({
     policyRecentlyUsedTags,
     senderPolicyTags,
     delegateAccountID,
-    formatPhoneNumber,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -743,7 +740,6 @@ function sendInvoice({
     isFromGlobalCreate = false,
     senderPolicyTags,
     delegateAccountID,
-    formatPhoneNumber,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -779,7 +775,6 @@ function sendInvoice({
         policyRecentlyUsedTags,
         senderPolicyTags: senderPolicyTags ?? {},
         delegateAccountID,
-        formatPhoneNumber,
     });
 
     const parameters: SendInvoiceParams = {
