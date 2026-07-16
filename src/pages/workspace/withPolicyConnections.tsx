@@ -23,6 +23,11 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
     isConnectionDataFetchNeeded: boolean;
 };
 
+type WithPolicyConnectionsImplProps<TProps extends WithPolicyConnectionsProps> = {
+    WrappedComponent: ComponentType<TProps>;
+    shouldBlockView: boolean;
+} & TProps;
+
 /**
  * Higher-order component that fetches the connections data and populates
  * the corresponding field of the policy object if the field is empty. It then passes the policy object
@@ -33,36 +38,46 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
  * Only the active policy gets the complete policy data upon app start that includes the connections data.
  * For other policies, the connections data needs to be fetched when it's needed.
  */
+function WithPolicyConnectionsImpl<TProps extends WithPolicyConnectionsProps>({WrappedComponent, shouldBlockView, ...props}: WithPolicyConnectionsImplProps<TProps>) {
+    const {isOffline} = useNetwork();
+    const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id}`);
+    const isOnyxDataLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
+    const isConnectionDataFetchNeeded =
+        !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
+
+    const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
+
+    useEffect(() => {
+        if (!isConnectionDataFetchNeeded || !props.policy?.id) {
+            return;
+        }
+        openPolicyAccountingPage(props.policy.id);
+    }, [props.policy?.id, isConnectionDataFetchNeeded]);
+
+    if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'withPolicyConnections',
+            isFetchingData,
+            isOnyxDataLoading,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
+        />
+    );
+}
+
 function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
     function WithPolicyConnections(props: TProps) {
-        const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id}`);
-        const isOnyxDataLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
-        const isConnectionDataFetchNeeded =
-            !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
-
-        const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
-
-        useEffect(() => {
-            if (!isConnectionDataFetchNeeded || !props.policy?.id) {
-                return;
-            }
-            openPolicyAccountingPage(props.policy.id);
-        }, [props.policy?.id, isConnectionDataFetchNeeded]);
-
-        if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'withPolicyConnections',
-                isFetchingData,
-                isOnyxDataLoading,
-            };
-            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
-        }
-
         return (
-            <WrappedComponent
+            <WithPolicyConnectionsImpl
+                WrappedComponent={WrappedComponent}
+                shouldBlockView={shouldBlockView}
                 {...props}
-                isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
             />
         );
     }

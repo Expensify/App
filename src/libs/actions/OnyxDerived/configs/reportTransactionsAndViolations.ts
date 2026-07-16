@@ -23,18 +23,12 @@ export default createOnyxDerivedValueConfig({
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         let transactionsToProcess = Object.keys(transactions);
-        // When we have a delta, process the union of transactions that changed directly and transactions
-        // whose violations changed. Coalescing can put both in the same flush, so an `if/else` would drop
-        // the second trigger (e.g. a transaction change for A batched with a violations change for B).
-        if (transactionsUpdates || transactionViolationsUpdates) {
-            const transactionKeys = new Set<string>();
-            for (const transactionKey of Object.keys(transactionsUpdates ?? {})) {
-                transactionKeys.add(transactionKey);
-            }
-            for (const transactionViolationKey of Object.keys(transactionViolationsUpdates ?? {})) {
-                transactionKeys.add(transactionViolationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION));
-            }
-            transactionsToProcess = Array.from(transactionKeys);
+        if (transactionsUpdates) {
+            transactionsToProcess = Object.keys(transactionsUpdates);
+        } else if (transactionViolationsUpdates) {
+            transactionsToProcess = Object.keys(transactionViolationsUpdates).map((transactionViolation) =>
+                transactionViolation.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION),
+            );
         }
 
         const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
