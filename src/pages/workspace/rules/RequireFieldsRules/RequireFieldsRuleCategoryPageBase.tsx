@@ -8,7 +8,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {setDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActiveFieldRequirementsDirection, getRequireFieldsFormFromCategory, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
+import {getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -64,9 +64,6 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         });
 
     const onSave = (value?: string) => {
-        const previousCategoryName = form?.[INPUT_IDS.CATEGORY];
-        const previousCategory = previousCategoryName ? policyCategories?.[previousCategoryName] : undefined;
-        const previousSeed = getRequireFieldsFormFromCategory(previousCategory);
         const preservedSettings: Partial<RequireFieldsRuleForm> = {
             [INPUT_IDS.CATEGORY]: value,
         };
@@ -74,21 +71,8 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         for (const fieldKey of SETTING_FIELD_KEYS) {
             const formValue = form?.[fieldKey];
 
-            // Prefer values the user changed in the draft over the previous category seed.
-            if (formValue !== undefined && formValue !== previousSeed[fieldKey]) {
-                preservedSettings[fieldKey] = formValue;
-                continue;
-            }
-
-            if (isEditing) {
-                // Keep what was shown for the previous category (active override).
-                const displayedSetting = getActiveFieldRequirementsDirection(previousCategory, fieldKey);
-                if (displayedSetting !== undefined) {
-                    preservedSettings[fieldKey] = displayedSetting;
-                }
-                continue;
-            }
-
+            // Keep only what's still in the draft. Cleared fields are removed from the form on
+            // edit, so restoring previous-category overrides here would resurrect them.
             if (formValue !== undefined) {
                 preservedSettings[fieldKey] = formValue;
             }
