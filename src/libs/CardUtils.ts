@@ -2024,16 +2024,17 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
  * 4. For UK/EU feeds, determine currency based on card country, defaulting to GBP
  * 5. Finally, if all else fails, fallback to USD
  */
-function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): string {
     // If currency is set on the card itself, use it.
     if (card?.nameValuePairs?.currency) {
         return card.nameValuePairs.currency;
     }
 
-    // If not, attempt to get currency from the card settings.
-    const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
-    const settings = getCardSettings(cardSettings, programKey);
-    return getExpensifyCardProgramCurrency(programKey, card?.nameValuePairs?.country, settings?.currency);
+    // If not, attempt to get currency from the card settings. A card's `feedCountry` is its own program key; fall back
+    // to the passed program when there is no card (e.g. a feed-level lookup).
+    const resolvedProgramKey = (card?.nameValuePairs?.feedCountry as CardProgramKey | undefined) ?? programKey;
+    const settings = getCardSettings(cardSettings, resolvedProgramKey);
+    return getExpensifyCardProgramCurrency(resolvedProgramKey, card?.nameValuePairs?.country, settings?.currency);
 }
 
 /**
