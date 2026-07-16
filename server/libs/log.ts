@@ -149,9 +149,5 @@ class Log {
     }
 }
 
-export default function createLog(config: LogConfig): Log {
-    return new Log(config);
-}
-
-export {Log};
+export default Log;
 export type {LogConfig, LogLevel, LogParams};

@@ -1,6 +1,6 @@
 import Log from '@server/libs/log';
 
-const log = Log({
+const log = new Log({
     processName: 'victory-chart-renderer',
     scriptName: 'victory-chart-renderer',
     sourceTag: 'script',

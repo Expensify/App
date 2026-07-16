@@ -60,7 +60,7 @@ describe('Log', () => {
     });
 
     test('exports the levels the CLI relies on', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         const logger = log as Record<string, unknown>;
 
         for (const methodName of ['info', 'alert', 'warn', 'hmmm']) {
@@ -69,14 +69,14 @@ describe('Log', () => {
     });
 
     test('formats the prefix like Log.php with an empty email field', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         log.info('render succeeded');
 
         expect(stderrCapture.writes).toEqual([`<6>test-cli: ${REQUEST_ID} test-cli  !script! ?test? [info] render succeeded\n`]);
     });
 
     test('uses the correct bracketed tag per level', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         const cases = [
             {call: () => log.info('msg'), tag: '[info]'},
             {call: () => log.hmmm('msg'), tag: '[hmmm]'},
@@ -92,35 +92,35 @@ describe('Log', () => {
     });
 
     test('appends object params in ~~ key: value format', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         log.info('render succeeded', true, {outPath: '/tmp/chart.png', width: 680, height: 430});
 
         expect(stderrCapture.writes.at(0)?.endsWith(" ~~ outPath: '/tmp/chart.png' width: '680' height: '430'\n")).toBe(true);
     });
 
     test('omits the ~~ separator when there are no params', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         log.info('no params here');
 
         expect(stderrCapture.writes.at(0)?.includes('~~')).toBe(false);
     });
 
     test('appends string params directly', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         log.hmmm('msg', 'extra context');
 
         expect(stderrCapture.writes.at(0)?.endsWith(' ~~ extra context\n')).toBe(true);
     });
 
     test('appends array-of-object params by flattening entries', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         log.warn('msg', [{a: '1'}, {b: '2'}]);
 
         expect(stderrCapture.writes.at(0)?.endsWith(" ~~ a: '1' b: '2'\n")).toBe(true);
     });
 
     test('redacts sensitive-looking param keys', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         log.alert('render failed', {authToken: 'super-secret', outPath: '/tmp/chart.png'});
 
         const line = stderrCapture.writes.at(0) ?? '';
@@ -130,7 +130,7 @@ describe('Log', () => {
     });
 
     test('serializes Error params using the stack', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         const error = new Error('boom');
         log.alert('render failed', error);
 
@@ -140,7 +140,7 @@ describe('Log', () => {
     });
 
     test('chunks messages that would exceed the rsyslog message limit', () => {
-        const log = Log(TEST_CONFIG);
+        const log = new Log(TEST_CONFIG);
         const longMessage = 'x'.repeat(8000);
         log.alert(longMessage);
 
