@@ -78,7 +78,7 @@ describe('navigateAfterOnboarding', () => {
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
     it('should not navigate to last accessed report if it is a concierge chat on small screens', async () => {
