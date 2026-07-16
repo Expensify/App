@@ -95,6 +95,18 @@ describe('useProfileAvatarForm', () => {
         expect(Navigation.dismissModal).toHaveBeenCalled();
     });
 
+    it('sends an unchanged color again when a preset avatar still needs clearing', () => {
+        currentUserPersonalDetails.avatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
+        currentUserPersonalDetails.avatarStyle = {color: 'green400'};
+        const {result} = renderHook(() => useProfileAvatarForm());
+
+        act(() => result.current.onSelectPreset('green400'));
+        act(() => result.current.save());
+
+        expect(updateAvatarStyle).toHaveBeenCalledWith('green400', currentUserPersonalDetails);
+        expect(Navigation.dismissModal).toHaveBeenCalled();
+    });
+
     it('does not resend a letter avatar color that is already set', () => {
         currentUserPersonalDetails.avatar = GENERATED_LETTER_AVATAR_URL;
         currentUserPersonalDetails.avatarStyle = {color: 'green400'};

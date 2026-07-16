@@ -6,7 +6,7 @@ import {isLetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {isUploadedAvatar} from '@libs/UserAvatarUtils';
+import {isGeneratedLetterAvatarURL} from '@libs/UserAvatarUtils';
 
 import {deleteAvatar, updateAvatar, updateAvatarStyle} from '@userActions/PersonalDetails';
 
@@ -107,7 +107,8 @@ function useProfileAvatarForm() {
 
         if (selected && isLetterAvatarSchemeKey(selected)) {
             const isColorChanged = currentUserPersonalDetails?.avatarStyle?.color !== selected;
-            if (isColorChanged || isUploadedAvatar(currentUserPersonalDetails?.avatar)) {
+            const hasAvatarImageToClear = !!currentUserPersonalDetails?.avatar && !isGeneratedLetterAvatarURL(currentUserPersonalDetails.avatar);
+            if (isColorChanged || hasAvatarImageToClear) {
                 updateAvatarStyle(selected, currentUserPersonalDetails);
             }
             setSelected(undefined);

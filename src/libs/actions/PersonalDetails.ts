@@ -438,7 +438,8 @@ function updateAvatarStyle(
         return;
     }
 
-    const willClearUploadedAvatar = UserAvatarUtils.isUploadedAvatar(currentUserPersonalDetails.avatar);
+    // The backend clears any stored avatar on a color pick; a generated letter URL is the materialized form of "no stored avatar".
+    const willClearAvatar = !!currentUserPersonalDetails.avatar && !UserAvatarUtils.isGeneratedLetterAvatarURL(currentUserPersonalDetails.avatar);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
@@ -450,7 +451,7 @@ function updateAvatarStyle(
                     pendingFields: {
                         avatarStyle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
-                    ...(willClearUploadedAvatar && {
+                    ...(willClearAvatar && {
                         avatar: UserAvatarUtils.getDefaultAvatarURL({
                             accountID: currentUserPersonalDetails.accountID,
                             accountEmail: currentUserPersonalDetails.email,
@@ -486,7 +487,7 @@ function updateAvatarStyle(
                     pendingFields: {
                         avatarStyle: null,
                     },
-                    ...(willClearUploadedAvatar && {
+                    ...(willClearAvatar && {
                         avatar: currentUserPersonalDetails.avatar,
                         fallbackIcon: currentUserPersonalDetails.fallbackIcon,
                     }),
