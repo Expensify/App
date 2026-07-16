@@ -6500,6 +6500,13 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    TRAVEL_NUDGE: {
+        ORIGINATION: {
+            CARD: 'card',
+            MANUAL: 'manual',
+        },
+    },
+
     PNR_STATUS: {
         CANCELLED: 'CANCELLED',
         CANCELLED_STATUS: 'CANCELLED_STATUS',

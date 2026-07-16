@@ -1654,7 +1654,7 @@ type OriginalMessageTravelNudge = {
     travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
 
     /** Whether the expense was created from a card import or manually */
-    origination: 'manual' | 'card';
+    origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;
 };
 
 /** The map type of original message */

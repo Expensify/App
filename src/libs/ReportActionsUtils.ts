@@ -4631,7 +4631,7 @@ function getTravelNudgeMessage(translate: LocalizedTranslate, reportAction: Repo
     if (!originalMessage) {
         return '';
     }
-    const isCardCreated = originalMessage.origination === 'card';
+    const isCardCreated = originalMessage.origination === CONST.TRAVEL_NUDGE.ORIGINATION.CARD;
     switch (originalMessage.travelType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
             return translate(isCardCreated ? 'travel.nudge.airfareCard' : 'travel.nudge.airfareManual');
