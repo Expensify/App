@@ -886,6 +886,7 @@ function setWorkspaceApprovalMode(
     approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    isTrackIntentUser: boolean | undefined,
     additionalData?: SetWorkspaceApprovalModeAdditionalData,
 ) {
     if (!policy) {
@@ -970,6 +971,7 @@ function setWorkspaceApprovalMode(
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isTrackIntentUser,
             });
 
             nextStepOptimisticData.push({
