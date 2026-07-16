@@ -1571,7 +1571,6 @@ function requestUnlockAccount(accountID: number) {
 type RespondToProactiveAppReviewParams = {
     response: 'positive' | 'negative' | 'skip';
     optimisticReportActionID?: string;
-    policyID: string | undefined;
 };
 
 /**
@@ -1583,11 +1582,10 @@ function respondToProactiveAppReview(
     userEmail: string | undefined,
     userAccountID: number,
     delegateAccountID: number | undefined,
-    policyID: string | undefined,
     message?: string,
     conciergeChatReportID?: string,
 ) {
-    const params: RespondToProactiveAppReviewParams = {response, policyID};
+    const params: RespondToProactiveAppReviewParams = {response};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
