@@ -570,6 +570,7 @@
         "domparser",
         "dont",
         "DONTWAIT",
+        "NONBLOCK",
         "dotlottie",
         "dsyms",
         "dylib",
