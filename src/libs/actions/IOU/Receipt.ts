@@ -41,7 +41,7 @@ type ReplaceReceipt = {
     transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
 };
-type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction'> & {transactionID: string};
+type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transactionReport'> & {transactionID: string};
 
 function detachReceipt(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -216,7 +216,6 @@ function replaceReceipt({
         transactionPolicyCategories,
         transactionPolicyTagList,
         transactionViolations,
-        transactionReport,
     };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
