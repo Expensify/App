@@ -59,7 +59,7 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {buildParticipantsPolicyTags, getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
+import {getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
@@ -652,6 +652,7 @@ function createExpenseByType({
     personalDetails,
     recentWaypoints,
     isTrackIntentUser,
+    participantsPolicyTags,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -665,6 +666,7 @@ function createExpenseByType({
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     isTrackIntentUser: boolean | undefined;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -701,9 +703,7 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
-                participantsPolicyTags: buildParticipantsPolicyTags(participants),
+                participantsPolicyTags,
             };
             return createDistanceRequest(distanceParams);
         }
@@ -755,6 +755,7 @@ type DuplicateExpenseTransactionParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 function duplicateExpenseTransaction({
@@ -783,6 +784,7 @@ function duplicateExpenseTransaction({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    participantsPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -896,6 +898,7 @@ function duplicateExpenseTransaction({
         personalDetails,
         recentWaypoints,
         isTrackIntentUser,
+        participantsPolicyTags,
     });
 }
 
@@ -922,6 +925,7 @@ type DuplicateReportParams = {
     shouldPlaySound?: boolean;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 function duplicateReport({
@@ -947,6 +951,7 @@ function duplicateReport({
     shouldPlaySound = true,
     isTrackIntentUser,
     delegateAccountID,
+    participantsPolicyTags,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1064,6 +1069,7 @@ function duplicateReport({
             personalDetails,
             recentWaypoints,
             isTrackIntentUser,
+            participantsPolicyTags,
         });
 
         if (result?.iouReport) {
@@ -1098,6 +1104,7 @@ type BulkDuplicateExpensesParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 function bulkDuplicateExpenses({
@@ -1122,6 +1129,7 @@ function bulkDuplicateExpenses({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    participantsPolicyTags,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1220,6 +1228,7 @@ function bulkDuplicateExpenses({
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            participantsPolicyTags,
         });
 
         if (result?.iouReport) {
@@ -1335,6 +1344,9 @@ function bulkDuplicateReports({
         const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
         const targetPolicyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {};
 
+        const participants = getMoneyRequestParticipantsFromReport(parentChatReport, currentUserAccountID);
+        const participantsPolicyTags = getPolicyTagsSelector(participants)(allPolicyTags);
+
         duplicateReport({
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
@@ -1358,6 +1370,7 @@ function bulkDuplicateReports({
             currentUserLogin,
             isTrackIntentUser,
             delegateAccountID,
+            participantsPolicyTags,
         });
     }
 

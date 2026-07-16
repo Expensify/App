@@ -4,6 +4,8 @@ import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
+import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -18,6 +20,7 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForReport';
 import useOnyx from './useOnyx';
+import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 
 type UseBulkDuplicateActionParams = {
@@ -66,6 +69,8 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
 
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
+    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const handleDuplicate = () => {
         bulkDuplicateExpenses({
@@ -90,6 +95,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            participantsPolicyTags,
         });
 
         if (onAfterDuplicate) {

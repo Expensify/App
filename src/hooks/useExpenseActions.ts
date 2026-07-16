@@ -4,6 +4,8 @@ import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/ty
 import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
+import useParticipantsPolicyTags, {getPolicyTagsSelector} from '@hooks/useParticipantsPolicyTags';
+
 import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport} from '@libs/actions/Report';
@@ -41,7 +43,7 @@ import {
 } from '@libs/TransactionUtils';
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
-import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantsFromReport, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -243,6 +245,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
+    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {
@@ -279,6 +283,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 isTrackIntentUser,
                 delegateAccountID,
                 policyTagList,
+                participantsPolicyTags,
             });
         }
     };
@@ -416,6 +421,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
+                const reportDuplicateParticipants = getMoneyRequestParticipantsFromReport(targetChatForDuplicate, currentUserPersonalDetails?.accountID);
+                const reportDuplicateParticipantsPolicyTags = getPolicyTagsSelector(reportDuplicateParticipants)(allPolicyTags);
 
                 duplicateReportAction({
                     sourceReport: moneyRequestReport,
@@ -439,6 +446,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     isTrackIntentUser,
                     delegateAccountID,
+                    participantsPolicyTags: reportDuplicateParticipantsPolicyTags,
                 });
             },
         },
