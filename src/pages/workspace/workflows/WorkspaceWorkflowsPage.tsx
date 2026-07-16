@@ -249,8 +249,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
+            personalDetailsList: personalDetails,
         });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail]);
+    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -522,6 +523,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         reportNextSteps: allReportNextSteps,
                         transactionViolations,
                         betas,
+                        personalDetailsList: personalDetails,
                     });
                 },
                 subMenuItems: (
@@ -714,8 +716,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                             navigateToBankAccountRoute({
                                                                 policyID: route.params.policyID,
                                                                 backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                                                policyCurrency: policy?.outputCurrency,
-                                                                bankAccountState: state,
                                                             });
                                                         }
                                                       : undefined
@@ -884,6 +884,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         canWritePayments,
         canWriteWorkflows,
         currentUserLogin,
+        personalDetails,
         withApprovalsReadOnlyFallback,
         withPaymentsReadOnlyFallback,
         withWorkflowsReadOnlyFallback,
