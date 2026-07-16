@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
+import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
@@ -46,7 +47,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const joinablePoliciesLength = Object.values(joinablePolicies ?? {}).filter((policy) => policy.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026).length;
+    const joinablePoliciesLength = getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026);
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);

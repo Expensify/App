@@ -60,6 +60,7 @@ function clearStaleExportDownloads() {
     // to the entire collection, which would cause unnecessary re-renders on every change.
     const connectionID = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
+        waitForCollectionCallback: true,
         callback: (exportDownloads) => {
             Onyx.disconnect(connectionID);
             if (!exportDownloads) {

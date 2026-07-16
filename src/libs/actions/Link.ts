@@ -6,6 +6,7 @@ import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -13,8 +14,9 @@ import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgrou
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
-import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
+import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
@@ -174,6 +176,215 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
+type ReportLinkRouteParams = {
+    reportID: string;
+    reportActionID?: string;
+    route: Route;
+    isLegacyNewDotReportLink?: boolean;
+};
+
+type NavigationRouteWithState = {
+    key?: string;
+    name?: string;
+    params?: unknown;
+    state?: {
+        key?: string;
+        index?: number;
+        routes?: NavigationRouteWithState[];
+    };
+};
+
+type FocusedSearchReportActionRoute = {
+    routeKey: string;
+    navigatorKey: string;
+};
+
+function isReportRoute(route: string): route is Route {
+    return route.startsWith(addTrailingForwardSlash(ROUTES.REPORT));
+}
+
+function getReportRouteParamValues(params: unknown): {reportID: string; reportActionID?: string} | undefined {
+    if (!params || typeof params !== 'object' || !('reportID' in params) || typeof params.reportID !== 'string') {
+        return;
+    }
+
+    const reportActionID = 'reportActionID' in params && typeof params.reportActionID === 'string' ? params.reportActionID : undefined;
+    return {reportID: params.reportID, reportActionID};
+}
+
+function getLegacyNewDotReportID(href: string, hasExpensifyOrigin: boolean): string | undefined {
+    if (!hasExpensifyOrigin || !href.includes('newdotreport?reportID=')) {
+        return;
+    }
+
+    try {
+        return new URL(href).searchParams.get('reportID') ?? undefined;
+    } catch {
+        return href.split('newdotreport?reportID=').pop()?.split(/[&#]/).at(0);
+    }
+}
+
+function getReportRouteParamsFromRoute(route: string): ReportLinkRouteParams | undefined {
+    const normalizedRoute = route.startsWith('/') ? route.slice(1) : route;
+    if (!isReportRoute(normalizedRoute)) {
+        return;
+    }
+
+    const reportID = getReportIDFromLink(normalizedRoute);
+    if (!reportID) {
+        return;
+    }
+
+    try {
+        const state = getStateFromPath(normalizedRoute);
+        const focusedRoute = findFocusedRoute(state);
+        if (focusedRoute?.name !== SCREENS.REPORT) {
+            return;
+        }
+
+        const params = getReportRouteParamValues(focusedRoute.params);
+        if (!params) {
+            return;
+        }
+
+        return {
+            reportID: params.reportID,
+            reportActionID: params.reportActionID,
+            route: normalizedRoute,
+        };
+    } catch {
+        return undefined;
+    }
+}
+
+function getReportLinkRouteParams(href: string, internalNewExpensifyPath: string, hasSameOrigin: boolean, hasExpensifyOrigin: boolean): ReportLinkRouteParams | undefined {
+    const legacyNewDotReportID = getLegacyNewDotReportID(href, hasExpensifyOrigin);
+    const legacyNewDotReportRouteParams: ReportLinkRouteParams | undefined = legacyNewDotReportID
+        ? {
+              reportID: legacyNewDotReportID,
+              route: ROUTES.REPORT_WITH_ID.getRoute(legacyNewDotReportID),
+              isLegacyNewDotReportLink: true,
+          }
+        : undefined;
+    const internalNewExpensifyReportRouteParams = internalNewExpensifyPath && hasSameOrigin ? getReportRouteParamsFromRoute(internalNewExpensifyPath) : undefined;
+
+    return legacyNewDotReportRouteParams ?? internalNewExpensifyReportRouteParams;
+}
+
+function getFocusedRoute(route: NavigationRouteWithState | undefined): NavigationRouteWithState | undefined {
+    let focusedRoute = route;
+    while (focusedRoute?.state?.routes?.length) {
+        const {routes, index} = focusedRoute.state;
+        focusedRoute = routes.at(index ?? routes.length - 1);
+    }
+
+    return focusedRoute;
+}
+
+function getFocusedCentralReportRoute(currentState: ReturnType<typeof navigationRef.getRootState>): NavigationRouteWithState | undefined {
+    const rootRoutes = currentState?.routes as NavigationRouteWithState[] | undefined;
+    const focusedRootIndex = currentState?.index ?? (rootRoutes?.length ?? 0) - 1;
+    const focusedRootRoute = focusedRootIndex >= 0 ? rootRoutes?.at(focusedRootIndex) : undefined;
+    const focusedRoute = getFocusedRoute(focusedRootRoute);
+    if (focusedRoute?.name === SCREENS.REPORT) {
+        return focusedRoute;
+    }
+
+    if (focusedRootRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return;
+    }
+
+    const tabNavigatorRoute = rootRoutes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabState = tabNavigatorRoute?.state;
+    const activeTabRoute = tabState?.routes?.at(tabState.index ?? 0);
+    if (activeTabRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+        return;
+    }
+
+    return getFocusedRoute(activeTabRoute);
+}
+
+function isFocusedCentralReport(reportID: string, currentState: ReturnType<typeof navigationRef.getRootState>): boolean {
+    const focusedRoute = getFocusedCentralReportRoute(currentState);
+    if (focusedRoute?.name !== SCREENS.REPORT) {
+        return false;
+    }
+
+    return getReportRouteParamValues(focusedRoute.params)?.reportID === reportID;
+}
+
+function getFocusedSearchReportActionRoute(
+    reportRouteParams: ReportLinkRouteParams | undefined,
+    currentState: ReturnType<typeof navigationRef.getRootState>,
+): FocusedSearchReportActionRoute | undefined {
+    if (!reportRouteParams?.reportActionID) {
+        return;
+    }
+
+    const focusedRootRoute = currentState?.routes?.at(currentState.index ?? (currentState.routes.length ? currentState.routes.length - 1 : -1)) as NavigationRouteWithState | undefined;
+    if (focusedRootRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return;
+    }
+
+    const rhpState = focusedRootRoute.state;
+    const focusedRHPRoute = rhpState?.routes?.at(rhpState.index ?? (rhpState.routes.length ? rhpState.routes.length - 1 : -1));
+    if (focusedRHPRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT || !focusedRHPRoute.key || !rhpState?.key) {
+        return;
+    }
+
+    const focusedRHPReportParams = getReportRouteParamValues(focusedRHPRoute.params);
+    if (focusedRHPReportParams?.reportID !== reportRouteParams.reportID) {
+        return;
+    }
+
+    return {
+        routeKey: focusedRHPRoute.key,
+        navigatorKey: rhpState.key,
+    };
+}
+
+function getReportLinkRoute(
+    reportRouteParams: ReportLinkRouteParams | undefined,
+    isNarrowLayout: boolean,
+    currentState: ReturnType<typeof navigationRef.getRootState>,
+    shouldKeepReportRoute = false,
+): Route | undefined {
+    if (!reportRouteParams) {
+        return;
+    }
+
+    // On narrow layouts (e.g. mobile web) the RHP is full-screen, so preserving the background Inbox does not apply
+    // and report links are kept on the standard navigation as a safeguard. Regular internal report links return
+    // undefined so they fall through to the standard internal-link handling, exactly as before this feature. Legacy
+    // Concierge (`newdotreport`) links have no internal path that can be parsed, so they keep the explicit report
+    // route to stay on the pre-existing internal navigation instead of falling back to OldDot link handling.
+    if (isNarrowLayout) {
+        return reportRouteParams.isLegacyNewDotReportLink ? reportRouteParams.route : undefined;
+    }
+
+    if (shouldKeepReportRoute || isFocusedCentralReport(reportRouteParams.reportID, currentState)) {
+        return reportRouteParams.route;
+    }
+
+    const backTo = Navigation.getActiveRoute();
+    const report = getReportOrDraftReport(reportRouteParams.reportID);
+    if (!reportRouteParams.reportActionID && isMoneyRequestReport(report)) {
+        return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportRouteParams.reportID, backTo});
+    }
+
+    const searchReportRoute = ROUTES.SEARCH_REPORT.getRoute({
+        reportID: reportRouteParams.reportID,
+        reportActionID: reportRouteParams.reportActionID,
+        backTo,
+    });
+
+    if (!report && !reportRouteParams.reportActionID) {
+        return Url.appendParam(searchReportRoute, REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP, 'true');
+    }
+
+    return searchReportRoute;
+}
+
 function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
@@ -182,32 +393,37 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
 
     const isNarrowLayout = getIsNarrowLayout();
     const currentState = navigationRef.getRootState();
+    const reportLinkRouteParams = getReportLinkRouteParams(href, internalNewExpensifyPath, hasSameOrigin, hasExpensifyOrigin);
+    const reportLinkRoute = getReportLinkRoute(reportLinkRouteParams, isNarrowLayout, currentState, isAnonymousUser());
+    const focusedSearchReportActionRoute = getFocusedSearchReportActionRoute(reportLinkRouteParams, currentState);
+    const routeToNavigate = reportLinkRoute ?? internalNewExpensifyPath;
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
-    if (!isNarrowLayout && isRHPOpen) {
-        const targetWillNavigateToRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+    if (!isNarrowLayout && isRHPOpen && !focusedSearchReportActionRoute) {
+        const targetWillNavigateToRHP = willRouteNavigateToRHP(routeToNavigate as Route);
         if (!targetWillNavigateToRHP) {
             shouldCloseRHP = true;
         } else if (hasSameOrigin) {
             // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
             // user sees only the RHP content update + the underlying tab animate, no close+reopen
             // flicker (issue: https://github.com/Expensify/App/issues/89710).
-            swapBackgroundTabForRHPTarget(currentState, internalNewExpensifyPath as Route);
+            swapBackgroundTabForRHPTarget(currentState, routeToNavigate as Route);
         }
     }
 
-    // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
-    // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
-    // clicking on the link will open the chat in NewDot. However, when a user is in NewDot and clicks on the concierge link, the link needs to be handled differently.
-    // Normally, the link would be sent to Link.openOldDotLink() and opened in a new tab, and that's jarring to the user. Since the intention is to link to a specific NewDot chat,
-    // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
-    if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
-        const reportID = href.split('newdotreport?reportID=').pop();
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+    if (reportLinkRoute) {
+        if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+            signOutAndRedirectToSignIn();
+            return;
+        }
+        if (focusedSearchReportActionRoute && reportLinkRouteParams?.reportActionID) {
+            Navigation.setParams({reportActionID: reportLinkRouteParams.reportActionID}, focusedSearchReportActionRoute.routeKey, focusedSearchReportActionRoute.navigatorKey);
+            return;
+        }
         if (shouldCloseRHP) {
             Navigation.closeRHPFlow();
         }
-        Navigation.navigate(reportRoute);
+        Navigation.navigate(reportLinkRoute);
         return;
     }
 

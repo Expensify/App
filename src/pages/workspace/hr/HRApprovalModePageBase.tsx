@@ -12,7 +12,6 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,7 +21,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
@@ -36,7 +34,6 @@ type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typ
 
 type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValue> = {
     testID: string;
-    beta?: Beta;
     isConnected: (policy: OnyxEntry<Policy>) => boolean;
     approvalModes: {BASIC: T; MANAGER: T; CUSTOM: T};
     getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | null;
@@ -58,7 +55,6 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
@@ -125,7 +121,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={(!!config.beta && !isBetaEnabled(config.beta)) || (!!policy && !config.isConnected(policy))}
+            shouldBeBlocked={!!policy && !config.isConnected(policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

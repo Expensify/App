@@ -7,6 +7,7 @@ import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue, getEmptyDateValues} from '@libs/SearchQueryUtils';
@@ -85,6 +86,7 @@ function DateFilterBase({
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const normalizedDefaultDateValues = useMemo(() => ({...getEmptyDateValues(), ...defaultDateValues}), [defaultDateValues]);
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
@@ -197,8 +199,9 @@ function DateFilterBase({
             return;
         }
 
-        onSubmit(searchDatePresetFilterBaseRef.current.getDateValues());
-    }, [onDateModifierChange, onSubmit, selectedDateModifier, setSelectedDateModifier]);
+        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+        startWithLoading(() => onSubmit(dateValues));
+    }, [onDateModifierChange, onSubmit, selectedDateModifier, setSelectedDateModifier, startWithLoading]);
 
     useImperativeHandle(
         ref,
@@ -264,6 +267,8 @@ function DateFilterBase({
                         buttonText={translate('common.save')}
                         containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                         onSubmit={save}
+                        isLoading={isLoading}
+                        shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                     />
                 </>

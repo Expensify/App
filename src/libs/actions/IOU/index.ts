@@ -18,6 +18,7 @@ Onyx.connect({
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             allTransactions = {};
@@ -31,6 +32,7 @@ Onyx.connect({
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allTransactionDrafts = value ?? {};
     },
@@ -40,6 +42,7 @@ Onyx.connect({
 let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             allTransactionViolations = {};
@@ -53,6 +56,7 @@ Onyx.connect({
 let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             allPolicyTags = {};
@@ -65,6 +69,7 @@ Onyx.connect({
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -73,6 +78,7 @@ Onyx.connect({
 let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
     },
@@ -97,6 +103,7 @@ Onyx.connect({
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;
@@ -187,30 +194,6 @@ function getPolicyTagsData(policyID: string | undefined) {
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getMoneyRequestPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getMoneyRequestPolicyTags({
-    existingIOUReport,
-    moneyRequestReportID,
-    parentChatReport,
-    participant,
-}: {
-    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
-    moneyRequestReportID?: string;
-    parentChatReport: OnyxEntry<OnyxTypes.Report>;
-    participant: Participant;
-}): OnyxTypes.PolicyTagLists {
-    const iouReportPolicyID =
-        existingIOUReport?.policyID ??
-        (moneyRequestReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`]?.policyID : undefined) ??
-        parentChatReport?.policyID ??
-        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`]?.policyID;
-    return getPolicyTagsData(iouReportPolicyID) ?? {};
-}
-
 export {
     getAllPersonalDetails,
     getAllTransactions,
@@ -227,5 +210,4 @@ export {
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
     getPolicyTagsData,
     getPolicyTags,
-    getMoneyRequestPolicyTags,
 };
