@@ -23,17 +23,7 @@ function useDebounceImpl(func: GenericFunction, wait: number, options?: UseDebou
     const debouncedFnRef = useRef<DebouncedFunc<GenericFunction> | undefined>(undefined);
     const {leading, maxWait, trailing = true, shouldExecuteOnUnmount = false} = options ?? {};
 
-    useEffect(() => {
-        const debouncedFn = lodashDebounce(func, wait, {leading, maxWait, trailing});
-
-        debouncedFnRef.current = debouncedFn;
-
-        return () => {
-            debouncedFn.cancel();
-        };
-    }, [func, wait, leading, maxWait, trailing]);
-
-    // Registered after the debounce effect so this cleanup runs first on unmount and can flush
+    // Registered before the debounce effect so this cleanup runs first on unmount and can flush
     // before the debounced function is cancelled.
     useEffect(() => {
         return () => {
@@ -43,6 +33,16 @@ function useDebounceImpl(func: GenericFunction, wait: number, options?: UseDebou
             debouncedFnRef.current?.flush();
         };
     }, [shouldExecuteOnUnmount]);
+
+    useEffect(() => {
+        const debouncedFn = lodashDebounce(func, wait, {leading, maxWait, trailing});
+
+        debouncedFnRef.current = debouncedFn;
+
+        return () => {
+            debouncedFn.cancel();
+        };
+    }, [func, wait, leading, maxWait, trailing]);
 
     return (...args: unknown[]) => {
         const debouncedFn = debouncedFnRef.current;
