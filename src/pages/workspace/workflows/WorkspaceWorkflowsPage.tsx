@@ -401,6 +401,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
         const canChangePayer = canWritePayments && !isAccountInSetupState;
+        const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID).length > 0;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
         const shouldShowPayer = shouldShowBankAccount || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
@@ -702,13 +703,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                                 return;
                                                             }
 
-                                                            // User who is not reimburser can't initiate unlocking process but can connect new account
-                                                            if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && !isUserReimburser) {
-                                                                // If user has existing accounts and no bank account setup in progress we should show screen to choose an existing account
-                                                                if (hasValidExistingAccounts && !shouldShowContinueModal) {
-                                                                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
-                                                                    return;
-                                                                }
+                                                            // A non-reimburser can't edit or unlock the workspace's connected account, so if they have another
+                                                            // eligible existing account and no setup in progress, let them link it (change the workspace's account).
+                                                            if (!isUserReimburser && hasOtherEligibleExistingAccounts && !shouldShowContinueModal) {
+                                                                Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                                                return;
                                                             }
 
                                                             navigateToBankAccountRoute({
