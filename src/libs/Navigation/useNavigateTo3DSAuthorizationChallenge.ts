@@ -1,4 +1,4 @@
-import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
+import checkDeviceEligibility from '@components/MultifactorAuthentication/biometrics/checkDeviceEligibility';
 import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +14,6 @@ import type {TransactionPending3DSReview} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {SeverityLevel} from '@sentry/react-native';
-import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
@@ -74,8 +73,6 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return isMFAFlowScreen(focusedScreen);
     });
 
-    const {deviceVerificationType, doesDeviceSupportAuthenticationMethod} = useBiometrics();
-
     const transactionPending3DSReview = useMemo(() => {
         if (!transactionsPending3DSReview || isLoadingOnyxValue(locallyProcessedReviewsResult)) {
             return undefined;
@@ -125,16 +122,14 @@ function useNavigateTo3DSAuthorizationChallenge() {
         let cancel = false;
 
         async function maybeNavigateTo3DSChallenge() {
-            const doesDeviceSupportAnAllowedAuthenticationMethod =
-                (await doesDeviceSupportAuthenticationMethod()) &&
-                (AuthorizeTransaction.allowedAuthenticationMethods as Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>).includes(deviceVerificationType);
-
             // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
-            if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
+            const deviceEligibility = await checkDeviceEligibility(AuthorizeTransaction.allowedAuthenticationMethods);
+            if (!deviceEligibility.success) {
                 Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - device does not support an allowed authentication method', undefined, {
                     transactionID: transactionPending3DSReview?.transactionID,
+                    reason: deviceEligibility.error.reason,
                 });
-                addBreadcrumb('Skipped - device unsupported', {transactionID: transactionPending3DSReview?.transactionID}, 'warning');
+                addBreadcrumb('Skipped - device unsupported', {transactionID: transactionPending3DSReview?.transactionID, reason: deviceEligibility.error.reason}, 'warning');
                 return;
             }
             // It's actually not possible to reach this return. We're using an arrow function for the body of the effect, which captures the value
@@ -179,7 +174,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return () => {
             cancel = true;
         };
-    }, [transactionPending3DSReview?.transactionID, deviceVerificationType, isCurrentlyActingOn3DSChallenge, doesDeviceSupportAuthenticationMethod]);
+    }, [transactionPending3DSReview?.transactionID, isCurrentlyActingOn3DSChallenge]);
 }
 
 export default useNavigateTo3DSAuthorizationChallenge;

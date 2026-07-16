@@ -13,7 +13,7 @@ import Base64URL from '@src/utils/Base64URL';
 
 import type {SignatureResult} from '@sbaiahmed1/react-native-biometrics';
 
-import {createKeys, deleteKeys, getAllKeys, InputEncoding, isSensorAvailable, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
+import {createKeys, deleteKeys, getAllKeys, InputEncoding, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
 
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
 
@@ -44,11 +44,6 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
-
-    const doesDeviceSupportAuthenticationMethod = async () => {
-        const sensorResult = await isSensorAvailable();
-        return sensorResult.isDeviceSecure;
-    };
 
     const getLocalCredentialID = async () => {
         try {
@@ -191,12 +186,9 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     const hasLocalCredentials = async () => !!(await getLocalCredentialID());
 
     return {
-        deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
-        doesDeviceSupportAuthenticationMethod,
-        deviceCheckFailureReason: VALUES.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

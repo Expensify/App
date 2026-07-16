@@ -220,8 +220,11 @@ const MFA_STATE = {
     OPEN: 'open',
     CLOSING: 'closing',
     PREPARING: 'preparing',
+    VALIDATING_DEVICE: 'validatingDevice',
     OUTCOME: 'outcome',
+    RESOLVING_OUTCOME: 'resolvingOutcome',
     SUCCESS: 'success',
+    FAILURE: 'failure',
 } as const;
 
 const SHARED_VALUES = {

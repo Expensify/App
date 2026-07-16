@@ -1,5 +1,6 @@
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 
+import {createUnhandledExceptionMFAError, getMFAFailureError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -9,7 +10,14 @@ import {assign, setup} from 'xstate';
 
 import type {MfaContext, MfaEvent} from './types';
 
+import createActors from './mfaActors';
+
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
+
+// Absolute target for the outcome branch. The device check runs under `preparing`, so reaching the
+// sibling `outcome` branch needs an id target rather than a relative one.
+const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
+
 const DEFAULT_CONTEXT: MfaContext = {
     error: undefined,
     scenarioName: undefined,
@@ -20,9 +28,7 @@ const DEFAULT_CONTEXT: MfaContext = {
 
 /**
  * MFA state machine. The top level models the modal lifecycle (`closed` -> `open` -> `closing`); the
- * child states of `open` map 1:1 to the screen the user currently sees. Later slices add screens as
- * `open` children, per-screen work as child states of its screen, and events shared by every screen
- * (e.g. SET_ERROR) on `open` itself.
+ * child states of `open` map 1:1 to the screen the user currently sees.
  *
  * No state is `final`: one long-lived actor serves every MFA flow (a top-level final state would
  * stop it).
@@ -36,6 +42,10 @@ const MFAMachine = setup({
         events: {} as MfaEvent,
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
+    actors: createActors(),
+    guards: {
+        hasError: ({context}) => context.error !== undefined,
+    },
     actions: {
         // Seeds the flow's context from the INIT event. A named action's event is typed as the full
         // MfaEvent union, so the guard narrows it to INIT to read the scenario fields; INIT is the only
@@ -51,10 +61,13 @@ const MFAMachine = setup({
                 payload: event.payload,
             };
         }),
+        // Deferring the outcome push until the modal-open transition settles lets the screen slide in
+        // with a measured width and avoids the Android animation race.
         navigateToSuccessOutcome: () => {
-            // runAfterTransition defers the push until the modal-open transition settles, so the
-            // success screen slides in with a measured width (Android animation race).
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS));
+        },
+        navigateToFailureOutcome: () => {
+            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE));
         },
         // Runs on CLOSE_MODAL: drops the cancel-confirmation modal so it cannot linger over the
         // closing navigator (CLOSE_MODAL can fire without the flow completing, e.g. an offline cancel).
@@ -91,17 +104,49 @@ const MFAMachine = setup({
                 CLOSE_MODAL: {target: MFA_STATE.CLOSING, actions: 'hideCancelConfirmModal'},
             },
             states: {
-                // Transparent initial screen. There is no pre-screen work yet, so it falls straight through;
-                // later slices replace `always` with child states (device check, registration decision, ...).
+                // This is the transparent initial screen, and its child states run the pre-screen
+                // work the user waits through.
                 [MFA_STATE.PREPARING]: {
-                    always: MFA_STATE.OUTCOME,
+                    initial: MFA_STATE.VALIDATING_DEVICE,
+                    states: {
+                        [MFA_STATE.VALIDATING_DEVICE]: {
+                            invoke: {
+                                id: 'validateDevice',
+                                src: 'validateDevice',
+                                input: ({context}) => {
+                                    if (!context.scenario) {
+                                        throw new Error('MFA scenario must be initialized before device validation');
+                                    }
+                                    return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
+                                },
+                                // Every result enters the outcome resolver. A refusal stores its
+                                // blocking MFAError first, so the resolver selects failure from that
+                                // error, while an eligible device with no error selects success.
+                                onDone: [
+                                    {guard: ({event}) => event.output.success, target: OUTCOME_TARGET},
+                                    {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
+                                ],
+                                // Expected refusals travel as failed results through onDone, so a
+                                // rejection means the platform check itself threw unexpectedly.
+                                onError: {
+                                    target: OUTCOME_TARGET,
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Device check', event.error)}),
+                                },
+                            },
+                        },
+                    },
                 },
                 [MFA_STATE.OUTCOME]: {
-                    initial: MFA_STATE.SUCCESS,
+                    id: MFA_STATE.OUTCOME,
+                    initial: MFA_STATE.RESOLVING_OUTCOME,
                     states: {
+                        [MFA_STATE.RESOLVING_OUTCOME]: {
+                            always: [{guard: 'hasError', target: MFA_STATE.FAILURE}, {target: MFA_STATE.SUCCESS}],
+                        },
                         [MFA_STATE.SUCCESS]: {
                             entry: ['navigateToSuccessOutcome'],
                         },
+                        [MFA_STATE.FAILURE]: {entry: ['navigateToFailureOutcome']},
                     },
                 },
             },

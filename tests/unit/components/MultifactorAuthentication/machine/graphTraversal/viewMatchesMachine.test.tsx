@@ -4,15 +4,18 @@ import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 
+import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
+import type {SnapshotFrom} from 'xstate';
 
-import getWalkedPaths from 'tests/utils/mfa/flowPaths';
+import getWalkedPaths, {isAutoDrivenEvent, VALIDATE_DEVICE_DONE_EVENT_TYPE, VALIDATE_DEVICE_ERROR_EVENT_TYPE} from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
-import {pendingModalClose, resetMfaUiMocks} from 'tests/utils/mfa/realUi/mocks';
+import {pendingModalClose, rejectValidateDevice, resetMfaUiMocks, resolveValidateDevice} from 'tests/utils/mfa/realUi/mocks';
 import {translateLocal} from 'tests/utils/TestHelper';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
@@ -28,10 +31,16 @@ import {matchesState} from 'xstate';
 jest.mock('@hooks/useResponsiveLayout');
 // This mock disables the dev-only Stately inspector so `useInspectedMachine` falls back to `useMachine`.
 jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: undefined}}));
-// Native and WebAuthn biometrics are outside the modal lifecycle contract. Jest hoists every `jest.mock`
-// call above the imports, so a factory cannot reference a top-of-file import and each factory below loads
-// the shared mock module through `jest.requireActual` instead.
+
+// Jest hoists every `jest.mock` call above the imports, so a factory cannot reference a top-of-file
+// import. Each factory below therefore loads the shared mock module through `jest.requireActual`.
+
+// The UI walk needs to control invoked actor outcomes, and the actors' real side effects are outside the modal lifecycle contract.
+jest.mock('@components/MultifactorAuthentication/machine/mfaActors', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').mfaActorsMock());
+// Native and WebAuthn biometrics are outside the modal lifecycle contract.
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
+// RenderHTML requires an ambient provider that this lifecycle test does not mount.
+jest.mock('@components/RenderHTML', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').renderHtmlMock());
 // Browser and Android history synchronization is outside the contract between the machine and UI.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
 // The test renderer runs no real navigation transitions, so the mock controls when the transition callbacks fire.
@@ -49,6 +58,10 @@ type MfaEventExecutorStep<Type extends MfaEventType> = {event: {type: Type}};
 type MfaEventExecutors = {
     [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
 };
+type ValidateDeviceActorEventExecutors = {
+    [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step: {event: {type: typeof VALIDATE_DEVICE_DONE_EVENT_TYPE; output: MFAResult}}) => Promise<void>;
+    [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => Promise<void>;
+};
 
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 
@@ -64,6 +77,10 @@ function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 function createMfaEventExecutors(executeScenario: ExecuteScenario) {
+    const settleValidateDevice = async (settle: () => void) => {
+        await act(async () => settle());
+    };
+
     return {
         INIT: async (step) => {
             const {event} = step;
@@ -81,14 +98,20 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             await waitForBatchedUpdatesWithAct();
         },
         CLOSE_MODAL: async () => {
-            fireEvent.press(screen.getByTestId(TEST_ID.OUTCOME_CONFIRM_BUTTON));
+            if (screen.queryByTestId(TEST_ID.OUTCOME_SCREEN)) {
+                fireEvent.press(screen.getByTestId(TEST_ID.OUTCOME_CONFIRM_BUTTON));
+            } else {
+                fireEvent.press(screen.getByTestId(TEST_ID.MODAL_BACKDROP));
+            }
             await waitForBatchedUpdatesWithAct();
         },
         MODAL_CLOSED: async () => {
             act(() => pendingModalClose.run());
             await waitForBatchedUpdatesWithAct();
         },
-    } satisfies MfaEventExecutors;
+        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleValidateDevice(() => resolveValidateDevice(step.event.output)),
+        [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleValidateDevice(rejectValidateDevice),
+    } satisfies MfaEventExecutors & ValidateDeviceActorEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -99,12 +122,33 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(0);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.VALIDATING_DEVICE}`]: () => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
             expect(screen.getByText(translateLocal('multifactorAuthentication.biometricsTest.authenticationSuccessful'))).toBeOnTheScreen();
-            // Every outcome screen renders the same `OutcomeScreenBase`, so the route name identifies which one is on top.
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
+            expect(state.context.error).toBeUndefined();
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
+            expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
+            expect(state.context.error).toBeDefined();
+            // The mock actor produces the same error the graph snapshot carries, so each branch can
+            // assert the exact screen mapped for that error. The default client failure screen shows
+            // the failure copy in both its header and its body title.
+            if (state.context.error?.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED) {
+                expect(screen.getByText(translateLocal('multifactorAuthentication.unsupportedDevice.unsupportedDevice'))).toBeOnTheScreen();
+            } else if (state.context.error?.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED) {
+                expect(screen.getByText(translateLocal('multifactorAuthentication.biometricsTest.youCouldNotBeAuthenticated'))).toBeOnTheScreen();
+            } else {
+                expect(screen.getAllByText(translateLocal('multifactorAuthentication.verificationFailed'))).toHaveLength(2);
+            }
         },
         [MFA_STATE.CLOSING]: () => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
@@ -116,16 +160,14 @@ const testConfig = {
 
 const walkedPaths = getWalkedPaths();
 
-const INIT_STEP_EVENT_TYPE = 'xstate.init';
-
 /**
- * Builds the event part of a test name. The synthetic `xstate.init` event is excluded because it is
- * not part of `MfaEvent`.
+ * Builds the event part of a test name. Framework-generated init and actor-settlement events are
+ * excluded because they are not UI gestures.
  */
 function describeDrivenEvents(steps: ReadonlyArray<{event: {type: string}}>): string {
     const drivenEventLabels = steps
         .map((step) => step.event)
-        .filter((event) => event.type !== INIT_STEP_EVENT_TYPE)
+        .filter((event) => !isAutoDrivenEvent(event.type))
         .map((event) => event.type);
     return drivenEventLabels.length > 0 ? drivenEventLabels.join(' -> ') : 'no driven events';
 }

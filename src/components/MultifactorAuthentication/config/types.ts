@@ -1,4 +1,5 @@
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import type {AllowedAuthenticationMethods} from '@components/MultifactorAuthentication/biometrics/checkDeviceEligibility';
 import type {CancelConfirmModalProps} from '@components/MultifactorAuthentication/components/Modals/createCancelConfirmModal';
 
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
@@ -89,7 +90,7 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
  */
 type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
-    allowedAuthenticationMethods: Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
+    allowedAuthenticationMethods: AllowedAuthenticationMethods;
 
     /**
      * Whether the scenario does not require any additional parameters except for the native biometrics data.

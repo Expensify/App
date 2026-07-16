@@ -1,10 +1,6 @@
 import type {AuthenticationChallenge, RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import type {AuthTypeInfo, MultifactorAuthenticationReason, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
-
-import type CONST from '@src/CONST';
-
-import type {ValueOf} from 'type-fest';
+import type {AuthTypeInfo, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 type BaseRegisterResult = {
     keyInfo: RegistrationKeyInfo;
@@ -37,9 +33,6 @@ type AuthorizeResultFailure = {
 type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
 
 type UseBiometricsReturn = {
-    /** The authentication method type provided by this hook (BIOMETRICS on native, PASSKEYS on web) */
-    deviceVerificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
-
     /** List of credential IDs known to server (from Onyx) */
     serverKnownCredentialIDs: string[];
 
@@ -48,12 +41,6 @@ type UseBiometricsReturn = {
 
     /** Retrieve the credential ID stored locally on this device */
     getLocalCredentialID: () => Promise<string | undefined>;
-
-    /** Check if device supports the authentication method */
-    doesDeviceSupportAuthenticationMethod: () => Promise<boolean>;
-
-    /** Reason to use when doesDeviceSupportAuthenticationMethod() returns false (platform-specific) */
-    deviceCheckFailureReason: MultifactorAuthenticationReason;
 
     /** Check if device has biometric credentials stored locally */
     hasLocalCredentials: () => Promise<boolean>;

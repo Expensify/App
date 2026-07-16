@@ -1,12 +1,21 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
+import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
+import type {ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
+import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
+
+import {fromPromise} from 'xstate';
 
 // This module keeps mutable mock state and factory bodies outside the test so the test stays focused on
 // mock registrations and assertions.
 
 type CapturedCallback = () => void;
 type NavigationTransitionOverrides = Pick<typeof Navigation, 'runAfterTransition' | 'runAfterUpcomingTransition'>;
+type PendingValidateDevice = {
+    resolve: (result: MFAResult) => void;
+    reject: (error: Error) => void;
+};
 
 let pendingCloseCallback: CapturedCallback | undefined;
 
@@ -41,14 +50,60 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
     areLocalCredentialsKnownToServer: () => Promise.resolve(false),
 };
 
+let pendingValidateDeviceCall: PendingValidateDevice | undefined;
+
+function takePendingValidateDeviceCall(): PendingValidateDevice {
+    const pendingCall = pendingValidateDeviceCall;
+    pendingValidateDeviceCall = undefined;
+    if (!pendingCall) {
+        throw new Error('No pending validateDevice call is available.');
+    }
+    return pendingCall;
+}
+
+function resolveValidateDevice(result: MFAResult) {
+    takePendingValidateDeviceCall().resolve(result);
+}
+
+function rejectValidateDevice() {
+    takePendingValidateDeviceCall().reject(new Error('Mock validateDevice actor rejected for this path'));
+}
+
 function resetMfaUiMocks() {
     pendingModalClose.clear();
+    pendingValidateDeviceCall = undefined;
+}
+
+const validateDeviceMock = fromPromise<MFAResult, ValidateDeviceInput>(
+    () =>
+        new Promise<MFAResult>((resolve, reject) => {
+            pendingValidateDeviceCall = {resolve, reject};
+        }),
+);
+
+/** Replaces the machine's side-effect actors with controlled test implementations. */
+function mfaActorsMock() {
+    const actors = {
+        validateDevice: validateDeviceMock,
+    } satisfies ReturnType<typeof createActors>;
+
+    return {
+        __esModule: true,
+        default: () => actors,
+    };
 }
 
 function biometricsHookMock() {
     return {
         __esModule: true,
         default: () => biometricsMock,
+    };
+}
+
+function renderHtmlMock() {
+    return {
+        __esModule: true,
+        default: () => null,
     };
 }
 
@@ -87,4 +142,4 @@ function navigationMock() {
     };
 }
 
-export {pendingModalClose, resetMfaUiMocks, biometricsHookMock, syncHistoryMock, navigationMock};
+export {pendingModalClose, resolveValidateDevice, rejectValidateDevice, resetMfaUiMocks, mfaActorsMock, biometricsHookMock, renderHtmlMock, syncHistoryMock, navigationMock};

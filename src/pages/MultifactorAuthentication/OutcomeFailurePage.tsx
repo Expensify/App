@@ -16,7 +16,7 @@ function shouldShowServerFailureScreen(error: MFAError): boolean {
     return SERVER_FAILURE_REASONS.has(error.reason);
 }
 
-function MultifactorAuthenticationOutcomePage() {
+function MultifactorAuthenticationOutcomeFailurePage() {
     const {state} = useMultifactorAuthenticationInternal();
     const {scenario, error} = state;
 
@@ -25,7 +25,7 @@ function MultifactorAuthenticationOutcomePage() {
     }
 
     if (!error) {
-        return scenario.successScreen;
+        return scenario.defaultClientFailureScreen;
     }
 
     const reasonScreen = scenario.failureScreens?.[error.reason];
@@ -40,6 +40,6 @@ function MultifactorAuthenticationOutcomePage() {
     return scenario.defaultClientFailureScreen;
 }
 
-MultifactorAuthenticationOutcomePage.displayName = 'MultifactorAuthenticationOutcomePage';
+MultifactorAuthenticationOutcomeFailurePage.displayName = 'MultifactorAuthenticationOutcomeFailurePage';
 
-export default MultifactorAuthenticationOutcomePage;
+export default MultifactorAuthenticationOutcomeFailurePage;

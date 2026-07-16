@@ -1,3 +1,4 @@
+import type {AllowedAuthenticationMethods} from '@components/MultifactorAuthentication/biometrics/checkDeviceEligibility';
 import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
 import type {
     MultifactorAuthenticationScenario,
@@ -54,13 +55,15 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
 };
 
 /**
- * Events accepted by the machine. So far only the three that drive the
- * `closed -> success -> teardown` lifecycle exist; semantic input events (validate code, soft prompt, ...) are
- * added by the slices that introduce their states.
+ * Events accepted by the machine. INIT starts a flow and the lifecycle events drive the modal.
  *
- * CLOSE_MODAL requests the close (flow -> `closing`); MODAL_CLOSED is the navigator's notification
- * that the close animation fully finished (`closing` -> `closed`, which wipes the context).
+ * CLOSE_MODAL requests the close so the flow moves to `closing`. MODAL_CLOSED is the navigator's
+ * notification that the close animation fully finished, which moves `closing` to `closed` and wipes
+ * the context.
  */
 type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
 
-export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent};
+/** Describes the input the machine passes to the device-check actor. */
+type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
+
+export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ValidateDeviceInput};

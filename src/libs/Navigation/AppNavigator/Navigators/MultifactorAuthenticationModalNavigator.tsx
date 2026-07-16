@@ -39,7 +39,8 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const Stack = createPlatformStackNavigator<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
 const loadValidateCodePage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/ValidateCodePage').default;
-const loadOutcomePage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/OutcomePage').default;
+const loadOutcomeSuccessPage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/OutcomeSuccessPage').default;
+const loadOutcomeFailurePage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/OutcomeFailurePage').default;
 const loadPromptPage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/PromptPage').default;
 
 // Placeholder rendered as the initial route. onLayout triggers the deferred
@@ -210,11 +211,11 @@ function MultifactorAuthenticationModalNavigator() {
                                 />
                                 <Stack.Screen
                                     name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS}
-                                    getComponent={loadOutcomePage}
+                                    getComponent={loadOutcomeSuccessPage}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE}
-                                    getComponent={loadOutcomePage}
+                                    getComponent={loadOutcomeFailurePage}
                                 />
                             </Stack.Navigator>
                         </BaseNavigationContainer>

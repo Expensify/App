@@ -37,7 +37,6 @@ const mockDeleteKeys = jest.fn();
 const mockGetAllKeys = jest.fn();
 const mockSignWithOptions = jest.fn();
 const mockSha256 = jest.fn();
-const mockIsSensorAvailable = jest.fn();
 
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -50,8 +49,7 @@ jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     signWithOptions: (...args: unknown[]) => mockSignWithOptions(...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     sha256: (...args: unknown[]) => mockSha256(...args),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    isSensorAvailable: (...args: unknown[]) => mockIsSensorAvailable(...args),
+    isSensorAvailable: jest.fn(),
     InputEncoding: {Base64: 'base64'},
     AuthType: {Unknown: -1, None: 0, DeviceCredentials: 1, Biometrics: 2, FaceID: 3, TouchID: 4, OpticID: 5},
 }));
@@ -68,13 +66,10 @@ jest.mock('@components/MultifactorAuthentication/config', () => ({
 }));
 jest.mock('@userActions/MultifactorAuthentication/processing');
 
-const DEFAULT_SENSOR_RESULT = {available: true, biometryType: 'FaceID', isDeviceSecure: true};
-
 describe('useNativeBiometricsHSM hook', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockMultifactorAuthenticationPublicKeyIDs = [];
-        mockIsSensorAvailable.mockResolvedValue(DEFAULT_SENSOR_RESULT);
 
         mockGetAllKeys.mockResolvedValue({keys: []});
     });
@@ -87,54 +82,11 @@ describe('useNativeBiometricsHSM hook', () => {
             const {result} = renderHook(() => useNativeBiometricsHSM());
 
             expect(result.current).toHaveProperty('serverKnownCredentialIDs');
-            expect(result.current).toHaveProperty('doesDeviceSupportAuthenticationMethod');
             expect(result.current).toHaveProperty('getLocalCredentialID');
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
             expect(result.current).toHaveProperty('register');
             expect(result.current).toHaveProperty('authorize');
             expect(result.current).toHaveProperty('deleteLocalKeysForAccount');
-        });
-
-        it('should return biometrics device verification type', () => {
-            // Given a device with biometrics available
-            // When the hook is initialized
-            // Then it should report BIOMETRICS as its device verification type so the MFA system can distinguish it from other verification methods
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-
-            expect(result.current.deviceVerificationType).toBe(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM);
-        });
-    });
-
-    describe('doesDeviceSupportAuthenticationMethod', () => {
-        it('should return true when sensor is available', async () => {
-            // Given a device with a biometric sensor available (e.g., Face ID or Touch ID)
-            // When checking device support for biometric authentication
-            // Then it should return true because the device can perform biometric verification
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-
-            await expect(result.current.doesDeviceSupportAuthenticationMethod()).resolves.toBe(true);
-        });
-
-        it('should return true when device is secure but no biometrics', async () => {
-            // Given a device without biometric hardware but with a secure lock screen (PIN/password)
-            // When checking device support for biometric authentication
-            // Then it should return true because device credentials can serve as a fallback verification method
-            mockIsSensorAvailable.mockResolvedValue({available: false, isDeviceSecure: true});
-
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-
-            await expect(result.current.doesDeviceSupportAuthenticationMethod()).resolves.toBe(true);
-        });
-
-        it('should return false when sensor unavailable and device not secure', async () => {
-            // Given a device with no biometric sensor and no secure lock screen configured
-            // When checking device support for biometric authentication
-            // Then it should return false because there is no way to verify the user's identity on this device
-            mockIsSensorAvailable.mockResolvedValue({available: false, isDeviceSecure: false});
-
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-
-            await expect(result.current.doesDeviceSupportAuthenticationMethod()).resolves.toBe(false);
         });
     });
 
