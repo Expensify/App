@@ -1217,6 +1217,11 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        editableCellFullHeightHoverTarget: {
+            marginVertical: -variables.spacing2,
+            paddingVertical: variables.spacing2 + 4,
+        },
+
         editableCellEditButtonContainer: {
             position: 'absolute',
             top: 0,

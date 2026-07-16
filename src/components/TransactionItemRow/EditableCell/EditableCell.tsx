@@ -110,7 +110,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
 
     // Inline edit mode: replace display content with the edit input
     if (isEditing && editContent) {
-        return <View style={[styles.editableCell, styles.editableCellFocus]}>{editContent}</View>;
+        return <View style={[styles.editableCell, styles.editableCellFullHeightHoverTarget, styles.editableCellFocus]}>{editContent}</View>;
     }
 
     // Popover edit mode: keep showing display content with active border
@@ -119,7 +119,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
             <>
                 <View
                     ref={anchorRef}
-                    style={[styles.editableCell, styles.editableCellFocus]}
+                    style={[styles.editableCell, styles.editableCellFullHeightHoverTarget, styles.editableCellFocus]}
                 >
                     {children}
                 </View>
@@ -133,7 +133,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     // Tooltip / Hoverable / BoundsObserver subtree during the initial skeleton render,
     // unblocking the main thread so the network response can be processed sooner.
     if (!canEdit || !isInteractive) {
-        return <View style={[styles.editableCell]}>{children}</View>;
+        return <View style={[styles.editableCell, styles.editableCellFullHeightHoverTarget]}>{children}</View>;
     }
 
     return (
@@ -142,7 +142,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                 const shouldShowEditIcon = isEditIconFocused || isCellHovered;
 
                 return (
-                    <View style={styles.editableCell}>
+                    <View style={[styles.editableCell, styles.editableCellFullHeightHoverTarget]}>
                         {children}
                         <View
                             pointerEvents={shouldShowEditIcon ? 'box-none' : 'none'}
