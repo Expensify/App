@@ -24,8 +24,9 @@ import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getSections} from '@libs/SearchUIUtils';
-import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -73,7 +74,11 @@ import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
 
-function TransactionGroupListItem<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function TransactionGroupListItemImpl({
     item,
     isFocused,
     showTooltip,
@@ -96,7 +101,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     onUndelete,
-}: TransactionGroupListItemProps<TItem>) {
+}: TransactionGroupListItemProps<ListItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
     const theme = useTheme();
@@ -314,10 +319,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const onExpandedRowLongPress = (transaction: TransactionListItemType) => {
-        onLongPressRow?.(transaction as unknown as TItem);
+        onLongPressRow?.(transaction as ListItem);
     };
 
-    const handleSelectionButtonPress = (val: TItem) => {
+    const handleSelectionButtonPress = (val: ListItem) => {
         onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
     };
 
@@ -530,8 +535,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
             if (report && policy) {
                 const transactionViolations = groupViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`];
                 if (transactionViolations) {
-                    const merged = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails?.email ?? '', true, snapshotTransaction)),
+                    const merged = getVisibleTransactionViolations(
+                        snapshotTransaction,
+                        transactionViolations,
+                        currentUserDetails?.email ?? '',
+                        currentUserDetails.accountID,
+                        report,
+                        getLoginByAccountID(report.ownerAccountID, transactionsSnapshot.data.personalDetailsList),
+                        policy,
                     );
                     if (merged.length > 0) {
                         filteredViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`] = merged;
@@ -615,6 +626,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
+}
+
+function TransactionGroupListItem<TItem extends ListItem>(props: TransactionGroupListItemProps<TItem>) {
+    return <TransactionGroupListItemImpl {...(props as unknown as TransactionGroupListItemProps<ListItem>)} />;
 }
 
 export default TransactionGroupListItem;
