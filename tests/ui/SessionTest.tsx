@@ -1,6 +1,7 @@
 import {act, cleanup, render, waitFor} from '@testing-library/react-native';
 
 import * as AppActions from '@libs/actions/App';
+import * as Device from '@libs/actions/Device';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,6 +21,7 @@ import Onyx from 'react-native-onyx';
 import {createRandomReport} from '../utils/collections/reports';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -379,4 +381,55 @@ describe('SAML re-fire loop guard', () => {
         },
         FULL_APP_UI_TEST_TIMEOUT_MS,
     );
+});
+
+describe('signInWithShortLivedAuthToken', () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdates();
+        jest.clearAllMocks();
+        setLastShortAuthToken(null);
+    });
+
+    // The RAM-only in-flight guard that SignInPage reads must be set SYNCHRONOUSLY, not deferred behind
+    // Device.getDeviceInfoWithID(). If it were only set inside that promise's .then (via the redeem's optimisticData),
+    // the /transition -> HOME navigation could remount SignInPage before the flag is set while account.isLoading is
+    // still true, and SAML would re-fire -> loop. Here getDeviceInfoWithID is made to hang so the redeem's
+    // optimisticData never runs; the flag can therefore only be true if it was set synchronously.
+    it('sets the in-flight guard synchronously, before the device-info promise resolves', async () => {
+        let resolveDeviceInfo!: (value: string) => void;
+        jest.spyOn(Device, 'getDeviceInfoWithID').mockReturnValue(
+            new Promise<string>((resolve) => {
+                resolveDeviceInfo = resolve;
+            }),
+        );
+
+        Session.signInWithShortLivedAuthToken('token', true);
+        await waitForBatchedUpdates();
+
+        let isAuthenticating: boolean | undefined;
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            callback: (value) => {
+                isAuthenticating = value;
+            },
+        });
+        await waitForBatchedUpdates();
+        Onyx.disconnect(connectionID);
+
+        // Guard is already set even though getDeviceInfoWithID (and thus the redeem's optimisticData) has NOT resolved.
+        expect(isAuthenticating).toBe(true);
+
+        // Settle the pending promise so it doesn't leak, then drain the resulting redeem work.
+        resolveDeviceInfo('');
+        await waitForBatchedUpdates();
+        await waitForNetworkPromises();
+    });
 });
