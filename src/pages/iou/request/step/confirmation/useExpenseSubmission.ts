@@ -612,7 +612,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticChatReportID,
                 isTrackIntentUser,
-                formatPhoneNumber,
             });
             const targetReportID = backToReport ?? activeReportID;
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
@@ -798,6 +797,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             previousOdometerDraft: odometerDraft,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -875,7 +875,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         participantsPolicyTags,
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
-                        formatPhoneNumber,
                         delegateAccountID,
                     });
                 }
@@ -984,7 +983,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
-                formatPhoneNumber,
             });
             if (shouldHandleNavigation) {
                 cleanupAndNavigateAfterExpenseCreate({

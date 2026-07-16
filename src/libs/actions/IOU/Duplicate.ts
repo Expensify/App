@@ -7,6 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
@@ -701,6 +702,7 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
+                formatPhoneNumber,
             };
             return createDistanceRequest(distanceParams);
         }

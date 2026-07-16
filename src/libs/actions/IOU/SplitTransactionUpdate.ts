@@ -1,4 +1,3 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 
 import {write as apiWrite} from '@libs/API';
@@ -110,7 +109,6 @@ type UpdateSplitTransactionsParams = {
     isOffline: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function updateSplitTransactions({
@@ -141,7 +139,6 @@ function updateSplitTransactions({
     isOffline,
     delegateAccountID,
     isTrackIntentUser,
-    formatPhoneNumber,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
