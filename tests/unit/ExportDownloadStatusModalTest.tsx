@@ -11,13 +11,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import type * as MockUseSingleExecution from '../utils/mockUseSingleExecution';
-
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// This modal presses buttons and asserts on the resulting side effects, not on the
-// double-tap-prevention mechanism itself (see tests/utils/mockUseSingleExecution.ts).
-jest.mock('@hooks/useSingleExecution', () => jest.requireActual<typeof MockUseSingleExecution>('../utils/mockUseSingleExecution'));
 jest.mock('@libs/fileDownload');
 jest.mock('@components/RenderHTML', () => {
     function MockRenderHTML({html}: {html: string}) {
