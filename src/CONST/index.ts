@@ -6653,6 +6653,7 @@ const CONST = {
             SUBMIT: 'submit',
             HOLD: 'hold',
             MERGE: 'merge',
+            MERGE_REPORTS: 'mergeReports',
             UNHOLD: 'unhold',
             DELETE: 'delete',
             REJECT: 'reject',
