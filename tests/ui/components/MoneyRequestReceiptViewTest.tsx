@@ -211,6 +211,13 @@ const transactionWithMapDistanceReceipt: Transaction = {
     },
 };
 
+// An odometer distance expense carries a real uploaded odometer photo (not a generated map), so its receipt-upload
+// fallback must be preserved on a create failure so the user can still save the file they uploaded.
+const transactionWithOdometerDistanceReceipt: Transaction = {
+    ...transactionWithReceipt,
+    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -392,6 +399,23 @@ describe('MoneyRequestReceiptView', () => {
 
             expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
             expect(screen.queryByText(translateLocal('iou.error.saveReceipt'))).toBeNull();
+        });
+
+        it('shows the receipt-upload error for an odometer distance expense (real uploaded file)', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithOdometerDistanceReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
         });
     });
 });
