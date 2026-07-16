@@ -129,7 +129,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorCode: 'Κωδικός δύο παραγόντων',
         workspaces: 'Χώροι εργασίας',
         home: 'Αρχική',
-        inbox: 'Εισερχόμενα',
+        // ZWSP (U+200B) lets this LHN label wrap as Εισερχό/μενα instead of orphaning α
+        inbox: 'Εισερχό\u200Bμενα',
         yourReviewIsRequired: 'Απαιτείται η αξιολόγησή σας',
         actionBadge: {
             submit: 'Υποβολή',
@@ -2298,7 +2299,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         whatIsNew: 'Τι νέο υπάρχει',
         accountSettings: 'Ρυθμίσεις λογαριασμού',
-        account: 'Λογαριασμός',
+        // ZWSP (U+200B) lets this LHN label wrap as Λογαρια/σμός instead of clipping
+        account: 'Λογαρια\u200Bσμός',
         general: 'Γενικά',
     },
     closeAccountPage: {
