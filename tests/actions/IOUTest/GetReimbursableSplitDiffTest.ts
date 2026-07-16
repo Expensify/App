@@ -28,8 +28,8 @@ describe('getReimbursableSplitDiff', () => {
                 isCreationOfSplits: true,
             });
 
-            // Then Your spend should drop by the $40 that became non-reimbursable
-            expect(diff).toBe(-4000);
+            // Then the (negative) snapshot total moves toward zero by the $40 that became non-reimbursable
+            expect(diff).toBe(4000);
         });
 
         it('nets to 0 when the whole reimbursable expense stays reimbursable', () => {
@@ -53,7 +53,7 @@ describe('getReimbursableSplitDiff', () => {
                 isCreationOfSplits: true,
             });
 
-            expect(diff).toBe(-4000);
+            expect(diff).toBe(4000);
         });
 
         it('adds only the reimbursable portion when the original expense was non-reimbursable', () => {
@@ -65,7 +65,8 @@ describe('getReimbursableSplitDiff', () => {
                 isCreationOfSplits: true,
             });
 
-            expect(diff).toBe(6000);
+            // $60 of new reimbursable spend pushes the (negative) snapshot total further from zero
+            expect(diff).toBe(-6000);
         });
     });
 
@@ -80,8 +81,8 @@ describe('getReimbursableSplitDiff', () => {
                 isCreationOfSplits: false,
             });
 
-            // Then Your spend should drop by the $50 that became non-reimbursable
-            expect(diff).toBe(-5000);
+            // Then the (negative) snapshot total moves toward zero by the $50 that became non-reimbursable
+            expect(diff).toBe(5000);
         });
 
         it('nets to 0 when reimbursable totals are unchanged', () => {

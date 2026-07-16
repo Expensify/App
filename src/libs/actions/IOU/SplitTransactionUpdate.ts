@@ -123,9 +123,10 @@ type GetReimbursableSplitDiffParams = {
 };
 
 /**
- * Returns the change to the report's reimbursable total from a split, in report-currency magnitude.
- * Your spend only counts reimbursable expenses, so non-reimbursable splits are excluded — otherwise splitting a
- * reimbursable expense into reimbursable + non-reimbursable parts nets to 0 against the whole-report change and leaves Your spend stale.
+ * Returns the change to the reimbursable total from a split, signed with the snapshot `total` convention (spend is negative),
+ * so it can be applied to the Your spend aggregates directly. Your spend only counts reimbursable expenses, so
+ * non-reimbursable splits are excluded — otherwise splitting a reimbursable expense into reimbursable + non-reimbursable
+ * parts nets to 0 against the whole-report change and leaves Your spend stale.
  */
 function getReimbursableSplitDiff({splits, originalTransaction, originalChildTransactions, splitExpensesTotal, isCreationOfSplits}: GetReimbursableSplitDiffParams): number {
     const newReimbursableTotal = splits.reduce((total, split) => total + (split.reimbursable !== false ? split.amount : 0), 0);
@@ -133,7 +134,8 @@ function getReimbursableSplitDiff({splits, originalTransaction, originalChildTra
     const previousReimbursableTotal = isCreationOfSplits
         ? creationPreviousTotal
         : originalChildTransactions.reduce((total, childTransaction) => total + (childTransaction?.reimbursable !== false ? Math.abs(childTransaction?.amount ?? 0) : 0), 0);
-    return newReimbursableTotal - previousReimbursableTotal;
+    // The totals above are magnitudes; more reimbursable spend must push the (negative) snapshot total further from zero, hence the flip.
+    return previousReimbursableTotal - newReimbursableTotal;
 }
 
 function updateSplitTransactions({
