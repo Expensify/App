@@ -472,9 +472,9 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
-function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: Record<string, WorkspaceCardsList | undefined>, cardFeed?: CardFeedWithNumber, cardID?: number) {
+function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: OnyxCollection<WorkspaceCardsList>, cardFeed?: CardFeedWithNumber, cardID?: number) {
     const feedsWithDomainIDs = Object.keys(cardFeeds) as CardFeedWithDomainID[];
-    return Object.values(cardLists)
+    return Object.values(cardLists ?? {})
         .flatMap((cardList) => Object.values(cardList ?? {}))
         .filter((card) => {
             const feedKey = card.bank as CardFeedWithNumber;
@@ -495,7 +495,7 @@ function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: Record<strin
 
 function getCardsUsingCustomExportCount(
     cardFeeds: CombinedCardFeeds,
-    cardLists: Record<string, WorkspaceCardsList | undefined>,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
 ): {
     perFeedCount: Partial<Record<CardFeedWithNumber, number>>;
@@ -519,7 +519,7 @@ function getCardsUsingCustomExportCount(
 
 function getCardsCustomExportPendingAction(
     cardFeeds: CombinedCardFeeds,
-    cardLists: Record<string, WorkspaceCardsList | undefined>,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
     cardFeed?: CardFeedWithNumber,
     cardID?: number,
@@ -538,7 +538,7 @@ function getCardsCustomExportPendingAction(
 
 function areCardsCustomExportInErrorFields(
     cardFeeds: CombinedCardFeeds,
-    cardLists: Record<string, WorkspaceCardsList | undefined>,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
     exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
     cardFeed?: CardFeedWithNumber,
     cardID?: number,
