@@ -262,15 +262,24 @@ describe('navigateAfterExpenseCreate', () => {
             expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}));
         });
 
-        // SEARCH_REPORT is the only wide-RHP screen that renders a transaction thread with its report
-        // underneath; on the Inbox tab it overlays the current tab rather than switching to Spend.
-        it('should open the transaction thread as a wide RHP when the user is on the Inbox tab on a wide layout and the report has a single transaction', async () => {
+        it('should open the expense report when the user is on the Inbox tab on a wide layout and the report has a single transaction', () => {
             mockIsReportTopmostSplitNavigator.mockReturnValue(true);
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
             mockGetIsNarrowLayout.mockReturnValue(false);
             mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}] as Transaction[]);
 
             navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'iou-1', backTo: ''}));
+        });
+
+        it('should open the transaction thread directly when there is no expense report (tracked/unreported expense)', async () => {
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(false);
+
+            navigateToTransactionThread({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: undefined});
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);

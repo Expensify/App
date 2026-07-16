@@ -107,9 +107,9 @@ type NavigateToTransactionThreadParams = {
  * is currently looking at (they may have switched tabs while the growl was up)
  * - Spend tab: the transaction thread RHP within Spend (report shown underneath via the wide RHP)
  * - Inbox tab, narrow layout: the transaction thread as a full report view
- * - Inbox tab, wide layout, multi-transaction report: the expense report with the thread RHP stacked on top
- * - Inbox tab, wide layout, single-transaction report: the transaction thread as a wide RHP overlaying the
- * Inbox tab (a single-transaction report does not use the super wide RHP, so stacking would surface as two RHP panels).
+ * - Inbox tab, wide layout, with an expense report: the expense report - a multi-transaction report opens super
+ *   wide with the specific thread RHP stacked on top; a single-transaction report collapses to the thread itself
+ * - Inbox tab, wide layout, tracked/unreported expense (no expense report): the transaction thread RHP directly
  */
 function navigateToTransactionThread({threadReportID, transactionID, iouReportID}: NavigateToTransactionThreadParams) {
     const backTo = Navigation.getActiveRoute();
@@ -126,22 +126,26 @@ function navigateToTransactionThread({threadReportID, transactionID, iouReportID
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo));
         return;
     }
-
-    // See SearchMoneyRequestReportPage's `shouldShowSuperWideRHP`: only multi-transaction reports use the
-    // super wide RHP, so only then do we open the expense report underneath and stack the thread RHP on top.
-    const hasMultipleReportTransactions = getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
-
-    if (iouReportID && hasMultipleReportTransactions) {
+    if (iouReportID) {
         Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
-        // Defer so the thread RHP stacks on top of the expense report navigation above.
-        setNavigationActionToMicrotaskQueue(() => {
-            setActiveTransactionIDs([transactionID]).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: Navigation.getActiveRoute()}));
+
+        // A multi-transaction report opens super wide (see SearchMoneyRequestReportPage's `shouldShowSuperWideRHP`),
+        // so stack the specific thread RHP on top of it. A single-transaction report collapses to the thread
+        // itself, so the expense report navigation above already lands on it.
+        const hasMultipleReportTransactions =
+            getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
+        if (hasMultipleReportTransactions) {
+            // Defer so the thread RHP stacks on top of the expense report navigation above.
+            setNavigationActionToMicrotaskQueue(() => {
+                setActiveTransactionIDs([transactionID]).then(() => {
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: Navigation.getActiveRoute()}));
+                });
             });
-        });
+        }
         return;
     }
 
+    // Tracked/unreported expense: there's no expense report to open, so go straight to the transaction thread.
     setActiveTransactionIDs([transactionID]).then(() => {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
     });
