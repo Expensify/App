@@ -66,6 +66,7 @@ import {
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isMapDistanceRequest as isMapDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
@@ -230,6 +231,7 @@ function IOURequestStepConfirmation({
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
@@ -493,6 +495,7 @@ function IOURequestStepConfirmation({
         action,
         requestType,
         isDistanceRequest,
+        isMapDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
         isPerDiemRequest,

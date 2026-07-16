@@ -272,6 +272,7 @@
     "@types/canvas-size": "^1.2.2",
     "@types/concurrently": "^7.0.3",
     "@types/d3-scale": "^4.0.9",
+    "@types/geojson": "^7946.0.16",
     "@types/howler": "^2.2.12",
     "@types/jest": "^29.5.14",
     "@types/jest-when": "^3.5.2",

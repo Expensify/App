@@ -245,7 +245,7 @@ const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Invoic
 // --- DistanceMapSection ---
 
 type DistanceMapSlice = Pick<Transaction, 'pendingFields' | 'errors' | 'errorFields' | 'routes'> & {
-    comment: {waypoints: NonNullable<Transaction['comment']>['waypoints']} | undefined;
+    comment: {waypoints: NonNullable<Transaction['comment']>['waypoints']; selectedRouteKey: NonNullable<Transaction['comment']>['selectedRouteKey']} | undefined;
 };
 
 const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
@@ -257,7 +257,7 @@ const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transact
         errors: t.errors,
         errorFields: t.errorFields,
         routes: t.routes,
-        comment: t.comment ? {waypoints: t.comment.waypoints} : undefined,
+        comment: t.comment ? {waypoints: t.comment.waypoints, selectedRouteKey: t.comment.selectedRouteKey} : undefined,
     };
     return slice as Transaction;
 };

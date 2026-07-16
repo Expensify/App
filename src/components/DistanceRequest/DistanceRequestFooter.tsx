@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setSelectedRoute} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getDistanceInMeters, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 
@@ -18,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
+import type TransactionState from '@src/types/utils/TransactionStateType';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -43,9 +45,19 @@ type DistanceRequestFooterProps = {
 
     /** Optional style for the map container */
     mapContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The state of the transaction (draft, current, etc.) used to persist route selection to the correct Onyx key */
+    transactionState?: TransactionState;
 };
 
-function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle}: DistanceRequestFooterProps) {
+function DistanceRequestFooter({
+    waypoints,
+    transaction,
+    navigateToWaypointEditPage,
+    policy,
+    mapContainerStyle,
+    transactionState = CONST.TRANSACTION.STATE.DRAFT,
+}: DistanceRequestFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -63,6 +75,10 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const policyCurrency = (policy ?? activePolicy ?? personalPolicy)?.outputCurrency ?? CONST.CURRENCY.USD;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
     const {unit} = mileageRate ?? {};
+    const isAlternativeDirectionSelected = transaction?.comment?.selectedRouteKey === 'route1';
+    const handleRouteSelection = (isAlternative: boolean) => {
+        setSelectedRoute(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, isAlternative ? 'route1' : 'route0', transactionState);
+    };
 
     const waypointMarkers: WayPoint[] = [];
     for (const [key, waypoint] of Object.entries(waypoints ?? {})) {
@@ -109,11 +125,21 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                         location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
                     }}
                     directionCoordinates={(transaction?.routes?.route0?.geometry?.coordinates as Array<[number, number]>) ?? []}
+                    alternativeDirection={
+                        transaction?.routes?.route1?.geometry?.coordinates && transaction?.routes?.route1?.distance
+                            ? {
+                                  coordinates: (transaction?.routes?.route1?.geometry?.coordinates as Array<[number, number]>) ?? [],
+                                  distanceInMeters: transaction?.routes?.route1?.distance,
+                                  isSelected: isAlternativeDirectionSelected,
+                              }
+                            : undefined
+                    }
+                    setIsAlternativeDirectionSelected={handleRouteSelection}
                     style={[styles.mapView, styles.mapEditView]}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                     overlayStyle={styles.mapEditView}
-                    distanceInMeters={getDistanceInMeters(transaction, undefined)}
+                    distanceInMeters={transaction?.routes?.route0?.distance ?? getDistanceInMeters(transaction, undefined)}
                     unit={unit}
                 />
             </View>

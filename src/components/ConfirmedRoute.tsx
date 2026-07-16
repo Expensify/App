@@ -47,7 +47,8 @@ type ConfirmedRouteProps = {
 
 function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive, shouldDisplayCompass = true}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
-    const {route0: route} = transaction?.routes ?? {};
+    const selectedRouteKey = transaction?.comment?.selectedRouteKey ?? 'route0';
+    const route = transaction?.routes?.[selectedRouteKey] ?? transaction?.routes?.route0;
     const waypoints = transaction?.comment?.waypoints ?? {};
     const coordinates = route?.geometry?.coordinates ?? [];
     const styles = useThemeStyles();

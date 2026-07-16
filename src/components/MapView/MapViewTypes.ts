@@ -26,6 +26,17 @@ type MapViewProps = {
     waypoints?: WayPoint[];
     // List of coordinates which together forms a direction.
     directionCoordinates?: Coordinate[] | Coordinate[][];
+    // List of coordinates which together forms an alternative direction.
+    alternativeDirection?: {
+        // List of coordinates which together forms an alternative direction.
+        coordinates: Coordinate[] | Coordinate[][];
+        // Whether the alternative direction is selected
+        isSelected: boolean;
+        // Distance displayed on the map in meters.
+        distanceInMeters: number;
+    };
+    // Callback to call when the alternative direction is selected
+    setIsAlternativeDirectionSelected?: (isAlternativeDirectionSelected: boolean) => void;
     // Callback to call when the map is idle / ready.
     onMapReady?: () => void;
     // Whether the map is interactive or not
@@ -83,14 +94,64 @@ type GPSDirectionProps = {
     belowLayerID?: string;
 };
 
+type DistanceSymbolProps = {
+    // Distance displayed on the map in meters.
+    distanceInMeters?: number;
+
+    // Unit of measurement for distance
+    unit?: Unit;
+
+    // List of coordinates which together forms a direction.
+    directionCoordinates?: Coordinate[];
+
+    // List of waypoints on the map
+    waypoints?: WayPoint[];
+
+    // Whether the direction to which the symbol is assigned to is selected, true by default if not provided.
+    // Should be used if alternative directions are available. Determines what style to apply to the symbol.
+    isSelected?: boolean;
+};
+
 type DirectionProps = {
     // Coordinates of points that constitute the direction
-    coordinates: Coordinate[] | Coordinate[][];
+    coordinates: Coordinate[] | Coordinate[][]; // Single segment route or multiple segments route
 
     // ID of the layer to place the line layer below
     belowLayerID?: string;
+
+    // Whether the direction is selected, true by default if not provided. Should be used if alternative directions are available
+    // Determines what style to apply to the direction.
+    isSelected?: boolean;
+
+    id?: string;
+
+    // Callback to call when the direction is pressed
+    onPress?: () => void;
 };
 
+type AlternativeDirection = {
+    // List of coordinates which together forms a direction.
+    coordinates: Coordinate[] | Coordinate[][];
+    // Whether the alternative direction is selected
+    isSelected: boolean;
+    // Distance displayed on the map in meters.
+    distanceInMeters: number;
+};
+
+type DirectionsProps = {
+    // List of coordinates which together forms a direction.
+    directionCoordinates?: Coordinate[] | Coordinate[][];
+    // List of coordinates which together forms an alternative direction.
+    alternativeDirection?: AlternativeDirection;
+    // Callback to call when the alternative direction is selected
+    setIsAlternativeDirectionSelected?: (isAlternativeDirectionSelected: boolean) => void;
+    // Distance displayed on the map in meters.
+    distanceInMeters?: number;
+    // Unit of measurement for distance
+    unit?: Unit;
+    // List of waypoints on the map
+    waypoints?: WayPoint[];
+};
 type PendingMapViewProps = {
     /** Title message below the icon */
     title?: string;
@@ -128,4 +189,16 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate, GPSDirectionProps, CompassProps};
+export type {
+    WayPoint,
+    MapViewProps,
+    GPSMapViewProps,
+    DirectionProps,
+    PendingMapViewProps,
+    Coordinate,
+    GPSDirectionProps,
+    CompassProps,
+    DistanceSymbolProps,
+    DirectionsProps,
+    AlternativeDirection,
+};

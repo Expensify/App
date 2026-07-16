@@ -205,6 +205,10 @@ function handleMoneyRequestStepDistanceNavigation({
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
+    const isMapDistance = waypoints && !isGPSDistance;
+    const selectedRouteKey = transaction?.comment?.selectedRouteKey;
+    const effectiveGpsCoordinates =
+        isMapDistance && selectedRouteKey && selectedRouteKey !== 'route0' ? JSON.stringify(transaction?.routes?.[selectedRouteKey]?.geometry?.coordinates) : gpsCoordinates;
     const distanceRequestType = getDistanceRequestType(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
@@ -308,7 +312,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                     expenseDate: transaction?.created,
                                 }),
                                 attendees: transaction?.comment?.attendees,
-                                gpsCoordinates,
+                                gpsCoordinates: effectiveGpsCoordinates,
                                 distanceRequestType,
                                 odometerStart,
                                 odometerEnd,
@@ -384,7 +388,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             }),
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
-                            gpsCoordinates,
+                            gpsCoordinates: effectiveGpsCoordinates,
                             distanceRequestType,
                             odometerStart,
                             odometerEnd,

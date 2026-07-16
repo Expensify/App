@@ -128,6 +128,7 @@ type UseExpenseSubmissionParams = {
     isDistanceRequest: boolean;
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
+    isMapDistanceRequest: boolean;
     isPerDiemRequest: boolean;
     isTimeRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
@@ -178,6 +179,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         iouType,
         action,
         isDistanceRequest,
+        isMapDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
         isPerDiemRequest,
@@ -657,6 +659,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
+
+            let gpsCoordinates: string | undefined;
+            if (isGPSDistanceRequest) {
+                gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
+            } else if (isMapDistanceRequest) {
+                const routeKey = item.comment?.selectedRouteKey;
+                if (routeKey && routeKey !== 'route0') {
+                    const coords = item.routes?.[routeKey]?.geometry?.coordinates;
+                    if (coords) {
+                        gpsCoordinates = JSON.stringify(coords);
+                    }
+                }
+            }
+
             trackExpenseIOUActions({
                 report: trackReport,
                 isDraftPolicy,
@@ -699,7 +715,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
-                    gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
+                    gpsCoordinates,
                     distanceRequestType,
                 },
                 accountantParams: {
@@ -748,6 +764,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
+        let gpsCoordinates: string | undefined;
+        if (isGPSDistanceRequest) {
+            gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
+        } else if (isMapDistanceRequest) {
+            const routeKey = transaction.comment?.selectedRouteKey;
+            if (routeKey && routeKey !== 'route0') {
+                const coords = transaction.routes?.[routeKey]?.geometry?.coordinates;
+                if (coords) {
+                    gpsCoordinates = JSON.stringify(coords);
+                }
+            }
+        }
+
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
             report,
             participants: selectedParticipantsForRequest,
@@ -784,7 +813,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 odometerStart: isOdometerDistanceRequest ? transaction.comment?.odometerStart : undefined,
                 odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
+                gpsCoordinates,
                 distanceRequestType,
             },
             isASAPSubmitBetaEnabled,

@@ -1,4 +1,4 @@
-import type {Coordinate} from './MapViewTypes';
+import type {AlternativeDirection, Coordinate} from './MapViewTypes';
 
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
 type LngLatLiteral = {lng: number; lat: number};
@@ -139,6 +139,16 @@ function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate})
     return {lng: latitudeCenter, lat: longitudeCenter};
 }
 
+function getCoordinatesFromAllDirections(directionCoordinates: Coordinate[] | Coordinate[][] | undefined, alternativeDirection: AlternativeDirection | undefined) {
+    const directionCoordinatesFlattened = !directionCoordinates || isSingleSegmentRoute(directionCoordinates) ? directionCoordinates : directionCoordinates.flat();
+
+    const alternativeDirectionCoordinates = alternativeDirection?.coordinates;
+    const alternativeDirectionCoordinatesFlattened =
+        !alternativeDirectionCoordinates || isSingleSegmentRoute(alternativeDirectionCoordinates) ? alternativeDirectionCoordinates : alternativeDirectionCoordinates.flat();
+
+    return [...(directionCoordinatesFlattened ?? []), ...(alternativeDirectionCoordinatesFlattened ?? [])];
+}
+
 export default {
     getBounds,
     areSameCoordinate,
@@ -147,4 +157,5 @@ export default {
     getBoundsCenter,
     simpleInterpolateCoordinate,
     isSingleSegmentRoute,
+    getCoordinatesFromAllDirections,
 };
