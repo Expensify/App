@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect} from 'react';
 
 import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
 import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
@@ -40,7 +40,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const [allProgramsCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
 
     // A single fund can hold both programs' cards in one Onyx list, so keep only the selected program's cards.
-    const cardsList = useMemo(() => filterCardsListByProgram(allProgramsCardsList, selectedProgramKey), [allProgramsCardsList, selectedProgramKey]);
+    const cardsList = filterCardsListByProgram(allProgramsCardsList, selectedProgramKey);
 
     const fetchExpensifyCards = useCallback(() => {
         updateSelectedExpensifyCardFeed(defaultFundID, policyID);
