@@ -10862,7 +10862,7 @@ function hasSmartscanError(
     allTransactions: OnyxCollection<Transaction>,
     reports?: OnyxCollection<Report>,
     // Optional until getAllReportActionsErrorsAndReportActionThatRequiresAttention makes its currentUserAccountID required
-    currentUserAccountID?: number,
+    // TODO: Optional until getAllReportActionsErrorsAndReportActionThatRequiresAttention makes its currentUserAccountID required. Refactor issue: https://github.com/Expensify/App/issues/66408
 ): boolean {
     return !!getReportActionWithSmartscanError(reportActions, report, allTransactions, reports, currentUserAccountID);
 }
