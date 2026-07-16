@@ -126,6 +126,8 @@ Deleting the agent from the **Security** page also ends the Copilot session and 
 
 Deleting an agent can't be undone.
 
+If the agent still has reports awaiting its approval, the deletion fails and an error appears on the agent's row asking you to review those reports first. Approve, reject, or reassign the outstanding reports, then delete the agent again.
+
 ---
 
 ## How to use an agent as a workspace approver
@@ -158,6 +160,10 @@ Agents are in **Beta** and may not be enabled on your account yet. When the feat
 ## Who can edit or delete an agent?
 
 Only the agent's owner can edit its instructions or delete it. The owner is the account that created the agent.
+
+## Why can't I delete an agent?
+
+If the agent is a workspace approver and has reports awaiting its approval, the deletion fails and an error appears on the agent's row. Review the outstanding reports (approve, reject, or reassign them to another approver), then delete the agent again.
 
 ## Does an agent have its own Expensify account?
 
