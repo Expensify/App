@@ -45,7 +45,7 @@ import {
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getChildTransactions, isDistanceRequest as isDistanceRequestTransactionUtils, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
 
-import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+import {openReport, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
@@ -1988,6 +1988,19 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         }
         Navigation.removeScreenByKey(transactionThreadReportScreen.key);
     });
+
+    // A reverse split (splits reduced to 1) deletes the split children and restores the original
+    // transaction back into the expense report. The destination report is already mounted, so it can
+    // render during the brief window where its derived transaction collection is empty while the report
+    // total is still non-zero - which pins the money-request loading skeleton
+    // (see shouldWaitForTransactions in MoneyRequestReportUtils). If no subsequent Onyx update touches
+    // the report's transactions slice, that skeleton stays up until a gesture forces a re-render.
+    // Re-open the report after the dismiss transition to guarantee a fresh render cycle once the data
+    // has settled, following the same re-fetch recovery pattern ReportFetchHandler uses when a report
+    // is left blank until something re-fetches it.
+    if (isReverseSplitOperation && targetReportID !== String(CONST.DEFAULT_NUMBER_ID)) {
+        TransitionTracker.runAfterTransitions({callback: () => openReport({reportID: targetReportID, introSelected: undefined, betas: params.betas})});
+    }
 }
 
 export {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
