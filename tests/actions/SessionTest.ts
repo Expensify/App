@@ -440,6 +440,22 @@ describe('Session', () => {
         await waitForBatchedUpdates();
     });
 
+    test('SignOut should clear native startup prefetch state before LOG_OUT', async () => {
+        const clearTokenRefreshMock = jest.mocked(clearTokenRefresh);
+        const removeFromAutoPrefetchMock = jest.mocked(removeFromAutoPrefetch);
+        const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+        await SessionUtil.signOut({authToken: 'testAuthToken'});
+
+        expect(clearTokenRefreshMock).toHaveBeenCalledWith('fetch');
+        expect(removeFromAutoPrefetchMock).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
+        expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken'}), {});
+        expect(clearTokenRefreshMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
+        expect(removeFromAutoPrefetchMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
+
+        makeRequestSpy.mockRestore();
+    });
+
     describe('SignOutAndRedirectToSignIn', () => {
         test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
             await TestHelper.signInWithTestUser();
