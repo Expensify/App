@@ -8211,6 +8211,7 @@ describe('startSplitBill delegateAccountID forwarding', () => {
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
             delegateAccountID: DELEGATE_ACCOUNT_ID,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
