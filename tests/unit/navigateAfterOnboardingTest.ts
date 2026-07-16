@@ -104,8 +104,9 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
 
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
+        // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
     });
 
     it('should preserve the topmost report if onboardingAdminsChatReportID is not provided on larger screens', () => {
