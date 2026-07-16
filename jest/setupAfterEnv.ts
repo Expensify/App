@@ -8,6 +8,11 @@ import Onyx from 'react-native-onyx';
 
 jest.useRealTimers();
 
+jest.mock('@hooks/useAIFeaturesPromoModal', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 // Patch Keyboard.addListener to return a subscription object with .remove() so that
 // @react-navigation/bottom-tabs useIsKeyboardShown hook doesn't crash on cleanup.
 if (Keyboard && typeof Keyboard.addListener === 'function') {

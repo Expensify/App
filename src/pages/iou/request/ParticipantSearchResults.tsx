@@ -299,6 +299,7 @@ function ParticipantSearchResults({
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            translate,
             personalDetails,
             true,
             undefined,
@@ -306,15 +307,17 @@ function ParticipantSearchResults({
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
-        if ((availableOptions.workspaceChats ?? []).length > 0) {
+        const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
+        if (workspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),
-                data: (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option))),
+                data: workspaceChats,
                 sectionIndex: 1,
             });
         }
 
-        if (availableOptions.selfDMChat) {
+        // The self-DM is never a valid destination for the workspaces-only picker (e.g. "Submit to my employer"), so keep it out.
+        if (!isWorkspacesOnly && availableOptions.selfDMChat) {
             sections.push({
                 title: translate('workspace.invoices.paymentMethods.personal'),
                 data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],
@@ -364,7 +367,7 @@ function ParticipantSearchResults({
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
                         ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,
             });
