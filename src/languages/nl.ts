@@ -7664,6 +7664,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 newRuleTitle: 'Nieuwe regel',
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
+                createRule: 'Regel maken',
             },
             tabs: {
                 general: 'Algemeen',

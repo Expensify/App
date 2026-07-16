@@ -7686,6 +7686,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 newRuleTitle: 'Nuova regola',
                 describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',
                 gotIt: 'Capito',
+                createRule: 'Crea regola',
             },
             tabs: {
                 general: 'Generale',

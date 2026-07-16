@@ -7732,6 +7732,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 newRuleTitle: 'Nouvelle règle',
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
+                createRule: 'Créer une règle',
             },
             tabs: {
                 general: 'Général',

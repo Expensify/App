@@ -7656,6 +7656,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 newRuleTitle: 'Nova regra',
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',
+                createRule: 'Criar regra',
             },
             tabs: {
                 general: 'Geral',

@@ -7703,6 +7703,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 newRuleTitle: 'Neue Regel',
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 gotIt: 'Verstanden',
+                createRule: 'Regel erstellen',
             },
             tabs: {
                 general: 'Allgemein',

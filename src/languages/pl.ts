@@ -7643,6 +7643,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 newRuleTitle: 'Nowa reguła',
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',
+                createRule: 'Utwórz regułę',
             },
             tabs: {
                 general: 'Ogólne',

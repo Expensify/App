@@ -7590,6 +7590,7 @@ ${reportName}`,
                 newRuleTitle: '新しいルール',
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
+                createRule: 'ルールを作成',
             },
             tabs: {
                 general: '一般',
