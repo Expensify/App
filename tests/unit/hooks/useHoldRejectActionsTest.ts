@@ -119,8 +119,6 @@ describe('useHoldRejectActions - report-level reject', () => {
         jest.clearAllMocks();
         getMockUseDelegateNoAccessState().mockReturnValue({isDelegateAccessRestricted: false});
         getMockUseDelegateNoAccessActions().mockReturnValue({showDelegateNoAccessModal: mockShowDelegateNoAccessModal});
-        jest.mocked(useMoneyReportTransactionThread).mockReturnValue({iouTransactionID: undefined, requestParentReportAction: undefined});
-        jest.mocked(isDM).mockReturnValue(false);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}`, mockReport);
     });
 
@@ -160,11 +158,15 @@ describe('useHoldRejectActions - report-level reject', () => {
     });
 
     it('opens the hold educational modal for DM expenses instead of bypassing it', async () => {
+        jest.mocked(isDM).mockReturnValue(true);
         jest.mocked(useMoneyReportTransactionThread).mockReturnValue({
             iouTransactionID: undefined,
-            requestParentReportAction: {reportActionID: 'parent-action-1'} as ReportAction,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal stub so HOLD onSelected can run
+            requestParentReportAction: {reportActionID: 'parent-action-1', actionName: CONST.REPORT.ACTIONS.TYPE.IOU} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
+            transactionThreadReportID: undefined,
+            transactionThreadReport: undefined,
+            reportActions: [],
         });
-        jest.mocked(isDM).mockReturnValue(true);
         await Onyx.merge(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, false);
         await waitForBatchedUpdates();
 
