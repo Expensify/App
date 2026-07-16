@@ -991,7 +991,6 @@ const CONST = {
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
-        CERTINIA: 'financialForceNewDot',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
@@ -2219,6 +2218,7 @@ const CONST = {
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
+        ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -2299,6 +2299,46 @@ const CONST = {
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
             SEND_MONEY: 'send_money',
+        },
+        SEND_MESSAGE_SOURCE: {
+            CONCIERGE_SIDE_PANEL: 'concierge_side_panel',
+            // Side Panel hosting the workspace admins chat (admin onboarding), not Concierge.
+            SIDE_PANEL: 'side_panel',
+            // Expense report, split single- vs multi-expense (only multi has a heavy transactions table). e/:id and
+            // search/r/:id render the same component, so they share this base rather than owning a `_search` value.
+            EXPENSE_REPORT_SINGLE: 'expense_report_single',
+            EXPENSE_REPORT_MULTI: 'expense_report_multi',
+            // Single-transaction expense thread (chat-type, expense parent).
+            EXPENSE_TRANSACTION_THREAD: 'expense_transaction_thread',
+            CONCIERGE: 'concierge',
+            REPORT_THREAD: 'report_thread',
+            INVOICE_ROOM: 'invoice_room',
+            WORKSPACE_ROOM: 'workspace_room',
+            POLICY_EXPENSE_CHAT: 'policy_expense_chat',
+            TASK_REPORT: 'task_report',
+            GROUP_CHAT: 'group_chat',
+            DIRECT_MESSAGE: 'direct_message',
+            SELF_DM: 'self_dm',
+            OTHER_CHAT: 'other_chat',
+        },
+        // Tab prefix on every send_message_source value. OTHER = a tab that doesn't host these surfaces
+        // (Workspaces) or an unresolved tab.
+        SEND_MESSAGE_SOURCE_TAB: {
+            HOME: 'home',
+            INBOX: 'inbox',
+            SPEND: 'spend',
+            SETTINGS: 'settings',
+            OTHER: 'other',
+        },
+        // Surface suffix, added for the RHP report routes (e/:id, search/r/:id, search/view/:id), e.g.
+        // `inbox_report_thread_rhp`. Central pane has no suffix; the Side Panel lives in the base.
+        SEND_MESSAGE_SOURCE_SURFACE: {
+            RHP: 'rhp',
+        },
+        // Extra suffix (alongside `_rhp`) marking that the RHP screen was drilled into from its parent expense
+        // report vs opened directly from a list, e.g. `spend_expense_transaction_thread_rhp_from_report`.
+        SEND_MESSAGE_SOURCE_RHP_ORIGIN: {
+            FROM_REPORT: 'from_report',
         },
         // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
         // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.
@@ -2523,6 +2563,9 @@ const CONST = {
     EMAIL_SEARCH_REGEX: /\.(?=[^\s@]*@)/g,
 
     VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
+
+    // Matches an opening or closing HTML tag that starts with a letter (e.g. <b>, </strong>, <br/>)
+    HTML_TAG_REGEX: /<\/?[a-z][^>]*>/i,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -4196,9 +4239,7 @@ const CONST = {
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
             },
-            SUPPORTED_ONLY_ON_OLDDOT: {
-                FINANCIALFORCE: 'financialforce',
-            },
+            SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
                 GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
             },
@@ -6407,11 +6448,6 @@ const CONST = {
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
-    TRIAL_REMINDER_VARIANT: {
-        BASIC: 'basic',
-        NEAR_END: 'nearEnd',
-        COUNTDOWN: 'countdown',
-    },
     ONBOARDING_ACCOUNTING_MAPPING,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
@@ -6565,6 +6601,13 @@ const CONST = {
             TASK: 'task',
             TRIP: 'trip',
             CHAT: 'chat',
+        },
+        // Terminal lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
+        // (loading on request start, loaded/error on resolve) so the snapshot always has an explicit, mutually exclusive state.
+        SNAPSHOT_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+            ERROR: 'error',
         },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
@@ -8176,6 +8219,9 @@ const CONST = {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
         },
+        ACCOUNT_MANAGER_BOOK_CALL: {
+            BUTTON: 'AccountManagerBookCallButton-Button',
+        },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
         },
@@ -9037,6 +9083,12 @@ const CONST = {
         AI_FEATURES_PROMO_MODAL: {
             CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
             HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
+        },
+    },
+
+    AGENTS: {
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
         },
     },
 
