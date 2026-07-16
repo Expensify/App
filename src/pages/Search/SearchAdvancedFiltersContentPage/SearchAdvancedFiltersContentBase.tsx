@@ -50,11 +50,11 @@ function SearchAdvancedFiltersContentBase() {
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    const {currentSearchQueryJSON} = useSearchQueryContext();
     const filterKey = route.params.filterKey;
     const shouldApplyFilterChangeDirectly = !!route.params.applyDirectly;
     const {currentDraftFilters} = useContext(SearchAdvancedFiltersContext);
     const {setDraftFilters} = useContext(SearchAdvancedFiltersActionContext);
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
@@ -139,7 +139,6 @@ function SearchAdvancedFiltersContentBase() {
                             <SearchAdvancedFiltersContent
                                 values={shouldApplyFilterChangeDirectly ? searchAdvancedFiltersForm : currentDraftFilters}
                                 filterKey={validFilterKey}
-                                policyIDQuery={currentSearchQueryJSON?.policyID}
                                 ready={didScreenTransitionEnd}
                                 components={{
                                     Common: CommonFilterContentPageWrapper,

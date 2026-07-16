@@ -1205,7 +1205,13 @@ function peg$parse(input, options) {
                                                                                         if (s1 === peg$FAILED) {
                                                                                           s1 = peg$parsepurchaseAmount();
                                                                                           if (s1 === peg$FAILED) {
-                                                                                            s1 = peg$parsereportFieldDynamic();
+                                                                                            s1 = peg$parsepolicyID();
+                                                                                            if (s1 === peg$FAILED) {
+                                                                                              s1 = peg$parsestatus();
+                                                                                              if (s1 === peg$FAILED) {
+                                                                                                s1 = peg$parsereportFieldDynamic();
+                                                                                              }
+                                                                                            }
                                                                                           }
                                                                                         }
                                                                                       }
@@ -1286,23 +1292,17 @@ function peg$parse(input, options) {
     s0 = peg$currPos;
     s1 = peg$parsetype();
     if (s1 === peg$FAILED) {
-      s1 = peg$parsestatus();
+      s1 = peg$parsesortBy();
       if (s1 === peg$FAILED) {
-        s1 = peg$parsesortBy();
+        s1 = peg$parsesortOrder();
         if (s1 === peg$FAILED) {
-          s1 = peg$parsesortOrder();
+          s1 = peg$parsegroupBy();
           if (s1 === peg$FAILED) {
-            s1 = peg$parsepolicyID();
+            s1 = peg$parsecolumns();
             if (s1 === peg$FAILED) {
-              s1 = peg$parsegroupBy();
+              s1 = peg$parselimit();
               if (s1 === peg$FAILED) {
-                s1 = peg$parsecolumns();
-                if (s1 === peg$FAILED) {
-                  s1 = peg$parselimit();
-                  if (s1 === peg$FAILED) {
-                    s1 = peg$parseview();
-                  }
-                }
+                s1 = peg$parseview();
               }
             }
           }
@@ -4770,7 +4770,6 @@ function peg$parse(input, options) {
 
   const defaultValues = {
     type: "expense",
-    status: "",
     sortBy: "date",
     sortOrder: "desc",
     view: "table",
@@ -4823,11 +4822,6 @@ function peg$parse(input, options) {
   }
 
   function updateDefaultValues(field, value) {
-    if (field === "status" && value === "all") {
-      defaultValues[field] = "";
-      return;
-    }
-
     // Track if user explicitly provided a custom (non-default) sortBy
     if (field === "sortBy" && !isDefaultSortValue(value)) {
       userProvidedSortBy = true;

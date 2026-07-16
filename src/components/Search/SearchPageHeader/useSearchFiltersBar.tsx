@@ -17,7 +17,7 @@ import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
-import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -50,7 +50,6 @@ type UseSearchFiltersBarResult = {
 type FilterPopupProps = {
     filterKey: SearchFilter['key'];
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>;
-    queryJSON: SearchQueryJSON;
     closeOverlay: () => void;
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
@@ -60,7 +59,7 @@ function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilter
     return `Search-Filter-${filterKey}`;
 }
 
-function FilterPopup({filterKey, searchAdvancedFiltersForm, queryJSON, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
+function FilterPopup({filterKey, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
     const {translate} = useLocalize();
     const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
 
@@ -133,9 +132,8 @@ function FilterPopup({filterKey, searchAdvancedFiltersForm, queryJSON, closeOver
             filterKey={filterKey}
             value={searchAdvancedFiltersForm[filterKey]}
             type={searchAdvancedFiltersForm.type}
-            policyIDs={searchAdvancedFiltersForm.policyID}
+            policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
             label={label}
-            policyIDQuery={queryJSON.policyID}
             closeOverlay={closeOverlay}
             updateFilterForm={closeModalAndUpdateFilterForm}
         />
@@ -151,7 +149,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
-        queryJSON.policyID,
         SKIPPED_SEARCH_FILTERS,
         translate,
         localeCompare,
@@ -162,7 +159,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     <FilterPopup
                         filterKey={filterKey}
                         searchAdvancedFiltersForm={searchAdvancedFiltersForm}
-                        queryJSON={queryJSON}
                         closeOverlay={closeOverlay}
                         setPopoverWidth={setPopoverWidth}
                         updateFilterForm={updateFilterQueryParams}

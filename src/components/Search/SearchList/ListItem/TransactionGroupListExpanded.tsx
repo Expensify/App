@@ -19,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import genericMemo from '@libs/genericMemo';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -28,7 +29,7 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getTransactionViolations, isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
@@ -42,7 +43,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
@@ -105,8 +106,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         return ids;
     }, [visibleTransactions]);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => {
+    const reportsSelector = useCallback(
+        (reports: OnyxCollection<OnyxTypes.Report>) => {
             const result: OnyxCollection<OnyxTypes.Report> = {};
             for (const key of Object.keys(reports ?? {})) {
                 if (neededReportIDs.has(key)) {
@@ -115,7 +116,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             }
             return result;
         },
-    });
+        [neededReportIDs],
+    );
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
 
     const isLastTransaction = (index: number) => {
         return index === visibleTransactions.length - 1;
@@ -353,14 +356,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     policyCategories={getPolicyCategoriesForTransaction(transaction)}
                                     policyTagLists={getPolicyTagListsForTransaction(transaction)}
                                     transactionItem={transaction}
-                                    violations={getTransactionViolations(
-                                        transaction,
-                                        violations,
-                                        currentUserDetails.email ?? '',
-                                        currentUserDetails.accountID,
-                                        transaction.report,
-                                        transaction.policy,
-                                    )}
+                                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                     isSelected={!!transaction.isSelected}
                                     isDisabled={isTransactionPendingDelete(transaction)}
                                     dateColumnSize={dateColumnSize}
@@ -430,4 +426,4 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     );
 }
 
-export default TransactionGroupListExpanded;
+export default genericMemo(TransactionGroupListExpanded);

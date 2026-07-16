@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobile} from '@libs/Browser';
+import genericMemo from '@libs/genericMemo';
 
 import CONST from '@src/CONST';
 
@@ -262,4 +263,4 @@ function BasePicker<TPickerValue>({
     );
 }
 
-export default BasePicker;
+export default genericMemo(BasePicker);
