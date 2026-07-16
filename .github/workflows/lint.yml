@@ -16,7 +16,10 @@ jobs:
   lint:
     name: ESLint check
     if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'push' }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # A cold-cache run lints the whole repo with type-aware rules, needing ~6GB of heap per worker
+    # (~25GB total with the 4 workers that `--concurrency=auto` picks on 8 vCPUs). On smaller runners
+    # ESLint spawns fewer workers, so each one exceeds the 8GB heap cap and dies with ERR_WORKER_OUT_OF_MEMORY.
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
