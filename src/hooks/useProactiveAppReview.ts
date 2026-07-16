@@ -1,11 +1,17 @@
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
 import type ProactiveAppReview from '@src/types/onyx/AppReview';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useMemo} from 'react';
 
 import useOnyx from './useOnyx';
 
 const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
+
+const authTokenTypeSelector = (session: OnyxEntry<Session>) => session?.authTokenType;
 
 type UseProactiveAppReviewReturn = {
     /** Whether the modal should be shown */
@@ -20,8 +26,15 @@ type UseProactiveAppReviewReturn = {
  */
 function useProactiveAppReview(): UseProactiveAppReviewReturn {
     const [proactiveAppReview] = useOnyx(ONYXKEYS.NVP_APP_REVIEW);
+    const [authTokenType] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const shouldShowModal = useMemo(() => {
+        // Support tokens cannot call RespondToProactiveAppReview (not whitelisted), so dismissing
+        // would 411, open the Supportal permission modal, and leave this review modal stuck open.
+        if (authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+            return false;
+        }
+
         if (!proactiveAppReview) {
             return false;
         }
@@ -48,7 +61,7 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
         }
 
         return true;
-    }, [proactiveAppReview]);
+    }, [authTokenType, proactiveAppReview]);
 
     return {
         shouldShowModal,
