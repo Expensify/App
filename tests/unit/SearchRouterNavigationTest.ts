@@ -26,7 +26,9 @@ const mockIcon: IconAsset = () => null;
 describe('Search Router navigation query helpers', () => {
     it.each([
         ['go inbox', 'inbox'],
+        ['go        inbox', 'inbox'],
         ['go to inbox', 'inbox'],
+        ['go       to      inbox', 'inbox'],
         ['Go To Inbox', 'Inbox'],
         ['  go to inbox  ', 'inbox'],
         ['inbox', 'inbox'],
@@ -51,6 +53,14 @@ describe('Search Router navigation query helpers', () => {
         expect(buildNavigationSuggestions('ab', source, localeCompare)).toEqual([]);
     });
 
+    it('returns before processing navigation sources for an empty query', () => {
+        const source = [[{text: 'Go to Inbox', keyForList: 'inbox', matchTerms: ['Inbox']}]];
+        const compare = jest.fn(localeCompare);
+
+        expect(buildNavigationSuggestions('   ', source, compare)).toEqual([]);
+        expect(compare).not.toHaveBeenCalled();
+    });
+
     it('does not match text from the Go to label', () => {
         const source = [[{text: 'Go to Inbox', keyForList: 'inbox', matchTerms: ['Inbox']}]];
 
@@ -72,7 +82,7 @@ describe('Search Router navigation query helpers', () => {
         expect(buildNavigationSuggestions('go 支', source, localeCompare)).toEqual([]);
     });
 
-    it.each(['inbox', 'go inbox', 'go to inbox', 'Go To Inbox'])('matches the Inbox destination for "%s"', (query) => {
+    it.each(['inbox', 'go inbox', 'go        inbox', 'go to inbox', 'go       to      inbox', 'Go To Inbox'])('matches the Inbox destination for "%s"', (query) => {
         const source = [
             [
                 {text: 'Go to Home', keyForList: 'home', matchTerms: ['Home']},

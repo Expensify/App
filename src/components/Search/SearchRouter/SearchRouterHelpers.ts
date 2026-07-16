@@ -17,8 +17,8 @@ const MIN_NAVIGATION_QUERY_LENGTH = 3;
 
 function stripNavigationIntentPrefix(query: string) {
     const trimmedQuery = query.trim();
-    if (/^go to\s+/i.test(trimmedQuery)) {
-        return trimmedQuery.replace(/^go to\s+/i, '').trim();
+    if (/^go\s+to\s+/i.test(trimmedQuery)) {
+        return trimmedQuery.replace(/^go\s+to\s+/i, '').trim();
     }
     if (/^go\s+/i.test(trimmedQuery)) {
         return trimmedQuery.replace(/^go\s+/i, '').trim();
@@ -69,12 +69,17 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
     const trimmedQuery = query.trim();
     const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
     const matchQuery = stripNavigationIntentPrefix(trimmedQuery) || trimmedQuery;
+    if (!matchQuery && !isNavigationIntentOnly) {
+        return [];
+    }
+
     const shouldMatchExactDestination = matchQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly;
 
     return sources
         .flatMap((source) => sortNavigationSuggestionItems(source, localeCompare))
         .filter(
             (item) =>
+                // Bare intents show every destination, short localized labels require exact matches, and longer queries allow partial matches.
                 isNavigationIntentOnly ||
                 (shouldMatchExactDestination ? matchesNavigationQueryExactly(matchQuery, ...(item.matchTerms ?? [])) : matchesNavigationQuery(matchQuery, ...(item.matchTerms ?? []))),
         )
