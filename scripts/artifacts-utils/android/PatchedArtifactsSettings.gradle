@@ -1,0 +1,42 @@
+apply from: "ExpensiUtils.gradle"
+
+class PatchedArtifactsConfig {
+    String version = null
+    String packageName = null
+    String githubUsername = null
+    String githubToken = null
+    Boolean buildFromSource = true
+}
+
+settings.getExtensions().create('patchedArtifacts', PatchedArtifactsConfig)
+
+def getNewDotRootDir() {
+    return "${rootDir}/${hasProperty('newDotRoot') ? getProperty('newDotRoot') : "/.."}"
+}
+
+settings.extensions.configure(PatchedArtifactsConfig) { config ->
+    ExpensiLog.setPrefix("PatchedArtifacts")
+    config.buildFromSource = getProperty('patchedArtifacts.forceBuildFromSource') == 'true'
+    if (config.buildFromSource) {
+        ExpensiLog.lifecycle("Forcing build from source.")
+        return
+    }
+
+    config.packageName = getProperty('patchedArtifacts.packageName')
+
+    def isHybrid = config.packageName == 'react-hybrid'
+    def resolution = ExpensiUtils.resolveArtifacts(config.packageName, getNewDotRootDir().toString(), isHybrid)
+    config.version = resolution.version
+    config.buildFromSource = resolution.buildFromSource
+
+    if (config.buildFromSource || config.version == null) {
+        config.buildFromSource = true
+        ExpensiLog.error("No matching artifacts version found for ${config.packageName}. Building react-native from source.")
+        return
+    }
+
+    // The resolver returns the credentials the Maven download needs alongside the version.
+    config.githubUsername = resolution.githubUsername
+    config.githubToken = resolution.githubToken
+    ExpensiLog.lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
+}
