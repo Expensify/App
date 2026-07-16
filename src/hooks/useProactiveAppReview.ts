@@ -5,6 +5,7 @@ import type ProactiveAppReview from '@src/types/onyx/AppReview';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import {useMemo} from 'react';
 
 import useOnyx from './useOnyx';
@@ -27,11 +28,19 @@ type UseProactiveAppReviewReturn = {
 function useProactiveAppReview(): UseProactiveAppReviewReturn {
     const [proactiveAppReview] = useOnyx(ONYXKEYS.NVP_APP_REVIEW);
     const [authTokenType] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
     const shouldShowModal = useMemo(() => {
         // Support tokens cannot call RespondToProactiveAppReview (not whitelisted), so dismissing
         // would 411, open the Supportal permission modal, and leave this review modal stuck open.
         if (authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+            return false;
+        }
+
+        // Copilot sessions use a TYPE_DELEGATE ("delegate") Auth token. Prefer
+        // delegatedAccess.delegate (same as other promo modals) since older sessions may not
+        // have authTokenType written; also guard on authTokenType when present.
+        if (isActingAsDelegate || authTokenType === CONST.AUTH_TOKEN_TYPES.DELEGATE) {
             return false;
         }
 
@@ -61,7 +70,7 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
         }
 
         return true;
-    }, [authTokenType, proactiveAppReview]);
+    }, [authTokenType, isActingAsDelegate, proactiveAppReview]);
 
     return {
         shouldShowModal,
