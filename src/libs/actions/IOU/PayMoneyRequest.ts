@@ -48,6 +48,8 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type {YourSpendReportMoveItem, YourSpendSnapshotOnyxData} from './YourSpendSnapshotUpdate';
+
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
@@ -126,6 +128,8 @@ type PayMoneyRequestFunctionParams = {
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
     yourSpendPatchData?: YourSpendPatchData;
+    /** Precomputed batch snapshot updates; when paying several reports in one action the caller aggregates them into a single update (attached to one request) instead of stacking per-report absolute totals. */
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData;
 };
 
 function mergeAdditionalPayOnyxData<
@@ -172,6 +176,7 @@ function getPayMoneyRequestParams({
     chatReportActions,
     isTrackIntentUser,
     yourSpendPatchData,
+    yourSpendSnapshotUpdates,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -198,6 +203,7 @@ function getPayMoneyRequestParams({
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
     yourSpendPatchData?: YourSpendPatchData;
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -521,17 +527,19 @@ function getPayMoneyRequestParams({
     }
 
     // Paying a report moves it from "Awaiting approval" to "Repaid" in the Your spend widget; patch both snapshots offline.
-    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
-        iouReport,
-        reportTransactions,
-        fromStatus: {stateNum: iouReport?.stateNum, statusNum: iouReport?.statusNum},
-        toStatus: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
-        currentUserAccountID: currentUserAccountIDParam,
-        context: yourSpendPatchData,
-    });
-    onyxData.optimisticData?.push(...yourSpendSnapshotUpdates.optimisticData);
-    onyxData.successData?.push(...yourSpendSnapshotUpdates.successData);
-    onyxData.failureData?.push(...yourSpendSnapshotUpdates.failureData);
+    const yourSpendUpdates =
+        yourSpendSnapshotUpdates ??
+        getYourSpendSnapshotReportMoveUpdates({
+            iouReport,
+            reportTransactions,
+            fromStatus: {stateNum: iouReport?.stateNum, statusNum: iouReport?.statusNum},
+            toStatus: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+            currentUserAccountID: currentUserAccountIDParam,
+            context: yourSpendPatchData,
+        });
+    onyxData.optimisticData?.push(...yourSpendUpdates.optimisticData);
+    onyxData.successData?.push(...yourSpendUpdates.successData);
+    onyxData.failureData?.push(...yourSpendUpdates.failureData);
 
     return {
         params: {
@@ -830,6 +838,19 @@ function completePaymentOnboarding(
     });
 }
 
+/** Builds the Your spend report-move item for a payment (the report moves to reimbursed), so bulk callers can aggregate one snapshot update across reports. */
+function getPayYourSpendReportMoveItem(iouReport: OnyxEntry<OnyxTypes.Report>): YourSpendReportMoveItem | undefined {
+    if (!iouReport) {
+        return undefined;
+    }
+    return {
+        iouReport,
+        reportTransactions: getReportTransactions(iouReport.reportID),
+        fromStatus: {stateNum: iouReport.stateNum, statusNum: iouReport.statusNum},
+        toStatus: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+    };
+}
+
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const {
         paymentType,
@@ -857,6 +878,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         chatReportActions,
         isTrackIntentUser,
         yourSpendPatchData,
+        yourSpendSnapshotUpdates,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -893,6 +915,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         chatReportActions,
         isTrackIntentUser,
         yourSpendPatchData,
+        yourSpendSnapshotUpdates,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -1209,5 +1232,14 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {
+    cancelPayment,
+    completePaymentOnboarding,
+    getPayYourSpendReportMoveItem,
+    markReportPaymentReceived,
+    mergeAdditionalPayOnyxData,
+    payInvoice,
+    payMoneyRequest,
+    savePreferredPaymentMethod,
+};
 export type {AdditionalPayOnyxData};

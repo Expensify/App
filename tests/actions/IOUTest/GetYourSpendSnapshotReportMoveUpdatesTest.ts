@@ -1,4 +1,4 @@
-import {getYourSpendSnapshotReportMoveUpdates} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
+import {getYourSpendSnapshotReportMoveUpdates, getYourSpendSnapshotReportsMoveUpdates} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
@@ -400,6 +400,60 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             expect.objectContaining({
                 key: snapshotKey,
                 value: {data: {[TRANSACTION_KEY]: buildTransaction()}},
+            }),
+        ]);
+    });
+});
+
+describe('getYourSpendSnapshotReportsMoveUpdates', () => {
+    it('aggregates a bulk report move into a single total update covering every report', () => {
+        const {snapshotKey, context} = seedAwaitingApprovalSnapshot(-30000, CONST.CURRENCY.USD, 3);
+
+        const secondReportID = 'expenseReport2';
+        const secondTransaction = buildTransaction({transactionID: 'reportMoveTxn2', reportID: secondReportID, amount: 5000});
+
+        // Approving both reports (SUBMITTED -> APPROVED) subtracts each report's spend from awaiting approval in one update: -300 -> -150.
+        const {optimisticData, failureData} = getYourSpendSnapshotReportsMoveUpdates({
+            reportItems: [
+                {iouReport: buildExpenseReport(APPROVED_STATUS), reportTransactions: [buildTransaction()], fromStatus: SUBMITTED_STATUS, toStatus: APPROVED_STATUS},
+                {
+                    iouReport: buildExpenseReport({...APPROVED_STATUS, reportID: secondReportID}),
+                    reportTransactions: [secondTransaction],
+                    fromStatus: SUBMITTED_STATUS,
+                    toStatus: APPROVED_STATUS,
+                },
+            ],
+            currentUserAccountID: ACCOUNT_ID,
+            context,
+        });
+
+        const secondTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}reportMoveTxn2`;
+        expect(optimisticData).toEqual([
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {search: {total: -15000, count: 1, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: null}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[secondTransactionKey]: null}},
+            }),
+        ]);
+        expect(failureData).toEqual([
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {search: {total: -30000, count: 3, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: buildTransaction()}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[secondTransactionKey]: secondTransaction}},
             }),
         ]);
     });

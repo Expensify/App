@@ -3,6 +3,7 @@ import {
     getYourSpendSnapshotReimbursableUpdates,
     getYourSpendSnapshotTotalUpdates,
     getYourSpendSnapshotTransactionRemovalUpdates,
+    getYourSpendSnapshotTransactionsRemovalUpdates,
     transactionMatchesAwaitingApprovalQuery,
 } from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -247,6 +248,55 @@ describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
         });
 
         expect(optimisticData).toHaveLength(0);
+    });
+});
+
+describe('getYourSpendSnapshotTransactionsRemovalUpdates', () => {
+    it('aggregates a bulk removal into a single snapshot update covering every transaction', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-30000, CONST.CURRENCY.USD));
+        await waitForBatchedUpdates();
+
+        const secondTransaction: Transaction = {...transaction, transactionID: 'txn2', amount: 5000};
+        // A non-reimbursable transaction must not contribute to the batch total.
+        const nonReimbursableTransaction: Transaction = {...transaction, transactionID: 'txn3', reimbursable: false};
+
+        // Removing a 100 and a 50 spend pulls the (negative) section total toward zero: -300 -> -150.
+        const {optimisticData, failureData} = getYourSpendSnapshotTransactionsRemovalUpdates({
+            transactionItems: [
+                {transaction, iouReport: expenseReport},
+                {transaction: secondTransaction, iouReport: expenseReport},
+                {transaction: nonReimbursableTransaction, iouReport: expenseReport},
+            ],
+            currentUserAccountID: ACCOUNT_ID,
+            context: buildYourSpendPatchData(snapshotKey, -30000, CONST.CURRENCY.USD),
+        });
+
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`;
+        const secondTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}txn2`;
+        expect(optimisticData).toEqual([
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {search: {total: -15000, count: 0, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[transactionKey]: null, [secondTransactionKey]: null}},
+            }),
+        ]);
+        expect(failureData).toEqual([
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {search: {total: -30000, count: 1, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[transactionKey]: transaction, [secondTransactionKey]: secondTransaction}},
+            }),
+        ]);
     });
 });
 

@@ -9,8 +9,10 @@ import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKe
 
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
-import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
-import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
+import {getPayYourSpendReportMoveItem, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {approveMoneyRequest, getApproveYourSpendReportMoveItem} from '@libs/actions/IOU/ReportWorkflow';
+import {getYourSpendSnapshotReportsMoveUpdates} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
+import type {YourSpendReportMoveItem, YourSpendSnapshotOnyxData} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
@@ -820,19 +822,32 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
         let approvedReportCount = 0;
-        for (const reportID of uniqueReportIDs) {
+        const approvalEntries = uniqueReportIDs.flatMap((reportID) => {
             const expenseReport = getReportFromSearchSnapshot(reportID, searchData, allReports);
             if (!expenseReport) {
-                continue;
+                return [];
             }
-
             const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
-            const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
-            const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
-            const policyToUpgrade = reportPolicy;
-            const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
+            const wouldNavigateToUpgrade = isSubmitPolicy(reportPolicy) && !!reportPolicy?.id;
             const wouldNavigateToRestricted =
                 !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
+            return [{reportID, expenseReport, reportPolicy, wouldNavigateToUpgrade, wouldNavigateToRestricted}];
+        });
+
+        // One aggregated Your spend update per bulk approve; per-report updates would each write an absolute total from the same base, so only the last one would stick.
+        let pendingYourSpendSnapshotUpdates: YourSpendSnapshotOnyxData | undefined = getYourSpendSnapshotReportsMoveUpdates({
+            reportItems: approvalEntries
+                .filter(({wouldNavigateToUpgrade, wouldNavigateToRestricted}) => !wouldNavigateToUpgrade && !wouldNavigateToRestricted)
+                .map(({expenseReport, reportPolicy}) => getApproveYourSpendReportMoveItem(expenseReport, reportPolicy))
+                .filter((item): item is YourSpendReportMoveItem => !!item),
+            currentUserAccountID: accountID,
+            context: yourSpendPatchData,
+        });
+
+        for (const {reportID, expenseReport, reportPolicy, wouldNavigateToUpgrade, wouldNavigateToRestricted} of approvalEntries) {
+            const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
+            const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
+            const willApprove = !wouldNavigateToUpgrade && !wouldNavigateToRestricted;
 
             approveMoneyRequest({
                 expenseReport,
@@ -852,10 +867,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
                 isTrackIntentUser,
-                yourSpendPatchData,
+                yourSpendSnapshotUpdates: pendingYourSpendSnapshotUpdates,
             });
 
-            if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
+            if (willApprove) {
+                // The whole batch rides on the first approving request; attaching it to every request would re-apply the same absolute totals.
+                pendingYourSpendSnapshotUpdates = undefined;
                 approvedReportCount += 1;
             }
         }
@@ -1154,6 +1171,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                       });
 
             let paidReportCount = 0;
+            // Pay calls are deferred so one aggregated Your spend update can be attached to the first payment request; per-report updates would each write an absolute total from the same base, so only the last one would stick.
+            const payCalls: Array<Parameters<typeof payMoneyRequest>[0]> = [];
             for (const item of itemsToPay) {
                 if (!item.reportID) {
                     continue;
@@ -1238,7 +1257,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
-                payMoneyRequest({
+                payCalls.push({
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
                     iouReport,
@@ -1259,11 +1278,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
-                    yourSpendPatchData,
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                     isTrackIntentUser,
                 });
                 paidReportCount += 1;
+            }
+
+            let pendingYourSpendSnapshotUpdates: YourSpendSnapshotOnyxData | undefined = getYourSpendSnapshotReportsMoveUpdates({
+                reportItems: payCalls.map(({iouReport}) => getPayYourSpendReportMoveItem(iouReport)).filter((item): item is YourSpendReportMoveItem => !!item),
+                currentUserAccountID: accountID,
+                context: yourSpendPatchData,
+            });
+            for (const payCallParams of payCalls) {
+                payMoneyRequest({...payCallParams, yourSpendSnapshotUpdates: pendingYourSpendSnapshotUpdates});
+                // The whole batch rides on the first request; attaching it to every request would re-apply the same absolute totals.
+                pendingYourSpendSnapshotUpdates = undefined;
             }
 
             if (paidReportCount > 0) {

@@ -92,11 +92,13 @@ import Onyx from 'react-native-onyx';
 
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
+import type {YourSpendSnapshotOnyxData} from './IOU/YourSpendSnapshotUpdate';
 
 import {getAllTransactionViolations} from './IOU';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
+import {getYourSpendSnapshotTransactionsRemovalUpdates} from './IOU/YourSpendSnapshotUpdate';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -1202,11 +1204,11 @@ function rejectMoneyRequestInBulk(
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
     hash?: number,
-    yourSpendPatchData?: YourSpendPatchData,
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
-    const successData: RejectMoneyRequestData['successData'] = [];
+    const successData: Array<RejectMoneyRequestData['successData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const failureData: RejectMoneyRequestData['failureData'] = [];
 
     const loadingData = hash !== undefined ? getOnyxLoadingData(hash) : {optimisticData: undefined, finallyData: undefined};
@@ -1221,7 +1223,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {yourSpendPatchData}, true, undefined);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, undefined, true, undefined);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1232,6 +1234,11 @@ function rejectMoneyRequestInBulk(
             };
         }
     }
+
+    // The Your spend patch is aggregated over the whole batch; per-transaction updates would each write an absolute total from the same base, so only the last one would stick.
+    optimisticData.push(...(yourSpendSnapshotUpdates?.optimisticData ?? []));
+    successData.push(...(yourSpendSnapshotUpdates?.successData ?? []));
+    failureData.push(...(yourSpendSnapshotUpdates?.failureData ?? []));
 
     write(
         WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
@@ -1280,6 +1287,21 @@ function rejectMoneyRequestsOnSearch(
 
     const isSingleReport = Object.keys(transactionsByReport).length === 1;
     let urlToNavigateBack;
+
+    // One aggregated Your spend update for the whole selection (across reports); per-transaction or per-report updates
+    // would each write an absolute total from the same base, so only the last one would stick.
+    let pendingYourSpendSnapshotUpdates: YourSpendSnapshotOnyxData | undefined = getYourSpendSnapshotTransactionsRemovalUpdates({
+        transactionItems: Object.entries(transactionsByReport).flatMap(([reportID, selectedTransactionIDs]) => {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
+            return getReportTransactions(reportID)
+                .filter((transaction) => selectedTransactionIDsSet.has(transaction.transactionID))
+                .map((transaction) => ({transaction, iouReport: report}));
+        }),
+        currentUserAccountID: currentUserAccountIDParam,
+        context: yourSpendPatchData,
+    });
+
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const totalReportTransactions = report?.transactionCount ?? 0;
@@ -1290,8 +1312,11 @@ function rejectMoneyRequestsOnSearch(
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
+
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash, yourSpendPatchData);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash, pendingYourSpendSnapshotUpdates);
+            // The whole batch rides on the first request; attaching it to every request would re-apply the same absolute totals.
+            pendingYourSpendSnapshotUpdates = undefined;
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
@@ -1304,8 +1329,10 @@ function rejectMoneyRequestsOnSearch(
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,
-                    yourSpendPatchData,
+                    yourSpendSnapshotUpdates: pendingYourSpendSnapshotUpdates,
                 });
+                // The whole batch rides on the first request; attaching it to every request would re-apply the same absolute totals.
+                pendingYourSpendSnapshotUpdates = undefined;
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {

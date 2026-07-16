@@ -89,6 +89,7 @@ import type {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import type {AdditionalPayOnyxData} from './PayMoneyRequest';
+import type {YourSpendReportMoveItem, YourSpendSnapshotOnyxData} from './YourSpendSnapshotUpdate';
 
 import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
@@ -115,6 +116,8 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     yourSpendPatchData?: YourSpendPatchData;
+    /** Precomputed batch snapshot updates; when approving several reports in one action the caller aggregates them into a single update (attached to one request) instead of stacking per-report absolute totals. */
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData;
 };
 
 type SubmitReportFunctionParams = {
@@ -432,6 +435,26 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
     return createdAction?.created ?? expenseReport.created;
 }
 
+/**
+ * Builds the Your spend report-move item for an approval, mirroring `approveMoneyRequest`'s optimistic state prediction,
+ * so bulk callers can aggregate one snapshot update across reports. Returns undefined for DEW policies (the backend
+ * decides the workflow, so nothing is patched optimistically).
+ */
+function getApproveYourSpendReportMoveItem(expenseReport: OnyxEntry<OnyxTypes.Report>, expenseReportPolicy: OnyxEntry<OnyxTypes.Policy>): YourSpendReportMoveItem | undefined {
+    if (!expenseReport || hasDynamicExternalWorkflow(expenseReportPolicy)) {
+        return undefined;
+    }
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport);
+    return {
+        iouReport: expenseReport,
+        reportTransactions: getReportTransactions(expenseReport.reportID),
+        fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+        toStatus: !nextApproverAccountID
+            ? {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}
+            : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+    };
+}
+
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const {
         expenseReport,
@@ -453,6 +476,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         yourSpendPatchData,
+        yourSpendSnapshotUpdates,
     } = params;
     if (!expenseReport) {
         return;
@@ -814,16 +838,18 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
 
     // DEW policies don't optimistically change the report state (the backend decides the workflow), so there's
     // nothing to patch into Your spend until the next online refresh.
-    const yourSpendSnapshotUpdates = isDEWPolicy
-        ? {optimisticData: [], successData: [], failureData: []}
-        : getYourSpendSnapshotReportMoveUpdates({
-              iouReport: expenseReport,
-              reportTransactions,
-              fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
-              toStatus: {stateNum: predictedNextState, statusNum: predictedNextStatus},
-              currentUserAccountID: currentUserAccountIDParam,
-              context: yourSpendPatchData,
-          });
+    const yourSpendUpdates =
+        yourSpendSnapshotUpdates ??
+        (isDEWPolicy
+            ? {optimisticData: [], successData: [], failureData: []}
+            : getYourSpendSnapshotReportMoveUpdates({
+                  iouReport: expenseReport,
+                  reportTransactions,
+                  fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+                  toStatus: {stateNum: predictedNextState, statusNum: predictedNextStatus},
+                  currentUserAccountID: currentUserAccountIDParam,
+                  context: yourSpendPatchData,
+              }));
 
     onApproved?.();
     if (shouldPlaySuccessSound) {
@@ -834,9 +860,9 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         parameters,
         mergeAdditionalPayOnyxData(
             {
-                optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
-                successData: [...successData, ...yourSpendSnapshotUpdates.successData],
-                failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+                optimisticData: [...optimisticData, ...yourSpendUpdates.optimisticData],
+                successData: [...successData, ...yourSpendUpdates.successData],
+                failureData: [...failureData, ...yourSpendUpdates.failureData],
             },
             additionalOnyxData,
         ),
@@ -1978,6 +2004,7 @@ export {
     canIOUBePaid,
     canSubmitReport,
     clearPendingExpenseAction,
+    getApproveYourSpendReportMoveItem,
     getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,

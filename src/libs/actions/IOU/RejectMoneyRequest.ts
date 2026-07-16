@@ -46,6 +46,8 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import type {YourSpendSnapshotOnyxData} from './YourSpendSnapshotUpdate';
+
 import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getYourSpendSnapshotReportMoveUpdates, getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
 
@@ -86,6 +88,8 @@ type RejectMoneyRequestOptions = {
     existingRejectedReport?: OnyxEntry<OnyxTypes.Report>;
     setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
     yourSpendPatchData?: YourSpendPatchData;
+    /** Precomputed batch snapshot updates; when rejecting several expenses in one action the caller aggregates them into a single update (attached to one request) instead of stacking per-transaction absolute totals. */
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData;
 };
 
 function dismissRejectUseExplanation() {
@@ -916,12 +920,14 @@ function prepareRejectMoneyRequestData(
         expenseCreatedReportActionID,
     };
 
-    const yourSpendSnapshotUpdates = getYourSpendSnapshotTransactionRemovalUpdates({
-        transaction,
-        iouReport: report,
-        currentUserAccountID: currentUserAccountIDParam,
-        context: options?.yourSpendPatchData,
-    });
+    const yourSpendSnapshotUpdates =
+        options?.yourSpendSnapshotUpdates ??
+        getYourSpendSnapshotTransactionRemovalUpdates({
+            transaction,
+            iouReport: report,
+            currentUserAccountID: currentUserAccountIDParam,
+            context: options?.yourSpendPatchData,
+        });
     optimisticData.push(...yourSpendSnapshotUpdates.optimisticData);
     failureData.push(...yourSpendSnapshotUpdates.failureData);
 
