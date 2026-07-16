@@ -301,11 +301,9 @@
 "../../src/components/MultifactorAuthentication/config/scenarios/ChangePIN.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/DefaultUserInterface.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/DebugTabView.tsx"	"no-restricted-imports"	1
-"../../src/components/Navigation/NavigationTabBar/InboxTabButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/components/Navigation/NavigationTabBar/SearchTabButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"no-restricted-imports"	2
-"../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/Navigation/TopLevelNavigationTabBar/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"react-hooks/set-state-in-effect"	2
@@ -1065,13 +1063,10 @@
 "../../src/pages/Debug/DebugJSON.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/DebugTagPicker.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/Report/DebugReportActions.tsx"	"no-restricted-imports"	1
-"../../src/pages/Debug/Report/DebugReportActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Debug/Report/DebugReportPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Debug/Report/DebugReportPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/pages/Debug/ReportAction/DebugReportActionCreatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/Debug/ReportAction/DebugReportActionCreatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/ReportAction/DebugReportActionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Debug/ReportAction/DebugReportActionPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Debug/ReportAction/DebugReportActionPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/Debug/Transaction/DebugTransactionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-imports"	1
@@ -1229,7 +1224,6 @@
 "../../src/pages/Travel/DynamicTravelUpgrade.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/ManageTrips.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/TravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/Travel/TripDetailsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Travel/WorkspaceConfirmationForTravelPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/UnreportedExpenseListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ValidateLoginPage/index.web.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1312,7 +1306,6 @@
 "../../src/pages/inbox/report/withReportOrNotFound.tsx"	"react-hooks/refs"	3
 "../../src/pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/CreateReportMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/CreateReportMenuItem.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/InvoiceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/NewWorkspaceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1465,7 +1458,6 @@
 "../../src/pages/settings/Wallet/ExpensifyCardPage/ChangePINPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/settings/Wallet/ImportTransactionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
