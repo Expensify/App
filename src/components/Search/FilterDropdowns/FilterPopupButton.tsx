@@ -92,9 +92,13 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     };
 
     const calculatePopoverPositionAndToggleOverlay = () => {
-        setHasEverExpanded(true);
         calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
             setPopoverTriggerPosition({...position, vertical: position.vertical});
+            // Latch in the same batch as the open (and only when it will actually open, mirroring toggleOverlay's
+            // alert-modal guard) so the deferred subtree mounts together with the popover becoming visible.
+            if (!isOverlayVisible && !willAlertModalBecomeVisible) {
+                setHasEverExpanded(true);
+            }
             toggleOverlay();
         });
     };
