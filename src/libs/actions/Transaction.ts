@@ -884,6 +884,7 @@ function changeTransactionsReport({
     for (const id of transactionIDs) {
         currentTransactionViolations[id] = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
     }
+    const movingTransactionIDs = new Set(transactionIDs);
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1171,16 +1172,18 @@ function changeTransactionsReport({
                 ?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
-                    const siblingViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
-                    const siblingDuplicateViolation = siblingViolations.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-
-                    if (!siblingDuplicateViolation?.data?.duplicates?.includes(transaction.transactionID)) {
+                    if (movingTransactionIDs.has(id)) {
                         continue;
                     }
 
-                    const remainingDuplicateTransactionIDs = siblingDuplicateViolation.data.duplicates.filter(
-                        (duplicateTransactionID) => duplicateTransactionID !== transaction.transactionID,
-                    );
+                    const siblingViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+                    const siblingDuplicateViolation = siblingViolations.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+                    if (!siblingDuplicateViolation?.data?.duplicates?.some((duplicateTransactionID) => movingTransactionIDs.has(duplicateTransactionID))) {
+                        continue;
+                    }
+
+                    const remainingDuplicateTransactionIDs = siblingDuplicateViolation.data.duplicates.filter((duplicateTransactionID) => !movingTransactionIDs.has(duplicateTransactionID));
                     const updatedSiblingViolations = siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
                     if (remainingDuplicateTransactionIDs.length > 0) {
