@@ -314,6 +314,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =
@@ -941,6 +942,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 parentReportAction,
                 conciergeReportID,
                 delegateEmail,
+                reportActionsForOriginalReportID,
                 ancestors,
             );
             return;
@@ -969,6 +971,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
+                policy: iouPolicy,
             });
         } else if (iouTransactionID) {
             const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -993,6 +996,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
+        reportActionsForOriginalReportID,
         moneyRequestReport,
         iouReport,
         chatIOUReport,
@@ -1004,6 +1008,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         allTransactionViolations,
         deleteTransactions,
         removeTransaction,
+        iouPolicy,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.

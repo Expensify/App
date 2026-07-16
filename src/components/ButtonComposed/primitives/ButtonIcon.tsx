@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 
 import useTheme from '@hooks/useTheme';
 
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -29,9 +30,9 @@ function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
     const {isHovered, variant, size} = useButtonContext();
 
     let defaultFill = theme.buttonIcon;
-    if (variant === 'danger') {
+    if (variant === CONST.BUTTON_VARIANT.DANGER) {
         defaultFill = theme.buttonDangerText;
-    } else if (variant === 'success') {
+    } else if (variant === CONST.BUTTON_VARIANT.SUCCESS) {
         defaultFill = theme.textLight;
     }
     const propsFill = isHovered ? hoverFill : fill;

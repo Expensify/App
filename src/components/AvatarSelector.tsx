@@ -1,5 +1,6 @@
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -43,6 +44,7 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {avatarList} = useLetterAvatars(name, size);
+    const {isBetaEnabled} = usePermissions();
 
     const iconSize = StyleUtils.getAvatarSize(size);
 
@@ -74,28 +76,29 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                         </PressableWithFeedback>
                     );
                 })}
-                {avatarList.map(({id, StyledLetterAvatar}) => {
-                    const isSelected = selectedID === id;
+                {isBetaEnabled(CONST.BETAS.DEFAULT_LETTER_AVATARS) &&
+                    avatarList.map(({id, StyledLetterAvatar}) => {
+                        const isSelected = selectedID === id;
 
-                    return (
-                        <PressableWithFeedback
-                            key={id}
-                            accessible
-                            accessibilityRole="button"
-                            accessibilityLabel={translate('avatarPage.selectAvatar')}
-                            onPress={() => onSelect(id)}
-                            style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
-                        >
-                            <Avatar
-                                type={CONST.ICON_TYPE_AVATAR}
-                                source={StyledLetterAvatar}
-                                size={size}
-                                containerStyles={styles.avatarSelectorContainer}
-                                testID={`AvatarSelector_${id}`}
-                            />
-                        </PressableWithFeedback>
-                    );
-                })}
+                        return (
+                            <PressableWithFeedback
+                                key={id}
+                                accessible
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('avatarPage.selectAvatar')}
+                                onPress={() => onSelect(id)}
+                                style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
+                            >
+                                <Avatar
+                                    type={CONST.ICON_TYPE_AVATAR}
+                                    source={StyledLetterAvatar}
+                                    size={size}
+                                    containerStyles={styles.avatarSelectorContainer}
+                                    testID={`AvatarSelector_${id}`}
+                                />
+                            </PressableWithFeedback>
+                        );
+                    })}
                 {/* We need to add several invisible items at the end of the avatar list to guarantee that the last row avatars are aligned properly */}
                 {[...Array(SPACER_SIZE).keys()].map((i) => (
                     <View

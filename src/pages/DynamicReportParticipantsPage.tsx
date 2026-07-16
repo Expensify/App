@@ -254,14 +254,15 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         <View style={styles.w100}>
                             {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     shouldAlwaysShowDropdownMenu
                                     pressOnEnter
                                     customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                                    size={CONST.BUTTON_SIZE.MEDIUM}
                                     onPress={() => null}
                                     isSplitButton={false}
                                     options={bulkActionsButtonOptions}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                     isDisabled={!selectedMembers.length}
                                 />
                             ) : (
@@ -271,13 +272,13 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                     text={translate('workspace.invite.member')}
                                     icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                 />
                             )}
                         </View>
                     )}
                 </View>
-                <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
+                <View style={[styles.w100, styles.flex1]}>
                     <ReportParticipantsTable
                         ref={tableRef}
                         members={participants}

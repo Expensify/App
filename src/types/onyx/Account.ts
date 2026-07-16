@@ -115,6 +115,9 @@ type Account = {
     /** The Report ID of the account manager */
     accountManagerReportID?: string;
 
+    /** The calendar link of the account manager */
+    accountManagerCalendarLink?: string;
+
     /** The account ID of the partner manager */
     partnerManagerAccountID?: number;
 

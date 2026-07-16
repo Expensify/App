@@ -1,3 +1,5 @@
+import ImageSVG from '@components/ImageSVG';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 
 import variables from '@styles/variables';
@@ -8,12 +10,11 @@ import type {ImageContentFit} from 'expo-image';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
+import {View} from 'react-native';
 
-import type {IconSize} from './primitives/types';
+import type {IconSize} from './utils/resolveIconSize';
 
-import BaseIcon from './primitives/BaseIcon';
-import InlineIcon from './primitives/InlineIcon';
-import resolveIconSize from './primitives/resolveIconSize';
+import resolveIconSize from './utils/resolveIconSize';
 
 type IconProps = {
     /** The asset to render. */
@@ -55,9 +56,6 @@ type IconProps = {
      */
     large?: boolean;
 
-    /** Renders the icon inline within text. */
-    inline?: boolean;
-
     /** Whether the icon is hovered. */
     hovered?: boolean;
 
@@ -80,7 +78,7 @@ type IconProps = {
     accessibilityLabel?: string;
 };
 
-/** Renders an SVG icon with preset sizes and inline layout. */
+/** Renders an SVG icon with preset sizes. */
 function Icon({
     src,
     width = variables.iconSizeNormal,
@@ -95,7 +93,6 @@ function Icon({
     large = false,
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
     medium = false,
-    inline = false,
     additionalStyles = [],
     hovered = false,
     pressed = false,
@@ -112,38 +109,30 @@ function Icon({
 
     const resolvedSize = resolveIconSize(size, extraSmall, small, medium, large);
     const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(resolvedSize, width, height, isButtonIcon);
-
-    if (inline) {
-        const contentSize = {width, height};
-        return (
-            <InlineIcon
-                testID={testID}
-                additionalStyles={additionalStyles}
-                src={src}
-                contentSize={contentSize}
-                iconWidth={iconWidth}
-                iconHeight={iconHeight}
-                fill={fill}
-                isHovered={hovered}
-                isPressed={pressed}
-                contentFit={contentFit}
-            />
-        );
-    }
+    const hasLabel = !!accessibilityLabel;
 
     return (
-        <BaseIcon
+        <View
             testID={testID}
+            style={additionalStyles}
             accessibilityLabel={accessibilityLabel}
-            additionalStyles={additionalStyles}
-            src={src}
-            iconWidth={iconWidth}
-            iconHeight={iconHeight}
-            fill={fill}
-            isHovered={hovered}
-            isPressed={pressed}
-            contentFit={contentFit}
-        />
+            accessibilityRole={hasLabel ? 'image' : undefined}
+            accessibilityElementsHidden={!hasLabel}
+            importantForAccessibility={hasLabel ? 'yes' : 'no-hide-descendants'}
+            accessible={hasLabel}
+            pointerEvents="none"
+        >
+            <ImageSVG
+                src={src}
+                width={iconWidth}
+                height={iconHeight}
+                fill={fill}
+                hovered={hovered}
+                pressed={pressed}
+                contentFit={contentFit}
+                pointerEvents="none"
+            />
+        </View>
     );
 }
 

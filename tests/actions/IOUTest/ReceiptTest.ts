@@ -6,7 +6,6 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {detachReceipt, replaceReceipt} from '@libs/actions/IOU/Receipt';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -111,7 +110,7 @@ describe('actions/IOU/Receipt', () => {
         };
 
         const setupTransactionWithSnapshot = async (id: string, transactionData: Record<string, unknown> = {}) => {
-            const transaction = {transactionID: id, ...transactionData};
+            const transaction = {...createRandomTransaction(Number(id)), ...transactionData};
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`, transaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
@@ -120,6 +119,7 @@ describe('actions/IOU/Receipt', () => {
                 },
             });
             await waitForBatchedUpdates();
+            return transaction;
         };
 
         const getUpdatedTransaction = async (id: string) => {
@@ -150,7 +150,10 @@ describe('actions/IOU/Receipt', () => {
         };
 
         beforeEach(() => {
-            transactionID = rand64().toString();
+            // Transaction IDs are converted to numbers by the test fixture. Keep this value
+            // within JavaScript's safe integer range so the transaction data and its Onyx key
+            // continue to refer to the same ID.
+            transactionID = Date.now().toString();
             getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue({hash: snapshotHash} as SearchQueryJSON);
         });
 
@@ -160,10 +163,10 @@ describe('actions/IOU/Receipt', () => {
 
         it('should do nothing when file is undefined', async () => {
             // Given a transaction with an existing receipt
-            await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'original.jpg'}});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'original.jpg'}});
 
             // When replaceReceipt is called without a file
-            replaceReceipt({transactionID, file: undefined, source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: undefined, source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
             await waitForBatchedUpdates();
 
             // Then the receipt source remains unchanged
@@ -173,10 +176,10 @@ describe('actions/IOU/Receipt', () => {
 
         it('should replace the receipt of the transaction', async () => {
             // Given a transaction with an existing receipt
-            await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'test1'}});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'test1'}});
 
             // When replaceReceipt is called with a new file
-            replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
             await waitForBatchedUpdates();
 
             // Then both the transaction and its snapshot entry reflect the new receipt
@@ -191,10 +194,10 @@ describe('actions/IOU/Receipt', () => {
 
         it('should preserve receipt state when state is provided', async () => {
             // Given a transaction with a receipt in SCAN_READY state
-            await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'test1', state: CONST.IOU.RECEIPT_STATE.SCAN_READY}});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'test1', state: CONST.IOU.RECEIPT_STATE.SCAN_READY}});
 
             // When replaceReceipt is called with the same state explicitly passed
-            replaceReceipt({transactionID, file: createFile(), source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: createFile(), source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY, transactionPolicy: undefined, transactionPolicyTagList: undefined});
             await waitForBatchedUpdates();
 
             // Then the new receipt retains the provided state instead of falling back to OPEN
@@ -209,10 +212,10 @@ describe('actions/IOU/Receipt', () => {
 
         it('should add receipt if it does not exist', async () => {
             // Given a transaction with no receipt
-            await setupTransactionWithSnapshot(transactionID);
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: null});
 
             // When replaceReceipt is called
-            replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
             await waitForBatchedUpdates();
 
             // Then the receipt is created with the new source on both the transaction and snapshot
@@ -228,11 +231,11 @@ describe('actions/IOU/Receipt', () => {
         it('should optimistically set pending field for receipt', async () => {
             // Given a transaction with an existing receipt
             const writeSpy = mockApiWrite();
-            await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the optimisticData marks the receipt field as pending UPDATE
@@ -252,11 +255,11 @@ describe('actions/IOU/Receipt', () => {
         it('should call API.write with REPLACE_RECEIPT command and correct params', async () => {
             // Given a transaction with an existing receipt
             const writeSpy = mockApiWrite();
-            await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
                 await waitForBatchedUpdates();
 
                 // Then API.write is invoked with the REPLACE_RECEIPT command and the correct transactionID
@@ -294,7 +297,7 @@ describe('actions/IOU/Receipt', () => {
             await waitForBatchedUpdates();
 
             // When replaceReceipt is called with the paid group policy
-            replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined});
             await waitForBatchedUpdates();
 
             // Then transaction violations are computed and stored
@@ -306,11 +309,11 @@ describe('actions/IOU/Receipt', () => {
         it('should rollback to the previous receipt in failure data', async () => {
             // Given a transaction with OLD_RECEIPT
             const writeSpy = mockApiWrite();
-            await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original receipt, clears pendingFields, and attaches errors
@@ -331,11 +334,11 @@ describe('actions/IOU/Receipt', () => {
         it('should rollback the receipt to null in failure data when there was no previous receipt', async () => {
             // Given a transaction with no receipt
             const writeSpy = mockApiWrite();
-            await setupTransactionWithSnapshot(transactionID);
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: null});
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the failureData sets receipt to null since there was nothing to restore
@@ -355,11 +358,11 @@ describe('actions/IOU/Receipt', () => {
         it('should clear pending fields in success data', async () => {
             // Given a transaction with an existing receipt
             const writeSpy = mockApiWrite();
-            await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the successData clears the pending field for the receipt
@@ -377,11 +380,11 @@ describe('actions/IOU/Receipt', () => {
             // Given there is no active search query hash
             getCurrentSearchQueryJSONSpy.mockReturnValueOnce(null);
             const writeSpy = mockApiWrite();
-            await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
                 await waitForBatchedUpdates();
 
                 // Then no snapshot updates are included in either optimisticData or failureData
@@ -398,11 +401,11 @@ describe('actions/IOU/Receipt', () => {
         it('should rollback the snapshot receipt in failure data when a search query hash exists', async () => {
             // Given a transaction with OLD_RECEIPT and an active search snapshot
             const writeSpy = mockApiWrite();
-            await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original receipt inside the snapshot entry
@@ -418,12 +421,12 @@ describe('actions/IOU/Receipt', () => {
         it('should forward isSameReceipt and receiptState to API parameters', async () => {
             // Given a transaction with an existing receipt
             const writeSpy = mockApiWrite();
-            await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
                 // When replaceReceipt is called with isSameReceipt=true and a specific receipt state
                 replaceReceipt({
-                    transactionID,
+                    transaction,
                     file: createFile(),
                     source,
                     state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
@@ -479,7 +482,7 @@ describe('actions/IOU/Receipt', () => {
             // When replaceReceipt is called with the paid group policy
             const writeSpy = mockApiWrite();
             try {
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined, transactionViolations: existingViolations});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined, transactionViolations: existingViolations});
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original violations
@@ -546,7 +549,7 @@ describe('actions/IOU/Receipt', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transactionID, undefined, undefined, undefined);
+                detachReceipt(transaction, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData?: Array<{key: string; value: unknown}>};
@@ -565,7 +568,7 @@ describe('actions/IOU/Receipt', () => {
         it('should create an optimistic report action and update report timestamps', async () => {
             await seedOnyx();
 
-            detachReceipt(transactionID, undefined, undefined, undefined);
+            detachReceipt(transaction, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             // Then a new report action should be created on the report
@@ -584,7 +587,7 @@ describe('actions/IOU/Receipt', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transactionID, undefined, undefined, undefined);
+                detachReceipt(transaction, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything(), expect.anything());
@@ -596,7 +599,7 @@ describe('actions/IOU/Receipt', () => {
         it('should compute violations when policy is paid group', async () => {
             await seedOnyx();
 
-            detachReceipt(transactionID, policy, policyTagList, undefined);
+            detachReceipt(transaction, policy, policyTagList, undefined);
             await waitForBatchedUpdates();
 
             const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);

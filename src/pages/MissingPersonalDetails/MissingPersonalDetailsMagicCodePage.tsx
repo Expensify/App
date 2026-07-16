@@ -1,5 +1,6 @@
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
@@ -14,6 +15,7 @@ import {
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
@@ -23,7 +25,7 @@ import {setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList} from '@src/types/onyx';
@@ -37,7 +39,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {getSubPageValues} from './utils';
 
-type MissingPersonalDetailsMagicCodePageProps = PlatformStackScreenProps<MissingPersonalDetailsParamList, typeof SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE>;
+type MissingPersonalDetailsMagicCodePageProps = PlatformStackScreenProps<MissingPersonalDetailsParamList, typeof SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE>;
 
 function MissingPersonalDetailsMagicCodePage({
     route: {
@@ -45,6 +47,7 @@ function MissingPersonalDetailsMagicCodePage({
     },
 }: MissingPersonalDetailsMagicCodePageProps) {
     const {translate} = useLocalize();
+    const basePath = useDynamicBackPath(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.path);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -111,7 +114,7 @@ function MissingPersonalDetailsMagicCodePage({
             validateError={!isEmptyObject(revealCardError) ? revealCardError : validateLoginError}
             clearError={clearError}
             onClose={() => {
-                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID), basePath), {forceReplace: true});
             }}
             isLoading={privatePersonalDetails?.isLoading}
         />

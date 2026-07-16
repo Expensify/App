@@ -97,7 +97,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     if (!isEmptyObject(quickActionReport)) {
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
             const accountID = quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID;
-            const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true, formatPhoneNumber}) ?? '';
+            const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true, formatPhoneNumber, translate}) ?? '';
             quickActionTitle = translate('quickAction.paySomeone', name);
         } else {
             const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));

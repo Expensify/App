@@ -13,6 +13,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePressLoading from '@hooks/usePressLoading';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,6 +61,7 @@ function DynamicNewTaskPage() {
         message: '',
         taskKey: '',
     });
+    const {isLoading, startWithLoading} = usePressLoading();
     const errorMessage = error.taskKey === taskKey ? error.message : '';
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
@@ -101,7 +103,7 @@ function DynamicNewTaskPage() {
             return;
         }
 
-        createTaskAndNavigate({
+        const taskParams = {
             parentReport,
             title: task.title,
             description: task?.description ?? '',
@@ -117,6 +119,9 @@ function DynamicNewTaskPage() {
             quickAction,
             ancestors,
             taskCreatorAndAssigneeDetails,
+        };
+        startWithLoading(() => {
+            createTaskAndNavigate(taskParams);
         });
     };
 
@@ -201,6 +206,8 @@ function DynamicNewTaskPage() {
                         <FormAlertWithSubmitButton
                             isAlertVisible={!!errorMessage}
                             message={errorMessage}
+                            shouldShowLoadingImmediatelyOnPress={false}
+                            isLoading={isLoading}
                             onSubmit={onSubmit}
                             enabledWhenOffline
                             buttonRef={confirmButtonRef}

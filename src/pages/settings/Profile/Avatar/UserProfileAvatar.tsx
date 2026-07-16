@@ -21,15 +21,15 @@ function UserProfileAvatar() {
     const isInLandscapeMode = useIsInLandscapeMode();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const {errorData, selected, setSelected, imageData, setImageData, avatarCaptureRef, isDirty, setError, onSelectPreset, openCropper, save} = useProfileAvatarForm();
+    const {errorData, selected, imageData, avatarCaptureRef, isDirty, isRemoved, setError, onSelectPreset, onImageRemoved, openCropper, save} = useProfileAvatarForm();
 
     const renderPreview = () => (
         <AvatarPreview
             selected={selected}
-            setSelected={setSelected}
+            isRemoved={isRemoved}
+            onImageRemoved={onImageRemoved}
             avatarCaptureRef={avatarCaptureRef}
             imageData={imageData}
-            setImageData={setImageData}
             setError={setError}
             openCropper={openCropper}
         />

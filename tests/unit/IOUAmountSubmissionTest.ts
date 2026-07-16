@@ -171,6 +171,7 @@ describe('AmountSubmission', () => {
                 splitDraftTransaction: undefined,
                 policy: undefined,
                 policyTags: undefined,
+                reportPolicyTags: undefined,
                 isDraftChatReport: undefined,
                 selectedCurrency: CONST.CURRENCY.USD,
                 decimals: 2,
@@ -214,6 +215,7 @@ describe('AmountSubmission', () => {
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 conciergeReportID: undefined,
+                isTrackIntentUser: false,
                 ...overrides,
             };
         };

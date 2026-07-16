@@ -222,6 +222,7 @@ export default {
     tabSelectorButtonPadding: 12,
     tabSelectorScrollMarginInline: 20,
     tabSelectorMaxTabLabelWidth: 256,
+    filterPillMaxWidth: 256,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -291,6 +292,7 @@ export default {
     wideConfirmModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
+    submitPlanWelcomeModalIllustrationAspectRatio: 400 / 242,
     transactionReceiptButtonWidth: 100,
 
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),

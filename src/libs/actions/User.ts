@@ -1373,6 +1373,38 @@ function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
     Onyx.merge(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, shouldDismiss);
 }
 
+/**
+ * Persist that the user has seen the Submit plan migration in-product modal so it is never shown again.
+ *
+ * The Onyx key is prefixed with `nvp_`, but the backend NVP name is unprefixed (`submitMigrationModalShown`),
+ * so we can't reuse the generic `setNameValuePair` (which sends the prefixed Onyx key as the API `name`).
+ * Instead we send the unprefixed backend name while still storing the value under the prefixed Onyx key.
+ */
+function setSubmitMigrationModalShown() {
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
+            value: true,
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
+            value: false,
+        },
+    ];
+
+    const parameters: SetNameValuePairParams = {
+        name: CONST.SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME,
+        value: true,
+    };
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {optimisticData, failureData});
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1539,6 +1571,7 @@ function requestUnlockAccount(accountID: number) {
 type RespondToProactiveAppReviewParams = {
     response: 'positive' | 'negative' | 'skip';
     optimisticReportActionID?: string;
+    policyID: string | undefined;
 };
 
 /**
@@ -1550,10 +1583,11 @@ function respondToProactiveAppReview(
     userEmail: string | undefined,
     userAccountID: number,
     delegateAccountID: number | undefined,
+    policyID: string | undefined,
     message?: string,
     conciergeChatReportID?: string,
 ) {
-    const params: RespondToProactiveAppReviewParams = {response};
+    const params: RespondToProactiveAppReviewParams = {response, policyID};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
@@ -1998,6 +2032,7 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
+    setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
     requestValidateCodeAction,

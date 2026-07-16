@@ -104,6 +104,101 @@ describe('OnyxUpdatesTest', () => {
         expect(result?.jsonCode).toBe(200);
     });
 
+    it('advances lastUpdateID only after the updates are successfully applied', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        const reportID = NumberUtils.rand64();
+        const reportValue = {reportID};
+
+        // When we apply a newer HTTPS update (lastUpdateID 20)
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: 'OpenReport', data: {apiRequestType: CONST.API_REQUEST_TYPE.READ}},
+            response: {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: reportValue}],
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // Then the updates are applied and the watermark advances to 20
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        const lastUpdateID = await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+        expect(report).toStrictEqual(reportValue);
+        expect(lastUpdateID).toBe(20);
+    });
+
+    it('does not advance lastUpdateID when applying the updates fails', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        // And applying the onyx data will fail (e.g. a storage write error)
+        const updateSpy = jest.spyOn(Onyx, 'update').mockRejectedValueOnce(new Error('storage write failed'));
+
+        // When we apply a newer HTTPS update (lastUpdateID 20)
+        await expect(
+            OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                previousUpdateID: 10,
+                lastUpdateID: 20,
+                request: {command: 'OpenReport', data: {apiRequestType: CONST.API_REQUEST_TYPE.READ}},
+                response: {
+                    jsonCode: 200,
+                    onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}`, value: {}}],
+                },
+            }),
+        ).rejects.toThrow('storage write failed');
+        await waitForBatchedUpdates();
+
+        // Then the watermark is not advanced, so the next reconnect can refetch and reapply the missed updates
+        const lastUpdateID = await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+        expect(lastUpdateID).toBe(10);
+
+        updateSpy.mockRestore();
+    });
+
+    it('does not move the watermark backwards when a slower older update settles after a newer one', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        // And an update for id 20 is applying, but its apply is held mid-flight
+        let releaseApply: () => void = () => {};
+        const updateSpy = jest.spyOn(Onyx, 'update').mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                releaseApply = resolve;
+            }),
+        );
+
+        const applyPromise = OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: 'OpenReport', data: {apiRequestType: CONST.API_REQUEST_TYPE.READ}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}`, value: {}}]},
+        });
+
+        // When a newer update (id 30) lands first
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 30);
+        await waitForBatchedUpdates();
+
+        // And only then does the older update finish applying
+        releaseApply();
+        await applyPromise;
+        await waitForBatchedUpdates();
+
+        // Then the watermark stays at 30 — the older update must not move it backwards to 20
+        const lastUpdateID = await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+        expect(lastUpdateID).toBe(30);
+
+        updateSpy.mockRestore();
+    });
+
     it('applies full ReconnectApp Onyx updates even if they appear old', async () => {
         // Given the current lastUpdateIDAppliedToClient is merged
         const currentUpdateID = 100;

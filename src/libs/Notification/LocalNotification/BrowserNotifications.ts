@@ -2,6 +2,7 @@ import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.p
 
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import {translateLocal} from '@libs/Localize';
+import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
@@ -52,33 +53,50 @@ function push(
     silent = false,
     tag = '',
 ) {
-    canUseBrowserNotifications().then((canUseNotifications) => {
-        if (!canUseNotifications) {
-            return;
-        }
+    canUseBrowserNotifications()
+        .then((canUseNotifications) => {
+            if (!canUseNotifications) {
+                return;
+            }
 
-        // We cache these notifications so that we can clear them later
-        const notificationID = Str.guid();
-        notificationCache[notificationID] = new Notification(title, {
-            body,
-            icon: SafeString(icon),
-            data,
-            silent: true,
-            tag,
+            // Some browsers (e.g. Samsung Internet, Chrome on Android) forbid constructing a Notification in the page
+            // context and throw a "TypeError: Illegal constructor". Guard the construction so an unsupported browser
+            // degrades to "no local notification" instead of surfacing an unhandled promise rejection.
+            let notification: Notification;
+            try {
+                notification = new Notification(title, {
+                    body,
+                    icon: SafeString(icon),
+                    data,
+                    silent: true,
+                    tag,
+                });
+            } catch (error) {
+                Log.hmmm('[BrowserNotifications] Failed to construct a Notification', {error});
+                return;
+            }
+
+            // We cache these notifications so that we can clear them later
+            const notificationID = Str.guid();
+            notificationCache[notificationID] = notification;
+            if (!silent) {
+                playSound(SOUNDS.RECEIVE);
+            }
+            notification.onclick = () => {
+                onClick();
+                window.parent.focus();
+                window.focus();
+                notification.close();
+            };
+            notification.onclose = () => {
+                delete notificationCache[notificationID];
+            };
+        })
+        .catch((error) => {
+            // Swallow any unexpected errors from the permission check or notification setup so they don't surface as
+            // unhandled promise rejections (the root cause of the reported crash).
+            Log.hmmm('[BrowserNotifications] Failed to push a local notification', {error});
         });
-        if (!silent) {
-            playSound(SOUNDS.RECEIVE);
-        }
-        notificationCache[notificationID].onclick = () => {
-            onClick();
-            window.parent.focus();
-            window.focus();
-            notificationCache[notificationID].close();
-        };
-        notificationCache[notificationID].onclose = () => {
-            delete notificationCache[notificationID];
-        };
-    });
 }
 
 /**

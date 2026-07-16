@@ -130,6 +130,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                     route.params.policyID,
                     hasControlPolicyOnlyRole ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias : CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
                     Navigation.getActiveRoute(),
+                    undefined,
+                    // Both the Control-only roles and the Control-only columns require the Control plan, so a Submit workspace must upgrade to Control here rather than the Collect default
+                    CONST.POLICY.TYPE.CORPORATE,
                 ),
             );
             return;

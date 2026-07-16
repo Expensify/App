@@ -568,5 +568,7 @@ function MagicCodeInput({
     );
 }
 
-export default MagicCodeInput;
+// OXC's React Compiler bails on this file (refs accessed during render in the gesture handler), so
+// it is not memoized on web. Memoize it explicitly to keep parent-driven re-renders cheap there.
+export default React.memo(MagicCodeInput);
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

@@ -6,7 +6,7 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {updateAvatar} from '@userActions/PersonalDetails';
+import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -19,19 +19,22 @@ const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
 /** Owns the profile avatar form state (selection, picked image, validation errors) and the save flow. */
 function useProfileAvatarForm() {
-    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState<ErrorData>({
+        validationError: null,
+        phraseParam: {},
+    });
     const [selected, setSelected] = useState<string | undefined>();
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
+    const [isRemoved, setIsRemoved] = useState(false);
 
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
-    const isSavingRef = useRef(false);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const isDirty = imageData.uri !== '' || !!selected;
+    const isDirty = imageData.uri !== '' || !!selected || isRemoved;
 
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isDirty,
     });
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
@@ -39,6 +42,7 @@ function useProfileAvatarForm() {
     };
 
     const onImageSelected = (file: File | CustomRNImageManipulatorResult) => {
+        setIsRemoved(false);
         setSelected(undefined);
         setImageData({
             uri: file?.uri ?? '',
@@ -48,15 +52,32 @@ function useProfileAvatarForm() {
         });
     };
 
-    const {openCropper} = useAvatarCrop({buttonLabelKey: 'avatarPage.upload', onCropped: onImageSelected});
+    const {openCropper} = useAvatarCrop({
+        buttonLabelKey: 'avatarPage.upload',
+        onCropped: onImageSelected,
+    });
 
     const onSelectPreset = (id: string) => {
+        setIsRemoved(false);
         setImageData({...EMPTY_FILE});
         setSelected(id);
     };
 
+    const onImageRemoved = () => {
+        setIsRemoved(true);
+        setSelected(undefined);
+        setImageData({...EMPTY_FILE});
+    };
+
     const save = () => {
-        isSavingRef.current = true;
+        suppressDiscardPrompt();
+
+        if (isRemoved) {
+            deleteAvatar(currentUserPersonalDetails);
+            setIsRemoved(false);
+            Navigation.dismissModal();
+            return;
+        }
 
         const previousAvatar = {
             avatar: currentUserPersonalDetails?.avatar,
@@ -86,7 +107,7 @@ function useProfileAvatarForm() {
         }
 
         if (!selected || !avatarCaptureRef.current) {
-            isSavingRef.current = false;
+            suppressDiscardPrompt(false);
             return;
         }
 
@@ -99,20 +120,20 @@ function useProfileAvatarForm() {
                 Navigation.dismissModal();
             })
             .catch(() => {
-                isSavingRef.current = false;
+                suppressDiscardPrompt(false);
             });
     };
 
     return {
         errorData,
         selected,
-        setSelected,
         imageData,
-        setImageData,
         avatarCaptureRef,
         isDirty,
+        isRemoved,
         setError,
         onSelectPreset,
+        onImageRemoved,
         openCropper,
         save,
     };

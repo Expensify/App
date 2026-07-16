@@ -1,4 +1,4 @@
-import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
@@ -2104,6 +2104,58 @@ describe('ReportActionsUtils', () => {
                     `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
             });
+        });
+    });
+
+    describe('doesReportHaveVisibleActions', () => {
+        const reportID = 'report_1';
+        const visibleComment: ReportAction = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2025-01-01 00:00:00.000',
+            message: [{type: 'COMMENT', html: 'hello', text: 'hello'}],
+        };
+        const createdAction: ReportAction = {
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            created: '2025-01-01 00:00:01.000',
+            message: [{type: 'COMMENT', html: '', text: ''}],
+        };
+        const taskCompletedAction: ReportAction = {
+            reportActionID: '3',
+            actionName: CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED,
+            created: '2025-01-01 00:00:02.000',
+            message: [{type: 'COMMENT', html: 'completed', text: 'completed'}],
+        };
+
+        it('returns false when reportActions is undefined', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, undefined)).toBe(false);
+        });
+
+        it('returns false when reportActions is empty', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {})).toBe(false);
+        });
+
+        it('returns true when there is a visible comment action', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[visibleComment.reportActionID]: visibleComment})).toBe(true);
+        });
+
+        it('returns false when the only action is the CREATED system message', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[createdAction.reportActionID]: createdAction})).toBe(false);
+        });
+
+        it('returns false when the only action is a task system message', () => {
+            expect(ReportActionsUtils.doesReportHaveVisibleActions(reportID, {[taskCompletedAction.reportActionID]: taskCompletedAction})).toBe(false);
+        });
+
+        it('returns true when a visible comment coexists with system messages', () => {
+            expect(
+                ReportActionsUtils.doesReportHaveVisibleActions(reportID, {
+                    [createdAction.reportActionID]: createdAction,
+                    [taskCompletedAction.reportActionID]: taskCompletedAction,
+                    [visibleComment.reportActionID]: visibleComment,
+                }),
+            ).toBe(true);
         });
     });
 
@@ -5280,58 +5332,6 @@ describe('ReportActionsUtils', () => {
             expect(isChronosStartOrStopMessage('kickstart')).toBe(null);
             expect(isChronosStartOrStopMessage('nonstop')).toBe(null);
             expect(isChronosStartOrStopMessage('upstart')).toBe(null);
-        });
-    });
-
-    describe('getTimeOfChronosTimerRunningFromVisibleActions', () => {
-        const currentUserAccountID = 100;
-
-        function makeUserTimerComment(text: string, actorAccountID: number = currentUserAccountID, overrides: Partial<ReportAction> = {}): ReportAction {
-            return getFakeReportAction(actorAccountID, {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID,
-                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
-                ...overrides,
-            });
-        }
-
-        it('returns null when there are no matching comments', () => {
-            expect(getTimeOfChronosTimerRunningFromVisibleActions([], currentUserAccountID)).toBeNull();
-            expect(getTimeOfChronosTimerRunningFromVisibleActions([makeUserTimerComment('hello')], currentUserAccountID)).toBeNull();
-        });
-
-        it('returns the created timestamp of the newest start command when sorted newest-first', () => {
-            const startCreated = '2024-01-03 10:00:00.000';
-            const sortedNewestFirst = [
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: startCreated}),
-                makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
-            ];
-            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(startCreated);
-        });
-
-        it('returns null when the newest timer command is stop', () => {
-            const sortedNewestFirst = [
-                makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
-            ];
-            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
-        });
-
-        it('ignores comments from other users', () => {
-            const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
-            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
-        });
-
-        it('ignores non-ADD_COMMENT actions', () => {
-            const sortedNewestFirst = [
-                getFakeReportAction(currentUserAccountID, {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    actorAccountID: currentUserAccountID,
-                    message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
-                }),
-            ];
-            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
     });
 

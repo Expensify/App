@@ -29,6 +29,7 @@ function AddExpenseActionButton() {
 
     return (
         <ButtonWithDropdownMenu
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu
             customText={translate('iou.addExpense')}

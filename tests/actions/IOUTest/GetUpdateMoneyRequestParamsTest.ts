@@ -117,6 +117,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then no recently used tags entry should be added
@@ -153,6 +154,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then the tag should appear in the recently used tags for the correct policy and tag list
@@ -192,6 +194,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then the new tag should be first and the old tag should still be present
@@ -232,6 +235,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then tag1 should appear exactly once and be at the front
@@ -261,6 +265,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // When updating the tag with policyTagList: {} (empty)
@@ -278,6 +283,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then both should produce the same optimistic data (getPolicyTagsData returns {} when no Onyx data)
