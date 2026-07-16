@@ -1259,6 +1259,48 @@ describe('actions/IOU/TrackExpense', () => {
             };
         }
 
+        it('should post onboarding tasks to the threaded conciergeChat instead of the deprecated CONCIERGE_REPORT_ID fallback when tracking to a draft workspace', async () => {
+            mockFetch?.pause?.();
+            // Given the deprecated Onyx.connect fallback points at a DIFFERENT report than the threaded param,
+            // so the assertions below fail if trackExpense stops forwarding conciergeChat to buildPolicyData (#66411)
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'deprecated-fallback-track');
+
+            // And a draft workspace expense chat (getTrackExpenseInformation only creates the workspace for draft reports)
+            const draftPolicy = createRandomPolicy(7);
+            const draftExpenseChat: Report = {
+                ...createRandomReport(7, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: 'draft-expense-chat-1',
+                policyID: draftPolicy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftExpenseChat.reportID}`, draftExpenseChat);
+            await waitForBatchedUpdates();
+
+            const threadedConciergeChat: Report = {
+                ...createRandomReport(8, undefined),
+                reportID: 'threaded-concierge-track',
+            };
+
+            // When tracking an expense to the draft workspace with an explicitly threaded conciergeChat
+            trackExpense({
+                ...getDefaultTrackExpenseParams(draftExpenseChat),
+                isDraftPolicy: true,
+                policyParams: {policy: draftPolicy},
+                // introSelected with no choice yet — the only state in which buildPolicyData adds onboarding tasks
+                introSelected: {},
+                conciergeChat: threadedConciergeChat,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the onboarding task actions are written optimistically to the threaded report, never the fallback report
+            const threadedReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadedConciergeChat.reportID}`);
+            expect(Object.keys(threadedReportActions ?? {}).length).toBeGreaterThan(0);
+
+            const fallbackReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}deprecated-fallback-track`);
+            expect(fallbackReportActions).toBeUndefined();
+        });
+
         it('should create optimistic transaction with correct amount and currency', async () => {
             // Given a selfDM report and transaction data
             const selfDMReport: Report = {
