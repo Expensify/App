@@ -8,7 +8,6 @@ import WorkspaceListLayout from '@components/WorkspaceListLayout';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import useIsLoadingAppShadowLog from '@hooks/useIsLoadingAppShadowLog';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -58,9 +57,6 @@ function WorkspacesListPage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const isAppLoadPending = useIsAppLoadPending();
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
-
-    // Temporary safety net for the migration off IS_LOADING_APP: logs when the stored flag and the queue truth disagree.
-    useIsLoadingAppShadowLog();
     const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
