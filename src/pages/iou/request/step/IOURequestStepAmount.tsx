@@ -15,6 +15,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -32,7 +33,7 @@ import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyReque
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {SelectedTabRequest} from '@src/types/onyx';
+import type {Report, SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -60,6 +61,8 @@ type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREEN
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 };
+
+const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 
 function IOURequestStepAmount({
     report,
@@ -202,6 +205,8 @@ function IOURequestStepAmount({
         parentChatReportPolicyID: isMovingTransactionFromTrackExpense(action) ? undefined : report?.policyID,
         participantReportID: participant?.reportID,
     });
+    const [parentReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: selectReportPolicyID});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReportPolicyID)}`);
 
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
         const submitData = submitDataRef.current;
@@ -234,6 +239,7 @@ function IOURequestStepAmount({
             isTrackIntentUser,
             policyTags,
             yourSpendPatchData,
+            reportPolicyTags,
             ...submitData,
         });
     };

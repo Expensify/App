@@ -32,6 +32,7 @@ import {useCallback, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
+import useDelegateAccountID from './useDelegateAccountID';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -81,6 +82,7 @@ type UseTransactionInlineEditReturn = {
 };
 
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
+    const delegateAccountID = useDelegateAccountID();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const reportID = transaction?.reportID;
@@ -191,6 +193,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
             distanceOriginalPolicy,
+            delegateAccountID,
             isTrackIntentUser,
             yourSpendPatchData,
         };
