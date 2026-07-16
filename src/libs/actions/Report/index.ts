@@ -1421,6 +1421,7 @@ function buildParticipantInfoFromLogins(logins: string[], accountIDs?: number[])
  */
 function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
+    // TODO: undefined will be removed once all openReport callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID: number | undefined,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,
