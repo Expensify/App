@@ -97,13 +97,13 @@ function buildApprovers(selectedLogin: string | null = selectedApprover) {
     });
 }
 
-function renderApproverSelectionList(allApprovers = buildApprovers(), initiallyFocusedOptionKey: string | null = selectedApprover) {
+function renderApproverSelectionList(allApprovers = buildApprovers(), shouldCaptureInitialSelection = true) {
     return render(
         <ApproverSelectionList
             testID="ApproverSelectionList"
             headerTitle="Approver"
             allApprovers={allApprovers}
-            initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
+            shouldCaptureInitialSelection={shouldCaptureInitialSelection}
             onBackButtonPress={jest.fn()}
             onSelectApprover={jest.fn()}
         />,
@@ -140,7 +140,6 @@ describe('ApproverSelectionList', () => {
                 testID="ApproverSelectionList"
                 headerTitle="Approver"
                 allApprovers={buildApprovers(updatedApprover)}
-                initiallyFocusedOptionKey={updatedApprover}
                 onBackButtonPress={jest.fn()}
                 onSelectApprover={jest.fn()}
             />,
@@ -164,14 +163,14 @@ describe('ApproverSelectionList', () => {
     });
 
     it('pins the selected approver when selection data arrives after list data', () => {
-        const {rerender} = renderApproverSelectionList([], null);
+        const {rerender} = renderApproverSelectionList(buildApprovers(null), false);
 
         rerender(
             <ApproverSelectionList
                 testID="ApproverSelectionList"
                 headerTitle="Approver"
                 allApprovers={buildApprovers(selectedApprover)}
-                initiallyFocusedOptionKey={selectedApprover}
+                shouldCaptureInitialSelection
                 onBackButtonPress={jest.fn()}
                 onSelectApprover={jest.fn()}
             />,
@@ -189,7 +188,7 @@ describe('ApproverSelectionList', () => {
     });
 
     it('does not pin a newly selected approver after user interaction during the same mount', () => {
-        const {rerender} = renderApproverSelectionList(buildApprovers(null), null);
+        const {rerender} = renderApproverSelectionList(buildApprovers(null));
 
         let selectionListProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
         act(() => {
@@ -205,7 +204,6 @@ describe('ApproverSelectionList', () => {
                 testID="ApproverSelectionList"
                 headerTitle="Approver"
                 allApprovers={buildApprovers(selectedApprover)}
-                initiallyFocusedOptionKey={selectedApprover}
                 onBackButtonPress={jest.fn()}
                 onSelectApprover={jest.fn()}
             />,
@@ -228,7 +226,7 @@ describe('ApproverSelectionList', () => {
     });
 
     it('pins the selected approver after returning to the screen', () => {
-        const {rerender} = renderApproverSelectionList(buildApprovers(null), null);
+        const {rerender} = renderApproverSelectionList(buildApprovers(null));
 
         let selectionListProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
         act(() => {
@@ -244,7 +242,6 @@ describe('ApproverSelectionList', () => {
                 testID="ApproverSelectionList"
                 headerTitle="Approver"
                 allApprovers={buildApprovers(selectedApprover)}
-                initiallyFocusedOptionKey={selectedApprover}
                 onBackButtonPress={jest.fn()}
                 onSelectApprover={jest.fn()}
             />,
@@ -263,7 +260,6 @@ describe('ApproverSelectionList', () => {
                 testID="ApproverSelectionList"
                 headerTitle="Approver"
                 allApprovers={buildApprovers(selectedApprover)}
-                initiallyFocusedOptionKey={selectedApprover}
                 onBackButtonPress={jest.fn()}
                 onSelectApprover={jest.fn()}
             />,
@@ -275,7 +271,6 @@ describe('ApproverSelectionList', () => {
                 testID="ApproverSelectionList"
                 headerTitle="Approver"
                 allApprovers={buildApprovers(selectedApprover)}
-                initiallyFocusedOptionKey={selectedApprover}
                 onBackButtonPress={jest.fn()}
                 onSelectApprover={jest.fn()}
             />,

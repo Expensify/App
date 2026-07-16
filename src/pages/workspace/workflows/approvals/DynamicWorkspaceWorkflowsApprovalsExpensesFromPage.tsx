@@ -68,6 +68,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
+    const [hasSyncedSelectedMembers, setHasSyncedSelectedMembers] = useState(false);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
     // Set true when nextStep navigates to the invite-message page so the cleanup
     // effect below knows to leave the draft intact for that page to consume.
@@ -120,7 +121,20 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     })();
 
     useEffect(() => {
+        if (isLoadingApprovalWorkflow) {
+            // selectedMembers is populated from approvalWorkflow.members below, so the picker
+            // should not capture its initial pinned selection while the workflow data is still loading.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setHasSyncedSelectedMembers(false);
+            return;
+        }
+
         if (!approvalWorkflow?.members) {
+            // no workflow members means selectedMembers has synced to an empty selection.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSelectedMembers([]);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setHasSyncedSelectedMembers(true);
             return;
         }
 
@@ -186,7 +200,18 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     };
                 }),
         );
-    }, [approvalWorkflow?.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner, policyMemberEmailsToAccountIDs]);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setHasSyncedSelectedMembers(true);
+    }, [
+        approvalWorkflow?.members,
+        icons.FallbackAvatar,
+        invitedEmailsToAccountIDsDraft,
+        isLoadingApprovalWorkflow,
+        personalDetailLogins,
+        policy?.employeeList,
+        policy?.owner,
+        policyMemberEmailsToAccountIDs,
+    ]);
 
     const workflowApprovers = approvalWorkflow?.approvers;
 
@@ -539,6 +564,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 onSearchChange={setSearchSelectorTerm}
                 shouldUpdateFocusedIndex={false}
                 shouldRequirePolicyAdmin={false}
+                shouldCaptureInitialSelection={hasSyncedSelectedMembers}
             />
         </AccessOrNotFoundWrapper>
     );

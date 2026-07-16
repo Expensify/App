@@ -35,7 +35,6 @@ type ApproverSelectionListPageProps = {
     policy?: Policy;
     isLoadingReportData?: boolean;
     onBackButtonPress: () => void;
-    initiallyFocusedOptionKey?: string;
     shouldShowNotFoundView?: boolean;
     shouldShowNotFoundViewLink?: boolean;
     listEmptyContentSubtitle?: string;
@@ -51,6 +50,7 @@ type ApproverSelectionListPageProps = {
     onSearchChange?: (searchTerm: string) => void;
     shouldUpdateFocusedIndex?: boolean;
     shouldRequirePolicyAdmin?: boolean;
+    shouldCaptureInitialSelection?: boolean;
 };
 
 type SelectionListApprover = ListItem & {
@@ -64,7 +64,6 @@ function ApproverSelectionList({
     isLoadingReportData,
     policy,
     onBackButtonPress,
-    initiallyFocusedOptionKey,
     shouldShowTextInput: shouldShowTextInputProp,
     shouldShowNotFoundView: shouldShowNotFoundViewProp = false,
     shouldShowNotFoundViewLink = true,
@@ -79,6 +78,7 @@ function ApproverSelectionList({
     onSearchChange,
     shouldUpdateFocusedIndex = true,
     shouldRequirePolicyAdmin = true,
+    shouldCaptureInitialSelection = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -99,12 +99,9 @@ function ApproverSelectionList({
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
     const selectedApproverKeys = useMemo(() => selectedMembers.map((approver) => approver.value?.toString() ?? '').filter(Boolean), [selectedMembers]);
-    const selectedApproverFocusKey = selectedMembers.at(0)?.keyForList;
-    const currentFocusedApproverKey = initiallyFocusedOptionKey ?? selectedApproverFocusKey;
-    const initialSelectionOptions = {isVisible: allApprovers.length > 0, resetOnFocus: true};
-    const initialSelectedApproverKeys = useInitialSelection(selectedApproverKeys, initialSelectionOptions);
-    const initiallyFocusedApproverKey = useInitialSelection(currentFocusedApproverKey, initialSelectionOptions);
-    const selectionListKey = `${initiallyFocusedApproverKey ?? ''}-${initialSelectedApproverKeys.join(',')}`;
+    const initialSelectedApproverKeys = useInitialSelection(selectedApproverKeys, {isVisible: shouldCaptureInitialSelection && allApprovers.length > 0, resetOnFocus: true});
+    const initiallyFocusedApproverKey = allApprovers.find((approver) => initialSelectedApproverKeys.includes(String(approver.value)))?.keyForList;
+    const selectionListKey = initialSelectedApproverKeys.join(',');
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;

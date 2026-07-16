@@ -175,7 +175,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 subtitle={subtitle}
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
-                initiallyFocusedOptionKey={currentApprover?.overLimitForwardsTo}
                 shouldShowNotFoundView={shouldShowNotFoundView}
                 shouldShowNotFoundViewLink
                 allApprovers={allApprovers}

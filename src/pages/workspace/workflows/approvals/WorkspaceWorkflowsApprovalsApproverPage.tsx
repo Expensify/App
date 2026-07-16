@@ -248,7 +248,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 subtitle={subtitle}
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
-                initiallyFocusedOptionKey={visibleSelectedApproverEmail}
                 shouldShowNotFoundView={shouldShowNotFoundView}
                 shouldShowNotFoundViewLink
                 allApprovers={allApprovers}
