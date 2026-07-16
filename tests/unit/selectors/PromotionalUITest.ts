@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import {shouldSuppressPromotionalUISelector} from '@selectors/PromotionalUI';
+import shouldSuppressPromotionalUISelector from '@selectors/PromotionalUI';
 
 describe('shouldSuppressPromotionalUISelector', () => {
     it('returns false for a normal session', () => {

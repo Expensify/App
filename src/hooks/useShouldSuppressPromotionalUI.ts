@@ -1,6 +1,6 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {shouldSuppressPromotionalUISelector} from '@selectors/PromotionalUI';
+import shouldSuppressPromotionalUISelector from '@selectors/PromotionalUI';
 
 import useOnyx from './useOnyx';
 

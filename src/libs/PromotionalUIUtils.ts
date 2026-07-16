@@ -3,20 +3,20 @@ import type {Account, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {shouldSuppressPromotionalUISelector} from '@selectors/PromotionalUI';
+import shouldSuppressPromotionalUISelector from '@selectors/PromotionalUI';
 import Onyx from 'react-native-onyx';
 
 let session: OnyxEntry<Session>;
 let account: OnyxEntry<Account>;
 
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         session = value;
     },
 });
 
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;

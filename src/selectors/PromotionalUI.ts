@@ -11,4 +11,4 @@ import {isSupportalSessionSelector} from './Session';
  */
 const shouldSuppressPromotionalUISelector = (session: OnyxEntry<Session>, account: OnyxEntry<Account>) => isSupportalSessionSelector(session) || isActingAsDelegateSelector(account);
 
-export {shouldSuppressPromotionalUISelector};
+export default shouldSuppressPromotionalUISelector;
