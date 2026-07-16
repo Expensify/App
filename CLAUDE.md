@@ -260,10 +260,6 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 
 Use Sentry skill whenever user wants to analyze any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
 
-## Debugging & Telemetry
-
-- When investigating Sentry telemetry or performance issues, always use production-only data (never staging or adhoc build data), and verify conclusions against fresh Sentry evidence before stating a root cause.
-
 ## Command Reference
 
 ### Common Tasks
@@ -320,14 +316,6 @@ Use the `/playwright-app-testing` skill to test and debug the App in a browser. 
 ### Mobile Device Testing
 
 Use the `/agent-device` skill to drive the App on iOS and Android (simulators or real devices) for interactive testing, performance profiling, bug reproduction, and device-specific debugging. Requires `npm install -g agent-device` - the skill's pre-flight check will surface the install instruction if missing.
-
-## Mobile/UI Testing
-
-- For agent-device or UI testing tasks, always prefer accessibility labels (a11y-label) over testIDs unless explicitly told otherwise.
-
-## Git Workflow
-
-- When pulling latest main into a branch, expect stale package-lock/lockfile changes to block fast-forward merges. Discard the stale lockfile change and proceed while preserving other local work.
 
 ## Architecture Decisions
 
