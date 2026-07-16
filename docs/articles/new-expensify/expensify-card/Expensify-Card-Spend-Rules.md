@@ -1,17 +1,17 @@
 ---
 title: Expensify Card Spend Rules
-description: Learn how Workspace Admins use Expensify Card Spend rules to approve or decline card transactions in real time, including permitted currencies, max amount, the Restrict merchants Off, Allow, and Block options, default protections, and rule management.
+description: Learn how Workspace Admins use Expensify Card Spend rules to approve or decline card transactions in real time based on currency, amount, and merchant.
 keywords: [New Expensify, Expensify Card Spend rule, block card transactions, allow list, decline transaction, merchant restrictions, merchant types, permitted currencies, max amount, default protections, Workspace Admin]
 internalScope: Audience is Workspace Admins. Covers creating and managing Expensify Card Spend rules, including permitted currencies, max amount, and merchant restrictions, and understanding default protections. Does not cover post-submission expense rules, card limits, or cardholder-side card management.
 ---
 
 # Expensify Card Spend Rules 
 
-Expensify Card Spend Rules let Workspace Admins approve or decline card transactions in real time before a transaction is authorized. Use Spend Rules to control where cards can be used by restricting permitted currencies, transaction amounts, merchants, and merchant types.
+Expensify Card Spend Rules let Workspace Admins approve or decline card transactions in real time before a transaction is authorized. Use Spend rules to control where cards can be used by restricting permitted currencies, transaction amounts, merchants, and merchant types.
 
 ---
 
-## Who can use Expensify Card Spend Rules
+## Who can use Expensify Card Spend rules
 
 - Workspace Admins can create, edit, and delete Expensify Card Spend rules.
 - Cardholders can view Expensify Card Spend rules that apply to their cards but cannot modify them.
@@ -73,9 +73,9 @@ To set a max amount, the selected cards must settle in the same currency.
 
 Use **Restrict merchants** to control which merchants and merchant types a card can be used at. Choose one of three options:
 
-- **Off:** Charges are approved for permitted currencies that don't exceed a max amount. No merchant or merchant type restrictions apply.
-- **Allow:** Charges are approved for permitted currencies that don't exceed a max amount, and the merchant or merchant type matches. Use this when a card should only be used at specific merchants or merchant types, such as travel-only, subscription, benefits, or vendor-specific cards.
-- **Block:** Charges are approved for permitted currencies that don't exceed a max amount, or the merchant or merchant type matches. Use this when a card should work broadly but certain merchants or merchant types should be restricted.
+- **Off:** No merchant restrictions apply. A charge is approved as long as it's in a permitted currency and doesn't exceed the max amount.
+- **Allow:** Only charges at a merchant or merchant type you allow are approved (and only when they're in a permitted currency and don't exceed the max amount). Use this when a card should only be used at specific merchants or merchant types, such as travel-only, subscription, benefits, or vendor-specific cards.
+- **Block:** Charges at a merchant or merchant type you block are declined. All other charges are approved, as long as they're in a permitted currency and don't exceed the max amount. Use this when a card should work broadly but certain merchants or merchant types should be restricted.
 
 When **Allow** is selected, you configure **Allowed merchants** and **Allowed merchant types**. When **Block** is selected, you configure **Blocked merchants** and **Blocked merchant types**.
 
@@ -92,8 +92,6 @@ When **Allow** is selected, you configure **Allowed merchants** and **Allowed me
    - **Max amount:** Enter a maximum transaction amount.
    - **Restrict merchants:** Select **Off**, **Allow**, or **Block**. When you select **Allow** or **Block**, set the merchants and merchant types to allow or block.
 6. Click **Save rule**.
-   - **Permitted currencies:** Allow all currencies or restrict spending to specific currencies.
-7. Click **Save**.
 
 Spend rules take effect immediately and are applied to future transactions on the selected cards.
 
@@ -110,12 +108,12 @@ Purpose: Shows admins the rule configuration fields.
 After a rule is created, you can review, change, or remove it.
 
 1. Go to **Workspaces > [Workspace Name] > Rules**.
-2. Locate the card's Spend Rule.
+2. Locate the card's Spend rule.
 3. Select the rule to update its permitted currencies, max amount, merchants, or merchant types or mode.
 4. Click **Save rule**.
 
 To remove a rule: 
-1. Open the Spend Rule.
+1. Open the Spend rule.
 2. Click **Delete rule**.
 
 After deletion, the card is governed only by default protections and any applicable card limits.
@@ -138,9 +136,9 @@ The Spend rule is applied when the card is issued and is enforced from the card'
 
 ---
 
-## How to find a card or Spend Rule using search
+## How to find a card or Spend rule using search
 
-Use search to quickly locate a card or Spend Rule. 
+Use search to quickly locate a card or Spend rule. 
 
 1. Go to **Workspaces > [Workspace Name] > Rules**.
 2. Use the search field to filter the list by card or rule.
@@ -155,15 +153,15 @@ No. Spend rules apply only to Expensify Card transactions. They do not apply to 
 
 ## Can a card have more than one Spend rule?
 
-No. Each card can have only one Spend Rule.
+No. Each card can have only one Spend rule.
 
 ## Can I set a max amount or specific currencies for cards that settle in different currencies?
 
 No. To set a max amount or select specific permitted currencies, the selected cards must settle in the same currency. The card's settlement currency is always permitted.
 
-## Can a Spend Rule override the default protections?
+## Can a Spend rule override the default protections?
 
-No. Default protections (such as ATMs and gambling) are part of the Expensify Card program. They are always enforced and cannot be edited or overridden by a Spend Rule.
+No. Default protections (such as ATMs and gambling) are part of the Expensify Card program. They are always enforced and cannot be edited or overridden by a Spend rule.
 
 ## Why is a card visible in more than one workspace showing the same Spend rule?
 
