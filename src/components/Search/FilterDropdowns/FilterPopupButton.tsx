@@ -65,6 +65,10 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    // Defer mounting the (potentially heavy) popover content until the dropdown is first opened, then keep it
+    // mounted so the close animation and reopening stay instant. The content is otherwise mounted eagerly on
+    // screen focus even while hidden, which runs each filter selector's expensive option-building on page load.
+    const [hasEverExpanded, setHasEverExpanded] = useState(false);
     const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -88,6 +92,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     };
 
     const calculatePopoverPositionAndToggleOverlay = () => {
+        setHasEverExpanded(true);
         calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
             setPopoverTriggerPosition({...position, vertical: position.vertical});
             toggleOverlay();
@@ -97,7 +102,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const actualPopoverWidth = customPopoverWidth ?? popoverWidth ?? CONST.POPOVER_DROPDOWN_WIDTH;
     const containerStyles = isSmallScreenWidth ? styles.w100 : {width: actualPopoverWidth};
 
-    const popoverContent = PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
+    const popoverContent = hasEverExpanded ? PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth}) : null;
 
     return (
         <View
