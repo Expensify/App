@@ -1,3 +1,4 @@
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
@@ -83,6 +84,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
+    const {isOffline} = useNetwork();
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
         selectedCurrency: undefined,
@@ -222,8 +224,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // While a custom currency is chosen but its converted figures haven't arrived (or have gone stale after an edit),
     // the footer keeps showing the default-currency total behind a skeleton until the cache catches up — but only when
     // there's something to convert, so a selection with nothing convertible stays on the default total rather than a
-    // skeleton that never resolves.
-    const isFooterTotalConverting = hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
+    // skeleton that never resolves. Offline no conversion can complete, so keep the last-known/default total instead
+    // of a skeleton that would stay until connectivity returns.
+    const isFooterTotalConverting = !isOffline && hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -243,7 +246,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // for what the footer needs. Each request stamps the source figures it converts, so the freshness checks keep this
     // to one request per out-of-coverage change (or per edit) rather than one per checkbox.
     useEffect(() => {
-        if (!hasCustomFooterCurrency || !currentSearchQueryJSON || !selectedCurrency) {
+        // No conversion can complete offline, so don't queue reads that can't resolve; the effect re-runs on reconnect.
+        if (isOffline || !hasCustomFooterCurrency || !currentSearchQueryJSON || !selectedCurrency) {
             return;
         }
 
@@ -300,6 +304,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         groupSourceByKey,
         hasCustomFooterCurrency,
         isGroupFresh,
+        isOffline,
         isReportsSearch,
         isSearchTotalFresh,
         isTransactionFresh,
