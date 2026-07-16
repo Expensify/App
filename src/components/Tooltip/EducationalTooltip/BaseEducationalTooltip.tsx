@@ -4,6 +4,8 @@ import type {EducationalTooltipProps, GenericTooltipState} from '@components/Too
 import useIsResizing from '@hooks/useIsResizing';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
@@ -12,7 +14,6 @@ import {NavigationContext, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 
-import isTooltipTargetOutOfBounds from './isTooltipTargetOutOfBounds';
 import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
@@ -40,10 +41,7 @@ function BaseEducationalTooltip({
 
     const navigator = useContext(NavigationContext);
     const isFocused = useIsFocused();
-    // Depend on the individual insets: useSafeAreaInsets() returns a fresh object each render, so
-    // depending on it directly would re-create renderTooltip every render and re-trigger the effects
-    // that measure off it.
-    const {top: insetTop, bottom: insetBottom, left: insetLeft, right: insetRight} = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
 
     const isResizing = useIsResizing();
 
@@ -63,15 +61,35 @@ function BaseEducationalTooltip({
 
         getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
             updateTargetBounds(bounds);
+            const {x, y, width: elementWidth, height} = bounds;
+
+            const offset = 10; // Tooltip hides when content moves 10px past header/footer.
+            const dimensions = Dimensions.get('window');
+            const top = y - (insets.top || 0);
+            const bottom = y + height + insets.bottom || 0;
+            const left = x - (insets.left || 0);
+            // dimensions already excludes the horizontal safe-area insets, so anchoring the right edge to
+            // the inset-adjusted left keeps both on the same origin. Adding the right inset back counted it
+            // twice and read anything near the right edge as overflowing, hiding the tooltip in landscape.
+            const right = left + elementWidth;
+            // Calculate the available space at the top, considering the header height and offset
+            const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
+
+            // Calculate the total height available after accounting for the bottom tab and offset
+            const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
+
+            // Calculate available horizontal space, taking into account safe-area insets
+            const availableWidthForLeft = left + offset;
+            const availableWidthForRight = dimensions.width - (right - offset);
 
             // Hide if the element scrolled out vertically or horizontally
-            if (isTooltipTargetOutOfBounds(bounds, {top: insetTop, bottom: insetBottom, left: insetLeft, right: insetRight}, Dimensions.get('window'))) {
+            if (availableHeightForTop < 0 || availableHeightForBottom < 0 || availableWidthForLeft < 0 || availableWidthForRight < 0) {
                 hideTooltip();
             } else {
                 showTooltip();
             }
         });
-    }, [insetTop, insetBottom, insetLeft, insetRight, shouldShowTooltip, shouldSuppressTooltip]);
+    }, [insets.top, insets.bottom, insets.left, shouldShowTooltip, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
