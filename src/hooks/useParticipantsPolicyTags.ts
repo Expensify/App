@@ -10,7 +10,7 @@ type ParticipantWithPolicyID = {
     policyID?: string;
 };
 
-function getPolicyTagsSelector(participants: ParticipantWithPolicyID[]): (allTags: OnyxCollection<PolicyTagLists>) => ParticipantsPolicyTags {
+export function getPolicyTagsSelector(participants: ParticipantWithPolicyID[]): (allTags: OnyxCollection<PolicyTagLists>) => ParticipantsPolicyTags {
     return (allTags: OnyxCollection<PolicyTagLists>) => {
         if (!participants) {
             return {};
