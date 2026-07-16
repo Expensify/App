@@ -21,7 +21,7 @@ const POLICY_ID = 'policy123';
 // A report is awaiting the current user's approval when it is submitted, they are its manager, and its policy has
 // approvals enabled. This mirrors the approve-bucket fixture in useTodoCountsTest.
 const createApproveReport = (reportID: string, managerID = CURRENT_USER_ACCOUNT_ID): Report => ({
-    ...createRandomReport(Number(reportID.replace(/\D/g, '')) || 1),
+    ...createRandomReport(1),
     reportID,
     chatReportID: `chat_${reportID}`,
     policyID: POLICY_ID,
