@@ -67,8 +67,13 @@ function ReportActions() {
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
 
     // When the report's actions are already cached in Onyx (e.g. after a deploy refresh or tab switch),
-    // render them immediately instead of flashing a skeleton while OpenApp is in flight.
-    const hasCachedReportActions = reportActions.length > 0;
+    // render them immediately instead of flashing a skeleton while OpenApp is in flight. The lone
+    // synthetic CREATED action doesn't count as cached history, so it's excluded here to match the inner
+    // gate in `useReportActionsListModel`; otherwise the body would mount during boot for any report that
+    // has only its creation row cached, defeating the point of hoisting the app-load skeleton. The CREATED
+    // type is checked inline (instead of via ReportActionsUtils.isCreatedAction) to avoid pulling that
+    // module into this route-only orchestrator's import graph.
+    const hasCachedReportActions = reportActions.some((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
     const shouldShowAppLoadSkeleton =
         !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM && !hasCachedReportActions;
 

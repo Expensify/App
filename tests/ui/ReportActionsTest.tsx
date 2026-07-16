@@ -15,6 +15,7 @@ import ReportActionsListBody from '@pages/inbox/report/ReportActionsList';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
 import ReportActions from '@pages/inbox/ReportActions';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -205,6 +206,19 @@ describe('ReportActions (orchestrator)', () => {
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         expect(mockReportActionsListBody).toHaveBeenCalled();
         expect(mockMarkOpenReportEnd).not.toHaveBeenCalled();
+    });
+
+    it('renders the app-load skeleton when only the synthetic CREATED action is cached during app load', () => {
+        setupUseOnyx({isLoadingApp: true});
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [{reportActionID: '1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED} as OnyxTypes.ReportAction],
+        });
+
+        render(<ReportActions />);
+
+        expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+        expect(mockReportActionsListBody).not.toHaveBeenCalled();
     });
 
     it('mounts the body (not the orchestrator app-load skeleton) for a Concierge report during app load', () => {
