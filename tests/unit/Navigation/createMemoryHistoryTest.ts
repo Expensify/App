@@ -7,9 +7,11 @@ type MemoryHistory = {
     listen: (listener: () => void) => () => void;
 };
 
-const {createMemoryHistory} = jest.requireActual('../../../node_modules/@react-navigation/native/lib/module/createMemoryHistory.js') as {
+const {
+    createMemoryHistory,
+}: {
     createMemoryHistory: () => MemoryHistory;
-};
+} = jest.requireActual('../../../node_modules/@react-navigation/native/lib/module/createMemoryHistory.js');
 
 const state: NavigationState = {
     key: 'stack',
@@ -42,7 +44,7 @@ describe('createMemoryHistory', () => {
     it('keeps a delayed internal popstate from being delivered to external listeners', async () => {
         const history = createHistoryWithTwoEntries();
         const listener = jest.fn();
-        const unlisten = history.listen(listener);
+        const stopListening = history.listen(listener);
 
         const navigation = history.go(-1);
         jest.advanceTimersByTime(900);
@@ -51,13 +53,13 @@ describe('createMemoryHistory', () => {
         await expect(navigation).resolves.toBeUndefined();
         expect(listener).not.toHaveBeenCalled();
 
-        unlisten();
+        stopListening();
     });
 
     it('cleans up a timed-out traversal so a later external popstate is delivered', async () => {
         const history = createHistoryWithTwoEntries();
         const listener = jest.fn();
-        const unlisten = history.listen(listener);
+        const stopListening = history.listen(listener);
         const resolved = jest.fn();
 
         const navigation = history.go(-1);
@@ -74,6 +76,6 @@ describe('createMemoryHistory', () => {
         window.dispatchEvent(new PopStateEvent('popstate'));
         expect(listener).toHaveBeenCalledTimes(1);
 
-        unlisten();
+        stopListening();
     });
 });
