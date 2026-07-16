@@ -18,7 +18,7 @@ type RunAfterTransitionsOptions = {
      * Defaults to false. */
     waitForUpcomingTransition?: boolean;
 
-    /** Maximum time to wait for the upcoming transition to start. Defaults to {@link CONST.MAX_TRANSITION_START_WAIT_MS}. */
+    /** Maximum time to wait for the upcoming transition to start. Used only when waitForUpcomingTransition is true. */
     maxWaitForUpcomingTransitionMs?: number;
 };
 
@@ -33,16 +33,16 @@ let promiseForNextTransitionStart = new Promise<void>((resolve) => {
     nextTransitionStartResolve = resolve;
 });
 
-function runCallback(callback: () => void | Promise<void>): void {
+function invokeSafely(fn: () => void | Promise<void>): void {
     try {
-        const result = callback();
+        const result = fn();
         if (result instanceof Promise) {
             result.catch((error) => {
-                Log.warn('[TransitionTracker] A pending async callback threw an error', {error});
+                Log.warn(`[TransitionTracker] An async callback/listener threw an error`, {error});
             });
         }
     } catch (error) {
-        Log.warn('[TransitionTracker] A pending callback threw an error', {error});
+        Log.warn(`[TransitionTracker] A callback/listener threw an error`, {error});
     }
 }
 
@@ -54,7 +54,7 @@ function flushCallbacks(): void {
     const callbacks = pendingCallbacks;
     pendingCallbacks = [];
     for (const callback of callbacks) {
-        runCallback(callback);
+        invokeSafely(callback);
     }
 }
 
@@ -86,16 +86,16 @@ function startTransition(): TransitionHandle {
         resolve();
     }
 
-    for (const listener of transitionStartListeners) {
-        listener();
-    }
-
     const timeout = setTimeout(() => {
         activeTransitions.delete(handle);
         decrementAndFlush();
     }, CONST.MAX_TRANSITION_DURATION_MS);
 
     activeTransitions.set(handle, timeout);
+
+    for (const listener of transitionStartListeners) {
+        invokeSafely(listener);
+    }
 
     return handle;
 }
@@ -174,7 +174,7 @@ function runAfterTransitions({
     }
 
     if (activeTransitions.size === 0 || runImmediately) {
-        runCallback(callback);
+        invokeSafely(callback);
         return {cancel: () => {}};
     }
 
