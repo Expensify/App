@@ -126,6 +126,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
 
                 <WorkspaceRoomsTable
                     rooms={rooms}
+                    policyID={policyID}
                     highlightedReportID={highlightedReportID}
                 />
             </ScreenWrapper>
