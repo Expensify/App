@@ -1428,11 +1428,6 @@ function getProgramKeyForCard(card: Card | undefined): CardProgramKey {
     return card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB ? CONST.COUNTRY.GB : CONST.COUNTRY.US;
 }
 
-/** Whether a card belongs to the given program, so a single `cards_{fundID}_Expensify Card` list can be split per program. */
-function isCardInProgram(card: Card | undefined, programKey: CardProgramKey): boolean {
-    return getProgramKeyForCard(card) === programKey;
-}
-
 /**
  * A single `cards_{fundID}_Expensify Card` Onyx list holds every card for the feed regardless of program (the backend keys
  * Expensify Card settings/cards by fundID, not by country). This keeps only the cards belonging to `programKey`, preserving the
@@ -1448,7 +1443,7 @@ function filterCardsListByProgram(cardsList: WorkspaceCardsList | undefined, pro
         result.cardList = cardsList.cardList;
     }
     forEachAssignedCard(cardsList, (card) => {
-        if (!isCardInProgram(card, programKey)) {
+        if (getProgramKeyForCard(card) !== programKey) {
             return;
         }
         result[card.cardID.toString()] = card;
@@ -2182,7 +2177,6 @@ export {
     getCardProgramKey,
     getConfiguredExpensifyCardProgramKeys,
     getProgramKeyForCard,
-    isCardInProgram,
     filterCardsListByProgram,
     getExpensifyCardProgramLabelSuffix,
     getSelectableCardProgramKey,

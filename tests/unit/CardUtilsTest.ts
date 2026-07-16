@@ -68,7 +68,6 @@ import {
     isDirectFeed as isDirectFeedCardUtils,
     filterCardsListByProgram,
     isActiveCard,
-    isCardInProgram,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
     isExpiredCard,
@@ -4646,14 +4645,6 @@ describe('multi-program Expensify Card helpers', () => {
             expect(getProgramKeyForCard(usCard)).toBe(CONST.COUNTRY.US);
             expect(getProgramKeyForCard(legacyCard)).toBe(CONST.COUNTRY.US);
             expect(getProgramKeyForCard(undefined)).toBe(CONST.COUNTRY.US);
-        });
-    });
-
-    describe('isCardInProgram', () => {
-        it('matches a card to its own program only', () => {
-            expect(isCardInProgram(gbCard, CONST.COUNTRY.GB)).toBe(true);
-            expect(isCardInProgram(gbCard, CONST.COUNTRY.US)).toBe(false);
-            expect(isCardInProgram(legacyCard, CONST.COUNTRY.US)).toBe(true);
         });
     });
 
