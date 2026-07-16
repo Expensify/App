@@ -1479,16 +1479,6 @@ function getExpensifyCardProgramCurrency(programKey: CardProgramKey | undefined,
 }
 
 /**
- * Parenthetical qualifier appended to a feed's label so that, when a domain is provisioned with more than one program
- * (e.g. both US and GB), each program's row is distinguishable by its settlement currency (e.g. `expensify.com (GBP)`).
- */
-function getExpensifyCardProgramLabelSuffix(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey): string {
-    const programSettings = getCardSettings(cardSettings, programKey);
-    const currency = getExpensifyCardProgramCurrency(programKey, programSettings?.country, programSettings?.currency);
-    return `(${currency})`;
-}
-
-/**
  * Narrows a stored program value (e.g. the `lastSelectedExpensifyCardProgram` Onyx string) to a selectable program key.
  * Only US and GB are user-selectable; anything else (including undefined) falls back to US so single-program feeds are unaffected.
  */
@@ -2178,7 +2168,7 @@ export {
     getConfiguredExpensifyCardProgramKeys,
     getProgramKeyForCard,
     filterCardsListByProgram,
-    getExpensifyCardProgramLabelSuffix,
+    getExpensifyCardProgramCurrency,
     getSelectableCardProgramKey,
     getIssuedCardFeedCountry,
     getLinkedPolicyIDsFromExpensifyCardSettings,
