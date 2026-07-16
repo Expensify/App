@@ -100,11 +100,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                     <>
                         {shouldUseNarrowTableLayout && (
                             <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                <TextWithTooltip
-                                    text={item.conditionText}
-                                    style={[styles.optionDisplayName, styles.pre]}
-                                />
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.gap2]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                     <Badge
                                         text={item.typeLabel}
                                         icon={Expensicons.Pencil}
@@ -123,7 +119,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                                         shouldShowTooltip
                                         text={item.conditionText}
                                         numberOfLines={1}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
+                                        style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
                                 <TextWithTooltip
