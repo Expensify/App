@@ -180,13 +180,18 @@ function hasExplicitReceiptWaiveIntentForCategory(
     setting: FieldRequirementsDirection,
     wasFieldTouched: boolean,
     isWaived: (category: PolicyCategory) => boolean,
-    isRequireOverride: (category: PolicyCategory) => boolean,
 ): boolean {
-    if (!wasFieldTouched || setting !== CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE || !category) {
+    if (!wasFieldTouched || setting !== CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE) {
         return false;
     }
 
-    return !isWaived(category) && !isRequireOverride(category);
+    // Category may not be loaded yet for a newly selected name; still treat as waive intent.
+    if (!category) {
+        return true;
+    }
+
+    // Already waived — selecting Don't require again is a no-op.
+    return !isWaived(category);
 }
 
 function hasReceiptSettingsChanged(
@@ -209,19 +214,12 @@ function hasReceiptSettingsChanged(
     }
 
     return (
-        hasExplicitReceiptWaiveIntentForCategory(
-            category,
-            effectiveForm[INPUT_IDS.RECEIPT_SETTING],
-            !!touchedFields?.has(INPUT_IDS.RECEIPT_SETTING),
-            isReceiptWaivedForCategory,
-            isReceiptRequireOverrideForCategory,
-        ) ||
+        hasExplicitReceiptWaiveIntentForCategory(category, effectiveForm[INPUT_IDS.RECEIPT_SETTING], !!touchedFields?.has(INPUT_IDS.RECEIPT_SETTING), isReceiptWaivedForCategory) ||
         hasExplicitReceiptWaiveIntentForCategory(
             category,
             effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING],
             !!touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING),
             isItemizedReceiptWaivedForCategory,
-            isItemizedReceiptRequireOverrideForCategory,
         )
     );
 }
@@ -298,9 +296,8 @@ function shouldApplyReceiptFieldSetting(
     }
 
     const isWaived = fieldKey === INPUT_IDS.RECEIPT_SETTING ? isReceiptWaivedForCategory : isItemizedReceiptWaivedForCategory;
-    const isRequireOverride = fieldKey === INPUT_IDS.RECEIPT_SETTING ? isReceiptRequireOverrideForCategory : isItemizedReceiptRequireOverrideForCategory;
 
-    return hasExplicitReceiptWaiveIntentForCategory(category, setting, !!touchedFields?.has(fieldKey), isWaived, isRequireOverride);
+    return hasExplicitReceiptWaiveIntentForCategory(category, setting, !!touchedFields?.has(fieldKey), isWaived);
 }
 
 function applyRequireFieldsReceiptSettings(
@@ -500,7 +497,7 @@ function getRequireFieldsPendingActionForCategory(category: PolicyCategory): Pen
 
 function getRequireFieldsRuleValidationError(
     form: RequireFieldsRuleForm | null | undefined,
-    category: PolicyCategory | undefined,
+    _category: PolicyCategory | undefined,
     translate: LocaleContextProps['translate'],
     isEditing: boolean,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
@@ -510,37 +507,12 @@ function getRequireFieldsRuleValidationError(
         return translate('workspace.rules.requireFieldsRule.confirmErrorCategory');
     }
 
-    const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
-
     if (isEditing) {
         return '';
     }
 
-    if (!touchedFields || touchedFields.size === 0) {
-        return translate('workspace.rules.requireFieldsRule.confirmErrorDoNotRequireField');
-    }
-
-    const hasRequireSetting = ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).some(
-        (fieldKey) => touchedFields.has(fieldKey) && !clearedFields?.has(fieldKey) && effectiveForm[fieldKey] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
-    );
-
-    const hasExplicitWaiveIntent =
-        hasExplicitReceiptWaiveIntentForCategory(
-            category,
-            effectiveForm[INPUT_IDS.RECEIPT_SETTING],
-            !!touchedFields.has(INPUT_IDS.RECEIPT_SETTING) && !clearedFields?.has(INPUT_IDS.RECEIPT_SETTING),
-            isReceiptWaivedForCategory,
-            isReceiptRequireOverrideForCategory,
-        ) ||
-        hasExplicitReceiptWaiveIntentForCategory(
-            category,
-            effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING],
-            !!touchedFields.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING) && !clearedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING),
-            isItemizedReceiptWaivedForCategory,
-            isItemizedReceiptRequireOverrideForCategory,
-        );
-
-    if (!hasRequireSetting && !hasExplicitWaiveIntent) {
+    const hasSelectedField = !!touchedFields && [...touchedFields].some((fieldKey) => !clearedFields?.has(fieldKey));
+    if (!hasSelectedField) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorDoNotRequireField');
     }
 
@@ -840,6 +812,10 @@ type RequireFieldsDisplayedSettingParams = {
     fieldKey: RequireFieldsRuleSettingFieldKey;
     category: PolicyCategory | undefined;
     effectiveForm: RequireFieldsRuleForm | undefined;
+    /** Raw draft form; used when the edit draft was reassigned to another category. */
+    rawForm?: Partial<RequireFieldsRuleForm> | null;
+    /** Route category being edited; differs from rawForm.category after a category change. */
+    originalCategoryName?: string;
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>;
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>;
     isEditing: boolean;
@@ -849,6 +825,8 @@ function getRequireFieldsDisplayedSetting({
     fieldKey,
     category,
     effectiveForm,
+    rawForm,
+    originalCategoryName,
     touchedFields,
     clearedFields,
     isEditing,
@@ -859,6 +837,12 @@ function getRequireFieldsDisplayedSetting({
 
     if (touchedFields?.has(fieldKey)) {
         return effectiveForm?.[fieldKey];
+    }
+
+    // After changing category on edit, the draft holds the preserved rule settings and may
+    // remount without local touched state — read those explicit draft values directly.
+    if (isEditing && originalCategoryName && rawForm?.[INPUT_IDS.CATEGORY] && rawForm[INPUT_IDS.CATEGORY] !== originalCategoryName) {
+        return rawForm[fieldKey];
     }
 
     if (isEditing) {

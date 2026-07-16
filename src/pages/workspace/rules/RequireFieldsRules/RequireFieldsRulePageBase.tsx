@@ -44,7 +44,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getRequireFieldsRuleCategoryRoute} from '@src/ROUTES';
-import type {RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
+import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -92,17 +92,60 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         setClearedFields(new Set());
         setSelectionCategoryName(selectedCategoryName);
     } else if (selectionCategoryName !== selectedCategoryName) {
-        const didChangeSelectedCategory = selectionCategoryName !== undefined && selectedCategoryName !== undefined;
+        const previousCategoryName = selectionCategoryName;
+        const didChangeSelectedCategory = previousCategoryName !== undefined && selectedCategoryName !== undefined;
         setSelectionCategoryName(selectedCategoryName);
+
         if (didChangeSelectedCategory) {
+            const previousCategory = previousCategoryName ? policyCategories?.[previousCategoryName] : undefined;
+            const previousEffectiveForm = form && previousCategory ? getEffectiveRequireFieldsRuleForm(previousCategory, form) : form;
+            const preservedSettings: Partial<RequireFieldsRuleForm> = {};
+            const nextTouchedFields = new Set<RequireFieldsRuleSettingFieldKey>();
+
+            // Preserve whatever is currently shown (edit often displays category overrides
+            // without those fields being in touchedFields yet).
+            for (const fieldKey of [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const) {
+                const displayedSetting = getRequireFieldsDisplayedSetting({
+                    fieldKey,
+                    category: previousCategory,
+                    effectiveForm: previousEffectiveForm,
+                    rawForm: form,
+                    originalCategoryName: isEditing ? categoryName : undefined,
+                    touchedFields,
+                    clearedFields,
+                    isEditing,
+                });
+
+                if (displayedSetting === undefined) {
+                    continue;
+                }
+
+                preservedSettings[fieldKey] = displayedSetting;
+                nextTouchedFields.add(fieldKey);
+            }
+
             setClearedFields(new Set());
-            if (isEditing) {
-                setTouchedFields(new Set());
+            setTouchedFields(nextTouchedFields);
+
+            // Replace the draft with only preserved settings so unset fields stay unset.
+            if (selectedCategoryName) {
+                setDraftRequireFieldsRule({
+                    [INPUT_IDS.CATEGORY]: selectedCategoryName,
+                    ...preservedSettings,
+                });
             }
         }
     }
 
-    useEffect(() => () => clearDraftRequireFieldsRule(), []);
+    // Remount after a category change loses local touched state — rebuild it from the draft.
+    if (isEditing && categoryName && selectedCategoryName && selectedCategoryName !== categoryName && form) {
+        const draftSettingKeys = ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).filter(
+            (fieldKey) => form[fieldKey] !== undefined,
+        );
+        if (draftSettingKeys.some((fieldKey) => !touchedFields.has(fieldKey))) {
+            setTouchedFields(new Set([...touchedFields, ...draftSettingKeys]));
+        }
+    }
 
     useEffect(() => {
         if (!isEditing) {
@@ -123,15 +166,22 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             return;
         }
 
+        // User already reassigned the draft to another category — don't overwrite it.
+        if (form?.[INPUT_IDS.CATEGORY] && form[INPUT_IDS.CATEGORY] !== categoryName) {
+            initializedDraftForRuleKeyRef.current = ruleKey;
+            return;
+        }
+
         // Always reseed from the category so a leftover new-rule draft cannot leave a stale Require/Don't require.
         initializedDraftForRuleKeyRef.current = ruleKey;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed local selection state when opening an edit rule.
         setTouchedFields(new Set());
         setClearedFields(new Set());
         setDraftRequireFieldsRule({
             [INPUT_IDS.CATEGORY]: categoryName,
             ...getRequireFieldsFormFromCategory(category),
         });
-    }, [category, categoryName, isEditing]);
+    }, [category, categoryName, form, isEditing]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -186,6 +236,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             fieldKey,
             category: categoryForRule,
             effectiveForm: form && categoryForRule ? getEffectiveRequireFieldsRuleForm(categoryForRule, form) : effectiveForm,
+            rawForm: form,
+            originalCategoryName: isEditing ? categoryName : undefined,
             touchedFields,
             clearedFields,
             isEditing,
@@ -207,6 +259,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                 setClearedFields((previousClearedFields) => {
                     const nextClearedFields = new Set(previousClearedFields);
                     for (const keyToClear of keysToClear) {
+                        // Only track clears against overrides on the category currently selected in the draft.
                         if (getActiveFieldRequirementsDirection(selectedCategory, keyToClear) !== undefined) {
                             nextClearedFields.add(keyToClear);
                         } else {
@@ -215,6 +268,21 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                     }
                     return nextClearedFields;
                 });
+            }
+
+            // Drop deselected values from the draft (needed after category reassignment where
+            // display reads explicit draft keys instead of touched state alone).
+            if (form) {
+                const nextDraft: Partial<RequireFieldsRuleForm> = {
+                    [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY],
+                };
+                for (const settingFieldKey of [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const) {
+                    if (keysToClear.includes(settingFieldKey) || form[settingFieldKey] === undefined) {
+                        continue;
+                    }
+                    nextDraft[settingFieldKey] = form[settingFieldKey];
+                }
+                setDraftRequireFieldsRule(nextDraft);
             }
 
             setShouldShowError(false);
@@ -252,6 +320,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         const didChangeCategory = isEditing && !!originalCategoryName && !!savedCategory && savedCategory !== originalCategoryName;
 
         if (isEditing && !didChangeCategory && !hasRequireFieldsRuleChanges(selectedCategory ?? category, formToSave, touchedFields, clearedFields)) {
+            clearDraftRequireFieldsRule();
             Navigation.goBack();
             return;
         }
@@ -263,6 +332,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         } else {
             saveRequireFieldsRule(policyData, formToSave, touchedFields, clearedFields);
         }
+
+        clearDraftRequireFieldsRule();
 
         if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.REQUIRE_FIELDS);

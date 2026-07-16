@@ -5,15 +5,16 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 
-import {updateDraftRequireFieldsRule} from '@libs/actions/User';
+import {setDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getEffectiveRequireFieldsRuleForm, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
+import {getActiveFieldRequirementsDirection, getRequireFieldsFormFromCategory, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
 import React from 'react';
@@ -22,6 +23,13 @@ type RequireFieldsRuleCategoryPageBaseProps = {
     policyID: string;
     categoryName?: string;
 };
+
+const SETTING_FIELD_KEYS = [
+    INPUT_IDS.DESCRIPTION_SETTING,
+    INPUT_IDS.ATTENDEES_SETTING,
+    INPUT_IDS.RECEIPT_SETTING,
+    INPUT_IDS.ITEMIZED_RECEIPT_SETTING,
+] as const satisfies readonly RequireFieldsRuleSettingFieldKey[];
 
 function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFieldsRuleCategoryPageBaseProps) {
     const isEditing = !!categoryName;
@@ -56,22 +64,37 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         });
 
     const onSave = (value?: string) => {
-        if (!isEditing) {
-            updateDraftRequireFieldsRule({
-                ...form,
-                [INPUT_IDS.CATEGORY]: value,
-            });
-            return;
-        }
-
-        const selectedCategory = value ? policyCategories?.[value] : undefined;
-        const draftForm = {
-            ...form,
+        const previousCategoryName = form?.[INPUT_IDS.CATEGORY];
+        const previousCategory = previousCategoryName ? policyCategories?.[previousCategoryName] : undefined;
+        const previousSeed = getRequireFieldsFormFromCategory(previousCategory);
+        const preservedSettings: Partial<RequireFieldsRuleForm> = {
             [INPUT_IDS.CATEGORY]: value,
         };
-        const effectiveDraftForm = selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, draftForm) : draftForm;
 
-        updateDraftRequireFieldsRule(effectiveDraftForm);
+        for (const fieldKey of SETTING_FIELD_KEYS) {
+            const formValue = form?.[fieldKey];
+
+            // Prefer values the user changed in the draft over the previous category seed.
+            if (formValue !== undefined && formValue !== previousSeed[fieldKey]) {
+                preservedSettings[fieldKey] = formValue;
+                continue;
+            }
+
+            if (isEditing) {
+                // Keep what was shown for the previous category (active override).
+                const displayedSetting = getActiveFieldRequirementsDirection(previousCategory, fieldKey);
+                if (displayedSetting !== undefined) {
+                    preservedSettings[fieldKey] = displayedSetting;
+                }
+                continue;
+            }
+
+            if (formValue !== undefined) {
+                preservedSettings[fieldKey] = formValue;
+            }
+        }
+
+        setDraftRequireFieldsRule(preservedSettings);
     };
 
     return (
