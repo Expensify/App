@@ -117,6 +117,7 @@ import type {
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
     LastPaymentMethodType,
+    PersonalDetailsList,
     Policy,
     PolicyCategories,
     PolicyCategory,
