@@ -1,3 +1,4 @@
+import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
 import Button from '@components/ButtonComposed';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
@@ -63,6 +64,7 @@ import {
     isGroupChat as isGroupChatReportUtils,
     isInvoiceReport,
     isInvoiceRoom,
+    isOneOnOneChat,
     isOneTransactionThread,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
@@ -122,6 +124,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [accountGuideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
+    const [accountManagerBookingDetails] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => ({
+            accountManagerAccountID: account?.accountManagerAccountID,
+            accountManagerCalendarLink: account?.accountManagerCalendarLink,
+        }),
+    });
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
@@ -209,6 +217,29 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !isChatThread &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
+
+    const accountManagerAccountID = accountManagerBookingDetails?.accountManagerAccountID;
+
+    // Show the "Book a call" button in the 1:1 DM with the assigned account manager
+    const shouldShowAccountManagerBookCallInDM =
+        !!accountManagerAccountID &&
+        !!accountManagerBookingDetails?.accountManagerCalendarLink &&
+        isOneOnOneChat(report) &&
+        !!report?.participants?.[Number(accountManagerAccountID)] &&
+        !!canUserPerformWriteAction(report, isReportArchived) &&
+        !isChatThread;
+    const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerAccountID && !!accountManagerBookingDetails?.accountManagerCalendarLink;
+    const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
+
+    // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
+    const shouldStackAccountManagerBookCall = shouldUseNarrowLayout || isInSidePanel;
+
+    const accountManagerBookCallButton = (
+        <AccountManagerBookCallButton
+            calendarLink={accountManagerBookingDetails?.accountManagerCalendarLink ?? ''}
+            accountManagerAccountID={shouldShowAccountManagerBookCallInConcierge ? accountManagerBookingDetails?.accountManagerAccountID : undefined}
+        />
+    );
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID));
 
@@ -407,6 +438,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    {shouldShowAccountManagerBookCall && !shouldStackAccountManagerBookCall && accountManagerBookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -441,6 +473,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+                {shouldShowAccountManagerBookCall && shouldStackAccountManagerBookCall && <View style={[styles.ph5, styles.pb3]}>{accountManagerBookCallButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                     {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
                         <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>
