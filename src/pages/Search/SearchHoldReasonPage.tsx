@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React, {useCallback, useEffect, useMemo} from 'react';
 
@@ -44,6 +45,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const violationsSelector = useMemo(() => transactionViolationsByIDsSelector(relevantTransactionIDs), [relevantTransactionIDs]);
     const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector}, [violationsSelector]);
     const {isOffline} = useNetwork();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
@@ -58,14 +60,34 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, selectedTransactionViolations, ancestors);
+                putTransactionsOnHold(
+                    selectedTransactionIDs,
+                    comment,
+                    reportID,
+                    isOffline,
+                    currentUserLogin ?? '',
+                    currentUserAccountID,
+                    selectedTransactionViolations,
+                    isTrackIntentUser,
+                    ancestors,
+                );
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                     const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, ancestors);
+                    putOnHold(
+                        transactionID,
+                        comment,
+                        transactionThreadReportID,
+                        isOffline,
+                        currentUserLogin ?? '',
+                        currentUserAccountID,
+                        transactionViolations,
+                        isTrackIntentUser,
+                        ancestors,
+                    );
                 }
                 clearSelectedTransactions();
             }
@@ -85,6 +107,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             currentUserLogin,
             currentUserAccountID,
             selectedTransactionViolations,
+            isTrackIntentUser,
         ],
     );
 
