@@ -33,15 +33,8 @@ type ExpensifyCardFeedEntry = {
     programKey: CardProgramKey;
 };
 
-/** A feed qualifies only when its settings NVP has a US or GB program block with a configured settlement bank account. */
-function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefined): boolean {
-    return getConfiguredExpensifyCardProgramKeys(settings).length > 0;
-}
-
 /**
- * Determines whether an Expensify card feed should be visible to the current user.
- *
- * A feed is gathered from one of two sources, regardless of its `linkedPolicyIDs`:
+ * Whether the current user administers the feed backed by `fundID`, from one of two sources regardless of `linkedPolicyIDs`:
  *  1. The user is an admin of the domain whose account ID matches the feed's fundID.
  *  2. The user is an admin of a non-deleted policy whose `policyAccountID` matches the feed's
  *     fundID (i.e. the fund backs that workspace account).
@@ -50,17 +43,7 @@ function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefi
  * separately by `isFeedPrimaryForPolicy` using `linkedPolicyIDs`. There is intentionally no
  * decision based on `preferredPolicy` (oldDot-only) nor on whether a card has been issued.
  */
-function isExpensifyCardFeedVisibleToAdmin(
-    settings: ExpensifyCardSettings,
-    policies: OnyxCollection<Policy>,
-    fundID: number,
-    domains: OnyxCollection<Domain>,
-    currentUserAccountID: number,
-): boolean {
-    if (!hasConfiguredExpensifyCardFeed(settings)) {
-        return false;
-    }
-
+function isExpensifyCardFeedAdmin(policies: OnyxCollection<Policy>, fundID: number, domains: OnyxCollection<Domain>, currentUserAccountID: number): boolean {
     // Source 1: the user is an admin of the domain whose ID matches the fundID.
     const domain = getDomainByFundID(domains, fundID);
     if (isAdminSelector(currentUserAccountID)(domain)) {
@@ -92,15 +75,18 @@ function getAdminExpensifyCardFeedEntries(
         if (!settings) {
             return [];
         }
-        const fundID = getFundIdFromSettingsKey(settingsKey);
-        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID)) {
+        // A feed qualifies only when it has a US or GB program with a configured settlement bank account. A domain
+        // provisioned with more than one program (e.g. both US and GB) yields one entry per program so each renders as
+        // its own selector row.
+        const programKeys = getConfiguredExpensifyCardProgramKeys(settings);
+        if (programKeys.length === 0) {
             return [];
         }
-
-        // A domain provisioned with more than one program (e.g. both US and GB) yields one entry per program so each
-        // renders as its own selector row. `getConfiguredExpensifyCardProgramKeys` only returns US/GB, both of which pass
-        // the `hasConfiguredExpensifyCardFeed` gate above, so there is always at least one program here.
-        return getConfiguredExpensifyCardProgramKeys(settings).map((programKey) => ({settingsKey, fundID, settings, programKey}));
+        const fundID = getFundIdFromSettingsKey(settingsKey);
+        if (!isExpensifyCardFeedAdmin(policies, fundID, domains, currentUserAccountID)) {
+            return [];
+        }
+        return programKeys.map((programKey) => ({settingsKey, fundID, settings, programKey}));
     });
 }
 
