@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -221,14 +221,15 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         >
                             <Button
                                 isDisabled={isOffline}
-                                success
-                                large
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 isLoading={assignCard?.isAssigning}
                                 style={styles.w100}
                                 onPress={submit}
                                 testID={CONST.ASSIGN_CARD_BUTTON_TEST_ID}
-                                text={translate('workspace.companyCards.assignCard')}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.companyCards.assignCard')}</Button.Text>
+                            </Button>
                         </OfflineWithFeedback>
                     </View>
                 </ScrollView>

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 
@@ -111,10 +111,11 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             }
             return (
                 <Button
-                    text={translate('subscription.yourPlan.downgrade')}
                     style={style}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}
-                />
+                >
+                    <Button.Text>{translate('subscription.yourPlan.downgrade')}</Button.Text>
+                </Button>
             );
         }
     }
@@ -126,11 +127,12 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             }
             return (
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={style}
-                    text={translate('subscription.yourPlan.upgrade')}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.CORPORATE)}
-                />
+                >
+                    <Button.Text>{translate('subscription.yourPlan.upgrade')}</Button.Text>
+                </Button>
             );
         }
     }
@@ -156,10 +158,11 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             />
             <View style={[style, styles.mt2]}>
                 <Button
-                    text={translate('subscription.subscriptionSettings.editSubscription')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
                     style={styles.alignSelfStart}
-                />
+                >
+                    <Button.Text>{translate('subscription.subscriptionSettings.editSubscription')}</Button.Text>
+                </Button>
             </View>
         </View>
     );

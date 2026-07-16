@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
@@ -91,11 +91,12 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
                 {onboardingHelpDropdownButton}
                 <Button
-                    success={!hasActiveScheduledCall}
+                    variant={!hasActiveScheduledCall ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     style={shouldDisplayButtonsInSeparateLine ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
-                    text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
-                />
+                >
+                    <Button.Text>{translate('subscription.billingBanner.earlyDiscount.claimOffer')}</Button.Text>
+                </Button>
                 {!shouldDisplayButtonsInSeparateLine && dismissButton}
             </View>
         );

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -93,14 +93,15 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbo
                 addBottomSafeAreaPadding
             >
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}
                     onPress={isLastStep ? onConnect : onNext}
-                    text={translate(buttonKey)}
                     isDisabled={isLastStep && isOffline}
-                    pressOnEnter
-                />
+                >
+                    <Button.Text>{translate(buttonKey)}</Button.Text>
+                    <Button.KeyboardShortcut />
+                </Button>
             </FixedFooter>
         </View>
     );

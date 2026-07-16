@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -13,6 +13,7 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -63,23 +64,25 @@ function PersonalCardWarning() {
             footer={
                 <>
                     <Button
-                        large
-                        text={translate('personalCard.thisIsPersonalCard')}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         testID="confirmation-secondary-button"
                         style={styles.mt3}
                         onPress={() => {
                             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
                         }}
-                    />
+                    >
+                        <Button.Text>{translate('personalCard.thisIsPersonalCard')}</Button.Text>
+                    </Button>
                     <Button
-                        success
-                        large
-                        text={translate(isAdmin ? 'personalCard.thisIsCompanyCard' : 'personalCard.askAdmin')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         testID="confirmation-primary-button"
                         style={styles.mt3}
-                        pressOnEnter
                         onPress={onPrimaryActionPress}
-                    />
+                    >
+                        <Button.Text>{translate(isAdmin ? 'personalCard.thisIsCompanyCard' : 'personalCard.askAdmin')}</Button.Text>
+                        <Button.KeyboardShortcut />
+                    </Button>
                 </>
             }
             childrenContainerStyles={[styles.pt0, styles.gap6]}
