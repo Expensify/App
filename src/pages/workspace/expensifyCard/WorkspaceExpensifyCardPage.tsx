@@ -39,7 +39,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const settings = getCardSettingsForSelectedProgram(cardSettings, selectedProgramKey);
     const [allProgramsCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
 
-    // A single feed holds both programs' cards in one Onyx list, so keep only the selected program's cards.
+    // A single fund can hold both programs' cards in one Onyx list, so keep only the selected program's cards.
     const cardsList = useMemo(() => filterCardsListByProgram(allProgramsCardsList, selectedProgramKey), [allProgramsCardsList, selectedProgramKey]);
 
     const fetchExpensifyCards = useCallback(() => {

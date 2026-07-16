@@ -1487,8 +1487,8 @@ function getSelectableCardProgramKey(programKey: string | undefined): CardProgra
 }
 
 /**
- * Resolves which program's country a newly issued card should be routed to. A feed can hold both a US and a GB program,
- * so pass the selected program's country when the EU/UK beta is on. Without the beta only US exists, so keep sending US explicitly.
+ * Resolves which program's country a newly issued card should be routed to. A fund's settings can hold both a US and a
+ * GB program, so pass the selected program's country when the EU/UK beta is on. Without the beta only US exists, so keep sending US explicitly.
  */
 function getIssuedCardFeedCountry(isEuUkEnabled: boolean, selectedProgramKey: CardProgramKey): CardProgramKey {
     return isEuUkEnabled ? selectedProgramKey : CONST.COUNTRY.US;

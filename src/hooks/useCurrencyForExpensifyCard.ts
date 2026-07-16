@@ -9,17 +9,17 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
 // `programKey` is required (not optional) so callers can't silently fall back to the collapsed, US-first currency on a
-// feed that also holds a GB program. Pass the selected program (`useSelectedExpensifyCardProgram`) for feed-level currency,
+// fund that also holds a GB program. Pass the selected program (`useSelectedExpensifyCardProgram`) for fund-level currency,
 // or the card's own program (`getProgramKeyForCard`) for a specific card.
 export default function useCurrencyForExpensifyCard({policyID, fundID, programKey}: {policyID?: string; fundID?: number; programKey: CardProgramKey}) {
     const policy = usePolicy(policyID);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
 
-    // The selected feed can belong to a different policy/domain than the one being viewed
-    // (e.g. a US feed linked to a GBP policy), so derive the currency from the feed itself.
-    // A feed can also hold more than one program (US/GB), so pass the program to read its currency
-    // so, for example, the US row shows USD even when a GB program is also provisioned on the same feed.
+    // The selected fund can belong to a different policy/domain than the one being viewed
+    // (e.g. a US fund linked to a GBP policy), so derive the currency from the fund's settings itself.
+    // A fund's settings can also hold more than one program (US/GB), so pass the program to read its currency
+    // so, for example, the US row shows USD even when a GB program is also provisioned on the same fund.
     if (fundID && cardSettings) {
         return getCardOrFeedCurrency(undefined, cardSettings, programKey);
     }

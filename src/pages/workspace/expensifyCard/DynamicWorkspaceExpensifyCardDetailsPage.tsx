@@ -119,8 +119,6 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
 
     const workspaceCard = workspaceCards?.[cardID];
     const card = workspaceCard ?? cardFromCardList;
-    // Resolve currency from the card's own program (feedCountry). A feed can hold both a US and a GB program, so the
-    // selected feed's default program is not necessarily this card's program.
     const currency = useCurrencyForExpensifyCard({
         policyID,
         fundID: defaultFundID,

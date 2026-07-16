@@ -67,7 +67,7 @@ type WorkspaceExpensifyCardListPageProps = {
     /** Fund ID */
     fundID: number;
 
-    /** The selected program (US/GB) within the feed, used to resolve currency when a feed holds more than one program */
+    /** The selected program (US/GB) within the fund, used to resolve currency when a fund's settings hold more than one program */
     programKey: CardProgramKey;
 };
 
