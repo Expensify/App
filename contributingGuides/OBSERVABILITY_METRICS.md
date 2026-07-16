@@ -159,7 +159,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - `canceled_by_skeleton` values (`CONST.TELEMETRY.CANCELED_BY_SKELETON`) based on skeleton condition
 **Cancellation (report unmount / navigate away)**: If the user leaves the report before their message renders, any pending `ManualSendMessage` span is cancelled via `cancelSpansByPrefix()` to avoid orphaned spans. Cancelled this way the span gets `canceled: true` but **no** `canceled_by_skeleton` (a blanket cancel by span-id prefix, not scoped to one `report_id`).
 **Notes**: `send_message_source` = `<tab>_<scenario>` (+ `_rhp` in the RHP, + `_from_report` when drilled in from a report) — slice the metric by send path.
-`report_action_count` / `money_request_preview_count` — how many actions the chat's list holds and how many of them are `REPORT_PREVIEW` items, so the metric can be sliced by list weight (e.g. chats with many `MoneyRequestReportPreview` items).
+`report_action_count` / `money_request_preview_count` — how many renderable actions the chat's list holds and how many of them are `REPORT_PREVIEW` items — slice the metric by list weight (e.g. chats with many `MoneyRequestReportPreview` items).
 
 ## Failure Rates
 
