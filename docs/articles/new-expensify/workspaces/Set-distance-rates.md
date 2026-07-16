@@ -42,8 +42,8 @@ When a rate has a **Start date** or **End date**, Expensify uses it to apply the
 4. Update any of the available settings:
    - Name
    - Rate
-   - Start date
-   - End date
+   - **Start date**
+   - **End date**
    - Tax rate
    - Tax reclaimable amount
 5. Click **Save**.
