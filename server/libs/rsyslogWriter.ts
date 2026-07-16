@@ -9,9 +9,14 @@ import {dlopen, suffix} from 'bun:ffi';
 
 const DEFAULT_SOCKET_PATH = '/run/systemd/journal/syslog';
 
-// POSIX constants passed to socket()
+// POSIX constants passed to socket() / sendto()
 const AF_UNIX = 1;
 const SOCK_DGRAM = 2;
+// sendto() MSG_DONTWAIT: return immediately with EAGAIN if the send would block (e.g. syslog
+// receive queue full). Linux: 0x40, Darwin: 0x80. Production targets Linux; macOS rarely has the
+// journal socket. Named for the positive behavior rather than the POSIX macro (DONTWAIT) so we
+// satisfy rulesdir/no-negated-variables.
+const SENDTO_NONBLOCK = process.platform === 'darwin' ? 0x80 : 0x40;
 
 // Linux struct sockaddr_un layout: sa_family_t (2 bytes) + char sun_path[108]. We build this byte
 // array manually because bun:ffi has no struct helper for the address type sendto() expects.
@@ -101,13 +106,15 @@ function writeRsyslog(line: string): boolean {
     }
 
     const message = Buffer.from(line, 'utf8');
-    // flags=0: no MSG_DONTWAIT etc. Bun passes `message` as the buf pointer and `sockaddr` as dest_addr.
+    // MSG_DONTWAIT so a full syslog receive queue cannot stall chart rendering; on EAGAIN (or any
+    // other send failure) fall back to stderr. Bun passes `message` as the buf pointer and
+    // `sockaddr` as dest_addr.
     try {
-        const bytesSent = libc.symbols.sendto(socketFd, message, message.length, 0, sockaddr, sockaddr.length);
+        const bytesSent = libc.symbols.sendto(socketFd, message, message.length, SENDTO_NONBLOCK, sockaddr, sockaddr.length);
 
         if (bytesSent < 0) {
-            libc.symbols.close(socketFd);
-            socketFd = -1;
+            // Keep the fd on backpressure (EAGAIN); only reset after a hard/FFI failure below so the
+            // next write can reopen. Temporary full queues should not thrash socket()/close().
             process.stderr.write(`${line}\n`);
             return false;
         }
