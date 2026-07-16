@@ -367,6 +367,7 @@ const SCREENS = {
         SPLIT_EXPENSE_SEARCH: 'Money_Request_Split_Expense_Search',
         SPLIT_EXPENSE_CREATE_DATE_RANGE: 'Money_Request_Split_Expense_Create_Date_Range',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
+        SPLIT_EXPENSE_EDIT_SEARCH: 'Money_Request_Split_Expense_Edit_Search',
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',

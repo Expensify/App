@@ -3283,8 +3283,11 @@ type SplitExpenseParamList = {
         reportID: string;
         transactionID: string;
         splitExpenseTransactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT_SEARCH]: {
+        reportID: string;
+        transactionID: string;
+        splitExpenseTransactionID: string;
     };
 };
 
