@@ -1934,7 +1934,7 @@ function createGroupChat(
     isSelfTourViewed: boolean | undefined,
     hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
-    currentUserAccountID: number | undefined,
+    currentUserAccountID: number,
     avatar?: File | CustomRNImageManipulatorResult,
 ) {
     const participantLoginList = Object.values(participantsPersonalDetails ?? {})
