@@ -1100,7 +1100,7 @@ function getAssignee(
     assigneeAccountID: number | undefined,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     translate: LocalizedTranslate,
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Assignee | undefined {
     const formatPhone = formatPhoneNumber ?? ((n: string) => n);
     if (!assigneeAccountID) {
@@ -1134,7 +1134,7 @@ function getShareDestination(
     policy: OnyxEntry<OnyxTypes.Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
     const formatPhone = formatPhoneNumber ?? ((n: string) => n);

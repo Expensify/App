@@ -144,7 +144,7 @@ type CreateDistanceRequestInformation = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -171,7 +171,7 @@ type CreateSplitsAndOnyxDataParams = {
     // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type StartSplitBilActionParams = {
@@ -197,7 +197,7 @@ type StartSplitBilActionParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SplitBillActionsParams = {
@@ -233,7 +233,7 @@ type SplitBillActionsParams = {
     // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CompleteSplitBillInformation = {

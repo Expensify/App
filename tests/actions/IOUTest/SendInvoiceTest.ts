@@ -624,6 +624,7 @@ describe('actions/SendInvoice', () => {
                 companyName,
                 companyWebsite,
                 senderPolicyTags: undefined,
+                formatPhoneNumber: (n: string) => n,
             });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
@@ -652,6 +653,7 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 senderPolicyTags: undefined,
+                formatPhoneNumber: (n: string) => n,
             });
 
             mockFetch?.fail?.();
@@ -692,6 +694,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
                 senderPolicyTags: undefined,
+                formatPhoneNumber: (n: string) => n,
             });
 
             // Then onyxData should be passed to API.write
@@ -733,6 +736,7 @@ describe('actions/SendInvoice', () => {
                         orderWeight: 0,
                     },
                 },
+                formatPhoneNumber: (n: string) => n,
             });
             await waitForBatchedUpdates();
 
@@ -768,6 +772,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,
                 senderPolicyTags: undefined,
+                formatPhoneNumber: (n: string) => n,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(

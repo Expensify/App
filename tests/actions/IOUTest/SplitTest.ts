@@ -413,6 +413,7 @@ describe('split expense', () => {
                         betas: [CONST.BETAS.ALL],
                         personalDetails: mockPersonalDetails,
                         isTrackIntentUser: false,
+                        formatPhoneNumber: (n: string) => n,
                     },
                 );
                 return waitForBatchedUpdates();
@@ -749,6 +750,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -799,6 +801,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -823,6 +826,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -854,6 +858,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -890,6 +895,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -912,6 +918,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -978,6 +985,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1029,6 +1037,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1091,6 +1100,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         waitForBatchedUpdates();
@@ -1141,6 +1151,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1174,6 +1185,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
             sessionEmail: RORY_EMAIL,
         });
 
@@ -1318,6 +1330,7 @@ describe('split expense', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1386,6 +1399,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: testPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1448,6 +1462,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: participantPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1517,6 +1532,7 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             participantsPolicyTags,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1586,6 +1602,7 @@ describe('split expense', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: completeSplitPersonalDetails,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
             sessionEmail: RORY_EMAIL,
         });
 
@@ -1632,6 +1649,7 @@ describe('startSplitBill', () => {
             quickAction: {},
             policyRecentlyUsedCurrencies: [],
             participantsPolicyTags,
+            formatPhoneNumber: (n: string) => n,
         });
 
         waitForBatchedUpdates();
@@ -1676,6 +1694,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1723,6 +1742,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1840,6 +1860,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -1962,6 +1983,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -2096,6 +2118,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -2176,6 +2199,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -2266,6 +2290,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -2329,6 +2354,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -2408,6 +2434,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -2498,6 +2525,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -2608,6 +2636,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -2786,6 +2815,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports1.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -2923,6 +2953,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports2.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -3000,6 +3031,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -3112,6 +3144,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -3182,6 +3215,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -3294,6 +3328,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -3369,6 +3404,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -3490,6 +3526,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -3566,6 +3603,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -3709,6 +3747,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -3828,6 +3867,7 @@ describe('updateSplitTransactions', () => {
             existingTransactionDraft: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -3897,6 +3937,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -3965,6 +4006,7 @@ describe('updateSplitTransactions', () => {
             draftTransactionIDs: [],
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -4034,6 +4076,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: true,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -4102,6 +4145,7 @@ describe('updateSplitTransactions', () => {
             existingTransactionDraft: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -4169,6 +4213,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -4250,6 +4295,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -4353,6 +4399,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         await waitForBatchedUpdates();
@@ -4419,6 +4466,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
 
         const updateSplitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION);
@@ -4679,6 +4727,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -4792,6 +4841,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -4869,6 +4919,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -4939,6 +4990,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -5014,6 +5066,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -5084,6 +5137,7 @@ describe('updateSplitTransactions', () => {
             expenseReport: reports.expenseReport,
             isOffline: false,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         });
         await waitForBatchedUpdates();
 
@@ -7575,6 +7629,7 @@ describe('createDistanceRequest', () => {
             betas: [CONST.BETAS.ALL],
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber: (n: string) => n,
         };
     }
 
