@@ -129,8 +129,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorCode: 'Κωδικός δύο παραγόντων',
         workspaces: 'Χώροι εργασίας',
         home: 'Αρχική',
-        // ZWSP (U+200B) lets this LHN label wrap as Εισερχό/μενα instead of orphaning α
-        inbox: 'Εισερχό\u200Bμενα',
+        inbox: 'Εισερχό​μενα',
         yourReviewIsRequired: 'Απαιτείται η αξιολόγησή σας',
         actionBadge: {
             submit: 'Υποβολή',
@@ -2299,8 +2298,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         whatIsNew: 'Τι νέο υπάρχει',
         accountSettings: 'Ρυθμίσεις λογαριασμού',
-        // ZWSP (U+200B) lets this LHN label wrap as Λογαρια/σμός instead of clipping
-        account: 'Λογαρια\u200Bσμός',
+        account: 'Λογαρια​σμός',
         general: 'Γενικά',
     },
     closeAccountPage: {
@@ -5728,6 +5726,35 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             travelInvoicingSettlementAccount: {
                 label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
+            },
+            exportToMultipleAccounts: 'Ρυθμίστε την εξαγωγή σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα καρτών.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} πρόγραμμα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} προγράμματα με προσαρμοσμένους λογαριασμούς`;
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παράκαμψη του λογαριασμού προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} κάρτα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
+                },
             },
         },
         type: {
