@@ -215,8 +215,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
             return SequentialQueue.waitForIdle()
                 .then(() => {
                     // Update authToken in Onyx so it persists if the further flow does not complete for any reason.
-                    // Copilot tokens are Auth TYPE_DELEGATE ("delegate"); persist that on SESSION like support tokens.
-                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken, CONST.AUTH_TOKEN_TYPES.DELEGATE);
+                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);

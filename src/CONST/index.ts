@@ -385,8 +385,6 @@ const CONST = {
 
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
-        // Matches AuthTokenManager::TYPE_DELEGATE / AuthToken::TYPE_DELEGATE
-        DELEGATE: 'delegate',
         SUPPORT: 'support',
     },
 
