@@ -4,12 +4,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {requestValidateCodeAction} from '@libs/actions/User';
-import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {addDelegate, clearDelegateErrorsByField} from '@userActions/Delegate';
+import {clearDelegateErrorsByField, updateDelegateRole} from '@userActions/Delegate';
 
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,47 +20,45 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
 
-type ConfirmDelegateMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE>;
+type UpdateDelegateValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE>;
 
-function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps) {
+function UpdateDelegateValidateCodePage({route}: UpdateDelegateValidateCodePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
-    const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
+    const newRole = route.params.newRole as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
-    const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
-    const validateLoginError = getLatestError(addDelegateErrors);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-
+    const updateDelegateErrors = account?.delegatedAccess?.errorFields?.updateDelegateRole?.[login];
     useEffect(() => {
-        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!addDelegateErrors) {
+        if (currentDelegate?.role !== newRole || !!currentDelegate.pendingFields?.role || !!updateDelegateErrors) {
             return;
         }
 
         // Dismiss modal on successful magic code verification
         Navigation.goBack(ROUTES.SETTINGS_COPILOT);
-    }, [login, currentDelegate, role, addDelegateErrors]);
+    }, [login, currentDelegate?.role, currentDelegate?.pendingFields?.role, updateDelegateErrors, newRole]);
 
     const clearError = () => {
-        if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
+        if (isEmptyObject(updateDelegateErrors) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
-        clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess});
+        clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'updateDelegateRole', delegatedAccess: account?.delegatedAccess});
     };
 
     return (
         <ValidateCodeActionContent
             clearError={clearError}
-            validateCodeActionErrorField="addDelegate"
-            onClose={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role))}
-            validateError={validateLoginError}
+            validateCodeActionErrorField="updateDelegateRole"
+            onClose={() => Navigation.goBack(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(login, currentDelegate?.role ?? ''))}
+            validateError={updateDelegateErrors}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            handleSubmitForm={(validateCode) => addDelegate({email: login, role, validateCode, delegatedAccess: account?.delegatedAccess})}
+            handleSubmitForm={(validateCode) => updateDelegateRole({email: login, role: newRole, validateCode, delegatedAccess: account?.delegatedAccess})}
             descriptionPrimary={translate('delegate.enterMagicCode', account?.primaryLogin ?? session?.email ?? '')}
         />
     );
 }
 
-export default ConfirmDelegateMagicCodePage;
+export default UpdateDelegateValidateCodePage;

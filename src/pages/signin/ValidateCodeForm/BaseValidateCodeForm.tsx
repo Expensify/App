@@ -2,14 +2,14 @@ import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import MagicCodeInput from '@components/MagicCodeInput';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
+import type {ValidateCodeInputHandle} from '@components/ValidateCodeInput';
+import ValidateCodeInput from '@components/ValidateCodeInput';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 
@@ -80,8 +80,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
 
-    const inputValidateCodeRef = useRef<MagicCodeInputHandle | undefined>(undefined);
-    const input2FARef = useRef<MagicCodeInputHandle | undefined>(undefined);
+    const inputValidateCodeRef = useRef<ValidateCodeInputHandle | undefined>(undefined);
+    const input2FARef = useRef<ValidateCodeInputHandle | undefined>(undefined);
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
 
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
@@ -337,7 +337,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             autoFocus
                         />
                     ) : (
-                        <MagicCodeInput
+                        <ValidateCodeInput
                             autoComplete={autoComplete}
                             ref={(magicCodeInput) => {
                                 if (!magicCodeInput) {
@@ -372,7 +372,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 </View>
             ) : (
                 <View style={[styles.mv3]}>
-                    <MagicCodeInput
+                    <ValidateCodeInput
                         autoComplete={autoComplete}
                         ref={(magicCodeInput) => {
                             if (!magicCodeInput) {

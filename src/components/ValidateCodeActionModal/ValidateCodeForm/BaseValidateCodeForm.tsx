@@ -1,12 +1,12 @@
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import MagicCodeInput from '@components/MagicCodeInput';
-import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+import type {AutoCompleteVariant, ValidateCodeInputHandle} from '@components/ValidateCodeInput';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useLocalize from '@hooks/useLocalize';
@@ -131,7 +131,7 @@ function BaseValidateCodeForm({
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
 
-    const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
+    const inputValidateCodeRef = useRef<ValidateCodeInputHandle>(null);
     const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
@@ -339,7 +339,7 @@ function BaseValidateCodeForm({
     const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
     return (
         <>
-            <MagicCodeInput
+            <ValidateCodeInput
                 autoComplete={autoComplete}
                 ref={inputValidateCodeRef}
                 name="validateCode"

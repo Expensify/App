@@ -21,9 +21,9 @@ import React, {useEffect} from 'react';
 
 import getDecodedContactMethodFromUriParam from './utils';
 
-type SetDefaultContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM>;
+type SetDefaultContactMethodConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM>;
 
-function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactMethodConfirmMagicCodePageProps) {
+function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultContactMethodConfirmValidateCodePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const backTo = route.params?.backTo;
     const contactMethod = getDecodedContactMethodFromUriParam(route.params.contactMethod);
@@ -54,7 +54,7 @@ function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactM
 
     if (!contactMethod || !loginData) {
         return (
-            <ScreenWrapper testID="SetDefaultContactMethodConfirmMagicCodePage">
+            <ScreenWrapper testID="SetDefaultContactMethodConfirmValidateCodePage">
                 <FullPageNotFoundView
                     shouldShow
                     linkTranslationKey="contacts.goBackContactMethods"
@@ -84,4 +84,4 @@ function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactM
     );
 }
 
-export default SetDefaultContactMethodConfirmMagicCodePage;
+export default SetDefaultContactMethodConfirmValidateCodePage;

@@ -20,7 +20,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef} from 'react';
 
-function PrivatePersonalDetailsConfirmMagicCodePage() {
+function PrivatePersonalDetailsConfirmValidateCodePage() {
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
@@ -84,6 +84,6 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
     );
 }
 
-PrivatePersonalDetailsConfirmMagicCodePage.displayName = 'PrivatePersonalDetailsConfirmMagicCodePage';
+PrivatePersonalDetailsConfirmValidateCodePage.displayName = 'PrivatePersonalDetailsConfirmValidateCodePage';
 
-export default PrivatePersonalDetailsConfirmMagicCodePage;
+export default PrivatePersonalDetailsConfirmValidateCodePage;

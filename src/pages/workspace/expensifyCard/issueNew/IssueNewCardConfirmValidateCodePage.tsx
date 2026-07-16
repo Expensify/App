@@ -25,9 +25,9 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useCallback, useEffect} from 'react';
 
-type IssueNewCardConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE>;
+type IssueNewCardConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE>;
 
-function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodePageProps) {
+function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidateCodePageProps) {
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -94,4 +94,4 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     );
 }
 
-export default IssueNewCardConfirmMagicCodePage;
+export default IssueNewCardConfirmValidateCodePage;

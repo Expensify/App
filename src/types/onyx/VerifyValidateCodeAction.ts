@@ -1,7 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of action to receive magic code */
-type ValidateMagicCodeAction = OnyxCommon.OnyxValueWithOfflineFeedback<
+type VerifyValidateCodeAction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Epoch-ms timestamp of when the magic code was last requested for any validateCode flow */
         lastValidateCodeRequestedAt?: number;
@@ -15,4 +15,4 @@ type ValidateMagicCodeAction = OnyxCommon.OnyxValueWithOfflineFeedback<
     'actionVerified'
 >;
 
-export default ValidateMagicCodeAction;
+export default VerifyValidateCodeAction;

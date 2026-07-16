@@ -16,9 +16,9 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
 
-type NewContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE>;
+type NewContactMethodConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE>;
 
-function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMagicCodePageProps) {
+function NewContactMethodConfirmValidateCodePage({route}: NewContactMethodConfirmValidateCodePageProps) {
     const {translate} = useLocalize();
     const navigateBackTo = route?.params?.backTo;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -53,4 +53,4 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
     );
 }
 
-export default NewContactMethodConfirmMagicCodePage;
+export default NewContactMethodConfirmValidateCodePage;

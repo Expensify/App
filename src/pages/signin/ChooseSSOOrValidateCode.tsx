@@ -25,12 +25,12 @@ import {Keyboard, View} from 'react-native';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
-type ChooseSSOOrMagicCodeProps = {
+type ChooseSSOOrValidateCodeProps = {
     /** Function that returns whether the user is using SAML or magic codes to log in */
     setIsUsingMagicCode: (value: boolean) => void;
 };
 
-function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) {
+function ChooseSSOOrValidateCode({setIsUsingMagicCode}: ChooseSSOOrValidateCodeProps) {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
@@ -92,4 +92,4 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
     );
 }
 
-export default ChooseSSOOrMagicCode;
+export default ChooseSSOOrValidateCode;

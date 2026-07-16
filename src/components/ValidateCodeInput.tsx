@@ -66,7 +66,7 @@ const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, o
 
 type AutoCompleteVariant = ValueOf<typeof CONST.AUTO_COMPLETE_VARIANTS>;
 
-type MagicCodeInputProps = {
+type ValidateCodeInputProps = {
     /** Name attribute for the input */
     name?: string;
 
@@ -113,13 +113,13 @@ type MagicCodeInputProps = {
     accessibilityLabel?: string;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<MagicCodeInputHandle>;
+    ref?: ForwardedRef<ValidateCodeInputHandle>;
 
     /** Whether to mask the input characters (display as dots) */
     secureTextEntry?: boolean;
 };
 
-type MagicCodeInputHandle = {
+type ValidateCodeInputHandle = {
     focus: () => void;
     focusLastSelected: () => void;
     resetFocus: () => void;
@@ -150,7 +150,7 @@ const composeToString = (value: string[]): string => value.map((v) => v ?? CONST
 
 const getInputPlaceholderSlots = (length: number): number[] => Array.from(Array(length).keys());
 
-function MagicCodeInput({
+function ValidateCodeInput({
     value = '',
     name = '',
     autoFocus = true,
@@ -168,7 +168,7 @@ function MagicCodeInput({
     accessibilityLabel,
     ref,
     secureTextEntry = false,
-}: MagicCodeInputProps) {
+}: ValidateCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -570,5 +570,5 @@ function MagicCodeInput({
 
 // OXC's React Compiler bails on this file (refs accessed during render in the gesture handler), so
 // it is not memoized on web. Memoize it explicitly to keep parent-driven re-renders cheap there.
-export default React.memo(MagicCodeInput);
-export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};
+export default React.memo(ValidateCodeInput);
+export type {AutoCompleteVariant, ValidateCodeInputHandle, ValidateCodeInputProps};

@@ -1,9 +1,9 @@
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
-import MagicCodeInput from '@components/MagicCodeInput';
-import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+import type {ValidateCodeInputHandle} from '@components/ValidateCodeInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -53,7 +53,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
     const inactiveCard = cardList?.[cardID];
     const cardError = getLatestErrorMessage(inactiveCard ?? {});
 
-    const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
+    const activateCardCodeInputRef = useRef<ValidateCodeInputHandle>(null);
 
     /**
      * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, return to the card details screen.
@@ -123,7 +123,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5, styles.mt5]}>
-                <MagicCodeInput
+                <ValidateCodeInput
                     autoComplete="off"
                     maxLength={LAST_FOUR_DIGITS_LENGTH}
                     name="activateCardCode"

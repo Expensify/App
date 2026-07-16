@@ -39,13 +39,13 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {getSubPageValues} from './utils';
 
-type MissingPersonalDetailsMagicCodePageProps = PlatformStackScreenProps<MissingPersonalDetailsParamList, typeof SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE>;
+type MissingPersonalDetailsValidateCodePageProps = PlatformStackScreenProps<MissingPersonalDetailsParamList, typeof SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE>;
 
-function MissingPersonalDetailsMagicCodePage({
+function MissingPersonalDetailsValidateCodePage({
     route: {
         params: {cardID = ''},
     },
-}: MissingPersonalDetailsMagicCodePageProps) {
+}: MissingPersonalDetailsValidateCodePageProps) {
     const {translate} = useLocalize();
     const basePath = useDynamicBackPath(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.path);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -121,4 +121,4 @@ function MissingPersonalDetailsMagicCodePage({
     );
 }
 
-export default MissingPersonalDetailsMagicCodePage;
+export default MissingPersonalDetailsValidateCodePage;

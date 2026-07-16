@@ -37,7 +37,7 @@ import type {InputHandle} from './LoginForm/types';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
-import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
+import ChooseSSOOrValidateCode from './ChooseSSOOrValidateCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
 import {LoginProvider} from './SignInLoginContext';
@@ -342,7 +342,7 @@ function SignInPage({ref}: SignInPageProps) {
                     {!shouldShowAnotherLoginPageOpenedMessage && (
                         <>
                             {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                            {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                            {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrValidateCode setIsUsingMagicCode={setIsUsingMagicCode} />}
                             {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
                             {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
                         </>

@@ -2,8 +2,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MagicCodeInput from '@components/MagicCodeInput';
-import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
@@ -11,6 +9,8 @@ import MultifactorAuthenticationValidateCodeResendButton from '@components/Multi
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+import type {ValidateCodeInputHandle} from '@components/ValidateCodeInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -59,7 +59,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const {continuableError, isCancelConfirmVisible} = useMultifactorAuthenticationState();
 
     // Refs
-    const inputRef = useRef<MagicCodeInputHandle>(null);
+    const inputRef = useRef<ValidateCodeInputHandle>(null);
     const resendButtonRef = useRef<MultifactorAuthenticationValidateCodeResendButtonHandle>(null);
     const hasClearedInitialErrorsRef = useRef(false);
 
@@ -226,7 +226,7 @@ function MultifactorAuthenticationValidateCodePage() {
             <FullPageOfflineBlockingView>
                 <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterMagicCode', contactMethod)}</Text>
                 <View style={[styles.mh5]}>
-                    <MagicCodeInput
+                    <ValidateCodeInput
                         autoComplete="one-time-code"
                         name="multifactorAuthenticationValidateCode"
                         value={inputCode}

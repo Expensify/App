@@ -235,9 +235,9 @@
 "../../src/components/LocationPermissionModal/index.android.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/LocationPermissionModal/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/MagicCodeInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/MagicCodeInput.tsx"	"react-hooks/refs"	1
-"../../src/components/MagicCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
+"../../src/components/ValidateCodeInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/components/ValidateCodeInput.tsx"	"react-hooks/refs"	1
+"../../src/components/ValidateCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/components/MapView/GPSMapView.tsx"	"no-restricted-imports"	1
 "../../src/components/MapView/MapView.tsx"	"no-restricted-imports"	1
 "../../src/components/MapView/MapView.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1110,7 +1110,7 @@
 "../../src/pages/ErrorPage/GenericErrorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ErrorPage/UpdateRequiredView.tsx"	"no-restricted-imports"	1
 "../../src/pages/MissingPersonalDetails/MissingPersonalDetailsContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/MissingPersonalDetails/MissingPersonalDetailsMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/MissingPersonalDetails/MissingPersonalDetailsValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"react-hooks/refs"	4
 "../../src/pages/MissingPersonalDetails/subPages/PIN.tsx"	"no-restricted-imports"	1
@@ -1417,7 +1417,7 @@
 "../../src/pages/settings/Profile/CustomStatus/StatusPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/PersonalDetails/PersonalAddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/pages/settings/Profile/PersonalDetails/StateSelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Profile/ProfilePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1429,10 +1429,10 @@
 "../../src/pages/settings/Report/ReportDetailsColumnsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Security/AddDelegate/ConfirmDelegateMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/settings/Security/AddDelegate/ConfirmDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/ConfirmDelegatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/ConfirmDelegatePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/DeviceManagementPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/LockAccount/LockAccountPageBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/TwoFactorAuth/DisablePage.tsx"	"no-restricted-imports"	1
@@ -1495,7 +1495,7 @@
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/signin/ChooseSSOOrMagicCode.tsx"	"no-restricted-imports"	1
+"../../src/pages/signin/ChooseSSOOrValidateCode.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/SAMLSignInPage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"no-restricted-imports"	1
@@ -1789,7 +1789,7 @@
 "../../src/types/onyx/UserWallet.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/VacationDelegate.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/ValidateDomainTwoFactorCode.ts"	"no-restricted-syntax"	1
-"../../src/types/onyx/ValidateMagicCodeAction.ts"	"no-restricted-syntax"	1
+"../../src/types/onyx/VerifyValidateCodeAction.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/WalletAdditionalDetails.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/WalletOnfido.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/WalletTerms.ts"	"no-restricted-syntax"	1
