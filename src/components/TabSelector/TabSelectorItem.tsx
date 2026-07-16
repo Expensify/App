@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useState} from 'react';
+import {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 
