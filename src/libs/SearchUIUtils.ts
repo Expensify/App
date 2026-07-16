@@ -521,7 +521,7 @@ type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${strin
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
 
-type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>;
+type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS> | `${typeof CONST.SEARCH.SAVED_SEARCH_PREFIX}${string}`;
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
