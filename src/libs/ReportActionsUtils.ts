@@ -4629,13 +4629,13 @@ function getTravelNudgeMessage(translate: LocalizedTranslate, reportAction: Repo
     }
     const isCardCreated = originalMessage.origination === 'card';
     switch (originalMessage.travelType) {
-        case 'airfare':
+        case CONST.RESERVATION_TYPE.FLIGHT:
             return translate(isCardCreated ? 'travel.nudge.airfareCard' : 'travel.nudge.airfareManual');
-        case 'hotel':
+        case CONST.RESERVATION_TYPE.HOTEL:
             return translate(isCardCreated ? 'travel.nudge.hotelCard' : 'travel.nudge.hotelManual');
-        case 'carRental':
+        case CONST.RESERVATION_TYPE.CAR:
             return translate(isCardCreated ? 'travel.nudge.carCard' : 'travel.nudge.carManual');
-        case 'rail':
+        case CONST.RESERVATION_TYPE.TRAIN:
             return translate(isCardCreated ? 'travel.nudge.railCard' : 'travel.nudge.railManual');
         default:
             return '';

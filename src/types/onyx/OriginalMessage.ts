@@ -1651,7 +1651,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
  */
 type OriginalMessageTravelNudge = {
     /** The kind of bookable travel the expense was classified as */
-    travelType: 'airfare' | 'hotel' | 'carRental' | 'rail';
+    travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
 
     /** Whether the expense was created from a card import or manually */
     origination: 'manual' | 'card';
