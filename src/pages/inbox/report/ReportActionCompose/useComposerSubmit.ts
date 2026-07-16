@@ -12,6 +12,7 @@ import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Tas
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {getAllReportActions, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
@@ -160,6 +161,8 @@ function useComposerSubmit(reportID: string) {
         const optimisticReportActionID = rand64();
         const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         if (isScrolledToBottom) {
+            const reportActions = Object.values(getAllReportActions(reportID));
+            const moneyRequestPreviewCount = reportActions.filter(isReportPreviewAction).length;
             startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
                 name: 'send-message',
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
@@ -167,6 +170,8 @@ function useComposerSubmit(reportID: string) {
                     [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                     [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
                     [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
+                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActions.length,
+                    [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
                 },
             });
         }

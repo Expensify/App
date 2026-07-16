@@ -2219,6 +2219,8 @@ const CONST = {
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
         ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
+        ATTRIBUTE_REPORT_ACTION_COUNT: 'report_action_count',
+        ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT: 'money_request_preview_count',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
