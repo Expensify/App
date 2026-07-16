@@ -41,8 +41,9 @@ const HTML_SYSTEM_FONTS = Object.values(FontUtils.fontFamily.single).map((font) 
  * Extra keys beyond sans-serif/serif/monospace are supported at runtime by the library
  * even though the published TS type is narrower.
  */
+const CSS_SANS_SERIF = 'sans-serif';
 const HTML_FALLBACK_FONTS = {
-    'sans-serif': FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+    [CSS_SANS_SERIF]: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
     serif: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM.fontFamily,
     monospace: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
     [FontUtils.fontFamily.single.EXP_NEUE.fontFamily]: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
