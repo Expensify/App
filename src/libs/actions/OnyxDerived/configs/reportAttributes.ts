@@ -35,6 +35,52 @@ let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
 
+// Which chat each child report belongs to, and the reverse. Kept in sync incrementally so
+// error propagation doesn't have to walk every report on each compute.
+const childToChat = new Map<string, string>();
+const childrenByChat = new Map<string, Set<string>>();
+
+const rebuildChildChatIndex = (reports: OnyxCollection<Report>) => {
+    childToChat.clear();
+    childrenByChat.clear();
+    for (const report of Object.values(reports ?? {})) {
+        if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
+            continue;
+        }
+        childToChat.set(report.reportID, report.chatReportID);
+        const children = childrenByChat.get(report.chatReportID) ?? new Set<string>();
+        children.add(report.reportID);
+        childrenByChat.set(report.chatReportID, children);
+    }
+};
+
+// Points a child at its (possibly new) chat. Returns the chats whose child list changed —
+// a chat a child left may need its propagated error cleared, so callers must re-enqueue them.
+const updateChildChatIndex = (childReportID: string, chatReportID: string | undefined): string[] => {
+    const previousChatReportID = childToChat.get(childReportID);
+    if (previousChatReportID === chatReportID) {
+        return [];
+    }
+    const affectedChatIDs: string[] = [];
+    if (previousChatReportID) {
+        childToChat.delete(childReportID);
+        const previousChildren = childrenByChat.get(previousChatReportID);
+        previousChildren?.delete(childReportID);
+        if (previousChildren?.size === 0) {
+            childrenByChat.delete(previousChatReportID);
+        }
+        affectedChatIDs.push(previousChatReportID);
+    }
+    if (chatReportID) {
+        childToChat.set(childReportID, chatReportID);
+        const children = childrenByChat.get(chatReportID) ?? new Set<string>();
+        children.add(childReportID);
+        childrenByChat.set(chatReportID, children);
+        affectedChatIDs.push(chatReportID);
+    }
+    return affectedChatIDs;
+};
+
 const RECOMPUTE_ALL = 'all' as const;
 
 const prepareReportKeys = (keys: string[]) => {
@@ -157,7 +203,12 @@ const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): bo
 
 // Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
 // (oldest by preview-action creation time), or undefined when none match.
-const getOldestPreviewActionID = (chatReportID: string, reportIDs: string[] | undefined, reports: OnyxCollection<Report>, predicate?: (childReport: OnyxEntry<Report>) => boolean) => {
+const getOldestPreviewActionID = (
+    chatReportID: string,
+    reportIDs: Iterable<string> | undefined,
+    reports: OnyxCollection<Report>,
+    predicate?: (childReport: OnyxEntry<Report>) => boolean,
+) => {
     let oldestCreated: string | undefined;
     let targetReportActionID: string | undefined;
     for (const childReportID of reportIDs ?? []) {
@@ -310,6 +361,23 @@ export default createOnyxDerivedValueConfig({
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
 
+        // Keep the chat → children index in sync. A child that was deleted or moved to another chat
+        // changes the error state of the chat it left, which nothing else re-enqueues — collect those
+        // chats so they are recomputed (and their stale propagated error cleared) in this pass.
+        const indexAffectedChatKeys: string[] = [];
+        if (useIncrementalUpdates) {
+            for (const reportKey of Object.keys(reportUpdates)) {
+                const report = reports[reportKey];
+                const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                const chatReportID = report?.chatReportID && report.chatReportID !== report.reportID ? report.chatReportID : undefined;
+                for (const affectedChatID of updateChildChatIndex(reportID, chatReportID)) {
+                    indexAffectedChatKeys.push(`${ONYXKEYS.COLLECTION.REPORT}${affectedChatID}`);
+                }
+            }
+        } else {
+            rebuildChildChatIndex(reports);
+        }
+
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
@@ -347,6 +415,7 @@ export default createOnyxDerivedValueConfig({
             ...Array.from(reportUpdatesRelatedToReportActions),
             ...policyChangedReportKeys,
             ...personalDetailsChangedReportKeys,
+            ...indexAffectedChatKeys,
         ];
 
         if (useIncrementalUpdates) {
@@ -355,18 +424,6 @@ export default createOnyxDerivedValueConfig({
                 dataToIterate = [];
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
-
-                    // When an IOU report changes, we need to re-evaluate its parent chat report as well.
-                    const parentChatReportIDsToUpdate = new Set<string>();
-                    for (const reportKey of dataToIterate) {
-                        const report = reports[reportKey];
-                        if (report?.chatReportID && report.reportID !== report.chatReportID) {
-                            parentChatReportIDsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
-                        }
-                    }
-                    if (parentChatReportIDsToUpdate.size > 0) {
-                        dataToIterate.push(...Array.from(parentChatReportIDsToUpdate));
-                    }
                 }
                 if (!!transactionsUpdates || !!transactionViolationsUpdates) {
                     let transactionReportIDs: string[] = [];
@@ -405,15 +462,7 @@ export default createOnyxDerivedValueConfig({
                         transactionReportIDs = [...transactionReportIDs, ...violationReportIDs, ...chatReportIDs];
                     }
 
-                    // A transaction change (e.g. a card expense going from pending to posted) can flip whether its
-                    // expense report requires attention, but the to-do/GBR render on the parent workspace chat.
-                    // Enqueue those parent chats too so their attributes don't stay stale after the transaction updates.
-                    const transactionParentChatReportIDs = transactionReportIDs
-                        .map((reportKey) => reports?.[reportKey]?.chatReportID)
-                        .filter(Boolean)
-                        .map((chatReportID) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-
-                    dataToIterate.push(...prepareReportKeys([...transactionReportIDs, ...transactionParentChatReportIDs]));
+                    dataToIterate.push(...prepareReportKeys(transactionReportIDs));
                 }
                 if (policyTagsUpdates) {
                     const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
@@ -421,6 +470,20 @@ export default createOnyxDerivedValueConfig({
                         .filter((report) => !!report?.policyID && changedPolicyIDs.has(report.policyID))
                         .map((report) => `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`);
                     dataToIterate.push(...prepareReportKeys(affectedReportKeys));
+                }
+
+                // Whatever caused a child report to be recomputed can also change whether its parent chat
+                // shows the error indicator — always recompute the parent chat in the same pass. The scoped
+                // error propagation below relies on this: it only re-checks chats present in dataToIterate.
+                const parentChatReportIDsToUpdate = new Set<string>();
+                for (const reportKey of dataToIterate) {
+                    const report = reports[reportKey];
+                    if (report?.chatReportID && report.reportID !== report.chatReportID) {
+                        parentChatReportIDsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
+                    }
+                }
+                if (parentChatReportIDsToUpdate.size > 0) {
+                    dataToIterate.push(...Array.from(parentChatReportIDsToUpdate));
                 }
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
@@ -547,45 +610,39 @@ export default createOnyxDerivedValueConfig({
             currentValue?.reports ? {...currentValue.reports} : {},
         );
 
-        // Propagate errors from IOU reports to their parent chat reports.
+        // Propagate errors from IOU reports to their parent chat reports — but only for chats
+        // recomputed in this pass. Every path that enqueues a child report also enqueues its parent
+        // chat (see parentChatReportIDsToUpdate and indexAffectedChatKeys above), so any chat whose
+        // aggregate error state could have changed is in dataToIterate, freshly recomputed and
+        // unstamped — a chat with no remaining errored children needs no explicit clearing.
         const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const currentUserEmail = session?.email ?? '';
-        const erroredChildReportIDsByChat = new Map<string, string[]>();
-        const childReportIDsByChat = new Map<string, string[]>();
-        for (const report of Object.values(reports)) {
-            if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
+        for (const key of new Set(dataToIterate)) {
+            const chatReportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+            const childReportIDs = childrenByChat.get(chatReportID);
+            const chatAttributes = reportAttributes[chatReportID];
+            if (!childReportIDs || !chatAttributes) {
                 continue;
             }
 
-            const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
-            childReportIDs.push(report.reportID);
-            childReportIDsByChat.set(report.chatReportID, childReportIDs);
-
-            // If this is an IOU report and its calculated attributes have an error,
-            // then we need to mark its parent chat report.
             // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
             // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
             // we still need to propagate the error up so the parent shows the indicator.
-            const attributes = reportAttributes[report.reportID];
-            if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
-                erroredChildReportIDs.push(report.reportID);
-                erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
+            const erroredChildReportIDs: string[] = [];
+            for (const childReportID of childReportIDs) {
+                const attributes = reportAttributes[childReportID];
+                if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                    erroredChildReportIDs.push(childReportID);
+                }
             }
-        }
-
-        // Apply the error status to the parent chat reports.
-        for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
-            if (!reportAttributes[chatReportID]) {
+            if (erroredChildReportIDs.length === 0) {
                 continue;
             }
 
-            const chatAttributes = reportAttributes[chatReportID];
             let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
-
             actionTargetReportActionID =
                 getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
+                getOldestPreviewActionID(chatReportID, childReportIDs, reports, (childReport) =>
                     needsViolationFix(childReport, policies, transactionViolations, currentUserAccountID, currentUserEmail),
                 ) ??
                 getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??

@@ -1,5 +1,4 @@
-import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
-import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
+import reportAttributesModuleDefault, {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,12 +25,20 @@ jest.mock('@libs/ReportUtils', () => ({
     isArchivedReport: jest.fn(() => false),
     isValidReport: jest.fn(() => true),
     parseReportRouteParams: jest.fn(() => ({reportID: ''})),
+    isOpenReport: jest.fn(() => true),
+    isProcessingReport: jest.fn(() => false),
+    isPolicyExpenseChat: jest.fn(() => false),
+    isPolicyAdmin: jest.fn(() => false),
+    hasViolations: jest.fn(() => false),
 }));
+
+// Report IDs the mocked getReasonAndReportActionThatHasRedBrickRoad treats as errored.
+const mockErroredReportIDs = new Set<string>();
 
 jest.mock('@libs/SidebarUtils', () => ({
     __esModule: true,
     default: {
-        getReasonAndReportActionThatHasRedBrickRoad: jest.fn(() => undefined),
+        getReasonAndReportActionThatHasRedBrickRoad: jest.fn((report: Report) => (mockErroredReportIDs.has(report.reportID) ? {reason: 'hasErrors', reportAction: undefined} : undefined)),
     },
 }));
 
@@ -369,5 +376,128 @@ describe('reportAttributes compute — policy change code flow', () => {
         // so both pick up the recomputed name instead of keeping their stale seeded value.
         expect(result?.reports.expense1?.reportName).toBe('Test Report');
         expect(result?.reports.chat1?.reportName).toBe('Test Report');
+    });
+});
+
+describe('reportAttributes compute — error propagation to parent chats', () => {
+    // Static import instead of the re-require pattern above: every test here starts with a full
+    // compute (seedFullCompute), which rebuilds all of the config's module-level state anyway.
+    const config = reportAttributesModuleDefault;
+
+    const chatA: Report = {...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chatA', policyID: 'policy1', chatReportID: undefined};
+    const chatB: Report = {...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chatB', policyID: 'policy1', chatReportID: undefined};
+    const childA1: Report = {...createRandomReport(3, undefined), reportID: 'childA1', policyID: 'policy1', chatReportID: 'chatA'};
+    const childA2: Report = {...createRandomReport(4, undefined), reportID: 'childA2', policyID: 'policy1', chatReportID: 'chatA'};
+    const childB1: Report = {...createRandomReport(5, undefined), reportID: 'childB1', policyID: 'policy1', chatReportID: 'chatB'};
+
+    const baseReports: OnyxCollection<Report> = {
+        [`${ONYXKEYS.COLLECTION.REPORT}chatA`]: chatA,
+        [`${ONYXKEYS.COLLECTION.REPORT}chatB`]: chatB,
+        [`${ONYXKEYS.COLLECTION.REPORT}childA1`]: childA1,
+        [`${ONYXKEYS.COLLECTION.REPORT}childA2`]: childA2,
+        [`${ONYXKEYS.COLLECTION.REPORT}childB1`]: childB1,
+    };
+
+    beforeEach(() => {
+        mockErroredReportIDs.clear();
+    });
+
+    const buildArgs = (reportsArg: OnyxCollection<Report>): Parameters<ReportAttributesConfig['compute']>[0] => [
+        reportsArg,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+    ];
+
+    // A full compute (no currentValue) — seeds the module-level chat → children index too.
+    const seedFullCompute = (reportsArg: OnyxCollection<Report>) => config.compute(buildArgs(reportsArg), {currentValue: undefined, sourceValues: undefined});
+
+    const computeReportDelta = (reportsArg: OnyxCollection<Report>, currentValue: ReportAttributesDerivedValue, delta: OnyxCollection<Report>) =>
+        config.compute(buildArgs(reportsArg), {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: delta},
+        });
+
+    it('flags the parent chat when a child report has errors', () => {
+        mockErroredReportIDs.add('childA1');
+
+        const result = seedFullCompute(baseReports);
+
+        expect(result?.reports.chatA?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        expect(result?.reports.chatA?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.FIX);
+        expect(result?.reports.chatB?.brickRoadStatus).toBeUndefined();
+    });
+
+    it('keeps the parent flagged when one child clears but a sibling is still errored', () => {
+        mockErroredReportIDs.add('childA1');
+        mockErroredReportIDs.add('childA2');
+        const seeded = seedFullCompute(baseReports);
+        expect(seeded?.reports.chatA?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+        mockErroredReportIDs.delete('childA1');
+        const result = computeReportDelta(baseReports, seeded, {[`${ONYXKEYS.COLLECTION.REPORT}childA1`]: childA1});
+
+        expect(result?.reports.childA1?.brickRoadStatus).toBeUndefined();
+        expect(result?.reports.chatA?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('unflags the parent when the last errored child clears', () => {
+        mockErroredReportIDs.add('childA1');
+        const seeded = seedFullCompute(baseReports);
+        expect(seeded?.reports.chatA?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+        mockErroredReportIDs.delete('childA1');
+        const result = computeReportDelta(baseReports, seeded, {[`${ONYXKEYS.COLLECTION.REPORT}childA1`]: childA1});
+
+        expect(result?.reports.chatA?.brickRoadStatus).toBeUndefined();
+        expect(result?.reports.chatA?.actionBadge).toBeUndefined();
+    });
+
+    it('moves the flag when an errored child moves to another chat', () => {
+        mockErroredReportIDs.add('childA1');
+        const seeded = seedFullCompute(baseReports);
+        expect(seeded?.reports.chatA?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        expect(seeded?.reports.chatB?.brickRoadStatus).toBeUndefined();
+
+        const movedChild: Report = {...childA1, chatReportID: 'chatB'};
+        const movedReports: OnyxCollection<Report> = {...baseReports, [`${ONYXKEYS.COLLECTION.REPORT}childA1`]: movedChild};
+        const result = computeReportDelta(movedReports, seeded, {[`${ONYXKEYS.COLLECTION.REPORT}childA1`]: movedChild});
+
+        expect(result?.reports.chatA?.brickRoadStatus).toBeUndefined();
+        expect(result?.reports.chatB?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('unflags the parent when its only errored child is deleted', () => {
+        mockErroredReportIDs.add('childA1');
+        const seeded = seedFullCompute(baseReports);
+        expect(seeded?.reports.chatA?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+        const {[`${ONYXKEYS.COLLECTION.REPORT}childA1`]: deletedChild, ...remainingReports} = baseReports;
+        const result = computeReportDelta(remainingReports, seeded, {[`${ONYXKEYS.COLLECTION.REPORT}childA1`]: undefined});
+
+        expect(result?.reports.childA1).toBeUndefined();
+        expect(result?.reports.chatA?.brickRoadStatus).toBeUndefined();
+    });
+
+    it('does not touch unrelated errored chats on a single-report update', () => {
+        mockErroredReportIDs.add('childB1');
+        const seeded = seedFullCompute(baseReports);
+        const chatBBefore = seeded?.reports.chatB;
+        expect(chatBBefore?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+        const result = computeReportDelta(baseReports, seeded, {[`${ONYXKEYS.COLLECTION.REPORT}childA1`]: childA1});
+
+        // chatB was not part of the update — its entry must be carried over by reference, not restamped.
+        expect(result?.reports.chatB).toBe(chatBBefore);
     });
 });
