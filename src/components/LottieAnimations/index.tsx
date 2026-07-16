@@ -112,6 +112,11 @@ const DotLottieAnimations = {
         w: 440,
         h: 240,
     },
+    ConciergeThinkingScanGradient: {
+        file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingScanGradient.lottie'),
+        w: 550,
+        h: 550,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;

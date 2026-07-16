@@ -31,6 +31,8 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
+import ConciergeAnimatedAvatar from './ConciergeAnimatedAvatar';
+
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */
     reportID: string;
@@ -158,18 +160,24 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                 onMouseLeave={() => setIsHovered(false)}
             >
                 <OfflineWithFeedback pendingAction={personalDetails?.[accountID]?.pendingFields?.avatar ?? undefined}>
-                    <ReportActionAvatars
-                        singleAvatarContainerStyle={[styles.actionAvatar]}
-                        subscriptAvatarBorderColor={theme.appBG}
-                        noRightMarginOnSubscriptContainer
-                        isInReportAction
-                        shouldShowTooltip
-                        secondaryAvatarContainerStyle={[
-                            StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
-                            isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
-                        ]}
-                        accountIDs={[accountID]}
-                    />
+                    {accountID === CONST.ACCOUNT_ID.CONCIERGE ? (
+                        <View style={[styles.actionAvatar]}>
+                            <ConciergeAnimatedAvatar />
+                        </View>
+                    ) : (
+                        <ReportActionAvatars
+                            singleAvatarContainerStyle={[styles.actionAvatar]}
+                            subscriptAvatarBorderColor={theme.appBG}
+                            noRightMarginOnSubscriptContainer
+                            isInReportAction
+                            shouldShowTooltip
+                            secondaryAvatarContainerStyle={[
+                                StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
+                                isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
+                            ]}
+                            accountIDs={[accountID]}
+                        />
+                    )}
                 </OfflineWithFeedback>
             </View>
 
