@@ -115,6 +115,24 @@ Each card shows one of the following statuses:
 
 ---
 
+## How to view the transactions in your Expensify Card current balance
+
+The **Current balance** on the workspace **Expensify Card** page is the sum of all posted Expensify Card transactions that have occurred since the last settlement date. To see which transactions make up that balance:
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Under the **Current balance** amount, click **View transactions**.
+3. Review the filtered list of Expensify Card expenses that count toward your current balance.
+
+The **View transactions** link appears only under **Current balance**, not under **Remaining limit** or **Cash back**.
+
+<!-- SCREENSHOT:
+Suggestion: The workspace Expensify Card page with the View transactions link highlighted under the Current balance amount
+Location: After the steps in "How to view the transactions in your Expensify Card current balance"
+Purpose: Show admins exactly where the View transactions link appears
+-->
+
+---
+
 ## How to apply Expensify Card cash back to your Expensify bill
 
 Workspace Admins with a US Expensify Card program can choose whether their Expensify Card cash back is applied toward their Expensify bill or sent to their settlement account. This setting is enabled by default.
