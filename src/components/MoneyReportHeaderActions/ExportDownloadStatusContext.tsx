@@ -24,7 +24,7 @@ type ExportDownloadStatusProviderProps = {
  */
 function ExportDownloadStatusProvider({children}: ExportDownloadStatusProviderProps) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(undefined, true));
+    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(true));
 
     return (
         <ExportDownloadStatusContext.Provider value={{trackExport}}>

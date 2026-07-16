@@ -5,6 +5,7 @@ import useExportActions from '@hooks/useExportActions';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
+const mockTrackExport = jest.fn();
 
 const REPORT_ID = 'report1';
 const POLICY_ID = 'policy1';
@@ -22,12 +23,12 @@ jest.mock('@libs/actions/Report', () => ({
     markAsManuallyExported: jest.fn(),
 }));
 
-jest.mock('@libs/actions/Export', () => ({
-    clearExportDownload: jest.fn(),
-}));
-
 jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
+}));
+
+jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusContext', () => ({
+    useExportDownloadStatus: () => ({trackExport: mockTrackExport}),
 }));
 
 let mockIsOffline = false;
@@ -71,11 +72,6 @@ jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({
     default: () => ({transactions: {}}),
 }));
 
-const mockClearSelectedTransactions = jest.fn();
-jest.mock('@components/Search/SearchContext', () => ({
-    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
-}));
-
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({login: 'test@example.com', accountID: 1}),
@@ -117,6 +113,7 @@ describe('useExportActions - template export status modal', () => {
             },
             true,
         );
+        expect(mockTrackExport).toHaveBeenCalledWith('mock-export-id');
     });
 
     it('does not queue the export and shows the offline modal when offline', () => {
@@ -129,22 +126,5 @@ describe('useExportActions - template export status modal', () => {
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
         expect(mockShowDecisionModal).toHaveBeenCalled();
-    });
-
-    it('clears the report-view selection with the boolean flag when the status modal is dismissed', () => {
-        const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
-
-        act(() => {
-            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], EXPORT_NAME, POLICY_ID);
-        });
-        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
-
-        act(() => {
-            modal?.props.onClose();
-        });
-
-        // The cleanup callback must call clearSelectedTransactions with the boolean `true` (not `(undefined, true)`),
-        // because the selection API only resets the report-view selection when the first argument is a boolean.
-        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 });
