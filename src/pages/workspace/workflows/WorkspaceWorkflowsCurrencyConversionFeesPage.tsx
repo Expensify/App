@@ -1,4 +1,3 @@
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,7 +14,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -25,7 +23,6 @@ import {clearPolicyErrorField, setWorkspaceCurrencyConversionFeesPreference} fro
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 
@@ -63,12 +60,8 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
     ];
 
     const onSelectPreference = (item: CurrencyConversionFeesItem) => {
-        if (!policy?.id) {
-            return;
-        }
-
         const shouldPreferCompany = item.keyForList === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY;
-        if (shouldPreferCompany !== !!policy.globalReimbursementFXPreferCompany) {
+        if (!!policy?.id && shouldPreferCompany !== !!policy.globalReimbursementFXPreferCompany) {
             setWorkspaceCurrencyConversionFeesPreference(policy.id, shouldPreferCompany, policy.globalReimbursementFXPreferCompany);
         }
 
@@ -89,44 +82,41 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
 
     return (
         <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) || !isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX)}
+            shouldBeBlocked={
+                !isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) ||
+                !isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX) ||
+                policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
+            }
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceWorkflowsCurrencyConversionFeesPage"
             >
-                <FullPageNotFoundView
-                    onBackButtonPress={goBackFromInvalidPolicy}
-                    onLinkPress={goBackFromInvalidPolicy}
-                    shouldShow={isEmptyObject(policy) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || !isGroupPolicy(policy)}
-                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                    addBottomSafeAreaPadding
+                <HeaderWithBackButton
+                    title={translate('workflowsCurrencyConversionFeesPage.title')}
+                    onBackButtonPress={Navigation.goBack}
+                />
+                <OfflineWithFeedback
+                    pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
+                    errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                    onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                    style={styles.flex1}
+                    contentContainerStyle={styles.flex1}
                 >
-                    <HeaderWithBackButton
-                        title={translate('workflowsCurrencyConversionFeesPage.title')}
-                        onBackButtonPress={Navigation.goBack}
+                    <SelectionList
+                        ListItem={SingleSelectListItem}
+                        data={items}
+                        onSelectRow={onSelectPreference}
+                        initiallyFocusedItemKey={selectedPreference}
+                        customListHeaderContent={listHeaderContent}
+                        addBottomSafeAreaPadding
                     />
-                    <OfflineWithFeedback
-                        pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
-                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                        onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                        style={styles.flex1}
-                        contentContainerStyle={styles.flex1}
-                    >
-                        <SelectionList
-                            ListItem={SingleSelectListItem}
-                            data={items}
-                            onSelectRow={onSelectPreference}
-                            initiallyFocusedItemKey={selectedPreference}
-                            customListHeaderContent={listHeaderContent}
-                            addBottomSafeAreaPadding
-                        />
-                    </OfflineWithFeedback>
-                </FullPageNotFoundView>
+                </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

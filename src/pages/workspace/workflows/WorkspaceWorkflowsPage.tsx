@@ -823,7 +823,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                               pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
                                               errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
                                               onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                                              errorRowStyles={[styles.ml7]}
                                           >
                                               <MenuItemWithTopDescription
                                                   title={
