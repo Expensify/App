@@ -15,7 +15,7 @@ import type {FlashListRef} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
-import type {TableData, TableHandle, TableMethods, TableProps} from './types';
+import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
@@ -23,6 +23,36 @@ import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
+
+/**
+ * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
+ * falling back to FlashList's own methods (e.g. `scrollToIndex`).
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useImperativeHandle`
+ * callback) because OXC's React Compiler currently fails to compile a component when a generic type
+ * cast referencing the component's own type parameters (e.g. `as TableHandle<DataType, ColumnKey, FilterKey>`)
+ * appears inside a nested closure. That bailout is silent (no build warning) and disables automatic
+ * memoization for the entire file, which is what previously caused an infinite FlashList re-render.
+ */
+function createTableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
+    tableMethods: TableMethods<ColumnKey, FilterKey>,
+    listRef: React.RefObject<FlashListRef<DataType> | null>,
+    getProcessedData: () => Array<TableRow<DataType>>,
+): TableHandle<DataType, ColumnKey, FilterKey> {
+    return new Proxy(tableMethods, {
+        get: (target, property) => {
+            if (property in target) {
+                return target[property as keyof typeof target];
+            }
+
+            if (property === 'getProcessedData') {
+                return getProcessedData;
+            }
+
+            return listRef.current?.[property as keyof FlashListRef<DataType>];
+        },
+    }) as TableHandle<DataType, ColumnKey, FilterKey>;
+}
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -160,6 +190,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
     onRowSelectionChange,
+    onSearchStringChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
@@ -216,21 +247,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
      */
-    useImperativeHandle(ref, () => {
-        return new Proxy(tableMethods, {
-            get: (target, property) => {
-                if (property in target) {
-                    return target[property as keyof typeof target];
-                }
-
-                if (property === 'getProcessedData') {
-                    return () => processedData;
-                }
-
-                return listRef.current?.[property as keyof FlashListRef<DataType>];
-            },
-        }) as TableHandle<DataType, ColumnKey, FilterKey>;
-    });
+    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData));
 
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
@@ -264,6 +281,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
+        onSearchStringChange,
     };
 
     return (
