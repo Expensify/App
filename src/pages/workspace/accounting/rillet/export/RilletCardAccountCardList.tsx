@@ -46,6 +46,7 @@ function RilletCardAccountCardList({
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
     const cardProgramAccountCode = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode;
+    const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
 
     return (
@@ -68,10 +69,10 @@ function RilletCardAccountCardList({
                 .map((card) => {
                     const cardID = card.cardID;
                     const isUsingCustomAccount = typeof card.nameValuePairs === 'object' && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in card.nameValuePairs;
-                    const cardAccountCode =
+                    const cardAccountID =
                         (typeof card.nameValuePairs === 'object' ? card.nameValuePairs[CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT] : undefined) ??
-                        cardProgramAccountCode;
-                    const cardAccount = rilletData?.accounts?.find((account) => account.code === cardAccountCode);
+                        cardProgramAccount?.id;
+                    const cardAccount = rilletData?.accounts?.find((account) => account.id === cardAccountID);
                     const cardAccountDisplayName = cardAccount
                         ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}`
                         : '';

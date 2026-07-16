@@ -381,12 +381,13 @@ function getExportMenuItem(
             const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
             const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
             const cardProgramAccountCode = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank] : undefined) ?? creditCardAccountCode;
+            const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
             const isUsingCustomAccount = companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in companyCard.nameValuePairs;
-            const cardAccountCode =
+            const cardAccountID =
                 (companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT in companyCard.nameValuePairs
                     ? companyCard.nameValuePairs[CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT]
-                    : undefined) ?? cardProgramAccountCode;
-            const cardAccount = rilletData?.accounts?.find((account) => account.code === cardAccountCode);
+                    : undefined) ?? cardProgramAccount?.id;
+            const cardAccount = rilletData?.accounts?.find((account) => account.id === cardAccountID);
             const cardAccountDisplayName = cardAccount ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}` : '';
             const title = cardAccountDisplayName;
             const description = currentConnectionName
@@ -408,10 +409,10 @@ function getExportMenuItem(
                                 accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
                         )
                         .map((accountItem) => ({
-                            value: cardProgramAccountCode === accountItem.code ? '' : accountItem.code,
-                            text: `${cardProgramAccountCode === accountItem.code ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
-                            keyForList: accountItem.code,
-                            isSelected: cardAccountCode === accountItem.code,
+                            value: cardProgramAccount?.id === accountItem.id ? '' : accountItem.id,
+                            text: `${cardProgramAccount?.id === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
+                            keyForList: accountItem.id,
+                            isSelected: cardAccountID === accountItem.id,
                         })) ?? [],
             };
         }
