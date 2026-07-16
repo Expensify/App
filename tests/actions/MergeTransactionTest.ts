@@ -196,12 +196,14 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
         targetTransactionThreadReport: {reportID: targetReport.reportID},
         targetTransactionThreadParentReport: undefined,
+        reportPolicyTags: undefined,
         targetTransactionThreadParentReportNextStep: undefined,
         currentUserAccountIDParam: 123,
         currentUserEmailParam: 'existing@example.com',
         isASAPSubmitBetaEnabled: false,
         selfDMReport: undefined,
         delegateAccountID: undefined,
+        isTrackIntentUser: false,
     });
 }
 
@@ -306,6 +308,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransaction,
             targetTransactionThreadReport: {reportID: 'target-report-456'},
             targetTransactionThreadParentReport: undefined,
+            reportPolicyTags: undefined,
             targetTransactionThreadParentReportNextStep: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
             policy: undefined,
@@ -316,6 +319,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -421,6 +425,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransaction,
             targetTransactionThreadReport: {reportID: targetReportID},
             targetTransactionThreadParentReport: undefined,
+            reportPolicyTags: undefined,
             targetTransactionThreadParentReportNextStep: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID),
             policy: undefined,
@@ -431,6 +436,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -521,6 +527,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransaction,
             targetTransactionThreadReport: {reportID: targetExpenseReport.reportID},
             targetTransactionThreadParentReport: undefined,
+            reportPolicyTags: undefined,
             targetTransactionThreadParentReportNextStep: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
             policy: undefined,
@@ -531,6 +538,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -683,6 +691,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransaction,
             targetTransactionThreadReport: {reportID: 'target-report-456'},
             targetTransactionThreadParentReport: undefined,
+            reportPolicyTags: undefined,
             targetTransactionThreadParentReportNextStep: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
             policy: undefined,
@@ -693,6 +702,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -786,6 +796,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransaction,
             targetTransactionThreadReport: {reportID: 'target123'},
             targetTransactionThreadParentReport: undefined,
+            reportPolicyTags: undefined,
             targetTransactionThreadParentReportNextStep: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
             policy: undefined,
@@ -796,6 +807,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -1014,6 +1026,7 @@ describe('mergeTransactionRequest', () => {
                 sourceTransaction,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
+                reportPolicyTags: undefined,
                 targetTransactionThreadParentReportNextStep: undefined,
                 allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
                 policy: undefined,
@@ -1024,6 +1037,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
+                isTrackIntentUser: false,
             });
 
             await mockFetch?.resume?.();
@@ -1145,6 +1159,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1212,6 +1227,7 @@ describe('mergeTransactionRequest', () => {
                 sourceTransaction,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
+                reportPolicyTags: undefined,
                 targetTransactionThreadParentReportNextStep: undefined,
                 allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
                 policy: undefined,
@@ -1222,6 +1238,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1330,6 +1347,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1361,6 +1379,7 @@ describe('mergeTransactionRequest', () => {
                 sourceTransaction,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
+                reportPolicyTags: undefined,
                 targetTransactionThreadParentReportNextStep: undefined,
                 allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
                 policy: undefined,
@@ -1371,6 +1390,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
