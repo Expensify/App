@@ -52,6 +52,7 @@ import {
     getSelectedFeed,
     getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
+    hasActiveExpensifyCardAssigned,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
@@ -2249,6 +2250,56 @@ describe('CardUtils', () => {
                 return true;
             });
             expect(callCount).toBe(1);
+        });
+    });
+
+    describe('hasActiveExpensifyCardAssigned', () => {
+        const cardholderAccountID = 11;
+
+        it('returns true when the member holds an Expensify Card on the workspace', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(true);
+        });
+
+        it('returns false for an undefined card list', () => {
+            expect(hasActiveExpensifyCardAssigned(undefined, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the Expensify Card belongs to another member', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: 22, bank: CONST.EXPENSIFY_CARD.BANK},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the member only holds a company card', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the member only holds a travel card', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US}},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the Expensify Card is already pending removal', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
+        });
+
+        it('skips the cardList bucket of cards still available to assign', () => {
+            const cards = createMock<CardList>({
+                cardList: {'CREDIT CARD...1234': 'encrypted-value'} as Record<string, string>,
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
         });
     });
 
