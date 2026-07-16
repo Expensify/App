@@ -9,16 +9,18 @@ import {setWorkspaceInviteApproverDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import MemberRightIcon from './MemberRightIcon';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -110,16 +112,24 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
     };
 
     return (
-        <ApproverSelectionList
-            testID="WorkspaceInviteMessageApproverPage"
-            headerTitle={translate('workflowsPage.approver')}
-            policy={policy}
-            isLoadingReportData={isLoadingReportData}
-            onBackButtonPress={goBack}
-            initiallyFocusedOptionKey={selectedApprover}
-            allApprovers={allApprovers}
-            onSelectApprover={handleOnSelectApprover}
-        />
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
+        >
+            <ApproverSelectionList
+                testID="WorkspaceInviteMessageApproverPage"
+                headerTitle={translate('workflowsPage.approver')}
+                policy={policy}
+                isLoadingReportData={isLoadingReportData}
+                onBackButtonPress={goBack}
+                initiallyFocusedOptionKey={selectedApprover}
+                allApprovers={allApprovers}
+                onSelectApprover={handleOnSelectApprover}
+                shouldRequirePolicyAdmin={false}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 

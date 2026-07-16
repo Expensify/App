@@ -1977,16 +1977,8 @@ function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransa
  * When we delete certain reports, we want to check whether there are any visible actions left to display.
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
-function doesReportHaveVisibleActions(
-    reportID: string,
-    canUserPerformWriteAction?: boolean,
-    actionsToMerge: ReportActions = {},
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
-): boolean {
-    const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge, true));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) =>
-        isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID),
-    );
+function doesReportHaveVisibleActions(reportID: string, reportActionsParam: OnyxEntry<ReportActions>, canUserPerformWriteAction?: boolean): boolean {
+    const visibleReportActions = Object.values(reportActionsParam ?? {}).filter((action) => isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, undefined, reportID));
 
     // Exclude the task system message and the created message
     const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter((action) => !isTaskAction(action) && !isCreatedAction(action));
@@ -2804,8 +2796,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.RILLET:
-                    // TODO Test in R3 https://github.com/Expensify/App/issues/94848
-                    url = '';
+                    url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 default:
                     url = QBO_EXPENSES_URL;
@@ -4857,7 +4848,6 @@ export {
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
-    getMentionedAccountIDsFromAction,
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,

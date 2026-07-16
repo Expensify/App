@@ -41,10 +41,11 @@ function getStringParam(params: unknown, key: string): string | undefined {
     return undefined;
 }
 
-function startNavigateToInboxTabSpan() {
+function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
         name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout},
     });
 }
 
@@ -105,7 +106,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
             return;
         }
 
-        startNavigateToInboxTabSpan();
+        startNavigateToInboxTabSpan({isWideLayout: true});
 
         if (doesLastReportExist) {
             // Fetch route params on-demand to avoid storing the full route object in render-time state
@@ -177,7 +178,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             return;
         }
 
-        startNavigateToInboxTabSpan();
+        startNavigateToInboxTabSpan({isWideLayout: false});
         Navigation.navigate(ROUTES.INBOX);
     };
 
