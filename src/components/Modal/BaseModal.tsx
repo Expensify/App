@@ -41,6 +41,7 @@ function BaseModal({
     isVisible,
     onClose,
     shouldSetModalVisibility = true,
+    shouldTreatModalAsCovering,
     onModalHide = () => {},
     type,
     popoverAnchorPosition = {},
@@ -98,6 +99,7 @@ function BaseModal({
 
     // This prop does not have a default value, because React Compiler throws an internal error if this is provided as a default value.
     const shouldApplySidePanelOffset = shouldApplySidePanelOffsetProp ?? type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+    const isModalCovering = shouldTreatModalAsCovering ?? (type !== CONST.MODAL.MODAL_TYPE.POPOVER && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
@@ -153,7 +155,7 @@ function BaseModal({
         let removeOnCloseListener: () => void;
         if (isVisible) {
             shouldCallHideModalOnUnmount.current = true;
-            willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
+            willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, isModalCovering);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             if (onClose) {
                 removeOnCloseListener = setCloseModal(onClose);
@@ -171,7 +173,7 @@ function BaseModal({
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
+    }, [isVisible, wasVisible, onClose, type, isModalCovering, handleDismissModal]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -333,10 +335,10 @@ function BaseModal({
                             onModalWillShow?.();
                         }}
                         onModalWillHide={() => {
-                            // Reset willAlertModalBecomeVisible when modal is about to hide
-                            // This ensures it's cleared before any other components check its value
+                            // Clear the pre-show signal at the start of exit while preserving the semantic
+                            // covering state until hideModal runs after the animation completes.
                             if (areAllModalsHidden()) {
-                                willAlertModalBecomeVisible(false);
+                                willAlertModalBecomeVisible(false, false, isModalCovering);
                             }
                             onModalWillHide?.();
                         }}

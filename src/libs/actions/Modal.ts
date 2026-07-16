@@ -91,13 +91,18 @@ function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
 /**
  * Allows other parts of app to know that an alert modal is about to open.
  * This will trigger as soon as a modal is opened but not yet visible while animation is running.
- * isPopover indicates that the next open modal is popover or bottom docked
+ * isPopover indicates that the next open modal is popover or bottom docked.
+ * isModalCovering indicates whether the modal should suppress persistent surfaces from opening through final hide.
  */
-function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
+function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false, isModalCovering = false) {
     // We cancel the pending and active tooltips here instead of in setModalVisibility because
     // we want to do it when a modal is going to show. If we do it when the modal is fully shown,
     // the tooltip in that modal won't show.
-    Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
+    Onyx.merge(ONYXKEYS.MODAL, {
+        willAlertModalBecomeVisible: isVisible,
+        isPopover,
+        isModalCovering,
+    });
 }
 
 function areAllModalsHidden() {

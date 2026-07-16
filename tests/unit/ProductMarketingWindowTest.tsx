@@ -226,7 +226,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.queryByText(memberHeading)).toBeNull();
     });
 
-    it('hides the window while a covering modal is up and shows it again when the modal clears', async () => {
+    it('hides the window for a centered covering modal through closing and shows it again after final hide', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: false});
             await waitForBatchedUpdatesWithAct();
@@ -237,22 +237,173 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(memberHeading)).toBeTruthy();
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: true, isPopover: false});
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                willAlertModalBecomeVisible: true,
+                isPopover: false,
+                isModalCovering: true,
+            });
             await waitForBatchedUpdatesWithAct();
         });
         expect(screen.queryByText(memberHeading)).toBeNull();
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: false});
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                isVisible: true,
+                type: CONST.MODAL.MODAL_TYPE.CONFIRM,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(memberHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                willAlertModalBecomeVisible: false,
+                isPopover: false,
+                isModalCovering: true,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(memberHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                isVisible: false,
+                type: null,
+                isModalCovering: false,
+            });
             await waitForBatchedUpdatesWithAct();
         });
         expect(screen.getByText(memberHeading)).toBeTruthy();
     });
 
-    it('does not hide the window for popover modals', async () => {
+    it('does not hide the window for ordinary popover modals', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: false});
-            await Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: true, isPopover: true});
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                willAlertModalBecomeVisible: true,
+                isPopover: true,
+                isModalCovering: false,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                isVisible: true,
+                type: CONST.MODAL.MODAL_TYPE.POPOVER,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                willAlertModalBecomeVisible: false,
+                isPopover: false,
+                isModalCovering: false,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+    });
+
+    it('does not hide the window for a responsive bottom-docked popover during pre-show, visible, or closing states', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: false});
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                willAlertModalBecomeVisible: true,
+                isVisible: false,
+                type: CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
+                isPopover: true,
+                isModalCovering: false,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {isVisible: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                willAlertModalBecomeVisible: false,
+                isPopover: false,
+                isModalCovering: false,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+    });
+
+    it('hides the window for an opted-in bottom-docked confirmation through closing and restores it after final hide', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                willAlertModalBecomeVisible: true,
+                isVisible: false,
+                isPopover: true,
+                isModalCovering: true,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(memberHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                isVisible: true,
+                type: CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(memberHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                willAlertModalBecomeVisible: false,
+                isPopover: false,
+                isModalCovering: true,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(memberHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                isVisible: false,
+                type: null,
+                isModalCovering: false,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+    });
+
+    it('does not hide the window for route-backed right-docked navigation state', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: false});
+            await Onyx.merge(ONYXKEYS.MODAL, {
+                isVisible: true,
+                type: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+            });
             await waitForBatchedUpdatesWithAct();
         });
 

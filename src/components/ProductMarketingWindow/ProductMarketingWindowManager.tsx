@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
-import {isModalCoveringSelector} from '@src/selectors/Modal';
+import {isProductMarketingWindowCoveredSelector} from '@src/selectors/Modal';
 import {hasActiveAdminPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy, Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -52,9 +52,11 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [hasActiveAdminPolicies, hasActiveAdminPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies: OnyxCollection<Policy>) => hasActiveAdminPoliciesSelector(policies, login),
     });
-    // The centered modal always takes precedence over the marketing window, so the window is hidden while
-    // a covering (non-popover) modal is opening or visible and shows again once the modal state clears.
-    const [isModalCovering = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalCoveringSelector});
+    // Semantically covering overlays take precedence over the marketing window from pre-show through final hide.
+    // Responsive popover sheets and route-backed right-docked navigation remain exempt.
+    const [isModalCovering = false] = useOnyx(ONYXKEYS.MODAL, {
+        selector: isProductMarketingWindowCoveredSelector,
+    });
     // Anonymous sessions (logged-out visitors of public rooms) should never see product marketing.
     const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
     // Copilots must not see (or permanently dismiss) the account owner's announcement.

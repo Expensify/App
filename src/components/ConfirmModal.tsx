@@ -200,6 +200,7 @@ function ConfirmModal({
             onBackdropPress={onBackdropPress}
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
+            shouldTreatModalAsCovering
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={innerContainerStyle ? {...styles.pv0, ...innerContainerStyle} : styles.pv0}

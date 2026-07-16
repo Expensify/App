@@ -9,6 +9,8 @@ const isRHPVisibleSelector = (modal: OnyxEntry<Modal>) => modal?.type === CONST.
 
 const isModalCoveringSelector = (modal: OnyxEntry<Modal>) => !!modal?.willAlertModalBecomeVisible && !modal?.isPopover;
 
+const isProductMarketingWindowCoveredSelector = (modal: OnyxEntry<Modal>) => !!modal?.isModalCovering;
+
 const isModalActiveSelector = (modal: OnyxEntry<Modal>) => !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible;
 
-export {willAlertModalBecomeVisibleSelector, isRHPVisibleSelector, isModalCoveringSelector, isModalActiveSelector};
+export {willAlertModalBecomeVisibleSelector, isRHPVisibleSelector, isModalCoveringSelector, isProductMarketingWindowCoveredSelector, isModalActiveSelector};
