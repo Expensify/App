@@ -15634,6 +15634,15 @@ describe('ReportUtils', () => {
             expect(doesReportBelongToWorkspace(conciergeReport, policyID, conciergeReportID)).toBe(true);
         });
 
+        it('should not treat the report as a concierge chat when conciergeReportID is undefined', () => {
+            const report: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: CONST.POLICY.ID_FAKE,
+            };
+            expect(doesReportBelongToWorkspace(report, policyID, undefined)).toBe(false);
+        });
+
         it('should return true for a report with a matching policyID', () => {
             const policyReport: Report = {
                 reportID: 'policy-report-123',
