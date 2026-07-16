@@ -53,6 +53,7 @@ function IOURequestStepAttendees({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
@@ -87,6 +88,7 @@ function IOURequestStepAttendees({
                     parentReportNextStep,
                     isOffline,
                     delegateAccountID,
+                    reportPolicyTags,
                     isTrackIntentUser,
                 });
             } else {
@@ -114,6 +116,7 @@ function IOURequestStepAttendees({
         parentReportNextStep,
         isOffline,
         delegateAccountID,
+        reportPolicyTags,
         isTrackIntentUser,
     ]);
 

@@ -97,6 +97,7 @@ function IOURequestStepDistance({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -524,6 +525,7 @@ function IOURequestStepDistance({
                     parentReportNextStep,
                     delegateAccountID,
                     distanceOriginalPolicy,
+                    reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
@@ -571,6 +573,7 @@ function IOURequestStepDistance({
         parentReportNextStep,
         delegateAccountID,
         distanceOriginalPolicy,
+        reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
     ]);
@@ -641,6 +644,7 @@ function IOURequestStepDistance({
             delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
+            reportPolicyTags,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
@@ -680,6 +684,7 @@ function IOURequestStepDistance({
         hasRouteError,
         delegateAccountID,
         distanceOriginalPolicy,
+        reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
     ]);
