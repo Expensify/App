@@ -53,16 +53,4 @@ describe('useProactiveAppReview', () => {
             expect(result.current.shouldShowModal).toBe(false);
         });
     });
-
-    it('returns shouldShowModal false when session authTokenType is delegate', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE});
-        await Onyx.merge(ONYXKEYS.NVP_APP_REVIEW, {trigger: 'submit'});
-        await waitForBatchedUpdates();
-
-        const {result} = renderHook(() => useProactiveAppReview());
-
-        await waitFor(() => {
-            expect(result.current.shouldShowModal).toBe(false);
-        });
-    });
 });

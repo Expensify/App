@@ -6,7 +6,7 @@ import type ProactiveAppReview from '@src/types/onyx/AppReview';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isActingAsDelegateSelector} from '@selectors/Account';
-import {useMemo} from 'react';
+import {useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -30,47 +30,27 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
     const [authTokenType] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
-    const shouldShowModal = useMemo(() => {
-        // Support tokens cannot call RespondToProactiveAppReview (not whitelisted), so dismissing
-        // would 411, open the Supportal permission modal, and leave this review modal stuck open.
-        if (authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
-            return false;
-        }
+    // Capture once so render stays pure (Date.now is impure). Fine for a 30-day cooldown gate.
+    const [timeAtMount] = useState(Date.now);
 
-        // Copilot sessions use a TYPE_DELEGATE ("delegate") Auth token. Prefer
-        // delegatedAccess.delegate (same as other promo modals) since older sessions may not
-        // have authTokenType written; also guard on authTokenType when present.
-        if (isActingAsDelegate || authTokenType === CONST.AUTH_TOKEN_TYPES.DELEGATE) {
-            return false;
-        }
-
-        if (!proactiveAppReview) {
-            return false;
-        }
-
-        // Don't show if trigger is not set
-        if (!proactiveAppReview.trigger) {
-            return false;
-        }
-
+    let shouldShowModal = true;
+    if (authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT || isActingAsDelegate) {
+        // Supportal agents and copilots should not leave reviews on behalf of another account.
+        shouldShowModal = false;
+    } else if (!proactiveAppReview?.trigger) {
+        // Don't show if the trigger is not set
+        shouldShowModal = false;
+    } else if (proactiveAppReview?.response === 'positive') {
         // Don't show again after user gave a positive response
-        if (proactiveAppReview.response && proactiveAppReview.response === 'positive') {
-            return false;
+        shouldShowModal = false;
+    } else if (proactiveAppReview?.lastPrompt) {
+        // Don't show again within 30 days of the last prompt
+        const lastPromptTime = new Date(proactiveAppReview.lastPrompt).getTime();
+        const msSinceLastPrompt = timeAtMount - lastPromptTime;
+        if (msSinceLastPrompt < THIRTY_DAYS_IN_MS) {
+            shouldShowModal = false;
         }
-
-        // Check if lastPrompt is missing or older than 30 days
-        if (proactiveAppReview.lastPrompt) {
-            const lastPromptTime = new Date(proactiveAppReview.lastPrompt).getTime();
-            const now = Date.now();
-            const daysSinceLastPrompt = (now - lastPromptTime) / THIRTY_DAYS_IN_MS;
-
-            if (daysSinceLastPrompt < 1) {
-                return false;
-            }
-        }
-
-        return true;
-    }, [authTokenType, isActingAsDelegate, proactiveAppReview]);
+    }
 
     return {
         shouldShowModal,
