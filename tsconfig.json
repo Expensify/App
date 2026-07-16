@@ -24,13 +24,6 @@
             "tests/*": ["./tests/*"]
         }
     },
-    "ts-node": {
-        "compilerOptions": {
-            "module": "node16",
-            "moduleResolution": "node16",
-            "rootDir": "."
-        }
-    },
     "include": [
         "src",
         "web",

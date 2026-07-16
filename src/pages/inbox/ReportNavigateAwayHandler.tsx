@@ -219,19 +219,24 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
-        // Try to navigate to parent report if available
-        if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
-            Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
-            });
-            return;
-        }
-
-        // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
+            // Drop the deleted report from the split navigator stack before navigating away. Otherwise, it stays
+            // mounted underneath the destination, and tapping back refocuses it and re-triggers this effect,
+            // trapping the user in a navigation loop
+            if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+                Navigation.popToSidebar();
+            }
+
+            // Try to navigate to parent report if available
+            if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
+                return;
+            }
+
+            // Fallback to Concierge
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 
     return null;
 }

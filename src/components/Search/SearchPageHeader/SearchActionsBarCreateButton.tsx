@@ -31,6 +31,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -64,13 +65,13 @@ function SearchActionsBarCreateButton() {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
         [activePolicy, groupPoliciesWithChatEnabled],
     );
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
@@ -86,6 +87,7 @@ function SearchActionsBarCreateButton() {
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
                 allBetas,
+                isTrackIntentUser,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -97,7 +99,7 @@ function SearchActionsBarCreateButton() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

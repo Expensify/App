@@ -1,12 +1,8 @@
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
-import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
 
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
-import {FILTER_VIEW_MAP, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
+import {getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -30,25 +26,11 @@ import TypeSelector from './TypeSelector';
 import UserSelector from './UserSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
-type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
+type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | SearchTextFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
 type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[FilterKeys] | undefined> & {
     filterKey: FilterKeys;
     type?: SearchDataTypes;
-    policyIDs: string[] | undefined;
-    policyIDQuery: string[] | undefined;
-};
-
-type TextInputFilterComponentsProps = {
-    filterKey:
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
-    value: string | undefined;
-    autoFocus?: boolean;
-    onChange: (value: string) => void;
+    policyID: Filter | undefined;
 };
 
 type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
@@ -68,26 +50,6 @@ type MultiSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFi
     filterKey: MultiSelectFilterKeys;
     type: SearchDataTypes | undefined;
 };
-
-function TextInputFilterComponents({filterKey, value, autoFocus, onChange}: TextInputFilterComponentsProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
-    const {inputCallbackRef} = useAutoFocusInput();
-
-    return (
-        <TextInput
-            ref={autoFocus ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
-            placeholder={label}
-            value={value}
-            onChangeText={onChange}
-            accessibilityLabel={label}
-            role={CONST.ROLE.PRESENTATION}
-            containerStyles={[styles.ph5]}
-        />
-    );
-}
 
 function SingleSelectFilterComponents({filterKey, value, selectionListTextInputStyle, selectionListStyle, footer, onChange}: SingleSelectFilterComponentsProps) {
     const {translate} = useLocalize();
@@ -109,8 +71,7 @@ function SingleSelectFilterComponents({filterKey, value, selectionListTextInputS
 function MultiSelectFilterComponents({filterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectFilterComponentsProps) {
     const {translate} = useLocalize();
     const items = getMultiSelectFilterOptions(filterKey, type, translate);
-    const normalizedValue = Array.isArray(value) ? value : value.split(',');
-    const multiSelectValues = items.filter((item) => normalizedValue.includes(item.value));
+    const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
 
     return (
         <MultiSelect
@@ -119,17 +80,13 @@ function MultiSelectFilterComponents({filterKey, value = [], type = CONST.SEARCH
             selectionListStyle={selectionListStyle}
             footer={footer}
             onChange={(selectedItems) => {
-                if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
-                    onChange(selectedItems.length > 0 ? selectedItems.map((item) => item.value) : CONST.SEARCH.STATUS.EXPENSE.ALL);
-                    return;
-                }
                 onChange(selectedItems.map((item) => item.value));
             }}
         />
     );
 }
 
-function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: FilterComponentsProps) {
+function FilterComponents({filterKey, value, type, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: FilterComponentsProps) {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -152,7 +109,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
             return (
                 <Component
                     value={typeof value === 'object' ? value : undefined}
-                    policyIDs={policyIDs}
+                    policyID={policyID}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
@@ -163,27 +120,14 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
             );
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE: {
+            const isTypeFilterValue = (v: FilterComponentsProps['value']): v is SearchDataTypes => {
+                return typeof v === 'string';
+            };
             return (
                 <TypeSelector
-                    value={typeof value === 'string' ? value : undefined}
+                    value={isTypeFilterValue(value) ? value : undefined}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
-                    onChange={onChange}
-                />
-            );
-        }
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID: {
-            return (
-                <TextInputFilterComponents
-                    key={filterKey}
-                    filterKey={filterKey}
-                    value={typeof value === 'string' ? value : undefined}
-                    autoFocus={autoFocus}
                     onChange={onChange}
                 />
             );
@@ -232,7 +176,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
                 <MultiSelectFilterComponents
                     key={filterKey}
                     filterKey={filterKey}
-                    value={value}
+                    value={typeof value === 'object' ? value : undefined}
                     type={type}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
@@ -261,7 +205,6 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
             return (
                 <WorkspaceSelector
                     value={typeof value === 'object' ? value : undefined}
-                    policyIDQuery={policyIDQuery}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}

@@ -113,7 +113,7 @@ function ApprovalWorkflowSection({
                             src={icons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
-                            small
+                            size={CONST.ICON_SIZE.SMALL}
                         />
                         <Text
                             style={[styles.textLabelSupportingNormal]}
