@@ -428,14 +428,14 @@ describe('deleteAgent', () => {
         expect((personalDetailUpdate?.value as Record<string, unknown>)[TEST_ACCOUNT_ID]).toBeNull();
     });
 
-    it('failure data merges pendingAction DELETE and errors on the prompt key', () => {
+    it('failure data clears the pendingAction and merges errors on the prompt key', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
         const {failureData} = getWriteOptions();
         const promptUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`);
 
         expect(promptUpdate?.onyxMethod).toBe('merge');
-        expect(promptUpdate?.value).toMatchObject({pendingAction: 'delete'});
+        expect(promptUpdate?.value).toMatchObject({pendingAction: null});
         expect((promptUpdate?.value as Record<string, unknown>)?.errors).toBeTruthy();
     });
 
