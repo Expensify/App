@@ -1087,8 +1087,6 @@ function getSuggestedSearchesVisibility(
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
 
-    // Iterate every policy (rather than short-circuiting with .some) so we can collect the complete
-    // list of Top Spenders-eligible policy IDs used to scope the suggested search query below.
     for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
             continue;
