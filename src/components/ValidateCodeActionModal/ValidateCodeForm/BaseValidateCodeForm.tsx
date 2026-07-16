@@ -65,7 +65,7 @@ type ValidateCodeFormProps = {
     /** The field where any validateCode error will be stored. e.g. if replacing a card and validateCode fails, it'll be stored in:
      * {"errorFields": {"replaceLostCard": {<timestamp>}}}
      * If replacing a virtual card, the errorField wil be 'reportVirtualCard', etc.
-     * These values are set in the backend, please reach out to an internal engineer if you're adding a validateCode modal to a flow.
+     * These values are set in the backend, please reach out to an internal engineer if you're adding a validate code modal to a flow.
      */
     validateCodeActionErrorField: string;
 
