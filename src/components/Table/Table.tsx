@@ -229,7 +229,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
-    const shouldRenderStickyHeader = shouldUseStickyColumnHeader && processedData.length > 0 && !isEmptyResult && !(shouldUseNarrowTableLayout && !title);
+    const shouldRenderStickyHeader = shouldUseStickyColumnHeader && !(shouldUseNarrowTableLayout && !title);
 
     // When the page header scrolls inside the list, TableBody renders the table's empty states as
     // list rows below the header. They are extracted from the direct children here so they don't

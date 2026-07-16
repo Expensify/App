@@ -9,7 +9,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
@@ -24,6 +24,11 @@ import TableHeader from './TableHeader';
 type TableBodyProps = ViewProps & {
     /** Optional custom styles for the FlashList content container. */
     contentContainerStyle?: StyleProp<ViewStyle>;
+};
+
+type TableBodyListProps = TableBodyProps & {
+    /** Message shown when the filtered table is empty. */
+    emptyMessage: string;
 };
 
 /**
@@ -54,21 +59,17 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody({contentContainerStyle, style, ...props}: TableBodyProps) {
+function TableBodyList({contentContainerStyle, emptyMessage, style, ...props}: TableBodyListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const [isListLoaded, setIsListLoaded] = React.useState(false);
-    const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = React.useState(false);
+    const [isListLoaded, setIsListLoaded] = useState(false);
+    const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const {
         processedData: filteredAndSortedData,
-        activeSearchString,
         listProps,
         listRef,
         listContainerRef,
         trackScrollOffset,
         shouldUseNarrowTableLayout,
-        hasActiveFilters,
-        hasSearchString,
         headerComponent,
         emptyStateElement,
         noResultsStateElement,
@@ -97,22 +98,14 @@ function TableBody({contentContainerStyle, style, ...props}: TableBodyProps) {
     const {minHeight: contentMinHeight} = StyleSheet.flatten(contentContainerStyle) ?? {};
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
-    // Determine the message based on what caused the empty result
-    const getEmptyMessage = () => {
-        if (hasSearchString) {
-            return translate('common.noResultsFoundMatching', activeSearchString);
-        }
-        if (hasActiveFilters) {
-            return translate('common.noResultsFound');
-        }
-        return '';
-    };
+    const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
+    const [previousShouldRenderStickyHeader, setPreviousShouldRenderStickyHeader] = useState(shouldRenderStickyHeader);
+    if (previousShouldRenderStickyHeader !== shouldRenderStickyHeader) {
+        setPreviousShouldRenderStickyHeader(shouldRenderStickyHeader);
+        setHasActivatedStickyHeader(false);
+    }
 
-    const message = getEmptyMessage();
-
-    useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
-
-    React.useEffect(() => {
+    useEffect(() => {
         if (!tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
             return undefined;
         }
@@ -120,14 +113,6 @@ function TableBody({contentContainerStyle, style, ...props}: TableBodyProps) {
         const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
         return () => cancelAnimationFrame(frame);
     }, [hasActivatedStickyHeader, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
-
-    // Tables without a scrolling page header keep the default contract: an empty table renders
-    // nothing here so the declarative Table.EmptyState/Table.NoResultsState siblings take over.
-    // With a page header (or a ListEmptyComponent) the list must stay mounted even when empty,
-    // otherwise the header (tabs, buttons, search) or the empty view would disappear with the rows.
-    if (!tableListMetadata.hasPageHeader && (isEmptyResult || !originalDataLength) && !ListEmptyComponent) {
-        return null;
-    }
 
     const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent) => {
         if (!component) {
@@ -162,7 +147,7 @@ function TableBody({contentContainerStyle, style, ...props}: TableBodyProps) {
                 style={[styles.textNormal, styles.colorMuted]}
                 aria-hidden
             >
-                {message}
+                {emptyMessage}
             </Text>
         </View>
     );
@@ -244,6 +229,36 @@ function TableBody({contentContainerStyle, style, ...props}: TableBodyProps) {
                 {...restListProps}
             />
         </View>
+    );
+}
+
+function TableBody(props: TableBodyProps) {
+    const {translate} = useLocalize();
+    const {activeSearchString, hasActiveFilters, hasSearchString, isEmptyResult, listProps, originalDataLength, tableListMetadata} = useTableContext<TableData>();
+    const {ListEmptyComponent} = listProps ?? {};
+    let emptyMessage = '';
+
+    if (hasSearchString) {
+        emptyMessage = translate('common.noResultsFoundMatching', activeSearchString);
+    } else if (hasActiveFilters) {
+        emptyMessage = translate('common.noResultsFound');
+    }
+
+    useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult, activeSearchString);
+
+    // Tables without a scrolling page header keep the default contract: an empty table renders
+    // nothing here so the declarative Table.EmptyState/Table.NoResultsState siblings take over.
+    // With a page header (or a ListEmptyComponent) the list must stay mounted even when empty,
+    // otherwise the header (tabs, buttons, search) or the empty view would disappear with the rows.
+    if (!tableListMetadata.hasPageHeader && (isEmptyResult || !originalDataLength) && !ListEmptyComponent) {
+        return null;
+    }
+
+    return (
+        <TableBodyList
+            emptyMessage={emptyMessage}
+            {...props}
+        />
     );
 }
 

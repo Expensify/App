@@ -591,7 +591,7 @@ describe('Table', () => {
 
             const {rerender} = render(renderTable([]));
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
 
             rerender(renderTable(props.data));
 
@@ -599,6 +599,115 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
 
             activateStickyHeadersAfterListLoad();
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+        });
+
+        it('should keep the sticky table header structure stable when search has no results', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={
+                        <>
+                            <Text testID="table-header-component">Page header</Text>
+                            <Table.FilterBar label="Search" />
+                        </>
+                    }
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.NoResultsState />
+                    <Table.Body />
+                </Table>,
+            );
+
+            activateStickyHeadersAfterListLoad();
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'xyz123nonexistent');
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(3);
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+        });
+
+        it('should defer sticky table header activation again when the list remounts', () => {
+            const props = createDefaultProps();
+            const renderTable = (data: TestItem[]) => (
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.Body />
+                </Table>
+            );
+
+            const {rerender} = render(renderTable(props.data));
+            activateStickyHeadersAfterListLoad();
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+
+            rerender(renderTable([]));
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+
+            rerender(renderTable(props.data));
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            activateStickyHeadersAfterListLoad();
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+        });
+
+        it('should defer sticky table header activation when sticky mode turns back on', () => {
+            const props = createDefaultProps();
+            const renderTable = (shouldUseStickyColumnHeader: boolean) => (
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader={shouldUseStickyColumnHeader}
+                >
+                    <Table.Body />
+                </Table>
+            );
+
+            const {rerender} = render(renderTable(true));
+            activateStickyHeadersAfterListLoad();
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+
+            rerender(renderTable(false));
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            let animationFrameCallback: FrameRequestCallback | undefined;
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrameCallback = callback;
+                return 1;
+            });
+
+            rerender(renderTable(true));
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            if (!animationFrameCallback) {
+                throw new Error('Expected sticky-header activation to be rescheduled when sticky mode turns back on');
+            }
+
+            act(() => {
+                animationFrameCallback?.(0);
+            });
+            requestAnimationFrameSpy.mockRestore();
 
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
         });
