@@ -14,17 +14,33 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 
 import Onyx from 'react-native-onyx';
 
+/** Onyx updates that optimistically patch the "Your spend" search snapshots, with rollback on failure. */
 type YourSpendSnapshotOnyxData = {
+    /** Updates applied optimistically while offline */
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+
+    /** Updates applied once the request succeeds */
     successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+
+    /** Updates that roll the snapshots back if the request fails */
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
 };
 
+/** Params for computing the "Your spend" snapshot updates triggered by a money-request change. */
 type GetYourSpendSnapshotTotalUpdatesParams = {
+    /** The transaction before the change */
     transaction: OnyxEntry<Transaction>;
+
+    /** The transaction after the change */
     updatedTransaction: OnyxEntry<Transaction>;
+
+    /** The IOU report the transaction belongs to */
     iouReport: OnyxEntry<Report>;
+
+    /** Account ID of the current user */
     currentUserAccountID: number;
+
+    /** Paid-group policies and snapshot aggregates supplied from the view layer */
     context?: YourSpendPatchData;
 };
 
