@@ -425,7 +425,7 @@ function evenlyDistributeSplitExpenseAmounts(
     const mileageRate = resolveSplitMileageRate({transaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
     const {unit, rate} = mileageRate;
 
-    const totalTaxAmount = transaction?.taxAmount ?? 0;
+    const totalTaxAmount = Math.abs(transaction?.taxAmount ?? 0);
 
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
         const amount = calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, true);
