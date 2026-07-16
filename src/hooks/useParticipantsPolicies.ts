@@ -10,15 +10,19 @@ type ParticipantWithPolicyID = {
     policyID?: string;
 };
 
-function getPoliciesSelector(policyIDs: Array<string | undefined>): (allPolicies: OnyxCollection<Policy>) => Record<string, Policy> {
-    return (allPolicies: OnyxCollection<Policy>) =>
-        policyIDs.reduce<Record<string, Policy>>((acc, policyID) => {
-            const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-            if (allPolicies?.[key] && policyID) {
-                acc[policyID] = allPolicies[key];
+function getPoliciesSelector(participants: ParticipantWithPolicyID[]): (allPolicies: OnyxCollection<Policy>) => Record<string, Policy> {
+    return (allPolicies: OnyxCollection<Policy>) => {
+        if (!participants) {
+            return {};
+        }
+        return participants.reduce<Record<string, Policy>>((acc, participant) => {
+            const key = `${ONYXKEYS.COLLECTION.POLICY}${participant.policyID}`;
+            if (allPolicies?.[key] && participant.policyID) {
+                acc[participant.policyID] = allPolicies[key];
             }
             return acc;
         }, {});
+    };
 }
 
 /**
@@ -28,9 +32,8 @@ function getPoliciesSelector(policyIDs: Array<string | undefined>): (allPolicies
  * @returns Record mapping policyID to Policy
  */
 function useParticipantsPolicies(participants: ParticipantWithPolicyID[]): Record<string, Policy> {
-    const policyIDs = participants.map((participant) => participant.policyID);
     const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (allPolicies: OnyxCollection<Policy>) => getPoliciesSelector(policyIDs)(allPolicies),
+        selector: (allPolicies: OnyxCollection<Policy>) => getPoliciesSelector(participants)(allPolicies),
     });
 
     return participantsPolicies;
