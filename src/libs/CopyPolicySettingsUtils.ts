@@ -217,21 +217,21 @@ function policyHasWithdrawalAccount(policy: Policy | undefined): boolean {
     return !!achAccount?.routingNumber && !!achAccount?.accountNumber;
 }
 
+function hasDifferentCurrency(source: Policy, target: Policy | undefined): boolean {
+    if (!target) {
+        return false;
+    }
+    const sourceCurrency = source.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
+    const targetCurrency = target.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
+    return sourceCurrency !== targetCurrency;
+}
+
 /**
  * Returns true when at least one target has a different currency from the source. The Currency menu
  * item is shown in this case so the user can see whether currency will be copied (or why it can't).
  */
 function hasCurrencyConflictWithAnyTarget(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
-    if (!source) {
-        return false;
-    }
-    const sourceCurrency = source.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
-    return targets.some((target) => {
-        if (!target) {
-            return false;
-        }
-        return (target.outputCurrency ?? DEFAULT_POLICY_CURRENCY) !== sourceCurrency;
-    });
+    return !!source && targets.some((target) => hasDifferentCurrency(source, target));
 }
 
 /**
@@ -240,17 +240,7 @@ function hasCurrencyConflictWithAnyTarget(source: Policy | undefined, targets: R
  * setCurrency, so the Currency menu item must be disabled in this case.
  */
 function isCurrencyBlockedByTargetBA(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
-    if (!source) {
-        return false;
-    }
-    const sourceCurrency = source.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
-    return targets.some((target) => {
-        if (!target) {
-            return false;
-        }
-        const targetCurrency = target.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
-        return sourceCurrency !== targetCurrency && policyHasWithdrawalAccount(target);
-    });
+    return !!source && targets.some((target) => hasDifferentCurrency(source, target) && policyHasWithdrawalAccount(target));
 }
 
 /**
@@ -260,17 +250,7 @@ function isCurrencyBlockedByTargetBA(source: Policy | undefined, targets: Readon
  * alongside workflows so the "currency" Part runs first and aligns the currencies (App#92397).
  */
 function needsCurrencyForWorkflows(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
-    if (!source || !policyHasWithdrawalAccount(source)) {
-        return false;
-    }
-    const sourceCurrency = source.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
-    return targets.some((target) => {
-        if (!target) {
-            return false;
-        }
-        const targetCurrency = target.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
-        return sourceCurrency !== targetCurrency && !policyHasWithdrawalAccount(target);
-    });
+    return !!source && policyHasWithdrawalAccount(source) && targets.some((target) => hasDifferentCurrency(source, target) && !policyHasWithdrawalAccount(target));
 }
 
 /**
