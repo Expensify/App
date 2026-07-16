@@ -65,6 +65,7 @@ function useDebounceImpl(func: GenericFunction, wait: number, options?: UseDebou
  * @param options.leading Specify invoking on the leading edge of the timeout.
  * @param options.maxWait The maximum time func is allowed to be delayed before it's invoked.
  * @param options.trailing Specify invoking on the trailing edge of the timeout.
+ * @param options.shouldExecuteOnUnmount When true, flush pending invocations on unmount instead of cancelling them.
  * @returns Returns a function to call the debounced function.
  */
 export default function useDebounce<T extends GenericFunction>(func: T, wait: number, options?: UseDebounceOptions): T {
