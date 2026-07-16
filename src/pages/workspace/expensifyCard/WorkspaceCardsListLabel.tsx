@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -149,10 +149,10 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                         <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
                             <Button
                                 onPress={handleSettleBalanceButtonClick}
-                                text={translate('workspace.expensifyCard.settleBalance')}
                                 innerStyles={[styles.buttonSmall]}
-                                textStyles={[styles.buttonSmallText]}
-                            />
+                            >
+                                <Button.Text style={[styles.buttonSmallText]}>{translate('workspace.expensifyCard.settleBalance')}</Button.Text>
+                            </Button>
                         </View>
                     )}
                 </View>
@@ -179,9 +179,10 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                         <View style={[styles.flexRow, styles.mt3]}>
                             <Button
                                 onPress={requestLimitIncrease}
-                                text={translate('workspace.expensifyCard.requestLimitIncrease')}
                                 style={shouldUseNarrowLayout && styles.flex1}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.expensifyCard.requestLimitIncrease')}</Button.Text>
+                            </Button>
                         </View>
                     )}
                 </View>
