@@ -5,6 +5,7 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
+import shouldSuppressPromotionalUI from '@libs/PromotionalUIUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -116,7 +117,15 @@ function isPolicyCreationRestricted(): boolean {
  * race condition where the modal would re-appear on app restart.
  */
 function navigateToSubmitPlanWelcomeModalIfReady() {
-    if (!session?.authToken || isLoadingApp || !hasLoadedApp || hasRedirectedToSubmitPlanModal || !isSubmitMigrationModalShownLoaded || !shouldShowSubmitPlanWelcomeModal()) {
+    if (
+        shouldSuppressPromotionalUI() ||
+        !session?.authToken ||
+        isLoadingApp ||
+        !hasLoadedApp ||
+        hasRedirectedToSubmitPlanModal ||
+        !isSubmitMigrationModalShownLoaded ||
+        !shouldShowSubmitPlanWelcomeModal()
+    ) {
         return;
     }
 
@@ -296,16 +305,16 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        if (shouldShowSubmitPlanWelcomeModal()) {
-            hasRedirectedToSubmitPlanModal = true;
-
-            return {
-                type: 'REDIRECT',
-                route: getSubmitPlanWelcomeModalRoute(),
-            };
+        if (shouldSuppressPromotionalUI() || !shouldShowSubmitPlanWelcomeModal()) {
+            return {type: 'ALLOW'};
         }
 
-        return {type: 'ALLOW'};
+        hasRedirectedToSubmitPlanModal = true;
+
+        return {
+            type: 'REDIRECT',
+            route: getSubmitPlanWelcomeModalRoute(),
+        };
     },
 };
 

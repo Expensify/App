@@ -15,11 +15,11 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isActingAsDelegateSelector} from '@selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 
 import useOnyx from './useOnyx';
+import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 
 let hasRedirectedToAIFeaturesPromoModal = false;
 let observedActiveMigrationModalThisSession = false;
@@ -27,13 +27,13 @@ let observedActiveOnboardingThisSession = false;
 
 /**
  * Hook that navigates to the AI features promo modal if:
- * - The user is not acting as a delegate; and
+ * - The user is not in a supportal or copilot session; and
  * - The user has not dismissed the AI features promo modal; and
  * - The user has seen neither the migrated user welcome modal nor the onboarding modal in this session
  */
 function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isActingAsDelegate, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
     const [onboarding, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -67,13 +67,13 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
         observedActiveOnboardingThisSession = true;
     }, [hasCompletedOnboarding]);
 
-    const isAllOnyxLoaded = !isLoadingOnyxValue(isLoadingAppMetadata, accountMetadata, dismissedProductTrainingMetadata, tryNewDotMetadata, onboardingMetadata);
+    const isAllOnyxLoaded = !isLoadingOnyxValue(isLoadingAppMetadata, dismissedProductTrainingMetadata, tryNewDotMetadata, onboardingMetadata);
 
     const isEligible =
         isAllOnyxLoaded &&
         !!session?.authToken &&
         !isLoadingApp &&
-        !isActingAsDelegate &&
+        !shouldSuppressPromotionalUI &&
         !hasRedirectedToAIFeaturesPromoModal &&
         !isAIPromoModalDismissed &&
         !isMigrationModalPending &&

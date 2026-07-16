@@ -95,6 +95,7 @@ import {
     isSubmitAndClose,
 } from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
+import shouldSuppressPromotionalUI from '@libs/PromotionalUIUtils';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
@@ -7194,7 +7195,7 @@ function updatePolicyIdForReportAndThreads(
 }
 
 function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) {
-    if (isChangePolicyTrainingModalDismissed) {
+    if (isChangePolicyTrainingModalDismissed || shouldSuppressPromotionalUI()) {
         return;
     }
 

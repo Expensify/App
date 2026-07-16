@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
@@ -31,6 +32,7 @@ function TrackExpensePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const {isOffline} = useNetwork();
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [hasSeenTrackTraining, hasSeenTrackTrainingResult] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
     const isLoadingHasSeenTrackTraining = isLoadingOnyxValue(hasSeenTrackTrainingResult);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -49,7 +51,7 @@ function TrackExpensePage() {
                     draftTransactionIDs,
                 );
 
-                if (!hasSeenTrackTraining && !isOffline) {
+                if (!hasSeenTrackTraining && !isOffline && !shouldSuppressPromotionalUI) {
                     setTimeout(() => {
                         Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
                     }, CONST.ANIMATED_TRANSITION);

@@ -543,4 +543,16 @@ describe('OnboardingGuard', () => {
             expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
         });
     });
+
+    describe('supportal session', () => {
+        it('should return ALLOW and skip onboarding during a supportal session', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+    });
 });

@@ -1,6 +1,7 @@
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldSuppressPromotionalUI from '@libs/PromotionalUIUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
 import CONST from '@src/CONST';
@@ -44,6 +45,7 @@ function resetSessionFlag() {
  */
 function navigateToMigratedUserWelcomeModalIfReady() {
     if (
+        shouldSuppressPromotionalUI() ||
         !session?.authToken ||
         isLoadingApp ||
         hasRedirectedToMigratedUserModal ||
@@ -144,6 +146,10 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
         }
 
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
+            if (shouldSuppressPromotionalUI()) {
+                return {type: 'ALLOW'};
+            }
+
             Log.info('[MigratedUserWelcomeModalGuard] Redirecting to migrated user welcome modal');
             hasRedirectedToMigratedUserModal = true;
 

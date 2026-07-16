@@ -17,6 +17,7 @@ import {emailSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 import useOnyx from './useOnyx';
+import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -26,6 +27,7 @@ import useOnyx from './useOnyx';
 function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -87,7 +89,7 @@ function useOnboardingFlowRouter() {
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
-                if (isMigratedUser || isInvitedOrGroupMember) {
+                if (isMigratedUser || isInvitedOrGroupMember || shouldSuppressPromotionalUI) {
                     return;
                 }
 
@@ -137,6 +139,7 @@ function useOnboardingFlowRouter() {
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
         isOnboardingCompleted,
+        shouldSuppressPromotionalUI,
     ]);
 
     return {

@@ -116,6 +116,20 @@ describe('MigratedUserWelcomeModalGuard', () => {
         }
     });
 
+    it('should allow during a supportal session even when eligible for the migrated user welcome modal', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+        await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            nudgeMigration: {
+                timestamp: new Date(),
+                cohort: 'test',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should allow when modal has been dismissed', async () => {
         await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
             nudgeMigration: {
