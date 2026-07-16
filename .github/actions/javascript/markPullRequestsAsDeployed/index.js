@@ -13584,7 +13584,9 @@ class PromisePool {
      * wait for one to finish before starting another.
      */
     async add(task) {
-        if (this.executing.size >= this.concurrency) {
+        // Recheck after each wait: when many add() callers resume from the same
+        // Promise.race, only the first few should start; the rest must wait again.
+        while (this.executing.size >= this.concurrency) {
             await Promise.race(this.executing);
         }
         const p = task();
