@@ -1,15 +1,12 @@
 /**
  * Test-only replacement for `useSingleExecution` that calls the action synchronously and never
- * reports `isExecuting`. Use via:
+ * reports `isExecuting`. Applied globally for all tests in `jest/setupAfterEnv.ts`, so no test
+ * needs to mock it individually.
  *
- *   jest.mock('@hooks/useSingleExecution', () =>
- *       jest.requireActual<typeof import('.../mockUseSingleExecution')>('.../mockUseSingleExecution'),
- *   );
- *
- * in tests that press a button and assert on the resulting side effect, but aren't testing the
- * double-tap-prevention mechanism itself. That mechanism relies on real (non-fake) timers, via
- * `runAfterPredictedTransition`/`TransitionTracker`, to clear `isExecuting`, so it won't resolve
- * within a normal test's lifetime and would otherwise leave buttons stuck disabled.
+ * The real hook relies on real navigation transitions, via `runAfterPredictedTransition`/
+ * `TransitionTracker`, to clear `isExecuting`. Those don't happen in unit tests and would
+ * otherwise leave buttons stuck disabled - and pull in the navigation listener machinery just
+ * because a test renders a Pressable-based component (Button, MenuItem, etc.).
  */
 function useSingleExecution() {
     return {

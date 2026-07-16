@@ -21,14 +21,9 @@ import {getUnixTime, subDays} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import type * as MockUseSingleExecution from '../../utils/mockUseSingleExecution';
-
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-// This component presses buttons and asserts on the resulting side effects, not on the
-// double-tap-prevention mechanism itself (see tests/utils/mockUseSingleExecution.ts).
-jest.mock('@hooks/useSingleExecution', () => jest.requireActual<typeof MockUseSingleExecution>('../../utils/mockUseSingleExecution'));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),

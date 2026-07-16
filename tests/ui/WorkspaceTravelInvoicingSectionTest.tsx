@@ -20,8 +20,6 @@ import type {Policy} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import type * as MockUseSingleExecution from '../utils/mockUseSingleExecution';
-
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -33,10 +31,6 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // jest.mock() factories are hoisted and run before imports/variables are defined.
 // Therefore, they cannot reference variables like POLICY_ID or WORKSPACE_ACCOUNT_ID.
 // We use literal values that match the constants above.
-
-// This component presses buttons and asserts on the resulting side effects, not on the
-// double-tap-prevention mechanism itself (see tests/utils/mockUseSingleExecution.ts).
-jest.mock('@hooks/useSingleExecution', () => jest.requireActual<typeof MockUseSingleExecution>('../utils/mockUseSingleExecution'));
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
