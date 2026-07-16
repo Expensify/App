@@ -1564,7 +1564,7 @@ describe('actions/Policy', () => {
                 betas: undefined,
                 hasActiveAdminPolicies: false,
                 activePolicy: undefined,
-                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+                adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
             });
             await waitForBatchedUpdates();
 
@@ -1876,7 +1876,7 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
-                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+                adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
             });
             await waitForBatchedUpdates();
@@ -1916,7 +1916,7 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
-                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+                adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
             });
             await waitForBatchedUpdates();
@@ -1932,7 +1932,7 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
-                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+                adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
             });
             await waitForBatchedUpdates();
@@ -3334,6 +3334,7 @@ describe('actions/Policy', () => {
                 },
                 transactionViolations: {},
                 betas: [],
+                personalDetailsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3403,6 +3404,7 @@ describe('actions/Policy', () => {
                 },
                 transactionViolations: {},
                 betas: [],
+                personalDetailsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3415,6 +3417,7 @@ describe('actions/Policy', () => {
                 undefined,
                 undefined,
                 expect.anything(),
+                undefined,
                 expect.anything(),
             );
 
@@ -5930,6 +5933,7 @@ describe('actions/Policy', () => {
                 invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
                 currentUser: {accountID: ESH_ACCOUNT_ID},
                 reportActionsList: {},
+                doesPersonalDetailExistByAccountID: {},
             });
 
             // Then optimistic data should be generated
@@ -5993,6 +5997,7 @@ describe('actions/Policy', () => {
                 invitedEmailsToAccountIDs: {[existingMemberEmail]: existingMemberAccountID},
                 currentUser: {accountID: ESH_ACCOUNT_ID},
                 reportActionsList: {},
+                doesPersonalDetailExistByAccountID: {},
             });
 
             // Then the existing report should be reused (no new reportActionID)
@@ -6017,6 +6022,7 @@ describe('actions/Policy', () => {
                 invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
                 currentUser: {accountID: customAccountID},
                 reportActionsList: {},
+                doesPersonalDetailExistByAccountID: {},
             });
 
             // Find the optimistic report data
@@ -6053,6 +6059,7 @@ describe('actions/Policy', () => {
                 policyID,
                 invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
                 currentUser: {accountID: ESH_ACCOUNT_ID},
+                reportActionsList: {},
                 doesPersonalDetailExistByAccountID: {[newMemberAccountID]: true},
             });
             expect(getSuccessValue(existsResult)).toHaveProperty(participantPath, {});
@@ -6062,6 +6069,7 @@ describe('actions/Policy', () => {
                 policyID,
                 invitedEmailsToAccountIDs: {[newMemberEmail]: newMemberAccountID},
                 currentUser: {accountID: ESH_ACCOUNT_ID},
+                reportActionsList: {},
                 doesPersonalDetailExistByAccountID: {[newMemberAccountID]: false},
             });
             expect(getSuccessValue(missingResult)).toHaveProperty(participantPath, null);
