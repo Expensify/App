@@ -9193,10 +9193,11 @@ describe('actions/Report', () => {
                 CURRENT_USER_ACCOUNT_ID,
             );
 
-            // Then only the optimistic participant is marked for clean up
+            // Then only the optimistic participant is marked for clean up, and the settled login-less participant is reported
             expect(result).toEqual({
                 settledPersonalDetails: {[OPTIMISTIC_ACCOUNT_ID]: null},
                 redundantParticipants: {[OPTIMISTIC_ACCOUNT_ID]: null},
+                missingLoginParticipants: [SETTLED_ACCOUNT_ID],
             });
         });
 
@@ -9211,7 +9212,7 @@ describe('actions/Report', () => {
 
             const result = Report.prepareOnyxDataForCleanUpOptimisticParticipants(REPORT_ID, {[SETTLED_ACCOUNT_ID]: {accountID: SETTLED_ACCOUNT_ID}}, CURRENT_USER_ACCOUNT_ID);
 
-            expect(result).toEqual({settledPersonalDetails: {}, redundantParticipants: {}});
+            expect(result).toEqual({settledPersonalDetails: {}, redundantParticipants: {}, missingLoginParticipants: [SETTLED_ACCOUNT_ID]});
         });
 
         it('returns undefined when the report has no participants', async () => {
@@ -9264,6 +9265,7 @@ describe('actions/Report', () => {
             expect(result).toEqual({
                 settledPersonalDetails: {[OPTIMISTIC_ACCOUNT_ID]: null},
                 redundantParticipants: {[OPTIMISTIC_ACCOUNT_ID]: null},
+                missingLoginParticipants: [],
             });
         });
     });

@@ -412,6 +412,7 @@ describe('split expense', () => {
                         policyRecentlyUsedTags: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: mockPersonalDetails,
+                        delegateAccountID: undefined,
                         isTrackIntentUser: false,
                     },
                 );
@@ -748,6 +749,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -798,6 +800,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -822,6 +825,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -853,6 +857,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -889,6 +894,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -911,6 +917,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -977,6 +984,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -1028,6 +1036,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -1090,6 +1099,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -1141,6 +1151,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
+            delegateAccountID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1173,6 +1184,7 @@ describe('split expense', () => {
             transactionViolations: {},
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             sessionEmail: RORY_EMAIL,
         });
@@ -1317,6 +1329,7 @@ describe('split expense', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -1385,6 +1398,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: testPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -1447,6 +1461,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: participantPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -1517,6 +1532,7 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             participantsPolicyTags,
+            delegateAccountID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1585,6 +1601,7 @@ describe('split expense', () => {
             transactionViolations: {},
             betas: [CONST.BETAS.ALL],
             personalDetails: completeSplitPersonalDetails,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             sessionEmail: RORY_EMAIL,
         });
@@ -1632,6 +1649,7 @@ describe('startSplitBill', () => {
             quickAction: {},
             policyRecentlyUsedCurrencies: [],
             participantsPolicyTags,
+            delegateAccountID: undefined,
         });
 
         waitForBatchedUpdates();
@@ -1676,6 +1694,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
+            delegateAccountID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1723,6 +1742,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
+            delegateAccountID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -1839,6 +1859,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -1961,6 +1982,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -2095,6 +2117,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -2265,6 +2288,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -2328,6 +2352,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -2497,6 +2522,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -2607,6 +2633,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -2785,6 +2812,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports1.transactionReport,
             expenseReport: reports1.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -2922,6 +2950,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports2.transactionReport,
             expenseReport: reports2.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -3111,6 +3140,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -3293,6 +3323,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -3489,6 +3520,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -3708,6 +3740,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -3896,6 +3929,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -4033,6 +4067,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: true,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -4168,6 +4203,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -4352,6 +4388,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -4418,6 +4455,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -4678,6 +4716,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -4791,6 +4830,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -4868,6 +4908,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -4938,6 +4979,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -5013,6 +5055,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -5083,6 +5126,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
@@ -8074,5 +8118,54 @@ describe('createDistanceRequest', () => {
         expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
         const createdTransaction = Object.values(allTransactions ?? {}).at(0);
         expect(createdTransaction).toBeTruthy();
+    });
+});
+
+describe('startSplitBill delegateAccountID forwarding', () => {
+    const DELEGATE_ACCOUNT_ID = 999;
+
+    it('sets delegateAccountID on the split IOU action when delegateAccountID is provided', async () => {
+        const reportID = 'delegate-split-report';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            participants: {
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        });
+
+        const participants: IOUParticipant[] = [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}];
+        const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
+        const {splitTransactionID} = startSplitBill({
+            participants,
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            comment: 'test',
+            currency: CONST.CURRENCY.USD,
+            existingSplitChatReportID: reportID,
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            taxCode: '',
+            taxAmount: 0,
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+            participantsPolicyTags,
+            delegateAccountID: DELEGATE_ACCOUNT_ID,
+        });
+
+        await waitForBatchedUpdates();
+
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+        const splitIOUAction = Object.values(reportActions ?? {}).find(
+            (action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        );
+
+        expect(splitTransactionID).toBeTruthy();
+        expect(splitIOUAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
     });
 });

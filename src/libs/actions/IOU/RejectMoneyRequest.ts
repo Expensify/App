@@ -933,16 +933,12 @@ function rejectMoneyRequest(
     return urlToNavigateBack;
 }
 
-function markRejectViolationAsResolved(transactionID: string, isOffline: boolean, reportID?: string) {
+function markRejectViolationAsResolved(transactionID: string, isOffline: boolean, transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>, reportID?: string) {
     if (!reportID) {
         return;
     }
 
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
-
-    const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const currentViolations = transactionViolations;
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
 

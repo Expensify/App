@@ -22,11 +22,13 @@ export default function useShortMentionsList() {
         }
 
         const currentUserDomain = getEmailDomain(currentUserPersonalDetails.login ?? '');
-        const isCurrentUserPublicDomain = isDomainPublic(currentUserDomain);
+        if (isDomainPublic(currentUserDomain)) {
+            return [];
+        }
 
         return Object.values(personalDetails)
             .map((personalDetail) => {
-                if (!personalDetail?.login || isCurrentUserPublicDomain) {
+                if (!personalDetail?.login) {
                     return;
                 }
 
