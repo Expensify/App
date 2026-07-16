@@ -130,19 +130,29 @@ Deleting an agent can't be undone.
 
 ## How to delete multiple agents at once
 
-On web, you can select several agents from the **Agents** list and delete them together.
+You can select several agents from the **Agents** list and delete them together.
 
-1. In the navigation tabs, click **Account**.
-2. Click **Agents**.
-3. Select the checkbox next to each agent you want to delete.
-4. Click the button that shows the number of agents selected.
+**On web:**
+
+1. In the navigation tabs on the left, click **Account** > **Agents**.
+2. Select the checkbox next to each agent you want to delete.
+3. Click the button that shows the number of agents selected (for example, **2 selected**).
+4. Select **Delete agents**.
+5. Click **Delete** to confirm.
+
+**On mobile:**
+
+1. In the navigation tabs on the bottom, tap **Account** > **Agents**.
+2. Long-press an agent, then tap **Select** to enter selection mode.
+3. Select each additional agent you want to delete.
+4. Tap the button that shows the number of agents selected (for example, **2 selected**).
 5. Select **Delete agents**.
-6. Click **Delete** to confirm.
+6. Tap **Delete** to confirm.
 
 The selected agents are deleted and you stay on the **Agents** list. Deleting agents can't be undone.
 
 <!-- SCREENSHOT:
-Suggestion: The Agents page on web with row checkboxes selected and the selected-count button open showing the Delete agents option
+Suggestion: The Agents list with row checkboxes selected and the selected-count button open showing the Delete agents option
 Location: How to delete multiple agents at once
 Purpose: Shows where row selection and the bulk Delete agents action appear
 -->
