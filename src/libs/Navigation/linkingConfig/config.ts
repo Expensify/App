@@ -1817,10 +1817,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.route,
                             exact: true,
                         },
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT_SEARCH]: {
-                            path: ROUTES.SPLIT_EXPENSE_EDIT_SEARCH.route,
-                            exact: true,
-                        },
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
                             path: ROUTES.SPLIT_EXPENSE_EDIT.route,
                             exact: true,

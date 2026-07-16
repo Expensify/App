@@ -45,29 +45,23 @@ import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequ
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {policyTypeSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
-type SplitExpenseEditPageProps =
-    | PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT>
-    | PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT_SEARCH>;
+type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
-function SplitExpenseEditPage({route}: SplitExpenseEditPageProps) {
+function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
 
-    const {reportID, transactionID, splitExpenseTransactionID = ''} = route.params;
-    const splitExpenseOverviewRoute =
-        route.name === SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT_SEARCH
-            ? ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, transactionID, splitExpenseTransactionID)
-            : ROUTES.SPLIT_EXPENSE.getRoute(reportID, transactionID, splitExpenseTransactionID);
+    const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, undefined, [
@@ -309,7 +303,7 @@ function SplitExpenseEditPage({route}: SplitExpenseEditPageProps) {
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.splitExpenseEditTitle', convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency), merchantToDisplay)}
-                        onBackButtonPress={() => Navigation.goBack(splitExpenseOverviewRoute)}
+                        onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>
                         <MenuItemWithTopDescription
@@ -452,7 +446,7 @@ function SplitExpenseEditPage({route}: SplitExpenseEditPageProps) {
                                 text={translate('iou.removeSplit')}
                                 onPress={() => {
                                     removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
-                                    Navigation.goBack(splitExpenseOverviewRoute);
+                                    Navigation.goBack(backTo);
                                 }}
                                 pressOnEnter
                                 enterKeyEventListenerPriority={1}
@@ -474,7 +468,7 @@ function SplitExpenseEditPage({route}: SplitExpenseEditPageProps) {
                                     isSelfDMSplit,
                                     personalPolicy?.outputCurrency,
                                 );
-                                Navigation.goBack(splitExpenseOverviewRoute);
+                                Navigation.goBack(backTo);
                             }}
                             pressOnEnter
                             enterKeyEventListenerPriority={1}

@@ -125,11 +125,11 @@ function initSplitExpense(
 
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
         if (navigateToEditSplitExpense) {
+            const splitExpenseOverviewRoute = isSearchTopmostFullScreenRoute()
+                ? ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute())
+                : ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute());
             initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
-            const splitExpenseEditRoute = isSearchTopmostFullScreenRoute()
-                ? ROUTES.SPLIT_EXPENSE_EDIT_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID)
-                : ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, transaction.transactionID);
-            Navigation.navigate(splitExpenseEditRoute);
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, transaction.transactionID, splitExpenseOverviewRoute));
             return;
         }
         if (isSearchTopmostFullScreenRoute()) {

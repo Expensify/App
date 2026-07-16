@@ -1777,22 +1777,12 @@ const ROUTES = {
     },
     SPLIT_EXPENSE_EDIT: {
         route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
             if (!reportID || !originalTransactionID) {
                 Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
             }
 
-            return `edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}` as const;
-        },
-    },
-    SPLIT_EXPENSE_EDIT_SEARCH: {
-        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID/search',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID: string) => {
-            if (!reportID || !originalTransactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT_SEARCH route`);
-            }
-
-            return `edit/split-expense/overview/${reportID}/${originalTransactionID}/${splitExpenseTransactionID}/search` as const;
+            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {

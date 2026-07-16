@@ -74,7 +74,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -90,9 +90,7 @@ import {View} from 'react-native';
 
 import SplitList from './SplitList';
 
-type SplitExpensePageProps =
-    | PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>
-    | PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH>;
+type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
 const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding;
 
@@ -559,11 +557,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         KeyboardUtils.dismiss({
             afterTransition: () => {
                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
-                const splitExpenseEditRoute =
-                    route.name === SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH
-                        ? ROUTES.SPLIT_EXPENSE_EDIT_SEARCH.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID)
-                        : ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID);
-                Navigation.navigate(splitExpenseEditRoute);
+                Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
             },
         });
     };
