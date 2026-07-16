@@ -191,12 +191,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             return;
         }
 
-        if (selectedIntegration === 'other' && !otherIntegrationText.trim()) {
-            setError(translate('onboarding.errorSelection'));
-            return;
-        }
-
-        const integrationValue: OnboardingAccounting = selectedIntegration === 'other' ? otherIntegrationText.trim() : selectedIntegration;
+        const integrationValue: OnboardingAccounting = selectedIntegration === 'other' ? otherIntegrationText.trim() || selectedIntegration : selectedIntegration;
         setOnboardingAccountingEnabled(true);
         setOnboardingUserReportedIntegration(integrationValue);
         await completeOnboardingFlow({featuresMap: onboardingFeaturesMap ?? getDefaultOnboardingFeaturesMap(), userReportedIntegration: integrationValue});

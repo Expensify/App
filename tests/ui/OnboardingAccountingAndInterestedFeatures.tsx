@@ -146,7 +146,7 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
-    it('requires a custom name for Other and completes direct accounting access with fallback features', async () => {
+    it('allows Other without a custom name and completes direct accounting access with fallback features', async () => {
         renderAccountingPage();
 
         await waitForBatchedUpdatesWithAct();
@@ -154,7 +154,20 @@ describe('Onboarding interested features and accounting pages', () => {
 
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-        expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
+
+        await waitFor(() => {
+            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
+                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
+                userReportedIntegration: 'other',
+            });
+        });
+    });
+
+    it('saves the custom name when provided for Other', async () => {
+        renderAccountingPage();
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
 
         fireEvent.changeText(screen.UNSAFE_getByType(TextInput), 'Wave');
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
