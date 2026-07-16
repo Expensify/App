@@ -7,7 +7,10 @@ import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBan
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -32,6 +35,8 @@ jest.mock('@userActions/ReimbursementAccount', () => ({
     updateReimbursementAccountDraft: jest.fn(),
 }));
 
+const Stack = createStackNavigator();
+
 describe('BankAccountPurpose CountrySelection', () => {
     const mockedCountrySelectionList = jest.mocked(CountrySelectionList);
     const mockedClearReimbursementAccount = jest.mocked(clearReimbursementAccount);
@@ -43,6 +48,7 @@ describe('BankAccountPurpose CountrySelection', () => {
     let mockUnmountCount = 0;
 
     beforeEach(() => {
+        jest.useFakeTimers();
         mockMountCount = 0;
         mockUnmountCount = 0;
         mockedCountrySelectionList.mockClear();
@@ -63,8 +69,17 @@ describe('BankAccountPurpose CountrySelection', () => {
         });
     });
 
-    it('keeps the child list mounted while persisting the selected country and navigating', () => {
-        render(<CountrySelection />);
+    it('keeps the child list mounted while persisting the selected country and navigating', async () => {
+        render(
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen
+                        name={SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE}
+                        component={CountrySelection}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>,
+        );
 
         const initialProps = mockedCountrySelectionList.mock.lastCall?.[0];
         expect(mockMountCount).toBe(1);
@@ -79,8 +94,10 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
 
-        act(() => {
+        // Async act flushes the microtask after usePressLoading's deferring await, so the deferred actions run before the assertions.
+        await act(async () => {
             updatedSelectionProps?.onConfirm();
+            jest.runOnlyPendingTimers();
         });
 
         expect(mockedClearReimbursementAccount).toHaveBeenCalled();
@@ -89,5 +106,9 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 });

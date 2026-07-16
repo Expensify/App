@@ -1,4 +1,4 @@
-import {isAmountFilterKey, isDateFilterKey, isTextFilterKey} from '@libs/SearchUIUtils';
+import {getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -8,7 +8,6 @@ import React from 'react';
 
 import type {FilterComponentsProps} from '..';
 import type {AmountFilterContentProps} from './AmountFilterContent';
-import type {CommonFilterContentProps} from './CommonFilterContent';
 import type {DateFilterContentProps} from './DateFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
 import type {TextInputFilterContentProps} from './TextInputFilterContent';
@@ -17,11 +16,10 @@ type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'fil
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
 type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'filterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
-type CommonFilterContentWrapperProps = Omit<CommonFilterContentProps, 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'>;
+type CommonFilterContentWrapperProps = Omit<FilterComponentsProps, 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'>;
 type SearchAdvancedFiltersContentProps = {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
-    policyIDQuery: string[] | undefined;
     ready?: boolean;
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
@@ -39,7 +37,7 @@ function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filter
     return update;
 }
 
-function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
+function SearchAdvancedFiltersContent({filterKey, values, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
     const {Text: TextFilter, Amount: AmountFilter, Date: DateFilter, ReportField: ReportFieldFilter, Common: CommonFilter} = components;
 
     if (isTextFilterKey(filterKey)) {
@@ -112,8 +110,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
             filterKey={filterKey}
             value={values?.[filterKey]}
             type={values?.type}
-            policyIDs={values?.policyID}
-            policyIDQuery={policyIDQuery}
+            policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
             ready={ready}
             onChange={(newValue) => onChange(getFilterFormValue(filterKey, newValue))}
         />

@@ -16,8 +16,8 @@ import Onyx from 'react-native-onyx';
 
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import isTrackOnboardingChoice from './OnboardingUtils';
-import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {isTrackOnboardingChoice} from './OnboardingUtils';
+import {deprecatedGetLoginsByAccountIDs, deprecatedGetPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
     getDisplayNameForParticipant,
@@ -63,7 +63,7 @@ type BuildNextStepNewParams = {
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -91,7 +91,7 @@ function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
     return (report?.transactionCount ?? 0) > 0;
 }
 
-function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+function buildOptimisticNextStep(params: BuildNextStepNewParams & {isTrackIntentUser: boolean | undefined}): ReportNextStep | null {
     const {
         report,
         policy,
@@ -105,6 +105,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isReopen,
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
+        isTrackIntentUser,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -156,7 +157,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -220,7 +221,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: shouldShowMarkAsDone({
-                        isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                        isTrackIntentUser,
                         report,
                         policy,
                     })
@@ -380,48 +381,10 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
-/**
- * Canonical mapping from a new-format next-step messageKey to the report status(es) that message can legitimately
- * describe (derived from the branches of buildOptimisticNextStep above). It is used to detect when a stored
- * report.nextStep has gone stale relative to report.statusNum.
- *
- * Only keys with an unambiguous, client-derivable status are listed. Keys that can describe more than one status
- * (e.g. WAITING_TO_PAY at SUBMITTED under an optional policy vs. at APPROVED, or NO_FURTHER_ACTION) are intentionally
- * omitted, as are server-only keys used by external/DEW workflows (e.g. WAITING_FOR_PAYMENT, WAITING_TO_EXPORT). For
- * those keys we never infer staleness, so recompute stays scoped to clean, unambiguous mismatches only.
- */
-const NEXT_STEP_MESSAGE_KEY_TO_STATUS: Partial<Record<ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>, ValueOf<typeof CONST.REPORT.STATUS_NUM>>> = {
-    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: CONST.REPORT.STATUS_NUM.SUBMITTED,
-    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: CONST.REPORT.STATUS_NUM.APPROVED,
-};
-
-/**
- * A report.nextStep coming from the server is stale when its messageKey implies a report status that no longer matches
- * report.statusNum. This happens for non-actor viewers because the report push refreshes report.statusNum (and stateNum)
- * for every client, but only refreshes report.nextStep for the actor who performed the action (e.g. a submitter watching
- * an approver approve keeps seeing "Waiting to approve" even though statusNum has already flipped to APPROVED). We only
- * report staleness when the messageKey maps to a single, unambiguous status so we never second-guess external/DEW or
- * multi-status ("Waiting to pay", "No further action") messages the client can't safely reconstruct.
- */
-function isReportNextStepStale(reportNextStep: ReportNextStep | undefined, statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> | undefined): boolean {
-    if (!reportNextStep || statusNum === undefined) {
-        return false;
-    }
-    const impliedStatus = NEXT_STEP_MESSAGE_KEY_TO_STATUS[reportNextStep.messageKey];
-    if (impliedStatus === undefined) {
-        return false;
-    }
-    return impliedStatus !== statusNum;
-}
-
 function getReportNextStep(
     currentNextStep: ReportNextStepDeprecated | undefined,
     moneyRequestReport: OnyxEntry<Report>,
+    moneyRequestReportOwnerLogin: string | undefined,
     transactions: Array<OnyxEntry<Transaction>>,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolations>,
@@ -439,7 +402,9 @@ function getReportNextStep(
         isOpenExpenseReport(moneyRequestReport) &&
         transactions.length > 0 &&
         transactions.every(
-            (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
+            (transaction) =>
+                !!transaction &&
+                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
@@ -471,32 +436,7 @@ function getReportNextStep(
         return reportNextStep;
     }
 
-    // The report push refreshes report.statusNum for every client, but only refreshes report.nextStep (and the
-    // deprecated reportNextStep_* collection) for the actor who performed the action. So a non-actor viewer (e.g. a
-    // submitter watching an approver approve) receives a fresh statusNum while both stored next-step values stay on the
-    // pre-action message. When the report-embedded next step's messageKey implies a status that no longer matches the
-    // pushed statusNum, recompute the step from statusNum so the viewer's "What's next" bar tracks the report in real
-    // time. buildOptimisticNextStep is a pure function of the report/policy/status, so it produces the same value the
-    // server will eventually send. We only recompute on a detected, unambiguous mismatch, leaving external/DEW and
-    // multi-status messages (handled elsewhere or non-derivable on the client) untouched.
-    if (isReportNextStepStale(reportNextStep, moneyRequestReport?.statusNum)) {
-        const recomputedNextStep = buildOptimisticNextStep({
-            report: moneyRequestReport,
-            policy,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserEmail,
-            hasViolations: false,
-            isASAPSubmitBetaEnabled: false,
-            predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-        });
-        if (recomputedNextStep) {
-            return recomputedNextStep;
-        }
-    }
-
-    // Otherwise prefer the report-embedded value (kept in sync with statusNum for the actor, and consistent for the
-    // viewer once it isn't stale) and keep the deprecated value only as a fallback while the migration is in progress.
-    return reportNextStep ?? currentNextStep;
+    return currentNextStep;
 }
 function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {
     const optimisticNextStep: ReportNextStepDeprecated = {
@@ -564,7 +504,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isRejectedReport,
         bypassNextApproverID,
     } = params;
-
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -573,7 +512,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const [policyOwnerPersonalDetails, ownerPersonalDetails] = deprecatedGetPersonalDetailsByIDs({
         accountIDs: [policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
         currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
@@ -591,7 +531,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
         : getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
-    const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const approvers = deprecatedGetLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const type: ReportNextStepDeprecated['type'] = 'neutral';
