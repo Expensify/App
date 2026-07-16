@@ -1,10 +1,8 @@
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
-import {isTabNavigatorMounted, whenTabNavigatorReady} from '@libs/Navigation/helpers/tabNavigatorReadiness';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -27,22 +25,10 @@ Onyx.connectWithoutView({
 /**
  * Rules for dropping a deep link that would re-navigate to a screen the user is already on.
  */
-const skipRules: ReadonlyArray<{
-    urlMatcher: RegExp;
-    focusedScreens: readonly string[];
-}> = [
-    {
-        urlMatcher: /\/distance-gps(\?|$)/,
-        focusedScreens: [ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route],
-    },
-    {
-        urlMatcher: /\/scan(\?|$)/,
-        focusedScreens: [ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route],
-    },
-    {
-        urlMatcher: /\/manual(\?|$)/,
-        focusedScreens: [ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route],
-    },
+const skipRules: ReadonlyArray<{urlMatcher: RegExp; focusedScreens: readonly string[]}> = [
+    {urlMatcher: /\/distance-gps(\?|$)/, focusedScreens: [ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route]},
+    {urlMatcher: /\/scan(\?|$)/, focusedScreens: [ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route]},
+    {urlMatcher: /\/manual(\?|$)/, focusedScreens: [ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route]},
     {
         urlMatcher: /\/distance-new(\/|\?|$)/,
         focusedScreens: [
@@ -76,6 +62,7 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             continuePlaidOAuth(url);
             return;
         }
+
         // When the user is signed out, a public-room (report) deeplink is handled by
         // DeepLinkHandler → openReportFromDeepLink(), which opens the room as an anonymous user once the
         // session establishes the protected (auth) routes. Forwarding the same URL to React Navigation
@@ -88,16 +75,6 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             return;
         }
 
-        // TAB_NAVIGATOR is declared on the root navigator before its lazily-loaded child router
-        // mounts. Forwarding the URL during that window dispatches a NAVIGATE that no navigator can
-        // handle, so the deep link is silently dropped. Defer (don't drop) until the tab router
-        // mounts. On public screens TAB_NAVIGATOR isn't declared, so we forward immediately.
-        const rootState = navigationRef.current?.getRootState();
-        const isTabNavigatorDeclared = !!rootState?.routeNames?.includes(NAVIGATORS.TAB_NAVIGATOR);
-        if (isTabNavigatorDeclared && !isTabNavigatorMounted()) {
-            whenTabNavigatorReady().then(() => listener(url));
-            return;
-        }
         listener(url);
     });
     return () => subscription.remove();
