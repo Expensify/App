@@ -111,7 +111,7 @@ After a rule is created, you can review, change, or remove it.
 
 1. Go to **Workspaces > [Workspace Name] > Rules**.
 2. Locate the card's Spend Rule.
-3. Select the rule to update its permitted currencies, max amount, merchants, or merchant types.
+3. Select the rule to update its permitted currencies, max amount, merchants, or merchant types or mode.
 4. Click **Save rule**.
 
 To remove a rule: 
