@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
@@ -87,6 +88,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isFocused = useIsFocused();
 
     useDismissOnMoneyRequestReportRemoval(reportIDFromRoute);
@@ -207,6 +209,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 betas,
                 iouReport: report,
                 iouReportAction: iouAction,
+                personalDetails,
             });
             return;
         }
@@ -283,6 +286,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             iouReport: report,
             transaction,
             transactionViolations: violations,
+            personalDetails,
         });
     }, [
         allReportTransactions,
@@ -291,6 +295,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         currentUserEmail,
         currentUserAccountID,
         betas,
+        personalDetails,
         report,
         reportActions,
         reportIDFromRoute,

@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
     IntroSelected,
+    PersonalDetailsList,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -135,6 +136,18 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
         introSelected = value;
+    },
+});
+
+/**
+ * Only for use in this non-React module; React code should read the list via
+ * `useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST)` and pass it down instead.
+ */
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        allPersonalDetails = value;
     },
 });
 
@@ -271,6 +284,7 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
+            personalDetails: allPersonalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
         });
