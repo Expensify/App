@@ -515,7 +515,7 @@ function getRequireFieldsPendingActionForCategory(category: PolicyCategory): Pen
 
 function getRequireFieldsRuleValidationError(
     form: RequireFieldsRuleForm | null | undefined,
-    _category: PolicyCategory | undefined,
+    category: PolicyCategory | undefined,
     translate: LocaleContextProps['translate'],
     isEditing: boolean,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
@@ -529,8 +529,10 @@ function getRequireFieldsRuleValidationError(
         return '';
     }
 
-    const hasSelectedField = !!touchedFields && [...touchedFields].some((fieldKey) => !clearedFields?.has(fieldKey));
-    if (!hasSelectedField) {
+    // Description/attendees "Don't require" only clears a required flag and cannot create a
+    // waive rule. Require a selection that would actually persist (Require, or a receipt waive).
+    const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
+    if (!hasRequireFieldsRuleChanges(category, effectiveForm, touchedFields, clearedFields)) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorDoNotRequireField');
     }
 

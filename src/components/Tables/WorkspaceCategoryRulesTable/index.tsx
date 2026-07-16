@@ -56,6 +56,7 @@ function WorkspaceCategoryRulesTableImpl({
     ruleColumnLabel,
     emptyState,
     renderRow,
+    typeColumnWidth = variables.tableTypeColumnWidth,
 }: WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>) {
     const {localeCompare} = useLocalize();
     const styles = useThemeStyles();
