@@ -7,7 +7,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
 import Tooltip from '@components/Tooltip';
 
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
