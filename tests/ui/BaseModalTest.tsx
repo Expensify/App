@@ -1,6 +1,9 @@
 import {render} from '@testing-library/react-native';
 
+import type BaseModalComponent from '@components/Modal/BaseModal';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
+
+import type * as ModalActions from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
@@ -24,7 +27,7 @@ describe('BaseModal', () => {
                 return null;
             },
         }));
-        const BaseModal = (require('@components/Modal/BaseModal') as {default: React.ComponentType<Record<string, unknown>>}).default;
+        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
 
         render(
             <BaseModal
@@ -38,8 +41,11 @@ describe('BaseModal', () => {
 
         const initialFocus = captured?.initialFocus;
         expect(typeof initialFocus).toBe('function');
+        if (typeof initialFocus !== 'function') {
+            throw new Error('Expected initialFocus to be a function');
+        }
         // dismiss button never mounted -> ref.current is null -> the getter resolves to false (no crash)
-        expect((initialFocus as () => unknown)()).toBe(false);
+        expect(initialFocus()).toBe(false);
     });
 
     it.each([
@@ -53,7 +59,7 @@ describe('BaseModal', () => {
         // Keep the component under test on the same React instance as the renderer after jest.resetModules().
         jest.doMock('react', () => React);
         jest.doMock('@userActions/Modal', () => ({
-            ...jest.requireActual<typeof import('@userActions/Modal')>('@userActions/Modal'),
+            ...jest.requireActual<typeof ModalActions>('@userActions/Modal'),
             areAllModalsHidden: jest.fn(() => true),
             onModalDidClose: jest.fn(),
             setModalVisibility: jest.fn(),
@@ -66,11 +72,7 @@ describe('BaseModal', () => {
                 return null;
             },
         }));
-        const BaseModal = (
-            require('@components/Modal/BaseModal') as {
-                default: React.ComponentType<Record<string, unknown>>;
-            }
-        ).default;
+        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
 
         const {unmount} = render(
             <BaseModal
