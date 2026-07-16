@@ -16,14 +16,14 @@ import {View} from 'react-native';
 const SECURE_ORIGIN = new URL(CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL).origin;
 
 type CardAuthenticationViewProps = {
-    /** Called when the iframe posts a successful 3DS completion message. */
-    onSuccess: () => void;
+    /** Called when the iframe reports the 3DS challenge finished, regardless of outcome — the message carries no success/failure flag. */
+    onAuthenticationComplete: () => void;
 
-    /** Called after onSuccess to close the surface owning this view. */
+    /** Called after onAuthenticationComplete to close the surface owning this view. */
     onClose: () => void;
 };
 
-function CardAuthenticationView({onSuccess, onClose}: CardAuthenticationViewProps) {
+function CardAuthenticationView({onAuthenticationComplete, onClose}: CardAuthenticationViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
@@ -37,7 +37,7 @@ function CardAuthenticationView({onSuccess, onClose}: CardAuthenticationViewProp
         if (event.data !== CONST.SCA_AUTHENTICATION_COMPLETE) {
             return;
         }
-        onSuccess();
+        onAuthenticationComplete();
         onClose();
     };
 

@@ -26,7 +26,9 @@ function DynamicCardAuthenticationPage({route}: DynamicCardAuthenticationPagePro
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
     const policyID = route.params?.policyID;
 
-    const onSuccess = () => {
+    // Runs on every challenge outcome (the iframe message carries no success/failure flag); the verify call is what
+    // fetches the real result — success closes the add-card form via setupComplete, failure surfaces its error there.
+    const verifyAuthenticationResult = () => {
         if (policyID) {
             verifySetupIntentAndRequestPolicyOwnerChange(policyID, currentUserAccountID, currentUserEmail);
             return;
@@ -50,7 +52,7 @@ function DynamicCardAuthenticationPage({route}: DynamicCardAuthenticationPagePro
                 shouldDisplayHelpButton={false}
             />
             <CardAuthenticationView
-                onSuccess={onSuccess}
+                onAuthenticationComplete={verifyAuthenticationResult}
                 onClose={onClose}
             />
         </ScreenWrapper>
