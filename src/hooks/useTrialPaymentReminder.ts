@@ -1,3 +1,7 @@
+/**
+ * Determines whether the trial payment reminder modal is eligible to show and which variant/countdown
+ * to display, based on the user's free-trial dates, payment-card status, and prior dismissals.
+ */
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';
 
 import {setNameValuePair} from '@userActions/User';
@@ -145,7 +149,7 @@ function isSameVariation(a: TrialReminderVariation | null, b: TrialReminderVaria
 function useTrialPaymentReminder() {
     const [firstDayFreeTrial, firstDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const [billingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [billingFundID, billingFundIDResult] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [dismissedTimestamp, dismissedTimestampResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER);
 
     const [readinessState, setReadinessState] = useState<ReadinessState>(READINESS_STATE.LOADING);
@@ -218,6 +222,9 @@ function useTrialPaymentReminder() {
         if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
             return false;
         }
+        if (isLoadingOnyxValue(billingFundIDResult)) {
+            return false;
+        }
         if (doesUserHavePaymentCardAdded(billingFundID)) {
             return false;
         }
@@ -238,7 +245,7 @@ function useTrialPaymentReminder() {
             }
         }
         return true;
-    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult]);
+    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, billingFundIDResult, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult]);
 
     // Run the 1s countdown only while the countdown modal is actually eligible to show, so we don't tick every
     // second in the background when it isn't rendered.

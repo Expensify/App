@@ -4,8 +4,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CountdownTime, TrialReminderVariant} from '@hooks/useTrialPaymentReminder';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -55,7 +53,7 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
             innerContainerStyle={styles.pv0}
             shouldHandleNavigationBack
         >
-            <View style={[styles.alignItemsCenter, styles.wAuto, {backgroundColor: colors.blue800, height: CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}, styles.pb7]}>
+            <View style={[styles.alignItemsCenter, styles.wAuto, styles.trialReminderIllustrationContainer, styles.pb7]}>
                 <ImageSVG
                     src={illustrations.ArmWithCardPos}
                     contentFit="contain"
