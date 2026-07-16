@@ -933,7 +933,7 @@ const CONST = {
                 PROOF_OF_DIRECTORS: 'proofOfDirectors',
                 COPY_OF_ID: 'signerCopyOfID',
                 ADDRESS_PROOF: 'signerAddressProof',
-                CODICE_FISCALE: 'signerCodiceFiscale',
+                CODICE_FISCALE: 'signerCodiceFiscaleTaxID',
                 DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
