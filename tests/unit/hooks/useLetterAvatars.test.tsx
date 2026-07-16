@@ -4,7 +4,7 @@ import useLetterAvatars from '@hooks/useLetterAvatars';
 
 import {LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 
-const mockCurrentUserPersonalDetails = jest.fn<{firstName?: string; lastName?: string; login?: string}, []>();
+const mockCurrentUserPersonalDetails = jest.fn<{firstName?: string; lastName?: string; login?: string; email?: string}, []>();
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => mockCurrentUserPersonalDetails());
 
 describe('useLetterAvatars', () => {
@@ -28,6 +28,19 @@ describe('useLetterAvatars', () => {
             expect(option.id).toBe(schemeKey);
             expect(option.colors).toEqual(schemeKey ? LETTER_AVATAR_SCHEMES[schemeKey] : undefined);
         }
+    });
+
+    it('falls back to the session email when personal details lack a login', () => {
+        mockCurrentUserPersonalDetails.mockReturnValue({
+            firstName: '',
+            lastName: '',
+            email: 'sofia@example.com',
+        });
+
+        const {result} = renderHook(() => useLetterAvatars());
+
+        expect(result.current.initials).toBe('S');
+        expect(result.current.options).toHaveLength(LETTER_AVATAR_COLOR_KEYS.length);
     });
 
     it('uses a single initial when there is only a first name', () => {

@@ -205,17 +205,6 @@ function isCatalogAvatar(avatarSource?: AvatarSource): avatarSource is string {
 }
 
 /**
- * Determines if an avatar source is a user-uploaded image, as opposed to a default,
- * catalog, or generated letter avatar.
- *
- * @param avatarSource - The avatar source to check
- * @returns True if the avatar is a user-uploaded image
- */
-function isUploadedAvatar(avatarSource?: AvatarSource): avatarSource is string {
-    return typeof avatarSource === 'string' && avatarSource !== '' && !isDefaultAvatar(avatarSource) && !isCatalogAvatar(avatarSource) && !isGeneratedLetterAvatarURL(avatarSource);
-}
-
-/**
  * Determines if an avatar is a letter avatar based on its original filename.
  * Letter avatars follow the pattern: letter-avatar-#RRGGBB-#RRGGBB-X.png
  * where RRGGBB are hex colors and X is a letter.
@@ -477,6 +466,5 @@ export {
     isDefaultAvatar,
     isGeneratedLetterAvatarURL,
     isLetterAvatar,
-    isUploadedAvatar,
 };
 export type {AvatarSource};

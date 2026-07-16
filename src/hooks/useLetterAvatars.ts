@@ -24,8 +24,9 @@ type LetterAvatarsResult = {
  * Returns the current user's letter-avatar initials and one selectable option per palette color scheme.
  */
 function useLetterAvatars(): LetterAvatarsResult {
-    const {firstName, lastName, login} = useCurrentUserPersonalDetails();
-    const initials = getLetterAvatarInitials(firstName ?? '', lastName ?? '', login ?? '');
+    const {firstName, lastName, login, email} = useCurrentUserPersonalDetails();
+    const initialsLogin = login?.length ? login : email;
+    const initials = getLetterAvatarInitials(firstName ?? '', lastName ?? '', initialsLogin ?? '');
 
     if (initials === '') {
         return {initials, options: []};
