@@ -1,8 +1,12 @@
-import {use} from 'react';
-import type {AccessibilityState} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
-import PressResponderContext from './PressResponderContext';
+
+import type {AccessibilityState} from 'react-native';
+
+import {use} from 'react';
+
 import type {AccessibilityHasPopup, SecondaryInteractionHandler} from './PressResponderContext';
+
+import PressResponderContext from './PressResponderContext';
 
 /** `ref` is intentionally not here — pass it to `useResponderRef` so React Compiler can verify ref flow narrowly. */
 type ConsumablePressProps = {

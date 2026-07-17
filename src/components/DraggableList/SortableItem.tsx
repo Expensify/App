@@ -1,8 +1,11 @@
+import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
+
+import CONST from '@src/CONST';
+
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import React, {useEffect, useLayoutEffect} from 'react';
-import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
-import CONST from '@src/CONST';
+
 import type {SortableItemProps} from './types';
 
 const PRESSABLE_SELECTOR = '[data-tag="pressable"]';

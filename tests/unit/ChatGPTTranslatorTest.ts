@@ -3,6 +3,7 @@
  */
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import ChatGPTTranslator from '@scripts/utils/Translator/ChatGPTTranslator';
+
 import type Locale from '@src/types/onyx/Locale';
 
 jest.mock('@scripts/utils/OpenAIUtils');

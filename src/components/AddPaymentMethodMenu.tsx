@@ -1,23 +1,29 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import type {RefObject} from 'react';
-import React, {useEffect, useState} from 'react';
-import type {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {completePaymentOnboarding} from '@libs/actions/IOU/PayMoneyRequest';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isIOUReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect, useState} from 'react';
+
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
+
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuProps = {

@@ -1,7 +1,10 @@
-import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovered'> & {

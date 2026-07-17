@@ -1,5 +1,6 @@
-import {useState} from 'react';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
+import {useState} from 'react';
 
 const useHover = () => {
     const [hovered, setHovered] = useState(false);

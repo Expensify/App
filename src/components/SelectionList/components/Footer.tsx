@@ -1,8 +1,10 @@
-import React from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 type FooterProps<TItem extends ListItem> = {
     footerContent?: React.ReactNode;
@@ -12,7 +14,14 @@ type FooterProps<TItem extends ListItem> = {
 
 function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, addBottomSafeAreaPadding = false}: FooterProps<TItem>) {
     const styles = useThemeStyles();
-    const {showButton: showConfirmButton, text: confirmButtonText, onConfirm, style: confirmButtonStyle, isDisabled: isConfirmButtonDisabled} = confirmButtonOptions ?? {};
+    const {
+        showButton: showConfirmButton,
+        text: confirmButtonText,
+        onConfirm,
+        style: confirmButtonStyle,
+        isDisabled: isConfirmButtonDisabled,
+        confirmButtonSize = 'large',
+    } = confirmButtonOptions ?? {};
     if (footerContent) {
         return (
             <FixedFooter
@@ -32,7 +41,9 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, ad
             >
                 <Button
                     success
-                    large
+                    large={confirmButtonSize === 'large'}
+                    medium={confirmButtonSize === 'medium'}
+                    small={confirmButtonSize === 'small'}
                     style={[styles.w100, confirmButtonStyle]}
                     text={confirmButtonText}
                     onPress={onConfirm}

@@ -1,4 +1,5 @@
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+
 import usePolicyIndicatorChecks from './usePolicyIndicatorChecks';
 import useTheme from './useTheme';
 

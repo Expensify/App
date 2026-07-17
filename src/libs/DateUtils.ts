@@ -1,3 +1,12 @@
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
+import type Locale from '@src/types/onyx/Locale';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+
+import type {ValueOf} from 'type-fest';
+
 import {
     addDays,
     addHours,
@@ -32,12 +41,7 @@ import {
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import throttle from 'lodash/throttle';
-import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
-import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
-import type Locale from '@src/types/onyx/Locale';
-import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+
 import {setCurrentDate} from './actions/CurrentDate';
 import {translate as translateLocalize} from './Localize';
 import Log from './Log';

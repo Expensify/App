@@ -1,13 +1,10 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,15 +16,26 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask} from '@libs/actions/Task';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TaskListItemType} from './types';
+
 import AvatarWithTextCell from './AvatarWithTextCell';
 import DateCell from './DateCell';
-import type {TaskListItemType} from './types';
 import UserInfoCell from './UserInfoCell';
 
 type TaskListItemRowProps = {

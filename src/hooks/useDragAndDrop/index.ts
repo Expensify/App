@@ -1,6 +1,8 @@
+import {usePopoverActions} from '@components/PopoverProvider';
+
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {usePopoverActions} from '@components/PopoverProvider';
+
 import type UseDragAndDrop from './types';
 
 const COPY_DROP_EFFECT = 'copy';

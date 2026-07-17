@@ -1,9 +1,12 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect} from 'react';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
+
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect} from 'react';
 
 /**
  * Module-level: tracks the last URL query signature that was synced into the

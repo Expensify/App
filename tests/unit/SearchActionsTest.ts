@@ -1,11 +1,10 @@
 import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
-
-const EXPENSE_STATUS_ALL = CONST.SEARCH.STATUS.EXPENSE.ALL;
 
 jest.mock('@libs/API');
 jest.mock('@libs/Network/enhanceParameters', () => ({
@@ -35,7 +34,6 @@ describe('queueExportSearchItemsToCSV', () => {
 
     it('sets optimistic Onyx data with state preparing and returns exportID', () => {
         const exportID = queueExportSearchItemsToCSV({
-            query: EXPENSE_STATUS_ALL,
             jsonQuery: '{}',
             reportIDList: [],
             transactionIDList: [],

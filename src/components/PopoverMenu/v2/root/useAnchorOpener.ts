@@ -1,7 +1,10 @@
-import {useRef} from 'react';
 import type {View} from 'react-native';
-import {useRootActions} from './RootContext';
+
+import {useRef} from 'react';
+
 import type {AnchorRect, AnchorRef} from './RootContext';
+
+import {useRootActions} from './RootContext';
 
 type UseAnchorOpenerResult = {
     ref: AnchorRef;

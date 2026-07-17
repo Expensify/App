@@ -1,5 +1,6 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import variables from '@styles/variables';
 
 function useReceiptPreviewsSizes(isInLandscapeMode: boolean) {

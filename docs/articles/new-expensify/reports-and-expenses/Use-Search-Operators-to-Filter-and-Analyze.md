@@ -19,6 +19,18 @@ Anyone can use search operators when filtering data in features like expenses, r
 
 ---
 
+## Where to enter search operators in Expensify
+
+Enter search operators in the search bar that opens from the **Search** icon.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
+2. Select the **Search** icon in the top-right corner.
+3. Type your query using search operators. Start typing after `:` to see autocomplete suggestions.
+
+The search bar on the **Spend** page filters your current results by keyword only. Anything you type there is matched as a keyword, even if it looks like an operator. To filter with operators, open the search bar from the **Search** icon.
+
+---
+
 ## How to build a search query with search operators
 
 Use these core rules to create your searches:
@@ -60,6 +72,7 @@ You can use the following operators to filter expenses:
 - `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`. Also supports comparisons (`date>=2024-01-01 date<=2024-01-31`) for date ranges
 - `has:` – attachment, receipt, category, tag
 - `expense-type:` – cash, card, distance, per-diem
+- `receipt-type:` – ereceipt, itemized, hotel
 - `reimbursable:` and `billable:` – yes or no
 - `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
@@ -83,6 +96,7 @@ You can use the following operators to filter reports:
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
+- `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
 - `action:` – blocking report action, e.g. `action:approve`
 
 **Example query:**
@@ -214,4 +228,3 @@ If the search operator isn’t recognized, the system will ignore it and return 
 ## Do I need to use quotes for everything?
 
 Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
-

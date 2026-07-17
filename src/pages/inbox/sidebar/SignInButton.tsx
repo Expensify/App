@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function SignInButton() {
     const styles = useThemeStyles();
@@ -18,7 +22,7 @@ function SignInButton() {
             onPress={() => signOutAndRedirectToSignIn()}
             sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
         >
-            <View style={(styles.signInButtonAvatar, styles.ph2)}>
+            <View style={[styles.signInButtonAvatar, styles.ph2]}>
                 <Button
                     success
                     text={translate('common.signIn')}

@@ -1,16 +1,22 @@
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isProcessingReport} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Icon from './Icon';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
@@ -119,10 +125,11 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.PENDING_TRANSACTIONS) {
+        const pendingDescription = transactions.length <= 1 ? translate('iou.transactionPendingDescription') : translate('iou.allTransactionsPendingNextStep');
         return (
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.CreditCardHourglass)}
-                description={translate('iou.allTransactionsPendingNextStep')}
+                description={pendingDescription}
             />
         );
     }

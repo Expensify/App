@@ -1,5 +1,7 @@
 import type {ComponentType} from 'react';
+
 import {useCallback, useMemo, useRef, useState} from 'react';
+
 import type {SubStepProps, UseSubStep} from './types';
 
 function calculateLastIndex(bodyContentLength: number, skipSteps: number[] = []) {

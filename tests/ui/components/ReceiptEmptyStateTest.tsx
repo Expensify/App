@@ -1,8 +1,12 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+
 import {translateLocal} from '../../utils/TestHelper';
 
 const mockOpenPicker = jest.fn();

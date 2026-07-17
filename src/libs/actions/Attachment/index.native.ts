@@ -1,10 +1,13 @@
+import {getImageCacheFileExtension} from '@libs/AttachmentUtils';
+import Log from '@libs/Log';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import {getImageCacheFileExtension} from '@libs/AttachmentUtils';
-import Log from '@libs/Log';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
 const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
