@@ -48,7 +48,7 @@ function getProvisioningErrorCode(value: unknown): string | undefined {
 function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageName, resetToPage}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
@@ -126,12 +126,17 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
                         imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
                         // Disable browser history handling since we handle navigation ourselves
                         shouldHandleNavigationBack: false,
+                        // Resolve on tap instead of waiting for the modal's own dismiss animation, so the RHP
+                        // close below can start playing at the same time as the modal's dismissal instead of
+                        // only after it finishes.
+                        isConfirmLoading: false,
                     }).then((result) => {
                         // Only navigate to concierge on confirm, on backdrop just close modal (TermsStep stays visible)
                         if (result.action !== ModalActions.CONFIRM) {
                             return;
                         }
                         createTravelEnablementIssue();
+                        closeModal();
                     });
                     return Promise.reject(new Error('Verification required'));
                 }
