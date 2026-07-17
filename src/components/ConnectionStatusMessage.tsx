@@ -1,21 +1,16 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ComponentProps} from 'react';
 
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
-import Text from './Text';
-
-const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
 
 type ConnectionStatusMessageProps = {
     message?: string;
@@ -39,7 +34,6 @@ function ConnectionStatusMessage({
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     if (!message && !actionText) {
@@ -52,7 +46,6 @@ function ConnectionStatusMessage({
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
-    const hasHTML = !!message && HTML_TAG_PATTERN.test(message);
     const messageTag = isDangerStatus ? 'rbr' : 'muted-text-label';
     const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
     const messageContent = (
@@ -65,15 +58,11 @@ function ConnectionStatusMessage({
                     />
                 </View>
             )}
-            <View style={styles.flex1}>
-                {hasHTML ? (
-                    <RenderHTML
-                        html={messageHTML}
-                        onLinkPress={onLinkPress}
-                    />
-                ) : (
-                    <Text style={StyleUtils.getDotIndicatorTextStyles(isDangerStatus)}>{Str.htmlDecode(message ?? '')}</Text>
-                )}
+            <View style={[styles.flex1, styles.flexRow]}>
+                <RenderHTML
+                    html={messageHTML}
+                    onLinkPress={onLinkPress}
+                />
             </View>
         </View>
     );
