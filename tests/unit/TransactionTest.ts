@@ -44,6 +44,10 @@ type CapturedOnyxData = {
     failureData?: Array<{key: string; value: unknown}>;
 };
 
+function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
+    return typeof value === 'object' && value !== null;
+}
+
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
@@ -391,11 +395,13 @@ describe('Transaction', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
                 },
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const onyxData: CapturedOnyxData | undefined = apiWriteCall?.[2];
+            const capturedOnyxData = apiWriteCall?.[2];
+            const onyxData = isCapturedOnyxData(capturedOnyxData) ? capturedOnyxData : undefined;
             const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`;
 
             expect(onyxData?.optimisticData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([missingCategoryViolation]);
@@ -468,14 +474,16 @@ describe('Transaction', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
                 },
                 allReports: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const onyxData: CapturedOnyxData | undefined = apiWriteCall?.[2];
+            const capturedOnyxData = apiWriteCall?.[2];
+            const onyxData = isCapturedOnyxData(capturedOnyxData) ? capturedOnyxData : undefined;
             const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`;
-            const finalOptimisticSiblingUpdate = onyxData?.optimisticData?.filter((data) => data.key === siblingViolationsKey).at(-1);
-            const finalSuccessSiblingUpdate = onyxData?.successData?.filter((data) => data.key === siblingViolationsKey).at(-1);
+            const finalOptimisticSiblingUpdate = onyxData?.optimisticData?.findLast((data) => data.key === siblingViolationsKey);
+            const finalSuccessSiblingUpdate = onyxData?.successData?.findLast((data) => data.key === siblingViolationsKey);
 
             expect(finalOptimisticSiblingUpdate?.value).toEqual([missingCategoryViolation]);
             expect(finalSuccessSiblingUpdate?.value).toEqual([missingCategoryViolation]);
