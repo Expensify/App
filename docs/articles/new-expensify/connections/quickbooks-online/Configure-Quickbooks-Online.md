@@ -56,7 +56,7 @@ To choose how data is exported from Expensify to QuickBooks Online:
 - **Export company card expenses as**:
   - Credit card (default)
   - Debit card
-    - Optionally set a **Default vendor** as a fallback for expenses that don't have a vendor set. Learn how vendors are imported, matched, and exported in [QuickBooks Online Vendor Matching](/articles/new-expensify/connections/quickbooks-online/Vendor-Matching).
+    - Optionally set a **Default vendor** as a fallback for expenses that don't have a vendor set. Learn how vendors are imported, matched, and exported in [QuickBooks Online Vendor Matching](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online.md).
   - Vendor bill
     - If exporting as vendor bills, select the AP account and optionally a default vendor
     - Vendor bill is unavailable when locations are imported as tags. To keep it available, import locations as report fields (only available on the **Control** plan)
