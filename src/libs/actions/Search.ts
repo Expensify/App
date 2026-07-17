@@ -1028,9 +1028,6 @@ function getFooterConvertedAmounts({
         filters: queryJSONWithoutFlatFilters.filters ?? null,
     });
 
-    // Send the source figures this request converts so the command echoes them back in the same onyxData merge as
-    // the converted values. Writing the stamp and its converted value together keeps a stale conversion from
-    // looking fresh in the window between an inline edit and this command's response (or if the response never lands).
     read(
         READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
         {
@@ -1038,13 +1035,14 @@ function getFooterConvertedAmounts({
             targetCurrency,
             ...(transactionIDList && {transactionIDList}),
             ...(reportIDList && {reportIDList}),
-            ...(sources && {sources: JSON.stringify(sources)}),
         },
         {
-            // A fresh attempt for this currency clears any prior error so the footer can show the loading state again.
-            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {errors: {[targetCurrency]: null}}}],
-            // A failed read leaves no converted value, so record the error; the footer then drops the loading state and
-            // shows the default total instead of a skeleton that would stay until the next edit or reconnect.
+            // Stamp the source figures this request converts (and clear any prior error for this currency) so a later
+            // edit that moves them is detected as stale and the footer can retry. The command merges its converted
+            // figures into the same key, so the stamp and the converted value live side by side.
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {...(sources && {sources}), errors: {[targetCurrency]: null}}}],
+            // A failed read leaves no converted value, so record the error; the footer then falls back to the default
+            // total instead of the stale converted value (or a skeleton that would stay until the next edit/reconnect).
             failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {errors: {[targetCurrency]: true}}}],
         },
     );

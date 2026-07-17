@@ -12,9 +12,6 @@ type GetTransactionsConvertedAmountParams = {
 
     /** Comma-separated report IDs to convert each selected report's total; used by the Reports search */
     reportIDList?: string;
-
-    /** Serialized default-currency source figures to stamp the conversions against; the command echoes them back for stale detection */
-    sources?: string;
 };
 
 export default GetTransactionsConvertedAmountParams;

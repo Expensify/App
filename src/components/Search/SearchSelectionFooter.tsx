@@ -342,7 +342,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         const fallbackCurrency = effectiveDefaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
 
         if (shouldUseClientTotal) {
-            const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !!selectedCurrency;
+            const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionError && !!selectedCurrency;
 
             // Reports sum each selected report's converted total; other searches sum per row — whole groups from the
             // groups cache, individual transactions from the transactions cache — falling back to the default per-row
@@ -368,7 +368,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
-        if (hasCustomFooterCurrency && isSearchTotalFresh && selectedCurrencyConvertedTotal) {
+        if (hasCustomFooterCurrency && isSearchTotalFresh && !hasConversionError && selectedCurrencyConvertedTotal) {
             return {count: selectedCurrencyConvertedTotal.count, total: selectedCurrencyConvertedTotal.total, currency: selectedCurrency};
         }
 
@@ -379,6 +379,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         convertedReports,
         convertedTransactions,
         effectiveDefaultCurrency,
+        hasConversionError,
         hasCustomFooterCurrency,
         isReportsSearch,
         isSearchTotalFresh,
