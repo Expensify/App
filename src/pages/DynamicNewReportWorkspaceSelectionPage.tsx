@@ -12,6 +12,7 @@ import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -92,8 +93,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
     const [transactions] = useTransactionsByID(transactionIDs);
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const isAppLoadPending = useIsAppLoadPending();
+    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -276,7 +277,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size="large"
-                                reasonAttributes={{context: 'DynamicNewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
+                                reasonAttributes={{context: 'DynamicNewReportWorkspaceSelectionPage', isLoadingApp: isAppLoadPending}}
                             />
                         </View>
                     ) : (
