@@ -47,7 +47,7 @@ After denying the transaction:
 - The transaction is immediately declined.
 - If you suspect fraud, we recommend taking the following actions:
   - [Cancel your Expensify Card](/articles/expensify-classic/expensify-card/Deactivate-or-cancel-an-Expensify-Card).
-  - [Lock your Expensify account if you believe your account may have been compromised](articles/new-expensify/settings/Report-Suspicious-Activity).
+  - [Lock your Expensify account if you believe your account may have been compromised](/articles/new-expensify/settings/Report-Suspicious-Activity).
   - Contact Concierge for assistance.
 
 ## What happens if you don't approve a UK/EU Expensify Card transaction in time?
