@@ -75,13 +75,15 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
 
     if (shouldShowEmptyState) {
         return (
-            <BlockingView
-                icon={illustrations.Lightbulb}
-                title={translate('workspace.rules.agentRules.emptySuggestionsTitle')}
-                subtitle={isOffline ? translate('common.youAppearToBeOffline') : translate('workspace.rules.agentRules.emptySuggestionsSubtitle')}
-                subtitleStyle={[styles.textSupporting, styles.textNormal]}
-                containerStyle={styles.flex1}
-            />
+            <View style={styles.flex1}>
+                <BlockingView
+                    icon={illustrations.Lightbulb}
+                    title={translate('workspace.rules.agentRules.emptySuggestionsTitle')}
+                    subtitle={isOffline ? translate('common.youAppearToBeOffline') : translate('workspace.rules.agentRules.emptySuggestionsSubtitle')}
+                    subtitleStyle={[styles.textSupporting, styles.textNormal]}
+                    containerStyle={styles.pb10}
+                />
+            </View>
         );
     }
 
