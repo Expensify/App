@@ -42,15 +42,13 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
         if (isHorizontal) {
             // Even though the X-Axis is going to hold the y values on horizontal mode, it's not the independent axis
             // thus we cannot use `point.y` as the key since two points can have the same y value.
-            data[`${point.y}-${point.x}`] = {
-                [X_KEY]: point.y,
-                [yKey]: typeof point.x === 'number' ? point.x : resolveCategoryIndex(categories, String(point.x)),
-            } as CartesianChartData;
+            const chartData: CartesianChartData = {[X_KEY]: point.y};
+            chartData[yKey] = typeof point.x === 'number' ? point.x : resolveCategoryIndex(categories, String(point.x));
+            data[`${point.y}-${point.x}`] = chartData;
         } else {
-            data[point.x] = {
-                [X_KEY]: point.x,
-                [yKey]: point.y,
-            } as CartesianChartData;
+            const chartData: CartesianChartData = {[X_KEY]: point.x};
+            chartData[yKey] = point.y;
+            data[point.x] = chartData;
         }
     }
     return {data, yKeys: [yKey], pointMetadata};
