@@ -235,7 +235,11 @@ function MoneyRequestReceiptView({
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
+    // A conversation's read-only restriction lives on the parent conversation report, not on the transaction thread,
+    // so checking the thread alone lets someone who cannot post in the conversation still attach a receipt to it.
+    // Mirrors how the conversation composer is gated. Skipped when there is no parent conversation to check.
+    const canWriteInChatReport = !chatReport || !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
+    const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && canWriteInChatReport && !readonly;
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
