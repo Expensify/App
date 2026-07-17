@@ -2,25 +2,20 @@
 title: Set Up and Manage the Expensify Card in the UK and EU
 description: Learn how to set up and use the Expensify Card in the UK and EU, including eligibility, supported countries, and step-by-step setup instructions.
 keywords: [New Expensify, Expensify Card UK, EU, Global Reimbursements, GBP, EUR, card setup, issue cards, Smart Limit, virtual cards, physical cards, supported countries, Visa Secure]
-noindex: true
-sitemap: false
 internalScope: Audience is Workspace Admins in the UK and EU. Covers eligibility, supported countries, enabling the Expensify Card, linking a settlement account, issuing virtual and physical cards, spending limits, PIN management, foreign exchange details, and Visa Secure. Does not cover US Expensify Card setup or non-GBP/EUR settlement accounts.
 ---
 
-<!--
-REMOVE noindex: true AND sitemap: false FROM YAML HEADER BEFORE PUBLISHING!
--->
-
 The Expensify Card is available for companies in the United Kingdom and select European countries. This guide walks you through eligibility and how to set up and start using the card in GBP or EUR.
 
-Workspace Admins can issue virtual and physical Expensify Cards to members and manage spending in GBP or EUR.
+Workspace Admins and Card Admins can issue virtual and physical Expensify Cards to members and manage spending in GBP or EUR.
 
 # Who can set up the Expensify Card in the UK and EU?
 
-The card is currently available for companies that meet the following requirements:
+Workspace Admins can set up the Expensify Card for companies in the UK and EU, as long as they meet the following requirements: 
 
-- The company has a GBP or EUR business bank account connected in Expensify; **and**
-- The business is located in a supported UK or EU country (see the list below).
+- Have a GBP or EUR business bank account connected in Expensify
+- Are located in the UK or supported EU country
+- Have [enabled Global Reimbursement](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement)
 
 If your company hasn't yet connected a GBP or EUR business bank account, follow one of these guides:
 
@@ -29,7 +24,7 @@ If your company hasn't yet connected a GBP or EUR business bank account, follow 
 
 ---
 
-# Supported countries
+## Where the Expensify Card is supported
 
 The Expensify Card can be used anywhere Visa is accepted.
 
@@ -52,20 +47,11 @@ However, only companies registered in the following countries can enable the Exp
 
 ---
 
-# How to set up the Expensify Card
+## How to enable the Expensify Card on your workspace
 
-## Prerequisites
+Once you meet the requirements to set up the Expensify Card in the UK and EU, you can enable it on your GBP or EUR workspace.
 
-To set up the Expensify Card in the UK and EU, you must:
-
-1. Connect a GBP or EUR bank account.
-2. [Enable Global Reimbursement](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement).
-
-> **Note:** The workspace currency must match the currency of the connected bank account.
-
----
-
-## Step 1: Enable the Expensify Card on your workspace
+**Step 1: Enable the Expensify Card on your workspace**
 
 Once you have completed the prerequisites, you can enable the Expensify Card on your GBP or EUR workspace.
 
@@ -75,9 +61,7 @@ Once you have completed the prerequisites, you can enable the Expensify Card on 
 4. Concierge will review your request and reach out to complete an onboarding form.
 5. Once enabled, **Expensify Card** will appear in the workspace navigation menu.
 
----
-
-## Step 2: Link a bank account to settle the Expensify Card
+**Step 2: Link a bank account to settle the Expensify Card**
 
 Link a GBP or EUR business bank account that will be used to pay the card balance either daily or monthly.
 
@@ -87,9 +71,7 @@ Link a GBP or EUR business bank account that will be used to pay the card balanc
 2. Click **Issue new card**.
 3. Select the GBP or EUR business bank account that will be used to settle all Expensify Card transactions.
 
----
-
-## Step 3: Issue Expensify Cards to employees
+**Step 3: Issue Expensify Cards to employees**
 
 After onboarding is complete and a spending limit has been assigned to your account, you can begin issuing cards to employees.
 
@@ -109,9 +91,7 @@ After onboarding is complete and a spending limit has been assigned to your acco
 8. Name the card for easier tracking.
 9. Click **Issue card** to confirm.
 
----
-
-## Step 4: Activate the card (physical cards only)
+**Step 4: Activate the card (physical cards only)**
 
 Once the employee receives their physical card:
 
