@@ -1,19 +1,24 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {parseExpenseFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFilterFromQuery} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function SearchNLFilterPage() {
     const {translate} = useLocalize();
@@ -31,7 +36,7 @@ function SearchNLFilterPage() {
         }
         setIsLoading(true);
         setErrorMessage('');
-        const queryPolicyID = Array.isArray(currentSearchQueryJSON?.policyID) ? currentSearchQueryJSON.policyID.at(0) : currentSearchQueryJSON?.policyID;
+        const queryPolicyID = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value?.at(0);
         const policyID = queryPolicyID ?? activePolicyID;
         parseExpenseFilters(trimmedQuery, policyID).then((result) => {
             setIsLoading(false);
