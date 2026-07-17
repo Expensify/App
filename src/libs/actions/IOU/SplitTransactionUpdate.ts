@@ -8,6 +8,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import popReportsSplitNavigatorToReport from '@libs/Navigation/helpers/popReportsSplitNavigatorToReport';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -1860,6 +1861,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const splitExpenses = params.transactionData?.splitExpenses ?? [];
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID, false);
+    const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+    const lastNewSplitExpense = [...splitExpenses].reverse().find((splitExpense) => !!splitExpense.transactionID && !existingChildTransactionIDs.has(splitExpense.transactionID));
     const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
     const isReverseSplitOperation =
@@ -1909,6 +1912,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
             updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
         });
         params?.searchContext?.clearSelectedTransactions?.(true);
+        if (lastNewSplitExpense?.transactionID) {
+            surfaceExpenseCreatedFeedback({iouReportID: lastNewSplitExpense.reportID, transactionID: lastNewSplitExpense.transactionID});
+        }
         return;
     }
 
@@ -1932,7 +1938,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // We skip existing transactions (already in allChildTransactions), reverse splits (no new transactions are created),
     // and the last-transaction case (the report navigates away before the highlight renders).
     if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
-        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
         for (const splitExpense of splitExpenses) {
             if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
                 continue;
@@ -1944,6 +1949,10 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
+        }
+
+        if (isSearchPageTopmostFullScreenRoute && lastNewSplitExpense?.transactionID) {
+            surfaceExpenseCreatedFeedback({iouReportID: lastNewSplitExpense.reportID, transactionID: lastNewSplitExpense.transactionID});
         }
 
         // After the modal is dismissed, remove the transaction thread report screen
