@@ -9,7 +9,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type Pages from '@src/types/onyx/Pages';
 
-import type {OnyxKey, ResultMetadata, UseOnyxResult} from 'react-native-onyx';
+import type {OnyxKey, UseOnyxResult} from 'react-native-onyx';
+
+import createRandomReportAction from '../../utils/collections/reportActions';
 
 // The behavior change under test lives in the `id` useMemo of usePaginatedReportActions:
 // when a `reportActionID` is provided but does NOT exist in this report's own actions
@@ -39,11 +41,9 @@ const REPORT_ID = 'expense-report-1';
 const LINKED_ACTION_ID = 'action-in-this-report';
 const SIBLING_ACTION_ID = 'action-in-transaction-thread';
 
-const loadedMetadata: ResultMetadata<unknown> = {status: 'loaded'};
-
-function onyxResult<TValue>(value: TValue): UseOnyxResult<TValue> {
-    return [value, loadedMetadata as ResultMetadata<TValue>];
-}
+// `{status: 'loaded'}` alone satisfies ResultMetadata (its sourceValue is optional). A single
+// broad UseOnyxResult type keeps each mocked subscription value assignable without casts.
+type MockOnyxResult = UseOnyxResult<Report | ReportAction[] | Pages>;
 
 function makeReport(overrides: Partial<Report> = {}): Report {
     return {
@@ -59,14 +59,12 @@ function makeReport(overrides: Partial<Report> = {}): Report {
  * consistent — getContinuousChain indexes by reportActionID, and the "newest window"
  * result for empty pages returns the whole array regardless of order.
  */
-function makeActions(ids: string[]): ReportAction[] {
-    return ids.map(
-        (reportActionID, index) =>
-            ({
-                reportActionID,
-                created: `2024-01-01 10:0${ids.length - index}:00.000`,
-            }) as ReportAction,
-    );
+function makeActions(actionIds: string[]): ReportAction[] {
+    return actionIds.map((reportActionID, index) => ({
+        ...createRandomReportAction(index),
+        reportActionID,
+        created: `2024-01-01 10:0${actionIds.length - index}:00.000`,
+    }));
 }
 
 /**
@@ -75,21 +73,21 @@ function makeActions(ids: string[]): ReportAction[] {
  * bypassed by the mock, so we pass pre-sorted actions directly.
  */
 function wireOnyx({report, actions, pages}: {report: Report | undefined; actions: ReportAction[] | undefined; pages: Pages | undefined}): void {
-    mockUseOnyx.mockImplementation((key: OnyxKey) => {
+    mockUseOnyx.mockImplementation((key: OnyxKey): MockOnyxResult => {
         if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
-            return onyxResult(report);
+            return [report, {status: 'loaded'}];
         }
         if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`) {
-            return onyxResult(actions);
+            return [actions, {status: 'loaded'}];
         }
         if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`) {
-            return onyxResult(pages);
+            return [pages, {status: 'loaded'}];
         }
-        return onyxResult(undefined);
+        return [undefined, {status: 'loaded'}];
     });
 }
 
-function ids(actions: ReportAction[] | undefined): string[] {
+function actionIds(actions: ReportAction[] | undefined): string[] {
     return (actions ?? []).map((action) => action.reportActionID);
 }
 
@@ -107,7 +105,7 @@ describe('usePaginatedReportActions', () => {
             const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, LINKED_ACTION_ID));
 
             // Non-empty result and the linked action is surfaced — identical to pre-change behavior.
-            expect(ids(result.current.reportActions)).toEqual(['c', 'b', LINKED_ACTION_ID]);
+            expect(actionIds(result.current.reportActions)).toEqual(['c', 'b', LINKED_ACTION_ID]);
             expect(result.current.linkedAction?.reportActionID).toBe(LINKED_ACTION_ID);
         });
 
@@ -132,7 +130,7 @@ describe('usePaginatedReportActions', () => {
             const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID));
 
             // Before the fix this was [] (getContinuousChain empty-array behavior); now it is the newest window.
-            expect(ids(result.current.reportActions)).toEqual(['c', 'b', 'a']);
+            expect(actionIds(result.current.reportActions)).toEqual(['c', 'b', 'a']);
             // No linked action is surfaced from this report — the host screen merges the thread separately.
             expect(result.current.linkedAction).toBeUndefined();
         });
@@ -156,7 +154,7 @@ describe('usePaginatedReportActions', () => {
 
             const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID));
 
-            expect(ids(result.current.reportActions)).toEqual(['c', 'b', 'a']);
+            expect(actionIds(result.current.reportActions)).toEqual(['c', 'b', 'a']);
             expect(result.current.linkedAction).toBeUndefined();
         });
 
