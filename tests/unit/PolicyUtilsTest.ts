@@ -3690,12 +3690,12 @@ describe('getPolicyIDFromDomainName', () => {
         expect(getPolicyIDFromDomainName('expensify-policyA1B2C3.exfy')).toBe('A1B2C3');
     });
 
-    it('uppercases the extracted policy ID', () => {
-        expect(getPolicyIDFromDomainName('expensify-policyabc123.exfy')).toBe('ABC123');
+    it('converts the extracted policy ID to uppercase', () => {
+        expect(getPolicyIDFromDomainName(`expensify-policy${'a1b2c3'}.exfy`)).toBe('A1B2C3');
     });
 
     it('returns undefined for a domain name that is not a workspace feed', () => {
-        expect(getPolicyIDFromDomainName('mybank.com')).toBeUndefined();
+        expect(getPolicyIDFromDomainName('example.com')).toBeUndefined();
     });
 
     it('returns undefined for an empty string', () => {
