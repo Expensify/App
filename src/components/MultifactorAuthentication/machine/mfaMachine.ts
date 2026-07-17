@@ -141,13 +141,13 @@ const MFAMachine = setup({
                                     }
                                     return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
                                 },
-                                // An eligible device moves on to the soft-prompt acceptance check. A
-                                // stored error always wins and goes straight to the outcome resolver,
-                                // while a refusal stores its blocking MFAError before resolving it.
+                                // A refusal stores its blocking MFAError before resolving it. A stored
+                                // error still wins over a successful result, while a clean success moves
+                                // on to the soft-prompt acceptance check.
                                 onDone: [
-                                    {guard: ({context, event}) => event.output.success && context.error !== undefined, target: OUTCOME_TARGET},
-                                    {guard: ({event}) => event.output.success, target: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE},
-                                    {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
+                                    {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
+                                    {guard: ({context}) => context.error !== undefined, target: OUTCOME_TARGET},
+                                    {target: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE},
                                 ],
                                 // Expected refusals travel as failed results through onDone, so a
                                 // rejection means the platform check itself threw unexpectedly.
