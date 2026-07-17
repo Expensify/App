@@ -702,6 +702,37 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense withdrawn:last-month');
         });
 
+        test('with Expensify Card current balance view transactions filters', () => {
+            const feedKey = '21557189_Expensify Card';
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                feed: [feedKey],
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.NEVER, CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense feed:"21557189_Expensify Card" withdrawalStatus:never,pending');
+
+            const queryJSON = buildSearchQueryJSON(result);
+            expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(queryJSON?.flatFilters).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: feedKey}],
+                    }),
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+                        filters: [
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.SETTLEMENT_STATUS.NEVER},
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.SETTLEMENT_STATUS.PENDING},
+                        ],
+                    }),
+                ]),
+            );
+        });
+
         describe('limit option', () => {
             test('includes limit in query string when provided in form values', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
