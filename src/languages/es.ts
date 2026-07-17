@@ -1,6 +1,3 @@
-import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
@@ -12,12 +9,14 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+import CONST from '@src/CONST';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
-
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
@@ -471,8 +470,10 @@ const translations: TranslationDeepObject<typeof en> = {
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
+        tryAgain: 'Inténtalo de nuevo',
         tagGLCode: 'Etiquetar código GL',
         off: 'Desactivado',
+        noResultsFoundSubtitle: 'Sin resultados. Intenta ajustar tus filtros o la búsqueda.',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -919,7 +920,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.',
                 cta: 'Añade dirección',
             },
-            addVirtualCardPersonalDetails: {title: 'Añade tus datos personales', subtitle: 'Añade tus datos para ver y empezar a usar tu Tarjeta Expensify.', cta: 'Añade detalles'},
+            addVirtualCardPersonalDetails: {title: 'Añade tus datos para ver y empezar a usar tu Tarjeta Expensify.', subtitle: 'Tarjeta Expensify', cta: 'Añade detalles'},
             addPaymentCard: {
                 title: 'Añade una tarjeta de pago para seguir usando Expensify',
                 subtitle: 'Cuenta > Suscripción',
@@ -1030,6 +1031,20 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Emitir tarjetas Expensify',
             issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
+            configureApprovals: 'Configura el flujo de aprobación',
+            talkToAccountExecutive: 'Habla con tu ejecutivo de cuenta',
+            begin: 'Empezar',
+            done: 'Hecho',
+            createWorkspaceSubText: 'Espacio de trabajo listo para la configuración',
+            connectAccountingSubText: 'Sincroniza tu plan de cuentas y más',
+            customizeCategoriesSubText: 'Añade tu plan de cuentas',
+            inviteAccountantSubText: 'Acelera la contabilidad de fin de mes',
+            linkCompanyCardsSubText: 'Importa gastos automáticamente',
+            setupRulesSubText: 'Solicita recibos, resalta gastos de alto importe y mucho más',
+            needHelp: '¿Necesitas ayuda?',
+            talkToConcierge: 'Habla con Concierge',
+            forGuidedSetup: 'para la configuración guiada.',
+            configureApprovalsSubText: 'Definir aprobaciones de informes',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -1108,6 +1123,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'No se han añadido reglas de comerciante, ya que todas ya existen.';
+            }
+            return rules > 1 ? `Se han añadido ${rules} reglas de comerciante.` : 'Se ha añadido 1 regla de comerciante.';
+        },
+        importMerchantRulesRequiredColumns:
+            '¡Ups! Debes asignar al menos una columna "El comerciante es" o "El comerciante contiene", además de al menos un campo para actualizar. Por favor, revisa e inténtalo de nuevo.',
         importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.',
@@ -1565,6 +1588,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'cambió',
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
+        transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
         chooseARate: 'Selecciona una tasa de reembolso por milla o kilómetro para el espacio de trabajo',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Válido desde ${startDate}`,
@@ -2018,7 +2042,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Por favor, actualiza a la última versión de New Expensify',
         pleaseInstallExpensifyClassic: 'Por favor, instala la última versión de Expensify',
         toGetLatestChanges: 'Para móvil, descarga e instala la última versión. Para la web, actualiza tu navegador.',
-        newAppNotAvailable: 'La App New Expensify ya no está disponible.',
+        newAppNotAvailable: 'Actualiza ahora y nos lo agradecerás más tarde.',
     },
     initialSettingsPage: {
         about: 'Acerca de',
@@ -2742,6 +2766,15 @@ ${amount} para ${merchant} - ${date}`,
     agentsPage: {
         title: 'Agentes',
         subtitle: `<muted-text>Los agentes gestionan tus flujos de trabajo por ti, para que recuperes horas en tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
+        findAgent: 'Buscar agente',
+        deleteAgentsTitle: () => ({
+            one: 'Eliminar agente',
+            other: 'Eliminar agentes',
+        }),
+        deleteAgentsMessage: () => ({
+            one: '¿Seguro que quieres eliminar a este agente? Esta acción no se puede deshacer.',
+            other: '¿Seguro que quieres eliminar a estos agentes? Esta acción no se puede deshacer.',
+        }),
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
@@ -3612,7 +3645,6 @@ ${amount} para ${merchant} - ${date}`,
         facialScan: 'Política y lanzamiento de la exploración facial de Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Política y lanzamiento de la exploración facial de Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacidad</a> y <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Términos de Servicio</a>.</muted-text-micro>`,
-        tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
         letsVerifyIdentity: '¡Vamos a verificar tu identidad!',
         butFirst: 'Pero primero, lo aburrido. Lee la jerga legal en el siguiente paso y haz clic en "Aceptar" cuando estés listo.',
@@ -4332,6 +4364,7 @@ ${amount} para ${merchant} - ${date}`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
             deleteOpenExpensifyCardsError: 'Tu empresa todavía tiene Tarjetas Expensify. Por favor, <concierge-link>contacta con Concierge</concierge-link> para eliminarlas.',
+            deleteTravelInvoicingError: 'Tu empresa todavía tiene habilitada la Facturación Consolidada de Viajes.',
             outstandingBalanceWarning:
                 'Tienes un saldo pendiente que debe liquidarse antes de eliminar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
             settleBalance: 'Ir a Suscripción',
@@ -4402,7 +4435,7 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Admin. de tarjeta';
+                        return 'Administrador de tarjeta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Administrador de personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
@@ -4623,12 +4656,14 @@ ${amount} para ${merchant} - ${date}`,
             classes: 'Clases',
             locations: 'Lugares',
             customers: 'Clientes/proyectos',
+            items: 'Artículos',
             accountsDescription: 'Tu plan de cuentas de QuickBooks Online se importará a Expensify como categorías.',
             accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             classesDescription: 'Elige cómo gestionar las clases de QuickBooks Online en Expensify.',
             customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Online en Expensify.',
             locationsDescription: 'Elige cómo gestionar los lugares de QuickBooks Online en Expensify.',
+            itemsDescription: 'Elige cómo gestionar los artículos de QuickBooks Online en Expensify.',
             locationsLineItemsRestrictionDescription:
                 'QuickBooks Online no admite Ubicaciones a nivel de línea para cheques o facturas de proveedores. Si deseas tener ubicaciones a nivel de línea, asegúrate de estar usando asientos contables y gastos con tarjetas de crédito/débito.',
             taxesDescription: 'Elige cómo gestionar los impuestos de QuickBooks Online en Expensify.',
@@ -5375,6 +5410,87 @@ ${amount} para ${merchant} - ${date}`,
             enableNewAccountsDescription: 'Las nuevas cuentas de Rillet estarán disponibles como categorías.',
             dimensionsImport: 'Todas las dimensiones de Rillet se importan como etiquetas',
             importDescription: 'Elige qué configuraciones de codificación quieres importar desde Rillet.',
+            noVendorsFound: 'No se encontraron proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en Rillet y sincroniza la conexión de nuevo',
+            noAccountsFound: 'No se encontraron cuentas',
+            noAccountsFoundDescription: 'Por favor, añade cuentas en Rillet y sincroniza la conexión de nuevo',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a Rillet.',
+            exportReimbursable: {label: 'Exportar gastos reembolsables como', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Facturas de proveedor'}}},
+            exportDate: {
+                label: 'Fecha de factura del proveedor',
+                description: 'Usa esta fecha al exportar informes a Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en que se exportó el informe a Rillet.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en que se envió el informe para su aprobación.',
+                    },
+                },
+            },
+            exportCompanyCard: {label: 'Exportar gastos de tarjetas de empresa como', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Tarjetas de crédito'}}},
+            defaultCompanyCardVendor: {
+                label: 'Proveedor predeterminado de la tarjeta de empresa',
+                description: 'Elige un proveedor Rillet predeterminado para los gastos que no se asignen automáticamente.',
+            },
+            companyCardAccount: {label: 'Cuenta de tarjeta de empresa', description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.'},
+            noBankAccountsFound: 'No se encontraron cuentas bancarias',
+            noBankAccountsFoundDescription: 'Por favor, añade cuentas bancarias en Rillet y sincroniza la conexión de nuevo',
+            autoSyncDescription: 'Sincroniza Rillet y Expensify automáticamente, todos los días. Los informes se sincronizan en tiempo real.',
+            accountingMethods: {
+                label: 'Método de exportación',
+                description: 'Elige cuándo exportar los gastos.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando se aprueben de forma definitiva',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando se paguen',
+                },
+            },
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription: 'Cuando se pague un informe mediante ACH, se generará un pago de factura en esta cuenta.',
+            billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en Rillet.'},
+            syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
+            settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
+            travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Reemplaza la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Sobrescribe la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} programas con cuentas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Sobrescribe la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Reemplaza la cuenta del programa para estas tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todas las tarjetas usan cuentas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} tarjeta con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} tarjetas con cuentas personalizadas`;
+                },
+            },
         },
         type: {
             free: 'Gratis',
@@ -5394,7 +5510,6 @@ ${amount} para ${merchant} - ${date}`,
                     'Ocurrió un error al cargar las fuentes de tarjetas del espacio de trabajo. Por favor, inténtelo de nuevo o contacte a su administrador.',
                 feedCouldNotBeLoadedTitle: 'Error al cargar esta fuente de tarjetas',
                 feedCouldNotBeLoadedMessage: 'Ocurrió un error al cargar esta fuente de tarjetas. Por favor, inténtelo de nuevo o contacte a su administrador.',
-                tryAgain: 'Inténtalo de nuevo',
             },
             addNewCard: {
                 other: 'Otros',
@@ -5560,6 +5675,10 @@ ${amount} para ${merchant} - ${date}`,
             newCard: 'Nueva tarjeta',
             name: 'Nombre',
             lastFour: '4 últimos',
+            statusPendingOrder: 'Pedido pendiente',
+            statusShipped: 'Enviada',
+            statusActive: 'Activa',
+            statusInactive: 'Inactiva',
             limit: 'Limite',
             currentBalance: 'Saldo actual',
             currentBalanceDescription:
@@ -6177,6 +6296,7 @@ ${amount} para ${merchant} - ${date}`,
                 conciergeNotificationTitle: 'Concierge te avisará',
                 conciergeNotificationDescription: 'Cuando el proceso se complete, Concierge te enviará un mensaje.',
                 copyCompleted: 'Se han copiado la configuración de tu espacio de trabajo.',
+                copyFailedTitle: 'Error al copiar',
             },
             upgrade: {
                 title: 'Algunas funciones requieren un plan Controlar',
@@ -6727,6 +6847,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
+                syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
             },
             notSync: 'No sincronizado',
             authenticationError: (providerName: string) => `No se puede conectar a ${providerName} porque la conexión ha caducado.`,
@@ -6789,7 +6910,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
                 optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
                 distanceLabel: 'Distancia',
-                errors: {distanceMustBePositive: 'La distancia debe ser un número entero positivo.'},
+                errors: {distanceMustBePositive: 'La distancia debe ser un número entero positivo.', distanceTooLarge: 'La distancia es demasiado grande.'},
             },
             distance: 'Distancia',
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
@@ -7314,6 +7435,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 findRule: 'Buscar regla de comerciante',
                 addRuleTitle: 'Añadir regla',
                 editRuleTitle: 'Editar regla',
+                importRulesTitle: 'Importar reglas de comerciante',
+                importRulesSupportingText:
+                    'Asigna cada columna de tu hoja de cálculo a un campo de la regla de comerciante. Cuando todo esté correcto, haz clic abajo para importar tus reglas.',
+                importColumnMerchantIs: 'El comerciante es',
+                importColumnMerchantContains: 'El comerciante contiene',
+                importColumnUpdatedMerchant: 'Comerciante actualizado',
+                importColumnUpdatedCategory: 'Categoría actualizada',
+                importColumnUpdatedTag: 'Etiqueta actualizada',
+                importColumnUpdatedDescription: 'Descripción actualizada',
                 expensesWith: 'Para gastos con:',
                 expensesExactlyMatching: 'Para gastos que coincidan exactamente con:',
                 applyUpdates: 'Aplicar estas actualizaciones:',
@@ -7461,7 +7591,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Transporte y transporte compartido',
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agencias de viajes',
                 },
-                defaultRuleSummary: 'Categorías que incluyen servicios para adultos, cajeros automáticos, juegos de azar y...',
+                defaultRuleSummary: 'Categorías que incluyen servicios para adultos, cajeros automáticos, juegos de azar y transferencias de dinero',
                 findRule: 'Buscar regla',
                 defaultSection: 'Predeterminado',
                 customRulesSection: 'Reglas personalizadas',
@@ -9362,6 +9492,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     },
     actionableMentionTrackExpense: {
         submit: 'Pedirle a alguien que lo pague',
+        submitToFriend: 'Enviar a un amigo',
+        submitToEmployer: 'Enviar a mi empleador',
         categorize: 'Categorizarlo',
         share: 'Compartirlo con mi contador',
         nothing: 'Por ahora, nada',
@@ -10128,10 +10260,22 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             chat: 'Chatea en tus gastos para resolver cualquier duda rápidamente.',
         },
     },
+    submitPlanWelcomeModal: {
+        title: '¿Quieres un plan de empleado GRATIS?',
+        description: 'No esperes a que tu empresa use Expensify. Creamos un plan gratuito solo para ti:',
+        confirmText: 'Obtener el plan gratuito',
+        dismissText: 'No, gracias',
+        features: {
+            getReimbursed: 'Recibe tus reembolsos más rápido, directamente en Expensify',
+            buildReports: 'Crea informes de gastos en segundos',
+            categorize: 'Clasifica tus gastos',
+            inviteBoss: 'Invita a tu jefe cuando estés listo',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renombra tus búsquedas guardadas</strong> aquí</tooltip>',
-        accountSwitcher: '<tooltip>¡Ahora puedes copilotar en otra cuenta!</tooltip>',
+        accountSwitcher: '<tooltip>Accede a tus <strong>cuentas copiloto</strong> aquí</tooltip>',
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
@@ -10503,6 +10647,22 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             button: 'Ver progreso',
             lockScreenBadgeText: 'Distancia',
             lockScreenTrackingText: 'Siguiendo...',
+        },
+    },
+    aiFeaturesPromoModal: {
+        subtitle: 'Nuevo en Concierge AI',
+        confirmText: '¡Vamos!',
+        spendAnalysis: {
+            title: 'Análisis interactivo del gasto',
+            description: `<muted-text>Concierge muestra información mensual sobre gastos y te permite profundizar en los detalles detrás de cada cifra. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Más información</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Conoce a tu nuevo asistente de gastos',
+            description: `<muted-text>Chatea con Concierge para crear y actualizar gastos, directamente en la aplicación o por correo electrónico o mensaje de texto. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Más información</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Crea tus propios agentes',
+            description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
         },
     },
 };

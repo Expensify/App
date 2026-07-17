@@ -157,6 +157,7 @@ const translations = {
         signInWithApple: 'Sign in with Apple',
         signInWith: 'Sign in with',
         continue: 'Continue',
+        tryAgain: 'Try again',
         firstName: 'First name',
         lastName: 'Last name',
         scanning: 'Scanning',
@@ -234,6 +235,7 @@ const translations = {
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
+        noResultsFoundSubtitle: 'No results. Please try adjusting your filters or search query',
         noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
         suggestionsAvailableFor: (searchString: string) => (searchString ? `Suggestions available for "${searchString}".` : 'Suggestions available.'),
         recentDestinations: 'Recent destinations',
@@ -1015,8 +1017,8 @@ const translations = {
                 cta: 'Add address',
             },
             addVirtualCardPersonalDetails: {
-                title: 'We need your personal details',
-                subtitle: 'Add your details to view and start using your Expensify Card.',
+                title: 'Add your details to view and start using your Expensify Card.',
+                subtitle: 'Expensify Card',
                 cta: 'Add details',
             },
             addPaymentCard: {
@@ -1130,15 +1132,29 @@ const translations = {
         },
         gettingStartedSection: {
             title: 'Getting started',
+            begin: 'Begin',
+            done: 'Done',
             createWorkspace: 'Create a workspace',
+            createWorkspaceSubText: 'Workspace ready for setup',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
             connectAccountingDefault: 'Connect to accounting',
+            connectAccountingSubText: 'Sync your chart of accounts and more',
             customizeCategories: 'Customize accounting categories',
+            customizeCategoriesSubText: 'Add your chart of accounts',
             inviteAccountant: 'Invite your accountant',
+            inviteAccountantSubText: 'Speed up month-end accounting',
             linkCompanyCards: 'Link company cards',
+            linkCompanyCardsSubText: 'Import expenses automatically',
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
+            configureApprovals: 'Configure approval workflow',
+            configureApprovalsSubText: 'Define report approvals',
             setupRules: 'Set up spend rules',
+            setupRulesSubText: 'Require receipts, flag high spend, and more',
+            needHelp: 'Need help?',
+            talkToConcierge: 'Talk to Concierge',
+            talkToAccountExecutive: 'Talk to your account executive',
+            forGuidedSetup: 'for guided setup.',
         },
         upcomingTravel: 'Upcoming travel',
         upcomingTravelSection: {
@@ -1217,6 +1233,13 @@ const translations = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'No merchant rules have been added, since they all already exist.';
+            }
+            return rules > 1 ? `${rules} merchant rules have been added.` : '1 merchant rule has been added.';
+        },
+        importMerchantRulesRequiredColumns: 'Oops! You must map at least one "Merchant is" or "Merchant contains" column, plus at least one field to update. Please review and try again.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions have been imported.` : '1 transaction has been imported.',
         importFailedTitle: 'Import failed',
@@ -1673,6 +1696,7 @@ const translations = {
         changed: 'changed',
         removed: 'removed',
         transactionPending: 'Transaction pending.',
+        transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
         chooseARate: 'Select a workspace reimbursement rate per mile or kilometer',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} to ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valid from ${startDate}`,
@@ -2227,7 +2251,7 @@ const translations = {
         pleaseInstall: 'Please update to the latest version of New Expensify',
         pleaseInstallExpensifyClassic: 'Please install the latest version of Expensify',
         toGetLatestChanges: 'For mobile, download and install the latest version. For web, refresh your browser.',
-        newAppNotAvailable: 'The New Expensify app is no longer available.',
+        newAppNotAvailable: "Update now and you'll thank us later.",
     },
     initialSettingsPage: {
         about: 'About',
@@ -2950,6 +2974,15 @@ const translations = {
     agentsPage: {
         title: 'Agents',
         subtitle: `<muted-text>Agents handle your workflows for you, so you get hours back in your day. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</muted-text>`,
+        findAgent: 'Find agent',
+        deleteAgentsTitle: () => ({
+            one: 'Delete agent',
+            other: 'Delete agents',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Are you sure you want to delete this agent? This action cannot be undone.',
+            other: 'Are you sure you want to delete these agents? This action cannot be undone.',
+        }),
         newAgent: 'New agent',
         emptyAgents: {
             title: 'No agents created',
@@ -3836,7 +3869,6 @@ const translations = {
         facialScan: 'Onfido’s Facial Scan Policy and Release',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido’s Facial Scan Policy and Release</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacy</a> and <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Terms of Service</a>.</muted-text-micro>`,
-        tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         letsVerifyIdentity: "Let's verify your identity",
         butFirst: `But first, the boring stuff. Read up on the legalese in the next step and click "Accept" when you're ready.`,
@@ -4560,6 +4592,7 @@ const translations = {
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             deleteOpenExpensifyCardsError: 'Your company still has Expensify Cards. Please <concierge-link>reach out to Concierge</concierge-link> to remove them.',
+            deleteTravelInvoicingError: 'Your company still has Consolidated Travel Billing enabled.',
             outstandingBalanceWarning:
                 'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Go to subscription',
@@ -4626,17 +4659,17 @@ const translations = {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Owner';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Workspace Admin';
+                        return 'Workspace admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Card Admin';
+                        return 'Card admin';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'People Admin';
+                        return 'People admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Payments Admin';
+                        return 'Payments admin';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:
@@ -4850,12 +4883,14 @@ const translations = {
             classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
+            items: 'Items',
             accountsDescription: 'Your QuickBooks Online chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
+            itemsDescription: 'Choose how to handle QuickBooks Online items in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
             locationsLineItemsRestrictionDescription:
                 "QuickBooks Online does not support Locations at the line-level for Checks or Vendor Bills. If you'd like to have locations at the line-level, make sure you are using Journal Entries and Credit/Debit Card expenses.",
@@ -5597,11 +5632,118 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Rillet and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add accounts in Rillet and sync the connection again',
+            noBankAccountsFound: 'No bank accounts found',
+            noBankAccountsFoundDescription: 'Please add bank accounts in Rillet and sync the connection again',
             accountTypesDescription: 'Your Rillet accounts will import as categories.',
             enableNewAccountsTitle: 'Enable newly imported accounts',
             enableNewAccountsDescription: 'New Rillet accounts will be available as categories.',
             dimensionsImport: 'All Rillet dimensions import as tags',
             importDescription: 'Choose which coding configurations to import from Rillet.',
+            exportDescription: 'Configure how Expensify data exports to Rillet.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to Rillet.',
+                values: {
+                    [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Rillet.',
+                    },
+                    [CONST.RILLET_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportCompanyCard: {
+                label: 'Export company card expenses as',
+                values: {
+                    [CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {
+                        label: 'Credit cards',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default company card vendor',
+                description: "Choose a default Rillet vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'All programs use default account';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} program with custom account`;
+                    }
+                    return `${customAccountsCount} programs with custom accounts`;
+                },
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'All cards use program accounts';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} card with custom account`;
+                    }
+                    return `${customAccountsCount} cards with custom accounts`;
+                },
+            },
+            autoSyncDescription: 'Sync Rillet and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: "Choose where to pay bills from and we'll create the payment in Rillet.",
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Rillet.",
+            },
+            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            travelInvoicingSettlementAccount: {
+                label: 'Travel Invoicing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Rillet.",
+            },
         },
         type: {
             free: 'Free',
@@ -5620,7 +5762,6 @@ const translations = {
                 workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
                 feedCouldNotBeLoadedTitle: "Couldn't load this feed",
                 feedCouldNotBeLoadedMessage: 'An error occurred while loading this feed. Please try again or contact your administrator.',
-                tryAgain: 'Try again',
             },
             addNewCard: {
                 other: 'Other',
@@ -5786,6 +5927,10 @@ const translations = {
             newCard: 'New card',
             name: 'Name',
             lastFour: 'Last 4',
+            statusPendingOrder: 'Pending order',
+            statusShipped: 'Shipped',
+            statusActive: 'Active',
+            statusInactive: 'Inactive',
             limit: 'Limit',
             currentBalance: 'Current balance',
             currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
@@ -6415,6 +6560,7 @@ const translations = {
                 conciergeNotificationTitle: 'Concierge will let you know',
                 conciergeNotificationDescription: 'When the process is completed, Concierge will send you a message.',
                 copyCompleted: 'Your workspace settings have been copied.',
+                copyFailedTitle: 'Copy failed',
             },
         },
         emptyWorkspace: {
@@ -6969,6 +7115,10 @@ const translations = {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
                 },
+                syncLimitReached: {
+                    title: 'Try again tomorrow',
+                    prompt: "You've reached your sync limit for the day.",
+                },
             },
         },
         export: {
@@ -7028,6 +7178,7 @@ const translations = {
                 distanceLabel: 'Distance',
                 errors: {
                     distanceMustBePositive: 'Distance must be a positive whole number.',
+                    distanceTooLarge: 'Distance is too large.',
                 },
             },
             distance: 'Distance',
@@ -7589,6 +7740,14 @@ const translations = {
                 findRule: 'Find merchant rule',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
+                importRulesTitle: 'Import merchant rules',
+                importRulesSupportingText: 'Map each column in your spreadsheet to a merchant rule field. Once everything looks good, click below to import your rules.',
+                importColumnMerchantIs: 'Merchant is',
+                importColumnMerchantContains: 'Merchant contains',
+                importColumnUpdatedMerchant: 'Updated merchant',
+                importColumnUpdatedCategory: 'Updated category',
+                importColumnUpdatedTag: 'Updated tag',
+                importColumnUpdatedDescription: 'Updated description',
                 expensesWith: 'For expenses with:',
                 expensesExactlyMatching: 'For expenses exactly matching:',
                 applyUpdates: 'Apply these updates:',
@@ -7746,7 +7905,7 @@ const translations = {
                 defaultRuleDescription: 'All cards',
                 block: 'Block',
                 defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
-                defaultRuleSummary: 'Categories including adult services, ATMs, gambling, and...',
+                defaultRuleSummary: 'Categories including adult services, ATMs, gambling, and money transfers',
                 findRule: 'Find rule',
                 defaultSection: 'Default',
                 customRulesSection: 'Custom rules',
@@ -9220,6 +9379,8 @@ const translations = {
     },
     actionableMentionTrackExpense: {
         submit: 'Submit it to someone',
+        submitToFriend: 'Submit to a friend',
+        submitToEmployer: 'Submit to my employer',
         categorize: 'Categorize it',
         share: 'Share it with my accountant',
         nothing: 'Nothing for now',
@@ -10060,12 +10221,40 @@ const translations = {
             chat: 'Chat on any expense to resolve questions quickly',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Want a FREE employee plan?',
+        description: "Don't wait for your company to get Expensify. We built a free plan just for you:",
+        confirmText: 'Get the free plan',
+        dismissText: 'No thanks',
+        features: {
+            getReimbursed: 'Get reimbursed faster, right in Expensify',
+            buildReports: 'Build expense reports in seconds',
+            categorize: 'Categorize your expenses',
+            inviteBoss: "Invite your boss when you're ready",
+        },
+    },
+    aiFeaturesPromoModal: {
+        subtitle: 'New to Concierge AI',
+        confirmText: "Let's go!",
+        spendAnalysis: {
+            title: 'Interactive spend analysis',
+            description: `<muted-text>Concierge surfaces monthly spend insights and lets you drill into the details behind every number. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Learn more</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Meet your new expense assistant',
+            description: `<muted-text>Chat with Concierge to create and update expenses, right in the app or by email or text. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Learn more</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Build your own agents',
+            description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
+        },
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
-        accountSwitcher: '<tooltip>You can now copilot into another account!</tooltip>',
+        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
