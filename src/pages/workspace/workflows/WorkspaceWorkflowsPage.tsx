@@ -224,17 +224,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [route.params.policyID]);
 
     const showAddBankAccountPermissionModal = useCallback(() => {
-        if (!policy) {
-            return;
-        }
-
         showConfirmModal({
-            title: translate('supportalNoAccess.title'),
-            prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount', {currencyCode: policy.outputCurrency}),
-            confirmText: translate('common.ok'),
+            title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
+            prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount'),
+            confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [policy, showConfirmModal, translate]);
+    }, [showConfirmModal, translate]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
