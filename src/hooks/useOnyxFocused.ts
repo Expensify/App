@@ -5,13 +5,7 @@ import {useIsFocused} from '@react-navigation/core';
 
 import useOnyx from './useOnyx';
 
-type UseOnyxFocusedOptions<TKey extends OnyxKey, TReturnValue> = Omit<UseOnyxOptions<TKey, TReturnValue>, 'subscribed'> & {
-    /**
-     * Focus signal that drives `subscribed`. Defaults to `useIsFocused()` from React Navigation.
-     * Pass it explicitly when the signal is not navigation focus (e.g. a visibility flag passed via props).
-     */
-    isFocused?: boolean;
-};
+type UseOnyxFocusedOptions<TKey extends OnyxKey, TReturnValue> = Omit<UseOnyxOptions<TKey, TReturnValue>, 'subscribed'>;
 
 /**
  * `useOnyx` that only re-renders while the screen is focused, by wiring `subscribed` to the
@@ -20,16 +14,18 @@ type UseOnyxFocusedOptions<TKey extends OnyxKey, TReturnValue> = Omit<UseOnyxOpt
  *
  * Shorthand for `useOnyx(key, {...options, subscribed: useIsFocused()})`. Goes through the app's
  * `useOnyx` wrapper.
+ *
+ * The focus signal is always `useIsFocused()` from React Navigation and can't be overridden. If you
+ * need to drive `subscribed` from a different signal, use `useOnyx` directly.
  */
 function useOnyxFocused<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     key: TKey,
     options?: UseOnyxFocusedOptions<TKey, TReturnValue>,
     dependencies?: DependencyList,
 ): UseOnyxResult<TReturnValue> {
-    const isNavigationFocused = useIsFocused();
-    const {isFocused = isNavigationFocused, ...onyxOptions} = options ?? {};
+    const isFocused = useIsFocused();
     // eslint-disable-next-line rulesdir/no-useOnyx-dependencies-arg
-    return useOnyx(key, {...onyxOptions, subscribed: isFocused}, dependencies);
+    return useOnyx(key, {...options, subscribed: isFocused}, dependencies);
 }
 
 export default useOnyxFocused;
