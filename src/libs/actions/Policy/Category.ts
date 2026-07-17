@@ -870,6 +870,24 @@ function createPolicyCategory({
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
+/**
+ * Creates multiple enabled workspace categories at once. Used by flows (such as the merchant rule
+ * spreadsheet import) that reference categories which may not yet exist on the policy, so a
+ * referenced category is added to the workspace instead of being silently dropped.
+ */
+function createPolicyCategories(policyID: string, categoryNames: string[]) {
+    if (categoryNames.length === 0) {
+        return;
+    }
+    const onyxData = buildOptimisticPolicyCategories(policyID, categoryNames);
+    const parameters = {
+        policyID,
+        categories: JSON.stringify(categoryNames.map((name) => ({name}))),
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
+}
+
 async function importPolicyCategories(policyID: string, categories: PolicyCategory[], existingCategories?: OnyxEntry<PolicyCategories>): Promise<ImportFinalModal> {
     const policyCategories = existingCategories ?? {};
     const seenNames = new Set<string>();
@@ -1904,6 +1922,7 @@ export {
     isDefaultMccGroupID,
     clearCategoryErrors,
     createPolicyCategory,
+    createPolicyCategories,
     deleteWorkspaceCategories,
     downloadCategoriesCSV,
     enablePolicyCategories,

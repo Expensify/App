@@ -1,4 +1,5 @@
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
+import {createPolicyCategories} from '@libs/actions/Policy/Category';
 import * as API from '@libs/API';
 import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, ImportMerchantRulesSpreadsheetParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -15,9 +16,10 @@ import type {MerchantRuleForm} from '@src/types/form';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {PolicyCategories} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -240,12 +242,24 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
  * Imports coding rules parsed from a spreadsheet into the given policy in bulk
  * @param policyID - The ID of the policy to import the rules into
  * @param rules - Coding rule values keyed by client-generated ruleID
+ * @param policyCategories - The policy's existing categories, used to auto-create any imported category that doesn't exist yet
  */
-async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>): Promise<ImportFinalModal> {
+async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, policyCategories: OnyxEntry<PolicyCategories>): Promise<ImportFinalModal> {
     // The API rejects an empty rules object, so fail fast when the spreadsheet produced no importable rules
     if (Object.keys(rules).length === 0) {
         return getImportFailedFinalModal();
     }
+
+    // A rule only applies its category to matching expenses if that category exists on the policy, so auto-create any
+    // imported category that isn't already in the workspace instead of silently dropping it.
+    const missingCategories = [
+        ...new Set(
+            Object.values(rules)
+                .map((rule) => rule.category?.trim())
+                .filter((category): category is string => !!category && !policyCategories?.[category]),
+        ),
+    ];
+    createPolicyCategories(policyID, missingCategories);
 
     const importFinalModal: ImportFinalModal = {
         titleKey: 'spreadsheet.importSuccessfulTitle',

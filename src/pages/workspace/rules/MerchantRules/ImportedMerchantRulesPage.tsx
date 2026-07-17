@@ -77,6 +77,7 @@ type ImportedMerchantRulesPageProps = PlatformStackScreenProps<SettingsNavigator
 function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`);
     const [isImportingRules, setIsImportingRules] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -213,7 +214,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         const importFinalModal: ImportFinalModal =
             Object.keys(rules).length === 0 && skippedDuplicateCount > 0
                 ? {titleKey: 'spreadsheet.importSuccessfulTitle', promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription', promptKeyParams: {rules: 0}}
-                : await importMerchantRulesSpreadsheet(policyID, rules);
+                : await importMerchantRulesSpreadsheet(policyID, rules, policyCategories);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImportingRules(false);
