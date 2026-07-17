@@ -104,6 +104,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating a field other than tag
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -117,6 +118,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then no recently used tags entry should be added
@@ -140,6 +142,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag field
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -153,6 +156,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then the tag should appear in the recently used tags for the correct policy and tag list
@@ -178,6 +182,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag to tag2 while tag1 is already in recently used
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -192,6 +197,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then the new tag should be first and the old tag should still be present
@@ -218,6 +224,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag to tag1 which already exists in recently used
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -232,6 +239,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then tag1 should appear exactly once and be at the front
@@ -248,6 +256,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag with policyTagList: undefined
         const {onyxData: withUndefined} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -261,10 +270,12 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // When updating the tag with policyTagList: {} (empty)
         const {onyxData: withEmpty} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -278,6 +289,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            isTrackIntentUser: false,
         });
 
         // Then both should produce the same optimistic data (getPolicyTagsData returns {} when no Onyx data)
