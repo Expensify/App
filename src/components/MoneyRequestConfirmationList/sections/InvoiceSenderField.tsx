@@ -45,7 +45,7 @@ const senderWorkspaceSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => (policy
 const createCanUpdateSenderWorkspaceSelector =
     (isInvoiceRoomParticipant: boolean, currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
     (policies: OnyxCollection<OnyxTypes.Policy>): boolean =>
-        canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
+        isFromGlobalCreate && !isInvoiceRoomParticipant && canSendInvoice(policies ?? null, currentUserLogin);
 
 function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouType, reportID, transaction}: InvoiceSenderFieldProps) {
     const styles = useThemeStyles();
@@ -58,14 +58,11 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
 
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
-    // The selector only needs whether any selected participant is an invoice room — project to that
-    // primitive so the memoized selector depends on a stable boolean rather than the `.filter()` result
-    // (a fresh array every render), which would otherwise change the selector identity each render and
-    // defeat useOnyx's memoization (re-subscribing endlessly under the store-based engine).
     const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
+
     // canSendInvoice needs the full policy collection to check all admin workspaces
     const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => createCanUpdateSenderWorkspaceSelector(isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate)(policies),
+        selector: createCanUpdateSenderWorkspaceSelector(isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate),
     });
 
     return (
