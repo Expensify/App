@@ -991,7 +991,6 @@ const DYNAMIC_ROUTES = {
         path: 'public-domain-error',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
         getRoute: (policyID?: string) => getUrlWithParams('public-domain-error', {policyID}),
-        queryParams: ['policyID'],
     },
     TRAVEL_TCS: {
         path: 'terms/:domain/accept/:policyID?',
@@ -1014,7 +1013,6 @@ const DYNAMIC_ROUTES = {
         path: 'domain-selector',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
         getRoute: (policyID?: string) => getUrlWithParams('domain-selector', {policyID}),
-        queryParams: ['policyID'],
     },
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
@@ -1681,7 +1679,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -1691,6 +1689,10 @@ const ROUTES = {
             const queryParams: string[] = [];
             if (referrer) {
                 queryParams.push(`referrer=${encodeURIComponent(referrer)}`);
+            }
+            // Submit-via-PDF secure access link: lets an approver who opens the PDF link join and claim the report.
+            if (secureKey) {
+                queryParams.push(`secureKey=${encodeURIComponent(secureKey)}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -3281,6 +3283,14 @@ const ROUTES = {
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
+    },
+    RULES_MERCHANT_IMPORT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/import` as const,
+    },
+    RULES_MERCHANT_IMPORTED: {
+        route: 'workspaces/:policyID/rules/merchant-rules/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/imported` as const,
     },
     RULES_SPEND_NEW: {
         route: 'workspaces/:policyID/rules/spend-rules/new',

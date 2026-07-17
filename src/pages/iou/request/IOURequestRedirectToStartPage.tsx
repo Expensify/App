@@ -1,15 +1,19 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
+import useOnyx from '@hooks/useOnyx';
+
+import {clearMoneyRequest, startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {isDistanceExpenseType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useRef} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -23,12 +27,20 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
     const isIouRequestTypeValid = Object.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
     const isSplitDistanceSubtype = iouType === CONST.IOU.TYPE.SPLIT && iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE && isDistanceExpenseType(iouRequestType);
     const shouldShowNotFound = !isIouTypeValid || !isIouRequestTypeValid || isSplitDistanceSubtype;
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useEffect(() => {
         if (shouldShowNotFound || didRedirectRef.current) {
             return;
         }
         didRedirectRef.current = true;
+
+        // Quick-action deeplinks (the "Scan receipt" / "Track distance" home-screen shortcuts) reuse
+        // OPTIMISTIC_TRANSACTION_ID, so a leftover draft from an earlier shortcut can still be present. The
+        // start*Request helpers below are invoked without draft IDs and the odometer branch skips them, so clear
+        // the stale draft here. OPTIMISTIC_TRANSACTION_ID is passed explicitly because the selector returns [] (not
+        // undefined) before the drafts load, so a fallback alone would clear nothing.
+        clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, [CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ...(draftTransactionIDs ?? [])]);
 
         // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
         Navigation.dismissModal();

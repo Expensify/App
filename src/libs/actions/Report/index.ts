@@ -143,7 +143,7 @@ import {
     getReportMetadata,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportPreviewMessage,
+    getReportPreviewReportActionMessage,
     getReportTransactions,
     hasOutstandingChildRequest,
     isAdminRoom,
@@ -3725,6 +3725,7 @@ function updateReportField({
         currentUserEmailParam: email,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report,
@@ -4098,7 +4099,7 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewMessage({reportOrID: optimisticReportData});
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData});
     const createReportActionMessage = [
         {
             html: message,
@@ -4137,6 +4138,7 @@ function buildNewReportOptimisticData(
         currentUserEmailParam: email ?? '',
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     const outstandingChildRequest = getOutstandingChildRequest(optimisticReportData);
 
@@ -6258,6 +6260,15 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
     );
 }
 
+/**
+ * Validates a Submit-via-PDF secure access link. On success the backend adds the viewer to the workspace, shares the
+ * report with them, and sets them as the report manager; the report then loads normally. On failure the viewer keeps
+ * no access and falls through to the standard "Hmm… not there" 404 (handled by ReportNotFoundGuard).
+ */
+function joinReportViaSecureLink(reportID: string, secureKey: string) {
+    API.write(WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK, {reportID, secureKey});
+}
+
 async function exportReportToPDF({reportID}: ExportReportPDFParams) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME>> = [
         {
@@ -7407,6 +7418,7 @@ function buildOptimisticChangePolicyData({
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: {...report, policyID: policy.id},
@@ -8307,6 +8319,7 @@ export {
     exportReportToCSV,
     exportReportToPDF,
     exportToIntegration,
+    joinReportViaSecureLink,
     flagComment,
     getMostRecentReportID,
     getNewerActions,

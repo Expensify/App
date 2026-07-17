@@ -386,6 +386,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validar',
         downloadAsPDF: 'Descargar como PDF',
         downloadAsCSV: 'Descargar como CSV',
+        submitViaPDF: 'Enviar por PDF',
         print: 'Imprimir',
         help: 'Ayuda',
         collapsed: 'Contraído',
@@ -467,6 +468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -1123,6 +1125,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'No se han añadido reglas de comerciante, ya que todas ya existen.';
+            }
+            return rules > 1 ? `Se han añadido ${rules} reglas de comerciante.` : 'Se ha añadido 1 regla de comerciante.';
+        },
+        importMerchantRulesRequiredColumns:
+            '¡Ups! Debes asignar al menos una columna "El comerciante es" o "El comerciante contiene", además de al menos un campo para actualizar. Por favor, revisa e inténtalo de nuevo.',
         importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.',
@@ -7427,6 +7437,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 findRule: 'Buscar regla de comerciante',
                 addRuleTitle: 'Añadir regla',
                 editRuleTitle: 'Editar regla',
+                importRulesTitle: 'Importar reglas de comerciante',
+                importRulesSupportingText:
+                    'Asigna cada columna de tu hoja de cálculo a un campo de la regla de comerciante. Cuando todo esté correcto, haz clic abajo para importar tus reglas.',
+                importColumnMerchantIs: 'El comerciante es',
+                importColumnMerchantContains: 'El comerciante contiene',
+                importColumnUpdatedMerchant: 'Comerciante actualizado',
+                importColumnUpdatedCategory: 'Categoría actualizada',
+                importColumnUpdatedTag: 'Etiqueta actualizada',
+                importColumnUpdatedDescription: 'Descripción actualizada',
                 expensesWith: 'Para gastos con:',
                 expensesExactlyMatching: 'Para gastos que coincidan exactamente con:',
                 applyUpdates: 'Aplicar estas actualizaciones:',

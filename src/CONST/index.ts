@@ -1491,6 +1491,12 @@ const CONST = {
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
         },
+        // The way a Submit-workspace report can be submitted. Persisted per-user so the report-view button
+        // can default to the last-used method.
+        SUBMISSION_METHOD: {
+            SUBMIT: 'submit',
+            SUBMIT_VIA_PDF: 'submitViaPDF',
+        },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
@@ -2970,7 +2976,7 @@ const CONST = {
 
     /** Salesforce package install URLs for the Certinia Expensify bundles (see help: Connect to Certinia). */
     CERTINIA_PSA_BUNDLE_INSTALL_URL: {
-        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BM',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
     },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
@@ -7448,6 +7454,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
         },
+        SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 200,
@@ -7890,6 +7897,11 @@ const CONST = {
         EXTERNAL_ID: 'externalID',
         MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
         MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
+        MERCHANT_IS: 'merchantIs',
+        MERCHANT_CONTAINS: 'merchantContains',
+        UPDATED_MERCHANT: 'updatedMerchant',
+        REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
     },
 
     IMPORT_SPREADSHEET: {
@@ -8821,6 +8833,7 @@ const CONST = {
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
+                IMPORT_MERCHANT_RULES: 'WorkspaceRules-ImportMerchantRules',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
