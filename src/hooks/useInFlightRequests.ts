@@ -45,7 +45,11 @@ type PendingRequestGroupConfig = {
 // PERSISTED_REQUESTS / PERSISTED_ONGOING_REQUESTS. Groups may therefore only contain WRITE_COMMANDS —
 // a read/side-effect command here would make its hook permanently return false. Typing each command list
 // as `WriteCommand[]` makes the type system enforce that invariant rather than relying on the comment.
-const APP_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP];
+// OpenApp only, deliberately not ReconnectApp: this group replaces the `IS_LOADING_APP` flag, which is set
+// true only for OpenApp (see getOnyxDataForOpenOrReconnect in src/libs/actions/App.ts). Including ReconnectApp
+// would make full-page loaders show during background reconnects (coming back online, update-gap sync), where
+// the old flag stayed false. The top LoadingBar, which does show during reconnects, uses LOADING_BAR_COMMANDS.
+const APP_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP];
 const REPORT_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_REPORT];
 const LOADING_BAR_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION];
 
@@ -95,7 +99,7 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
     return !!hasPendingPersistedRequest || !!hasPendingOngoingRequest;
 }
 
-/** Whether an app-load request (OpenApp / ReconnectApp) is currently in the queue. */
+/** Whether an OpenApp request is currently in the queue (the initial app load, not background reconnects). */
 function useIsAppLoadPending(): boolean {
     return useIsPendingInternal('appLoad');
 }
