@@ -1,9 +1,13 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {
+    buildNextStepMessage,
     buildNextStepNew,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     getReportNextStep,
+    buildOptimisticNextStep,
 } from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
@@ -17,6 +21,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -137,6 +142,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -173,6 +179,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: true,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -211,6 +218,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -263,6 +271,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -307,6 +316,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -352,6 +362,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -398,6 +409,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -444,6 +456,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -489,6 +502,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -534,6 +548,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -577,6 +592,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -618,6 +634,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -662,6 +679,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -715,6 +733,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -763,6 +782,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: true,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -791,6 +811,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -834,6 +855,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -877,6 +899,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -906,6 +929,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -935,6 +959,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -977,6 +1002,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -1025,6 +1051,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -1050,6 +1077,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -1135,7 +1163,7 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Current next step'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false);
             expect(result).toBe(currentNextStep);
         });
 
@@ -1181,6 +1209,7 @@ describe('libs/NextStepUtils', () => {
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
+                false,
             );
 
             expect(result).toEqual({
@@ -1231,7 +1260,7 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -1301,6 +1330,7 @@ describe('libs/NextStepUtils', () => {
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
+                false,
             );
 
             expect(result).toEqual({
@@ -1338,7 +1368,7 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
             expect(result).toBe(reportNextStep);
         });
 
@@ -1370,7 +1400,7 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
             expect(result).toBe(currentNextStep);
         });
 
@@ -1423,8 +1453,141 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
+        });
+    });
+
+    describe('buildNextStepMessage', () => {
+        it('resolves the actor name through the provided translate function', async () => {
+            const hiddenActorAccountID = 780070;
+            // The actor has no displayName/login, so its name resolves to the hidden label provided by translate.
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenActorAccountID]: {accountID: hiddenActorAccountID, login: '', displayName: ''}});
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: hiddenActorAccountID,
+            };
+            // The provided translate resolves the hidden actor label and renders the message body around the actor name.
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'common.hidden') {
+                    return 'HiddenMarker';
+                }
+                if (path === 'nextStep.message.waitingToSubmit') {
+                    return `Waiting for ${String(parameters.at(0))} to submit expenses.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999);
+            expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
+        });
+    });
+
+    describe('buildOptimisticNextStep', () => {
+        const currentUserEmail = 'current-user@expensify.com';
+        const currentUserAccountID = 37;
+        const policyID = 'submit-and-close-policy';
+
+        const policy: Policy = {
+            id: policyID,
+            name: 'Submit and Close Policy',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            approver: currentUserEmail,
+            harvesting: {
+                enabled: false,
+            },
+            employeeList: {
+                [currentUserEmail]: {
+                    email: currentUserEmail,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    submitsTo: currentUserEmail,
+                },
+            },
+        };
+
+        beforeAll(async () => {
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                        avatar: '',
+                    },
+                },
+                ...policyCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        const getOpenSubmitAndCloseReport = (): Report =>
+            ({
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-track-intent',
+                    policyID,
+                    payeeAccountID: currentUserAccountID,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 1,
+            }) as Report;
+
+        it('returns WAITING_TO_MARK_AS_DONE when isTrackIntentUser is true for an open submit-and-close report', () => {
+            const report = getOpenSubmitAndCloseReport();
+
+            const result = buildOptimisticNextStep({
+                report,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                shouldFixViolations: false,
+                isUnapprove: false,
+                isReopen: false,
+                isTrackIntentUser: true,
+            });
+
+            expect(result?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE);
+        });
+
+        it('returns WAITING_TO_SUBMIT when isTrackIntentUser is false for the same report', () => {
+            const report = getOpenSubmitAndCloseReport();
+
+            const result = buildOptimisticNextStep({
+                report,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                shouldFixViolations: false,
+                isUnapprove: false,
+                isReopen: false,
+                isTrackIntentUser: false,
+            });
+
+            expect(result?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT);
         });
     });
 });

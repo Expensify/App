@@ -32,7 +32,7 @@ type Options = {
      * The `HtmlRspackPlugin`-compatible class whose compilation hooks should be tapped.
      *
      * Under raw Rspack, `compiler.rspack.HtmlRspackPlugin` (rather than a top-level
-     * `import {rspack} from '@rspack/core'`) is required: config files are loaded by `tsx` as a
+     * `import {rspack} from '@rspack/core'`) is required: config files are loaded by `bun` as a
      * separate module graph from the one the `rspack` CLI uses internally, so a directly-imported
      * `HtmlRspackPlugin` class fails `getCompilationHooks`'s `instanceof Compilation` check against
      * the `compilation` instance the real compiler passes in.
