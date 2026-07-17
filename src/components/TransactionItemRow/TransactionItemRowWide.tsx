@@ -222,7 +222,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isDateColumnWide, isSubmittedColumnWide})]}
                     >
                         <DateCell
-                            date={report?.submitted ?? ''}
+                            date={transactionItem.submitted ?? report?.submitted ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                         />
@@ -235,7 +235,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide})]}
                     >
                         <DateCell
-                            date={report?.approved ?? ''}
+                            date={transactionItem.approved ?? report?.approved ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                         />

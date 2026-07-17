@@ -2157,7 +2157,7 @@ function getTransactionsSections({
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -2169,6 +2169,10 @@ function getTransactionsSections({
             const actions =
                 reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ??
                 Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
+            // Submitted/approved come from the parent report's live actions (not just the snapshot) so offline
+            // submit/approve reflects immediately here too — see getSubmittedDate/getApprovedDate.
+            const submitted = report ? getSubmittedDate(report, actions) : undefined;
+            const approved = report ? getApprovedDate(report, actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
@@ -2839,6 +2843,34 @@ function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.Report
 }
 
 /**
+ * Returns the report's submitted date, falling back to the latest live SUBMITTED action's created time when the
+ * report has been submitted (statusNum) but the snapshot's `submitted` field hasn't caught up yet — same
+ * snapshot-merge gap as `getApprovedDate`/`getFirstApprovedAction`.
+ *
+ * statusNum is checked BEFORE trusting `reportItem.submitted`: the backend can populate `submitted` with a date
+ * even for reports that have never been submitted, so OPEN (the only status a report can't have been submitted
+ * from) is the source of truth here, not the date field.
+ */
+function getSubmittedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        return '';
+    }
+    if (reportItem.submitted) {
+        return reportItem.submitted;
+    }
+    let latestSubmittedAction: OnyxTypes.ReportAction | undefined;
+    for (const action of actions) {
+        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+            continue;
+        }
+        if (!latestSubmittedAction || new Date(action.created).getTime() > new Date(latestSubmittedAction.created).getTime()) {
+            latestSubmittedAction = action;
+        }
+    }
+    return latestSubmittedAction?.created ?? '';
+}
+
+/**
  * @private
  * Organizes data into List Sections grouped by report for display, for the TransactionGroupListItemType of Search Results.
  *
@@ -2967,6 +2999,7 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    submitted: getSubmittedDate(reportItem, actions),
                     approved: getApprovedDate(reportItem, actions),
                     firstApproved,
                     firstApproverAvatar: firstApproverDetails?.avatar,
