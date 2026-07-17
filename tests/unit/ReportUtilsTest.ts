@@ -152,6 +152,7 @@ import {
     isConciergeChatReport,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
+    isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
@@ -16590,6 +16591,21 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('should not treat the report as a concierge chat when conciergeReportID is undefined', () => {
+            // Given a chat that is not tied to the workspace and has no matching participants
+            const report: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: CONST.POLICY.ID_FAKE,
+            };
+
+            // When no conciergeReportID is available (e.g. Onyx value not loaded yet)
+            const result = doesReportBelongToWorkspace(report, [], policyID, undefined);
+
+            // Then the report must not be treated as the Concierge chat
+            expect(result).toBe(false);
+        });
+
         it('should return true for policy related report with matching policyID', () => {
             const policyReport: Report = {
                 reportID: 'policy-report-123',
@@ -20054,6 +20070,45 @@ describe('ReportUtils', () => {
             const report = buildExpenseReportForAutoReimbursement();
 
             expect(canBeAutoReimbursed(report, undefined)).toBe(false);
+        });
+    });
+
+    describe('isGroupPolicyExpenseReport', () => {
+        it('returns true when report is an expense report and policy type is a group type', () => {
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: '1',
+                policyID: '1',
+                payeeAccountID: 100,
+                total: 100,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+            expect(isGroupPolicyExpenseReport(expenseReport, CONST.POLICY.TYPE.CORPORATE)).toBe(true);
+            expect(isGroupPolicyExpenseReport(expenseReport, CONST.POLICY.TYPE.TEAM)).toBe(true);
+        });
+
+        it('returns false when report is an expense report but policy type is not a group type', () => {
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: '1',
+                policyID: '1',
+                payeeAccountID: 100,
+                total: 100,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+            expect(isGroupPolicyExpenseReport(expenseReport, CONST.POLICY.TYPE.PERSONAL)).toBe(false);
+            expect(isGroupPolicyExpenseReport(expenseReport, undefined)).toBe(false);
+        });
+
+        it('returns false when report is not an expense report even if policy type is a group type', () => {
+            const nonExpenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.CHAT,
+            } as Report;
+
+            expect(isGroupPolicyExpenseReport(nonExpenseReport, CONST.POLICY.TYPE.CORPORATE)).toBe(false);
         });
     });
 

@@ -306,6 +306,7 @@ type ShouldShow = (args: {
 
 type ContextMenuActionPayload = {
     reportActions: OnyxEntry<ReportActions>;
+    childReportActions: OnyxEntry<ReportActions>;
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
     reportID: string | undefined;
@@ -340,6 +341,7 @@ type ContextMenuActionPayload = {
     harvestReportOriginalID?: string;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     isDelegateAccessRestricted?: boolean;
@@ -604,11 +606,11 @@ const ContextMenuActions: ContextMenuAction[] = [
             (canEditReportAction(reportAction, iouTransaction) || canEditReportAction(moneyRequestAction, iouTransaction)) &&
             !isArchivedRoom &&
             !isChronosReport,
-        onPress: (closePopover, {reportID, originalReportID, reportAction, moneyRequestAction, introSelected, betas}) => {
+        onPress: (closePopover, {reportID, originalReportID, reportAction, moneyRequestAction, introSelected, betas, childReportActions}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, betas});
+                    openReport({reportID: childReportID, introSelected, betas, hasReportActions: !!childReportActions});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
@@ -757,7 +759,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -769,6 +771,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -785,6 +788,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
@@ -816,7 +820,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -828,6 +832,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -844,6 +849,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
