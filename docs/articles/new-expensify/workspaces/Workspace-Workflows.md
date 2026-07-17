@@ -93,7 +93,7 @@ Once enabled, you can use **Mark as Paid** to keep track of reimbursements made 
 
 When **Payments** is enabled, you can set an **Authorized payer** even if no bank account is connected. The authorized payer is the Workspace Admin responsible for paying reports, and they'll be the one prompted to pay.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
+1. In the navigation tabs (on the left on web, and on the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
 2. Under **Payments**, click **Payer**.
 3. Select the **admin** you want to set as the authorized payer.
 
