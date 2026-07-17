@@ -12,6 +12,7 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOnyxFocused from '@hooks/useOnyxFocused';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -80,7 +81,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {currentSearchResults: snapshot} = useSearchResultsContext();
     const isFocused = useIsFocused();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {subscribed: isFocused});
+    const [report] = useOnyxFocused(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
     const parentReportAction = useParentReportAction(report, isFocused);
@@ -138,7 +139,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportID = report?.reportID;
 
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector(reportID ? [reportID] : [])(attributes), [reportID]);
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector, subscribed: isFocused});
+    const [reportAttributes] = useOnyxFocused(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
     useDocumentTitle(getReportName(report, reportAttributes));
 
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);

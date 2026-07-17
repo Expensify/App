@@ -9,6 +9,7 @@ import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleto
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
+import useOnyxFocused from '@hooks/useOnyxFocused';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
@@ -166,9 +167,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+    const [visibleReportActionsData] = useOnyxFocused(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
-        subscribed: isFocused,
     });
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
