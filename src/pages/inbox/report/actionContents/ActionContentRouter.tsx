@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
@@ -458,6 +459,13 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBrokenMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }
