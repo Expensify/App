@@ -178,7 +178,7 @@ TransitionTracker.onTransitionStart(clearPending);
  * Heuristic-aware drop-in for `TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true})`.
  * Call this right after or right before the navigation call whose transition should be waited on.
  *
- * ponytail: best-effort guess based on actions dispatched through `navigationRef` shortly around this call,
+ * note: best-effort guess based on actions dispatched through `navigationRef` shortly around this call,
  * not a guarantee. A transition from a disconnected call stack (native gesture, unrelated code) is invisible
  * here, same as calling `TransitionTracker.runAfterTransitions` with no `waitForUpcomingTransition`.
  */
