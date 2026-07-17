@@ -36,6 +36,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {getStableReportSelector} from '@src/selectors/Report';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
@@ -127,7 +128,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     // Fetch policy tags directly from Onyx (not in the snapshot) so the Tag GL code cell can resolve.
     const [policyTagLists] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
 
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)}, [
         transactionItem?.report?.ownerAccountID,
@@ -136,7 +137,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`];
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {selector: parentReportActionSelector}, [
-        transactionItem,
+        transactionItem?.reportAction?.reportActionID,
     ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);

@@ -1486,6 +1486,10 @@ function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
 
+function isExpenseReportByType(reportType?: string): boolean {
+    return reportType === CONST.REPORT.TYPE.EXPENSE;
+}
+
 /**
  * Checks if a report is an IOU report using report or reportID
  */
@@ -13351,6 +13355,22 @@ function getReportCustomColumnValue(key: SearchColumnType, report: OnyxEntry<Rep
     }
 }
 
+function getReportCustomColumnValueNarrow(
+    key: SearchColumnType,
+    {submitterUserID, submitterPayrollID, orderDealNumbers}: {submitterUserID?: string; submitterPayrollID?: string; orderDealNumbers?: string},
+): string | undefined {
+    switch (key) {
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+            return submitterUserID;
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+            return submitterPayrollID;
+        case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+            return orderDealNumbers;
+        default:
+            return undefined;
+    }
+}
+
 /**
  * Type guard to check if a column name is sortable
  */
@@ -13365,7 +13385,13 @@ function isSortableColumnName(key: unknown): key is SortableColumnName {
 function getTransactionSortValue(
     transaction: Transaction,
     key: SortableColumnName,
-    report: Report,
+    {
+        type,
+        currency,
+        submitterUserID,
+        submitterPayrollID,
+        orderDealNumbers,
+    }: {type?: string; currency?: string; submitterUserID?: string; submitterPayrollID?: string; orderDealNumbers?: string},
     policy: OnyxEntry<Policy>,
     policyCategories?: PolicyCategories,
     policyTagLists?: PolicyTagLists,
@@ -13389,7 +13415,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE:
             return getTagGLCode(policyTagLists, getTag(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-            return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            return getTransactionAmount(transaction, isExpenseReportByType(type), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
             return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -13399,15 +13425,15 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
             return transaction.billable ? 1 : 0;
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
-            return getExchangeRate(transaction, report?.currency);
+            return getExchangeRate(transaction, currency);
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
-            return getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+            return getOriginalAmountForDisplay(transaction, isExpenseReportByType(type));
         case CONST.SEARCH.TABLE_COLUMNS.MCC:
             return getMCCForDisplay(transaction.mcc);
         case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
             return transaction.taxCode ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-            return getTaxAmount(transaction, isExpenseReport(report));
+            return getTaxAmount(transaction, isExpenseReportByType(type));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return getTaxName(policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
@@ -13421,13 +13447,13 @@ function getTransactionSortValue(
             if (!attendeesCount) {
                 return 0;
             }
-            const totalAmount = getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            const totalAmount = getTransactionAmount(transaction, isExpenseReportByType(type), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
             return totalAmount / attendeesCount;
         }
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
-            return getReportCustomColumnValue(key, report);
+            return getReportCustomColumnValueNarrow(key, {submitterUserID, submitterPayrollID, orderDealNumbers});
         default:
             return '';
     }
@@ -13716,6 +13742,7 @@ export {
     generateIsEmptyReport,
     isRootGroupChat,
     isExpenseReport,
+    isExpenseReportByType,
     isExpenseRequest,
     isFinancialReportsForBusinesses,
     isExpensifyOnlyParticipantInReport,

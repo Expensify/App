@@ -29,6 +29,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWhyDidIRender from '@hooks/useWhyDidIRender';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -83,7 +84,7 @@ import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
@@ -204,7 +205,7 @@ function MoneyRequestReportTransactionList({
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
     const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
-    const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
+    const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -225,68 +226,62 @@ function MoneyRequestReportTransactionList({
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
-    const addExpenseDropdownOptions = useMemo(
-        () =>
-            getAddExpenseDropdownOptions({
-                translate,
-                icons: expensifyIcons,
-                iouReportID: report?.reportID,
-                policy,
-                userBillingGracePeriodEnds,
-                draftTransactionIDs,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                lastDistanceExpenseType,
-                currentUserAccountID: currentUserDetails?.accountID,
-            }),
-        [
-            translate,
-            expensifyIcons,
-            report?.reportID,
-            policy,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            lastDistanceExpenseType,
-            ownerBillingGracePeriodEnd,
-            draftTransactionIDs,
-            currentUserDetails?.accountID,
-        ],
-    );
+    const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
+        translate,
+        icons: expensifyIcons,
+        iouReportID: report?.reportID,
+        policy,
+        userBillingGracePeriodEnds,
+        draftTransactionIDs,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        lastDistanceExpenseType,
+        currentUserAccountID: currentUserDetails?.accountID,
+    });
 
-    const hasPendingAction = useMemo(() => {
-        return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
-    }, [hasPendingDeletionTransaction, transactions]);
+    const hasPendingAction = hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
 
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionActions();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    const toggleTransaction = useCallback(
-        (transactionID: string) => {
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (selectedTransactionIDs.includes(transactionID)) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((t) => t !== transactionID);
-            } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, transactionID];
+    // DEV-ONLY re-render diagnostic (PoC — remove before merge). This header child hosts
+    // useHandleSelectionMode; track its input (selectedTransactionIDs) plus the props/subscriptions that
+    // change when a message is sent, to see whether selection state or the transactions/reportActions
+    // props are what re-render this subtree.
+    useWhyDidIRender('MoneyRequestReportTransactionList', {
+        selectedTransactionIDs,
+        isMobileSelectionModeEnabled,
+        transactions,
+        reportActions,
+        newTransactions,
+        hasPendingDeletionTransaction,
+        report,
+        policy,
+        onLayout,
+    });
+
+    const toggleTransaction = (transactionID: string) => {
+        let newSelectedTransactionIDs = selectedTransactionIDs;
+        if (selectedTransactionIDs.includes(transactionID)) {
+            newSelectedTransactionIDs = selectedTransactionIDs.filter((t) => t !== transactionID);
+        } else {
+            newSelectedTransactionIDs = [...selectedTransactionIDs, transactionID];
+        }
+        setSelectedTransactions(newSelectedTransactionIDs);
+    };
+
+    const isTransactionSelected = (transactionID: string) => selectedTransactionIDs.includes(transactionID);
+
+    useFocusEffect(() => {
+        return () => {
+            if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+                return;
             }
-            setSelectedTransactions(newSelectedTransactionIDs);
-        },
-        [setSelectedTransactions, selectedTransactionIDs],
-    );
-
-    const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionIDs.includes(transactionID), [selectedTransactionIDs]);
-
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-                    return;
-                }
-                clearSelectedTransactions(true);
-            };
-        }, [clearSelectedTransactions]),
-    );
+            clearSelectedTransactions(true);
+        };
+    });
 
     const reportID = report?.reportID;
 
@@ -298,34 +293,32 @@ function MoneyRequestReportTransactionList({
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(false);
     const transactionCountWhenSkeletonShown = useRef<number | null>(null);
 
-    const hasOptimisticNewTransaction = useMemo(() => transactions.some((t) => getTransactionPendingAction(t) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD), [transactions]);
+    const hasOptimisticNewTransaction = transactions.some((t) => getTransactionPendingAction(t) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-    useFocusEffect(
-        useCallback(() => {
-            if (!showPendingExpensePlaceholder) {
-                const pending = getPendingSubmitFollowUpAction();
-                const hasPendingSubmit =
-                    pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY &&
-                    pending?.reportID === reportID &&
-                    isReportOpenInSuperWideRHP(navigationRef.getRootState());
+    useFocusEffect(() => {
+        if (!showPendingExpensePlaceholder) {
+            const pending = getPendingSubmitFollowUpAction();
+            const hasPendingSubmit =
+                pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY &&
+                pending?.reportID === reportID &&
+                isReportOpenInSuperWideRHP(navigationRef.getRootState());
 
-                if (!hasPendingSubmit || hasOptimisticNewTransaction) {
-                    return;
-                }
-
-                transactionCountWhenSkeletonShown.current = transactions.length;
-                setShowPendingExpensePlaceholder(true);
+            if (!hasPendingSubmit || hasOptimisticNewTransaction) {
                 return;
             }
 
-            if (!hasOptimisticNewTransaction && (transactionCountWhenSkeletonShown.current === null || transactions.length <= transactionCountWhenSkeletonShown.current)) {
-                return;
-            }
+            transactionCountWhenSkeletonShown.current = transactions.length;
+            setShowPendingExpensePlaceholder(true);
+            return;
+        }
 
-            transactionCountWhenSkeletonShown.current = null;
-            setShowPendingExpensePlaceholder(false);
-        }, [showPendingExpensePlaceholder, reportID, transactions.length, hasOptimisticNewTransaction]),
-    );
+        if (!hasOptimisticNewTransaction && (transactionCountWhenSkeletonShown.current === null || transactions.length <= transactionCountWhenSkeletonShown.current)) {
+            return;
+        }
+
+        transactionCountWhenSkeletonShown.current = null;
+        setShowPendingExpensePlaceholder(false);
+    });
 
     useEffect(() => {
         clearSelectedTransactions(true);
@@ -346,25 +339,22 @@ function MoneyRequestReportTransactionList({
     // - transactionThreadReportIDByTransactionID: transactionID → transaction-thread report ID, so each row can pass it
     //   to the RBR, letting rows without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx
     //   subscriptions). Without this, the per-row alternative would re-scan every report action (O(transactions × actions)).
-    const {reportActionsMap, transactionThreadReportIDByTransactionID} = useMemo(() => {
-        const actionsMap: Record<string, OnyxTypes.ReportAction> = {};
-        const threadReportIDByTransactionID = new Map<string, string>();
-        for (const action of reportActions) {
-            actionsMap[action.reportActionID] = action;
-            if (!isMoneyRequestAction(action)) {
-                continue;
-            }
-            const iouTransactionID = getOriginalMessage(action)?.IOUTransactionID;
-            // First match wins to mirror getIOUActionForTransactionID's `.find` semantics (reportActions are sorted newest→oldest).
-            if (iouTransactionID && action.childReportID && !threadReportIDByTransactionID.has(iouTransactionID)) {
-                threadReportIDByTransactionID.set(iouTransactionID, action.childReportID);
-            }
+    const reportActionsMap: Record<string, OnyxTypes.ReportAction> = {};
+    const transactionThreadReportIDByTransactionID = new Map<string, string>();
+    for (const action of reportActions) {
+        reportActionsMap[action.reportActionID] = action;
+        if (!isMoneyRequestAction(action)) {
+            continue;
         }
-        return {reportActionsMap: actionsMap, transactionThreadReportIDByTransactionID: threadReportIDByTransactionID};
-    }, [reportActions]);
+        const iouTransactionID = getOriginalMessage(action)?.IOUTransactionID;
+        // First match wins to mirror getIOUActionForTransactionID's `.find` semantics (reportActions are sorted newest→oldest).
+        if (iouTransactionID && action.childReportID && !transactionThreadReportIDByTransactionID.has(iouTransactionID)) {
+            transactionThreadReportIDByTransactionID.set(iouTransactionID, action.childReportID);
+        }
+    }
 
     // Precompute the set of RBR-flagged transaction IDs
-    const rbrTransactionIDs = useMemo(() => {
+    const rbrTransactionIDs = (() => {
         if (!isDefaultSort || !allTransactionViolations) {
             return null;
         }
@@ -381,52 +371,56 @@ function MoneyRequestReportTransactionList({
             }
         }
         return ids;
-    }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, ownerLogin, policy, reportActionsMap]);
+    })();
 
-    const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions].sort((a, b) => {
-            // When on default sort (Date/ASC), prioritize RBR-flagged transactions
-            if (rbrTransactionIDs) {
-                const aHasRBR = rbrTransactionIDs.has(a.transactionID);
-                const bHasRBR = rbrTransactionIDs.has(b.transactionID);
-                if (aHasRBR !== bHasRBR) {
-                    return aHasRBR ? -1 : 1;
-                }
+    const transactionSortValueReportData = {
+        type: report?.type,
+        currency: report?.currency,
+        submitterUserID: report?.submitterUserID,
+        submitterPayrollID: report?.submitterPayrollID,
+        orderDealNumbers: report?.orderDealNumbers,
+    };
+
+    const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions].sort((a, b) => {
+        // When on default sort (Date/ASC), prioritize RBR-flagged transactions
+        if (rbrTransactionIDs) {
+            const aHasRBR = rbrTransactionIDs.has(a.transactionID);
+            const bHasRBR = rbrTransactionIDs.has(b.transactionID);
+            if (aHasRBR !== bHasRBR) {
+                return aHasRBR ? -1 : 1;
             }
-            return compareValues(
-                getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
-                getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
-                sortOrder,
-                sortBy,
-                localeCompare,
-                true,
-            );
-        });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, policyTagLists, rbrTransactionIDs]);
+        }
+        return compareValues(
+            getTransactionSortValue(a, sortBy, transactionSortValueReportData, policy, policyCategories, policyTagLists),
+            getTransactionSortValue(b, sortBy, transactionSortValueReportData, policy, policyCategories, policyTagLists),
+            sortOrder,
+            sortBy,
+            localeCompare,
+            true,
+        );
+    });
 
-    const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
+    const resolvedTransactions = resolveTransactionCardFields(sortedTransactions, cardList, translate);
 
-    const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
+    const highlightedTransactionIDs = new Set(newTransactions.map(({transactionID}) => transactionID));
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const isExpenseReportViewFromIOUReport = isIOUReport(report);
     const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
-    const shouldShowCommentsColumn = useMemo(() => Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0), [reportActions]);
-    const columnsToShow = useMemo(() => {
-        return getColumnsToShow({
-            currentAccountID: currentUserDetails?.accountID,
-            data: transactions,
-            report,
-            visibleColumns: (isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? [])) as SearchCustomColumnIds[],
-            isExpenseReportView: true,
-            isExpenseReportViewFromIOUReport,
-            shouldShowBillableColumn,
-            shouldShowCommentsColumn,
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
-            reportCurrency: report?.currency,
-            isPolicyTaxEnabled: isTaxEnabled,
-        });
-    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report, isTaxEnabled]);
+    const shouldShowCommentsColumn = Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0);
+    const columnsToShow = getColumnsToShow({
+        currentAccountID: currentUserDetails?.accountID,
+        data: transactions,
+        report,
+        visibleColumns: (isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? [])) as SearchCustomColumnIds[],
+        isExpenseReportView: true,
+        isExpenseReportViewFromIOUReport,
+        shouldShowBillableColumn,
+        shouldShowCommentsColumn,
+        shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
+        reportCurrency: report?.currency,
+        isPolicyTaxEnabled: isTaxEnabled,
+    });
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
@@ -434,9 +428,9 @@ function MoneyRequestReportTransactionList({
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
     const horizontalScrollOffsetRef = useRef(0);
 
-    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         horizontalScrollOffsetRef.current = event.nativeEvent.contentOffset.x;
-    }, []);
+    };
 
     // Restore horizontal scroll position synchronously before paint when transactions change
     useLayoutEffect(() => {
@@ -465,27 +459,35 @@ function MoneyRequestReportTransactionList({
     const currentGroupBy: OnyxTypes.ReportLayoutGroupBy = currentSelection !== CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX ? currentSelection : getReportLayoutGroupBy(reportLayoutGroupBy);
     const shouldGroupTransactions = shouldShowGroupedTransactions && !isLayoutMatrixSelected;
 
-    const groupedTransactions = useMemo(() => {
+    const getGroupedTransactions = () => {
         if (!shouldGroupTransactions) {
             return [];
         }
+        // The helpers only need the currency; passing the primitive (not the full report) avoids recomputing on
+        // unrelated report changes. `shouldGroupTransactions` already implies `report` exists (it derives from isExpenseReport).
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
-            return groupTransactionsByTag(resolvedTransactions, report, localeCompare);
+            return groupTransactionsByTag(resolvedTransactions, report?.currency, localeCompare);
         }
-        return groupTransactionsByCategory(resolvedTransactions, report, localeCompare);
-        // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
-        // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
+        return groupTransactionsByCategory(resolvedTransactions, report?.currency, localeCompare);
+    };
 
-    const visualOrderTransactionIDs = useMemo(() => {
+    const groupedTransactions = getGroupedTransactions();
+
+    const getVisualOrderTransactionIDs = () => {
         if (!shouldGroupTransactions || groupedTransactions.length === 0) {
             return sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
         }
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
-    }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
+    };
 
-    const transactionIDsMembershipKey = useMemo(() => [...visualOrderTransactionIDs].sort().join(','), [visualOrderTransactionIDs]);
+    const visualOrderTransactionIDsData = getVisualOrderTransactionIDs();
+
+    // Membership proxy for visualOrderTransactionIDsData used as the effect dependency below.
+    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
+    // Onyx key with a different ordering. Using the raw array reference would cause the effect
+    // to re-fire on every referential change and overwrite those IDs. Sorting before joining
+    // ensures the effect only re-fires when the actual set of IDs changes, not their order.
+    const visualOrderTransactionIDsKey = [...visualOrderTransactionIDsData].sort().join(',');
 
     const [latestActiveTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
@@ -507,217 +509,182 @@ function MoneyRequestReportTransactionList({
             return;
         }
 
-        if (visualOrderTransactionIDs.length < 2) {
+        if (visualOrderTransactionIDsData.length < 2) {
             return;
         }
 
         if (
             latestActiveTransactionIDs &&
-            latestActiveTransactionIDs.length > visualOrderTransactionIDs.length &&
-            visualOrderTransactionIDs.every((id) => latestActiveTransactionIDs.includes(id))
+            latestActiveTransactionIDs.length > visualOrderTransactionIDsData.length &&
+            visualOrderTransactionIDsData.every((id) => latestActiveTransactionIDs.includes(id))
         ) {
             return;
         }
-        setActiveTransactionIDs(visualOrderTransactionIDs);
+        setActiveTransactionIDs(visualOrderTransactionIDsData);
         return () => {
             clearActiveTransactionIDs();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- transactionIDsMembershipKey is a membership proxy for the array, and we intentionally don't depend on latestActiveTransactionIDs to avoid re-firing when the carousel changes elsewhere
-    }, [transactionIDsMembershipKey]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a membership proxy for the array, and we intentionally don't depend on latestActiveTransactionIDs to avoid re-firing when the carousel changes elsewhere
+    }, [visualOrderTransactionIDsKey]);
 
-    const groupSelectionState = useMemo(() => {
-        const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
+    const groupSelectionState = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
 
-        for (const group of groupedTransactions) {
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
-            const groupPendingAction = group.transactions.some((t) => getTransactionPendingAction(t)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
+    for (const group of groupedTransactions) {
+        const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+        const groupPendingAction = group.transactions.some((t) => getTransactionPendingAction(t)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 
-            if (groupTransactionIDs.length === 0) {
-                state.set(group.groupKey, {isSelected: false, isIndeterminate: false, isDisabled: true, pendingAction: groupPendingAction});
-                continue;
-            }
-
-            const selectedCount = groupTransactionIDs.filter((id) => selectedTransactionIDs.includes(id)).length;
-            state.set(group.groupKey, {
-                isSelected: selectedCount === groupTransactionIDs.length,
-                isIndeterminate: selectedCount > 0 && selectedCount < groupTransactionIDs.length,
-                isDisabled: false,
-                pendingAction: groupPendingAction,
-            });
+        if (groupTransactionIDs.length === 0) {
+            groupSelectionState.set(group.groupKey, {isSelected: false, isIndeterminate: false, isDisabled: true, pendingAction: groupPendingAction});
+            continue;
         }
 
-        return state;
-    }, [groupedTransactions, selectedTransactionIDs]);
+        const selectedCount = groupTransactionIDs.filter((id) => selectedTransactionIDs.includes(id)).length;
+        groupSelectionState.set(group.groupKey, {
+            isSelected: selectedCount === groupTransactionIDs.length,
+            isIndeterminate: selectedCount > 0 && selectedCount < groupTransactionIDs.length,
+            isDisabled: false,
+            pendingAction: groupPendingAction,
+        });
+    }
 
-    const toggleGroupSelection = useCallback(
-        (groupKey: string) => {
-            const group = groupedTransactions.find((g) => g.groupKey === groupKey);
-            if (!group) {
-                return;
-            }
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
-            const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
+    const toggleGroupSelection = (groupKey: string) => {
+        const group = groupedTransactions.find((g) => g.groupKey === groupKey);
+        if (!group) {
+            return;
+        }
+        const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+        const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
 
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (anySelected) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
-            } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, ...groupTransactionIDs];
-            }
-            setSelectedTransactions(newSelectedTransactionIDs);
-        },
-        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
-    );
+        let newSelectedTransactionIDs = selectedTransactionIDs;
+        if (anySelected) {
+            newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
+        } else {
+            newSelectedTransactionIDs = [...selectedTransactionIDs, ...groupTransactionIDs];
+        }
+        setSelectedTransactions(newSelectedTransactionIDs);
+    };
 
     /**
      * Navigate to the transaction thread for a transaction, creating one optimistically if it doesn't yet exist.
      */
-    const navigateToTransaction = useCallback(
-        (activeTransactionID: string) => {
-            navigateToTransactionThread({
-                transactionID: activeTransactionID,
-                reportActions,
-                report,
-                transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
-                siblingTransactionIDs: visualOrderTransactionIDs,
-            });
-        },
-        [navigateToTransactionThread, reportActions, sortedTransactions, report, visualOrderTransactionIDs],
-    );
+    const navigateToTransaction = (activeTransactionID: string) => {
+        navigateToTransactionThread({
+            transactionID: activeTransactionID,
+            reportActions,
+            report,
+            transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
+            siblingTransactionIDs: visualOrderTransactionIDsData,
+        });
+    };
 
-    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-        const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
-        const isTaxAmountColumnWide = transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
-        const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        return {
-            amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        };
-    }, [transactions]);
+    const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
+    const isTaxAmountColumnWide = transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
+    const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
+    const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
     const isEmptyTransactions = isEmpty(transactions);
 
-    const handleLongPress = useCallback(
-        (transactionID: string) => {
-            if (!isSmallScreenWidth) {
-                return;
-            }
-            if (isMobileSelectionModeEnabled) {
-                toggleTransaction(transactionID);
-                return;
-            }
-            setSelectedTransactionID(transactionID);
-            setIsModalVisible(true);
-        },
-        [isSmallScreenWidth, isMobileSelectionModeEnabled, toggleTransaction, setSelectedTransactionID, setIsModalVisible],
-    );
+    const handleLongPress = (transactionID: string) => {
+        if (!isSmallScreenWidth) {
+            return;
+        }
+        if (isMobileSelectionModeEnabled) {
+            toggleTransaction(transactionID);
+            return;
+        }
+        setSelectedTransactionID(transactionID);
+        setIsModalVisible(true);
+    };
 
-    const handleOnPress = useCallback(
-        (transactionID: string) => {
-            if (isMobileSelectionModeEnabled) {
-                toggleTransaction(transactionID);
-                return;
-            }
+    const handleOnPress = (transactionID: string) => {
+        if (isMobileSelectionModeEnabled) {
+            toggleTransaction(transactionID);
+            return;
+        }
 
-            navigateToTransaction(transactionID);
-        },
-        [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
-    );
+        navigateToTransaction(transactionID);
+    };
 
-    const handleArrowRightPress = useCallback(
-        (transactionID: string) => {
-            navigateToTransaction(transactionID);
-        },
-        [navigateToTransaction],
-    );
+    const handleArrowRightPress = (transactionID: string) => {
+        navigateToTransaction(transactionID);
+    };
 
     const listHorizontalPadding = styles.ph5;
 
-    const groupByItems = useMemo(
-        () => [
-            {
-                text: translate('reportLayout.groupBy.category'),
-                value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-            },
-            {
-                text: translate('reportLayout.groupBy.tag'),
-                value: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
-            },
-            {
-                text: translate('common.none'),
-                value: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
-            },
-        ],
-        [translate],
-    );
+    const groupByItems = [
+        {
+            text: translate('reportLayout.groupBy.category'),
+            value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+        },
+        {
+            text: translate('reportLayout.groupBy.tag'),
+            value: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+        },
+        {
+            text: translate('common.none'),
+            value: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
+        },
+    ];
 
-    const openColumnsPage = useCallback(() => {
+    const openColumnsPage = () => {
         Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(report.reportID));
-    }, [report.reportID]);
+    };
 
-    const selectedGroupByItem = useMemo(() => groupByItems.find((item) => item.value === currentSelection) ?? groupByItems.at(0), [groupByItems, currentSelection]);
+    const selectedGroupByItem = groupByItems.find((item) => item.value === currentSelection) ?? groupByItems.at(0);
 
-    const groupByOptions = useMemo(
-        () =>
-            groupByItems.map((item) => ({
-                text: item.text,
-                keyForList: item.value,
-                isSelected: item.value === currentSelection,
-            })),
-        [groupByItems, currentSelection],
-    );
+    const groupByOptions = groupByItems.map((item) => ({
+        text: item.text,
+        keyForList: item.value,
+        isSelected: item.value === currentSelection,
+    }));
 
-    const groupByPopoverComponent = useCallback(
-        (props: {closeOverlay: () => void}) => (
-            <View style={[styles.pv4]}>
-                <View
-                    style={styles.getSelectionListPopoverHeight({
-                        itemCount: groupByOptions.length || 1,
-                        itemHeight: shouldUseNarrowLayout ? variables.optionRowHeight : variables.optionRowHeightCompact,
-                        windowHeight,
-                        isInLandscapeMode,
-                        hasButton: false,
-                    })}
-                >
-                    <SelectionList
-                        data={groupByOptions}
-                        shouldSingleExecuteRowSelect
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={(item) => {
-                            if (!item.keyForList) {
-                                return;
-                            }
-                            setPendingLayoutSelection(item.keyForList);
-                            setReportLayout(item.keyForList, reportLayoutOption, reportLayoutGroupBy);
-                            props.closeOverlay();
-                        }}
-                        style={{contentContainerStyle: [styles.pb0], listItemWrapperStyle: shouldUseNarrowLayout ? undefined : styles.optionRowCompact}}
-                    />
-                </View>
+    const groupByPopoverComponent = (props: {closeOverlay: () => void}) => (
+        <View style={[styles.pv4]}>
+            <View
+                style={styles.getSelectionListPopoverHeight({
+                    itemCount: groupByOptions.length || 1,
+                    itemHeight: shouldUseNarrowLayout ? variables.optionRowHeight : variables.optionRowHeightCompact,
+                    windowHeight,
+                    isInLandscapeMode,
+                    hasButton: false,
+                })}
+            >
+                <SelectionList
+                    data={groupByOptions}
+                    shouldSingleExecuteRowSelect
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={(item) => {
+                        if (!item.keyForList) {
+                            return;
+                        }
+                        setPendingLayoutSelection(item.keyForList);
+                        setReportLayout(item.keyForList, reportLayoutOption, reportLayoutGroupBy);
+                        props.closeOverlay();
+                    }}
+                    style={{contentContainerStyle: [styles.pb0], listItemWrapperStyle: shouldUseNarrowLayout ? undefined : styles.optionRowCompact}}
+                />
             </View>
-        ),
-        [groupByOptions, reportLayoutOption, reportLayoutGroupBy, styles, windowHeight, isInLandscapeMode, shouldUseNarrowLayout],
+        </View>
     );
 
     const isDesktopTableLayout = !shouldUseNarrowLayout;
 
-    const lastTransactionID = useMemo(() => {
-        const allTransactions = shouldGroupTransactions ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions;
-        const visibleTransactions = allTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
-        return visibleTransactions.at(-1)?.transactionID;
-    }, [shouldGroupTransactions, groupedTransactions, resolvedTransactions, isOffline]);
+    const allVisibleOrderedTransactions = shouldGroupTransactions ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions;
+    const visibleTransactions = allVisibleOrderedTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
+    const lastTransactionID = visibleTransactions.at(-1)?.transactionID;
 
-    const violationsByTransactionID = useMemo(() => {
-        const map = new Map<string, OnyxTypes.TransactionViolations>();
-        const email = currentUserDetails.email ?? '';
-        const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const violationsByTransactionID = new Map<string, OnyxTypes.TransactionViolations>();
+    const currentUserEmail = currentUserDetails.email ?? '';
+    const currentUserAccountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
-        for (const transaction of resolvedTransactions) {
-            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy ?? undefined));
-        }
-        return map;
-    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, ownerLogin, policy]);
+    for (const transaction of resolvedTransactions) {
+        violationsByTransactionID.set(
+            transaction.transactionID,
+            filterTransactionViolations(transaction, allTransactionViolations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy ?? undefined),
+        );
+    }
 
     const renderTransactionItem = (transaction: TransactionWithOptionalHighlight) => (
         <MoneyRequestReportTransactionItem
@@ -1029,5 +996,5 @@ function MoneyRequestReportTransactionList({
     );
 }
 
-export default memo(MoneyRequestReportTransactionList);
+export default MoneyRequestReportTransactionList;
 export type {TransactionWithOptionalHighlight};

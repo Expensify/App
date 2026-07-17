@@ -67,6 +67,12 @@ const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,
 };
 
+// Hoisted to module scope so the array identity is stable across renders. Passing an inline array here
+// would give `useSubmitToDestinationVisible`'s `tryEnd` useCallback a fresh dependency every render,
+// which churns the returned `onLayout` callback and re-renders the memoized report list on every parent render.
+const SUBMIT_TO_DESTINATION_FOLLOW_UP_ACTIONS = [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY] as const;
+const SUBMIT_TO_DESTINATION_TRIGGERS = [CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT, CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS] as const;
+
 function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -79,11 +85,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const parentReportAction = useParentReportAction(report);
 
-    const handleSubmitToDestinationVisibleLayout = useSubmitToDestinationVisible(
-        [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
-        reportIDFromRoute,
-        [CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT, CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS],
-    );
+    const handleSubmitToDestinationVisibleLayout = useSubmitToDestinationVisible(SUBMIT_TO_DESTINATION_FOLLOW_UP_ACTIONS, reportIDFromRoute, SUBMIT_TO_DESTINATION_TRIGGERS);
 
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();

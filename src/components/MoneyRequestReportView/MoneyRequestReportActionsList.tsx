@@ -18,6 +18,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWhyDidIRender from '@hooks/useWhyDidIRender';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
@@ -65,6 +66,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
+import {reportVisibleActionsSelector} from '@src/selectors/ReportAction';
 import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -161,7 +163,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    // Scope the derived VISIBLE_REPORT_ACTIONS to this report only. Subscribing to the whole collection
+    // re-rendered this list whenever ANY report's visibility changed; every action here belongs to `reportID`
+    // (they come from usePaginatedReportActions(reportID)), so isReportActionVisible only ever reads this slice.
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+        selector: reportVisibleActionsSelector(reportID),
+    });
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
@@ -170,6 +177,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
+
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
             const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
@@ -682,6 +690,36 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
     const showEmptyState = isReportEmpty;
+
+    // DEV-ONLY re-render diagnostic (PoC — remove before merge). Focus: onLayout, transactions,
+    // reportActions. Upstream sources are tracked too so we can see the causal chain when sending a
+    // message (addComment -> optimistic report action + report.lastVisibleActionCreated update).
+    useWhyDidIRender('MoneyRequestReportActionsList', {
+        // suspects flagged by the profiler
+        onLayout,
+        transactions,
+        reportActions,
+        // upstream of `reportActions`
+        unfilteredReportActions,
+        // upstream of `transactions`
+        reportTransactions,
+        allReportTransactions,
+        // the render list actually fed to the FlatList
+        visibleReportActions,
+        // report subscriptions: full `report` churns on lastVisibleActionCreated on send; stable should not
+        report,
+        reportStable,
+        // other row props / inputs
+        parentReportAction,
+        chatReport,
+        transactionThreadReport,
+        visibleReportActionsData,
+        draftReportActionID,
+        unreadMarkerReportActionID,
+        isOffline,
+        reportLoadingState,
+        reportPaginationState,
+    });
 
     if (!report) {
         return null;
