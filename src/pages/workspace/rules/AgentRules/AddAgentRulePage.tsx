@@ -238,7 +238,13 @@ function AddAgentRulePage({
                     </TabSelectorContextProvider>
                 </View>
                 <View style={styles.flex1}>
-                    {activeTab === CONST.TAB.AGENT_RULE.SUGGESTIONS ? <AddAgentRuleSuggestionsTab onSelectSuggestion={selectSuggestion} /> : <AddAgentRuleWriteTab onSave={saveRule} />}
+                    <View style={[styles.flex1, activeTab !== CONST.TAB.AGENT_RULE.SUGGESTIONS && styles.dNone]}>
+                        <AddAgentRuleSuggestionsTab
+                            key={policyID}
+                            onSelectSuggestion={selectSuggestion}
+                        />
+                    </View>
+                    {activeTab === CONST.TAB.AGENT_RULE.WRITE && <AddAgentRuleWriteTab onSave={saveRule} />}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
