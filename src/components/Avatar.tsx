@@ -6,6 +6,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
+import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
 import {isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -70,6 +71,36 @@ type AvatarProps = {
     testID?: string;
 };
 
+type UserLetterAvatarProps = {
+    /** Initials parsed from the generated letter-avatar URL */
+    initials: string;
+
+    /** Colors encoded in the generated letter-avatar URL */
+    urlColors: LetterAvatarColorStyle;
+
+    /** Account whose picked avatarStyle color overrides the URL colors */
+    accountID: number | undefined;
+
+    /** Avatar size in pixels */
+    size: number;
+};
+
+function UserLetterAvatar({initials, urlColors, accountID, size}: UserLetterAvatarProps) {
+    // A picked avatarStyle color is authoritative over the color encoded in the URL.
+    const [pickedColorKey] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: avatarStyleColorSelector(accountID),
+    });
+    const colors = pickedColorKey && isLetterAvatarSchemeKey(pickedColorKey) ? LETTER_AVATAR_SCHEMES[pickedColorKey] : urlColors;
+
+    return (
+        <UserInitialsAvatar
+            text={initials}
+            colors={colors}
+            size={size}
+        />
+    );
+}
+
 function Avatar({
     source: originalSource,
     imageStyles,
@@ -107,12 +138,6 @@ function Avatar({
     // Read the color and initials directly from the generated letter-avatar URL.
     const letterAvatarParts = parseLetterAvatarURL(source);
 
-    // A picked avatarStyle color is authoritative over the color encoded in the URL.
-    const [pickedColorKey] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: avatarStyleColorSelector(userAccountID),
-    });
-    const letterAvatarColors = pickedColorKey && isLetterAvatarSchemeKey(pickedColorKey) ? LETTER_AVATAR_SCHEMES[pickedColorKey] : letterAvatarParts?.colors;
-
     let optimizedSource = source;
     const localFromCatalog = findLocalAvatarForURL(source);
 
@@ -146,9 +171,10 @@ function Avatar({
                 testID={testID}
             >
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
-                    <UserInitialsAvatar
-                        text={letterAvatarParts.initials}
-                        colors={letterAvatarColors ?? letterAvatarParts.colors}
+                    <UserLetterAvatar
+                        initials={letterAvatarParts.initials}
+                        urlColors={letterAvatarParts.colors}
+                        accountID={userAccountID}
                         size={iconSize}
                     />
                 </View>

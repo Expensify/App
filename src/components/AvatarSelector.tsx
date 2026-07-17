@@ -72,32 +72,31 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
                         </PressableWithFeedback>
                     );
                 })}
-                {letterAvatarOptions?.length > 0 &&
-                    letterAvatarOptions.map(({id, colors}) => {
-                        const isSelected = selectedID === id;
+                {letterAvatarOptions.map(({id, colors}) => {
+                    const isSelected = selectedID === id;
 
-                        return (
-                            <PressableWithFeedback
-                                key={id}
-                                accessible
-                                accessibilityRole="button"
-                                accessibilityLabel={translate('avatarPage.selectAvatar')}
-                                onPress={() => onSelect(id)}
-                                style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
+                    return (
+                        <PressableWithFeedback
+                            key={id}
+                            accessible
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('avatarPage.selectAvatar')}
+                            onPress={() => onSelect(id)}
+                            style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
+                        >
+                            <View
+                                style={styles.avatarSelectorContainer}
+                                testID={`AvatarSelector_${id}`}
                             >
-                                <View
-                                    style={styles.avatarSelectorContainer}
-                                    testID={`AvatarSelector_${id}`}
-                                >
-                                    <UserInitialsAvatar
-                                        text={initials}
-                                        colors={colors}
-                                        size={iconSize}
-                                    />
-                                </View>
-                            </PressableWithFeedback>
-                        );
-                    })}
+                                <UserInitialsAvatar
+                                    text={initials}
+                                    colors={colors}
+                                    size={iconSize}
+                                />
+                            </View>
+                        </PressableWithFeedback>
+                    );
+                })}
                 {/* We need to add several invisible items at the end of the avatar list to guarantee that the last row avatars are aligned properly */}
                 {[...Array(SPACER_SIZE).keys()].map((i) => (
                     <View
