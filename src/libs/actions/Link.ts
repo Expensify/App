@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
+import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink} from '@libs/PendingConciergeDeepLink';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -451,6 +452,12 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
+function isConciergeRoute(route: string) {
+    const [routeWithoutParams] = normalizePath(route).split(/[?#]/, 1);
+    const normalizedRoute = routeWithoutParams.replace(/\/$/, '');
+    return normalizedRoute === normalizePath(ROUTES.CONCIERGE);
+}
+
 function openReportFromDeepLink(
     url: string,
     reports: OnyxCollection<Report>,
@@ -494,6 +501,14 @@ function openReportFromDeepLink(
     // at the root level without a path mapping. Treat it as empty route to avoid showing a “not found” page after sign-in.
     if (normalizePath(route) === `/${SCREENS.HOME}`) {
         route = '';
+    }
+
+    if (!isAuthenticated) {
+        if (isConciergeRoute(route)) {
+            setPendingConciergeDeepLink();
+        } else {
+            clearPendingConciergeDeepLink();
+        }
     }
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up

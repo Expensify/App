@@ -1,5 +1,6 @@
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink} from '@libs/PendingConciergeDeepLink';
 import type * as ReportUtils from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -62,6 +63,7 @@ describe('navigateAfterOnboarding', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        clearPendingConciergeDeepLink();
         return Onyx.clear();
     });
 
@@ -154,5 +156,36 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+    });
+
+    it('should navigate to Concierge instead of Home when a pending Concierge deep link is available', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        setPendingConciergeDeepLink();
+
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('should navigate to Concierge route when pending deep link is set but conciergeReportID is empty', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        setPendingConciergeDeepLink();
+
+        navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.CONCIERGE);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('should consume the pending Concierge deep link after onboarding navigation', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        setPendingConciergeDeepLink();
+
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
+
+        expect(navigate).toHaveBeenNthCalledWith(1, ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+        expect(navigate).toHaveBeenNthCalledWith(2, ROUTES.HOME);
     });
 });

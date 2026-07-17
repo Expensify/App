@@ -15,6 +15,7 @@ import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
+import {consumePendingConciergeDeepLink} from './PendingConciergeDeepLink';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
@@ -99,6 +100,8 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    } else if (consumePendingConciergeDeepLink()) {
+        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
     } else {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME);
