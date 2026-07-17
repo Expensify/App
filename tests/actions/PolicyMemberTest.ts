@@ -1,4 +1,5 @@
 import DateUtils from '@libs/DateUtils';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -404,7 +405,7 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
         });
 
-        it('uses the explicit personal details list to decide new-member success-data participants instead of the deprecated copy', () => {
+        it('uses new personal details onyx data to decide new-member success-data participants instead of the deprecated copy', () => {
             const policyID = '1';
             const policy = {...createRandomPolicy(Number(policyID))};
 
@@ -413,16 +414,14 @@ describe('actions/PolicyMember', () => {
             const absentMemberEmail = 'absent@example.com';
             const absentMemberAccountID = 8765;
 
-            // The personal details list knows the "present" member but not the "absent" one.
-            const personalDetailsList = {[presentMemberAccountID]: {accountID: presentMemberAccountID, login: presentMemberEmail}};
+            const newPersonalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers([absentMemberEmail], [absentMemberAccountID], TestHelper.formatPhoneNumber);
 
             const {membersChats} = Member.buildAddMembersToWorkspaceOnyxData(
                 {[presentMemberEmail]: presentMemberAccountID, [absentMemberEmail]: absentMemberAccountID},
+                newPersonalDetailsOnyxData,
                 policy,
                 [],
                 CONST.POLICY.ROLE.USER,
-                TestHelper.formatPhoneNumber,
-                personalDetailsList,
                 currentUser,
                 undefined,
             );

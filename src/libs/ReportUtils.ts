@@ -1916,18 +1916,17 @@ function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefine
  * Checks if the supplied report is from a policy or is an invoice report from a policy
  */
 function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
+    if (!policyID || policyID === CONST.POLICY.ID_FAKE) {
+        return false;
+    }
     return report?.policyID === policyID || !!(report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID);
 }
 
 /**
- * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
- * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
+ * Checks if the supplied report is from the given workspace or is the concierge chat.
  */
-function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAccountIDs: number[], policyID: string | undefined, conciergeReportID: string | undefined) {
-    return (
-        isConciergeChatReport(report, conciergeReportID) ||
-        (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : isPolicyRelatedReport(report, policyID))
-    );
+function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyID: string | undefined, conciergeReportID: string | undefined) {
+    return isConciergeChatReport(report, conciergeReportID) || isPolicyRelatedReport(report, policyID);
 }
 
 /**
@@ -2410,7 +2409,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVisitTimes: Record<string, string>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        if (!report?.isPinned && isHiddenForCurrentUser(report)) {
+        if (!report?.isPinned && isHiddenForCurrentUser(report) && !(isPublicRoom(report) && isAnonymousUserSession())) {
             return false;
         }
         return !!report?.reportID && !!(lastVisitTimes?.[report.reportID] ?? report?.lastReadTime);
@@ -2473,7 +2472,7 @@ function findLastAccessedReport(
     // Return the most recently visited report. Get the last read report from the last-visit-times map.
     // If we have no visit data we'll return most recent report owned by user.
     if (isEmptyObject(allReportLastVisitTimes)) {
-        const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report));
+        const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession()));
         const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === deprecatedCurrentUserAccountID);
         if (ownedReports.length > 0) {
             return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
@@ -3043,7 +3042,7 @@ function canSubmitAndIsAwaitingForCurrentUser(
 
 function hasOutstandingChildRequest(
     chatReport: Report,
-    iouReportOrID: OnyxEntry<Report> | string,
+    iouReportOrIDorArray: OnyxEntry<Report> | string | Array<OnyxEntry<Report>>,
     currentUserEmailParam: string,
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
@@ -3052,18 +3051,29 @@ function hasOutstandingChildRequest(
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(chatReport.policyID);
+
+    const excludedReportIDSet = new Set<string>();
+    if (typeof iouReportOrIDorArray === 'string') {
+        excludedReportIDSet.add(iouReportOrIDorArray);
+    } else if (Array.isArray(iouReportOrIDorArray)) {
+        for (const iouReport of iouReportOrIDorArray) {
+            if (!iouReport?.reportID) {
+                continue;
+            }
+            excludedReportIDSet.add(iouReport.reportID);
+        }
+    }
+
     return Object.values(reportActions).some((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
-        if (
-            !iouReportID ||
-            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-            isDeletedAction(action) ||
-            (typeof iouReportOrID === 'string' && iouReportID === iouReportOrID)
-        ) {
+        if (!iouReportID || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isDeletedAction(action) || excludedReportIDSet.has(iouReportID)) {
             return false;
         }
 
-        const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
+        const iouReport =
+            typeof iouReportOrIDorArray !== 'string' && !Array.isArray(iouReportOrIDorArray) && iouReportOrIDorArray?.reportID === iouReportID
+                ? iouReportOrIDorArray
+                : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`];
         const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;

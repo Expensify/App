@@ -836,8 +836,19 @@ function buildAddMembersToWorkspaceOnyxData(
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
     const doesPersonalDetailExistByAccountID: Record<number, boolean> = {};
+    const newPersonalDetailAccountIDs = new Set<number>();
+    for (const update of newPersonalDetailsOnyxData.optimisticData ?? []) {
+        if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST) {
+            continue;
+        }
+
+        for (const accountID of Object.keys(update.value ?? {})) {
+            newPersonalDetailAccountIDs.add(Number(accountID));
+        }
+    }
+
     for (const accountID of accountIDs) {
-        doesPersonalDetailExistByAccountID[accountID] = !!personalDetailsList?.[accountID];
+        doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
 
     // create onyx data for policy expense chats for each new member

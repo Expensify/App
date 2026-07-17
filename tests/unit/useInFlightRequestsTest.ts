@@ -51,10 +51,11 @@ describe('useInFlightRequests', () => {
             await waitFor(() => expect(result.current).toBe(true));
         });
 
-        it('returns true when a persisted ReconnectApp request is queued', async () => {
+        it('returns false for a ReconnectApp request (background reconnect is not an app load)', async () => {
             await setPersistedRequests([buildRequest(WRITE_COMMANDS.RECONNECT_APP)]);
             const {result} = renderHook(() => useIsAppLoadPending());
-            await waitFor(() => expect(result.current).toBe(true));
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
         });
 
         it('returns true when the ongoing request is an app-load request', async () => {

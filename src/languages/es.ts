@@ -1123,6 +1123,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'No se han añadido reglas de comerciante, ya que todas ya existen.';
+            }
+            return rules > 1 ? `Se han añadido ${rules} reglas de comerciante.` : 'Se ha añadido 1 regla de comerciante.';
+        },
+        importMerchantRulesRequiredColumns:
+            '¡Ups! Debes asignar al menos una columna "El comerciante es" o "El comerciante contiene", además de al menos un campo para actualizar. Por favor, revisa e inténtalo de nuevo.',
         importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.',
@@ -5454,6 +5462,35 @@ ${amount} para ${merchant} - ${date}`,
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
             travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Reemplaza la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Sobrescribe la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} programas con cuentas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Sobrescribe la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Reemplaza la cuenta del programa para estas tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todas las tarjetas usan cuentas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} tarjeta con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} tarjetas con cuentas personalizadas`;
+                },
+            },
         },
         type: {
             free: 'Gratis',
@@ -7398,6 +7435,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 findRule: 'Buscar regla de comerciante',
                 addRuleTitle: 'Añadir regla',
                 editRuleTitle: 'Editar regla',
+                importRulesTitle: 'Importar reglas de comerciante',
+                importRulesSupportingText:
+                    'Asigna cada columna de tu hoja de cálculo a un campo de la regla de comerciante. Cuando todo esté correcto, haz clic abajo para importar tus reglas.',
+                importColumnMerchantIs: 'El comerciante es',
+                importColumnMerchantContains: 'El comerciante contiene',
+                importColumnUpdatedMerchant: 'Comerciante actualizado',
+                importColumnUpdatedCategory: 'Categoría actualizada',
+                importColumnUpdatedTag: 'Etiqueta actualizada',
+                importColumnUpdatedDescription: 'Descripción actualizada',
                 expensesWith: 'Para gastos con:',
                 expensesExactlyMatching: 'Para gastos que coincidan exactamente con:',
                 applyUpdates: 'Aplicar estas actualizaciones:',

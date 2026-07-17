@@ -14,7 +14,7 @@ import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
-import type {CompanyCardFeedWithDomainID} from './types/onyx';
+import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
@@ -805,7 +805,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
         path: 'edit/export',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS, SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST],
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         path: 'assign-card/:feed/:cardID/assignee',
@@ -3282,6 +3282,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
     },
+    RULES_MERCHANT_IMPORT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/import` as const,
+    },
+    RULES_MERCHANT_IMPORTED: {
+        route: 'workspaces/:policyID/rules/merchant-rules/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/imported` as const,
+    },
     RULES_SPEND_NEW: {
         route: 'workspaces/:policyID/rules/spend-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new` as const,
@@ -4113,6 +4121,22 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR: {
         route: 'workspaces/:policyID/accounting/rillet/export/default-company-card-vendor',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_RILLET_ADVANCED: {
         route: 'workspaces/:policyID/accounting/rillet/advanced',
