@@ -52,6 +52,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 
@@ -81,17 +82,15 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const selfDMReport = useSelfDMReport();
     const reportAttributesDerived = useReportAttributes();
     const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const delegateAccountID = useDelegateAccountID();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: (value: OnyxEntry<Record<string, unknown>>) => !!value?.hasSeenTour,
-    });
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -228,6 +227,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 policyRecentlyUsedTags: undefined,
                 participantsPolicyTags,
+                delegateAccountID,
             };
 
             submitWithDismissFirst({
