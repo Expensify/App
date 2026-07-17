@@ -1,87 +1,46 @@
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
-import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-
-import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
+import {hasViolations as hasViolationsReportUtils, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-import {delegateEmailSelector} from '@selectors/Account';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
-import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActionState} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewData} from './MoneyRequestReportPreviewContext';
+import useConfirmApproveReportAction from './useConfirmApproveReportAction';
+import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
 function ApproveActionButton() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
-    const {isBetaEnabled} = usePermissions();
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {shouldShowPayButton} = useReportPreviewActionState();
 
     const {iouReportID} = useReportPreviewData();
-    const {shouldShowPayButton} = useReportPreviewActionState();
-    const {startApprovedAnimation} = useReportPreviewActions();
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const actionButtonData = useReportPreviewActionButtonData(iouReportID);
+    const {iouReport} = actionButtonData;
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
-    const allTransactionValues = Object.values(reportTransactions);
-    const transactions = allTransactionValues;
+    const transactions = Object.values(reportTransactions);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+
     const [transactionViolations] = useReportTransactionViolations(transactions);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
 
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(Object.values(reportTransactions));
-
-    const onApprove = (full: boolean) => {
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return;
-        }
-        approveMoneyRequest({
-            expenseReport: iouReport,
-            expenseReportPolicy,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserEmail,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            expenseReportCurrentNextStepDeprecated: iouReportNextStep,
-            betas,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerLogin,
-            ownerBillingGracePeriodEnd,
-            full,
-            onApproved: startApprovedAnimation,
-            delegateEmail,
-            isTrackIntentUser,
-        });
-    };
+    const confirmApproval = useConfirmApproveReportAction(actionButtonData, transactions, hasViolations);
 
     return (
         <ExpenseHeaderApprovalButton
             isAnyTransactionOnHold={isAnyTransactionOnHold}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
-            onApprove={onApprove}
+            onApprove={confirmApproval}
             anchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
