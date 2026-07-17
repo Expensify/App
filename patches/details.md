@@ -5,10 +5,10 @@
 - Reason:
 
     ```
-    NitroFetch uses Cronet on Android, so requests made through it bypass the React Native OkHttp
-    client configured by CertificatePinning.install(). This patch applies Expensify's public-key
-    pins to both NitroFetch Cronet engines and prevents local trust anchors from bypassing pinning
-    in release builds.
+    NitroFetch bypasses the app's existing certificate-pinning clients on mobile. This patch applies
+    Expensify's public-key pins to both Android Cronet engines, prevents local trust anchors from
+    bypassing those pins in release builds, and gives every iOS URLSession a delegate so TrustKit
+    can validate standard requests, startup prefetches, token refreshes, and streaming requests.
     ```
 
 - Upstream PR/issue: None. The certificate hosts and public-key pins are specific to Expensify's application configuration and are not appropriate defaults for react-native-nitro-fetch.

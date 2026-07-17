@@ -81,3 +81,68 @@ index ff872eb..7ba55ed 100644
          val engine = builder.build()
          Log.i("NitroFetch", "CronetEngine initialized. Provider=${nativeProvider?.name ?: "Default"} Cache=${cacheDir.absolutePath}")
          engineRef = engine
+diff --git a/node_modules/react-native-nitro-fetch/ios/HybridNitroCronet.swift b/node_modules/react-native-nitro-fetch/ios/HybridNitroCronet.swift
+index 344d1ef..fe11b64 100644
+--- a/node_modules/react-native-nitro-fetch/ios/HybridNitroCronet.swift
++++ b/node_modules/react-native-nitro-fetch/ios/HybridNitroCronet.swift
+@@ -11,7 +11,7 @@ class HybridNitroCronet: HybridNitroCronetSpec {
+       diskCapacity: 100 * 1024 * 1024,
+       diskPath: "nitrofetch_urlcache"
+     )
+-    return URLSession(configuration: config)
++    return ExpensifyPinnedURLSession.make(configuration: config)
+   }()
+ 
+   // Shared executor queue
+diff --git a/node_modules/react-native-nitro-fetch/ios/NitroAutoPrefetcher.swift b/node_modules/react-native-nitro-fetch/ios/NitroAutoPrefetcher.swift
+index 84cf85c..606d595 100644
+--- a/node_modules/react-native-nitro-fetch/ios/NitroAutoPrefetcher.swift
++++ b/node_modules/react-native-nitro-fetch/ios/NitroAutoPrefetcher.swift
+@@ -319,7 +319,7 @@ public final class NitroAutoPrefetcher: NSObject {
+       request.httpBody = body.data(using: .utf8)
+     }
+ 
+-    let (data, response) = try await URLSession.shared.data(for: request)
++    let (data, response) = try await ExpensifyPinnedURLSession.shared.data(for: request)
+     guard let http = response as? HTTPURLResponse,
+           (200...299).contains(http.statusCode) else {
+       throw NSError(domain: "NitroAutoPrefetcher", code: -2,
+diff --git a/node_modules/react-native-nitro-fetch/ios/NitroFetchClient.swift b/node_modules/react-native-nitro-fetch/ios/NitroFetchClient.swift
+index 8e2c84b..f808f4c 100644
+--- a/node_modules/react-native-nitro-fetch/ios/NitroFetchClient.swift
++++ b/node_modules/react-native-nitro-fetch/ios/NitroFetchClient.swift
+@@ -7,6 +7,25 @@ import UniformTypeIdentifiers
+ private let fetchLog = OSLog(subsystem: "com.margelo.nitrofetch", category: "network")
+ #endif
+ 
++/**
++ * Expensify initializes TrustKit with URLSession delegate swizzling in release builds. TrustKit
++ * cannot observe sessions created without a delegate, so all NitroFetch sessions must use this
++ * delegate to keep certificate pinning active.
++ */
++final class ExpensifyPinnedURLSessionDelegate: NSObject, URLSessionDelegate {}
++
++enum ExpensifyPinnedURLSession {
++  static let shared = make(configuration: .default)
++
++  static func make(configuration: URLSessionConfiguration) -> URLSession {
++    return URLSession(
++      configuration: configuration,
++      delegate: ExpensifyPinnedURLSessionDelegate(),
++      delegateQueue: nil
++    )
++  }
++}
++
+ final class NitroFetchClient: HybridNitroFetchClientSpec {
+ 
+   private var _lock = os_unfair_lock()
+@@ -101,7 +120,7 @@ final class NitroFetchClient: HybridNitroFetchClientSpec {
+     config.urlCache = URLCache(memoryCapacity: 32 * 1024 * 1024,
+                                diskCapacity: 100 * 1024 * 1024,
+                                diskPath: "nitrofetch_urlcache")
+-    return URLSession(configuration: config)
++    return ExpensifyPinnedURLSession.make(configuration: config)
+   }()
+ 
+   private static func findPrefetchKey(_ req: NitroRequest) -> String? {
