@@ -94,7 +94,7 @@ function renderContent(policy: Policy, account: Partial<Account>, privatePersona
 
 function getTravelProvisioning(): Promise<TravelProvisioning | undefined> {
     return new Promise((resolve) => {
-        const connection = Onyx.connectWithoutView({
+        const connection = Onyx.connect({
             key: ONYXKEYS.TRAVEL_PROVISIONING,
             callback: (value) => {
                 Onyx.disconnect(connection);
