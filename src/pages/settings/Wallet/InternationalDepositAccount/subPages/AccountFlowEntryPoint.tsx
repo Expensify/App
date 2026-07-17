@@ -64,14 +64,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS));
     };
 
     const handleConnectPlaid = () => {
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT));
     };
 
     return (

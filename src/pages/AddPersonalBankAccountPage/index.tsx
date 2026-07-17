@@ -53,11 +53,13 @@ const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
 
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
+    const route = useRoute();
+    const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [fullPersonalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-    const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+    const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || urlSubPage === SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
     const error = getLatestErrorMessage(fullPersonalBankAccount ?? DEFAULT_OBJECT);
     const confirmedOwnershipDetails = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -142,8 +144,6 @@ function AddPersonalBankAccountPage() {
         .map((index) => pages.at(index)?.pageName)
         .filter((pageName): pageName is NonNullable<typeof pageName> => !!pageName);
 
-    // This flow is rendered by two screens, so the substep URL must be built for whichever route is currently active.
-    const route = useRoute();
     const buildRoute = (pageName: string, action?: 'edit') =>
         route.name === SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT ? ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(pageName, action) : ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(pageName, action);
     const onFinished = (data?: unknown) => exitFlow(!!data);
