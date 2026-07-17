@@ -237,6 +237,10 @@ standardFilter
       const key = field;
       let operator = op;
 
+      if (neg && operator === "contains") {
+        return buildFilter("eq", "keyword", text().trim());
+      }
+
       // Apply negation only when "-" is present and the key can be negated
       if (neg && !nonNegatableKeys.has(key)) {
         if (operator === "eq") {

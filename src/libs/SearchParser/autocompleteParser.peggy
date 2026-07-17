@@ -40,6 +40,11 @@ defaultFilter
 
       const isNegated = !!neg && !nonNegatableKeys.has(key);
 
+      if (neg && op === "contains") {
+        autocomplete = null;
+        return;
+      }
+
       if (!value) {
         autocomplete = {
           key,

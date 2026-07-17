@@ -2133,6 +2133,16 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('contains filter parsing', () => {
+        it('treats negated contains as a keyword', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -merchant*:Uber');
+            const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.some((filter) => filter.value === '-merchant*:Uber')).toBe(true);
+            expect(queryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT)).toBe(false);
+        });
+    });
+
     describe('getFilterDisplayValue', () => {
         const mockCardList = {};
         const mockCardFeeds = {};
