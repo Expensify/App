@@ -1,5 +1,5 @@
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
-import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -1434,6 +1434,32 @@ describe('mergeTransactionRequest', () => {
                 });
             });
         });
+    });
+});
+
+describe('getTransactionsForMerging', () => {
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    it('should do nothing when the target transaction has no transactionID', async () => {
+        // Given a target transaction with an empty transactionID
+        const targetTransaction = {...createRandomTransaction(0), transactionID: ''} as Transaction;
+
+        // When we request merge candidates for it (offline path, which would otherwise write eligible transactions locally)
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: {},
+            policy: undefined,
+            report: undefined,
+            currentUserLogin: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then no merge transaction entry is written for the empty key
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction).toBeUndefined();
     });
 });
 
