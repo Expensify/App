@@ -97,12 +97,6 @@ When **Payments** is enabled, you can set an **Authorized payer** even if no ban
 2. Under **Payments**, click **Payer**.
 3. Select the **admin** you want to set as the authorized payer.
 
-<!-- SCREENSHOT:
-Suggestion: Workflows tab with Payments enabled and no bank account connected, showing the Payer field
-Location: How to choose an authorized payer without a connected bank account
-Purpose: Confirms the Payer field is available before a bank account is added
--->
-
 ## What happens after you set an authorized payer
 
 Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts. Other admins can still open a report and pay it.
