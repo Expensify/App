@@ -30,7 +30,6 @@ import {
     getMatchingVendors,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
-    getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
     getSubmitToAccountID,
     getSubmitToEmail,
@@ -1397,41 +1396,6 @@ describe('PolicyUtils', () => {
                 {policyID: '1', name: 'Workspace 1'},
                 {policyID: '2', name: 'Workspace 2'},
             ]);
-        });
-    });
-
-    describe('getPolicyEmployeeAccountIDs', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should return an array of employee accountIDs for the given policy (including current user accountID) if no current user is passed', () => {
-            const policy = {
-                employeeList,
-            };
-            const result = getPolicyEmployeeAccountIDs(policy);
-            expect(result).toEqual([7, 1, 2, 3, 4, 5, 6]);
-        });
-
-        it('should return an array of employee accountIDs for the given policy (excluding current user accountID) if current user is passed', () => {
-            const policy = {
-                employeeList,
-            };
-            const result = getPolicyEmployeeAccountIDs(policy, 5);
-            expect(result).toEqual([7, 1, 2, 3, 4, 6]);
-        });
-
-        it('should return an empty array if no employees are found', () => {
-            const policy = {
-                employeeList: {},
-            };
-            const result = getPolicyEmployeeAccountIDs(policy);
-            expect(result).toEqual([]);
         });
     });
 
