@@ -22,7 +22,7 @@ To choose how data is imported from QuickBooks Online to Expensify:
 - **Customers/Projects**: Import as tags for expense-level coding.
 - **Locations**: Import as tags or report fields.
   - Note: If you export using the Vendor bill or Check options, then locations must be imported as report fields, which are only available on the [**Control** plan](/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan). When locations are imported as tags, the Vendor bill and Check export options are unavailable.
-- **Items**: Import items from QuickBooks Online.
+- **Items**: Import as categories.
 - **Taxes**: Import tax rates and defaults.
 
 ## How to Turn Imported Accounts and Tags Off
@@ -106,3 +106,6 @@ This is likely due to the **Locations** import setting. Vendor bill and check ex
 - Turn off location imports, or
 - Import locations as report fields, which are only available on the **Control** plan
 
+## Why aren't my Items importing from QuickBooks Online?
+
+Only Items with Purchasing Information configured in QuickBooks Online can be imported into Expensify. Imported Items are created as categories.
