@@ -71,7 +71,8 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         }
 
         if (reportActionID) {
-            return reportActionID;
+            const isInThisReport = sortedAllReportActions?.some((action) => action.reportActionID === reportActionID) ?? false;
+            return isInThisReport ? reportActionID : undefined;
         }
 
         if (!shouldLinkToOldestUnreadReportAction) {
