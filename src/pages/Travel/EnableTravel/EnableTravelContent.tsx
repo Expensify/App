@@ -184,7 +184,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
                 onBackButtonPress={handleBackButtonPress}
             />
             {enabledStepNames.length >= 2 && (
-                <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
+                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                     <InteractiveStepSubPageHeader
                         stepNames={enabledStepNames}
                         currentStepIndex={pageIndex}
