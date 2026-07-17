@@ -21,6 +21,7 @@ import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Transaction} from '@src/types/onyx';
 
 import React, {useMemo, useRef, useState} from 'react';
@@ -39,6 +40,7 @@ function SearchReportsMergeReports() {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -139,6 +141,7 @@ function SearchReportsMergeReports() {
             allReportsTransactions,
             bankAccountList,
             hash: currentSearchHash,
+            isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
 
