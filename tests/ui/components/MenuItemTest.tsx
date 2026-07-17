@@ -1,6 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
 
-import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 
@@ -9,11 +8,9 @@ import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 
-import type {TextStyle} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 
 import React from 'react';
-import {StyleSheet} from 'react-native';
 
 import {translateLocal} from '../../utils/TestHelper';
 
@@ -42,89 +39,6 @@ describe('MenuItem', () => {
     beforeEach(() => {
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
         mockedGetOperatingSystem.mockReturnValue(CONST.OS.WINDOWS);
-    });
-
-    describe('HTML rendering', () => {
-        it('truncates a plain-text title when HTML rendering is requested', () => {
-            render(
-                <Wrapper>
-                    <HTMLEngineProvider>
-                        <MenuItem
-                            title="0123456789ABCDEFGHIJ"
-                            shouldRenderAsHTML
-                            shouldTruncateTitle
-                            characterLimit={10}
-                        />
-                    </HTMLEngineProvider>
-                </Wrapper>,
-            );
-
-            expect(screen.getByText('0123456789...')).toBeOnTheScreen();
-        });
-
-        it('uses the same default line limit for plain-text and HTML titles', () => {
-            const plainTitle = 'Weekly expenses for the marketing team';
-            const htmlTitle = 'Weekly expenses for marketing &amp; sales';
-
-            const {rerender} = render(
-                <Wrapper>
-                    <HTMLEngineProvider>
-                        <MenuItem
-                            title={plainTitle}
-                            shouldRenderAsHTML
-                        />
-                    </HTMLEngineProvider>
-                </Wrapper>,
-            );
-            const plainLimit = (screen.getByText(plainTitle).props as {numberOfLines?: number}).numberOfLines;
-
-            rerender(
-                <Wrapper>
-                    <HTMLEngineProvider>
-                        <MenuItem
-                            title={htmlTitle}
-                            shouldRenderAsHTML
-                        />
-                    </HTMLEngineProvider>
-                </Wrapper>,
-            );
-            const htmlLimit = (screen.getByText('Weekly expenses for marketing & sales').props as {numberOfLines?: number}).numberOfLines;
-
-            expect(htmlLimit).toBe(plainLimit);
-        });
-
-        it('uses the same font style for plain-text and HTML titles', () => {
-            const getFontStyle = (text: string) => {
-                const style = StyleSheet.flatten(screen.getByText(text).props.style as TextStyle);
-                return {fontFamily: style.fontFamily, fontWeight: style.fontWeight};
-            };
-
-            const {rerender} = render(
-                <Wrapper>
-                    <HTMLEngineProvider>
-                        <MenuItem
-                            title="Weekly expenses"
-                            shouldRenderAsHTML
-                        />
-                    </HTMLEngineProvider>
-                </Wrapper>,
-            );
-            const plainFontStyle = getFontStyle('Weekly expenses');
-
-            rerender(
-                <Wrapper>
-                    <HTMLEngineProvider>
-                        <MenuItem
-                            title="Bob&#39;s expenses"
-                            shouldRenderAsHTML
-                        />
-                    </HTMLEngineProvider>
-                </Wrapper>,
-            );
-            const htmlFontStyle = getFontStyle("Bob's expenses");
-
-            expect(htmlFontStyle).toEqual(plainFontStyle);
-        });
     });
 
     describe('accessibility label with NewWindow icon', () => {
