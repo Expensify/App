@@ -65,7 +65,7 @@ import type {
     PaymentMethodType,
 } from '@src/types/onyx/OriginalMessage';
 import type {Status, Timezone} from '@src/types/onyx/PersonalDetails';
-import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, CreatableWorkspaceType} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
@@ -83,7 +83,6 @@ import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
-import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashEscape from 'lodash/escape';
@@ -98,7 +97,7 @@ import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import type EnvironmentType from './Environment/getEnvironment/types';
-import type {FormulaContext} from './Formula';
+import type {FormulaContext, compute as computeFormula, computeWithMetadata as computeFormulaWithMetadata} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
@@ -128,7 +127,6 @@ import {getEnvironmentURL} from './Environment/Environment';
 import getEnvironment from './Environment/getEnvironment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
-import getBase62ReportID from './getBase62ReportID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
@@ -164,6 +162,7 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isExpensifyTeam,
+    isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
@@ -1281,6 +1280,14 @@ function getReportTransactions(reportID: string | undefined, allReportsTransacti
 }
 
 /**
+ * True when an optimistic op set `pendingFields.total` (any pending action). Truthy so a future ADD/DELETE
+ * marker isn't silently treated as "trustworthy" — matches the readers in Transaction.ts and SearchUIUtils.
+ */
+function isReportTotalPending(report: OnyxInputOrEntry<Report>): boolean {
+    return !!report?.pendingFields?.total;
+}
+
+/**
  * Check if a report is a draft report
  */
 function isDraftReport(reportID: string | undefined): boolean {
@@ -1398,7 +1405,13 @@ function getPolicyName(params: GetPolicyNameParams): string {
     const noPolicyFound = params.returnEmptyIfNotFound ? '' : (params.unavailableTranslation ?? unavailableTranslation);
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
-    if ((!report?.policyName && !parentReport?.policyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) || isEmptyObject(report)) {
+    // Bail only when none of the sources used below can resolve a name. oldPolicyName is included because it's a valid
+    // fallback (see below) and is the only name a draft workspace's expense chat carries (e.g. "Submit to my employer"
+    // with no persisted policies) — without it this returned "Unavailable workspace" for those drafts.
+    if (
+        (!report?.policyName && !report?.oldPolicyName && !parentReport?.policyName && !parentReport?.oldPolicyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) ||
+        isEmptyObject(report)
+    ) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
@@ -1716,16 +1729,6 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAcco
 }
 
 /**
- * Whether the report belongs to a group policy (Collect, Control, or Submit). Report-based counterpart
- * of `PolicyUtils.isGroupPolicy`. Prefer this over `isPaidGroupPolicy(report)` for feature gating
- * (violations, report fields, etc.) so free group plans like Submit are not excluded.
- */
-// TODO: Remove this function and use isGroupPolicy directly after https://github.com/Expensify/App/issues/66415 is done
-function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
-    return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
-}
-
-/**
  * Whether the report belongs to a paid policy (Collect/Control) only. Report-based counterpart of
  * `PolicyUtils.isPaidGroupPolicy`. For group-feature gating use `isReportInGroupPolicy` instead,
  * otherwise Submit workspaces are wrongly excluded.
@@ -1740,8 +1743,8 @@ function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
  * Use for report-field-style features that Submit workspaces also support, so the free Submit plan isn't
  * incorrectly excluded.
  */
-function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && isReportInGroupPolicy(report);
+function isGroupPolicyExpenseReport(report: OnyxEntry<Report>, policyType: string | undefined): boolean {
+    return isExpenseReport(report) && isGroupPolicyByType(policyType);
 }
 
 /**
@@ -1913,18 +1916,17 @@ function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefine
  * Checks if the supplied report is from a policy or is an invoice report from a policy
  */
 function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
+    if (!policyID || policyID === CONST.POLICY.ID_FAKE) {
+        return false;
+    }
     return report?.policyID === policyID || !!(report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID);
 }
 
 /**
- * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
- * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
+ * Checks if the supplied report is from the given workspace or is the concierge chat.
  */
-function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAccountIDs: number[], policyID: string | undefined, conciergeReportID: string) {
-    return (
-        isConciergeChatReport(report, conciergeReportID) ||
-        (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : isPolicyRelatedReport(report, policyID))
-    );
+function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyID: string | undefined, conciergeReportID: string | undefined) {
+    return isConciergeChatReport(report, conciergeReportID) || isPolicyRelatedReport(report, policyID);
 }
 
 /**
@@ -3024,14 +3026,23 @@ function canSubmitAndIsAwaitingForCurrentUser(
     const shouldWaitForSubmission = shouldCurrentUserSubmitReport(iouReport, chatReport, policy, reportActions);
     return !!(
         !hasAutoRejectedTransactionsForManager &&
-        canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam) &&
+        canSubmitReport(
+            iouReport,
+            getLoginByAccountID(iouReport?.ownerAccountID, allPersonalDetails),
+            policy,
+            transactions,
+            undefined,
+            false,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+        ) &&
         shouldWaitForSubmission
     );
 }
 
 function hasOutstandingChildRequest(
     chatReport: Report,
-    iouReportOrID: OnyxEntry<Report> | string,
+    iouReportOrIDorArray: OnyxEntry<Report> | string | Array<OnyxEntry<Report>>,
     currentUserEmailParam: string,
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
@@ -3040,18 +3051,29 @@ function hasOutstandingChildRequest(
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(chatReport.policyID);
+
+    const excludedReportIDSet = new Set<string>();
+    if (typeof iouReportOrIDorArray === 'string') {
+        excludedReportIDSet.add(iouReportOrIDorArray);
+    } else if (Array.isArray(iouReportOrIDorArray)) {
+        for (const iouReport of iouReportOrIDorArray) {
+            if (!iouReport?.reportID) {
+                continue;
+            }
+            excludedReportIDSet.add(iouReport.reportID);
+        }
+    }
+
     return Object.values(reportActions).some((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
-        if (
-            !iouReportID ||
-            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-            isDeletedAction(action) ||
-            (typeof iouReportOrID === 'string' && iouReportID === iouReportOrID)
-        ) {
+        if (!iouReportID || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isDeletedAction(action) || excludedReportIDSet.has(iouReportID)) {
             return false;
         }
 
-        const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
+        const iouReport =
+            typeof iouReportOrIDorArray !== 'string' && !Array.isArray(iouReportOrIDorArray) && iouReportOrIDorArray?.reportID === iouReportID
+                ? iouReportOrIDorArray
+                : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`];
         const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -3508,6 +3530,7 @@ function getDisplayNameForParticipant({
     personalDetailsData = allPersonalDetails,
     shouldRemoveDomain = false,
     formatPhoneNumber,
+    translate,
 }: {
     accountID?: number;
     shouldUseShortForm?: boolean;
@@ -3516,6 +3539,7 @@ function getDisplayNameForParticipant({
     personalDetailsData?: Partial<PersonalDetailsList>;
     shouldRemoveDomain?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    translate?: LocalizedTranslate;
 }): string {
     if (!accountID) {
         return '';
@@ -3538,22 +3562,32 @@ function getDisplayNameForParticipant({
 
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user
+    // when searching for a new user. Imported device contacts persist a real
+    // display name on their optimistic record, so prefer that over the login.
     if (personalDetails.isOptimisticPersonalDetail === true) {
-        return formattedLogin;
+        const optimisticDisplayName = getDisplayNameOrDefault(personalDetails, formattedLogin, false);
+        return shouldUseShortForm && personalDetails.firstName ? personalDetails.firstName : optimisticDisplayName;
     }
 
     // For selfDM, we display the user's displayName followed by '(you)' as a postfix
     const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID === deprecatedCurrentUserAccountID;
 
-    let longName = getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
+    let longName = translate
+        ? temporaryGetDisplayNameOrDefault({
+              passedPersonalDetails: personalDetails,
+              defaultValue: formattedLogin,
+              shouldFallbackToHidden,
+              shouldAddCurrentUserPostfix: shouldAddPostfix,
+              translate,
+          })
+        : getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
 
     if (shouldRemoveDomain && longName === formattedLogin) {
         longName = longName.split('@').at(0) ?? '';
     }
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === hiddenTranslation) {
+    if (shouldFallbackToHidden && longName === (translate ? translate('common.hidden') : hiddenTranslation)) {
         return longName;
     }
 
@@ -4164,6 +4198,7 @@ function getReimbursementQueuedActionMessage({
             shouldUseShortForm: shouldUseShortDisplayName,
             personalDetailsData: personalDetails,
             formatPhoneNumber,
+            translate,
         }) ?? '';
     const originalMessage = getOriginalMessage(reportAction);
     let messageKey: TranslationPaths;
@@ -4190,7 +4225,7 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
         return translate('iou.adminCanceledRequest');
     }
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: reportOwnerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+    const submitterDisplayName = getDisplayNameForParticipant({accountID: reportOwnerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
     return translate('iou.canceledRequest', formattedAmount, submitterDisplayName);
 }
 
@@ -5411,6 +5446,7 @@ const changeMoneyRequestHoldStatus = (
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
 ): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
@@ -5434,7 +5470,7 @@ const changeMoneyRequestHoldStatus = (
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID, transactionViolations);
+            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
@@ -5705,11 +5741,11 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved({report}) && isReportInGroupPolicy(report)) {
+    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type ?? reportPolicy?.type)) {
         return translateLocal('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
-
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
@@ -6050,7 +6086,8 @@ function getParentNavigationSubtitle(
         const personalDetails = ownerAccountID ? allPersonalDetails?.[ownerAccountID] : undefined;
         const login = personalDetails ? personalDetails.login : null;
 
-        const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) || login;
+        const reportOwnerDisplayName =
+            getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) || login;
 
         if (isExpenseReport(report)) {
             return {
@@ -6220,18 +6257,18 @@ function getParsedComment(
     currentUserEmailParam?: string,
 ): string {
     let isGroupPolicyReport = false;
+    const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    const policy = getPolicy(parsingDetails?.policyID ?? currentReport?.policyID);
     if (parsingDetails?.reportID) {
         if (isGroupPolicyReportParam !== undefined) {
             isGroupPolicyReport = isGroupPolicyReportParam;
         } else {
-            const currentReport = getReportOrDraftReport(parsingDetails.reportID);
-            isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+            isGroupPolicyReport = isGroupPolicyByType(policy?.type);
         }
     }
 
     if (parsingDetails?.policyID) {
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        const policy = getPolicy(parsingDetails?.policyID);
         if (policy?.type) {
             isGroupPolicyReport = isGroupPolicyPolicyUtils(policy);
         }
@@ -6590,61 +6627,6 @@ function getHumanReadableStatus(statusNum: number): string {
     return status ? `${status.charAt(0)}${status.slice(1).toLowerCase()}` : '';
 }
 
-/**
- * Populates the report field formula with the values from the report and policy.
- * Currently, this only supports optimistic expense reports.
- * Each formula field is either replaced with a value, or removed.
- * If after all replacements the formula is empty, the original formula is returned.
- * See {@link https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates}
- */
-// TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function populateOptimisticReportFormula(
-    formula: string,
-    report: OptimisticExpenseReport | OptimisticNewReport,
-    policy: OnyxEntry<Policy>,
-    isMoneyRequestConfirmation = false,
-    currentUserEmail?: string,
-): string {
-    // If this is a newly created report and it is from money request confirmation, we should use 'New report' as the report title
-    if (!report.parentReportActionID && isMoneyRequestConfirmation) {
-        return 'New report';
-    }
-
-    const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
-
-    const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
-
-    const reportTotal = report.total ?? undefined;
-    const totalAmount = reportTotal !== undefined && !Number.isNaN(reportTotal) ? Math.abs(reportTotal) : 0;
-    const reportNonReimbursableTotal = 'nonReimbursableTotal' in report ? (report.nonReimbursableTotal ?? undefined) : undefined;
-    const nonReimbursableTotal = reportNonReimbursableTotal !== undefined && !Number.isNaN(reportNonReimbursableTotal) ? Math.abs(reportNonReimbursableTotal) : 0;
-    // Prefer the freshly computed reimbursableTotal from the backend over deriving it from the stored
-    // total column (which can be stale).
-    const reportReimbursableTotal = 'reimbursableTotal' in report ? (report.reimbursableTotal ?? undefined) : undefined;
-    const freshReimbursableTotal = reportReimbursableTotal !== undefined && !Number.isNaN(reportReimbursableTotal) ? Math.abs(reportReimbursableTotal) : undefined;
-    const reimbursableAmount = freshReimbursableTotal ?? totalAmount - nonReimbursableTotal;
-
-    const result = formula
-        // We don't translate because the server response is always in English
-        .replaceAll(/\{report:type\}/gi, 'Expense Report')
-        .replaceAll(/\{report:startdate\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
-        .replaceAll(/\{report:enddate\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
-        .replaceAll(/\{report:id\}/gi, getBase62ReportID(Number(report.reportID)))
-        .replaceAll(/\{report:total\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
-        .replaceAll(/\{report:reimbursable\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(reimbursableAmount, report.currency).toString() : '')
-        .replaceAll(/\{report:currency\}/gi, report.currency ?? '')
-        .replaceAll(/\{report:policyname\}/gi, policy?.name ?? '')
-        .replaceAll(/\{report:workspacename\}/gi, policy?.name ?? '')
-        .replaceAll(/\{report:created\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '')
-        .replaceAll(/\{report:created:yyyy-MM-dd\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
-        .replaceAll(/\{report:status\}/gi, report.statusNum !== undefined ? getHumanReadableStatus(report.statusNum) : '')
-        .replaceAll(/\{user:email\}/gi, currentUserLogin)
-        .replaceAll(/\{user:email\|frontPart\}/gi, currentUserLogin.split('@').at(0) ?? '')
-        .replaceAll(/\{report:(.+)\}/gi, '');
-
-    return result.trim().length ? result : formula;
-}
-
 /** Builds an optimistic invoice report with a randomly generated reportID */
 function buildOptimisticInvoiceReport(
     chatReportID: string,
@@ -6687,7 +6669,8 @@ function buildOptimisticInvoiceReport(
 }
 
 /**
- * Computes the optimistic report name using the policy's title field formula, with a fallback to the default expense report name.
+ * Optimistic report name from the policy title formula. Returns null when the policy isn't a group policy
+ * OR the engine couldn't resolve every token — callers keep their default label instead of surfacing raw `{...}`.
  */
 function computeOptimisticReportName(
     report: Report,
@@ -6696,6 +6679,24 @@ function computeOptimisticReportName(
     reportTransactions: Record<string, Transaction>,
     currencyList?: CurrencyList,
 ): string | null {
+    const result = computeOptimisticReportNameWithMetadata(report, policy, policyID, reportTransactions, currencyList);
+    if (!result || result.hasUnresolvedTokens) {
+        return null;
+    }
+    return result.value;
+}
+
+/**
+ * Same as `computeOptimisticReportName` plus a `hasUnresolvedTokens` flag for callers that need to
+ * discard partial recomputes the BE will render better (e.g. cross-currency `{report:total}`).
+ */
+function computeOptimisticReportNameWithMetadata(
+    report: Report,
+    policy: OnyxEntry<Policy>,
+    policyID: string | undefined,
+    reportTransactions: Record<string, Transaction>,
+    currencyList?: CurrencyList,
+): {value: string; hasUnresolvedTokens: boolean} | null {
     if (!isGroupPolicyPolicyUtils(policy)) {
         return null;
     }
@@ -6708,13 +6709,12 @@ function computeOptimisticReportName(
         allTransactions: reportTransactions,
     };
 
-    // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
-
-    const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
+    // Runtime require breaks the value-level circular; the `typeof` casts keep drift a compile error.
+    const Formula = require('./Formula') as {compute: typeof computeFormula; computeWithMetadata: typeof computeFormulaWithMetadata};
 
     // If there is no title field, use "New Report" as default (matches OldDot behavior)
     const defaultValue = titleReportField?.defaultValue ?? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
-    return Formula.compute(defaultValue, formulaContext);
+    return Formula.computeWithMetadata(defaultValue, formulaContext);
 }
 
 /**
@@ -9185,6 +9185,8 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     true,
                     transactions,
                     potentialReport,
+                    // This path only runs for reports the current user submitted, so the report owner is the current user.
+                    currentUserLogin,
                     policy,
                 ) ||
                     hasWarningTypeViolations(
@@ -9195,6 +9197,8 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                         true,
                         transactions,
                         potentialReport,
+                        // This path only runs for reports the current user submitted, so the report owner is the current user.
+                        currentUserLogin,
                         policy,
                     ) ||
                     hasNoticeTypeViolationsForRBRInLHN(
@@ -9226,7 +9230,8 @@ function hasNoticeTypeViolationsForRBRInLHN(
             return false;
         }
         const filteredViolations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
-        return hasNoticeTypeViolation(transaction, filteredViolations, currentUserEmailParam, currentUserAccountIDParam, report, policy, true);
+        // This path only runs for reports the current user submitted, so the report owner is the current user.
+        return hasNoticeTypeViolation(transaction, filteredViolations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true);
     });
 }
 
@@ -9241,10 +9246,13 @@ function hasViolations(
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
     report?: OnyxEntry<Report>,
+    reportOwnerLogin?: string,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview));
+    return transactions.some((transaction) =>
+        hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, reportOwnerLogin, policy, shouldShowInReview),
+    );
 }
 
 function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
@@ -9294,11 +9302,12 @@ function hasWarningTypeViolations(
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
     report?: OnyxEntry<Report>,
+    reportOwnerLogin?: string,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) =>
-        hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview),
+        hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, reportOwnerLogin, policy, shouldShowInReview),
     );
 }
 
@@ -9322,14 +9331,12 @@ function hasNoticeTypeViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
-    shouldShowInReview?: boolean,
-    reportTransactions?: Transaction[],
-    report?: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
+    shouldShowInReview: boolean,
+    reportTransactions: Transaction[] | undefined,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) =>
-        hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview),
+        hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, undefined, undefined, undefined, shouldShowInReview),
     );
 }
 
@@ -9342,13 +9349,11 @@ function hasAnyViolations(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     reportTransactions?: Transaction[],
-    report?: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
 ) {
     return (
-        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions, report, policy) ||
-        hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions, report, policy) ||
-        hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions, report, policy)
+        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions) ||
+        hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions) ||
+        hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions)
     );
 }
 
@@ -10202,7 +10207,9 @@ function getWhisperDisplayNames(translate: LocalizedTranslate, formatPhoneNumber
         return translate('common.youAfterPreposition');
     }
 
-    return participantAccountIDs?.map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: !isWhisperOnlyVisibleToCurrentUser, formatPhoneNumber})).join(', ');
+    return participantAccountIDs
+        ?.map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: !isWhisperOnlyVisibleToCurrentUser, formatPhoneNumber, translate}))
+        .join(', ');
 }
 
 /**
@@ -10942,7 +10949,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
     const hasDifferentWorkspaceCurrency = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
     const hasOptimisticHeldExpense = hasHeldExpenses(allReportTransactions) && report?.unheldTotal === undefined;
 
-    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !hasOptimisticHeldExpense && !report.pendingFields?.total;
+    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !hasOptimisticHeldExpense && !isReportTotalPending(report);
 }
 
 /**
@@ -11362,6 +11369,8 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     currentUserAccountID: number,
     currentUserEmail: string,
     currentUserLocalCurrency: string,
+    policyType?: CreatableWorkspaceType,
+    backToReportID?: string,
 ): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
@@ -11370,6 +11379,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
         currentUserAccountID,
         currentUserEmail,
         currency: currentUserLocalCurrency,
+        type: policyType,
     });
     setMoneyRequestParticipants(transactionID, [
         {
@@ -11385,7 +11395,11 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     if (isCategorizing) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
+        // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
+        // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
+        // self-DM the track expense came from) so navigateBack returns there instead of the draft report's start step.
+        const backTo = backToReportID ? ROUTES.REPORT_WITH_ID.getRoute(backToReportID) : undefined;
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true, backTo));
     }
 }
 
@@ -11405,6 +11419,14 @@ type CreateDraftTransactionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     currentUserLocalCurrency: string;
+    /**
+     * For the SUBMIT action, which destination the user picked from the track-expense whisper:
+     * - 'friend' (default): show the existing recipient picker (individuals + workspaces).
+     * - 'employer': route to a submit-enabled workspace, auto-selecting/creating one as needed.
+     */
+    submitDestination?: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>;
+    /** Localized default name for a workspace created on the fly (e.g. "Submit to my employer" with no existing workspace). */
+    defaultWorkspaceName?: string;
     filteredPoliciesCount: number;
     firstPolicyID: string | undefined;
 };
@@ -11425,6 +11447,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     currentUserAccountID,
     currentUserEmail,
     currentUserLocalCurrency,
+    submitDestination = CONST.IOU.SUBMIT_DESTINATION.FRIEND,
+    defaultWorkspaceName = '',
     filteredPoliciesCount,
     firstPolicyID,
 }: CreateDraftTransactionParams): void {
@@ -11536,6 +11560,42 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
+        return;
+    }
+
+    // "Submit to my employer" routes the expense into a workspace the user can submit to, based on how many they belong to.
+    // Per issue #92704 the count spans every paid workspace the user is a member of (Collect/Control/Submit), so we reuse the
+    // shared shouldShowPolicy-based count (filteredPoliciesCount/firstPolicyID) that also backs the workspaces-only picker.
+    if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
+        // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
+        if (filteredPoliciesCount === 0) {
+            createDraftWorkspaceAndNavigateToConfirmationScreen(
+                introSelected,
+                transactionID,
+                actionName,
+                defaultWorkspaceName,
+                currentUserAccountID,
+                currentUserEmail,
+                currentUserLocalCurrency,
+                CONST.POLICY.TYPE.SUBMIT,
+                reportID,
+            );
+            return;
+        }
+
+        // Exactly one accessible workspace: skip the destination picker and submit straight to that workspace.
+        if (filteredPoliciesCount === 1 && firstPolicyID) {
+            const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicyID);
+            if (policyExpenseReport) {
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, deprecatedCurrentUserAccountID).then(() => {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
+                });
+                return;
+            }
+        }
+
+        // Multiple accessible workspaces: show the destination picker limited to workspaces only (no individual recipients).
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName, true));
         return;
     }
 
@@ -13692,7 +13752,6 @@ export {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
-    isReportInGroupPolicy,
     isReportManager,
     isReportOwner,
     isReportParticipant,
@@ -13782,6 +13841,7 @@ export {
     isHiddenForCurrentUser,
     getReportSubtitlePrefix,
     computeOptimisticReportName,
+    computeOptimisticReportNameWithMetadata,
     getPolicyChangeMessage,
     getPolicyChangeLogCopyMessage,
     getMovedTransactionMessage,
@@ -13795,9 +13855,9 @@ export {
     getReportFieldsByPolicyID,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
-    populateOptimisticReportFormula,
     getOutstandingReportsForUser,
     isReportOutstanding,
+    isReportTotalPending,
     generateReportAttributes,
     getHumanReadableStatus,
     getReportPersonalDetailsParticipants,
