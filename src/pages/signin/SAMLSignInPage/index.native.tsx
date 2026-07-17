@@ -24,12 +24,12 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 function SAMLSignInPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
     const hasOpenedAuthSession = useRef(false);
+    const hasConsumedSAMLCallback = useRef(false);
 
     const handleExitSAMLFlow = useCallback(() => {
         // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
@@ -68,7 +68,12 @@ function SAMLSignInPage() {
                 Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
             }
 
-            if (!account?.isLoading && credentials?.login && shortLivedAuthToken) {
+            if (credentials?.login && shortLivedAuthToken) {
+                if (hasConsumedSAMLCallback.current) {
+                    return;
+                }
+
+                hasConsumedSAMLCallback.current = true;
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
                 signInWithShortLivedAuthToken(shortLivedAuthToken, true);
                 return;
@@ -87,7 +92,7 @@ function SAMLSignInPage() {
                 Navigation.navigate(ROUTES.HOME);
             });
         },
-        [credentials?.login, account?.isLoading, translate],
+        [credentials?.login, translate],
     );
 
     useEffect(() => {
