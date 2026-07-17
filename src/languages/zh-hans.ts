@@ -1044,6 +1044,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: '自定义控制并简化支出',
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
+            configureApprovals: '配置审批流程',
             begin: '开始',
             done: '完成',
             createWorkspaceSubText: '工作区已准备好进行设置',
@@ -1056,6 +1057,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: '与 Concierge 对话',
             talkToAccountExecutive: '联系您的客户经理',
             forGuidedSetup: '以获取引导式设置。',
+            configureApprovalsSubText: '定义报表审批',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
@@ -1116,6 +1118,13 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `已添加 ${tags} 个标签。` : '已添加 1 个标签。'),
         importMultiLevelTagsSuccessfulDescription: '已添加多级标签。',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `已添加 ${rates} 个每日补贴标准。` : '已添加 1 条日津贴费率。'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return '未添加任何商户规则，因为它们均已存在。';
+            }
+            return rules > 1 ? `已添加 ${rules} 条商户规则。` : '已添加 1 条商户规则。';
+        },
+        importMerchantRulesRequiredColumns: '哎呀！您必须至少映射一列“商户为”或“商户包含”，并且至少映射一个要更新的字段。请检查后重试。',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已导入 ${transactions} 笔交易。` : '已导入 1 笔交易。'),
         importFailedTitle: '导入失败',
         importFailedDescription: '请确保所有字段均已正确填写，然后重试。如果问题仍然存在，请联系 Concierge。',
@@ -2792,6 +2801,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         title: '代理人',
         subtitle: `<muted-text>智能代理为你处理工作流程，让你每天多出数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解详情</a>。</muted-text>`,
         findAgent: '查找代理',
+        deleteAgentsTitle: () => ({
+            one: '删除代理',
+            other: '删除代理',
+        }),
+        deleteAgentsMessage: () => ({
+            one: '确定要删除此代理吗？此操作无法撤销。',
+            other: '确定要删除这些代理吗？此操作无法撤销。',
+        }),
         newAgent: '新代理人',
         emptyAgents: {
             title: '尚未创建代理',
@@ -4337,6 +4354,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             deleteConfirmation: '确定要删除此工作区吗？',
             deleteWithCardsConfirmation: '确定要删除此工作区吗？这将移除所有卡片数据源和已分配的卡片。',
             deleteOpenExpensifyCardsError: '您的公司仍在使用 Expensify 卡。请<concierge-link>联系 Concierge</concierge-link>以停用它们。',
+            deleteTravelInvoicingError: '您的公司仍然启用了合并差旅账单。',
             outstandingBalanceWarning: '您有一笔未结清的余额，必须在删除最后一个工作区之前结清。请前往订阅设置以解决付款问题。',
             settleBalance: '前往订阅',
             unavailable: '工作区不可用',
@@ -5423,6 +5441,35 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
             syncTravelInvoicingSettlements: '同步差旅发票结算',
             travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些银行卡计划覆盖工作区账户。',
+                descriptionLevel2: '为此卡计划覆盖工作区账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有计划都使用默认账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 个具有自定义账户的计划`;
+                    }
+                    return `${customAccountsCount} 个带有自定义科目的方案`;
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '覆盖这些卡片的项目账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有卡都使用项目账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 张带有自定义账户的卡`;
+                    }
+                    return `${customAccountsCount} 张带有自定义账户的卡`;
+                },
+            },
         },
         type: {
             free: '免费',
@@ -7208,6 +7255,14 @@ ${reportName}`,
                 addRule: '添加商家规则',
                 addRuleTitle: '添加规则',
                 editRuleTitle: '编辑规则',
+                importRulesTitle: '导入商户规则',
+                importRulesSupportingText: '将电子表格中的每一列映射到商户规则的字段。如果一切看起来都没问题，请点击下方以导入您的规则。',
+                importColumnMerchantIs: '商户为',
+                importColumnMerchantContains: '商户包含',
+                importColumnUpdatedMerchant: '更新后的商户',
+                importColumnUpdatedCategory: '更新后的类别',
+                importColumnUpdatedTag: '更新后的标签',
+                importColumnUpdatedDescription: '更新后的描述',
                 expensesWith: '针对以下费用：',
                 expensesExactlyMatching: '对于完全匹配以下条件的报销：',
                 applyUpdates: '应用这些更新：',
@@ -7381,7 +7436,7 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
-                defaultRuleSummary: '包括成人服务、ATM、赌博等在内的类别',
+                defaultRuleSummary: '包括成人服务、ATM、赌博和转账在内的类别',
                 findRule: '查找规则',
                 defaultSection: '默认',
                 customRulesSection: '自定义规则',
@@ -9697,6 +9752,18 @@ ${reportName}`,
             search: '在手机、网页和桌面端实现更强大的搜索功能',
             concierge: '内置 Concierge AI，帮助自动化处理报销',
             chat: '在任意报销上聊天，快速解决问题',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: '想要免费的员工方案吗？',
+        description: '无需等待公司启用 Expensify。我们专为你打造了一个免费方案：',
+        confirmText: '获取免费方案',
+        dismissText: '不用了，谢谢',
+        features: {
+            getReimbursed: '直接在 Expensify 中更快获得报销',
+            buildReports: '几秒钟即可创建费用报告',
+            categorize: '为你的支出分类',
+            inviteBoss: '准备好后即可邀请你的上司',
         },
     },
     productTrainingTooltip: {

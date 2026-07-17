@@ -558,26 +558,6 @@ function isSearchStringMatch(searchValue: string, searchText?: string | null, pa
     return matching;
 }
 
-function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string, translate: LocalizedTranslate) {
-    let memberDetails = '';
-    if (personalDetail.login) {
-        memberDetails += ` ${personalDetail.login}`;
-    }
-    if (personalDetail.firstName) {
-        memberDetails += ` ${personalDetail.firstName}`;
-    }
-    if (personalDetail.lastName) {
-        memberDetails += ` ${personalDetail.lastName}`;
-    }
-    if (personalDetail.displayName) {
-        memberDetails += ` ${temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate})}`;
-    }
-    if (personalDetail.phoneNumber) {
-        memberDetails += ` ${personalDetail.phoneNumber}`;
-    }
-    return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
-}
-
 function getLatestVisibleMoneyRequestAction(
     reportID: string,
     canUserPerformWrite: boolean | undefined,
@@ -2954,6 +2934,22 @@ function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchVal
     return '';
 }
 
+function getNoneOption(searchValue: string, isSelected: boolean, translate: LocalizedTranslate) {
+    const noneText = translate('common.none');
+    if (!noneText.toLowerCase().includes(searchValue.toLowerCase())) {
+        return [];
+    }
+
+    return [
+        {
+            text: noneText,
+            keyForList: CONST.SEARCH.NONE_OPTION_KEY,
+            isSelected,
+            value: '',
+        },
+    ];
+}
+
 /**
  * Helper method to check whether an option can show tooltip or not
  */
@@ -3372,6 +3368,7 @@ export {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
+    getNoneOption,
     getParticipantsOption,
     getPersonalDetailsForAccountIDs,
     getPolicyExpenseReportOption,
@@ -3387,7 +3384,6 @@ export {
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
     isPersonalDetailsReady,
-    isSearchStringMatchUserDetails,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,
