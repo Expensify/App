@@ -766,4 +766,33 @@ describe('Session', () => {
             expect(session?.signedInWithSAML).toBe(false);
         });
     });
+
+    describe('isSupportAuthToken', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('returns true when session has support authTokenType', () => {
+            const session: Session = {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, authToken: 'token', accountID: 1, creationDate: Date.now()};
+            expect(SessionUtil.isSupportAuthToken(session)).toBe(true);
+        });
+
+        test('returns false when session has anonymous authTokenType', () => {
+            const session: Session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, authToken: 'token', accountID: 1, creationDate: Date.now()};
+            expect(SessionUtil.isSupportAuthToken(session)).toBe(false);
+        });
+
+        test('returns false when session has no authTokenType', () => {
+            const session: Session = {authToken: 'token', accountID: 1, creationDate: Date.now()};
+            expect(SessionUtil.isSupportAuthToken(session)).toBe(false);
+        });
+
+        test('returns false when session is undefined', () => {
+            expect(SessionUtil.isSupportAuthToken(undefined)).toBe(false);
+        });
+
+        test('returns false when session is null', () => {
+            expect(SessionUtil.isSupportAuthToken(null)).toBe(false);
+        });
+    });
 });
