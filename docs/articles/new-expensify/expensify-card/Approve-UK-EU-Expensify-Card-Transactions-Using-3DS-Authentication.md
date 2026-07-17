@@ -2,14 +2,10 @@
 title: Approve UK/EU Expensify Card Transactions Using 3DS Authentication
 description: Learn how to approve or deny UK/EU Expensify Card transactions that require 3-D Secure (3DS) authentication, including biometric setup and supported methods.
 keywords: [New Expensify, Expensify Card UK, EU, 3DS, 3-D Secure, Visa Secure, transaction approval, biometric authentication, passkey, online transactions]
-noindex: true
-sitemap: false
 internalScope: Audience is UK and EU Expensify Card cardholders. Covers approving and denying transactions that require 3DS authentication, the approval time limit, enabling biometric authentication, managing authentication settings, and supported authentication methods. Does not cover US Expensify Card transactions, card setup, or spending limits.
 ---
 
-<!--
-REMOVE noindex: true AND sitemap: false FROM YAML HEADER BEFORE PUBLISHING!
--->
+# Approve UK/EU Expensify Card Transactions Using 3DS Authentication
 
 When you use the Expensify Card in the UK or EU, some online transactions require additional verification before they can be completed.
 
@@ -17,7 +13,7 @@ Expensify uses **[Visa Secure](https://www.visa.co.uk/products/visa-secure.html)
 
 When a transaction requires verification, you'll receive a notification and must approve or deny the transaction in Expensify.
 
-# How to approve a UK/EU Expensify Card transaction
+## How to approve a UK/EU Expensify Card transaction
 
 When a transaction requires approval, you'll receive a Concierge message with the transaction details.
 
@@ -36,9 +32,7 @@ To approve the transaction:
 
 Once approved, the transaction will automatically proceed with the merchant.
 
-<!-- TODO: Add screenshot — transaction approval screen showing Approve and Deny options. -->
-
-# How to deny a UK/EU Expensify Card transaction
+## How to deny a UK/EU Expensify Card transaction
 
 If you don't recognize the transaction:
 
@@ -52,11 +46,11 @@ After denying the transaction:
 
 - The transaction is immediately declined.
 - If you suspect fraud, we recommend taking the following actions:
-  - [Cancel your Expensify Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Deactivate-or-cancel-an-Expensify-Card).
-  - [Lock your Expensify account if you believe your account may have been compromised](https://help.expensify.com/articles/new-expensify/settings/Report-Suspicious-Activity).
+  - [Cancel your Expensify Card](/articles/expensify-classic/expensify-card/Deactivate-or-cancel-an-Expensify-Card).
+  - [Lock your Expensify account if you believe your account may have been compromised](articles/new-expensify/settings/Report-Suspicious-Activity).
   - Contact Concierge for assistance.
 
-# What happens if you don't approve in time?
+## What happens if you don't approve a UK/EU Expensify Card transaction in time?
 
 You have approximately **8 minutes** to approve a transaction.
 
@@ -65,7 +59,7 @@ If you don't approve it within that time:
 - The transaction is automatically declined.
 - You'll need to retry the purchase with the merchant.
 
-# How to enable biometric authentication for UK/EU Expensify Card approvals
+## How to enable biometric authentication for UK/EU Expensify Card approvals
 
 You'll be prompted to enable biometric authentication the first time you approve a transaction or test authentication.
 
@@ -80,7 +74,7 @@ To enable biometrics:
 
 Once enabled, future transaction approvals are faster and won't require an email verification code.
 
-# Manage authentication settings
+## How to manage authentication settings for the UK/EU Expensify Card
 
 To manage biometric authentication or passkeys:
 
@@ -93,7 +87,7 @@ From here, you can:
 - Enable or re-enable authentication.
 - Revoke authentication access for all devices.
 
-# Supported authentication methods
+## What authentication methods are supported for UK/EU Expensify Cards
 
 To meet UK and EU security requirements, Expensify supports the following authentication methods:
 
@@ -113,7 +107,7 @@ Yes, but only if passkeys are enabled on your account. Otherwise, you'll need to
 
 ## Can someone else approve transactions on my behalf?
 
-Yes. If you have a copilot configured on your account, they can approve transactions on your behalf, provided they have also enabled biometric authentication. See [Copilot access](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
+Yes. If you have a copilot configured on your account, they can approve transactions on your behalf, provided they have also enabled biometric authentication. See [Copilot access](/articles/new-expensify/settings/Copilot-Access).
 
 ## What happens if biometric authentication fails?
 
