@@ -21,6 +21,7 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 describe('MFA soft prompt', () => {
     afterEach(async () => {
+        jest.restoreAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -51,6 +52,24 @@ describe('MFA soft prompt', () => {
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
         // The context flag tracks an approval given during this flow, so a skip leaves it false.
         expect(result.context.softPromptApproved).toBe(false);
+
+        actor.stop();
+    });
+
+    it('disconnects a pending soft-prompt read when the flow closes', () => {
+        const connection = {id: 'soft-prompt-read-test', callbackID: 'soft-prompt-read-test'};
+        jest.spyOn(Onyx, 'connectWithoutView').mockReturnValue(connection);
+        const disconnectSpy = jest.spyOn(Onyx, 'disconnect').mockImplementation();
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}});
+
+        actor.start();
+        sendValidateDeviceDone(actor, {success: true});
+        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
+
+        actor.send({type: 'CLOSE_MODAL'});
+
+        expect(disconnectSpy).toHaveBeenCalledTimes(1);
+        expect(disconnectSpy).toHaveBeenCalledWith(connection);
 
         actor.stop();
     });

@@ -72,13 +72,8 @@ function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
 
 type MfaActors = ReturnType<typeof createActors>;
 
-// Callback actors have no done output and must not require done-output fixtures.
-type MfaActorIdWithDoneOutput = {
-    [Id in keyof MfaActors]: undefined extends OutputFrom<MfaActors[Id]> ? never : Id;
-}[keyof MfaActors];
-
 type MfaActorDoneOutputFixtures = {
-    readonly [Id in MfaActorIdWithDoneOutput]: readonly [OutputFrom<MfaActors[Id]>, ...Array<OutputFrom<MfaActors[Id]>>];
+    readonly [Id in keyof MfaActors]: readonly [OutputFrom<MfaActors[Id]>, ...Array<OutputFrom<MfaActors[Id]>>];
 };
 
 /**
@@ -106,7 +101,6 @@ function hasActorDoneOutputFixtures(actorId: string): actorId is keyof typeof MF
     return Object.hasOwn(MFA_ACTOR_DONE_OUTPUT_FIXTURES, actorId);
 }
 
-const INIT_STEP_EVENT_TYPE = 'xstate.init';
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
 const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
@@ -120,7 +114,7 @@ type PathSteps = ReadonlyArray<{event: {type: string}}>;
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
 
 function isAutoDrivenEvent(eventType: string): boolean {
-    return eventType === INIT_STEP_EVENT_TYPE || eventType.startsWith(ACTOR_DONE_EVENT_PREFIX) || eventType.startsWith(ACTOR_ERROR_EVENT_PREFIX);
+    return eventType.startsWith('xstate.');
 }
 
 /**

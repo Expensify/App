@@ -23,36 +23,18 @@ const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => 
 const readHasAcceptedSoftPrompt = fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(
     ({input, signal}) =>
         new Promise<boolean>((resolve) => {
-            let connection: ReturnType<typeof Onyx.connectWithoutView> | undefined;
-            let shouldDisconnect = false;
-            let settled = false;
-
-            const disconnect = () => {
-                if (connection === undefined) {
-                    shouldDisconnect = true;
-                    return;
-                }
-                Onyx.disconnect(connection);
-                connection = undefined;
-            };
-            const resolveFirstValue = (accepted: boolean) => {
-                if (settled) {
-                    return;
-                }
-                settled = true;
-                signal.removeEventListener('abort', disconnect);
-                disconnect();
-                resolve(accepted);
-            };
+            let connection: ReturnType<typeof Onyx.connectWithoutView>;
+            const disconnect = () => Onyx.disconnect(connection);
 
             signal.addEventListener('abort', disconnect, {once: true});
             connection = Onyx.connectWithoutView({
                 key: getDeviceBiometricsOnyxKey(input.accountID),
-                callback: (deviceBiometrics) => resolveFirstValue(deviceBiometrics?.hasAcceptedSoftPrompt ?? false),
+                callback: (deviceBiometrics) => {
+                    signal.removeEventListener('abort', disconnect);
+                    disconnect();
+                    resolve(deviceBiometrics?.hasAcceptedSoftPrompt ?? false);
+                },
             });
-            if (shouldDisconnect) {
-                disconnect();
-            }
         }),
 );
 
