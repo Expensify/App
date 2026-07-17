@@ -78,7 +78,7 @@ import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
@@ -185,7 +185,8 @@ function ReportActionItem({
     isHarvestCreatedExpenseReport = false,
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
-    const originalReportID = useOriginalReportID(report?.reportID, action);
+    const isFocused = useIsFocused();
+    const originalReportID = useOriginalReportID(report?.reportID, action, isFocused);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 

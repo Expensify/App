@@ -23,12 +23,12 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
  * @returns The original reportID for the given reportAction, or undefined if not found
  *
  */
-function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<Pick<ReportAction, 'reportActionID' | 'childReportID'>>): string | undefined {
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: withDEWRoutedActionsObject});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<Pick<ReportAction, 'reportActionID' | 'childReportID'>>, isActive = true): string | undefined {
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: withDEWRoutedActionsObject, subscribed: isActive});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {subscribed: isActive});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {subscribed: isActive});
     const {isOffline} = useNetwork();
-    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportID, isActive);
 
     const reportActionID = reportAction?.reportActionID;
     const currentReportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
