@@ -72,6 +72,15 @@ type PolarChartData = {
 
 type TextAnchor = 'start' | 'middle' | 'end';
 
+/** A pie-chart slice label's fully resolved, absolute position — shared by `VictoryChartPieLabel` and `VictoryChartPieLabelIndicator` so both always agree. */
+type ResolvedPieLabel = {
+    x: number;
+    y: number;
+    textAnchor: TextAnchor;
+    /** The angle actually used for this slice's layout. */
+    midAngle: number;
+};
+
 type LabelItem = {
     /** Position on the X-axis */
     x: number;
@@ -190,6 +199,7 @@ export type {
     CartesianChartData,
     CartesianChartProps,
     TextAnchor,
+    ResolvedPieLabel,
     LabelItem,
     LegendItemEntry,
     LegendItem,
