@@ -220,12 +220,14 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             const convertedFiles: FileObject[] = [];
 
             for (const file of filesToConvert) {
+                // Convert sequentially to avoid the native memory pressure caused by processing multiple HEIC images in parallel.
                 // eslint-disable-next-line no-await-in-loop
                 await new Promise<void>((resolve) => {
                     convertHeicImage(file, {
                         onSuccess: (convertedFile) => {
                             if (validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
                                 convertedFilesToResize.push(convertedFile);
+                                // Preserve the original index so the resize step can transfer it to the final file.
                                 updateFileOrderMapping(file, convertedFile);
                                 resolve();
                                 return;
