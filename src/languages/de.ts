@@ -434,6 +434,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
+        submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
         help: 'Hilfe',
         collapsed: 'Eingeklappt',
@@ -516,6 +517,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -1163,6 +1165,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} Tags wurden hinzugefügt.` : '1 Tag wurde hinzugefügt.'),
         importMultiLevelTagsSuccessfulDescription: 'Mehrstufige Tags wurden hinzugefügt.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} Tagessätze wurden hinzugefügt.` : '1 Tagegeldsatz wurde hinzugefügt.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'Es wurden keine Händlerregeln hinzugefügt, da sie alle bereits existieren.';
+            }
+            return rules > 1 ? `${rules} Händlerregeln wurden hinzugefügt.` : '1 Händlerregel wurde hinzugefügt.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Ups! Du musst mindestens eine Spalte („Händler ist“ oder „Händler enthält“) zuordnen sowie mindestens ein zu aktualisierendes Feld. Bitte überprüfe es und versuche es erneut.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} Buchungen wurden importiert.` : '1 Transaktion wurde importiert.',
         importFailedTitle: 'Import fehlgeschlagen',
@@ -4488,6 +4498,7 @@ ${amount} für ${merchant} – ${date}`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
             deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
+            deleteTravelInvoicingError: 'Ihr Unternehmen hat die Konsolidierte Reiseabrechnung noch aktiviert.',
             outstandingBalanceWarning:
                 'Sie haben einen offenen Saldo, der beglichen werden muss, bevor Sie Ihren letzten Workspace löschen können. Bitte gehen Sie zu Ihren Abonnementeinstellungen, um die Zahlung abzuschließen.',
             settleBalance: 'Zu Abo wechseln',
@@ -5619,6 +5630,35 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
             syncTravelInvoicingSettlements: 'Abrechnungen für Reiseabrechnungen synchronisieren',
             travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Workspace-Konto für diese Kartenprogramme überschreiben.',
+                descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Programme verwenden das Standardkonto';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Programm mit benutzerdefiniertem Konto`;
+                    }
+                    return `${customAccountsCount} Programme mit benutzerdefinierten Konten`;
+                },
+            },
+            cardAccount: {
+                label: 'Kontotyp pro Karte',
+                description: 'Programmkonto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programmkonto für diese Karten überschreiben.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Karten verwenden Programmkonten';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Karte mit individuellem Konto`;
+                    }
+                    return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
+                },
+            },
         },
         type: {
             free: 'Kostenlos',
@@ -7476,6 +7516,14 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 addRule: 'Händlerregel hinzufügen',
                 addRuleTitle: 'Regel hinzufügen',
                 editRuleTitle: 'Regel bearbeiten',
+                importRulesTitle: 'Händlerregeln importieren',
+                importRulesSupportingText: 'Ordne jede Spalte in deiner Tabelle einem Feld der Händlerregel zu. Wenn alles gut aussieht, klicke unten, um deine Regeln zu importieren.',
+                importColumnMerchantIs: 'Händler ist',
+                importColumnMerchantContains: 'Händler enthält',
+                importColumnUpdatedMerchant: 'Aktualisierter Händler',
+                importColumnUpdatedCategory: 'Aktualisierte Kategorie',
+                importColumnUpdatedTag: 'Aktualisiertes Tag',
+                importColumnUpdatedDescription: 'Aktualisierte Beschreibung',
                 expensesWith: 'Für Ausgaben mit:',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
@@ -7651,7 +7699,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
-                defaultRuleSummary: 'Kategorien einschließlich Erwachsenendienste, Geldautomaten, Glücksspiel und ...',
+                defaultRuleSummary: 'Kategorien einschließlich Erotikdienstleistungen, Geldautomaten, Glücksspiel und Geldüberweisungen',
                 findRule: 'Regel suchen',
                 defaultSection: 'Standard',
                 customRulesSection: 'Benutzerdefinierte Regeln',

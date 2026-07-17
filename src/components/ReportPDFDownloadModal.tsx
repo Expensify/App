@@ -16,9 +16,12 @@ type ReportPDFDownloadModalProps = {
     isVisible: boolean;
     onClose: () => void;
     onModalHide?: () => void;
+
+    /** Called when the modal is dismissed while the PDF is still generating (e.g. Submit via PDF retracts the submit). */
+    onCancel?: () => void;
 };
 
-function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide}: ReportPDFDownloadModalProps) {
+function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCancel}: ReportPDFDownloadModalProps) {
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -41,10 +44,19 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide}: Rep
         return translate('reportDetailsPage.successPDF');
     })();
 
+    // reportPDFFilename is null while the backend is still generating, so a dismissal at that point is a cancel
+    // (e.g. Submit via PDF retracts the submit); once it holds a filename or 'error' the submit has already resolved.
+    const handleClose = () => {
+        if (!reportPDFFilename) {
+            onCancel?.();
+        }
+        onClose();
+    };
+
     return (
         <PDFDownloadModal
             isVisible={isVisible}
-            onClose={onClose}
+            onClose={handleClose}
             onModalHide={onModalHide}
             hasFinishedPDFDownload={hasFinishedPDFDownload}
             message={message}
