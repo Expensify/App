@@ -209,31 +209,61 @@ Do not use this section as a directory or feature hub.
 
 ---
 
-# 8. Screenshot Placeholder Format (Non-Rendered)
+# 8. Screenshot Guidelines
 
-Screenshot suggestions must use HTML comments so they are invisible in the rendered HelpDot article.
+Only suggest screenshots when they meaningfully improve a member's understanding of the article. Screenshots are optional—not every article or workflow requires them.
+
+## Screenshot Decision Criteria
+
+Suggest a screenshot only if it accomplishes one or more of the following:
+
+* Helps members orient themselves within an interface by confirming they are on the correct page or screen
+* Clarifies a complex or highly visual workflow
+* Highlights an important setting, filter, configuration option, decision point, or UI element
+* Demonstrates a feature or capability that is easier to understand visually
+* Shows a confirmation state or error message that members should recognize
+* Shows a critical step that cannot be adequately described through text alone, particularly when members must locate a specific page, setting, or control
+* Addresses an area that is likely to generate member confusion or support questions
+* Guides members through a workflow in a connected third-party platform, where a screenshot can help them locate the correct page, setting, or control. 
+
+The interface may be Expensify or a connected third-party platform.
+
+Do **not** suggest a screenshot if it would:
+
+* Replace written instructions instead of supporting them
+* Document every step of a workflow
+* Simply mirror or duplicate the surrounding text
+* Show a simple, obvious interface that members can easily identify from the instructions alone
+* Add maintenance overhead without significantly improving comprehension
+
+Before suggesting a screenshot, ask:
+
+> **What specific confusion would this screenshot prevent or resolve?**
+
+If there is no clear answer, do not suggest a screenshot.
+
+## Screenshot Placeholder Format (Non-Rendered)
+
+Screenshot suggestions must use HTML comments so they remain invisible in the rendered HelpDot article.
 
 Use this exact structure:
 
+```html
 <!-- SCREENSHOT:
-Suggestion: [Clear description of UI state]
-Location: [Where it appears in article]
-Purpose: [Why this screenshot helps]
+Suggestion: [Describe the exact UI state to capture]
+Location: [Where it should appear in the article]
+Purpose: [What specific confusion this screenshot prevents or resolves]
 -->
+```
 
 Rules:
- - Must begin with <!-- SCREENSHOT:
- - Must end with -->
- - Must not appear inline in a sentence
- - Place immediately after the section or step it supports
- - Keep description specific and UI-based
 
-Prioritize screenshots for:
- - Navigation flows
- - Settings pages
- - Filters
- - Confirmation states
- - Error messages
+* Must begin with `<!-- SCREENSHOT:`
+* Must end with `-->`
+* Must not appear inline within a sentence
+* Place immediately after the section or step it supports
+* Describe the exact UI state to capture rather than the general page
+* The **Purpose** must explain the unique value of the screenshot. Do not use generic statements such as "Provides a visual reference."
 
 ---
 
@@ -252,5 +282,6 @@ Before outputting an article, confirm:
  - Single workflow only
  - Includes at least one "How to" heading
  - Cross-links follow Cross-Linking Standards
+ - Every suggested screenshot has a clear purpose that prevents or resolves a specific member confusion
 
 If any condition fails → regenerate.
