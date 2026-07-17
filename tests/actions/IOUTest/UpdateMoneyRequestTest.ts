@@ -2634,6 +2634,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     policyForTrackExpense: undefined,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
+                    personalDetailsList: undefined,
                 },
                 newMerchant,
             );
