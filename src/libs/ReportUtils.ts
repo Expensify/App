@@ -5647,7 +5647,7 @@ type GetReportPreviewMessageBaseParams = {
  * Get expense message for an IOU report.
  */
 function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction?: false}): string;
-function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction: true; reportAttributes?: ReportAttributesDerivedValue['reports']}): string;
+function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction: true; reportAttributes: ReportAttributesDerivedValue['reports'] | undefined}): string;
 function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction?: boolean; reportAttributes?: ReportAttributesDerivedValue['reports']}): string {
     const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
@@ -5655,7 +5655,7 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
     const reportActionMessage = getReportActionHtml(iouReportAction);
     if (params.isCopyAction) {
         if (report) {
-            return getReportName(report, params.reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
+            return getReportName(report, params.reportAttributes) || (originalReportAction?.childReportName ?? '');
         }
         return originalReportAction?.childReportName ?? '';
     }
@@ -12800,7 +12800,13 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
+function getChatListItemReportName(
+    action: ReportAction & {reportName?: string},
+    report: Report | undefined,
+    conciergeReportID: string | undefined,
+    translate: LocalizedTranslate,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
@@ -12817,10 +12823,10 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     }
 
     if (report?.reportID) {
-        return getReportName(getReport(report?.reportID, deprecatedAllReports), reportAttributesDerivedValue);
+        return getReportName(getReport(report?.reportID, deprecatedAllReports), reportAttributes);
     }
 
-    return getReportName(report, reportAttributesDerivedValue);
+    return getReportName(report, reportAttributes);
 }
 
 /**
