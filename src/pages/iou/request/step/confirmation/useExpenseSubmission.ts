@@ -343,7 +343,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             currentUserAccountID: currentUserPersonalDetails.accountID,
             betas,
             introSelected,
-            transaction: lastTransaction,
         };
         if (!shouldHandleNavigation) {
             cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});

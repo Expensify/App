@@ -42,9 +42,6 @@ type BuildTransactionThreadParams = {
 
     /** The onboarding intro selection. */
     introSelected: IntroSelected | undefined;
-
-    /** The just-created transaction. */
-    transaction: Transaction | undefined;
 };
 
 type NavigateAfterExpenseCreateParams = {
@@ -218,6 +215,19 @@ function showExpenseAddedGrowl({
         return {iouReport, iouAction};
     };
 
+    // Resolve the created transaction fresh from Onyx by its ID rather than capturing an object at
+    // feedback-creation time.
+    const resolveTransaction = (): Promise<OnyxEntry<Transaction>> =>
+        new Promise<OnyxEntry<Transaction>>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+
     const buildThreadFromOnyx = async (): Promise<string | undefined> => {
         const {iouReport, iouAction} = await resolveIOUReportAndAction();
         const threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
@@ -225,6 +235,7 @@ function showExpenseAddedGrowl({
             setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
             return threadReportID;
         }
+        const transaction = await resolveTransaction();
         const optimisticThread = createTransactionThreadReport({
             introSelected: buildTransactionThreadParams?.introSelected,
             currentUserLogin: buildTransactionThreadParams?.currentUserLogin ?? '',
@@ -232,7 +243,7 @@ function showExpenseAddedGrowl({
             betas: buildTransactionThreadParams?.betas,
             iouReport,
             iouReportAction: iouAction,
-            transaction: buildTransactionThreadParams?.transaction,
+            transaction,
         });
         return optimisticThread?.reportID;
     };

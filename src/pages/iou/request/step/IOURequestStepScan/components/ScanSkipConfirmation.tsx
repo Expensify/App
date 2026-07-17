@@ -306,7 +306,6 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         betas,
                         introSelected,
-                        transaction: lastTransaction,
                     };
                     if (overrides.shouldHandleNavigation) {
                         cleanupAndNavigateAfterExpenseCreate({

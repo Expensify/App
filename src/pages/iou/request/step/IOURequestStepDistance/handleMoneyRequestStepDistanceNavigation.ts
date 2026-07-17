@@ -335,7 +335,6 @@ function handleMoneyRequestStepDistanceNavigation({
                             currentUserAccountID,
                             betas,
                             introSelected,
-                            transaction,
                         };
                         if (overrides.shouldHandleNavigation) {
                             cleanupAndNavigateAfterExpenseCreate({

@@ -385,7 +385,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
             currentUserAccountID,
             betas,
             introSelected,
-            transaction,
         };
         if (overrides.shouldHandleNavigation) {
             cleanupAndNavigateAfterExpenseCreate({

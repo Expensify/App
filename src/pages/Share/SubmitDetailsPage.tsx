@@ -383,7 +383,6 @@ function SubmitDetailsPage({
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 betas,
                 introSelected,
-                transaction,
             },
         });
     };
