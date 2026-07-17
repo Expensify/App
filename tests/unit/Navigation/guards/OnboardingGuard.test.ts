@@ -556,4 +556,16 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('ALLOW');
         });
     });
+
+    describe('copilot session', () => {
+        it('should return ALLOW and skip onboarding when acting as a copilot', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@expensify.com'}});
+            await waitForBatchedUpdates();
+
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+    });
 });
