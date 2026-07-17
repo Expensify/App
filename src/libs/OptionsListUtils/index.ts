@@ -1527,12 +1527,14 @@ function processReport(
 }
 
 /**
- * Sort Report objects by archived status and last visible action
- * Similar to recentReportComparator, but works with raw Report objects instead of SearchOptionData
+ * Sort Report objects by self-DM status, archived status, and last visible action.
+ * Mirrors recentReportComparator's isSelfDM priority so the raw top-N cap in createFilteredOptionList
+ * can't exclude the self-DM report before recentReportComparator gets a chance to keep it.
  */
 const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArchivedMap): string => {
     const isArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-    return `${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
+    const isSelfDM = report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
+    return `${isSelfDM ? 1 : 0}_${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
 };
 
 /**
@@ -2934,6 +2936,22 @@ function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchVal
     return '';
 }
 
+function getNoneOption(searchValue: string, isSelected: boolean, translate: LocalizedTranslate) {
+    const noneText = translate('common.none');
+    if (!noneText.toLowerCase().includes(searchValue.toLowerCase())) {
+        return [];
+    }
+
+    return [
+        {
+            text: noneText,
+            keyForList: CONST.SEARCH.NONE_OPTION_KEY,
+            isSelected,
+            value: '',
+        },
+    ];
+}
+
 /**
  * Helper method to check whether an option can show tooltip or not
  */
@@ -3352,6 +3370,7 @@ export {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
+    getNoneOption,
     getParticipantsOption,
     getPersonalDetailsForAccountIDs,
     getPolicyExpenseReportOption,
