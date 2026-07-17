@@ -3000,6 +3000,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        conciergeAnimatedAvatar: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
+        },
+
         accountSettingsSectionContainer: {
             borderBottomWidth: 1,
             borderBottomColor: theme.border,

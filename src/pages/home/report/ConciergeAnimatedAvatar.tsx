@@ -1,7 +1,10 @@
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 
-import variables from '@styles/variables';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -17,27 +20,21 @@ const ANIMATION_VARIANTS = [
     LottieAnimations.ConciergeThinkingHypnotized,
 ];
 
-const SIZE = variables.avatarSizeNormal;
-
 function ConciergeAnimatedAvatar() {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+
     // Pick a random variant once per mount so the animation stays stable across re-renders.
     const [ANIMATION] = useState(() => ANIMATION_VARIANTS[Math.floor(Math.random() * ANIMATION_VARIANTS.length)]);
 
     return (
-        <View
-            style={{
-                width: SIZE,
-                height: SIZE,
-                borderRadius: SIZE / 2,
-                overflow: 'hidden',
-            }}
-        >
+        <View style={[StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT), styles.overflowHidden]}>
             <Lottie
                 source={ANIMATION}
                 autoPlay
                 loop
-                style={{width: SIZE, height: SIZE}}
-                webStyle={{width: SIZE, height: SIZE}}
+                style={styles.conciergeAnimatedAvatar}
+                webStyle={styles.conciergeAnimatedAvatar}
             />
         </View>
     );
