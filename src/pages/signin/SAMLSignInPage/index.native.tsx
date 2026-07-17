@@ -1,21 +1,27 @@
-import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
-import {openAuthSessionAsync} from 'expo-web-browser';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearSignInData, setAccountError, signInWithShortLivedAuthToken} from '@userActions/Session';
+
+import {clearSignInData, setAccountError, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
+
+import {openAuthSessionAsync} from 'expo-web-browser';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
@@ -26,6 +32,8 @@ function SAMLSignInPage() {
     const hasConsumedSAMLCallback = useRef(false);
 
     const handleExitSAMLFlow = useCallback(() => {
+        // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
+        setIsAuthenticatingWithShortLivedToken(false);
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
             clearSignInData();
@@ -45,20 +53,19 @@ function SAMLSignInPage() {
             const searchParams = new URLSearchParams(new URL(url).search);
             const jsonParam = searchParams.get('json');
 
-            if (!jsonParam) {
-                Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
-                return;
-            }
-
             let shortLivedAuthToken: string | null = null;
-            try {
-                const decodedData = JSON.parse(jsonParam) as Record<string, string | null>;
-                shortLivedAuthToken = decodedData.shortLivedAuthToken ?? null;
-                if (decodedData.error) {
-                    Log.hmmm('SAMLSignInPage - SAML login returned error', {error: decodedData.error});
+            if (jsonParam) {
+                try {
+                    const decodedData = JSON.parse(jsonParam) as Record<string, string | null>;
+                    shortLivedAuthToken = decodedData.shortLivedAuthToken ?? null;
+                    if (decodedData.error) {
+                        Log.hmmm('SAMLSignInPage - SAML login returned error', {error: decodedData.error});
+                    }
+                } catch (parseError) {
+                    Log.hmmm('SAMLSignInPage - Failed to parse JSON parameter', {error: parseError});
                 }
-            } catch (parseError) {
-                Log.hmmm('SAMLSignInPage - Failed to parse JSON parameter', {error: parseError});
+            } else {
+                Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
             }
 
             if (credentials?.login && shortLivedAuthToken) {
@@ -72,6 +79,11 @@ function SAMLSignInPage() {
                 return;
             }
 
+            // The browser returned but we couldn't sign in (no JSON parameter, a parse failure, or no token), so clear
+            // the guard we set before opening it and send the user back to a clean state. Otherwise the guard stays
+            // true, and since loginCallback URLs hide the back button and leave account.isLoading true, the user gets
+            // stuck on the loading screen with future reauthenticate() calls aborting.
+            setIsAuthenticatingWithShortLivedToken(false);
             clearSignInData();
             setAccountError(translate('common.error.login'));
             Navigation.isNavigationReady().then(() => {
@@ -89,9 +101,20 @@ function SAMLSignInPage() {
             return;
         }
         hasOpenedAuthSession.current = true;
+        // Opening the in-app browser backgrounds the app. When it returns, the app resumes and fires
+        // reconnectApp() with the expired authToken, which 407s and triggers reauthenticate() -> redirectToSignIn(),
+        // wiping the session before the SAML callback can sign the user back in. Setting this guard up front makes
+        // reauthenticate() abort while the SAML sign-in is in progress. signInWithShortLivedAuthToken() resets it on
+        // success; the cancel/error/failure paths reset it via handleExitSAMLFlow and handleNavigationStateChange.
+        setIsAuthenticatingWithShortLivedToken(true);
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
                 if (response.type !== 'success') {
+                    // The auth session closed without handing a callback URL back to the app (e.g. the in-app browser
+                    // was dismissed/cancelled, or the redirect to the custom scheme never fired). Log the result type so
+                    // we can distinguish "browser never returned a success result" from "returned but had no token"
+                    // (which is already logged in handleNavigationStateChange) when debugging SAML sign-in loops.
+                    Log.hmmm('SAMLSignInPage - Auth session closed without a successful result', {type: response.type});
                     handleExitSAMLFlow();
                     return;
                 }

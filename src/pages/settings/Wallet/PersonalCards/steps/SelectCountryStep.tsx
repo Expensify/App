@@ -1,5 +1,3 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -14,16 +13,23 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getPlaidCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {clearAddNewPersonalCardFlow, setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
     const {translate, localeCompare} = useLocalize();

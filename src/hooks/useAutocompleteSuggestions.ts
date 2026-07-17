@@ -1,10 +1,8 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
+
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
@@ -22,14 +20,22 @@ import {
 } from '@libs/SearchAutocompleteUtils';
 import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
+
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+
+import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
+
 import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
-import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSortedActions from './useSortedActions';
@@ -69,6 +75,7 @@ const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE
 const RECEIPT_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
+const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
 const BOOLEAN_VALUES = Object.values(CONST.SEARCH.BOOLEAN);
 const ACTION_FILTER_VALUES = Object.values(CONST.SEARCH.ACTION_FILTERS);
 const IS_VALUES_LIST = Object.values(CONST.SEARCH.IS_VALUES);
@@ -331,7 +338,7 @@ function useAutocompleteSuggestions({
             );
             return filteredViews.map((viewValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW, text: viewValue}));
         }
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {
             const statusAutocompleteList = (() => {
                 let suggestedStatuses;
                 switch (currentType) {
@@ -353,7 +360,7 @@ function useAutocompleteSuggestions({
                     default:
                         suggestedStatuses = DEFAULT_STATUS_VALUES;
                 }
-                return suggestedStatuses.filter((value) => value !== '').map((value) => getUserFriendlyValue(value));
+                return suggestedStatuses.map(getUserFriendlyValue);
             })();
             const filteredStatuses = statusAutocompleteList
                 .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(status))
@@ -400,6 +407,14 @@ function useAutocompleteSuggestions({
             return filteredWithdrawalStatuses.map((withdrawalStatus) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS,
                 text: withdrawalStatus,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS: {
+            const filteredPaidStatuses = PAID_STATUS_VALUES.filter((paidStatus) => paidStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(paidStatus)).sort();
+
+            return filteredPaidStatuses.map((paidStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PAID_STATUS,
+                text: paidStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {

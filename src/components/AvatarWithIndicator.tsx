@@ -1,10 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Avatar from './Avatar';
 import AvatarSkeleton from './AvatarSkeleton';
 import Indicator from './Indicator';

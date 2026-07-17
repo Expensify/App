@@ -6,7 +6,7 @@ keywords: [New Expensify, workflows, approval workflows, delay submission, add a
 
 Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
 
-**Note:** Workflows are available on **Collect** and **Control** workspaces. Only **Workspace Admins** can enable and configure them.
+**Note:** Workflows are available on **Collect** and **Control** workspaces. **Workspace Admins** can enable and configure all workflow settings. **People Admins** can configure the **Approvals** section, and **Payments Admins** can configure the **Payments** section. The **Submissions** section remains available to Workspace Admins only.
 
 ---
 
@@ -40,6 +40,7 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 - You can assign an approver per workspace member.
 - You can also set an over-limit approver for reports that exceed a specific amount. 
 - The default approver is the **Workspace Owner**, but any workspace member can be selected.
+- Both **Workspace Admins** and **People Admins** can enable and configure Approvals.
 
 Learn how to [enable Approvals](https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals) on your workspace. 
 
@@ -63,7 +64,7 @@ Note: If **Submissions** is disabled, expenses remain in the **Unreported** stat
 
 ## How to Set Up a Payment Account
 
-To reimburse employees or pay invoices directly from Expensify, connect your business bank account.
+To reimburse employees or pay invoices directly from Expensify, connect your business bank account. Both **Workspace Admins** and **Payments Admins** can connect a bank account, set the authorized expense payer, and manage payment methods.
 
 1. Go to **Workflows**.
 2. Toggle on **Payments**.

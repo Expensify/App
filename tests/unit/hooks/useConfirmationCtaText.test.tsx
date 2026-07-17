@@ -1,10 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useConfirmationCtaText from '@components/MoneyRequestConfirmationList/hooks/useConfirmationCtaText';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 type Params = Parameters<typeof useConfirmationCtaText>[0];

@@ -1,6 +1,7 @@
+import type {RectProps} from 'react-native-svg';
+
 import React from 'react';
 import {Rect} from 'react-native-svg';
-import type {RectProps} from 'react-native-svg';
 
 const BORDER_RADIUS_SMALL = 2; // text bars (height <= 8)
 const BORDER_RADIUS_MEDIUM = 4; // content blocks (height > 8)

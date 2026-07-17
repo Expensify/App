@@ -1,6 +1,8 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {isGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 type StaticPolicyInfo = {
     hasMultipleWorkspaces: boolean;

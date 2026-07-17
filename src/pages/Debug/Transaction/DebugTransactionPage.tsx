@@ -1,11 +1,11 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Debug from '@libs/actions/Debug';
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -17,13 +17,19 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {DebugParamList} from '@libs/Navigation/types';
 import {getTagLists} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import DebugTransactionViolations from './DebugTransactionViolations';
 
 type DebugTransactionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION>;

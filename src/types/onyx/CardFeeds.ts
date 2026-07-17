@@ -1,7 +1,9 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Company card feed name */

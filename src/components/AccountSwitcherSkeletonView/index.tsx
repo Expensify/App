@@ -1,16 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {Circle} from 'react-native-svg';
-import type {ValueOf} from 'type-fest';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+import {Circle} from 'react-native-svg';
 
 type AccountSwitcherSkeletonViewProps = {
     /** Whether to animate the skeleton view */

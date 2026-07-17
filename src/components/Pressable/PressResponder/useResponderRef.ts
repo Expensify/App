@@ -1,6 +1,9 @@
-import {use} from 'react';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+
 import mergeRefs from '@libs/mergeRefs';
+
+import {use} from 'react';
+
 import PressResponderContext from './PressResponderContext';
 
 /** Merges the consumer's ref with any ancestor `<PressResponder>`'s ref. Separate from `usePressResponderProps` so React Compiler can verify ref flow narrowly. */

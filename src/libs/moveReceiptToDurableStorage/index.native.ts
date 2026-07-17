@@ -1,7 +1,9 @@
-import RNFS from 'react-native-fs';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
+
+import RNFS from 'react-native-fs';
+
 import type MoveReceiptToDurableStorage from './types';
 
 /**

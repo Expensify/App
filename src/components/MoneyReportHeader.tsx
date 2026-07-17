@@ -1,6 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -10,13 +7,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
@@ -138,17 +142,14 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 )}
             </HeaderWithBackButton>
             {!shouldShowHeaderButtonsInHeaderRow && (
-                <View style={[styles.w100, styles.flexColumn]}>
-                    <MoneyReportHeaderActions
-                        reportID={reportIDProp}
-                        primaryAction={primaryAction}
-                        isReportInSearch={isReportInSearch}
-                        backTo={backTo}
-                    />
-                    <MoneyReportHeaderMoreContent reportID={reportIDProp} />
-                </View>
+                <MoneyReportHeaderActions
+                    reportID={reportIDProp}
+                    primaryAction={primaryAction}
+                    isReportInSearch={isReportInSearch}
+                    backTo={backTo}
+                />
             )}
-            {shouldShowHeaderButtonsInHeaderRow && <MoneyReportHeaderMoreContent reportID={reportIDProp} />}
+            <MoneyReportHeaderMoreContent reportID={reportIDProp} />
             <HeaderLoadingBar />
         </View>
     );

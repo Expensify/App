@@ -1,8 +1,4 @@
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -10,19 +6,29 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openExternalLink} from '@libs/actions/Link';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText} from 'react-native';
+
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 type DynamicSageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_PREREQUISITES>;
 
@@ -34,6 +40,8 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path);
+
+    const navigateToEnterCredentials = () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
 
     const menuItems = useMemo(
         () => [
@@ -107,12 +115,13 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
                 addBottomSafeAreaPadding
             >
                 <Button
-                    success
-                    text={translate('common.next')}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
-                    pressOnEnter
-                    large
-                />
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={navigateToEnterCredentials}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ScreenWrapper>
     );

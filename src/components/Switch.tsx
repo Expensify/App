@@ -1,10 +1,13 @@
-import React, {useLayoutEffect, useMemo, useRef} from 'react';
-import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useLayoutEffect, useMemo, useRef} from 'react';
+import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
@@ -125,6 +128,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
                     {(!!disabled || !!showLockIcon) && (
                         <Icon
+                            testID={CONST.SWITCH_LOCK_ICON_TEST_ID}
                             src={expensifyIcons.Lock}
                             fill={isOn ? theme.text : theme.icon}
                             width={styles.toggleSwitchLockIcon.width}

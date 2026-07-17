@@ -1,10 +1,13 @@
-import {isFromInternalDomainSelector} from '@selectors/Account';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useOnyx from '@hooks/useOnyx';
+
 import {shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {isFromInternalDomainSelector} from '@selectors/Account';
 
 function useTimeSensitiveAddPaymentCard() {
     const {accountID} = useCurrentUserPersonalDetails();

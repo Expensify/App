@@ -1,5 +1,3 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
@@ -11,9 +9,14 @@ import {
     isPolicyExpenseChat,
     isThread,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
 import {getLastClosedReportAction} from './ReportAction';
 
 type OpenExpenseReportIDMap = Record<string, true>;
@@ -177,6 +180,8 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         total: report.total,
         unheldTotal: report.unheldTotal,
         unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
+        reimbursableTotal: report.reimbursableTotal,
+        unheldReimbursableTotal: report.unheldReimbursableTotal,
         currency: report.currency,
         errorFields: report.errorFields,
         errors: report.errors,
@@ -200,6 +205,10 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
     } satisfies Record<keyof StableReport, unknown> & StableReport;
 }
 
+function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
+    return !!draft;
+}
+
 export {
     getArchiveReason,
     getReportChatType,
@@ -210,6 +219,7 @@ export {
     policyChatRoomsSelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
+    isDraftReportSelector,
 };
 
 export type {StableReport};

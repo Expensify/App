@@ -1,8 +1,10 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type Transaction from '@src/types/onyx/Transaction';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
@@ -381,14 +383,56 @@ describe('DistanceRequestUtils', () => {
     describe('getRate', () => {
         it('returns the rate from policyForMovingExpenses if an unreported transaction rate belongs to it', () => {
             const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'EE75E6DBC6FF8'}}};
-            const result = DistanceRequestUtils.getRate({policyForMovingExpenses: FAKE_POLICY, transaction, policy: undefined});
+            const result = DistanceRequestUtils.getRate({policyForMovingExpenses: FAKE_POLICY, transaction, policy: undefined, personalPolicyOutputCurrency: undefined});
             expect(result.customUnitRateID).toBe('EE75E6DBC6FF8');
         });
 
         it('does not return the default rate of the policy if the customUnitRateID of the tracked transaction does not exist', () => {
             const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'some-rate'}}};
-            const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
+            const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction, personalPolicyOutputCurrency: undefined});
             expect(result.customUnitRateID).toBeUndefined();
+        });
+
+        describe('output currency resolution', () => {
+            // getRate resolves the currency as `policy.outputCurrency ?? personalPolicyOutputCurrency ?? personal policy ?? USD`.
+            // Every caller that threads personalPolicyOutputCurrency relies on this precedence, and it's what lets the
+            // getPersonalPolicy() fallback be removed later: a caller that passes the currency must get the same result.
+            // A non-P2P rate ID that doesn't resolve to any policy rate + `isMovingTransactionFromTrackExpense` forces the
+            // mileage rate to be undefined, so the returned `currency` falls through to the resolved policy currency.
+            const unresolvedRateTransaction = {
+                ...createRandomTransaction(1),
+                comment: {customUnit: {customUnitRateID: 'nonexistent-rate-id'}},
+            } as Transaction;
+
+            it('uses personalPolicyOutputCurrency when no policy currency is available', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: undefined,
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+                expect(result.currency).toBe('EUR');
+            });
+
+            it('prefers the policy outputCurrency over personalPolicyOutputCurrency', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: {...FAKE_POLICY, outputCurrency: 'GBP'},
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+                expect(result.currency).toBe('GBP');
+            });
+
+            it('falls back to USD when neither a policy currency nor personalPolicyOutputCurrency is provided', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: undefined,
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: undefined,
+                });
+                expect(result.currency).toBe(CONST.CURRENCY.USD);
+            });
         });
     });
 
@@ -486,6 +530,28 @@ describe('DistanceRequestUtils', () => {
         it('should return out-of-policy message for workspace expenses with invalid rate', () => {
             const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
             expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
+        });
+    });
+
+    describe('isRateEligibleForDate', () => {
+        const boundedRate = {
+            customUnitRateID: 'rate_1',
+            rate: 65,
+            unit: distanceUnit,
+            startDate: '2025-01-01',
+            endDate: '2025-12-31',
+        };
+
+        it('should treat a DB timestamp on the inclusive end date as eligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2025-12-31 10:00:00')).toBe(true);
+        });
+
+        it('should treat a DB timestamp on the inclusive start date as eligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2025-01-01 08:30:00')).toBe(true);
+        });
+
+        it('should treat a DB timestamp after the end date as ineligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2026-01-01 00:00:00')).toBe(false);
         });
     });
 });

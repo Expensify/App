@@ -1,11 +1,14 @@
-import React, {useEffect, useMemo} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithStaticOverride';
+
 import DomUtils from '@libs/DomUtils';
+
 // eslint-disable-next-line no-restricted-imports
 import themes from '@styles/theme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+
+import React, {useEffect, useMemo} from 'react';
 
 type ThemeProviderProps = React.PropsWithChildren & {
     theme?: ThemePreferenceWithoutSystem;

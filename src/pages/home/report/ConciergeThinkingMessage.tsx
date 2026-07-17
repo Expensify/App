@@ -1,12 +1,10 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,15 +13,23 @@ import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConcie
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import type {ReasoningEntry} from '@pages/inbox/AgentZeroStatusContext';
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */

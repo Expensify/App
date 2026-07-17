@@ -1,8 +1,12 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+
 import Text from './Text';
 
 type BalanceProps = {

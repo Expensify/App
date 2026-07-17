@@ -1,12 +1,17 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {getTableMinWidth} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+// eslint-disable-next-line no-restricted-imports
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+
+import React, {useCallback, useLayoutEffect, useRef} from 'react';
 
 // Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;

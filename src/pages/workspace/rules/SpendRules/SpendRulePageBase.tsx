@@ -1,6 +1,3 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
 import SpendRuleRestrictionTypeToggleRevamp from '@components/SpendRules/SpendRuleRestrictionTypeToggleRevamp';
 import Text from '@components/Text';
+
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -21,7 +19,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
 import Tab from '@libs/actions/Tab';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
@@ -29,17 +29,25 @@ import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsS
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type SpendRulePageBaseProps = {
     policyID: string;
@@ -78,6 +86,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const currentRuleID = ruleID ?? ROUTES.NEW;
     const isNewRule = currentRuleID === ROUTES.NEW;
@@ -157,7 +166,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     return id;
                 }
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
+                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], defaultValue: '', shouldFallbackToHidden: false, translate});
                 return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || id;
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
@@ -209,17 +218,19 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             merchantMatchTypes: !isRestrictMerchantsOff ? spendRuleForm.merchantMatchTypes : [],
         };
 
-        clearError();
-        setExpensifyCardRule(domainAccountID, isEditingRule ? currentRuleID : rand64(), updatedSpendRuleForm, existingRule);
-        clearDraftSpendRule();
+        startWithLoading(() => {
+            clearError();
+            setExpensifyCardRule(domainAccountID, isEditingRule ? currentRuleID : rand64(), updatedSpendRuleForm, existingRule);
+            clearDraftSpendRule();
 
-        if (!isEditingRule && isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.CARD_RESTRICTIONS);
-            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
-            return;
-        }
+            if (!isEditingRule && isRulesRevampEnabled) {
+                Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.CARD_RESTRICTIONS);
+                Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+                return;
+            }
 
-        Navigation.goBack();
+            Navigation.goBack();
+        });
     };
 
     const deleteRule = () => {
@@ -498,6 +509,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         message={errorMessage}
                         isAlertVisible={isErrorVisible}
                         onSubmit={saveRule}
+                        isLoading={isLoading}
+                        shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                         shouldRenderFooterAboveSubmit

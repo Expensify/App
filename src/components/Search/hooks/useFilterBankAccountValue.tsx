@@ -1,6 +1,8 @@
 import useOnyx from '@hooks/useOnyx';
+
 import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useFilterBankAccountValue(value: SearchFilter['value']): string {

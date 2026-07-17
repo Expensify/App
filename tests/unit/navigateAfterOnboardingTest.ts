@@ -1,13 +1,18 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
@@ -69,8 +74,11 @@ describe('navigateAfterOnboarding', () => {
     });
 
     it('should not navigate to the admin room report if onboardingAdminsChatReportID is not provided on larger screens', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
+        // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
     });
 
     it('should not navigate to last accessed report if it is a concierge chat on small screens', async () => {

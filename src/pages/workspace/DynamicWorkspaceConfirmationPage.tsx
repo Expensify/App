@@ -1,8 +1,7 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useState} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
+
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -10,14 +9,19 @@ import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useState} from 'react';
 
 function DynamicWorkspaceConfirmationPage() {
     // It is necessary to use here isSmallScreenWidth because on a wide layout we should always navigate to ROUTES.WORKSPACE_OVERVIEW.
@@ -29,6 +33,8 @@ function DynamicWorkspaceConfirmationPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
@@ -65,6 +71,7 @@ function DynamicWorkspaceConfirmationPage() {
             routeToNavigateAfterCreate: routeToNavigate,
             lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),

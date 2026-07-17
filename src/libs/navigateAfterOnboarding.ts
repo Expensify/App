@@ -1,11 +1,15 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
@@ -29,7 +33,7 @@ Onyx.connectWithoutView({
 function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -60,7 +64,7 @@ function getReportIDAfterOnboarding(
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -104,7 +108,7 @@ function navigateAfterOnboarding(
 function navigateAfterOnboardingWithMicrotaskQueue(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,

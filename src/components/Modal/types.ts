@@ -1,9 +1,12 @@
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type CONST from '@src/CONST';
+
 import type {FocusTrapProps} from 'focus-trap-react';
 import type {ForwardedRef} from 'react';
 import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type CONST from '@src/CONST';
+
 import type ReanimatedModalProps from './ReanimatedModal/types';
 import type {SwipeDirection} from './ReanimatedModal/types';
 

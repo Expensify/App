@@ -1,14 +1,20 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import PolicyChangeLogContent, {HANDLED_POLICY_CHANGE_LOG_ACTIONS, isHandledPolicyChangeLogAction} from '@pages/inbox/report/actionContents/PolicyChangeLogContent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -49,12 +55,14 @@ describe('PolicyChangeLogContent', () => {
         const fakeAction = {actionName: type, originalMessage: {}} as ReportAction;
 
         render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                <PolicyChangeLogContent
-                    action={fakeAction}
-                    policyID={mockPolicy.id}
-                />
-            </ComposeProviders>,
+            <NavigationContainer>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <PolicyChangeLogContent
+                        action={fakeAction}
+                        policyID={mockPolicy.id}
+                    />
+                </ComposeProviders>
+            </NavigationContainer>,
         );
         await waitForBatchedUpdatesWithAct();
 

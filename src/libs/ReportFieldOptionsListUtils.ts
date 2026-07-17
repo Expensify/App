@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {OptionData} from './ReportUtils';
+
 import tokenizedSearch from './tokenizedSearch';
 
 /**
@@ -51,7 +53,8 @@ function getReportFieldOptionsSection({
         return reportFieldOptionsSections;
     }
 
-    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((o) => !selectedKeySet.has(o));
+    const enabledOptionSet = new Set(options);
+    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((o) => !selectedKeySet.has(o) && enabledOptionSet.has(o));
     const filteredOptions = options.filter((o) => !selectedKeySet.has(o));
 
     if (selectedOptionKeys.length) {

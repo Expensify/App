@@ -1,9 +1,6 @@
-import {useIsFocused} from '@react-navigation/core';
-import type {ListRenderItem} from '@shopify/flash-list';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -13,19 +10,31 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import Navigation from '@navigation/Navigation';
+
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
-import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/core';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+
 import type {MoneyRequestReportPreviewProps} from './types';
+
+import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 
 function MoneyRequestReportPreview({
     iouReportID,
@@ -50,13 +59,10 @@ function MoneyRequestReportPreview({
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const {isOffline} = useNetwork();
-    const transactions = useMemo(
-        () =>
-            Object.values(reportTransactionsCollection ?? {}).filter(
-                (transaction): transaction is Transaction => !!transaction && (isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-            ),
-        [reportTransactionsCollection, isOffline],
-    );
+    // Full set of the report's transactions (matches ReportUtils' `getReportTransactions`). Used for the receipt/scan/
+    // reimbursable derivations so they include optimistically-deleted rows, exactly as before the decomposition.
+    const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+    const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -132,7 +138,9 @@ function MoneyRequestReportPreview({
     });
     const isFocused = useIsFocused();
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
-    const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
+    // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
@@ -171,6 +179,7 @@ function MoneyRequestReportPreview({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
+            allReportTransactions={allReportTransactions}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
