@@ -1058,15 +1058,21 @@ function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserE
     );
 }
 
+/**
+ * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
+ * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
+ * a single report). The workflow-config checks below only cover standing approvers, which is not enough on their own.
+ */
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
+    hasReportAwaitingApproval = false,
 ): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
-    let shouldShowApproveSuggestion = false;
+    let shouldShowApproveSuggestion = hasReportAwaitingApproval;
     let shouldShowExportSuggestion = false;
     let shouldShowStatementsSuggestion = false;
     let shouldShowUnapprovedCashSuggestion = false;
@@ -4590,18 +4596,30 @@ type TypeMenuSectionsParams = {
     defaultExpensifyCard: CardFeedForDisplay | undefined;
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
+    hasReportAwaitingApproval?: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
-    const {currentUserEmail, currentUserAccountID, cardFeedsByPolicy, defaultCardFeed, policies, savedSearches, isOffline, defaultExpensifyCard, draftTransactionIDs, isTrackIntentUser} =
-        params;
+    const {
+        currentUserEmail,
+        currentUserAccountID,
+        cardFeedsByPolicy,
+        defaultCardFeed,
+        policies,
+        savedSearches,
+        isOffline,
+        defaultExpensifyCard,
+        draftTransactionIDs,
+        isTrackIntentUser,
+        hasReportAwaitingApproval = false,
+    } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const {
         visibility: suggestedSearchesVisibility,
         hasGroupPoliciesWithExpenseChat,
         shouldShowExpensifyCard,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
+    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval);
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
