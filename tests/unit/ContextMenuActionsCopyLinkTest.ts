@@ -1,5 +1,7 @@
 import Clipboard from '@libs/Clipboard';
+import type * as EnvironmentModule from '@libs/Environment/Environment';
 import {getDisplayedReportID} from '@libs/ReportUtils';
+import type * as ReportUtilsModule from '@libs/ReportUtils';
 
 import ContextMenuActions from '@pages/inbox/report/ContextMenu/ContextMenuActions';
 import type {ContextMenuActionPayload} from '@pages/inbox/report/ContextMenu/ContextMenuActions';
@@ -35,20 +37,21 @@ jest.mock('@libs/Clipboard', () => ({
 
 jest.mock('@libs/Environment/Environment', () => ({
     __esModule: true,
-    ...jest.requireActual<typeof import('@libs/Environment/Environment')>('@libs/Environment/Environment'),
+    ...jest.requireActual<typeof EnvironmentModule>('@libs/Environment/Environment'),
     getEnvironmentURL: jest.fn(() => Promise.resolve('https://new.expensify.com')),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
     __esModule: true,
-    ...jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils'),
+    ...jest.requireActual<typeof ReportUtilsModule>('@libs/ReportUtils'),
     getDisplayedReportID: jest.fn(),
 }));
 
 const mockClipboard = jest.mocked(Clipboard);
 const mockGetDisplayedReportID = jest.mocked(getDisplayedReportID);
 
-const copyLinkAction = ContextMenuActions.find((action) => action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_LINK);
+// ContextMenuAction is a union; sentryLabel/onPress only exist on the icon variant, so narrow with `in`.
+const copyLinkAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_LINK);
 
 // Flush the microtasks queued by getEnvironmentURL().then(...) inside the onPress handler.
 const flushPromises = () =>
@@ -77,7 +80,7 @@ describe('ContextMenuActions copy link', () => {
     it('copies a link using the displayed (parent) report ID for one-transaction expense flows', async () => {
         mockGetDisplayedReportID.mockReturnValue('parent-expense-1');
 
-        if (!copyLinkAction?.onPress) {
+        if (!copyLinkAction || !('onPress' in copyLinkAction)) {
             throw new Error('Copy link context menu action was not found');
         }
 
@@ -91,7 +94,7 @@ describe('ContextMenuActions copy link', () => {
     });
 
     it('does not resolve a displayed report ID when there is no original report ID', async () => {
-        if (!copyLinkAction?.onPress) {
+        if (!copyLinkAction || !('onPress' in copyLinkAction)) {
             throw new Error('Copy link context menu action was not found');
         }
 
