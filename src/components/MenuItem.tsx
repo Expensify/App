@@ -752,7 +752,7 @@ function MenuItem({
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
-        if (shouldRenderTitleAsHTML) {
+        if (shouldRenderAsHTML) {
             titleToWrap = title ?? '';
         }
 
@@ -766,7 +766,9 @@ function MenuItem({
         }
 
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderTitleAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
+
+    const processedPlainTextTitle = !shouldRenderAsHTML || shouldRenderTitleAsHTML || shouldParseTitle ? '' : Parser.htmlToText(processedTitle);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
@@ -1043,12 +1045,16 @@ function MenuItem({
                                                                 style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
                                                                 fsClass={forwardedFSClass}
                                                             >
-                                                                {!!title && (shouldRenderTitleAsHTML || (shouldParseTitle && !!html.length)) && (
+                                                                {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
-                                                                        <RenderHTML html={processedTitle} />
+                                                                        {shouldRenderTitleAsHTML || shouldParseTitle ? (
+                                                                            <RenderHTML html={processedTitle} />
+                                                                        ) : (
+                                                                            <Text style={styles.webViewStyles.baseFontStyle}>{processedPlainTextTitle}</Text>
+                                                                        )}
                                                                     </View>
                                                                 )}
-                                                                {!shouldRenderTitleAsHTML && !shouldParseTitle && !!title && (
+                                                                {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
