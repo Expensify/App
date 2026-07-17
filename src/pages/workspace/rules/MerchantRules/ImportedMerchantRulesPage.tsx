@@ -283,3 +283,4 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 }
 
 export default ImportedMerchantRulesPage;
+export {normalizeImportedTag};
