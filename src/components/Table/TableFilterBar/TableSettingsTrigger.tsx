@@ -40,7 +40,7 @@ export default function TableSettingsTrigger() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
     const {columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn} = useTableContext();
 
     if (!shouldShowTableSettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn})) {
@@ -63,7 +63,7 @@ export default function TableSettingsTrigger() {
                     >
                         <Icon
                             size={CONST.ICON_SIZE.SMALL}
-                            src={icons.Gear}
+                            src={icons.Eye}
                             fill={theme.icon}
                         />
                     </PressableWithFeedback>
