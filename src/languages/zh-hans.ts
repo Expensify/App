@@ -1118,6 +1118,13 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `已添加 ${tags} 个标签。` : '已添加 1 个标签。'),
         importMultiLevelTagsSuccessfulDescription: '已添加多级标签。',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `已添加 ${rates} 个每日补贴标准。` : '已添加 1 条日津贴费率。'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return '未添加任何商户规则，因为它们均已存在。';
+            }
+            return rules > 1 ? `已添加 ${rules} 条商户规则。` : '已添加 1 条商户规则。';
+        },
+        importMerchantRulesRequiredColumns: '哎呀！您必须至少映射一列“商户为”或“商户包含”，并且至少映射一个要更新的字段。请检查后重试。',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已导入 ${transactions} 笔交易。` : '已导入 1 笔交易。'),
         importFailedTitle: '导入失败',
         importFailedDescription: '请确保所有字段均已正确填写，然后重试。如果问题仍然存在，请联系 Concierge。',
@@ -5454,6 +5461,35 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
             syncTravelInvoicingSettlements: '同步差旅发票结算',
             travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些银行卡计划覆盖工作区账户。',
+                descriptionLevel2: '为此卡计划覆盖工作区账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有计划都使用默认账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 个具有自定义账户的计划`;
+                    }
+                    return `${customAccountsCount} 个带有自定义科目的方案`;
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '覆盖这些卡片的项目账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有卡都使用项目账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 张带有自定义账户的卡`;
+                    }
+                    return `${customAccountsCount} 张带有自定义账户的卡`;
+                },
+            },
         },
         type: {
             free: '免费',
@@ -7239,6 +7275,14 @@ ${reportName}`,
                 addRule: '添加商家规则',
                 addRuleTitle: '添加规则',
                 editRuleTitle: '编辑规则',
+                importRulesTitle: '导入商户规则',
+                importRulesSupportingText: '将电子表格中的每一列映射到商户规则的字段。如果一切看起来都没问题，请点击下方以导入您的规则。',
+                importColumnMerchantIs: '商户为',
+                importColumnMerchantContains: '商户包含',
+                importColumnUpdatedMerchant: '更新后的商户',
+                importColumnUpdatedCategory: '更新后的类别',
+                importColumnUpdatedTag: '更新后的标签',
+                importColumnUpdatedDescription: '更新后的描述',
                 expensesWith: '针对以下费用：',
                 expensesExactlyMatching: '对于完全匹配以下条件的报销：',
                 applyUpdates: '应用这些更新：',

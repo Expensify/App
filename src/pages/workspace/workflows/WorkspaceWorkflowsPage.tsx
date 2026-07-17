@@ -51,6 +51,7 @@ import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRRea
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
@@ -182,6 +183,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
@@ -248,12 +250,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
+        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, {
             reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
+            personalDetailsList: personalDetails,
         });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail]);
+    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -601,11 +604,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         });
                         return;
                     }
-                    setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-                        reportNextSteps: allReportNextSteps,
-                        transactionViolations,
-                        betas,
-                    });
+                    setWorkspaceApprovalMode(
+                        policy,
+                        policy?.owner ?? '',
+                        isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        isTrackIntentUser,
+                        {
+                            reportNextSteps: allReportNextSteps,
+                            transactionViolations,
+                            betas,
+                            personalDetailsList: personalDetails,
+                        },
+                    );
                 },
                 subMenuItems: (
                     <>
@@ -936,10 +948,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         canWritePayments,
         canWriteWorkflows,
         currentUserLogin,
+        personalDetails,
         withApprovalsReadOnlyFallback,
         withPaymentsReadOnlyFallback,
         withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
+        isTrackIntentUser,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

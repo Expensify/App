@@ -1162,6 +1162,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags zijn toegevoegd.` : '1 tag is toegevoegd.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags met meerdere niveaus zijn toegevoegd.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem-tarieven zijn toegevoegd.` : '1 dagvergoeding is toegevoegd.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'Er zijn geen handelaarregels toegevoegd, omdat ze allemaal al bestaan.';
+            }
+            return rules > 1 ? `${rules} handelaarregels zijn toegevoegd.` : '1 handelaarregel is toegevoegd.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Oeps! Je moet ten minste één kolom "Handelaar is" of "Handelaar bevat" toewijzen, plus ten minste één veld om bij te werken. Controleer het en probeer het opnieuw.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
         importFailedTitle: 'Import mislukt',
@@ -5614,6 +5622,35 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Rekening voor verrekening van reiskostenfacturen',
                 description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.',
             },
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: "Overschrijf de werkruimte-account voor deze kaartprogramma's.",
+                descriptionLevel2: 'Overschrijf het werkruimteaccount voor dit kaartprogramma.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} programma's met aangepaste rekeningen`;
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Stel een andere programmarekening in voor deze kaarten.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} kaart met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} kaarten met aangepaste rekeningen`;
+                },
+            },
         },
         type: {
             free: 'Gratis',
@@ -7460,6 +7497,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 addRule: 'Merchantregel toevoegen',
                 addRuleTitle: 'Regel toevoegen',
                 editRuleTitle: 'Regel bewerken',
+                importRulesTitle: 'Handelaarregels importeren',
+                importRulesSupportingText: 'Koppel elke kolom in je spreadsheet aan een veld van een handelaarregel. Als alles er goed uitziet, klik hieronder om je regels te importeren.',
+                importColumnMerchantIs: 'Handelaar is',
+                importColumnMerchantContains: 'Handelaar bevat',
+                importColumnUpdatedMerchant: 'Bijgewerkte handelaar',
+                importColumnUpdatedCategory: 'Bijgewerkte categorie',
+                importColumnUpdatedTag: 'Bijgewerkte tag',
+                importColumnUpdatedDescription: 'Bijgewerkte omschrijving',
                 expensesWith: 'Voor declaraties met:',
                 expensesExactlyMatching: 'Voor onkosten die exact overeenkomen met:',
                 applyUpdates: 'Pas deze updates toe:',
