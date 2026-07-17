@@ -518,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beschränkungen',
+        tryAgain: 'Erneut versuchen',
         tagGLCode: 'GL-Code taggen',
         off: 'Aus',
         noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
@@ -990,8 +991,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Geldbörse',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Fügen Sie Ihre persönlichen Daten hinzu',
-                subtitle: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzusehen und zu verwenden.',
+                title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.',
+                subtitle: 'Expensify Karte',
                 cta: 'Details hinzufügen',
             },
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
@@ -1064,6 +1065,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
+            configureApprovals: 'Genehmigungsworkflow konfigurieren',
             begin: 'Beginnen',
             done: 'Fertig',
             createWorkspaceSubText: 'Workspace bereit für die Einrichtung',
@@ -1076,6 +1078,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Mit Concierge chatten',
             talkToAccountExecutive: 'Sprechen Sie mit Ihrer Kundenbetreuung',
             forGuidedSetup: 'für die geführte Einrichtung.',
+            configureApprovalsSubText: 'Berichtsfreigaben festlegen',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -1160,6 +1163,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} Tags wurden hinzugefügt.` : '1 Tag wurde hinzugefügt.'),
         importMultiLevelTagsSuccessfulDescription: 'Mehrstufige Tags wurden hinzugefügt.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} Tagessätze wurden hinzugefügt.` : '1 Tagegeldsatz wurde hinzugefügt.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'Es wurden keine Händlerregeln hinzugefügt, da sie alle bereits existieren.';
+            }
+            return rules > 1 ? `${rules} Händlerregeln wurden hinzugefügt.` : '1 Händlerregel wurde hinzugefügt.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Ups! Du musst mindestens eine Spalte („Händler ist“ oder „Händler enthält“) zuordnen sowie mindestens ein zu aktualisierendes Feld. Bitte überprüfe es und versuche es erneut.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} Buchungen wurden importiert.` : '1 Transaktion wurde importiert.',
         importFailedTitle: 'Import fehlgeschlagen',
@@ -1618,6 +1629,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'geändert',
         removed: 'entfernt',
         transactionPending: 'Transaktion ausstehend.',
+        transactionPendingDescription: 'Transaktion ausstehend. Es kann einige Tage dauern, bis sie verbucht wird.',
         chooseARate: 'Wähle einen Rückerstattungssatz pro Meile oder Kilometer für den Workspace aus',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} bis ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Gültig ab ${startDate}`,
@@ -2220,18 +2232,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Abmelden',
         restoreStashed: 'Gespeicherten Login wiederherstellen',
         signOutConfirmationText: 'Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.',
-        saveReceiptsConfirmation: {
-            title: 'Belege speichern?',
-            prompt: ({count}: {count: number}) =>
-                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst.`,
-            confirm: 'Speichern und abmelden',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Belege speichern?',
-            prompt: ({count}: {count: number}) =>
-                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst. Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.`,
-            confirm: 'Speichern und abmelden',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lesen Sie die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und die <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a>.`,
         help: 'Hilfe',
@@ -2906,6 +2906,14 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Agenten',
         subtitle: `<muted-text>Agents übernehmen Ihre Workflows für Sie, sodass Sie täglich Stunden zurückgewinnen. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Mehr erfahren</a>.</muted-text>`,
         findAgent: 'Agent suchen',
+        deleteAgentsTitle: () => ({
+            one: 'Agent:in löschen',
+            other: 'Agent:innen löschen',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Sind Sie sicher, dass Sie diese Vermittlerin/diesen Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+            other: 'Sind Sie sicher, dass Sie diese Vermittlerinnen/diese Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+        }),
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {
             title: 'Keine Agenten erstellt',
@@ -3766,7 +3774,6 @@ ${amount} für ${merchant} – ${date}`,
         facialScan: 'Richtlinie und Einverständniserklärung zur Gesichtserfassung von Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfidos Richtlinie und Einverständniserklärung zur Gesichtserkennung</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Datenschutz</a> und <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Nutzungsbedingungen</a>.</muted-text-micro>`,
-        tryAgain: 'Erneut versuchen',
         verifyIdentity: 'Identität bestätigen',
         letsVerifyIdentity: 'Lass uns deine Identität bestätigen',
         butFirst: `Aber zuerst das Langweilige. Lies dir im nächsten Schritt den Rechtstext durch und klicke auf „Akzeptieren“, wenn du bereit bist.`,
@@ -4489,6 +4496,7 @@ ${amount} für ${merchant} – ${date}`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
             deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
+            deleteTravelInvoicingError: 'Ihr Unternehmen hat die Konsolidierte Reiseabrechnung noch aktiviert.',
             outstandingBalanceWarning:
                 'Sie haben einen offenen Saldo, der beglichen werden muss, bevor Sie Ihren letzten Workspace löschen können. Bitte gehen Sie zu Ihren Abonnementeinstellungen, um die Zahlung abzuschließen.',
             settleBalance: 'Zu Abo wechseln',
@@ -5620,6 +5628,35 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
             syncTravelInvoicingSettlements: 'Abrechnungen für Reiseabrechnungen synchronisieren',
             travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Workspace-Konto für diese Kartenprogramme überschreiben.',
+                descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Programme verwenden das Standardkonto';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Programm mit benutzerdefiniertem Konto`;
+                    }
+                    return `${customAccountsCount} Programme mit benutzerdefinierten Konten`;
+                },
+            },
+            cardAccount: {
+                label: 'Kontotyp pro Karte',
+                description: 'Programmkonto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programmkonto für diese Karten überschreiben.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Karten verwenden Programmkonten';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Karte mit individuellem Konto`;
+                    }
+                    return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
+                },
+            },
         },
         type: {
             free: 'Kostenlos',
@@ -5640,7 +5677,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 feedCouldNotBeLoadedTitle: 'Dieser Feed konnte nicht geladen werden',
                 feedCouldNotBeLoadedMessage:
                     'Beim Laden dieses Feeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder wende dich an deine Administratorin bzw. deinen Administrator.',
-                tryAgain: 'Erneut versuchen',
             },
             addNewCard: {
                 other: 'Sonstiges',
@@ -6435,6 +6471,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 conciergeNotificationTitle: 'Concierge wird Sie benachrichtigen',
                 conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
                 copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
+                copyFailedTitle: 'Kopieren fehlgeschlagen',
             },
             upgrade: {
                 title: 'Einige Funktionen erfordern einen Control-Tarif',
@@ -7477,6 +7514,14 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 addRule: 'Händlerregel hinzufügen',
                 addRuleTitle: 'Regel hinzufügen',
                 editRuleTitle: 'Regel bearbeiten',
+                importRulesTitle: 'Händlerregeln importieren',
+                importRulesSupportingText: 'Ordne jede Spalte in deiner Tabelle einem Feld der Händlerregel zu. Wenn alles gut aussieht, klicke unten, um deine Regeln zu importieren.',
+                importColumnMerchantIs: 'Händler ist',
+                importColumnMerchantContains: 'Händler enthält',
+                importColumnUpdatedMerchant: 'Aktualisierter Händler',
+                importColumnUpdatedCategory: 'Aktualisierte Kategorie',
+                importColumnUpdatedTag: 'Aktualisiertes Tag',
+                importColumnUpdatedDescription: 'Aktualisierte Beschreibung',
                 expensesWith: 'Für Ausgaben mit:',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
@@ -7652,7 +7697,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
-                defaultRuleSummary: 'Kategorien einschließlich Erwachsenendienste, Geldautomaten, Glücksspiel und ...',
+                defaultRuleSummary: 'Kategorien einschließlich Erotikdienstleistungen, Geldautomaten, Glücksspiel und Geldüberweisungen',
                 findRule: 'Regel suchen',
                 defaultSection: 'Standard',
                 customRulesSection: 'Benutzerdefinierte Regeln',
@@ -10060,6 +10105,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             search: 'Leistungsstärkere Suche auf Mobilgerät, Web und Desktop',
             concierge: 'Integrierte Concierge-AI zur Automatisierung Ihrer Ausgaben',
             chat: 'Bei jeder Ausgabe chatten, um Fragen schnell zu klären',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: 'Möchtest du einen KOSTENLOSEN Mitarbeitertarif?',
+        description: 'Warte nicht, bis dein Unternehmen Expensify einführt. Wir haben einen kostenlosen Tarif nur für dich entwickelt:',
+        confirmText: 'Kostenlosen Tarif holen',
+        dismissText: 'Nein, danke',
+        features: {
+            getReimbursed: 'Schneller erstattet werden – direkt in Expensify',
+            buildReports: 'Erstelle Ausgabenberichte in Sekunden',
+            categorize: 'Kategorisiere deine Ausgaben',
+            inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
         },
     },
     productTrainingTooltip: {

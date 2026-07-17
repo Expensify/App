@@ -22,7 +22,6 @@ import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
@@ -50,7 +49,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -77,9 +76,13 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const bankAccountFromList = policyBankAccountID ? bankAccountList?.[policyBankAccountID] : undefined;
     const bankAccountInfo = bankAccountFromList ?? bankAccountConnectedToWorkspace;
     const bankAccountID = policyBankAccountID ?? bankAccountInfo?.accountData?.bankAccountID;
+    const policyAchAccountState = policy?.achAccount?.state;
+    const isBankAccountFullySetup = policyAchAccountState === CONST.BANK_ACCOUNT.STATE.OPEN || policyAchAccountState === CONST.BANK_ACCOUNT.STATE.LOCKED;
+    const bankAccountState = isBankAccountFullySetup ? policyAchAccountState : bankAccountConnectedToWorkspace?.accountData?.state;
+    const isAccountInSetupState = isBankAccountPartiallySetup(bankAccountState);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -112,7 +115,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             const adminAccountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[adminAccountID];
             if (!details) {
-                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${adminAccountID}`);
                 continue;
             }
             const isOwner = policy?.owner === details?.login;
@@ -270,7 +272,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const setPolicyAuthorizedPayer = (member: MemberOption) => setSelectedPayer(personalDetails?.[member.accountID]?.login);
 
     const shouldShowBlockingPage =
-        (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        isPendingDeletePolicy(policy) ||
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ||
+        isAccountInSetupState;
 
     const totalNumberOfPayerCandidates = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
         const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
@@ -357,12 +362,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         <RenderHTML
                             onLinkPress={() => {
                                 setShowValidationModal(false);
-                                navigateToBankAccountRoute({
-                                    policyID,
-                                    backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
-                                    policyCurrency: policy?.outputCurrency,
-                                    bankAccountState: bankAccountInfo?.accountData?.state,
-                                });
+                                navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)});
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
@@ -389,7 +389,15 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                     return;
                                 }
                                 setShowErrorModal(false);
-                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, personalDetails);
+                                navigateToAndOpenReportWithAccountIDs(
+                                    [policy.ownerAccountID],
+                                    currentUserPersonalDetails.accountID,
+                                    introSelected,
+                                    guidedSetupAndTourStatus?.isSelfTourViewed,
+                                    guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                                    betas,
+                                    personalDetails,
+                                );
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',

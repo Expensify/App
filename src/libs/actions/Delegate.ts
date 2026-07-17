@@ -286,8 +286,10 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
     ];
 
     // We need to access the authToken directly from the response to update the session
+    // The promise resolves to true only once the original session is fully restored, so callers can gate
+    // follow-up work that must run under the original user's identity (e.g. deleting the agent).
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
         .then((response) => {
             const restoreToStashed = () =>
                 restoreDelegateSession({
@@ -302,31 +304,34 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
 
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
-                return restoreToStashed();
+                return restoreToStashed().then(() => false);
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
-                return restoreToStashed();
+                return restoreToStashed().then(() => false);
             }
 
             clearPreservedSearchNavigatorStates();
 
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
-            return SequentialQueue.waitForIdle().then(() =>
-                restoreDelegateSession({
-                    authToken,
-                    encryptedAuthToken: response.encryptedAuthToken,
-                    accountID: response.requesterID,
-                    email: requesterEmail,
-                    stashedCredentials,
-                    stashedSession,
-                }),
-            );
+            return SequentialQueue.waitForIdle()
+                .then(() =>
+                    restoreDelegateSession({
+                        authToken,
+                        encryptedAuthToken: response.encryptedAuthToken,
+                        accountID: response.requesterID,
+                        email: requesterEmail,
+                        stashedCredentials,
+                        stashedSession,
+                    }),
+                )
+                .then(() => true);
         })
         .catch((error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
+            return false;
         });
 }
 

@@ -48,6 +48,7 @@ import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRRea
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
@@ -179,6 +180,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
@@ -245,12 +247,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
+        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, {
             reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
+            personalDetailsList: personalDetails,
         });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail]);
+    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -400,6 +403,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+        const canChangePayer = canWritePayments && !isAccountInSetupState;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
         const shouldShowPayer = shouldShowBankAccount || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
@@ -517,11 +521,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         });
                         return;
                     }
-                    setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-                        reportNextSteps: allReportNextSteps,
-                        transactionViolations,
-                        betas,
-                    });
+                    setWorkspaceApprovalMode(
+                        policy,
+                        policy?.owner ?? '',
+                        isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        isTrackIntentUser,
+                        {
+                            reportNextSteps: allReportNextSteps,
+                            transactionViolations,
+                            betas,
+                            personalDetailsList: personalDetails,
+                        },
+                    );
                 },
                 subMenuItems: (
                     <>
@@ -713,8 +726,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                             navigateToBankAccountRoute({
                                                                 policyID: route.params.policyID,
                                                                 backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                                                policyCurrency: policy?.outputCurrency,
-                                                                bankAccountState: state,
                                                             });
                                                         }
                                                       : undefined
@@ -803,10 +814,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                               titleStyle={styles.textNormalThemeText}
                                               descriptionTextStyle={styles.textLabelSupportingNormal}
                                               description={translate('workflowsPayerPage.payer')}
-                                              onPress={canWritePayments ? () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID)) : undefined}
+                                              onPress={canChangePayer ? () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID)) : undefined}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
-                                              shouldShowRightIcon={canWritePayments}
-                                              interactive={canWritePayments}
+                                              shouldShowRightIcon={canChangePayer}
+                                              interactive={canChangePayer}
                                               wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                               brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                           />
@@ -883,10 +894,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         canWritePayments,
         canWriteWorkflows,
         currentUserLogin,
+        personalDetails,
         withApprovalsReadOnlyFallback,
         withPaymentsReadOnlyFallback,
         withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
+        isTrackIntentUser,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
