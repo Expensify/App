@@ -30,7 +30,8 @@ function FullstoryInitHandler() {
                     error: error instanceof Error ? error.message : String(error),
                 });
             });
-    }, [userMetadata, session]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userMetadata]);
 
     return null;
 }
