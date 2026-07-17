@@ -23,7 +23,7 @@ To choose how data is imported from QuickBooks Online to Expensify:
 - **Locations**: Import as tags or report fields.
   - Note: If you export using the Vendor bill or Check options, then locations must be imported as report fields, which are only available on the [**Control** plan](/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan). When locations are imported as tags, the Vendor bill and Check export options are unavailable.
 - **Taxes**: Import tax rates and defaults.
-- **Vendors**: When Credit card or Debit card is selected as the company card export type, vendor records are imported from QuickBooks Online and shown in a **Vendors** tab in workspace settings. Learn how vendors are imported, matched, and exported in [QuickBooks Online Vendor Matching](/articles/new-expensify/connections/quickbooks-online/Vendor-Matching).
+- **Vendors**: When Credit card or Debit card is selected as the company card export type, vendor records are imported from QuickBooks Online and shown in a **Vendors** tab in workspace settings. Learn how vendors are imported, matched, and exported in [QuickBooks Online Vendor Matching](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
 
 ## How to Turn Imported Accounts and Tags Off
 
