@@ -4,6 +4,7 @@ import type ModalType from '@src/types/utils/ModalType';
 import Onyx from 'react-native-onyx';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
+const coveringModalIDs = new Set<number>();
 
 let onModalClose: null | (() => void | Promise<void>);
 let isNavigate: undefined | boolean;
@@ -82,6 +83,20 @@ function setModalVisibility(isVisible: boolean, type: ModalType | null = null) {
 }
 
 /**
+ * Tracks covering modals by instance so one modal cannot clear the covering state while another is still open.
+ * The entry is kept until the modal's hide animation has completed.
+ */
+function setModalCovering(modalID: number, isCovering: boolean) {
+    if (isCovering) {
+        coveringModalIDs.add(modalID);
+    } else {
+        coveringModalIDs.delete(modalID);
+    }
+
+    Onyx.merge(ONYXKEYS.MODAL, {isModalCovering: coveringModalIDs.size > 0});
+}
+
+/**
  * Allows other parts of the app to set whether modals should be dismissible using the Escape key
  */
 function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
@@ -92,16 +107,14 @@ function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
  * Allows other parts of app to know that an alert modal is about to open.
  * This will trigger as soon as a modal is opened but not yet visible while animation is running.
  * isPopover indicates that the next open modal is popover or bottom docked.
- * isModalCovering indicates whether the modal should suppress persistent surfaces from opening through final hide.
  */
-function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false, isModalCovering = false) {
+function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
     // We cancel the pending and active tooltips here instead of in setModalVisibility because
     // we want to do it when a modal is going to show. If we do it when the modal is fully shown,
     // the tooltip in that modal won't show.
     Onyx.merge(ONYXKEYS.MODAL, {
         willAlertModalBecomeVisible: isVisible,
         isPopover,
-        isModalCovering,
     });
 }
 
@@ -109,4 +122,4 @@ function areAllModalsHidden() {
     return closeModals.length === 0;
 }
 
-export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};
+export {setCloseModal, close, onModalDidClose, setModalVisibility, setModalCovering, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};

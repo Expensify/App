@@ -55,6 +55,7 @@ describe('BaseModal', () => {
         [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, true, true, true],
     ])('publishes the covering lifecycle for a %s modal with override %s', (type, shouldTreatModalAsCovering, isPopover, isModalCovering) => {
         const willAlertModalBecomeVisible = jest.fn();
+        const setModalCovering = jest.fn<void, [number, boolean]>();
         let captured: ReanimatedModalProps | undefined;
         // Keep the component under test on the same React instance as the renderer after jest.resetModules().
         jest.doMock('react', () => React);
@@ -62,6 +63,7 @@ describe('BaseModal', () => {
             ...jest.requireActual<typeof ModalActions>('@userActions/Modal'),
             areAllModalsHidden: jest.fn(() => true),
             onModalDidClose: jest.fn(),
+            setModalCovering,
             setModalVisibility: jest.fn(),
             willAlertModalBecomeVisible,
         }));
@@ -84,12 +86,159 @@ describe('BaseModal', () => {
             </BaseModal>,
         );
 
-        expect(willAlertModalBecomeVisible).toHaveBeenLastCalledWith(true, isPopover, isModalCovering);
+        expect(willAlertModalBecomeVisible).toHaveBeenLastCalledWith(true, isPopover);
+        expect(setModalCovering).toHaveBeenLastCalledWith(expect.any(Number), isModalCovering);
 
         captured?.onModalWillHide?.();
-        expect(willAlertModalBecomeVisible).toHaveBeenLastCalledWith(false, false, isModalCovering);
+        expect(willAlertModalBecomeVisible).toHaveBeenLastCalledWith(false);
+        expect(setModalCovering).toHaveBeenLastCalledWith(expect.any(Number), isModalCovering);
 
         unmount();
         expect(willAlertModalBecomeVisible).toHaveBeenLastCalledWith(false);
+        expect(setModalCovering).toHaveBeenLastCalledWith(expect.any(Number), false);
+    });
+
+    it('cleans up when a transient reopen is collapsed into the current close transition', () => {
+        const setModalCovering = jest.fn<void, [number, boolean]>();
+        const modalProps: ReanimatedModalProps[] = [];
+        jest.doMock('react', () => React);
+        jest.doMock('@userActions/Modal', () => ({
+            ...jest.requireActual<typeof ModalActions>('@userActions/Modal'),
+            areAllModalsHidden: jest.fn(() => true),
+            onModalDidClose: jest.fn(),
+            setModalCovering,
+            setModalVisibility: jest.fn(),
+            willAlertModalBecomeVisible: jest.fn(),
+        }));
+        jest.doMock('@components/Modal/ReanimatedModal', () => ({
+            __esModule: true,
+            default: (props: ReanimatedModalProps) => {
+                modalProps.push(props);
+                return null;
+            },
+        }));
+        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
+
+        const {rerender, unmount} = render(
+            <BaseModal
+                isVisible
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+        const coveringModalID = setModalCovering.mock.calls.at(0)?.at(0);
+        if (coveringModalID === undefined) {
+            throw new Error('Expected a covering modal ID');
+        }
+        modalProps.at(-1)?.onModalWillShow?.();
+
+        rerender(
+            <BaseModal
+                isVisible={false}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+        const firstCloseProps = modalProps.at(-1);
+        firstCloseProps?.onModalWillHide?.();
+        rerender(
+            <BaseModal
+                isVisible
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+        rerender(
+            <BaseModal
+                isVisible={false}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+
+        firstCloseProps?.onModalHide?.();
+        expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);
+
+        unmount();
+        expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);
+    });
+
+    it('does not let a stale hide callback clear a later close generation', () => {
+        const setModalCovering = jest.fn<void, [number, boolean]>();
+        const modalProps: ReanimatedModalProps[] = [];
+        jest.doMock('react', () => React);
+        jest.doMock('@userActions/Modal', () => ({
+            ...jest.requireActual<typeof ModalActions>('@userActions/Modal'),
+            areAllModalsHidden: jest.fn(() => true),
+            onModalDidClose: jest.fn(),
+            setModalCovering,
+            setModalVisibility: jest.fn(),
+            willAlertModalBecomeVisible: jest.fn(),
+        }));
+        jest.doMock('@components/Modal/ReanimatedModal', () => ({
+            __esModule: true,
+            default: (props: ReanimatedModalProps) => {
+                modalProps.push(props);
+                return null;
+            },
+        }));
+        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
+
+        const {rerender, unmount} = render(
+            <BaseModal
+                isVisible
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+        const coveringModalID = setModalCovering.mock.calls.at(0)?.at(0);
+        if (coveringModalID === undefined) {
+            throw new Error('Expected a covering modal ID');
+        }
+        modalProps.at(-1)?.onModalWillShow?.();
+
+        rerender(
+            <BaseModal
+                isVisible={false}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+        const firstCloseProps = modalProps.at(-1);
+        firstCloseProps?.onModalWillHide?.();
+        rerender(
+            <BaseModal
+                isVisible
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+        modalProps.at(-1)?.onModalWillShow?.();
+        rerender(
+            <BaseModal
+                isVisible={false}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+        const secondCloseProps = modalProps.at(-1);
+        secondCloseProps?.onModalWillHide?.();
+
+        firstCloseProps?.onModalHide?.();
+        expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, true);
+
+        secondCloseProps?.onModalHide?.();
+        expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);
+
+        unmount();
+        expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);
     });
 });
