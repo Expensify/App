@@ -1,0 +1,12 @@
+diff --git a/node_modules/expo-modules-core/ExpoModulesWorkletsAdapter.podspec b/node_modules/expo-modules-core/ExpoModulesWorkletsAdapter.podspec
+index 00d6d62..2e0bbc3 100644
+--- a/node_modules/expo-modules-core/ExpoModulesWorkletsAdapter.podspec
++++ b/node_modules/expo-modules-core/ExpoModulesWorkletsAdapter.podspec
+@@ -60,6 +60,7 @@ Pod::Spec.new do |s|
+       '"${PODS_CONFIGURATION_BUILD_DIR}/React-timing/React_timing.framework/Headers"',
+       '"${PODS_CONFIGURATION_BUILD_DIR}/React-debug/React_debug.framework/Headers"',
+       '"${PODS_CONFIGURATION_BUILD_DIR}/RCT-Folly/folly.framework/Headers"',
++      '"$(PODS_ROOT)/boost"',
+       '"${PODS_CONFIGURATION_BUILD_DIR}/fmt/fmt.framework/Headers"',
+       '"$(PODS_ROOT)/DoubleConversion"',
+     ])

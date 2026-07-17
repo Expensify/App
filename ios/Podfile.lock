@@ -4813,7 +4813,7 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 368126ccb297fd4e498aa85c8fd97ce84b9b4d91
   ExpoModulesJSI: 31051e6e3d88a96cc48747eabad1d4a6a29c554e
   ExpoModulesWorklets: 3f847eb6ba544bd4b55d585f89b3b18f8cd73a72
-  ExpoModulesWorkletsAdapter: 4ced459d91107d4f32a8decf8b7827f58153436a
+  ExpoModulesWorkletsAdapter: 1b0f6a2cafb55bb83d1b1c8c2375374e242eab1b
   ExpoStoreReview: f785057aececd9c63a113c69a82b491e5f90694e
   ExpoTaskManager: f9511a17a4528adb8da94efb639ad592eef8bc53
   ExpoVideo: 8ebbbf65778c5f986d65fc17bb60b79e9d7624e6
@@ -4837,7 +4837,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: a042a38ee8fd790f69526e722127b3d187cfbc52
+  hermes-engine: 1e3fdb2dddfecb258afa7e3951ff331c1e29397f
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
