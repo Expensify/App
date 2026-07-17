@@ -70,7 +70,7 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                     <Button
                         ref={ref}
                         style={styles.flexShrink1}
-                        innerStyles={[isExpanded && styles.buttonHoveredBG, {maxWidth: 256}, styles.mw100, styles.flexShrink1, innerStyles, shouldShowCloseButton && styles.pr2]}
+                        innerStyles={[isExpanded && styles.buttonHoveredBG, {maxWidth: variables.filterPillMaxWidth}, styles.flexShrink1, innerStyles, shouldShowCloseButton && styles.pr2]}
                         onPress={onPress}
                         sentryLabel={sentryLabel}
                         shouldRemoveRightBorderRadius={shouldShowCloseButton}
