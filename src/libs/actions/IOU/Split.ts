@@ -9,7 +9,6 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -198,6 +197,7 @@ type StartSplitBilActionParams = {
     policyRecentlyUsedCurrencies: string[];
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CompleteSplitBillActionParams = {
@@ -213,6 +213,7 @@ type CompleteSplitBillActionParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     sessionEmail?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SplitBillActionsParams = {
@@ -285,7 +286,7 @@ function splitBill({
     shouldDeferForSearch = false,
     delegateAccountID,
     isTrackIntentUser,
-    formatPhoneNumber: formatPhoneNumberParam,
+    formatPhoneNumber,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -321,7 +322,7 @@ function splitBill({
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
         isTrackIntentUser,
-        formatPhoneNumber: formatPhoneNumberParam,
+        formatPhoneNumber,
     });
 
     const parameters: SplitBillParams = {
@@ -401,7 +402,7 @@ function splitBillAndOpenReport({
     shouldDeferForSearch = false,
     delegateAccountID,
     isTrackIntentUser,
-    formatPhoneNumber: formatPhoneNumberParam,
+    formatPhoneNumber,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -437,7 +438,7 @@ function splitBillAndOpenReport({
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
         isTrackIntentUser,
-        formatPhoneNumber: formatPhoneNumberParam,
+        formatPhoneNumber,
     });
 
     const parameters: SplitBillParams = {
@@ -511,6 +512,7 @@ function startSplitBill({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    formatPhoneNumber,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1433,7 +1435,7 @@ function createSplitsAndOnyxData({
     participantsPolicyTags,
     delegateAccountID,
     isTrackIntentUser,
-    formatPhoneNumber: formatPhoneNumberParam,
+    formatPhoneNumber,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1816,7 +1818,7 @@ function createSplitsAndOnyxData({
                       accountID,
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      displayName: formatPhoneNumberParam(participant.displayName || email),
+                      displayName: formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
                   },
@@ -1968,7 +1970,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         previousOdometerDraft,
         delegateAccountID,
         isTrackIntentUser,
-        formatPhoneNumber: formatPhoneNumberParam,
+        formatPhoneNumber,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2061,7 +2063,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             participantsPolicyTags: buildParticipantsPolicyTags(participants),
             delegateAccountID,
             isTrackIntentUser,
-            formatPhoneNumber: formatPhoneNumberParam,
+            formatPhoneNumber,
         });
         onyxData = splitOnyxData;
 
