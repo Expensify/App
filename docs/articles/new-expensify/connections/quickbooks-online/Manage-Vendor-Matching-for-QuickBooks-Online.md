@@ -11,12 +11,14 @@ QuickBooks Online vendor matching lets Workspace Admins review and update the ve
 
 ## Who can use QuickBooks Online vendor matching
 
- - Available to Workspace Admins.
- - Requires a QuickBooks Online connection with **Credit card** or **Debit card** selected under **Export company card expenses as**.
+This feature is available to Workspace Admins whose Workspace:
 
-If QuickBooks Online isn't connected yet, learn how to [connect to QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online).
+- Is connected to QuickBooks Online.
+- Has **Credit card** or **Debit card** selected under **Export company card expenses as** in the QuickBooks Online configuration.
 
-## How vendors are assigned to company card expenses
+If your Workspace isn't connected to QuickBooks Online yet, learn how to [connect to QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online).
+
+## How vendors are matched to company card expenses
 
 Expensify assigns vendors automatically in the following order:
 
@@ -41,6 +43,7 @@ The default vendor is used only when an expense doesn't already have a vendor as
 Suggestion: QuickBooks Online Export settings showing the Export company card expenses as setting and the Default vendor dropdown.
 Location: After "How to set a default vendor for QuickBooks Online company card expenses."
 Purpose: Help admins locate the Default vendor setting.
+WIP: https://github.com/Expensify/Expensify/issues/660973
 -->
 
 ## How vendors export to QuickBooks Online
