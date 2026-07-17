@@ -81,6 +81,6 @@
     Firefox (#94571).
     ```
 
-- Upstream PR/issue: No upstream issue or PR will be created because this timeout adjustment is based on Firefox timing measured in Expensify's navigation flow and will be maintained as an App-specific patch.
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/11145
 - E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
 - PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
