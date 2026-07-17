@@ -1,11 +1,13 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
-import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
+import type {ReadHasAcceptedSoftPromptInput, SoftPromptAcceptanceReadEvent, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
 
-import {fromPromise} from 'xstate';
+import type {EventObject} from 'xstate';
+
+import {fromCallback, fromPromise} from 'xstate';
 
 // This module keeps mutable mock state and factory bodies outside the test so the test stays focused on
 // mock registrations and assertions.
@@ -104,12 +106,14 @@ const validateDeviceMock = fromPromise<MFAResult, ValidateDeviceInput>(
         }),
 );
 
-const readHasAcceptedSoftPromptMock = fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(
-    () =>
-        new Promise<boolean>((resolve, reject) => {
-            pendingSoftPromptAcceptanceCall = {resolve, reject};
-        }),
-);
+const readHasAcceptedSoftPromptMock = fromCallback<EventObject, ReadHasAcceptedSoftPromptInput>(({sendBack}) => {
+    pendingSoftPromptAcceptanceCall = {
+        resolve: (accepted) => sendBack({type: 'ACTOR_SOFT_PROMPT_ACCEPTANCE_READ', accepted} satisfies SoftPromptAcceptanceReadEvent),
+        // Callback actors have no asynchronous error channel, so the controlled mock sends the
+        // framework error event that a synchronous actor setup failure would produce.
+        reject: (error) => sendBack({type: 'xstate.error.actor.readHasAcceptedSoftPrompt', actorId: 'readHasAcceptedSoftPrompt', error}),
+    };
+});
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
 function mfaActorsMock() {

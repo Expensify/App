@@ -6,12 +6,14 @@ import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 
+import type {EventObject} from 'xstate';
+
 import Onyx from 'react-native-onyx';
 import getOnyxValue from 'tests/utils/getOnyxValue';
 import {createActorAtState, sendValidateDeviceDone} from 'tests/utils/mfa/flowActors';
 import createInitEvent, {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
-import {createActor, fromPromise} from 'xstate';
+import {createActor, fromCallback, fromPromise} from 'xstate';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -55,11 +57,13 @@ describe('MFA soft prompt', () => {
         actor.stop();
     });
 
-    it('ends the current flow with an error when reading the soft-prompt flag rejects', async () => {
+    it('ends the current flow with an error when starting the soft-prompt read actor throws', async () => {
         const machine = mfaMachine.provide({
             actors: {
                 validateDevice: fromPromise<MFAResult, ValidateDeviceInput>(() => Promise.resolve({success: true})),
-                readHasAcceptedSoftPrompt: fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(() => Promise.reject(new Error('Onyx read failed'))),
+                readHasAcceptedSoftPrompt: fromCallback<EventObject, ReadHasAcceptedSoftPromptInput>(() => {
+                    throw new Error('Onyx subscription failed');
+                }),
             },
         });
         const actor = createActor(machine);
@@ -71,7 +75,7 @@ describe('MFA soft prompt', () => {
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
         expect(result.context.error?.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION);
-        expect(result.context.error?.message).toContain('Soft-prompt acceptance read threw: Onyx read failed');
+        expect(result.context.error?.message).toContain('Soft-prompt acceptance read threw: Onyx subscription failed');
 
         actor.stop();
     });

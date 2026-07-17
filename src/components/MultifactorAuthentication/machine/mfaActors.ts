@@ -4,10 +4,12 @@ import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 
-import Onyx from 'react-native-onyx';
-import {fromPromise} from 'xstate';
+import type {EventObject} from 'xstate';
 
-import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from './types';
+import Onyx from 'react-native-onyx';
+import {fromCallback, fromPromise} from 'xstate';
+
+import type {ReadHasAcceptedSoftPromptInput, SoftPromptAcceptanceReadEvent, ValidateDeviceInput} from './types';
 
 /**
  * A refused device resolves as a failed MFAResult, so the machine's onError transition for this
@@ -16,45 +18,19 @@ import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from './types'
 const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => checkDeviceEligibility(input.allowedAuthenticationMethods));
 
 /**
- * Resolves with the current account's device-local soft-prompt flag. Onyx exposes this value through
- * its callback API, so the promise disconnects the temporary connection after the first value or
- * when XState stops the actor.
+ * Subscribes to the current account's device-local soft-prompt flag. The first value sends the
+ * machine out of the invoking state, whose exit stops this actor and disconnects the subscription.
  */
-const readHasAcceptedSoftPrompt = fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(
-    ({input, signal}) =>
-        new Promise<boolean>((resolve) => {
-            let connection: ReturnType<typeof Onyx.connectWithoutView> | undefined;
-            let shouldDisconnect = false;
-            let settled = false;
+const readHasAcceptedSoftPrompt = fromCallback<EventObject, ReadHasAcceptedSoftPromptInput>(({input, sendBack}) => {
+    const connection = Onyx.connectWithoutView({
+        key: getDeviceBiometricsOnyxKey(input.accountID),
+        callback: (deviceBiometrics) => {
+            sendBack({type: 'ACTOR_SOFT_PROMPT_ACCEPTANCE_READ', accepted: deviceBiometrics?.hasAcceptedSoftPrompt ?? false} satisfies SoftPromptAcceptanceReadEvent);
+        },
+    });
 
-            const disconnect = () => {
-                if (connection === undefined) {
-                    shouldDisconnect = true;
-                    return;
-                }
-                Onyx.disconnect(connection);
-                connection = undefined;
-            };
-            const resolveFirstValue = (accepted: boolean) => {
-                if (settled) {
-                    return;
-                }
-                settled = true;
-                signal.removeEventListener('abort', disconnect);
-                disconnect();
-                resolve(accepted);
-            };
-
-            signal.addEventListener('abort', disconnect, {once: true});
-            connection = Onyx.connectWithoutView({
-                key: getDeviceBiometricsOnyxKey(input.accountID),
-                callback: (deviceBiometrics) => resolveFirstValue(deviceBiometrics?.hasAcceptedSoftPrompt ?? false),
-            });
-            if (shouldDisconnect) {
-                disconnect();
-            }
-        }),
-);
+    return () => Onyx.disconnect(connection);
+});
 
 /**
  * Builds the side-effect actors that the machine states invoke. The machine is always created with
