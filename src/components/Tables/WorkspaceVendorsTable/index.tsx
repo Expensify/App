@@ -87,4 +87,4 @@ function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
 
 export default WorkspaceVendorsTable;
 
-export type {WorkspaceVendorTableRowData, WorkspaceVendorTableColumnKey};
+export type {WorkspaceVendorTableRowData};
