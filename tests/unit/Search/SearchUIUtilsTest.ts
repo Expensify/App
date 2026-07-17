@@ -11120,7 +11120,6 @@ describe('SearchUIUtils', () => {
         const MERCHANT = CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
         const MERCHANT_NEGATED = `${MERCHANT}${CONST.SEARCH.NOT_MODIFIER}` as const;
         const CATEGORY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY;
-        const CATEGORY_NEGATED = `${CATEGORY}${CONST.SEARCH.NOT_MODIFIER}` as const;
 
         it('returns the negated value with isNegated true when only the negated value is set', () => {
             expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {[MERCHANT_NEGATED]: 'Uber'})).toEqual({isNegated: true, value: 'Uber'});
