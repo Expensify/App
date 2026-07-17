@@ -80,13 +80,9 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     });
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? {}, isOffline);
-    const [linkedActionInTransactionThread] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`,
-        {
-            selector: (actions: OnyxEntry<ReportActions>) => getReportActionByIDSelector(actions, reportActionIDFromRoute),
-        },
-        [reportActionIDFromRoute],
-    );
+    const [linkedActionInTransactionThread] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`, {
+        selector: (actions: OnyxEntry<ReportActions>) => getReportActionByIDSelector(actions, reportActionIDFromRoute),
+    });
 
     const linkedAction = linkedActionInRoute ?? linkedActionInTransactionThread;
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);

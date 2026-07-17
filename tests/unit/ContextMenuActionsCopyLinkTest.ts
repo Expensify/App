@@ -1,6 +1,7 @@
 import Clipboard from '@libs/Clipboard';
 import type * as EnvironmentModule from '@libs/Environment/Environment';
 import {getDisplayedReportID} from '@libs/ReportUtils';
+// eslint-disable-next-line no-restricted-imports -- type-only namespace (erased at runtime) used solely for the requireActual generic; no restricted functions are actually imported
 import type * as ReportUtilsModule from '@libs/ReportUtils';
 
 import ContextMenuActions from '@pages/inbox/report/ContextMenu/ContextMenuActions';
