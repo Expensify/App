@@ -1,8 +1,10 @@
-import {SafeString} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {BeneficialOwnerDataKey, ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {SafeString} from 'expensify-common';
 
 const {
     FIRST_NAME,

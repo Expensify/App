@@ -1,10 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import MockedOnyx from 'react-native-onyx';
 import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
-import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import {reset as resetFailureTracker} from '@libs/FailureTracker';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -19,7 +17,13 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {getIsOffline, setHasRadio} from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import MockedOnyx from 'react-native-onyx';
+
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -115,7 +119,7 @@ describe('NetworkTests', () => {
                 // Verify:
                 // 1. We attempted to authenticate twice (first failed, retry succeeded)
                 // 2. The session has the new auth token (user wasn't logged out)
-                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === AUTHENTICATION_COMMAND);
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToAuthenticate.length).toBe(2);
                 expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
             });
@@ -178,7 +182,7 @@ describe('NetworkTests', () => {
         // 5. Authentication Start - Verify authenticate was triggered
         await waitForBatchedUpdates();
         const secondCall = mockedXhr.mock.calls.at(1) as [string, Record<string, unknown>];
-        expect(secondCall[0]).toBe(AUTHENTICATION_COMMAND);
+        expect(secondCall[0]).toBe('Authenticate');
 
         // 6. Network State Change - Set offline and back online while authenticate is pending
         setHasRadio(false);
@@ -243,7 +247,7 @@ describe('NetworkTests', () => {
             .then(() => {
                 // Verify: 3 calls to the API, 1 authenticate call, and reconnect was triggered
                 const callsToOpenPublicProfilePage = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
-                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === AUTHENTICATION_COMMAND);
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectSpy).toHaveBeenCalled();

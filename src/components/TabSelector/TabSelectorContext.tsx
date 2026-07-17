@@ -1,9 +1,12 @@
-import React, {createContext, useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+
+import React, {createContext, useContext, useEffect, useRef} from 'react';
+
+import type {TabSelectorActionsContextType, TabSelectorContextProviderProps, TabSelectorStateContextType} from './types.context';
+
 import {defaultTabSelectorActionsContextValue, defaultTabSelectorStateContextValue} from './default';
 import scrollToTabUtil from './scrollToTab';
-import type {TabSelectorActionsContextType, TabSelectorContextProviderProps, TabSelectorStateContextType} from './types.context';
 
 const TabSelectorStateContext = createContext<TabSelectorStateContextType>(defaultTabSelectorStateContextValue);
 const TabSelectorActionsContext = createContext<TabSelectorActionsContextType>(defaultTabSelectorActionsContextValue);

@@ -1,7 +1,10 @@
-import React from 'react';
 import CONST from '@src/CONST';
-import BaseValidateCodeForm from './BaseValidateCodeForm';
+
+import React from 'react';
+
 import type ValidateCodeFormProps from './types';
+
+import BaseValidateCodeForm from './BaseValidateCodeForm';
 
 function ValidateCodeForm({ref, ...props}: ValidateCodeFormProps) {
     return (

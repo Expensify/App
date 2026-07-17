@@ -1,6 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
 
 const getIconForAction = (actionType: ValueOf<typeof CONST.IOU.TYPE>, icons: Record<'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>) => {
     switch (actionType) {

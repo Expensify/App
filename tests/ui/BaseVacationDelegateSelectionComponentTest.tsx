@@ -1,11 +1,16 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
+
 import type useInitialSelection from '@hooks/useInitialSelection';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+
 import type * as OptionsListUtils from '@libs/OptionsListUtils';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
 
 type SearchSelectorConfig = Parameters<typeof usePersonalDetailSearchSelector>[0];
 
@@ -73,6 +78,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+        formatPhoneNumber: (value: string) => value,
     })),
 );
 jest.mock('@hooks/useOnyx', () => jest.fn((key: string) => (key === 'countryCode' ? ['US'] : [false])));
@@ -92,9 +98,6 @@ jest.mock('@hooks/useThemeStyles', () =>
 );
 jest.mock('@libs/actions/Report', () => ({
     searchUserInServer: jest.fn(),
-}));
-jest.mock('@libs/LocalePhoneNumber', () => ({
-    formatPhoneNumber: jest.fn((value: string) => value),
 }));
 jest.mock('@libs/OptionsListUtils', () => {
     const actualOptionsListUtils: typeof OptionsListUtils = jest.requireActual('@libs/OptionsListUtils');

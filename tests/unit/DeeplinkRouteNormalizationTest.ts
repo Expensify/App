@@ -3,6 +3,7 @@ import getMatchingNewRoute from '@libs/Navigation/helpers/getMatchingNewRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {getRouteFromLink} from '@libs/ReportUtils';
+
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 

@@ -1,19 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {canMemberAssignRole} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ListItem} from './SelectionList/types';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from './SelectionList/types';
 
 type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
     value: ValueOf<typeof CONST.POLICY.ROLE>;
@@ -63,6 +69,13 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             alternateText: translate('workspace.common.peopleAdminAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.PEOPLE_ADMIN,
             keyForList: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+        },
+        {
+            value: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.PAYMENTS_ADMIN),
+            alternateText: translate('workspace.common.paymentsAdminAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            keyForList: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
         },
         {
             value: CONST.POLICY.ROLE.USER,

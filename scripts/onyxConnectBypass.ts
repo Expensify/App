@@ -8,6 +8,7 @@
  * at the runner level — where no disable directive can reach it.
  */
 import type {ESLint} from 'eslint';
+
 import path from 'node:path';
 
 /** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */

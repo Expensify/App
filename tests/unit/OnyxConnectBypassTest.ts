@@ -1,6 +1,8 @@
 import type {ESLint} from 'eslint';
-import {BANNED_RULE_ID, collectSuppressedBans, findNewBypasses} from '../../scripts/onyxConnectBypass';
+
 import type {ResultWithSuppressed} from '../../scripts/onyxConnectBypass';
+
+import {BANNED_RULE_ID, collectSuppressedBans, findNewBypasses} from '../../scripts/onyxConnectBypass';
 
 const PROJECT_ROOT = '/repo';
 

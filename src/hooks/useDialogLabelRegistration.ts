@@ -1,7 +1,9 @@
-import type {ReactNode} from 'react';
-import {useContext, useEffect} from 'react';
 import {useDialogLabelActions, useDialogLabelData} from '@components/DialogLabelContext';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+
+import type {ReactNode} from 'react';
+
+import {useContext, useEffect} from 'react';
 
 /** Registers and manages a dialog label in the DialogLabelContext for the lifetime of the calling component. */
 function useDialogLabelRegistration(title: ReactNode) {

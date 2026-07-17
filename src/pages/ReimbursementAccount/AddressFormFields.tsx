@@ -1,19 +1,24 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
 import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type AddressInputKeys = {
     street: string;

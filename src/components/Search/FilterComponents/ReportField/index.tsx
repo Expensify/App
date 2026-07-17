@@ -1,23 +1,29 @@
-import React, {useImperativeHandle, useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
 import type {ReportFieldDateKey, ReportFieldTextKey} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import {getDateDisplayValue, getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {createAllPolicyReportFieldsSelector} from '@src/selectors/Policy';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useImperativeHandle, useRef, useState} from 'react';
+
 import ReportFieldList from './ReportFieldList';
 import ReportFieldText from './ReportFieldText';
 
@@ -37,12 +43,14 @@ type ReportFieldBaseProps = {
     hasFeed: boolean;
     style?: StyleProp<ViewStyle>;
     onFieldSelected: (field: PolicyReportField | null) => void;
+    onError: (error: string | undefined) => void;
 };
 
 type SelectedReportFieldProps = {
     ref: React.Ref<ReportFieldHandle>;
     field: PolicyReportField;
     value: string | undefined;
+    onError: (error: string | undefined) => void;
 };
 
 type SelectedDateReportFieldProps = {
@@ -63,9 +71,10 @@ function getFilterKey(fieldName: string) {
     return `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${suffix}` as const;
 }
 
-function SelectedReportField({ref, field, value: initialValue}: SelectedReportFieldProps) {
+function SelectedReportField({ref, field, value: initialValue, onError}: SelectedReportFieldProps) {
     const [value, setValue] = useState(initialValue);
     const fieldType = field.type as Exclude<ValueOf<typeof CONST.REPORT_FIELD_TYPES>, typeof CONST.REPORT_FIELD_TYPES.FORMULA | typeof CONST.REPORT_FIELD_TYPES.DATE>;
+    const filterKey = getFilterKey(field.name);
 
     const UpdateReportFieldComponent = {
         [CONST.REPORT_FIELD_TYPES.LIST]: ReportFieldList,
@@ -74,12 +83,10 @@ function SelectedReportField({ref, field, value: initialValue}: SelectedReportFi
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
-            const key = getFilterKey(field.name);
-            return {[key]: value};
+            return {[filterKey]: value};
         },
         getEmptyValue: () => {
-            const key = getFilterKey(field.name);
-            return {[key]: ''};
+            return {[filterKey]: ''};
         },
         isDateModifierSelected: () => false,
         applySelectedFieldAndGoBack: () => {},
@@ -87,9 +94,11 @@ function SelectedReportField({ref, field, value: initialValue}: SelectedReportFi
 
     return (
         <UpdateReportFieldComponent
+            filterKey={filterKey}
             field={field}
             value={value}
             onChange={setValue}
+            onError={onError}
         />
     );
 }
@@ -158,7 +167,7 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
     );
 }
 
-function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFeed, style, onFieldSelected}: ReportFieldBaseProps) {
+function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFeed, style, onFieldSelected, onError}: ReportFieldBaseProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const policyReportFieldsSelector = (policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare);
@@ -249,6 +258,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
                         ref={selectedFieldRef}
                         field={selectedField}
                         value={getValue(selectedField.name)}
+                        onError={onError}
                     />
                 )}
             </>

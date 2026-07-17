@@ -1,9 +1,12 @@
-import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
+import type Request from '../../src/types/onyx/Request';
+
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type Request from '../../src/types/onyx/Request';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 

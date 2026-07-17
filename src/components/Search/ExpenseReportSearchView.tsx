@@ -1,81 +1,25 @@
-import React, {useImperativeHandle} from 'react';
-import type {ForwardedRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import type {TransactionPreviewData} from '@libs/actions/Search';
-import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+
 import {isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
+
+import type {NativeSyntheticEvent} from 'react-native';
+
+import React, {useImperativeHandle} from 'react';
+
+import type {SearchListItem} from './SearchList/ListItem/types';
+import type {CommonSearchViewProps} from './searchViewProps';
+import type {SelectedTransactions} from './types';
+
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
 import BaseSearchList from './SearchList/BaseSearchList';
 import ExpenseReportListItem from './SearchList/ListItem/ExpenseReportListItem';
-import type {SearchListItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
-import type {SearchColumnType, SearchQueryJSON, SelectedTransactions} from './types';
 
-/** Imperative handle the router uses for highlight-driven scrolling (mirrors SearchList's handle). */
-type SearchListHandle = {
-    scrollToIndex: (index: number, animated?: boolean) => void;
-};
-
-type ExpenseReportSearchViewProps = {
-    /** The expense-report search query. */
-    queryJSON: SearchQueryJSON;
-
-    /** The sorted report rows to render (from the router's useSearchSnapshot). */
-    data: SearchListItem[];
-
-    /** The columns to render in the list. */
-    columns: SearchColumnType[];
-
-    /** Whether the list supports multi-select. */
-    canSelectMultiple: boolean;
-
-    /** Whether the action column uses its wider variant. */
-    isActionColumnWide: boolean;
-
-    /** Whether mobile selection mode is on. */
-    isMobileSelectionModeEnabled: boolean;
-
-    /** The column header element (undefined on narrow layouts). */
-    SearchTableHeader?: React.JSX.Element;
-
-    /** Whether a table header bar is shown above the list. */
-    tableHeaderVisible: boolean;
-
-    /** Whether everything has been loaded (gates the fully-checked select-all state). */
-    hasLoadedAllTransactions?: boolean;
-
-    /** Rows flagged for the post-create highlight animation (feeds BaseSearchList extraData). */
-    newTransactions: Transaction[];
-
-    /** The navigation handler for a row tap (owned by the router). */
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-
-    /** The list footer (pagination / pending skeleton). */
-    ListFooterComponent?: React.JSX.Element;
-
-    /** Fires when the list scrolls near its end (router's fetchMoreResults). */
-    onEndReached: () => void;
-
-    /** Fires on the list's first layout and on layout changes. */
-    onLayout: () => void;
-
-    /** Scroll handler forwarded to the list. */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** Content container style for the list. */
-    contentContainerStyle: StyleProp<ViewStyle>;
-
-    /** Outer container style for the list wrapper. */
-    containerStyle: StyleProp<ViewStyle>;
-
-    /** Imperative handle for highlight-driven scrolling, set by the router. */
-    ref?: ForwardedRef<SearchListHandle>;
-};
+type ExpenseReportSearchViewProps = CommonSearchViewProps;
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 

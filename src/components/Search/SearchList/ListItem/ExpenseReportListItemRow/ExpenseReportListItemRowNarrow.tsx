@@ -1,12 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import getExpenseReportRowDisplayValues from '@components/Search/SearchList/ListItem/getExpenseReportRowDisplayValues';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ExpenseReportListItemRowNarrowProps} from './types';
 
 function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSelectMultiple, isSelectAllChecked, isIndeterminate, isDisabledCheckbox}: ExpenseReportListItemRowNarrowProps) {
@@ -14,27 +18,10 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const currency = item.currency ?? CONST.CURRENCY.USD;
-    const {totalDisplaySpend = 0, isAllScanning: isScanning = false} = item;
-
-    const filteredTransactions = item.transactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const expenseCount = (filteredTransactions?.length ? filteredTransactions.length : undefined) ?? item.transactionCount ?? 0;
-    const expenseCountText = translate('iou.expenseCount', {count: expenseCount});
-    const formattedDate = DateUtils.formatWithUTCTimeZone(
-        item.created ?? '',
-        DateUtils.doesDateBelongToAPastYear(item.created ?? '') ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-    );
-
-    const amountText = isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(totalDisplaySpend, currency);
-    const groupAccessibilityLabel = [item.reportName, amountText, formattedDate, expenseCountText].filter(Boolean).join(', ');
+    const {amount: amountText, date: formattedDate, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, convertToDisplayString});
 
     return (
-        <View
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}
-            accessible
-            accessibilityLabel={groupAccessibilityLabel}
-            role={CONST.ROLE.BUTTON}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}>
             {!!canSelectMultiple && (
                 <Checkbox
                     onPress={onCheckboxPress}
@@ -42,7 +29,7 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
                     isIndeterminate={isIndeterminate}
                     containerStyle={styles.m0}
                     disabled={isDisabledCheckbox}
-                    accessibilityLabel={item.text ?? ''}
+                    accessibilityLabel={item.reportName ?? ''}
                     shouldStopMouseDownPropagation
                     style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}

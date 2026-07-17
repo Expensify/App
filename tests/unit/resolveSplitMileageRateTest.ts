@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import {resolveSplitMileageRate} from '@libs/actions/IOU/SplitExpenseItems';
+
 import CONST from '@src/CONST';
 import type {Policy, Transaction} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
 
 const CUSTOM_UNIT_ID = 'distance-unit-1';
 const ACTIVE_RATE_ID = 'rate-active';

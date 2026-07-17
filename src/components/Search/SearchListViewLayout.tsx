@@ -1,9 +1,13 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import HorizontalTableScroll from './primitives/HorizontalTableScroll';
+
 import type {SearchColumnType, SearchQueryJSON} from './types';
+
+import HorizontalTableScroll from './primitives/HorizontalTableScroll';
 
 type SearchListViewLayoutProps = {
     /** Columns rendered in the table (drives the min-width for horizontal scroll). */

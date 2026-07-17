@@ -19,7 +19,7 @@ Use Playwright testing when:
 
 Before using Playwright tools, verify the dev server is running:
 ```bash
-ps aux | grep "webpack" | grep -v grep
+ps aux | grep "rspack" | grep -v grep
 ```
 
 **If server not running**: Inform user to start with `cd App && npm run web`
@@ -29,7 +29,7 @@ ps aux | grep "webpack" | grep -v grep
 
 ## Playwright Testing Workflow
 
-1. **Verify server**: Check webpack process is running
+1. **Verify server**: Check Rspack process is running
 2. **Navigate**: Open `https://dev.new.expensify.com:8082/` in the browser
 3. **Interact**: Use Playwright MCP tools to inspect, click, type, and navigate
 

@@ -1,6 +1,6 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Member from '@src/libs/actions/Policy/Member';
@@ -8,15 +8,21 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
-import type {Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
+import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -376,7 +382,7 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -397,6 +403,37 @@ describe('actions/PolicyMember', () => {
                 });
             });
             await mockFetch?.resume?.();
+        });
+
+        it('uses new personal details onyx data to decide new-member success-data participants instead of the deprecated copy', () => {
+            const policyID = '1';
+            const policy = {...createRandomPolicy(Number(policyID))};
+
+            const presentMemberEmail = 'present@example.com';
+            const presentMemberAccountID = 4321;
+            const absentMemberEmail = 'absent@example.com';
+            const absentMemberAccountID = 8765;
+
+            const newPersonalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers([absentMemberEmail], [absentMemberAccountID], TestHelper.formatPhoneNumber);
+
+            const {membersChats} = Member.buildAddMembersToWorkspaceOnyxData(
+                {[presentMemberEmail]: presentMemberAccountID, [absentMemberEmail]: absentMemberAccountID},
+                newPersonalDetailsOnyxData,
+                policy,
+                [],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                undefined,
+            );
+
+            const findSuccessReportUpdate = (email: string) => {
+                const reportID = membersChats.reportCreationData[email]?.reportID;
+                return membersChats.onyxSuccessData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            };
+
+            // The known member keeps their optimistic participant ({}); the unknown member's participant is removed (null).
+            expect(findSuccessReportUpdate(presentMemberEmail)).toHaveProperty(['value', 'participants', `${presentMemberAccountID}`], {});
+            expect(findSuccessReportUpdate(absentMemberEmail)).toHaveProperty(['value', 'participants', `${absentMemberAccountID}`], null);
         });
 
         it('Add new members with admin/scoped admin role to the #admins room', async () => {
@@ -430,19 +467,9 @@ describe('actions/PolicyMember', () => {
 
             // When adding a new admin, scoped admin, and user members
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber, undefined, currentUser, {});
-            Member.addMembersToWorkspace(
-                {[cardAdminEmail]: cardAdminAccountID},
-                'Welcome',
-                policy,
-                [],
-                CONST.POLICY.ROLE.CARD_ADMIN,
-                TestHelper.formatPhoneNumber,
-                undefined,
-                currentUser,
-                {},
-            );
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, currentUser, {});
+            Member.addMembersToWorkspace({[cardAdminEmail]: cardAdminAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.CARD_ADMIN, currentUser, {});
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -488,7 +515,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             // When the caller passes ROLE.USER for a Submit workspace
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -521,7 +548,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             // When the caller passes ROLE.USER on a non-Submit workspace
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -564,7 +591,7 @@ describe('actions/PolicyMember', () => {
 
             // When inviting a new member on a Submit workspace (role is forced to Editor)
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -613,7 +640,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -673,17 +700,7 @@ describe('actions/PolicyMember', () => {
             };
 
             // When adding the user with the explicit reportActionsList argument
-            Member.addMembersToWorkspace(
-                {[userEmail]: userAccountID},
-                'Welcome',
-                policy,
-                [],
-                CONST.POLICY.ROLE.USER,
-                TestHelper.formatPhoneNumber,
-                undefined,
-                currentUser,
-                reportActionsList,
-            );
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, reportActionsList);
 
             await waitForBatchedUpdates();
 
@@ -704,12 +721,12 @@ describe('actions/PolicyMember', () => {
                 Member.buildAddMembersToWorkspaceOnyxData(
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     {'new-member@example.com': 9001},
+                    {},
                     createRandomPolicy(101),
                     [],
                     CONST.POLICY.ROLE.USER,
-                    TestHelper.formatPhoneNumber,
-                    undefined,
                     currentUserInput,
+                    undefined,
                 );
 
             type BuildResult = ReturnType<typeof buildForCurrentUser>;
@@ -887,7 +904,7 @@ describe('actions/PolicyMember', () => {
                             successfulDate: '',
                         },
                     } as NetSuiteConnection,
-                } as Connections,
+                },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 

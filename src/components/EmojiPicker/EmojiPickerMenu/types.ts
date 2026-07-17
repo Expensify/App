@@ -1,6 +1,8 @@
-import type {ForwardedRef} from 'react';
 import type {Emoji} from '@assets/emojis/types';
+
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type {ForwardedRef} from 'react';
 
 type EmojiPickerMenuProps = {
     /** Function to add the selected emoji to the main compose text input */

@@ -1,19 +1,24 @@
-// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchPageInput.tsx
-// used for fast perceived performance. If you change the UI here, verify the
-// static version still looks visually identical.
-import React, {useState} from 'react';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
+
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchPageInput.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
+import React, {useState} from 'react';
 
 type SearchPageInputProps = {
     queryJSON: SearchQueryJSON;

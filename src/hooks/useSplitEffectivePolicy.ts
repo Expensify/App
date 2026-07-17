@@ -1,9 +1,13 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+
 import getPolicyFromSearchData from '@libs/getPolicyFromSearchData';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';

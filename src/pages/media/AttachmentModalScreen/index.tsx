@@ -1,6 +1,11 @@
-import React, {useContext, useMemo} from 'react';
 import Log from '@libs/Log';
+
 import SCREENS from '@src/SCREENS';
+
+import React, {useContext, useMemo} from 'react';
+
+import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
+
 import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
@@ -10,7 +15,6 @@ import ShareDetailsAttachmentModalContent from './routes/ShareDetailsAttachmentM
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import WorkspaceDocumentModalContent from './routes/WorkspaceDocumentModalContent';
-import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
 
 type RouteType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['route'];
 type NavigationType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['navigation'];

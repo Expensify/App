@@ -1,17 +1,24 @@
+import StatusBadge from '@components/StatusBadge';
+
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
 // NOTE: This component has a static twin in SearchStaticList
 // (src/components/Search/SearchStaticList.tsx) used for fast perceived
 // performance. If you change the UI here, verify the static version still
 // looks visually identical.
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import StatusBadge from '@components/StatusBadge';
-import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+
 import type {ExpenseReportListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './types';
+
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
 function UserInfoAndActionButtonRow({

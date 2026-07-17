@@ -1,12 +1,15 @@
-// We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {getTodoReportsForSearchKey} from '@libs/TodosUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+// We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx} from 'react-native-onyx';
 
 type TodoSearchResultsData = SearchResults['data'];
 

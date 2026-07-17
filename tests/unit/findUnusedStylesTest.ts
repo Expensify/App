@@ -1,7 +1,9 @@
-import {Str} from 'expensify-common';
 import type {Stats} from 'fs';
+
+import {Str} from 'expensify-common';
 import * as fs from 'fs';
 import {globSync} from 'glob';
+
 import {ComprehensiveStylesFinder} from '../../scripts/findUnusedStyles';
 
 jest.mock(
