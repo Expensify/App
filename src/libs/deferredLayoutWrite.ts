@@ -157,6 +157,11 @@ function flushDeferredWrite(key: string) {
  * Run `callback` once the pending optimistic write has been applied to Onyx, after the next flush of the
  * most-recently-registered active channel or immediately if nothing is pending.
  * Used to sequence work that depends on the optimistic data existing.
+ *
+ * IMPORTANT: only call this synchronously right after the deferred write it depends on was registered.
+ * It attaches to whatever the latest active channel is at call time, so any intervening async work (or an
+ * unrelated deferred write) can cause it to hook onto the wrong channel.
+ * This is an interim helper, not a general-purpose pattern.
  */
 function runAfterDeferredWrite(callback: () => void) {
     const channel = [...channels.values()].reverse().find((c) => !c.isReserved);
