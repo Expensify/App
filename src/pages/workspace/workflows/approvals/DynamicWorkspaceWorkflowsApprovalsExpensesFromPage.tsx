@@ -131,16 +131,13 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
         if (!approvalWorkflow?.members) {
             // no workflow members means selectedMembers has synced to an empty selection.
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedMembers([]);
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setHasSyncedSelectedMembers(true);
             return;
         }
 
         // Intentional: derives the selected-members list from the approval workflow data.
         // This effect synchronizes local component state with the Onyx-sourced workflow when it changes.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedMembers(
             approvalWorkflow.members
                 .filter((member) => {
@@ -200,7 +197,6 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     };
                 }),
         );
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setHasSyncedSelectedMembers(true);
     }, [
         approvalWorkflow?.members,

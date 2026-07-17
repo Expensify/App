@@ -125,7 +125,6 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
                 policy={policy}
                 isLoadingReportData={isLoadingReportData}
                 onBackButtonPress={goBack}
-                initiallyFocusedOptionKey={selectedApprover}
                 allApprovers={allApprovers}
                 onSelectApprover={handleOnSelectApprover}
                 shouldRequirePolicyAdmin={false}
