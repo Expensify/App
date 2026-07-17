@@ -353,10 +353,7 @@
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ApproveActionButton.tsx"	"no-restricted-imports"	1
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/ApproveActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/PayActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton.tsx"	"no-restricted-imports"	1
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/SubmitActionButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewActionDecision.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
