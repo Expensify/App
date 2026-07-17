@@ -1,3 +1,4 @@
+import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
 
 import {ImageManipulator} from 'expo-image-manipulator';
@@ -32,7 +33,7 @@ const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
             // More info: https://github.com/Expensify/App/issues/37963#issuecomment-1989260033
             .then(({base64, ...result}) => {
                 RNFetchBlob.fs
-                    .stat(result.uri.replace('file://', ''))
+                    .stat(fileURIToPath(result.uri))
                     .then(({size}) => {
                         resolve({
                             ...result,
@@ -50,7 +51,7 @@ const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
                 }
 
                 Log.warn('Error cropping/rotating image, falling back to original', {error: error instanceof Error ? error.message : String(error)});
-                const filePath = uri.replace('file://', '');
+                const filePath = fileURIToPath(uri);
                 ImageSize.getSize(uri)
                     .then(({width, height}) => {
                         RNFetchBlob.fs
