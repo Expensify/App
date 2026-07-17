@@ -112,6 +112,28 @@ describe('useInFlightRequests', () => {
             await act(() => waitForBatchedUpdates());
             expect(nonMatching.current).toBe(false);
         });
+
+        // Consumers with a possibly-undefined reportID pass it straight through. An undefined scope key must
+        // never match a real OpenReport request, so an absent report reads as "not loading".
+        it('returns false for an undefined reportID even when an OpenReport is queued', async () => {
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_REPORT, {reportID: '1234'})]);
+            const {result} = renderHook(() => useIsReportLoadPending(undefined));
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+        });
+
+        // Mirrors the healthy load: skeleton on while OpenReport is in the queue, off once it clears.
+        it('updates reactively as the OpenReport request enters and leaves the queue', async () => {
+            const {result} = renderHook(() => useIsReportLoadPending('1234'));
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+
+            await act(() => setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_REPORT, {reportID: '1234'})]));
+            await waitFor(() => expect(result.current).toBe(true));
+
+            await act(() => setPersistedRequests([]));
+            await waitFor(() => expect(result.current).toBe(false));
+        });
     });
 
     describe('useIsLoadingBarPending', () => {

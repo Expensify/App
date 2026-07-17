@@ -6,6 +6,7 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -152,7 +153,10 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    // Whether the report's initial actions are still loading, derived from the request queue (an in-flight
+    // OpenReport for this report) rather than the stored report-metadata flag, so the queue stays the single
+    // source of truth for load state. `reportLoadingState` is still read for the transaction-wait check below.
+    const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);

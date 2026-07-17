@@ -5,6 +5,7 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
 
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -27,7 +28,6 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -75,9 +75,10 @@ function ReportFooter() {
         selector: policyRoleSelector,
     });
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
-    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
-        selector: isLoadingInitialReportActionsSelector,
-    });
+    // Whether the report's initial actions are still loading, derived from the request queue (an in-flight
+    // OpenReport for this report) rather than the stored report-metadata flag, so the queue stays the single
+    // source of truth for load state.
+    const isLoadingInitialReportActions = useIsReportLoadPending(reportIDFromRoute);
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
