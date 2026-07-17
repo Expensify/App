@@ -211,6 +211,58 @@ describe('CardFeedErrors Derived Value', () => {
                 expect(result.personalCard.isFeedConnectionBroken).toBe(false);
                 expect(result.personalCardsWithBrokenConnection).toEqual({});
             });
+
+            // A real broken personal card also carries the error on the card itself, which we intentionally keep so the
+            // card stays fixable. That error used to short-circuit getShouldShowRBR, leaving the Account/Wallet red dot
+            // lit past the grace period even though the home task was correctly removed.
+            it('should NOT show the RBR for a personal card past the grace period that still carries the broken-connection error', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '2020-01-01 00:00:00', // Last successful scrape is well beyond the grace period
+                    errors: {connectionError: 'Your card connection is broken.'}, // Kept so the card can still be fixed
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(false);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+            });
+
+            it('should still show the RBR for a broken personal card within the grace period that carries the error', () => {
+                // Broken only since yesterday, so it is still well inside the grace period and must keep prompting.
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: recentScrape,
+                    errors: {connectionError: 'Your card connection is broken.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(true);
+            });
+
+            it('should still show the RBR for a personal card with an unrelated error and a healthy connection', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 200, // Not a broken connection, so the grace period does not apply
+                    lastScrape: '2020-01-01 00:00:00',
+                    errors: {unrelatedError: 'Something else went wrong.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+            });
         });
 
         describe('processing cards from workspace cards collection', () => {

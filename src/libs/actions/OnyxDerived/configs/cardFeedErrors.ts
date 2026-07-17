@@ -53,7 +53,13 @@ export default createOnyxDerivedValueConfig({
         const personalCardsWithBrokenConnection: Record<string, Card> = {};
 
         function addErrorsForPersonalCard(card: Card) {
-            const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(card.errorFields);
+            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
+            // grace period; the underlying error on the card is kept so the user can still fix it.
+            const isPastDismissThreshold = isBrokenConnectionPastDismissThreshold(card);
+            // The broken connection is reported as an error on the card itself, so past the grace period it must not
+            // count towards the RBR either — otherwise keeping the error (so the card stays fixable) would keep the
+            // Account/Wallet red dot lit forever.
+            const hasCardErrors = (!isEmptyObject(card.errors) || !isEmptyObject(card.errorFields)) && !isPastDismissThreshold;
             const cardErrors = {
                 ...(hasCardErrors
                     ? {
@@ -66,9 +72,7 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
-            // grace period; the underlying error on the card is kept so the user can still fix it.
-            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isPastDismissThreshold;
             // Track personal cards with broken feed connection
             if (isFeedConnectionBroken) {
                 personalCardsWithBrokenConnection[card.cardID] = card;
