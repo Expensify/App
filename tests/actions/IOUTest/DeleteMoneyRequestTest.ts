@@ -689,6 +689,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactionThreadReport: thread,
                     parentReport: iouReport,
                     transactionViolations: {},
+                    reportPolicyTags: undefined,
                     amount: 20000,
                     currency: CONST.CURRENCY.USD,
                     taxAmount: 0,
