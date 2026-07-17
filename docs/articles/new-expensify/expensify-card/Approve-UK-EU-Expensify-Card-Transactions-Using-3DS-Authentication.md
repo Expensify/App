@@ -82,12 +82,9 @@ To manage biometric authentication or passkeys:
 2. Select **Security**.
 3. Open **Face/Fingerprint & Passkey**.
 
-From here, you can:
+From here, you can revoke authentication access for any/all devices you have previously enabled.
 
-- Enable or re-enable authentication.
-- Revoke authentication access for all devices.
-
-## What authentication methods are supported for UK/EU Expensify Cards
+## What authentication methods are supported for UK/EU Expensify Cards?
 
 To meet UK and EU security requirements, Expensify supports the following authentication methods:
 
