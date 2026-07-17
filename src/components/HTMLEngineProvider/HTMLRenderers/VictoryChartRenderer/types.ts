@@ -81,6 +81,15 @@ type PolarChartData = {
 
 type TextAnchor = 'start' | 'middle' | 'end';
 
+/** A pie-chart slice label's fully resolved, absolute position — shared by `VictoryChartPieLabel` and `VictoryChartPieLabelIndicator` so both always agree. */
+type ResolvedPieLabel = {
+    x: number;
+    y: number;
+    textAnchor: TextAnchor;
+    /** The angle actually used for this slice's layout. */
+    midAngle: number;
+};
+
 type LabelItem = {
     /** Position on the X-axis */
     x: number;
@@ -172,6 +181,8 @@ type ProcessNodeResult = {
     domain: CartesianChartProps['domain'];
     domainPadding: CartesianChartProps['domainPadding'];
     padding: CartesianChartProps['padding'];
+    // Pixel width the left y-axis actually needs for its widest label, used to shrink `padding.left` when it's larger than the content requires.
+    leftAxisLabelPadding: number | undefined;
     isHorizontal: boolean | undefined;
     categories: string[] | undefined;
     labelItems: LabelItem[];
@@ -199,6 +210,7 @@ export type {
     ChartPointMetadata,
     CartesianChartProps,
     TextAnchor,
+    ResolvedPieLabel,
     LabelItem,
     LegendItemEntry,
     LegendItem,

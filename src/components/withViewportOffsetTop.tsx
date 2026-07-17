@@ -11,33 +11,45 @@ type ViewportOffsetTopProps = {
     viewportOffsetTop: number;
 };
 
+type WithViewportOffsetTopImplProps<TProps extends ViewportOffsetTopProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & Omit<TProps, keyof ViewportOffsetTopProps>;
+
+function WithViewportOffsetTopImpl<TProps extends ViewportOffsetTopProps>({WrappedComponent, ...props}: WithViewportOffsetTopImplProps<TProps>) {
+    const [viewportOffsetTop, setViewportOffsetTop] = useState(0);
+
+    useEffect(() => {
+        const updateDimensions = (event: Event) => {
+            const targetOffsetTop = (event.target instanceof VisualViewport && event.target.offsetTop) || 0;
+            setViewportOffsetTop(targetOffsetTop);
+        };
+
+        const removeViewportResizeListener = addViewportResizeListener(updateDimensions);
+
+        return () => {
+            removeViewportResizeListener();
+        };
+    }, []);
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            viewportOffsetTop={viewportOffsetTop}
+        />
+    );
+}
+
 export default function withViewportOffsetTop<TProps extends ViewportOffsetTopProps>(WrappedComponent: ComponentType<TProps>) {
     function WithViewportOffsetTop(props: Omit<TProps, keyof ViewportOffsetTopProps>) {
-        const [viewportOffsetTop, setViewportOffsetTop] = useState(0);
-
-        useEffect(() => {
-            const updateDimensions = (event: Event) => {
-                const targetOffsetTop = (event.target instanceof VisualViewport && event.target.offsetTop) || 0;
-                setViewportOffsetTop(targetOffsetTop);
-            };
-
-            const removeViewportResizeListener = addViewportResizeListener(updateDimensions);
-
-            return () => {
-                removeViewportResizeListener();
-            };
-        }, []);
-
         return (
-            <WrappedComponent
-                {...(props as TProps)}
-                viewportOffsetTop={viewportOffsetTop}
+            <WithViewportOffsetTopImpl
+                WrappedComponent={WrappedComponent}
+                {...props}
             />
         );
     }
 
     WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
 
-    // OXC's React Compiler does not memoize this component on web; memoize it explicitly.
-    return React.memo(WithViewportOffsetTop);
+    return WithViewportOffsetTop;
 }
