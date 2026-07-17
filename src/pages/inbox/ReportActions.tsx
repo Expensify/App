@@ -1,4 +1,5 @@
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+import NavigationDeferredMount from '@components/NavigationDeferredMount';
 
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
@@ -9,12 +10,15 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ReactNode} from 'react';
+
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useState} from 'react';
 
 import type ReportScreenNavigationProps from './types';
 
@@ -30,6 +34,34 @@ const defaultReportLoadingState = {
     isLoadingNewerReportActions: false,
     hasLoadingNewerReportActionsError: false,
 };
+
+/**
+ * On wide layout, tapping the Inbox tab co-mounts this report screen with the LHN sidebar in a single commit,
+ * so the ManualNavigateToInboxTab span (which ends at the sidebar layout) is gated on the heavy report list
+ * rendering in that same commit. When `enabled`, this defers the list one frame behind a skeleton so the first
+ * commit stays cheap and the sidebar can paint without waiting for the list.
+ *
+ * Enabled only for that co-mount (see `shouldDeferForInboxTab`), so ordinary report opens render immediately.
+ * Trade-off: the report content paints one frame later, so ManualOpenReport reflects that later paint.
+ */
+function DeferReportListForInboxTab({enabled, reportID, children}: {enabled: boolean; reportID: string | undefined; children: ReactNode}) {
+    if (!enabled) {
+        return <>{children}</>;
+    }
+    return (
+        <NavigationDeferredMount
+            waitForUpcomingTransition={false}
+            placeholder={
+                <ReportActionsLoadingSkeleton
+                    reportID={reportID}
+                    skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.INBOX_TAB_DEFER}
+                />
+            }
+        >
+            {children}
+        </NavigationDeferredMount>
+    );
+}
 
 /**
  * Route-only orchestrator for the report actions surface. It owns the coarse branching only —
@@ -69,6 +101,12 @@ function ReportActions() {
 
     useMarkOpenReportEndOnSkeleton(report, shouldShowAppLoadSkeleton);
 
+    // The Inbox tab button starts SPAN_NAVIGATE_TO_INBOX_TAB synchronously before navigating, so on a
+    // wide-layout tab tap it is in flight when this screen mounts as the co-mounted central pane. Captured
+    // once at mount (lazy state initializer) so we defer the heavy list only for that case, not for ordinary
+    // report opens.
+    const [shouldDeferForInboxTab] = useState(() => !!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB));
+
     if (!report || shouldWaitForTransactions) {
         return (
             <ReportActionsLoadingSkeleton
@@ -79,7 +117,14 @@ function ReportActions() {
     }
 
     if (shouldDisplayMoneyRequestActionsList) {
-        return <MoneyRequestReportActionsList />;
+        return (
+            <DeferReportListForInboxTab
+                enabled={shouldDeferForInboxTab}
+                reportID={reportIDFromRoute}
+            >
+                <MoneyRequestReportActionsList />
+            </DeferReportListForInboxTab>
+        );
     }
 
     if (shouldShowAppLoadSkeleton) {
@@ -92,13 +137,16 @@ function ReportActions() {
     }
 
     return (
-        <>
+        <DeferReportListForInboxTab
+            enabled={shouldDeferForInboxTab}
+            reportID={reportIDFromRoute}
+        >
             <ReportActionsList
                 key={report.reportID}
                 reportID={report.reportID}
             />
             <UserTypingEventListener report={report} />
-        </>
+        </DeferReportListForInboxTab>
     );
 }
 
