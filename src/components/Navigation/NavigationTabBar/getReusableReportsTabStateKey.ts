@@ -3,18 +3,22 @@ import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationState} from '@react-navigation/native';
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
 
 function getStringParam(params: unknown, key: string): string | undefined {
-    if (!params || typeof params !== 'object') {
+    if (!isRecord(params)) {
         return undefined;
     }
-    const value = Reflect.get(params, key);
+    const value = params[key];
     return typeof value === 'string' ? value : undefined;
 }
 
 function getReusableReportsTabStateKey(
-    rootState: NavigationState | undefined,
+    rootState: NavigationState | PartialState<NavigationState> | undefined,
     reportID: string | undefined,
     reportActionID: string | undefined,
     doesReportActionExist: boolean | undefined,

@@ -3,7 +3,7 @@ import getReusableReportsTabStateKey from '@components/Navigation/NavigationTabB
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationState} from '@react-navigation/native';
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 type BuildRootStateOptions = {
     tabStateKey?: string;
@@ -13,7 +13,13 @@ type BuildRootStateOptions = {
     olderTabStateKey?: string;
 };
 
-function buildRootState({tabStateKey = 'tab-state', reportID = '123', reportActionID, includeReportsState = true, olderTabStateKey}: BuildRootStateOptions = {}): NavigationState {
+function buildRootState({
+    tabStateKey = 'tab-state',
+    reportID = '123',
+    reportActionID,
+    includeReportsState = true,
+    olderTabStateKey,
+}: BuildRootStateOptions = {}): PartialState<NavigationState> {
     const reportsRoute = {
         key: 'reports-route',
         name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -50,7 +56,7 @@ function buildRootState({tabStateKey = 'tab-state', reportID = '123', reportActi
           ]
         : [tabRoute];
 
-    return {key: 'root-state', index: routes.length - 1, routes} as unknown as NavigationState;
+    return {key: 'root-state', index: routes.length - 1, routes} satisfies PartialState<NavigationState>;
 }
 
 describe('getReusableReportsTabStateKey', () => {
