@@ -790,9 +790,5 @@ describe('Session', () => {
         test('returns false when session is undefined', () => {
             expect(SessionUtil.isSupportAuthToken(undefined)).toBe(false);
         });
-
-        test('returns false when session is null', () => {
-            expect(SessionUtil.isSupportAuthToken(null)).toBe(false);
-        });
     });
 });

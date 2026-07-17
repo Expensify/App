@@ -19,7 +19,7 @@ const FS: Fullstory = {
 
     getChatFSClass,
 
-    init: (_userMetadata, _session) => {},
+    init: () => {},
 
     onReady: async () =>
         new Promise((resolve) => {
