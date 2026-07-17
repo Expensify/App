@@ -1,5 +1,4 @@
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
-import {createPolicyCategories} from '@libs/actions/Policy/Category';
 import * as API from '@libs/API';
 import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, ImportMerchantRulesSpreadsheetParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -22,6 +21,8 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+import {createPolicyCategories} from './Category';
 
 /** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
