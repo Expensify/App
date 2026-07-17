@@ -31,7 +31,7 @@ type WorkspaceVendorsPageProps = WithPolicyConnectionsProps & PlatformStackScree
 function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const illustrations = useMemoizedLazyIllustrations(['Buildings']);
@@ -45,11 +45,13 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
     const vendorRows: WorkspaceVendorTableRowData[] = useMemo(
         () =>
-            vendors.map((vendor) => ({
-                keyForList: vendor.id,
-                name: vendor.name,
-            })),
-        [vendors],
+            vendors
+                .map((vendor) => ({
+                    keyForList: vendor.id,
+                    name: vendor.name,
+                }))
+                .sort((a, b) => localeCompare(a.name, b.name)),
+        [vendors, localeCompare],
     );
 
     const headerContent = !!currentConnectionName && (

@@ -1,4 +1,4 @@
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import type {IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -26,20 +26,15 @@ type WorkspaceVendorsTableProps = {
 
 function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
 
     const columns: Array<TableColumn<WorkspaceVendorTableColumnKey>> = [
         {
             key: 'name',
             label: translate('common.name'),
-            sortable: true,
+            sortable: false,
         },
     ];
-
-    const compareItems: CompareItemsCallback<WorkspaceVendorTableRowData> = (item1, item2, activeSorting) => {
-        const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
-        return localeCompare(item1.name, item2.name) * orderMultiplier;
-    };
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceVendorTableRowData> = (item, searchValue) => {
         const results = tokenizedSearch([item], searchValue.toLowerCase(), (option) => [option.name]);
@@ -65,10 +60,8 @@ function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
     return (
         <Table
             data={vendors}
-            initialSortColumn="name"
             title={translate('workspace.common.vendors')}
             columns={columns}
-            compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             renderItem={renderVendorItem}
             keyExtractor={(item) => item.keyForList}
