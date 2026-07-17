@@ -1,7 +1,7 @@
 ---
 title: Manage Vendor Matching for QuickBooks Online
 description: Learn how QuickBooks Online vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
-keywords: [QuickBooks Online, vendor matching, vendor, company card expenses, default vendor, Credit Card Misc, credit card export]
+keywords: [QuickBooks Online, vendor matching, vendor, company card expenses, default vendor, Credit Card Misc, Debit Card Misc, credit card export]
 internalScope: Audience is Workspace Admins using the QuickBooks Online connection with Credit card or Debit card company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover QuickBooks Online connection setup or other export types.
 ---
 
@@ -13,8 +13,8 @@ QuickBooks Online vendor matching lets Workspace Admins review and update the ve
 
 This feature is available to Workspace Admins whose Workspace:
 
-- Is connected to QuickBooks Online.
-- Has **Credit card** or **Debit card** selected under **Export company card expenses as** in the QuickBooks Online configuration.
+ - Is connected to QuickBooks Online.
+ - Has **Credit card** or **Debit card** selected under **Export company card expenses as** in the QuickBooks Online configuration.
 
 If your Workspace isn't connected to QuickBooks Online yet, learn how to [connect to QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online).
 
@@ -37,7 +37,7 @@ Workspace Admins can manually select a vendor from the searchable **Vendor** fie
 3. Under **Export company card expenses as**, select **Credit card** or **Debit card**.
 4. Select a **Default vendor**.
 
-The default vendor is used only when an expense doesn't already have a vendor assigned. If no default vendor is configured, expenses export to **Credit Card Misc**.
+The default vendor is used only when an expense doesn't already have a vendor assigned. If no default vendor is configured, expenses export to **Credit Card Misc** or **Debit Card Misc**.
 
 <!-- SCREENSHOT:
 Suggestion: QuickBooks Online Export settings showing the Export company card expenses as setting and the Default vendor dropdown.
@@ -52,7 +52,7 @@ When company card expenses are exported, Expensify assigns vendors in the follow
 
 1. The vendor selected on the expense.
 2. The **Default vendor** configured in workspace settings.
-3. **Credit Card Misc**, if neither of the above is available.
+3. **Credit Card Misc** or **Debit Card Misc**., if neither of the above is available.
 
 ## How inactive QuickBooks Online vendors affect expenses
 
