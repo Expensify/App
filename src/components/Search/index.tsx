@@ -190,6 +190,7 @@ function Search({
         if (searchRequestOffset === offset) {
             return;
         }
+        // Defer so this effect does not synchronously chain another render from setState (eslint react-hooks/set-state-in-effect).
         const timeoutID = setTimeout(() => setOffset(searchRequestOffset), 0);
         return () => clearTimeout(timeoutID);
     }, [offset, searchRequestOffset]);
