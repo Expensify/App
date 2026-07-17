@@ -344,6 +344,7 @@ function updateMoneyRequestBillable({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    reportPolicyTags,
     isTrackIntentUser,
 }: {
     transactionID: string | undefined;
@@ -359,6 +360,7 @@ function updateMoneyRequestBillable({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
@@ -374,8 +376,7 @@ function updateMoneyRequestBillable({
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -402,6 +403,7 @@ function updateMoneyRequestReimbursable({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    reportPolicyTags,
     isTrackIntentUser,
     yourSpendPatchData,
 }: {
@@ -418,6 +420,7 @@ function updateMoneyRequestReimbursable({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
     yourSpendPatchData?: YourSpendPatchData;
 }) {
@@ -434,8 +437,7 @@ function updateMoneyRequestReimbursable({
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -532,6 +534,7 @@ function updateMoneyRequestAttendees({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    reportPolicyTags,
     isTrackIntentUser,
 }: {
     transactionID: string;
@@ -548,6 +551,7 @@ function updateMoneyRequestAttendees({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
@@ -560,8 +564,7 @@ function updateMoneyRequestAttendees({
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         violations,
         currentUserAccountIDParam,
@@ -952,6 +955,7 @@ type UpdateMoneyRequestDistanceParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -977,6 +981,7 @@ function updateMoneyRequestDistance({
     delegateAccountID,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
+    reportPolicyTags,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -1013,8 +1018,7 @@ function updateMoneyRequestDistance({
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -2085,6 +2089,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     policy,
+                    isTrackIntentUser,
                 }),
             });
             optimisticData.push({

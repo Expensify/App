@@ -677,6 +677,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
         });
     };
@@ -700,6 +701,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
             yourSpendPatchData: getYourSpendPatchData(),
         });
