@@ -19,7 +19,6 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
-    getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
     getDefaultTimeTrackingRate,
@@ -31,7 +30,6 @@ import {
     getMatchingVendors,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
-    getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
     getSubmitToAccountID,
     getSubmitToEmail,
@@ -1101,7 +1099,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
             };
 
-            expect(getSubmitToEmail(policy, report)).toBe(adminEmail);
+            expect(getSubmitToEmail(policy, report, employeeEmail)).toBe(adminEmail);
         });
 
         it('should return the default approver', () => {
@@ -1398,41 +1396,6 @@ describe('PolicyUtils', () => {
                 {policyID: '1', name: 'Workspace 1'},
                 {policyID: '2', name: 'Workspace 2'},
             ]);
-        });
-    });
-
-    describe('getPolicyEmployeeAccountIDs', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should return an array of employee accountIDs for the given policy (including current user accountID) if no current user is passed', () => {
-            const policy = {
-                employeeList,
-            };
-            const result = getPolicyEmployeeAccountIDs(policy);
-            expect(result).toEqual([7, 1, 2, 3, 4, 5, 6]);
-        });
-
-        it('should return an array of employee accountIDs for the given policy (excluding current user accountID) if current user is passed', () => {
-            const policy = {
-                employeeList,
-            };
-            const result = getPolicyEmployeeAccountIDs(policy, 5);
-            expect(result).toEqual([7, 1, 2, 3, 4, 6]);
-        });
-
-        it('should return an empty array if no employees are found', () => {
-            const policy = {
-                employeeList: {},
-            };
-            const result = getPolicyEmployeeAccountIDs(policy);
-            expect(result).toEqual([]);
         });
     });
 
@@ -2751,76 +2714,6 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
-        });
-    });
-
-    describe('getConnectedIntegrationNamesForPolicies', () => {
-        it('returns empty Set when policies is undefined', () => {
-            expect(getConnectedIntegrationNamesForPolicies(undefined)).toEqual(new Set());
-        });
-
-        it('returns empty Set when policies is empty object', () => {
-            expect(getConnectedIntegrationNamesForPolicies({})).toEqual(new Set());
-        });
-
-        it('returns Set with connection name when policy has verified connection', () => {
-            const policyWithXero = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                        lastSync: {isConnected: true},
-                    },
-                }),
-            });
-            const policies: OnyxCollection<Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyWithXero,
-            };
-            expect(getConnectedIntegrationNamesForPolicies(policies)).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
-        });
-
-        it('filters by policyIDs when provided', () => {
-            const policy1WithQBO = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
-                }),
-            });
-            const policy2WithXero = createMock<Policy>({
-                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
-                }),
-            });
-            const policies: OnyxCollection<Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1WithQBO,
-                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2WithXero,
-            };
-            expect(getConnectedIntegrationNamesForPolicies(policies, ['1'])).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.QBO]));
-        });
-
-        it('returns all connection names when policies have different connections', () => {
-            const policy1 = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
-                }),
-            });
-
-            const policy2 = createMock<Policy>({
-                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
-                }),
-            });
-
-            const policies: OnyxCollection<Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
-                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
-            };
-            const result = getConnectedIntegrationNamesForPolicies(policies);
-            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
-            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
-            expect(result.size).toBe(2);
         });
     });
 

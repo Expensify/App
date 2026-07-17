@@ -5,6 +5,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
+import type * as MoneyRequestReportPreviewContext from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
 import type ReportPreviewActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -94,11 +95,14 @@ const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => {
     const actualReact = jest.requireActual<typeof React>('react');
     const actualModule = jest.requireActual<{default: typeof ReportPreviewActionButton}>('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton');
+    const {useReportPreviewActions} = jest.requireActual<typeof MoneyRequestReportPreviewContext>('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext');
     return {
         __esModule: true,
-        default: (props: Parameters<typeof actualModule.default>[0]) => {
-            mockOnHoldMenuOpenHolder.current = props.onHoldMenuOpen;
-            return actualReact.createElement(actualModule.default, props);
+        default: function MockReportPreviewActionButton() {
+            // ReportPreviewActionButton now reads from context instead of props; capture onHoldMenuOpen from the context.
+            const {onHoldMenuOpen} = useReportPreviewActions();
+            mockOnHoldMenuOpenHolder.current = onHoldMenuOpen;
+            return actualReact.createElement(actualModule.default);
         },
     };
 });
@@ -278,6 +282,36 @@ describe('MoneyRequestReportPreview', () => {
         }
     });
 
+    it('renders the report total when the preview has more than one transaction', async () => {
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(mockIOUReport);
+        expect(screen.getByText(TestHelper.translateLocal('common.total'))).toBeOnTheScreen();
+        expect(screen.getAllByText(convertToDisplayString(totalDisplaySpend, mockIOUReport.currency)).length).toBeGreaterThan(0);
+    });
+
+    it('hides the report total when the preview has a single transaction', async () => {
+        setReportPreviewData({transactions: [mockTransaction]});
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, mockTransaction);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(TestHelper.translateLocal('common.total'))).not.toBeOnTheScreen();
+    });
+
     it('forwards the selected bank account to the hold menu when paying a held expense from the preview', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
@@ -298,6 +332,26 @@ describe('MoneyRequestReportPreview', () => {
         expect(mockHoldMenuPropsHolder.current?.isVisible).toBe(true);
         expect(mockHoldMenuPropsHolder.current?.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.VBBA);
         expect(mockHoldMenuPropsHolder.current?.methodID).toBe(SELECTED_BANK_ACCOUNT_ID);
+    });
+
+    it('does not open the hold menu for request types other than pay or approve', async () => {
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOnHoldMenuOpenHolder.current).toBeDefined();
+
+        act(() => {
+            mockOnHoldMenuOpenHolder.current?.(CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.PAYMENT_TYPE.VBBA, true, SELECTED_BANK_ACCOUNT_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockHoldMenuPropsHolder.current).toBeUndefined();
     });
 
     it('renders RBR for every transaction with violations', async () => {

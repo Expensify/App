@@ -10,7 +10,7 @@ import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useMemo} from 'react';
-import {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
+import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type UsePreviewMessageAnimationParams = {
     /** Whether all the requests are being smart scanned */
@@ -76,8 +76,7 @@ type UsePreviewMessageAnimationParams = {
 
 /**
  * Owns the preview-message animations: the opacity flash that fires whenever the computed preview message changes,
- * and the checkmark / thumbs-up spring animations that play on settle / approval. Returns the animated style applied
- * to the report name container.
+ * and returns the animated style applied to the report name container.
  */
 function usePreviewMessageAnimation({
     isScanning,
@@ -107,8 +106,6 @@ function usePreviewMessageAnimation({
     const previewMessageStyle = useAnimatedStyle(() => ({
         opacity: previewMessageOpacity.get(),
     }));
-    const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
-    const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
 
     const previewMessage = useMemo(() => {
         if (isScanning) {
@@ -125,12 +122,13 @@ function usePreviewMessageAnimation({
         if (isPolicyExpenseChat || isTripRoom) {
             payerOrApproverName = getPolicyName({report: chatReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
         } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
+            payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
             payerOrApproverName = getDisplayNameForParticipant({
                 accountID: managerID,
                 shouldUseShortForm: true,
                 formatPhoneNumber,
+                translate,
             });
         }
 
@@ -146,6 +144,7 @@ function usePreviewMessageAnimation({
                 accountID: chatReport?.ownerAccountID,
                 shouldUseShortForm: true,
                 formatPhoneNumber,
+                translate,
             });
         }
         return translate(paymentVerb, payerOrApproverName);
@@ -184,22 +183,6 @@ function usePreviewMessageAnimation({
         // We only want to animate the text when the text changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [previewMessage, previewMessageOpacity]);
-
-    useEffect(() => {
-        if (!iouSettled) {
-            return;
-        }
-
-        checkMarkScale.set(isPaidAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1);
-    }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
-
-    useEffect(() => {
-        if (!isApproved) {
-            return;
-        }
-
-        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
-    }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     return {previewMessageStyle};
 }

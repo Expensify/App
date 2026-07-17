@@ -32,8 +32,6 @@ const useResponsiveLayoutMock = jest.requireMock<jest.Mock>('@hooks/useResponsiv
 jest.mock('@userActions/Policy/Category', () => ({enablePolicyCategories: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enableExpensifyCard: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
 
-const {enableCompanyCards, enableExpensifyCard} = jest.requireMock<{enableCompanyCards: jest.Mock; enableExpensifyCard: jest.Mock}>('@userActions/Policy/Policy');
-
 const POLICY_ID = '1';
 
 // Trial dates relative to today so the 60-day Getting Started window check
@@ -49,6 +47,7 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
         id: POLICY_ID,
         pendingAction: undefined,
         role: CONST.POLICY.ROLE.ADMIN,
+        areCategoriesEnabled: true,
         areCompanyCardsEnabled: false,
         areRulesEnabled: false,
         connections: undefined,
@@ -59,7 +58,8 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
 }
 
 async function setupTrackWorkspaceScenario(overrides: {policy?: Partial<Policy>; firstDayTrial?: string; lastDayTrial?: string; intentSource?: 'introSelected' | 'onboardingPurpose'} = {}) {
-    const policy = buildPolicy(overrides.policy);
+    // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
+    const policy = buildPolicy({areCategoriesEnabled: true, ...overrides.policy});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
     if (overrides.intentSource === 'onboardingPurpose') {
@@ -80,7 +80,8 @@ async function setupTrackWorkspaceScenario(overrides: {policy?: Partial<Policy>;
 }
 
 async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; accounting?: string | null; firstDayTrial?: string; lastDayTrial?: string} = {}) {
-    const policy = buildPolicy(overrides.policy);
+    // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
+    const policy = buildPolicy({areCategoriesEnabled: true, ...overrides.policy});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
     await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
     await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
@@ -157,7 +158,7 @@ describe('useGettingStartedItems', () => {
         it('should fall back to ONBOARDING_PURPOSE_SELECTED when NVP_INTRO_SELECTED is not available', async () => {
             await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
-            const policy = buildPolicy();
+            const policy = buildPolicy({areCategoriesEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
@@ -438,17 +439,7 @@ describe('useGettingStartedItems', () => {
             expect(categoriesItem).toBeDefined();
         });
 
-        it('should have isFeatureEnabled=true when accounting connections feature is enabled', async () => {
-            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
-
-            const {result} = renderHook(() => useGettingStartedItems());
-            await waitForBatchedUpdates();
-
-            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem?.isFeatureEnabled).toBe(true);
-        });
-
-        it('should have isFeatureEnabled=false when accounting connections feature is not enabled but an existing connection makes the row visible', async () => {
+        it('should still show the connect accounting row when connections feature is disabled but an existing connection makes the row visible', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
@@ -472,7 +463,6 @@ describe('useGettingStartedItems', () => {
             await waitFor(() => {
                 const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
                 expect(connectItem).toBeDefined();
-                expect(connectItem?.isFeatureEnabled).toBe(false);
             });
         });
     });
@@ -505,25 +495,24 @@ describe('useGettingStartedItems', () => {
             expect(connectItem).toBeUndefined();
         });
 
-        it('should have isFeatureEnabled=true when categories feature is enabled', async () => {
+        it('should show the categories row when categories feature is enabled', async () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
-            expect(categoriesItem?.isFeatureEnabled).toBe(true);
+            expect(categoriesItem).toBeDefined();
         });
 
-        it('should have isFeatureEnabled=false when categories feature is not enabled', async () => {
+        it('should not show the categories row when categories feature is not enabled', async () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: false}});
 
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
-            expect(categoriesItem).toBeDefined();
-            expect(categoriesItem?.isFeatureEnabled).toBe(false);
+            expect(categoriesItem).toBeUndefined();
         });
 
         it('should navigate to workspace categories route', async () => {
@@ -598,19 +587,6 @@ describe('useGettingStartedItems', () => {
             expect(companyCardsItem).toBeDefined();
         });
 
-        it('should have isFeatureEnabled=true when company cards feature is enabled', async () => {
-            await setupManageTeamScenario({
-                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areCompanyCardsEnabled: true},
-            });
-
-            const {result} = renderHook(() => useGettingStartedItems());
-            await waitForBatchedUpdates();
-
-            const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
-            expect(companyCardsItem?.isFeatureEnabled).toBe(true);
-        });
-
         it('should not be shown when company cards feature is not enabled', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -669,7 +645,7 @@ describe('useGettingStartedItems', () => {
             expect(companyCardsItem).toBeUndefined();
         });
 
-        it('should carry the subtitle and navigate to the workspace Expensify Card route', async () => {
+        it('should carry the subText and navigate to the workspace Expensify Card route', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
@@ -680,24 +656,7 @@ describe('useGettingStartedItems', () => {
 
             const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
             expect(expensifyCardItem?.route).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID));
-            expect(expensifyCardItem?.subtitle).toBeTruthy();
-        });
-
-        it('should wire enableFeature to enableExpensifyCard and never re-enable company cards', async () => {
-            enableCompanyCards.mockClear();
-            enableExpensifyCard.mockClear();
-            await setupManageTeamScenario({
-                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
-            });
-
-            const {result} = renderHook(() => useGettingStartedItems());
-            await waitForBatchedUpdates();
-
-            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
-            expensifyCardItem?.enableFeature?.();
-            expect(enableExpensifyCard).toHaveBeenCalledWith(POLICY_ID, true, false);
-            expect(enableCompanyCards).not.toHaveBeenCalled();
+            expect(expensifyCardItem?.subText).toBeTruthy();
         });
 
         it('should be not completed when the workspace has no Expensify card provisioned', async () => {
@@ -887,6 +846,147 @@ describe('useGettingStartedItems', () => {
         });
     });
 
+    describe('row - Configure approval workflow', () => {
+        it('should be shown when the workflows feature is enabled', async () => {
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areWorkflowsEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem).toBeDefined();
+        });
+
+        it('should not be shown when the workflows feature is not enabled', async () => {
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areWorkflowsEnabled: false}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem).toBeUndefined();
+        });
+
+        it('should navigate to the workspace workflows route', async () => {
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areWorkflowsEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID));
+        });
+
+        it('should be not completed for the default workflow (approver is the owner, no forwarding, no custom submitters)', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {'member@test.com': {email: 'member@test.com', submitsTo: 'owner@test.com'}},
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(false);
+        });
+
+        it('should be completed when the first approver differs from the owner', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areWorkflowsEnabled: true, owner: 'owner@test.com', approver: 'manager@test.com'},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(true);
+        });
+
+        it('should be completed when the default approver forwards approvals to someone', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {'owner@test.com': {email: 'owner@test.com', forwardsTo: 'boss@test.com'}},
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(true);
+        });
+
+        it('should be completed when the default approver only forwards approvals above a limit', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {'owner@test.com': {email: 'owner@test.com', approvalLimit: 100, overLimitForwardsTo: 'boss@test.com'}},
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(true);
+        });
+
+        it('should be completed when a member submits to a non-default approver', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {'member@test.com': {email: 'member@test.com', submitsTo: 'lead@test.com'}},
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(true);
+        });
+
+        it('should ignore submitters pending deletion when detecting a custom workflow', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areWorkflowsEnabled: true,
+                    owner: 'owner@test.com',
+                    approver: undefined,
+                    employeeList: {
+                        'member@test.com': {
+                            email: 'member@test.com',
+                            submitsTo: 'lead@test.com',
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
+            expect(approvalsItem?.isComplete).toBe(false);
+        });
+    });
+
     describe('item ordering', () => {
         it('should return items in the correct order: createWorkspace, accounting/categories, companyCards, rules', async () => {
             await setupManageTeamScenario({
@@ -940,6 +1040,25 @@ describe('useGettingStartedItems', () => {
 
             const keys = result.current.items.map((item) => item.key);
             expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards', 'issueExpensifyCards', 'setupRules']);
+        });
+
+        it('should place configureApprovals below the card rows and above setupRules', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areConnectionsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    areWorkflowsEnabled: true,
+                    areRulesEnabled: true,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const keys = result.current.items.map((item) => item.key);
+            expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards', 'configureApprovals', 'setupRules']);
         });
     });
 
@@ -1027,7 +1146,7 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.PERSONAL_SPEND);
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
-            const policy = buildPolicy();
+            const policy = buildPolicy({areCategoriesEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
@@ -1296,6 +1415,84 @@ describe('useGettingStartedItems', () => {
 
                 const inviteAccountantItem = result.current.items.find((item) => item.key === 'inviteAccountant');
                 expect(inviteAccountantItem?.isComplete).toBe(true);
+            });
+        });
+
+        describe('link company card step', () => {
+            it('should insert linkCompanyCards between customizeCategories and inviteAccountant when company cards are enabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'inviteAccountant']);
+            });
+
+            it('should navigate to the workspace company cards route', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
+                expect(companyCardsItem?.route).toBe(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(POLICY_ID));
+            });
+
+            it('should have isComplete=false when the workspace has no connected company card feed', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
+                expect(companyCardsItem?.isComplete).toBe(false);
+            });
+
+            it('should have isComplete=true when the workspace has a connected company card feed', async () => {
+                const policyAccountID = 7777777;
+                const commercialFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${policyAccountID}`, {
+                    settings: {
+                        companyCards: {
+                            [commercialFeed]: {preferredPolicy: POLICY_ID, liabilityType: 'corporate'},
+                        },
+                    },
+                });
+                await setupTrackWorkspaceScenario({policy: {policyAccountID, areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+                await waitFor(() => expect(result.current.items.find((item) => item.key === 'linkCompanyCards')?.isComplete).toBe(true));
+            });
+        });
+
+        describe('feature toggles hide and show steps', () => {
+            it('should hide the customizeCategories step when Categories is disabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: false, areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'linkCompanyCards', 'inviteAccountant']);
+            });
+
+            it('should hide the linkCompanyCards step when Company cards is disabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: false}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'inviteAccountant']);
+            });
+
+            it('should preserve relative order and only collapse the hidden step when both features toggle', async () => {
+                await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: false, areCompanyCardsEnabled: false}});
+
+                const {result: bothDisabled} = renderHook(() => useGettingStartedItems());
+                expect(bothDisabled.current.items.map((item) => item.key)).toEqual(['createWorkspace', 'inviteAccountant']);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areCompanyCardsEnabled: true});
+                await waitForBatchedUpdates();
+
+                const {result: bothEnabled} = renderHook(() => useGettingStartedItems());
+                expect(bothEnabled.current.items.map((item) => item.key)).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'inviteAccountant']);
             });
         });
     });

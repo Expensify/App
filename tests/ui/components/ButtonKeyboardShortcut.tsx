@@ -1,7 +1,8 @@
 import {render} from '@testing-library/react-native';
 
+import Button from '@src/components/ButtonComposed/Button';
 import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
-import type {ButtonKeyboardShortcutProps} from '@src/components/ButtonComposed/types';
+import type {ButtonKeyboardShortcutProps, ButtonProps} from '@src/components/ButtonComposed/types';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -29,19 +30,24 @@ jest.mock('@hooks/useKeyboardShortcut', () =>
 // ──────────────────────────────────────────────────────────────────────────────
 
 /**
- * Renders ButtonKeyboardShortcut inside a NavigationContainer.
+ * Renders ButtonKeyboardShortcut inside a real Button (which owns ButtonContext) and a NavigationContainer.
  * NavigationContainer is required because the component calls useIsFocused().
  * isPressOnEnterActive=true is the default here so the shortcut is active
  * even without a focused screen, keeping individual tests simple.
+ * `buttonProps` set the parent Button's onPress/isDisabled/isLoading, which the primitive reads from context.
  */
-const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}) =>
+const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}, buttonProps: Omit<Partial<ButtonProps>, 'children'> = {}) =>
     render(
         <NavigationContainer>
-            <ButtonKeyboardShortcut
-                pressOnEnter
-                isPressOnEnterActive
-                {...props}
-            />
+            <Button
+                accessibilityLabel="button"
+                {...buttonProps}
+            >
+                <ButtonKeyboardShortcut
+                    isPressOnEnterActive
+                    {...props}
+                />
+            </Button>
         </NavigationContainer>,
     );
 
@@ -58,38 +64,22 @@ describe('ButtonKeyboardShortcut', () => {
     // ── Registration ───────────────────────────────────────────────────────────
 
     describe('registration', () => {
-        it('registers an Enter listener when pressOnEnter is true', () => {
-            // Given a ButtonKeyboardShortcut with pressOnEnter enabled
-            renderShortcut({pressOnEnter: true});
+        it('registers an Enter listener when mounted and active', () => {
+            // Given a mounted ButtonKeyboardShortcut (active via isPressOnEnterActive)
+            renderShortcut();
 
             // Then useKeyboardShortcut was called and the callback was captured
             expect(enterKeyCallback).toBeDefined();
-        });
-
-        it('does not register an Enter listener when pressOnEnter is false', () => {
-            // Given a ButtonKeyboardShortcut with pressOnEnter disabled
-            renderShortcut({pressOnEnter: false});
-
-            // Then no callback was registered (mock guards on config.isActive)
-            expect(enterKeyCallback).toBeUndefined();
-        });
-
-        it('does not register an Enter listener when pressOnEnter is omitted', () => {
-            // Given a ButtonKeyboardShortcut without pressOnEnter
-            renderShortcut({pressOnEnter: undefined});
-
-            // Then no callback was registered
-            expect(enterKeyCallback).toBeUndefined();
         });
     });
 
     // ── onPress invocation ─────────────────────────────────────────────────────
 
     describe('onPress invocation', () => {
-        it('calls onPress when Enter is triggered and the button is enabled', () => {
-            // Given an active shortcut with an onPress handler
+        it('calls the context onPress when Enter is triggered and the button is enabled', () => {
+            // Given an active shortcut whose parent Button provides an onPress handler
             const onPress = jest.fn();
-            renderShortcut({onPress});
+            renderShortcut({}, {onPress});
 
             // When the Enter key fires
             enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
@@ -98,10 +88,10 @@ describe('ButtonKeyboardShortcut', () => {
             expect(onPress).toHaveBeenCalledTimes(1);
         });
 
-        it('blocks onPress when isDisabled is true', () => {
-            // Given a shortcut where the button is disabled
+        it('blocks onPress when the context isDisabled is true', () => {
+            // Given a shortcut whose parent Button is disabled
             const onPress = jest.fn();
-            renderShortcut({onPress, isDisabled: true});
+            renderShortcut({}, {onPress, isDisabled: true});
 
             // When the Enter key fires
             enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
@@ -110,10 +100,10 @@ describe('ButtonKeyboardShortcut', () => {
             expect(onPress).not.toHaveBeenCalled();
         });
 
-        it('blocks onPress when isLoading is true', () => {
-            // Given a shortcut where the button is loading
+        it('blocks onPress when the context isLoading is true', () => {
+            // Given a shortcut whose parent Button is loading
             const onPress = jest.fn();
-            renderShortcut({onPress, isLoading: true});
+            renderShortcut({}, {onPress, isLoading: true});
 
             // When the Enter key fires
             enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
@@ -161,8 +151,12 @@ describe('ButtonKeyboardShortcut', () => {
     // ── Rendering ──────────────────────────────────────────────────────────────
 
     it('renders nothing to the DOM', () => {
-        // Given a rendered ButtonKeyboardShortcut
-        const {toJSON} = renderShortcut();
+        // Given the primitive rendered in isolation (default context), so no parent Button markup interferes
+        const {toJSON} = render(
+            <NavigationContainer>
+                <ButtonKeyboardShortcut isPressOnEnterActive />
+            </NavigationContainer>,
+        );
 
         // Then it contributes no nodes to the render tree
         expect(toJSON()).toBeNull();
