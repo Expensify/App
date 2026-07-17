@@ -138,7 +138,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_CONFIRMATION_CURRENCY: {
         path: 'currency',
-        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.MONEY_REQUEST.STEP_UPGRADE],
     },
     MIGRATED_USER_WELCOME: {
         path: 'migrated-user-welcome',
