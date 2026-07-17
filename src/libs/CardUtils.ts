@@ -2179,4 +2179,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CardConnectionStatusDisplayParams};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
