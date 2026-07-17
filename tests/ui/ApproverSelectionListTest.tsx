@@ -286,20 +286,21 @@ describe('ApproverSelectionList', () => {
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(selectedApprover);
     });
 
-    it('keeps natural filtered ordering while search is active', () => {
+    it('keeps initial selection ordering while search is active', () => {
         renderApproverSelectionList();
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
 
         act(() => {
-            initialProps?.textInputOptions?.onChangeText?.('User 1');
+            initialProps?.textInputOptions?.onChangeText?.('User');
         });
 
         const searchedProps = mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
 
         expect(searchedProps?.data.at(0)).toEqual(
             expect.objectContaining({
-                keyForList: 'user1@example.com',
+                keyForList: selectedApprover,
+                isSelected: true,
             }),
         );
     });

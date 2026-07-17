@@ -107,18 +107,10 @@ function ApproverSelectionList({
         (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
     const data = useMemo(() => {
-        const filteredApprovers =
-            debouncedSearchTerm !== ''
-                ? tokenizedSearch(allApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
-                : allApprovers;
+        const sortedApprovers = sortAlphabetically(allApprovers, 'text', localeCompare);
+        const orderedApprovers = moveInitialSelectionToTop(sortedApprovers, initialSelectedApproverKeys);
 
-        const sortedApprovers = sortAlphabetically(filteredApprovers, 'text', localeCompare);
-
-        if (debouncedSearchTerm) {
-            return sortedApprovers;
-        }
-
-        return moveInitialSelectionToTop(sortedApprovers, initialSelectedApproverKeys);
+        return tokenizedSearch(orderedApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? '']);
     }, [allApprovers, debouncedSearchTerm, countryCode, localeCompare, initialSelectedApproverKeys]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !data.length && shouldShowListEmptyContentProp;
