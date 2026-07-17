@@ -262,6 +262,7 @@ function SubmitDetailsPage({
         // `transaction.transactionID` is the draft placeholder; mirror the action's `existingTransactionID ?? rand64()` chain so cleanup nav targets the created expense.
         const optimisticTransactionID = existingTransactionID ?? rand64();
         let iouReportID: string | undefined;
+        let transactionThreadReportID: string | undefined;
 
         // This path skips createTransaction, so log the submit milestone here to map the draft id to the final one.
         logReceiptSubmitted({
@@ -273,7 +274,7 @@ function SubmitDetailsPage({
         });
 
         if (isSelfDM(report)) {
-            trackExpense({
+            const trackExpenseResult = trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
                 isDraftPolicy: false,
                 isDraftChatReport: !!reportDraft,
@@ -315,6 +316,8 @@ function SubmitDetailsPage({
                 delegateAccountID,
                 reportActionsList: undefined,
             });
+            iouReportID = trackExpenseResult?.iouReport?.reportID;
+            transactionThreadReportID = trackExpenseResult?.transactionThreadReportID;
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
@@ -369,6 +372,7 @@ function SubmitDetailsPage({
             draftTransactionIDs,
             transactionID: optimisticTransactionID,
             iouReportID,
+            transactionThreadReportID,
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             optimisticChatReportID: reportOrAccountID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,

@@ -229,6 +229,30 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    describe('Share flow self-DM track path (View action)', () => {
+        it('should open the transaction thread on View when a transactionThreadReportID is provided but there is no iouReportID (tracked self-DM expense)', async () => {
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockGetIsNarrowLayout.mockReturnValue(true);
+
+            navigateAfterExpenseCreate({
+                activeReportID: 'self-dm-1',
+                transactionID: 'txn-1',
+                transactionThreadReportID: 'thread-1',
+                iouReportID: undefined,
+                isFromGlobalCreate: false,
+                hasMultipleTransactions: false,
+                shouldAlwaysShowFeedback: true,
+            });
+            await waitForBatchedUpdates();
+
+            const growlAction = jest.mocked(Growl.success).mock.calls.at(0)?.[2];
+            growlAction?.onPress();
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('thread-1', undefined, undefined, ''));
+        });
+    });
+
     describe('navigateToCreatedExpense', () => {
         it('should open the transaction thread in the Spend RHP when the user is on the Spend tab', async () => {
             mockIsReportTopmostSplitNavigator.mockReturnValue(false);
