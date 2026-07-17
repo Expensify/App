@@ -6251,6 +6251,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         vendors: {
             emptyTitle: 'Nenhum fornecedor ainda',
             emptySubtitle: 'Os fornecedores aparecerão aqui após a conclusão da sincronização contábil.',
+            findVendor: 'Buscar fornecedor',
+            managedInAccountingSoftware: 'Os fornecedores são gerenciados em suas',
         },
         tags: {
             tagName: 'Nome da tag',

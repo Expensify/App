@@ -6288,6 +6288,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         vendors: {
             emptyTitle: 'Noch keine Anbieter',
             emptySubtitle: 'Anbieter erscheinen hier, sobald die Synchronisierung mit deiner Buchhaltung abgeschlossen ist.',
+            findVendor: 'Anbieter suchen',
+            managedInAccountingSoftware: 'Anbieter werden in deinen',
         },
         tags: {
             tagName: 'Tag-Name',

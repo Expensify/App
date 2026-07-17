@@ -6369,6 +6369,8 @@ const translations = {
         vendors: {
             emptyTitle: 'No vendors yet',
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
+            findVendor: 'Find vendor',
+            managedInAccountingSoftware: 'Vendors are managed in your',
         },
         tags: {
             tagName: 'Tag name',

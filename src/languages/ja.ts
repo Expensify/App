@@ -6195,6 +6195,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         vendors: {
             emptyTitle: 'ベンダーはまだありません',
             emptySubtitle: '会計連携の同期が完了すると、ベンダーがここに表示されます。',
+            findVendor: 'ベンダーを検索',
+            managedInAccountingSoftware: 'ベンダーは',
         },
         tags: {
             tagName: 'タグ名',

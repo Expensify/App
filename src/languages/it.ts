@@ -6276,6 +6276,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         vendors: {
             emptyTitle: 'Nessun fornitore ancora',
             emptySubtitle: 'I fornitori appariranno qui al termine della sincronizzazione con la contabilità.',
+            findVendor: 'Trova fornitore',
+            managedInAccountingSoftware: 'I fornitori sono gestiti nelle tue',
         },
         tags: {
             tagName: 'Nome tag',

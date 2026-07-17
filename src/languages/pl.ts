@@ -6239,6 +6239,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         vendors: {
             emptyTitle: 'Brak dostawców',
             emptySubtitle: 'Dostawcy pojawią się tutaj po zakończeniu synchronizacji z systemem księgowym.',
+            findVendor: 'Znajdź dostawcę',
+            managedInAccountingSoftware: 'Dostawcy są zarządzani w Twoich',
         },
         tags: {
             tagName: 'Nazwa tagu',

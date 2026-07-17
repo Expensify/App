@@ -6071,6 +6071,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         vendors: {
             emptyTitle: '暂无供应商',
             emptySubtitle: '会计同步完成后，供应商将显示在这里。',
+            findVendor: '查找供应商',
+            managedInAccountingSoftware: '供应商在您的',
         },
         tags: {
             tagName: '标签名称',
