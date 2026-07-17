@@ -115,6 +115,7 @@ describe('runAfterPredictedTransition', () => {
         expect(callback).not.toHaveBeenCalled();
 
         const transitionHandle = TransitionTracker.startTransition();
+        // Two ticks: one for promiseForNextTransitionStart, one for Promise.race wrapper
         await Promise.resolve();
         await Promise.resolve();
         expect(callback).not.toHaveBeenCalled();
@@ -196,6 +197,34 @@ describe('runAfterPredictedTransition', () => {
         flushPredictionTick();
 
         expect(runAfterTransitionsSpy).toHaveBeenCalledWith(expect.objectContaining({callback, waitForUpcomingTransition: false}));
+        expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('confirms a focus move on prediction-window expiry when the hydrated ref already changed (delayed state event)', async () => {
+        // React Navigation updates its sync store during dispatch, but the container `state` event
+        // only fires from useEffect after commit - on a jammed JS thread the effect can lag the
+        // prediction-window timer. The timer must re-check getCurrentRoute before clearing.
+        emitState('route-a');
+        emitAction('NAVIGATE');
+        mockNavigationRef.currentRouteKey = 'route-b';
+
+        const callback = jest.fn();
+        runAfterPredictedTransition(callback);
+        flushPredictionTick();
+
+        expect(callback).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(CONST.NAVIGATION_PREDICTION_WINDOW_MS);
+        flushPredictionTick();
+
+        expect(runAfterTransitionsSpy).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
+        expect(callback).not.toHaveBeenCalled();
+
+        const transitionHandle = TransitionTracker.startTransition();
+        // Two ticks: one for promiseForNextTransitionStart, one for Promise.race wrapper
+        await Promise.resolve();
+        await Promise.resolve();
+        TransitionTracker.endTransition(transitionHandle);
         expect(callback).toHaveBeenCalledTimes(1);
     });
 

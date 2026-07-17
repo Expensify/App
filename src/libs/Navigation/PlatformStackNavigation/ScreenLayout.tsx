@@ -1,4 +1,3 @@
-import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
@@ -34,31 +33,17 @@ function bottomTabScreenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<Pa
         <ScreenLayout
             {...rest}
             navigation={navigation}
-            isTabScreen
         />
     );
 }
 
-type ScreenLayoutProps = ScreenLayoutArgs<
-    ParamListBase,
-    string,
-    PlatformSpecificNavigationOptions | PlatformStackNavigationOptions | BottomTabNavigationOptions,
-    TransitionAwareNavigation
-> & {
-    /** Whether this instance belongs to a bottom-tab navigator's screenLayout. Tab routes can host their own
-     *  nested navigator, so only the currently focused leaf route inside it should register with TransitionTracker -
-     *  the tab route's own transitionStart/transitionEnd would otherwise be redundant with the nested screen's. */
-    isTabScreen?: boolean;
-};
+type ScreenLayoutProps = ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions | BottomTabNavigationOptions, TransitionAwareNavigation>;
 
-function ScreenLayout({children, navigation, route, isTabScreen}: ScreenLayoutProps) {
+function ScreenLayout({children, navigation}: ScreenLayoutProps) {
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
 
     useLayoutEffect(() => {
         const transitionStartListener = navigation.addListener('transitionStart', () => {
-            if (isTabScreen && navigationRef.isReady() && navigationRef.getCurrentRoute()?.key !== route.key) {
-                return;
-            }
             transitionHandleRef.current = TransitionTracker.startTransition();
         });
         const transitionEndListener = navigation.addListener('transitionEnd', () => {
@@ -81,7 +66,7 @@ function ScreenLayout({children, navigation, route, isTabScreen}: ScreenLayoutPr
                 transitionHandleRef.current = null;
             }
         };
-    }, [navigation, route.key, isTabScreen]);
+    }, [navigation]);
 
     return children;
 }
