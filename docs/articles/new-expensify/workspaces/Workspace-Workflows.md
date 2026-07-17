@@ -91,7 +91,7 @@ Once enabled, you can use **Mark as Paid** to keep track of reimbursements made 
 
 ## How to choose an authorized payer without a connected bank account
 
-When **Payments** is enabled, you can set an **Authorized payer** even if no bank account is connected. The authorized payer is the Workspace Admin responsible for paying reports, and they'll be the one prompted to pay.
+When **Payments** is enabled, you can set an **Authorized payer** even if no bank account is connected. The authorized payer is the admin responsible for paying reports, and they'll be the one prompted to pay.
 
 1. In the navigation tabs (on the left on web, and on the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
 2. Under **Payments**, click **Payer**.
@@ -105,7 +105,7 @@ Purpose: Confirms the Payer field is available before a bank account is added
 
 ## What happens after you set an authorized payer
 
-Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other Workspace Admins won't receive those prompts. Other admins can still open a report and pay it.
+Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts. Other admins can still open a report and pay it.
 
 ---
 
