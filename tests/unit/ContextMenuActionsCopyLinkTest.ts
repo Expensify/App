@@ -1,8 +1,12 @@
 import Clipboard from '@libs/Clipboard';
-import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getDisplayedReportID} from '@libs/ReportUtils';
 
+import ContextMenuActions from '@pages/inbox/report/ContextMenu/ContextMenuActions';
+import type {ContextMenuActionPayload} from '@pages/inbox/report/ContextMenu/ContextMenuActions';
+
 import CONST from '@src/CONST';
+
+import createRandomReportAction from '../utils/collections/reportActions';
 
 // Verifies the "Copy link" context menu action (change A for issue #86919): for one-transaction
 // expense flows the copied link must use the DISPLAYED (parent expense) report ID rather than the
@@ -31,41 +35,39 @@ jest.mock('@libs/Clipboard', () => ({
 
 jest.mock('@libs/Environment/Environment', () => ({
     __esModule: true,
-    ...jest.requireActual('@libs/Environment/Environment'),
+    ...jest.requireActual<typeof import('@libs/Environment/Environment')>('@libs/Environment/Environment'),
     getEnvironmentURL: jest.fn(() => Promise.resolve('https://new.expensify.com')),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
     __esModule: true,
-    ...jest.requireActual('@libs/ReportUtils'),
+    ...jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils'),
     getDisplayedReportID: jest.fn(),
 }));
 
-const mockClipboard = Clipboard as {
-    canSetHtml: jest.Mock;
-    setString: jest.Mock;
-    setHtml: jest.Mock;
-};
-const mockGetDisplayedReportID = getDisplayedReportID as jest.Mock;
-
-type ContextMenuAction = {
-    sentryLabel?: string;
-    onPress?: (closePopover: boolean, payload: Record<string, unknown>) => void;
-};
-
-const {default: ContextMenuActions} = require('@pages/inbox/report/ContextMenu/ContextMenuActions') as {default: ContextMenuAction[]};
+const mockClipboard = jest.mocked(Clipboard);
+const mockGetDisplayedReportID = jest.mocked(getDisplayedReportID);
 
 const copyLinkAction = ContextMenuActions.find((action) => action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_LINK);
 
 // Flush the microtasks queued by getEnvironmentURL().then(...) inside the onPress handler.
-const flushPromises = () => new Promise(process.nextTick);
+const flushPromises = () =>
+    new Promise((resolve) => {
+        process.nextTick(resolve);
+    });
 
-const createPayload = (payload: Record<string, unknown>): Record<string, unknown> => ({
-    reportAction: {reportActionID: 'action-1'},
-    originalReportID: 'transaction-thread-1',
-    isOffline: false,
-    ...payload,
-});
+function createPayload(overrides: Partial<ContextMenuActionPayload>): ContextMenuActionPayload {
+    // The copy-link handler only reads reportAction, originalReportID, and isOffline; the rest of the
+    // (large) payload type is irrelevant to this action, so we assert the minimal shape it needs.
+    const payload = {
+        reportAction: {...createRandomReportAction(1), reportActionID: 'action-1'},
+        originalReportID: 'transaction-thread-1',
+        isOffline: false,
+        ...overrides,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test payload only needs the fields the copy-link handler reads
+    return payload as ContextMenuActionPayload;
+}
 
 describe('ContextMenuActions copy link', () => {
     beforeEach(() => {

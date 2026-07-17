@@ -59,11 +59,11 @@ function makeReport(overrides: Partial<Report> = {}): Report {
  * consistent — getContinuousChain indexes by reportActionID, and the "newest window"
  * result for empty pages returns the whole array regardless of order.
  */
-function makeActions(actionIds: string[]): ReportAction[] {
-    return actionIds.map((reportActionID, index) => ({
+function makeActions(reportActionIds: string[]): ReportAction[] {
+    return reportActionIds.map((reportActionID, index) => ({
         ...createRandomReportAction(index),
         reportActionID,
-        created: `2024-01-01 10:0${actionIds.length - index}:00.000`,
+        created: `2024-01-01 10:0${reportActionIds.length - index}:00.000`,
     }));
 }
 
