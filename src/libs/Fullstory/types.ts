@@ -1,5 +1,5 @@
 import type CONST from '@src/CONST';
-import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, Session, UserMetadata} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -27,7 +27,7 @@ interface FSPageLikeConstructor {
 
 type GetChatFSClass = (report: OnyxInputOrEntry<Report>) => FSClass;
 
-type ShouldInitialize = (userMetadata: UserMetadata, envName: string) => boolean;
+type ShouldInitialize = (userMetadata: UserMetadata, envName: string, session: OnyxEntry<Session>) => boolean;
 
 type Fullstory = {
     /**
@@ -43,7 +43,7 @@ type Fullstory = {
     /**
      * Initializes Fullstory.
      */
-    init: (userMetadata: OnyxEntry<UserMetadata>) => void;
+    init: (userMetadata: OnyxEntry<UserMetadata>, session: OnyxEntry<Session>) => void;
 
     /**
      * Executes a function when the Fullstory library is ready, either by initialization or by observing the start event.
@@ -68,7 +68,7 @@ type Fullstory = {
     /**
      * Initializes the Fullstory metadata with the provided metadata information.
      */
-    consentAndIdentify: (userMetadata: OnyxEntry<UserMetadata>) => void;
+    consentAndIdentify: (userMetadata: OnyxEntry<UserMetadata>, session: OnyxEntry<Session>) => void;
 
     /**
      * Sets the identity as anonymous using the Fullstory library.

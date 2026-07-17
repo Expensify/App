@@ -11,7 +11,7 @@ const FS: Fullstory = {
 
     getChatFSClass,
 
-    init: (userMetadata) => FS.consentAndIdentify(userMetadata),
+    init: (userMetadata, session) => FS.consentAndIdentify(userMetadata, session),
 
     onReady: async () => FullStory.onReady(),
 
@@ -25,7 +25,7 @@ const FS: Fullstory = {
         FullStory.identify(String(localMetadata.accountID), localMetadata);
     },
 
-    consentAndIdentify: (userMetadata) => {
+    consentAndIdentify: (userMetadata, session) => {
         // On the first subscribe for UserMetadata, this function will be called. We need
         // to confirm that we actually have any value here before proceeding.
         if (!userMetadata?.accountID) {
@@ -37,7 +37,7 @@ const FS: Fullstory = {
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
             getEnvironment().then((envName: string) => {
-                if (!FS.shouldInitialize(userMetadata, envName)) {
+                if (!FS.shouldInitialize(userMetadata, envName, session)) {
                     return;
                 }
 

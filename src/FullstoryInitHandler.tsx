@@ -14,9 +14,10 @@ import ONYXKEYS from './ONYXKEYS';
  */
 function FullstoryInitHandler() {
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     useEffect(() => {
-        FS.init(userMetadata);
+        FS.init(userMetadata, session);
         FS.getSessionURL()
             .then((url) => {
                 if (!url) {
@@ -29,7 +30,7 @@ function FullstoryInitHandler() {
                     error: error instanceof Error ? error.message : String(error),
                 });
             });
-    }, [userMetadata]);
+    }, [userMetadata, session]);
 
     return null;
 }

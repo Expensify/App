@@ -19,7 +19,7 @@ const FS: Fullstory = {
 
     getChatFSClass,
 
-    init: () => {},
+    init: (_userMetadata, _session) => {},
 
     onReady: async () =>
         new Promise((resolve) => {
@@ -36,7 +36,7 @@ const FS: Fullstory = {
             }
         }),
 
-    shouldInitialize: (userMetadata, envName) => shouldInitializeFullstory(userMetadata, envName) && !isSupportAuthToken(),
+    shouldInitialize: (userMetadata, envName, session) => shouldInitializeFullstory(userMetadata, envName, session) && !isSupportAuthToken(session),
 
     consent: (shouldConsent) => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {consent: shouldConsent}),
 
@@ -52,7 +52,7 @@ const FS: Fullstory = {
         });
     },
 
-    consentAndIdentify: (userMetadata) => {
+    consentAndIdentify: (userMetadata, session) => {
         // On the first subscribe for UserMetadata, this function will be called. We need
         // to confirm that we actually have any value here before proceeding.
         if (!userMetadata?.accountID) {
@@ -64,7 +64,7 @@ const FS: Fullstory = {
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
             getEnvironment().then((envName: string) => {
-                if (!FS.shouldInitialize(userMetadata, envName)) {
+                if (!FS.shouldInitialize(userMetadata, envName, session)) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
                     if (isInitialized()) {
                         FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
