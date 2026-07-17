@@ -8,9 +8,9 @@ import type {TNode} from 'react-native-render-html';
 
 function createNode(tagName: string, attributes: Record<string, string> = {}, children: TNode[] = []): TNode {
     const node = {tagName, attributes, children, nodeIndex: 0} as unknown as TNode;
-    children.forEach((child, index) => {
+    for (const [index, child] of children.entries()) {
         Object.assign(child, {parent: node, nodeIndex: index});
-    });
+    }
     return node;
 }
 
@@ -49,10 +49,11 @@ describe('victorySeriesParser', () => {
     it('preserves point metadata by series and x value', () => {
         const node = createNode('victorybar', {data: "[{x: 1, y: 10, label: 'Jan 2026: $10', searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01'}]"});
         const result = parseVictorySeriesNode(node, null, null);
+        const numberOneKey = 'number:1';
 
         expect(result.pointMetadata).toEqual({
             y0: {
-                'number:1': {
+                [numberOneKey]: {
                     label: 'Jan 2026: $10',
                     searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01',
                 },
@@ -66,13 +67,15 @@ describe('victorySeriesParser', () => {
             labels: "['Fallback Jan', 'Fallback Feb']",
         });
         const result = parseVictorySeriesNode(node, null, null);
+        const numberOneKey = 'number:1';
+        const numberTwoKey = 'number:2';
 
         expect(result.pointMetadata).toEqual({
             y0: {
-                'number:1': {
+                [numberOneKey]: {
                     label: 'Fallback Jan',
                 },
-                'number:2': {
+                [numberTwoKey]: {
                     label: 'Custom Feb',
                 },
             },
@@ -84,15 +87,18 @@ describe('victorySeriesParser', () => {
         const secondNode = createNode('victorybar', {data: "[{x: 1, y: 20, label: 'Prior Jan'}]"});
         const tree = createNode('victorychart', {}, [firstNode, secondNode]);
         const result = processVictoryChartTree(tree, null, null);
+        const firstSeriesKey = 'y0-0';
+        const secondSeriesKey = 'y0-1';
+        const numberOneKey = 'number:1';
 
         expect(result.pointMetadata).toEqual({
-            'y0-0': {
-                'number:1': {
+            [firstSeriesKey]: {
+                [numberOneKey]: {
                     label: 'Current Jan',
                 },
             },
-            'y0-1': {
-                'number:1': {
+            [secondSeriesKey]: {
+                [numberOneKey]: {
                     label: 'Prior Jan',
                 },
             },
