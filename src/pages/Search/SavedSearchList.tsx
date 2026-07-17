@@ -19,7 +19,7 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {SavedSearchMenuItem, SearchKey} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -42,6 +42,7 @@ type SavedSearchListProps = {
 
 type SavedSearchMenuItemBuilderParams = {
     item: SaveSearchItem;
+    itemQuery: string;
     key: string;
     index: number;
     currentSearchKey: SearchKey | undefined;
@@ -57,6 +58,7 @@ type SavedSearchMenuItemBuilderParams = {
 
 function buildSavedSearchMenuItem({
     item,
+    itemQuery,
     key,
     index,
     currentSearchKey,
@@ -69,7 +71,7 @@ function buildSavedSearchMenuItem({
     tooltipWrapperStyle,
     isCopied,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
-    const savedSearchKey = `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${key}` as const;
+    const savedSearchKey = savedSearchIDToSearchKey(key);
     const isItemFocused = savedSearchKey === currentSearchKey;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
@@ -80,7 +82,7 @@ function buildSavedSearchMenuItem({
         onPress: () => {
             setSearchContext(false);
             setCurrentSearchKey(savedSearchKey);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: itemQuery, name: item?.name}));
         },
         rightComponent: (
             <SavedSearchItemThreeDotMenu
@@ -112,6 +114,7 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
     const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -166,6 +169,7 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
               .map(([key, item], index) =>
                   buildSavedSearchMenuItem({
                       item,
+                      itemQuery: searchFilters?.[savedSearchIDToSearchKey(key)] ?? item.query ?? '',
                       key,
                       index,
                       currentSearchKey,

@@ -23,7 +23,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setCurrentSearchKey, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getOverflowMenu, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -94,6 +94,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const isFocused = useIsFocused();
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -158,7 +159,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
 
-                  const savedSearchKey = `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${key}` as const;
+                  const savedSearchKey = savedSearchIDToSearchKey(key);
                   queryMap.set(savedSearchKey, {query: item.query ?? '', name: item.name});
                   savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(
                       expensifyIcons,
@@ -233,7 +234,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: searchData.query, name: searchData.name, rawQuery: undefined},
+                params: {q: searchFilters?.[tabKey] ?? searchData.query, name: searchData.name, rawQuery: undefined},
             },
         });
     };

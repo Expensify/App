@@ -121,6 +121,7 @@ function SearchTypeMenuWide() {
     const typeMenuSections = useSearchTypeMenuSections();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     // Intentionally left enabled (no focus freeze): the wide menu renders in the search navigator's ExtraContent
     // slot, where useIsFocused() does not track visibility, so freezing on it would be unreliable.
     const {counts: reportCounts} = useTodoCounts();
@@ -141,7 +142,7 @@ function SearchTypeMenuWide() {
         clearSelectedTransactions();
         setSearchContext(false);
         setCurrentSearchKey(key);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchFilters?.[key] ?? searchQuery}));
     });
 
     useLayoutEffect(() => {

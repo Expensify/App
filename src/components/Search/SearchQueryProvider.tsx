@@ -7,7 +7,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {setCurrentSearchKey} from '@libs/actions/Search';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -74,13 +74,13 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
             return suggestedSearchKey;
         }
 
-        const savedSearchKey = Object.keys(savedSearches ?? {}).find((key) => {
-            const query = searchFilters?.[`${CONST.SEARCH.SAVED_SEARCH_PREFIX}${key}`] ?? savedSearches?.[key].query;
+        const savedSearchID = Object.keys(savedSearches ?? {}).find((id) => {
+            const query = searchFilters?.[savedSearchIDToSearchKey(id)] ?? savedSearches?.[id].query;
             return query ? buildSearchQueryJSON(query)?.similarSearchHash === currentSimilarSearchHash : false;
         });
 
-        if (savedSearchKey) {
-            return `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${savedSearchKey}` as const;
+        if (savedSearchID) {
+            return savedSearchIDToSearchKey(savedSearchID);
         }
 
         const typeToGenericKey: Record<string, SearchKey> = {

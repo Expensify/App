@@ -4557,6 +4557,10 @@ function getOverflowMenu(
     ];
 }
 
+function savedSearchIDToSearchKey(id: string): SearchKey {
+    return `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${id}`;
+}
+
 function searchKeyToSavedSearchID(key: SearchKey | undefined) {
     return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
 }
@@ -6499,6 +6503,7 @@ export {
     isReportActionListItemType,
     shouldShowYear,
     getOverflowMenu,
+    savedSearchIDToSearchKey,
     searchKeyToSavedSearchID,
     isCorrectSearchUserName,
     isReportActionEntry,
