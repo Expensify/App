@@ -2943,12 +2943,12 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
-        getRoute: (policyID: string, fundID: number, feedCountry?: string) =>
+        getRoute: (policyID: string, fundID: number, feedCountry: string) =>
             `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email${feedCountry ? `?feedCountry=${feedCountry}` : ''}` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email',
-        getRoute: (policyID: string, fundID: number, feedCountry?: string) =>
+        getRoute: (policyID: string, fundID: number, feedCountry: string) =>
             `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email${feedCountry ? `?feedCountry=${feedCountry}` : ''}` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
