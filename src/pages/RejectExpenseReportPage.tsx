@@ -86,9 +86,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const ownerAccountID = report?.ownerAccountID;
     const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useOnyx(
         ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => submitterAndLastForwardedActorEmailSelector(ownerAccountID, lastForwardedActorAccountID)(personalDetailsList),
-        },
+        {selector: submitterAndLastForwardedActorEmailSelector(ownerAccountID, lastForwardedActorAccountID)},
     );
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
