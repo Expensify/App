@@ -32,6 +32,10 @@ const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootS
     Effects: RootStackNavigatorEffects,
     getCustomState: useCustomRootStackNavigatorState,
     ExtraContent: RootNavigatorExtraContent,
+    nonTopScreensBehavior: 'activity',
+    // The root persistentScreens (TabNavigator, RightModalNavigator) only drive the dontDetachScreen route flag,
+    // so fullscreen content covered by another root route should still be deprioritized.
+    shouldWrapPersistentScreens: true,
 });
 
 function createRootStackNavigator<

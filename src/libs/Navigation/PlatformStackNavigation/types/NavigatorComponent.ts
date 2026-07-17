@@ -66,6 +66,11 @@ type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends Platform
     ExtraContent?: ExtraContent;
     NavigationContentWrapper?: NavigationContentWrapper;
     nonTopScreensBehavior?: NonTopScreensBehavior;
+
+    // By default persistent screens (visible alongside the top screen, e.g. a split sidebar) are exempt from the
+    // non-top screens behavior. The root stack lists persistent screens only to drive the dontDetachScreen route
+    // flag, so it opts into wrapping them anyway to deprioritize fullscreen content covered by another route.
+    shouldWrapPersistentScreens?: boolean;
 };
 
 export type {CustomCodeProps, CustomStateHookProps, CustomEffectsHookProps, CreatePlatformStackNavigatorComponentOptions, ExtraContentProps, NonTopScreensBehavior};

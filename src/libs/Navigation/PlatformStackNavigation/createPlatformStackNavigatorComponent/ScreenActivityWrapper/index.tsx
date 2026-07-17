@@ -1,11 +1,9 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Log from '@libs/Log';
+import CustomViewWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/CustomViewWrapper';
 
-import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
-
-import React, {Activity, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {Activity, useEffect, useRef} from 'react';
 
 import type ScreenActivityWrapperProps from './types';
 
@@ -14,35 +12,14 @@ import type ScreenActivityWrapperProps from './types';
  * processing state updates at background priority and runs effect cleanups when hiding, so a modal or popover that
  * is still dismissing when the screen gets blurred always finishes its close chain.
  *
- * A hidden Activity applies display none to its content, so hiding is deferred until the navigator has already
- * hidden the surrounding card. The sentinel view sits outside the Activity boundary and reflects the visibility of
- * the card itself. The stack navigator detaches a covered card (sets display none on it) only after the covering
- * transition completes, so observing the sentinel hides the content exactly when the navigator hides the card,
- * without timing heuristics. If the card ever becomes visible again while the screen is still blurred, the content
- * is restored the same way.
+ * The mode flips to hidden as soon as the screen is blurred. CustomViewWrapper neutralizes the display none that a
+ * hidden Activity applies to its content, so the screen stays painted and the navigator's card visibility keeps
+ * deciding what is actually shown - a covered screen that is still on screen (e.g. dimmed under the RHP overlay on
+ * wide layouts) does not disappear, it only stops updating until it is revealed again.
  */
 function ScreenActivityWrapper({isScreenBlurred, routeKey, routeName, children}: ScreenActivityWrapperProps) {
     const styles = useThemeStyles();
-    const sentinelRef = useRef<View>(null);
-    const [isCardHidden, setIsCardHidden] = useState(false);
-
-    useEffect(() => {
-        const sentinel = htmlDivElementRef(sentinelRef).current;
-        if (!sentinel || typeof IntersectionObserver === 'undefined') {
-            return;
-        }
-        const observer = new IntersectionObserver((entries) => {
-            const entry = entries.at(-1);
-            if (!entry) {
-                return;
-            }
-            setIsCardHidden(!entry.isIntersecting);
-        });
-        observer.observe(sentinel);
-        return () => observer.disconnect();
-    }, []);
-
-    const mode = isScreenBlurred && isCardHidden ? 'hidden' : 'visible';
+    const mode = isScreenBlurred ? 'hidden' : 'visible';
     const previousModeRef = useRef<typeof mode | null>(null);
 
     useEffect(() => {
@@ -60,13 +37,9 @@ function ScreenActivityWrapper({isScreenBlurred, routeKey, routeName, children}:
     }, [mode, routeKey, routeName]);
 
     return (
-        <>
-            <View
-                ref={sentinelRef}
-                style={styles.screenActivityWrapperSentinel}
-            />
-            <Activity mode={mode}>{children}</Activity>
-        </>
+        <Activity mode={mode}>
+            <CustomViewWrapper style={styles.flex1}>{children}</CustomViewWrapper>
+        </Activity>
     );
 }
 
