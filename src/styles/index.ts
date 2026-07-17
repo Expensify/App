@@ -6134,6 +6134,15 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
         },
+        screenActivityWrapperSentinel: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 1,
+            height: 1,
+            opacity: 0,
+            pointerEvents: 'none',
+        },
         animatedRHPNavigatorContainer: {
             height: '100%',
             right: 0,

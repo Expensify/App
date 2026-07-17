@@ -2,7 +2,7 @@ import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, 
 
 import {createNavigatorFactory} from '@react-navigation/native';
 
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from './types';
+import type {CreatePlatformStackNavigatorComponentOptions, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from './types';
 
 import createPlatformStackNavigatorComponent from './createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from './defaultPlatformStackScreenOptions';
@@ -24,10 +24,15 @@ function createPlatformStackNavigator<
         Navigator: typeof PlatformStackNavigatorComponent;
     },
     const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
->(config?: Config): TypedNavigator<TypeBag, Config> {
+>(config?: Config, options?: Pick<CreatePlatformStackNavigatorComponentOptions, 'nonTopScreensBehavior'>): TypedNavigator<TypeBag, Config> {
+    // The shared component is reused unless the caller opts into a non-top screens behavior,
+    // which is baked into the navigator component at creation time.
+    const navigatorComponent = options?.nonTopScreensBehavior
+        ? createPlatformStackNavigatorComponent('PlatformStackNavigator', {defaultScreenOptions: defaultPlatformStackScreenOptions, nonTopScreensBehavior: options.nonTopScreensBehavior})
+        : PlatformStackNavigatorComponent;
     // In React Navigation 7 createNavigatorFactory returns any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return createNavigatorFactory(PlatformStackNavigatorComponent)(config);
+    return createNavigatorFactory(navigatorComponent)(config);
 }
 
 export default createPlatformStackNavigator;

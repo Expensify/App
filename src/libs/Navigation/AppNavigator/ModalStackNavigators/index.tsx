@@ -126,7 +126,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
  * @param screens key/value pairs where the key is the name of the screen and the value is a function that returns the lazy-loaded component
  */
 function createModalStackNavigator<ParamList extends ParamListBase>(screens: Screens): React.ComponentType {
-    const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
+    // Covered screens in every modal stack (e.g. previous RHP steps) are wrapped in React <Activity> so their
+    // updates are deferred to background priority while they stay mounted with preserved state.
+    const ModalStackNavigator = createPlatformStackNavigator<ParamList>(undefined, {nonTopScreensBehavior: 'activity'});
 
     function ModalStack() {
         const styles = useThemeStyles();

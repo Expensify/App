@@ -18,7 +18,7 @@ import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
 import React from 'react';
 
-import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
+import wrapDescriptorsWithNonTopScreensBehavior from './wrapDescriptorsWithNonTopScreensBehavior';
 
 type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = PlatformStackNavigatorProps<ParamListBase, RouterOptions> & {
     createRouter: NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['createRouter']>;
@@ -27,7 +27,7 @@ type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions
     ExtraContent?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['ExtraContent'];
     NavigationContentWrapper?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['NavigationContentWrapper'];
     Effects?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['Effects'];
-    freezeNonTopScreens?: boolean;
+    nonTopScreensBehavior?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['nonTopScreensBehavior'];
     displayName: string;
 };
 
@@ -47,7 +47,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     ExtraContent,
     NavigationContentWrapper,
     Effects,
-    freezeNonTopScreens,
+    nonTopScreensBehavior,
     displayName,
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
@@ -105,7 +105,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         }),
     };
 
-    const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state, persistentScreens) : descriptors;
+    const wrappedDescriptors = nonTopScreensBehavior ? wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, nonTopScreensBehavior, persistentScreens) : descriptors;
 
     const content = (
         <NavigationContent>
@@ -143,7 +143,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 ExtraContent={options?.ExtraContent}
                 NavigationContentWrapper={options?.NavigationContentWrapper}
                 Effects={options?.Effects}
-                freezeNonTopScreens={options?.freezeNonTopScreens}
+                nonTopScreensBehavior={options?.nonTopScreensBehavior}
                 displayName={displayName}
                 {...props}
             />

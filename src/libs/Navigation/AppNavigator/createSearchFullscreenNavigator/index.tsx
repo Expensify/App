@@ -29,6 +29,7 @@ const SearchFullscreenNavigatorComponent = createPlatformStackNavigatorComponent
     Effects: SearchFullscreenNavigatorEffects,
     getCustomState,
     ExtraContent: SearchSidebar,
+    nonTopScreensBehavior: 'activity',
 });
 
 function createSearchFullscreenNavigator<

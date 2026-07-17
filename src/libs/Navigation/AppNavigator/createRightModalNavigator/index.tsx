@@ -22,6 +22,7 @@ const RightModalNavigatorComponent = createPlatformStackNavigatorComponent(NAVIG
     createRouter: RightModalRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     Effects: RightModalNavigatorEffects,
+    nonTopScreensBehavior: 'activity',
 });
 
 function createRightModalNavigator<

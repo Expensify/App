@@ -24,6 +24,7 @@ const WorkspaceNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGA
     createRouter: WorkspaceRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     Effects: WorkspaceNavigatorEffects,
+    nonTopScreensBehavior: 'activity',
 });
 
 function createWorkspaceNavigator<
