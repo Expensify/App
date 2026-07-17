@@ -26,7 +26,7 @@ import type {ForwardedRef} from 'react';
 import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import {getButtonRole} from './utils';
@@ -214,28 +214,21 @@ function KeyboardShortcutComponent({
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
-    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION, [activeElementRole]);
+    const shouldDisableEnterShortcut = accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION;
 
-    const keyboardShortcutCallback = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
-                return;
-            }
-            onPress();
-        },
-        [isDisabled, isLoading, onPress],
-    );
+    const keyboardShortcutCallback = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
+            return;
+        }
+        onPress();
+    };
 
-    const config = useMemo(
-        () => ({
-            isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
-            shouldBubble: allowBubble,
-            priority: enterKeyEventListenerPriority,
-            shouldPreventDefault: false,
-        }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [shouldDisableEnterShortcut, isFocused],
-    );
+    const config = {
+        isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
+        shouldBubble: allowBubble,
+        priority: enterKeyEventListenerPriority,
+        shouldPreventDefault: false,
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
 
@@ -389,9 +382,13 @@ function Button({
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                     extraSmall={extraSmall}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                     small={small}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                     medium={medium}
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                     large={large}
                                     isButtonIcon
                                     accessibilityLabel={iconAccessibilityLabel}
@@ -405,9 +402,13 @@ function Button({
                             <Icon
                                 src={iconRight ?? icons.ArrowRight}
                                 fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultFill) : (iconRightFill ?? iconFill ?? defaultFill)}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                 extraSmall={extraSmall}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                 small={small}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                 medium={medium}
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
                                 large={large}
                                 isButtonIcon
                             />
@@ -431,55 +432,33 @@ function Button({
         buttonSize = CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     }
 
-    const buttonStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [
-            styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
-            success ? styles.buttonSuccess : undefined,
-            danger ? styles.buttonDanger : undefined,
-            isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
-            isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
-            shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-            shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-            text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
-            innerStyles,
-            link && styles.bgTransparent,
-        ],
-        [
-            StyleUtils,
-            danger,
-            icon,
-            innerStyles,
-            isDisabled,
-            buttonSize,
-            link,
-            shouldRemoveLeftBorderRadius,
-            shouldRemoveRightBorderRadius,
-            shouldShowRightIcon,
-            styles,
-            success,
-            text,
-            shouldStayNormalOnDisable,
-        ],
-    );
+    const buttonStyles: StyleProp<ViewStyle> = [
+        styles.button,
+        StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+        success ? styles.buttonSuccess : undefined,
+        danger ? styles.buttonDanger : undefined,
+        isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
+        isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
+        shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+        shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+        text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
+        innerStyles,
+        link && styles.bgTransparent,
+    ];
 
-    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
-        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
-    );
+    const buttonContainerStyles: StyleProp<ViewStyle> = [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer];
 
-    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        if (!shouldBlendOpacity) {
-            return undefined;
-        }
-
+    let buttonBlendForegroundStyle: StyleProp<ViewStyle>;
+    if (!shouldBlendOpacity) {
+        buttonBlendForegroundStyle = undefined;
+    } else {
         const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles);
 
-        return {
+        buttonBlendForegroundStyle = {
             backgroundColor,
             opacity,
         };
-    }, [buttonStyles, shouldBlendOpacity]);
+    }
 
     let loadingIndicatorColor = theme.text;
     if (danger) {

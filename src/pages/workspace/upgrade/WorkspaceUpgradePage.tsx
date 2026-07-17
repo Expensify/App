@@ -59,6 +59,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import UpgradeConfirmation from './UpgradeConfirmation';
@@ -128,6 +129,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || canAccessSubmitWorkspaceFeatures;
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     useEffect(() => {
         policyDataRef.current = policyData;
@@ -261,7 +263,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
@@ -270,7 +272,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id: {
                 let newReimbursementChoice;
-                if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                const hasConnectedBank =
+                    policy?.achAccount?.bankAccountID && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
+                if (!hasConnectedBank || !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                     newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                 } else {
                     newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -317,6 +321,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
         categoryId,
+        isTrackIntentUser,
     ]);
 
     useWorkspaceUpgradeConfirmation({

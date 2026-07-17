@@ -234,6 +234,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "status" value used for displaying and sorting */
         formattedStatus?: string;
 
+        /** Final and formatted "paid status" value (Marked as paid / Withdrawing / Confirmed) used for displaying and sorting */
+        formattedPaidStatus?: string;
+
         /** Final and formatted "from" value used for displaying and sorting */
         formattedFrom?: string;
 
