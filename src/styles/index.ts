@@ -1218,8 +1218,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellFullHeightHoverTarget: {
+            width: '100%',
             marginVertical: -variables.spacing2,
-            paddingVertical: variables.spacing2 + 4,
+            paddingVertical: variables.spacing2,
+            justifyContent: 'center',
         },
 
         editableCellEditButtonContainer: {

@@ -142,8 +142,8 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                 const shouldShowEditIcon = isEditIconFocused || isCellHovered;
 
                 return (
-                    <View style={[styles.editableCell, styles.editableCellFullHeightHoverTarget]}>
-                        {children}
+                    <View style={styles.editableCellFullHeightHoverTarget}>
+                        <View style={styles.editableCell}>{children}</View>
                         <View
                             pointerEvents={shouldShowEditIcon ? 'box-none' : 'none'}
                             style={[
