@@ -17,6 +17,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {trimTag} from '@libs/TagUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -58,6 +60,23 @@ function getRuleContentKey(rule: Pick<CodingRule, 'filters' | 'merchant' | 'cate
         rule.reimbursable ?? null,
         rule.billable ?? null,
     ]);
+}
+
+/**
+ * Normalizes an imported tag cell to the canonical multi-level encoding (levels joined by ":" with no surrounding
+ * spaces), matching what the manual "Add tag" flow stores via trimTag(levels.join(':')). Without this, a cell typed as
+ * "Parent: Child" would be persisted verbatim and later split into ["Parent", " Child"] on display, so the rule row
+ * would render "Parent, Child" and the tag field would only resolve the first level.
+ */
+function normalizeImportedTag(tag: string): string {
+    if (!tag) {
+        return '';
+    }
+    return trimTag(
+        getTagArrayFromName(tag)
+            .map((level) => level.trim())
+            .join(':'),
+    );
 }
 
 /** Parses a CSV cell into a boolean, or undefined when the cell is empty or unrecognized so the field is left unset */
@@ -173,7 +192,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
             const updatedMerchant = getCellValue(updatedMerchantColumn, rowIndex);
             const category = getCellValue(categoryColumn, rowIndex);
-            const tag = getCellValue(tagColumn, rowIndex);
+            const tag = normalizeImportedTag(getCellValue(tagColumn, rowIndex));
             const comment = getCellValue(commentColumn, rowIndex);
             const reimbursable = parseCsvBooleanValue(getCellValue(reimbursableColumn, rowIndex));
             const billable = parseCsvBooleanValue(getCellValue(billableColumn, rowIndex));
