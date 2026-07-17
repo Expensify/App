@@ -183,6 +183,10 @@ Expensify uses AI to detect suspicious or non-human receipts:
 
 This feature helps prevent policy violations and ensures accurate expense tracking from the moment of upload.
 
+## What happens to receipts that are still uploading when I sign out on mobile?
+
+If you manually sign out of the Expensify mobile app while receipts are still uploading, Expensify prompts you to save the pending receipt images to your device's photos before signing out.
+
 ## Why can't I forward receipts to receipts@expensify.com?
 
 If your company uses **Proofpoint Hosted Email Security**, you may be unable to forward receipts to receipts@expensify.com. This is caused by an issue on Proofpoint's side. Contact Proofpoint for resolution. In the meantime, you can upload receipts in the Expensify app or on the web, or text a receipt photo to 47777 (US numbers only) after [adding your phone number as a contact method](https://new.expensify.com/settings/profile/contact-methods).

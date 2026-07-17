@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
+import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {consumePendingConciergeDeepLink} from './PendingConciergeDeepLink';
@@ -102,7 +103,7 @@ function navigateAfterOnboarding(
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     } else if (consumePendingConciergeDeepLink()) {
         Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
-    } else {
+    } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME);
     }

@@ -182,7 +182,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportOrDraftReport,
-    getReportPreviewMessage,
+    getReportPreviewMessageForCopy,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
@@ -356,6 +356,7 @@ type ContextMenuActionPayload = {
     originalReportOfUnapprovedTransaction?: OnyxEntry<ReportType>;
     delegateAccountID: number | undefined;
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+    memberChangeLogRoomReportName: string | undefined;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string) => void;
@@ -938,6 +939,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 reportAttributes,
                 originalReportOfUnapprovedTransaction,
                 personalDetails,
+                memberChangeLogRoomReportName,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -953,10 +955,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessageWithCleanedMentions(selection);
                 } else if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
-                    const displayMessage = getReportPreviewMessage({
+                    const displayMessage = getReportPreviewMessageForCopy({
                         reportOrID: iouReportID,
                         iouReportAction: reportAction,
-                        isCopyAction: true,
                         reportAttributes,
                     });
                     Clipboard.setString(displayMessage);
@@ -998,8 +999,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                             reportAction,
                             getPersonalDetailsByID(reportAction.actorAccountID, personalDetails),
                             getPersonalDetailsListByIDs(targetAccountIDs, personalDetails),
-                            getReportName,
-                            reportAttributes,
+                            memberChangeLogRoomReportName,
                         ).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {

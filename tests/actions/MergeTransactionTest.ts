@@ -186,6 +186,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
     const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport} = fixtures;
 
     mergeTransactionRequest({
+        iouReportOwnerLogin: undefined,
         mergeTransactionID,
         mergeTransaction,
         targetTransaction,
@@ -302,6 +303,7 @@ describe('mergeTransactionRequest', () => {
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
@@ -419,6 +421,7 @@ describe('mergeTransactionRequest', () => {
 
         // When the merge fires
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
@@ -521,6 +524,7 @@ describe('mergeTransactionRequest', () => {
 
         // When: The Merge Expense flow is executed
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
@@ -685,6 +689,7 @@ describe('mergeTransactionRequest', () => {
         mockFetch?.fail?.();
 
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
@@ -790,6 +795,7 @@ describe('mergeTransactionRequest', () => {
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
@@ -1020,6 +1026,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
@@ -1221,6 +1228,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
@@ -1373,6 +1381,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
