@@ -1,5 +1,6 @@
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -13,7 +14,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
-import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
@@ -75,7 +75,7 @@ function IOURequestStepAmount({
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
     const amountFormRef = useRef<MoneyRequestAmountFormHandle | null>(null);
@@ -238,7 +238,7 @@ function IOURequestStepAmount({
             paymentMethod,
             isTrackIntentUser,
             policyTags,
-            yourSpendPatchData,
+            yourSpendPatchData: getYourSpendPatchData(),
             reportPolicyTags,
             ...submitData,
         });

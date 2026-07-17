@@ -19,6 +19,7 @@ import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackC
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
 import WideRHPContextProvider from '@components/WideRHPContextProvider';
+import {YourSpendPatchDataProvider} from '@components/YourSpendPatchDataProvider';
 
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -182,6 +183,7 @@ function AuthScreens() {
                         CurrencyListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
+                        YourSpendPatchDataProvider,
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
                         MultifactorAuthenticationContextProviders,

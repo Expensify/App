@@ -5,6 +5,7 @@ import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/ty
 import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -49,7 +50,6 @@ import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useThemeStyles from './useThemeStyles';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
-import useYourSpendPatchData from './useYourSpendPatchData';
 
 type UseLifecycleActionsParams = {
     reportID: string | undefined;
@@ -107,7 +107,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email} = currentUserPersonalDetails;
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {isBetaEnabled} = usePermissions();
@@ -196,7 +196,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             ownerBillingGracePeriodEnd,
             ownerLogin: submitterLogin,
             full: true,
-            yourSpendPatchData,
+            yourSpendPatchData: getYourSpendPatchData(),
             onApproved: () => {
                 if (skipAnimation) {
                     return;
@@ -245,7 +245,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
-                yourSpendPatchData,
+                yourSpendPatchData: getYourSpendPatchData(),
                 onSubmitted: () => {
                     if (skipAnimation) {
                         return;
@@ -374,7 +374,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     nextStep,
                     delegateEmail,
                     isTrackIntentUser,
-                    yourSpendPatchData,
+                    getYourSpendPatchData(),
                 );
             },
         },
@@ -396,7 +396,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser, yourSpendPatchData);
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser, getYourSpendPatchData());
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
@@ -441,7 +441,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     nextStep,
                     delegateEmail,
                     isTrackIntentUser,
-                    yourSpendPatchData,
+                    getYourSpendPatchData(),
                 );
             },
         },

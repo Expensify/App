@@ -7,6 +7,7 @@ import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/type
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -20,7 +21,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
@@ -121,7 +121,7 @@ function SettlementButton({
     const expenseReportPolicy = usePolicy(iouReport?.policyID);
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -531,7 +531,7 @@ function SettlementButton({
                     ownerBillingGracePeriodEnd,
                     ownerLogin,
                     full: false,
-                    yourSpendPatchData,
+                    yourSpendPatchData: getYourSpendPatchData(),
                     delegateEmail,
                     isTrackIntentUser,
                 });

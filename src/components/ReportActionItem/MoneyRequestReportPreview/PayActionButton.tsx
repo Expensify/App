@@ -1,6 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -14,7 +15,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
-import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -76,7 +76,7 @@ function PayActionButton() {
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -116,7 +116,7 @@ function PayActionButton() {
                 ownerBillingGracePeriodEnd,
                 ownerLogin,
                 full: true,
-                yourSpendPatchData,
+                yourSpendPatchData: getYourSpendPatchData(),
                 onApproved: startApprovedAnimation,
                 delegateEmail,
                 isTrackIntentUser,
@@ -174,7 +174,7 @@ function PayActionButton() {
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                    yourSpendPatchData,
+                    yourSpendPatchData: getYourSpendPatchData(),
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
                     isTrackIntentUser,

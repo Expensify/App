@@ -5,6 +5,7 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -18,7 +19,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -102,7 +102,7 @@ function ReportSubmitToContent({
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
@@ -308,7 +308,7 @@ function ReportSubmitToContent({
             ownerBillingGracePeriodEnd,
             delegateEmail,
             submitterLogin,
-            yourSpendPatchData,
+            yourSpendPatchData: getYourSpendPatchData(),
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
             isTrackIntentUser,
@@ -346,7 +346,7 @@ function ReportSubmitToContent({
         ownerBillingGracePeriodEnd,
         delegateEmail,
         submitterLogin,
-        yourSpendPatchData,
+        getYourSpendPatchData,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,

@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -23,7 +24,6 @@ import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
-import useYourSpendPatchData from './useYourSpendPatchData';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -57,7 +57,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -98,7 +98,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 expenseReportPolicy: policy,
                 delegateEmail,
                 isTrackIntentUser,
-                yourSpendPatchData,
+                yourSpendPatchData: getYourSpendPatchData(),
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
@@ -122,7 +122,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
                 isTrackIntentUser,
-                yourSpendPatchData,
+                yourSpendPatchData: getYourSpendPatchData(),
             });
         }
         onClose();

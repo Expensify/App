@@ -4,12 +4,14 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import type {YourSpendPolicy} from './YourSpendPatchData';
+
 // eslint-disable-next-line no-restricted-imports -- Your spend is a billing/paid-only feature (Collect/Control), so paid-group scoping is intentional here.
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
 
 /** Extracts policy IDs from an already-narrowed paid-group collection (see `selectPaidGroupPolicies`). */
-function getPaidGroupPolicyIDs(paidPolicies: OnyxCollection<Policy>): string[] {
+function getPaidGroupPolicyIDs(paidPolicies: OnyxCollection<YourSpendPolicy>): string[] {
     return Object.values(paidPolicies ?? {})
         .map((policy) => policy?.id)
         .filter((id): id is string => !!id);
@@ -17,15 +19,16 @@ function getPaidGroupPolicyIDs(paidPolicies: OnyxCollection<Policy>): string[] {
 
 /**
  * `useOnyx` selector that narrows the full policy collection to only paid-group workspaces (the only ones "Your spend"
- * cares about), so subscribers re-render on paid-policy changes rather than on any policy change.
+ * cares about) and to the few fields the snapshot builders read, so subscribers re-render only when those fields of a
+ * paid policy change rather than on any policy change.
  */
-function selectPaidGroupPolicies(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
-    const paidPolicies: OnyxCollection<Policy> = {};
+function selectPaidGroupPolicies(policies: OnyxCollection<Policy>): OnyxCollection<YourSpendPolicy> {
+    const paidPolicies: OnyxCollection<YourSpendPolicy> = {};
     for (const [key, policy] of Object.entries(policies ?? {})) {
         if (!policy?.id || !isPaidGroupPolicy(policy)) {
             continue;
         }
-        paidPolicies[key] = policy;
+        paidPolicies[key] = {id: policy.id, type: policy.type, outputCurrency: policy.outputCurrency};
     }
     return paidPolicies;
 }

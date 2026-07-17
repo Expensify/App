@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -7,7 +8,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
@@ -48,7 +48,7 @@ function ApproveActionButton() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const allTransactionValues = Object.values(reportTransactions);
     const transactions = allTransactionValues;
@@ -78,7 +78,7 @@ function ApproveActionButton() {
                 ownerBillingGracePeriodEnd,
                 ownerLogin,
                 full: true,
-                yourSpendPatchData,
+                yourSpendPatchData: getYourSpendPatchData(),
                 onApproved: startApprovedAnimation,
                 delegateEmail,
                 isTrackIntentUser,

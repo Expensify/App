@@ -247,10 +247,18 @@ describe('selectPaidGroupPolicies', () => {
         const result = selectPaidGroupPolicies(buildPolicyCollection([team, corporate, personal, submit]));
 
         expect(
-            Object.values(result)
+            Object.values(result ?? {})
                 .map((policy) => policy?.id)
                 .sort(),
         ).toEqual(['1', '2']);
+    });
+
+    it('narrows kept policies to the fields the snapshot builders read', () => {
+        const team = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: '1', outputCurrency: CONST.CURRENCY.USD};
+
+        const result = selectPaidGroupPolicies(buildPolicyCollection([team]));
+
+        expect(result?.[`${ONYXKEYS.COLLECTION.POLICY}1`]).toEqual({id: '1', type: CONST.POLICY.TYPE.TEAM, outputCurrency: CONST.CURRENCY.USD});
     });
 
     it('drops policies without an id', () => {
@@ -262,7 +270,7 @@ describe('selectPaidGroupPolicies', () => {
 
         const result = selectPaidGroupPolicies(collection);
 
-        expect(Object.values(result).map((policy) => policy?.id)).toEqual(['1']);
+        expect(Object.values(result ?? {}).map((policy) => policy?.id)).toEqual(['1']);
     });
 });
 
@@ -285,7 +293,7 @@ describe('getPaidGroupPolicyIDs', () => {
         const collection: OnyxCollection<Policy> = {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: '1'},
             [`${ONYXKEYS.COLLECTION.POLICY}empty`]: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: ''},
-            [`${ONYXKEYS.COLLECTION.POLICY}null`]: null,
+            [`${ONYXKEYS.COLLECTION.POLICY}missing`]: undefined,
         };
 
         expect(getPaidGroupPolicyIDs(collection)).toEqual(['1']);

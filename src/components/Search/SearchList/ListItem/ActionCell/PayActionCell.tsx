@@ -2,6 +2,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useNetwork from '@hooks/useNetwork';
@@ -11,7 +12,6 @@ import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
@@ -46,7 +46,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -153,7 +153,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             ownerBillingGracePeriodEnd,
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
-            yourSpendPatchData,
+            yourSpendPatchData: getYourSpendPatchData(),
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
             isTrackIntentUser,
         });

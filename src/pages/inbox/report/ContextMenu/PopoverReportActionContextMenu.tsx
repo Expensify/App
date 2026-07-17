@@ -2,6 +2,7 @@ import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionS
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -13,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
@@ -360,7 +360,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         reportActions: reportActionRef.current ? [reportActionRef.current] : [],
         policy,
     });
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
     const ancestorsRef = useRef<typeof ancestors>([]);
@@ -395,7 +395,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     currentUserAccountID,
                     currentUserEmail: email ?? '',
                     policy: iouPolicy,
-                    yourSpendPatchData,
+                    yourSpendPatchData: getYourSpendPatchData(),
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 const deleteResult = deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
@@ -460,7 +460,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         iouTransaction,
         iouOriginalTransaction,
         iouPolicy,
-        yourSpendPatchData,
+        getYourSpendPatchData,
     ]);
 
     const hideDeleteModal = () => {

@@ -11,6 +11,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -26,7 +27,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import useYourSpendPatchData from '@hooks/useYourSpendPatchData';
 
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
@@ -219,7 +219,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
@@ -299,7 +299,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             chatReportActions,
             delegateEmail,
             isTrackIntentUser,
-            yourSpendPatchData,
+            yourSpendPatchData: getYourSpendPatchData(),
         });
     }, [
         currentSearchHash,
@@ -339,7 +339,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         chatReportActions,
         delegateEmail,
         isTrackIntentUser,
-        yourSpendPatchData,
+        getYourSpendPatchData,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

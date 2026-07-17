@@ -435,6 +435,21 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
     return createdAction?.created ?? expenseReport.created;
 }
 
+/** Builds the Your spend report-move item for a submit, mirroring `submitReport`'s optimistic state prediction. Returns undefined for DEW policies (nothing is patched optimistically). */
+function getSubmitYourSpendReportMoveItem(expenseReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>): YourSpendReportMoveItem | undefined {
+    if (!expenseReport || hasDynamicExternalWorkflow(policy)) {
+        return undefined;
+    }
+    return {
+        iouReport: expenseReport,
+        reportTransactions: getReportTransactions(expenseReport.reportID),
+        fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+        toStatus: isSubmitAndClose(policy)
+            ? {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED}
+            : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+    };
+}
+
 /**
  * Builds the Your spend report-move item for an approval, mirroring `approveMoneyRequest`'s optimistic state prediction,
  * so bulk callers can aggregate one snapshot update across reports. Returns undefined for DEW policies (the backend
@@ -2008,6 +2023,7 @@ export {
     getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
+    getSubmitYourSpendReportMoveItem,
     reopenReport,
     retractReport,
     submitReport,

@@ -1,4 +1,5 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
@@ -41,7 +42,6 @@ import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {findSplitPolicyForCustomUnit, getSplitEffectivePolicy} from './useSplitEffectivePolicy';
-import useYourSpendPatchData from './useYourSpendPatchData';
 
 type UseDeleteTransactionsParams = {
     /** Report object (optional, can be used for context) */
@@ -102,7 +102,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
-    const yourSpendPatchData = useYourSpendPatchData();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const getSplitExpenseEditTransactionOnDelete = useCallback(
         (transactionIDs: string[]): Transaction | undefined => {
@@ -330,7 +330,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isOffline,
                     delegateAccountID,
                     isTrackIntentUser,
-                    yourSpendPatchData,
+                    yourSpendPatchData: getYourSpendPatchData(),
                 });
             }
 
@@ -348,7 +348,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             let pendingYourSpendSnapshotUpdates: YourSpendSnapshotOnyxData | undefined = getYourSpendSnapshotTransactionsRemovalUpdates({
                 transactionItems: deletionEntries.map(({transaction, iouReport}) => ({transaction, iouReport})),
                 currentUserAccountID: currentUserPersonalDetails.accountID,
-                context: yourSpendPatchData,
+                context: getYourSpendPatchData(),
             });
 
             for (const {transactionID, action, iouReport} of deletionEntries) {
@@ -420,7 +420,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             personalPolicy?.outputCurrency,
             delegateAccountID,
             isTrackIntentUser,
-            yourSpendPatchData,
+            getYourSpendPatchData,
         ],
     );
 

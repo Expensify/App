@@ -92,13 +92,13 @@ import Onyx from 'react-native-onyx';
 
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
-import type {YourSpendSnapshotOnyxData} from './IOU/YourSpendSnapshotUpdate';
+import type {YourSpendReportMoveItem, YourSpendSnapshotOnyxData} from './IOU/YourSpendSnapshotUpdate';
 
 import {getAllTransactionViolations} from './IOU';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
-import {approveMoneyRequest} from './IOU/ReportWorkflow';
-import {getYourSpendSnapshotTransactionsRemovalUpdates} from './IOU/YourSpendSnapshotUpdate';
+import {approveMoneyRequest, getSubmitYourSpendReportMoveItem} from './IOU/ReportWorkflow';
+import {getYourSpendSnapshotReportsMoveUpdates, getYourSpendSnapshotTransactionsRemovalUpdates} from './IOU/YourSpendSnapshotUpdate';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -368,15 +368,29 @@ function handleActionButtonPress({
                 return;
             }
             const policyForSubmit = policy ?? snapshotPolicy;
+            const submitYourSpendSnapshotUpdates = getYourSpendSnapshotReportsMoveUpdates({
+                reportItems: [getSubmitYourSpendReportMoveItem(snapshotReport, policyForSubmit)].filter((moveItem): moveItem is YourSpendReportMoveItem => !!moveItem),
+                currentUserAccountID,
+                context: yourSpendPatchData,
+            });
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
                 openReportSubmitToPopover({
                     onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
-                        submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], submitterLogin, currentSearchKey, managerEmail, managerAccountID);
+                        submitMoneyRequestOnSearch(
+                            hash,
+                            [snapshotReport],
+                            [policyForSubmit],
+                            submitterLogin,
+                            currentSearchKey,
+                            managerEmail,
+                            managerAccountID,
+                            submitYourSpendSnapshotUpdates,
+                        );
                     },
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], submitterLogin, currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], submitterLogin, currentSearchKey, undefined, undefined, submitYourSpendSnapshotUpdates);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -1015,15 +1029,17 @@ function submitMoneyRequestOnSearch(
     currentSearchKey?: SearchKey,
     managerEmail?: string,
     managerAccountID?: number,
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData,
 ) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.reportID}`, {isActionLoading: true}])),
         },
+        ...(yourSpendSnapshotUpdates?.optimisticData ?? []),
     ];
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -1032,6 +1048,7 @@ function submitMoneyRequestOnSearch(
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.reportID}`, {isActionLoading: false}])),
         },
+        ...(yourSpendSnapshotUpdates?.successData ?? []),
     ];
 
     // If we are on the 'Submit' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
@@ -1045,7 +1062,7 @@ function submitMoneyRequestOnSearch(
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
@@ -1063,6 +1080,7 @@ function submitMoneyRequestOnSearch(
                 ]),
             ),
         },
+        ...(yourSpendSnapshotUpdates?.failureData ?? []),
     ];
 
     const trimmedManagerEmail = managerEmail?.trim();

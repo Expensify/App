@@ -2,12 +2,12 @@ import {isExpenseReport, isInvoiceReport as isInvoiceReportReportUtils} from '@l
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getAmount, getConvertedAmount, getCurrency} from '@libs/TransactionUtils';
 import {EMPTY_YOUR_SPEND_PATCH_DATA} from '@libs/YourSpendPatchData';
-import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
+import type {YourSpendPatchData, YourSpendPolicy} from '@libs/YourSpendPatchData';
 import {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery, get30DaysAgoDateString, getPaidGroupPolicyIDs} from '@libs/YourSpendQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -212,7 +212,12 @@ function getSnapshotSearchResults(snapshotSearches: YourSpendPatchData['snapshot
 }
 
 /** Returns a transaction's signed reimbursable amount in the snapshot currency, or null when conversion is unavailable offline. */
-function getReimbursableTransactionAmountInCurrency(policies: OnyxCollection<Policy>, transaction: Transaction, iouReport: OnyxEntry<Report>, targetCurrency: string): number | null {
+function getReimbursableTransactionAmountInCurrency(
+    policies: OnyxCollection<YourSpendPolicy>,
+    transaction: Transaction,
+    iouReport: OnyxEntry<Report>,
+    targetCurrency: string,
+): number | null {
     const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     const transactionCurrency = getCurrency(transaction);
 
@@ -237,7 +242,7 @@ type ReportReimbursableAggregate = {
 
 /** Sums reimbursable transactions (and counts them) in the snapshot currency, optionally restricted to the last 30 days. */
 function getReportReimbursableTotal(
-    policies: OnyxCollection<Policy>,
+    policies: OnyxCollection<YourSpendPolicy>,
     iouReport: OnyxEntry<Report>,
     reportTransactions: Transaction[],
     onlyWithinLast30Days: boolean,
