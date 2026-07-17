@@ -7,7 +7,7 @@ import {
     getReportNextStep,
 } from '@libs/NextStepUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getFilteredReportActionsForReportView, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isDynamicExternalWorkflowApproveFailedAction} from '@libs/ReportActionsUtils';
 import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getReasonAndReportActionThatRequiresAttention,
@@ -92,8 +92,8 @@ function useOptimisticNextStep(reportID: string | undefined) {
             const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, currentUserLogin ?? '', accountID, undefined, isArchivedReport);
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
-            if (hasDEWApproveFailed && isCurrentUserTheApprover) {
-                const {automaticAction} = getOriginalMessage(gbrResult?.reportAction) ?? {};
+            if (hasDEWApproveFailed && isCurrentUserTheApprover && isDynamicExternalWorkflowApproveFailedAction(gbrResult?.reportAction)) {
+                const {automaticAction} = getOriginalMessage(gbrResult.reportAction) ?? {};
                 if (!automaticAction) {
                     optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
                 }
