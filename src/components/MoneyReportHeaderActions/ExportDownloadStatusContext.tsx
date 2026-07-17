@@ -14,6 +14,7 @@ const ExportDownloadStatusContext = createContext<ExportDownloadStatusContextVal
 });
 
 type ExportDownloadStatusProviderProps = {
+    /** The children to render inside the provider */
     children: React.ReactNode;
 };
 
