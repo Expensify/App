@@ -36,10 +36,9 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const hash = queryJSON?.hash;
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
 
-    // Derived primitives so effects do not depend on the whole snapshot object (new reference every
+    // Derived primitive so the effect does not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
-    const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
 
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
@@ -69,12 +68,16 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
-        if (isSnapshotDataLoaded || isSnapshotSearchLoading) {
+        // Only skip when the snapshot already holds resolved data for this query. Do not gate on a stored
+        // loading flag: a reload/crash mid-request strands it and would block the re-fire forever. search()
+        // dedupes a genuinely in-flight request through its own module-memory registry, which resets on
+        // reload, so a stranded loading state re-fires and self-heals instead of pinning the skeleton.
+        if (isSnapshotDataLoaded) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
+    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {
         openSearch();

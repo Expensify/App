@@ -29,13 +29,16 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchRes
     const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0;
+    // A resolved request stamps `state: loaded` even when it wrote no data. That terminal state hands off to
+    // Search's own empty view, so a dataless 200 no longer pins the page skeleton on the `data === undefined` check.
+    const isLoaded = searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED;
 
-    // Show page-level skeleton when no data has ever arrived for this query,
+    // Show page-level skeleton when no data has ever arrived for this query and the request has not resolved,
     // or when card feeds are still loading for card-grouped searches.
-    // Once data arrives (even empty []), Search mounts and handles its own
+    // Once data arrives (even empty []) or the request resolves, Search mounts and handles its own
     // loading/empty states internally via shouldShowLoadingState.
     // When errors are present, let Search mount so it can render FullPageErrorView.
-    return (hasNoData && !hasErrors) || isCardFeedsLoading;
+    return (hasNoData && !hasErrors && !isLoaded) || isCardFeedsLoading;
 }
 
 export default useSearchLoadingState;

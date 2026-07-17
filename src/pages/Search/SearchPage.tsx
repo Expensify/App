@@ -78,8 +78,6 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = lastNonEmptySearchResults;
     }
 
-    const metadata = searchResults?.search;
-
     useEffect(() => {
         if (shouldUseNarrowLayout) {
             return;
@@ -140,7 +138,6 @@ function SearchPage({route}: SearchPageProps) {
                     {shouldUseNarrowLayout ? (
                         <SearchPageNarrow
                             queryJSON={currentSearchQueryJSON}
-                            metadata={metadata}
                             searchResults={searchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}

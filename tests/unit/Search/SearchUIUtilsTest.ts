@@ -8349,6 +8349,99 @@ describe('SearchUIUtils', () => {
         it('should return false when queryJSON is undefined but searchResults has a concrete type and hash', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
+
+        it('should return true on a dataless response that reached a terminal loaded state (type and hash match)', () => {
+            const results = makeSearchResults({
+                data: undefined,
+                errors: undefined,
+                search: {
+                    hasMoreResults: false,
+                    hasResults: false,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+                },
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
+        });
+
+        it('should return true when the request reached a terminal error state', () => {
+            const results = makeSearchResults({
+                data: undefined,
+                errors: undefined,
+                search: {
+                    hasMoreResults: false,
+                    hasResults: false,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.ERROR,
+                },
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
+        });
+
+        it('should return false while a request is still loading with no data yet', () => {
+            const results = makeSearchResults({
+                data: undefined,
+                errors: undefined,
+                search: {
+                    hasMoreResults: false,
+                    hasResults: false,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: true,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADING,
+                },
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when a terminal state belongs to a stale snapshot (hash mismatch)', () => {
+            const results = makeSearchResults({
+                data: undefined,
+                errors: undefined,
+                search: {
+                    hasMoreResults: false,
+                    hasResults: false,
+                    offset: 0,
+                    hash: (queryJSON?.hash ?? 0) + 1,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+                },
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+    });
+
+    describe('Test isSearchPending', () => {
+        const queryJSON = buildSearchQueryJSON('type:expense');
+
+        function makeSearch(state: OnyxTypes.SearchResults['search']['state']): OnyxTypes.SearchResults {
+            return {
+                data: {personalDetailsList: {}},
+                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: queryJSON?.hash ?? 0, isLoading: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE, state},
+            };
+        }
+
+        it('should return true only while the snapshot state is loading', () => {
+            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADING))).toBe(true);
+        });
+
+        it('should return false for the terminal loaded and error states', () => {
+            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADED))).toBe(false);
+            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.ERROR))).toBe(false);
+        });
+
+        it('should return false when the state is absent or searchResults is undefined', () => {
+            expect(SearchUIUtils.isSearchPending(makeSearch(undefined))).toBe(false);
+            expect(SearchUIUtils.isSearchPending(undefined)).toBe(false);
+        });
     });
 
     describe('Test isSearchResultsEmpty', () => {
