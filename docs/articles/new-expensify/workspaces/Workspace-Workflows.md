@@ -95,7 +95,7 @@ When **Payments** is enabled, you can set an **Authorized payer** even if no ban
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
 2. Under **Payments**, click **Payer**.
-3. Select the **Workspace Admin** you want to set as the authorized payer.
+3. Select the **admin** you want to set as the authorized payer.
 
 <!-- SCREENSHOT:
 Suggestion: Workflows tab with Payments enabled and no bank account connected, showing the Payer field
