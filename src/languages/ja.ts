@@ -4402,7 +4402,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             delete: 'ワークスペースを削除',
             settings: '設定',
             categories: 'カテゴリ',
-            vendors: 'ベンダー',
+            vendors: '仕入先',
             tags: 'タグ',
             customField1: 'カスタムフィールド1',
             customField2: 'カスタムフィールド2',
@@ -6193,10 +6193,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
         },
         vendors: {
-            emptyTitle: 'ベンダーはまだありません',
-            emptySubtitle: '会計連携の同期が完了すると、ベンダーがここに表示されます。',
-            findVendor: 'ベンダーを検索',
-            managedInAccountingSoftware: 'ベンダーは',
+            emptyTitle: '取引先はまだありません',
+            emptySubtitle: '会計同期が完了すると、ここにベンダーが表示されます。',
+            findVendor: '取引先を検索',
+            managedInAccountingSoftware: '仕入先は次の場所で管理されます:',
         },
         tags: {
             tagName: 'タグ名',

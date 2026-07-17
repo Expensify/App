@@ -6112,9 +6112,9 @@ ${amount} para ${merchant} - ${date}`,
         },
         vendors: {
             emptyTitle: 'Aún no hay proveedores',
-            emptySubtitle: 'Los proveedores aparecerán aquí cuando se complete la sincronización con tu software de contabilidad.',
+            emptySubtitle: 'Los proveedores aparecerán aquí cuando se complete la sincronización de contabilidad.',
             findVendor: 'Buscar proveedor',
-            managedInAccountingSoftware: 'Los proveedores se gestionan en tus',
+            managedInAccountingSoftware: 'Los proveedores se gestionan en tu',
         },
         tags: {
             tagName: 'Nombre de etiqueta',

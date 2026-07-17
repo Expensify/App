@@ -6315,8 +6315,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         vendors: {
             emptyTitle: 'Aucun fournisseur pour le moment',
             emptySubtitle: 'Les fournisseurs apparaîtront ici une fois la synchronisation comptable terminée.',
-            findVendor: 'Rechercher un fournisseur',
-            managedInAccountingSoftware: 'Les fournisseurs sont gérés dans vos',
+            findVendor: 'Trouver un fournisseur',
+            managedInAccountingSoftware: 'Les fournisseurs sont gérés dans votre',
         },
         tags: {
             tagName: 'Nom du tag',

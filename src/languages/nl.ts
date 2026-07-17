@@ -6257,8 +6257,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         },
         vendors: {
             emptyTitle: 'Nog geen leveranciers',
-            emptySubtitle: 'Leveranciers verschijnen hier zodra de synchronisatie met je boekhouding is voltooid.',
-            findVendor: 'Zoek leverancier',
+            emptySubtitle: 'Leveranciers verschijnen hier nadat je accounting-synchronisatie is voltooid.',
+            findVendor: 'Leverancier zoeken',
             managedInAccountingSoftware: 'Leveranciers worden beheerd in je',
         },
         tags: {

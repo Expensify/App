@@ -6249,10 +6249,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Tente novamente.',
         },
         vendors: {
-            emptyTitle: 'Nenhum fornecedor ainda',
-            emptySubtitle: 'Os fornecedores aparecerão aqui após a conclusão da sincronização contábil.',
-            findVendor: 'Buscar fornecedor',
-            managedInAccountingSoftware: 'Os fornecedores são gerenciados em suas',
+            emptyTitle: 'Ainda não há fornecedores',
+            emptySubtitle: 'Os fornecedores vão aparecer aqui depois que a sua sincronização contábil for concluída.',
+            findVendor: 'Encontrar fornecedor',
+            managedInAccountingSoftware: 'Fornecedores são gerenciados na sua',
         },
         tags: {
             tagName: 'Nome da tag',
