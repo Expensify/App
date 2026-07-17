@@ -46,7 +46,7 @@ const defaultReportLoadingState = {
  */
 function DeferReportListForInboxTab({enabled, reportID, children}: {enabled: boolean; reportID: string | undefined; children: ReactNode}) {
     if (!enabled) {
-        return <>{children}</>;
+        return children;
     }
     return (
         <NavigationDeferredMount
