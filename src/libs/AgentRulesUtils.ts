@@ -25,7 +25,11 @@ function getSortedAgentRules(agentRules: AgentRulesCollection): AgentRuleWithID[
 }
 
 function getVisibleAgentRules(agentRules: AgentRulesCollection, isOffline: boolean): AgentRuleWithID[] {
-    return getSortedAgentRules(agentRules).filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    if (isOffline) {
+        return getSortedAgentRules(agentRules);
+    }
+
+    return getSortedAgentRules(agentRules).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 export {getAgentRuleDisplayTitle, getVisibleAgentRules};

@@ -219,6 +219,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -307,6 +309,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -416,6 +420,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -510,6 +516,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -570,6 +578,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -661,6 +671,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();

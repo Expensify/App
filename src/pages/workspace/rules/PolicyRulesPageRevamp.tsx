@@ -46,6 +46,7 @@ import {View} from 'react-native';
 
 import type {RulesTab, TableSelectionTab} from './tabs/useRulesTableBulkActions';
 
+import getImportMerchantRulesOption from './getImportMerchantRulesOption';
 import RulesAgentsTab from './tabs/RulesAgentsTab';
 import RulesCardRestrictionsTab from './tabs/RulesCardRestrictionsTab';
 import RulesExpenseDefaultsTab from './tabs/RulesExpenseDefaultsTab';
@@ -83,7 +84,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -264,14 +265,41 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return null;
         }
 
+        if (activeTab !== RULES_TAB.EXPENSE_DEFAULTS) {
+            return (
+                <Button
+                    success
+                    onPress={handleNewRule}
+                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
+                    icon={icons.Plus}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
+                />
+            );
+        }
+
+        const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
+            getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
+        ];
+
         return (
-            <Button
-                success
-                onPress={handleNewRule}
-                text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                icon={icons.Plus}
-                style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
-            />
+            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
+                <Button
+                    success
+                    onPress={handleNewRule}
+                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
+                    icon={icons.Plus}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
+                />
+                <ButtonWithDropdownMenu
+                    // onPress is required by ButtonWithDropdownMenu but never fires for a non-split button, where pressing only opens the dropdown menu
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    options={moreOptions}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow0}
+                />
+            </View>
         );
     };
 

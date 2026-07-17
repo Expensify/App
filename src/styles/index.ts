@@ -4938,6 +4938,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        pdfErrorPlaceholderFullWidth: {
+            width: '100%',
+            maxWidth: '100%',
+        },
+
         moneyRequestAttachReceipt: {
             backgroundColor: theme.highlightBG,
             borderColor: theme.border,
