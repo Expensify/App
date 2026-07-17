@@ -341,10 +341,9 @@ function ReportFieldsListValuesPage({
                         }
                         Navigation.goBack();
                     }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                    shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                    responsiveChildren={headerButtons}
+                />
                 <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>

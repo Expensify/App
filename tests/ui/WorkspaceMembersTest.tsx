@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import * as useShouldDisplayButtonsInSeparateLineModule from '@hooks/useShouldDisplayButtonsInSeparateLine';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -34,25 +35,34 @@ TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
+const getPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBERS]) => (
+    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, ModalProvider]}>
+        <PortalProvider>
+            <NavigationContainer>
+                <Stack.Navigator initialRouteName={initialRouteName}>
+                    <Stack.Screen
+                        name={SCREENS.WORKSPACE.MEMBERS}
+                        component={WorkspaceMembersPage}
+                        initialParams={initialParams}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>
+        </PortalProvider>
+    </ComposeProviders>
+);
+
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBERS]) => {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, ModalProvider]}>
-            <PortalProvider>
-                <NavigationContainer>
-                    <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
-                            name={SCREENS.WORKSPACE.MEMBERS}
-                            component={WorkspaceMembersPage}
-                            initialParams={initialParams}
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
-            </PortalProvider>
-        </ComposeProviders>,
-    );
+    return render(getPage(initialRouteName, initialParams));
 };
 
-const selectCheckboxByMemberName = (memberName: string) => {
+const defaultResponsiveLayout = {
+    isSmallScreenWidth: false,
+    shouldUseNarrowLayout: false,
+} as ResponsiveLayoutResult;
+let responsiveLayout = defaultResponsiveLayout;
+let shouldDisplayButtonsInSeparateLine = false;
+
+const getRowByMemberName = (memberName: string) => {
     const memberEmailByName: Record<string, string> = {
         Owner: 'owner@gmail.com',
         Admin: 'admin@example.com',
@@ -61,7 +71,11 @@ const selectCheckboxByMemberName = (memberName: string) => {
         Self: 'test@example.com',
     };
     const displayName = memberName === 'Owner' || memberName === 'Self' ? memberName : `${memberName} User`;
-    const row = screen.getByLabelText(new RegExp(`^${displayName}, ${memberEmailByName[memberName]}`));
+    return screen.getByLabelText(new RegExp(`^${displayName}, ${memberEmailByName[memberName]}`));
+};
+
+const selectCheckboxByMemberName = (memberName: string) => {
+    const row = getRowByMemberName(memberName);
     fireEvent.press(within(row).getByLabelText(TestHelper.translateLocal('common.select')));
 };
 
@@ -114,10 +128,10 @@ describe('WorkspaceMembers', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        responsiveLayout = defaultResponsiveLayout;
+        shouldDisplayButtonsInSeparateLine = false;
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockImplementation(() => responsiveLayout);
+        jest.spyOn(useShouldDisplayButtonsInSeparateLineModule, 'default').mockImplementation(() => shouldDisplayButtonsInSeparateLine);
     });
 
     afterEach(async () => {
@@ -427,6 +441,35 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Removing members who are approvers and non-approvers', () => {
+        it('keeps the bulk menu action working after an orientation change', async () => {
+            const routeParams = {policyID: policy.id};
+            const {rerender, unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, routeParams);
+            await waitForBatchedUpdatesWithAct();
+            await screen.findByText(ADMIN_OPTION);
+
+            selectCheckboxByMemberName('Admin');
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+
+            shouldDisplayButtonsInSeparateLine = true;
+            rerender(getPage(SCREENS.WORKSPACE.MEMBERS, routeParams));
+
+            const removeMenuItem = await screen.findByTestId(`PopoverMenuItem-${removeText}`);
+            fireEvent.press(removeMenuItem, {
+                nativeEvent: {},
+                type: 'press',
+                target: removeMenuItem,
+                currentTarget: removeMenuItem,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(await screen.findByLabelText(TestHelper.translateLocal('common.remove'))).toBeOnTheScreen();
+            unmount();
+        });
+
         it('should call workflow actions once when removing multiple members including an approver', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();

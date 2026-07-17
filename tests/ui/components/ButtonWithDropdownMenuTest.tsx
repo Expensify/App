@@ -1,8 +1,11 @@
-import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen, waitFor} from '@testing-library/react-native';
 
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import * as usePopoverPositionModule from '@hooks/usePopoverPosition';
+import * as useWindowDimensionsModule from '@hooks/useWindowDimensions';
 
 import CONST from '@src/CONST';
 
@@ -125,5 +128,73 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
             fireEvent.press(buttonToPress);
         }
         expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
+    });
+});
+
+describe('ButtonWithDropdownMenu in a responsive header', () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('stays open and keeps its action when moved to a separate line', () => {
+        const onSelected = jest.fn();
+        const options = [{value: 'action', text: 'Responsive action', onSelected, shouldCloseModalOnSelect: false}];
+        const renderHeader = (shouldDisplayResponsiveChildrenInSeparateLine: boolean) => (
+            <HeaderWithBackButton
+                title="Responsive header"
+                shouldShowBackButton={false}
+                shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayResponsiveChildrenInSeparateLine}
+                responsiveChildren={
+                    <ButtonWithDropdownMenu
+                        options={options}
+                        onPress={() => {}}
+                        customText="More"
+                        shouldAlwaysShowDropdownMenu
+                        isSplitButton={false}
+                    />
+                }
+            />
+        );
+        const {rerender} = render(renderHeader(false));
+
+        fireEvent.press(screen.getByText('More'));
+        expect(screen.getByText('Responsive action')).toBeOnTheScreen();
+
+        rerender(renderHeader(true));
+        expect(screen.getByText('Responsive action')).toBeOnTheScreen();
+
+        const menuItem = screen.getByTestId('PopoverMenuItem-Responsive action');
+        fireEvent.press(menuItem, {
+            nativeEvent: {},
+            type: 'press',
+            target: menuItem,
+            currentTarget: menuItem,
+        });
+        expect(onSelected).toHaveBeenCalledTimes(1);
+    });
+
+    it('remeasures an open menu when the window dimensions change', async () => {
+        const calculatePopoverPosition = jest.fn().mockResolvedValue({horizontal: 100, vertical: 100, width: 40, height: 40});
+        let windowDimensions = {windowWidth: 800, windowHeight: 600};
+        jest.spyOn(usePopoverPositionModule, 'default').mockReturnValue({calculatePopoverPosition});
+        jest.spyOn(useWindowDimensionsModule, 'default').mockImplementation(() => windowDimensions);
+        const renderDropdown = () => (
+            <ButtonWithDropdownMenu
+                options={[{value: 'action', text: 'Responsive action'}]}
+                onPress={() => {}}
+                customText="More"
+                shouldAlwaysShowDropdownMenu
+                isSplitButton={false}
+            />
+        );
+        const {rerender} = render(renderDropdown());
+
+        fireEvent.press(screen.getByText('More'));
+        await waitFor(() => expect(calculatePopoverPosition).toHaveBeenCalledTimes(1));
+
+        windowDimensions = {windowWidth: 600, windowHeight: 800};
+        rerender(renderDropdown());
+
+        await waitFor(() => expect(calculatePopoverPosition).toHaveBeenCalledTimes(2));
     });
 });

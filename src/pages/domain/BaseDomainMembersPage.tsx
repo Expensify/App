@@ -94,10 +94,9 @@ function BaseDomainMembersPage({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
                     shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                    shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                    responsiveChildren={!!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                />
                 <DomainMembersTable
                     domainAccountID={domainAccountID}
                     members={members}

@@ -404,10 +404,9 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
                         Navigation.goBack();
                     }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
-                {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                    shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                    responsiveChildren={headerButtons}
+                />
                 {(!hasVisibleSubRates || isLoading) && subtitleContent}
                 {isLoading && (
                     <ActivityIndicator

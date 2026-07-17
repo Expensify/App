@@ -470,10 +470,9 @@ function PolicyDistanceRatesPage({
                         }
                         Navigation.goBack();
                     }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.ph5]}>{headerButtons}</View>}
+                    shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                    responsiveChildren={headerButtons}
+                />
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

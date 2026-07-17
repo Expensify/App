@@ -862,10 +862,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.goBack();
                         }}
-                    >
-                        {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                        shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                        responsiveChildren={getHeaderButtons()}
+                    />
                     {(!hasVisibleTags || isLoading) && headerContent}
                     {isLoading && (
                         <ActivityIndicator

@@ -188,10 +188,9 @@ function ExpenseRulesPage() {
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
-            >
-                {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
-            </HeaderWithBackButton>
-            {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+                shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                responsiveChildren={hasRules && headerButton}
+            />
 
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>

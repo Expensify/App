@@ -82,6 +82,10 @@ function HeaderWithBackButton({
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
+    shouldDisplayResponsiveChildrenInSeparateLine = false,
+    responsiveChildren,
+    responsiveChildrenContainerStyle,
+    bottomContent,
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
@@ -232,22 +236,55 @@ function HeaderWithBackButton({
         shouldSetModalVisibility,
     ]);
 
+    const shouldUseMultiLineLayout = shouldDisplayResponsiveChildrenInSeparateLine || !!bottomContent;
+    const movableChildrenContent = !!responsiveChildren && (
+        <View
+            key="movableChildren"
+            style={[
+                !shouldDisplayResponsiveChildrenInSeparateLine && styles.reportOptions,
+                !shouldDisplayResponsiveChildrenInSeparateLine && styles.flexRow,
+                styles.flexShrink0,
+                !shouldDisplayResponsiveChildrenInSeparateLine && styles.alignItemsCenter,
+                !shouldDisplayResponsiveChildrenInSeparateLine && shouldUseMultiLineLayout && styles.headerBarHeight,
+                shouldDisplayResponsiveChildrenInSeparateLine && styles.headerBarSeparateLineChildren,
+                responsiveChildrenContainerStyle,
+            ]}
+        >
+            {responsiveChildren}
+        </View>
+    );
+
     return (
         <View
             style={[
                 styles.headerBar,
+                styles.flexRow,
+                styles.alignItemsCenter,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
                 // be falsy, hence using !== undefined explicitly
                 progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2],
+                shouldUseMultiLineLayout && styles.headerBarWithSeparateLine,
                 shouldOverlay && StyleSheet.absoluteFill,
                 style,
             ]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
+            <View
+                key="mainContent"
+                style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.flex1,
+                    styles.overflowHidden,
+                    shouldUseMultiLineLayout && styles.mr3,
+                    shouldUseMultiLineLayout && styles.headerBarHeight,
+                    shouldUseMultiLineLayout && (shouldShowBackButton ? styles.pl2 : styles.pl5),
+                ]}
+            >
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
@@ -294,7 +331,13 @@ function HeaderWithBackButton({
                     />
                 )}
                 {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+            </View>
+            {!shouldDisplayResponsiveChildrenInSeparateLine && movableChildrenContent}
+            <View
+                key="systemActions"
+                style={[styles.flexRow, styles.flexShrink0, styles.alignItemsCenter, styles.mr3, shouldUseMultiLineLayout && styles.headerBarHeight]}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}
                         {shouldShowDownloadButton &&
@@ -375,6 +418,15 @@ function HeaderWithBackButton({
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
+            {!!bottomContent && (
+                <View
+                    key="bottomContent"
+                    style={[styles.flexShrink0, styles.w100]}
+                >
+                    {bottomContent}
+                </View>
+            )}
+            {shouldDisplayResponsiveChildrenInSeparateLine && movableChildrenContent}
         </View>
     );
 }

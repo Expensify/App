@@ -116,10 +116,9 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
-                >
-                    {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
+                    shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                    responsiveChildren={createGroupHeaderButton}
+                />
 
                 <DomainGroupsTable
                     domainAccountID={domainAccountID}

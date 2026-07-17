@@ -40,7 +40,16 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
+    Pick<
+        HeaderWithBackButtonProps,
+        | 'shouldShowThreeDotsButton'
+        | 'threeDotsMenuItems'
+        | 'shouldShowBackButton'
+        | 'onBackButtonPress'
+        | 'shouldDisplayResponsiveChildrenInSeparateLine'
+        | 'responsiveChildrenContainerStyle'
+        | 'bottomContent'
+    > & {
         shouldSkipVBBACall?: boolean;
 
         /** The text to display in the header */
@@ -146,6 +155,9 @@ function WorkspacePageWithSections({
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
     modals,
+    shouldDisplayResponsiveChildrenInSeparateLine = false,
+    responsiveChildrenContainerStyle,
+    bottomContent,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
@@ -246,9 +258,11 @@ function WorkspacePageWithSections({
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                     shouldDisplayHelpButton
-                >
-                    {headerContent}
-                </HeaderWithBackButton>
+                    shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayResponsiveChildrenInSeparateLine}
+                    responsiveChildrenContainerStyle={responsiveChildrenContainerStyle}
+                    responsiveChildren={headerContent}
+                    bottomContent={bottomContent}
+                />
                 {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator

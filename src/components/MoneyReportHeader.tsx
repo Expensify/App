@@ -131,24 +131,17 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab
-            >
-                {shouldShowHeaderButtonsInHeaderRow && (
+                shouldDisplayResponsiveChildrenInSeparateLine={!shouldShowHeaderButtonsInHeaderRow}
+                responsiveChildrenContainerStyle={!shouldShowHeaderButtonsInHeaderRow && styles.ph0}
+                responsiveChildren={
                     <MoneyReportHeaderActions
                         reportID={reportIDProp}
                         primaryAction={primaryAction}
                         isReportInSearch={isReportInSearch}
                         backTo={backTo}
                     />
-                )}
-            </HeaderWithBackButton>
-            {!shouldShowHeaderButtonsInHeaderRow && (
-                <MoneyReportHeaderActions
-                    reportID={reportIDProp}
-                    primaryAction={primaryAction}
-                    isReportInSearch={isReportInSearch}
-                    backTo={backTo}
-                />
-            )}
+                }
+            />
             <MoneyReportHeaderMoreContent reportID={reportIDProp} />
             <HeaderLoadingBar />
         </View>

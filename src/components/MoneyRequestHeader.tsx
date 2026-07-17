@@ -178,13 +178,14 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 onBackButtonPress={() => onBackButtonPress(isFromReviewDuplicates)}
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
-            >
-                {!shouldDisplayButtonsInSeparateLine && (
+                shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                responsiveChildren={
                     <MoneyRequestHeaderActions
                         reportID={reportID}
                         onBackButtonPress={onBackButtonPress}
                     />
-                )}
+                }
+            >
                 {shouldDisplayTransactionNavigation && !!transaction && (
                     <MoneyRequestReportTransactionsNavigation
                         currentTransactionID={transaction.transactionID}
@@ -192,12 +193,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                     />
                 )}
             </HeaderWithBackButton>
-            {shouldDisplayButtonsInSeparateLine && (
-                <MoneyRequestHeaderActions
-                    reportID={reportID}
-                    onBackButtonPress={onBackButtonPress}
-                />
-            )}
             {!!statusBarProps && (
                 <View style={[styles.ph5, styles.pb3]}>
                     <MoneyRequestHeaderStatusBar

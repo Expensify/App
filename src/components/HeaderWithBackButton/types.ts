@@ -166,6 +166,18 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
+    /** Whether responsive children should be displayed in a full-width line below the main header row */
+    shouldDisplayResponsiveChildrenInSeparateLine?: boolean;
+
+    /** Header actions that can move to a separate line. Regular children always stay in the main row. */
+    responsiveChildren?: ReactNode;
+
+    /** Additional styles for the responsive children container */
+    responsiveChildrenContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Full-width content displayed below the main header row and above responsive children */
+    bottomContent?: ReactNode;
+
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
 

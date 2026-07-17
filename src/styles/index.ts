@@ -2739,6 +2739,18 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        headerBarWithSeparateLine: {
+            height: 'auto',
+            flexWrap: 'wrap',
+            alignItems: 'flex-start',
+            paddingLeft: 0,
+        },
+
+        headerBarSeparateLineChildren: {
+            width: '100%',
+            paddingHorizontal: 20,
+        },
+
         reportSearchHeaderBar: {
             justifyContent: 'center',
             display: 'flex',

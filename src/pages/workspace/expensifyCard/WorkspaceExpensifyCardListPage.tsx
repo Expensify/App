@@ -305,10 +305,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplayHelpButton
                 onBackButtonPress={handleBackButtonPress}
-            >
-                {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
-            </HeaderWithBackButton>
-            {!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && <View style={styles.ph5}>{getHeaderButtons()}</View>}
+                shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                responsiveChildren={!shouldShowSelector && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
+            />
             {shouldShowSelector && (
                 <View style={[styles.w100, styles.ph5, styles.pb3, (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector

@@ -660,6 +660,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon={!selectionModeHeader ? illustrations.FolderOpen : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplayHelpButton
+                    shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -674,10 +675,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
                         Navigation.goBack();
                     }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    responsiveChildren={getHeaderButtons()}
+                />
 
                 {(!hasVisibleCategories || isLoading) && headerContent}
 

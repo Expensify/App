@@ -702,11 +702,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getHeaderButtons = () => {
-        if (!canWriteMembers) {
-            return null;
-        }
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+    const shouldShowBulkActions = shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0;
+    let headerButtons = null;
+    if (canWriteMembers) {
+        headerButtons = shouldShowBulkActions ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
@@ -742,7 +741,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 />
             </View>
         );
-    };
+    }
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -751,7 +750,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             icon={!selectionModeHeader ? illustrations.ReceiptWrangler : undefined}
-            headerContent={!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
+            headerContent={headerButtons}
+            shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
             testID="WorkspaceMembersPage"
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
@@ -769,7 +769,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}

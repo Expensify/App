@@ -315,28 +315,29 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
-                headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
+                headerContent={headerButtons}
+                shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                responsiveChildrenContainerStyle={shouldDisplayButtonsInSeparateLine && styles.pb5}
+                bottomContent={
+                    <View style={[styles.flexRow, styles.mb1, styles.w100]}>
+                        <TabSelectorContextProvider activeTabKey={activeTab}>
+                            <TabSelectorBase
+                                tabs={tabs}
+                                activeTabKey={activeTab}
+                                onTabPress={(key) => {
+                                    if (!isRulesTab(key)) {
+                                        return;
+                                    }
+                                    setSelectedRuleKeysByTab({});
+                                    turnOffMobileSelectionMode();
+                                    Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
+                                }}
+                            />
+                        </TabSelectorContextProvider>
+                    </View>
+                }
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
-                    <View style={[styles.flexShrink0, styles.w100]}>
-                        <View style={[styles.flexRow, styles.mb1, styles.w100]}>
-                            <TabSelectorContextProvider activeTabKey={activeTab}>
-                                <TabSelectorBase
-                                    tabs={tabs}
-                                    activeTabKey={activeTab}
-                                    onTabPress={(key) => {
-                                        if (!isRulesTab(key)) {
-                                            return;
-                                        }
-                                        setSelectedRuleKeysByTab({});
-                                        turnOffMobileSelectionMode();
-                                        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
-                                    }}
-                                />
-                            </TabSelectorContextProvider>
-                        </View>
-                    </View>
-                    {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
                     <View style={[styles.flex1, styles.mnh0, styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, isTableTab && styles.mw100]}>
                         {activeTab === RULES_TAB.GENERAL && (
                             <RulesGeneralTab

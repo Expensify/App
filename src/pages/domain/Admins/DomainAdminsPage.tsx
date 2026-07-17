@@ -145,10 +145,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerContent}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                    shouldDisplayResponsiveChildrenInSeparateLine={shouldDisplayButtonsInSeparateLine}
+                    responsiveChildren={headerContent}
+                />
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}
                     admins={admins}
