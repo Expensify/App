@@ -99,12 +99,13 @@ const defaultListOptions = {
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 
-// Most opens never scroll past the initial rows, so building full option data for the default
-// 500-report list every time is unnecessary. Start smaller and grow via onEndReached; typing a
+// The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports, so building full option data for the
+// default 500-report list every time is unnecessary. Start from a smaller raw cap and only expand to the
+// full set if that batch filters down below the visible cap (see the loadAll effect below); typing a
 // query bypasses this cap entirely (isSearching drops the limit in createFilteredOptionList).
 // 100 leaves buffer for hidden/muted chats getting filtered out after the raw-recency slice.
 // The batch size stays at 500 (not smaller) because createFilteredOptionList rebuilds its whole
-// top-N slice from scratch each call, so a small batch would mean repeated rebuilds on scroll.
+// top-N slice from scratch each call, so a small batch would mean repeated rebuilds.
 const INITIAL_MAX_RECENT_REPORTS = 100;
 const RECENT_REPORTS_BATCH_SIZE = 500;
 
@@ -212,7 +213,6 @@ function SearchAutocompleteList({
     const {
         options: listOptions,
         isLoading: isLoadingOptions,
-        loadMore: loadMoreRecentReports,
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
     } = useFilteredOptions({
@@ -622,21 +622,17 @@ function SearchAutocompleteList({
 
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
 
-    // If every report within the raw cap gets excluded (e.g. all hidden/muted), sections is empty and
-    // SelectionListWithSections shows its empty state instead of a FlashList, so onEndReached never mounts
-    // and loadMoreRecentReports would never run. Expand to the full report set in one step so any surviving
-    // row surfaces. This fires at most once: afterwards either a row appears or hasMoreRecentReports is false.
+    // The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports. If the initial raw cap filters down
+    // below that (e.g. many hidden/muted chats), expand to the full report set in one step so the remaining
+    // slots fill from less-recent reports. This replaces scroll-driven loading: the list never paginates past
+    // the visible cap, so there is nothing to load on scroll. Fires at most once: afterwards either the visible
+    // cap is reached or hasMoreRecentReports is false.
     useEffect(() => {
-        if (trimmedAutocompleteQueryValue !== '' || isLoadingOptions || suggestionsCount > 0 || !hasMoreRecentReports) {
+        if (trimmedAutocompleteQueryValue !== '' || isLoadingOptions || recentReportsOptions.length >= CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS || !hasMoreRecentReports) {
             return;
         }
         loadAllRecentReports();
-    }, [trimmedAutocompleteQueryValue, isLoadingOptions, suggestionsCount, hasMoreRecentReports, loadAllRecentReports]);
-
-    // hasMoreRecentReports only tracks raw reports, not the visible MAX_AMOUNT_OF_SUGGESTIONS cap. Once the
-    // visible cap is full, remaining raw reports are all less recent and can never surface, so loading more
-    // would just rebuild larger batches for no UI change. Stop wiring onEndReached in that case.
-    const canLoadMoreRecentReports = hasMoreRecentReports && recentReportsOptions.length < CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS;
+    }, [trimmedAutocompleteQueryValue, isLoadingOptions, recentReportsOptions.length, hasMoreRecentReports, loadAllRecentReports]);
 
     const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
@@ -725,7 +721,6 @@ function SearchAutocompleteList({
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
-            onEndReached={canLoadMoreRecentReports ? loadMoreRecentReports : undefined}
             ref={setListRef}
             initialScrollIndex={0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
