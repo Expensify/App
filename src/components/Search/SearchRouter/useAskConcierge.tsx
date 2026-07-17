@@ -6,7 +6,7 @@ import useSidePanelReportID from '@hooks/useSidePanelReportID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
-import {addComment, setConciergeThinkingKickoff} from '@userActions/Report';
+import {addComment} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +32,6 @@ function useAskConcierge() {
             return;
         }
         openConciergeAnywhere();
-        setConciergeThinkingKickoff();
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
