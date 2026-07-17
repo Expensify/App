@@ -39,6 +39,7 @@ import {getWaypointsHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
@@ -94,6 +95,7 @@ function IOURequestStepDistance({
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -162,6 +164,7 @@ function IOURequestStepDistance({
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
@@ -519,6 +522,8 @@ function IOURequestStepDistance({
                     parentReportNextStep,
                     delegateAccountID,
                     distanceOriginalPolicy,
+                    reportPolicyTags,
+                    isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
@@ -564,6 +569,8 @@ function IOURequestStepDistance({
         parentReportNextStep,
         delegateAccountID,
         distanceOriginalPolicy,
+        reportPolicyTags,
+        isTrackIntentUser,
         personalPolicy?.outputCurrency,
     ]);
 
@@ -632,6 +639,8 @@ function IOURequestStepDistance({
             delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
+            reportPolicyTags,
+            isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
         transactionWasSaved.current = true;
@@ -669,6 +678,8 @@ function IOURequestStepDistance({
         hasRouteError,
         delegateAccountID,
         distanceOriginalPolicy,
+        reportPolicyTags,
+        isTrackIntentUser,
         personalPolicy?.outputCurrency,
     ]);
 

@@ -845,6 +845,12 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
 function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
+    // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
+    // is only applied once Device.getDeviceInfoWithID() resolves, and that can lose the race against the /transition ->
+    // HOME navigation that remounts SignInPage — leaving the guard unset while account.isLoading is still true, so SAML
+    // re-fires and loops. This key is RAM-only (resets on reload), so setting it early carries no stuck-state risk; the
+    // optimisticData re-sets it and finallyData reverts it exactly as before.
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
     Device.getDeviceInfoWithID().then((deviceInfo) => {
         API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
     });

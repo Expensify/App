@@ -3,6 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {
@@ -182,6 +183,7 @@ const isActionable = (childReport: OnyxEntry<Report>) => isOpenReport(childRepor
 // transactionViolations so this works even when owner data is absent (e.g. masked Onyx exports).
 const needsViolationFix = (
     childReport: OnyxEntry<Report>,
+    childReportOwnerLogin: string | undefined,
     policies: OnyxCollection<Policy>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserAccountID: number,
@@ -191,7 +193,7 @@ const needsViolationFix = (
         return false;
     }
     const childPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${childReport.policyID}`];
-    return hasViolations(childReport.reportID, transactionViolations, currentUserAccountID, currentUserEmail, true, undefined, childReport, childPolicy);
+    return hasViolations(childReport.reportID, transactionViolations, currentUserAccountID, currentUserEmail, true, undefined, childReport, childReportOwnerLogin, childPolicy);
 };
 
 /**
@@ -250,22 +252,18 @@ export default createOnyxDerivedValueConfig({
             seedDisplayNamesBaseline(personalDetails);
         }
 
-        // Refresh every report when the language changes (names depend on it) or on the very first personal-details
-        // load, when there's nothing to compare against. A normal name change does not land here — it only refreshes
-        // the reports that use the changed accounts (further down).
-        let needsFullRecompute =
+        // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
+        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
+        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        const needsFullRecompute =
             (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
             displayNameChanges === RECOMPUTE_ALL ||
             hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) ||
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
 
-        // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
         const policyChangedReportKeys: string[] = [];
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
-            if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
-                needsFullRecompute = true;
-            } else if (!needsFullRecompute) {
-                // Policy updated — only recompute reports whose relevant fields actually changed
+            if (!needsFullRecompute) {
                 const changedPolicyIDs = new Set<string>();
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
                     if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
@@ -274,7 +272,21 @@ export default createOnyxDerivedValueConfig({
                 }
                 if (changedPolicyIDs.size > 0) {
                     for (const [reportKey, report] of Object.entries(reports ?? {})) {
-                        if (report?.policyID && changedPolicyIDs.has(report.policyID)) {
+                        if (!report) {
+                            continue;
+                        }
+                        // The report's own policy — the sender workspace for an invoice.
+                        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
+                            policyChangedReportKeys.push(reportKey);
+                            continue;
+                        }
+                        // An invoice follows its receiver workspace. The invoice room carries the receiver
+                        // on itself; a child invoice report doesn't, so we read it from its parent room
+                        // (chatReportID) — the same place computeReportName looks for the invoice name.
+                        const ownReceiverPolicyID = report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
+                        const room = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
+                        const roomReceiverPolicyID = room?.invoiceReceiver && 'policyID' in room.invoiceReceiver ? room.invoiceReceiver.policyID : undefined;
+                        if ((ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID))) {
                             policyChangedReportKeys.push(reportKey);
                         }
                     }
@@ -576,7 +588,14 @@ export default createOnyxDerivedValueConfig({
             actionTargetReportActionID =
                 getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
                 getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
-                    needsViolationFix(childReport, policies, transactionViolations, currentUserAccountID, currentUserEmail),
+                    needsViolationFix(
+                        childReport,
+                        getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
+                        policies,
+                        transactionViolations,
+                        currentUserAccountID,
+                        currentUserEmail,
+                    ),
                 ) ??
                 getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
                 actionTargetReportActionID;
