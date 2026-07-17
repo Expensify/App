@@ -750,7 +750,7 @@ function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, feedKeysWithCa
             if (value?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value?.pending) {
                 return false;
             }
-            if (key === CONST.EXPENSIFY_CARD.BANK) {
+            if (key.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
                 return false;
             }
 
