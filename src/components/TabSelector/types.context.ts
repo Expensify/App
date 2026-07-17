@@ -13,7 +13,7 @@ type TabSelectorActionsContextType = {
 };
 
 type TabSelectorContextProviderProps = {
-    activeTabKey: string;
+    activeTabKey: string | undefined;
     children: React.ReactNode;
 };
 
