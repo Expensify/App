@@ -63,6 +63,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
                 transactionPolicyCategories: policyCategories,
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
+                transactionReport: report,
             });
             return;
         }
