@@ -1,4 +1,5 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
+import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
@@ -14,6 +15,7 @@ import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +24,7 @@ import SCREENS from '@src/SCREENS';
 import type {ViewStyle} from 'react-native';
 
 import {PortalHost} from '@gorhom/portal';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type ReportScreenNavigationProps from './types';
@@ -38,6 +40,7 @@ import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
+import ReportActionsLoadingSkeleton from './report/ReportActionsLoadingSkeleton';
 import ReportFooter from './report/ReportFooter';
 import useClearReportActionDraftsOnReportChange from './report/useClearReportActionDraftsOnReportChange';
 import ReportActions from './ReportActions';
@@ -70,6 +73,28 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
     }
 
     return <ReportScreenEditMessageProviderWithTransactionThread reportID={reportID}>{children}</ReportScreenEditMessageProviderWithTransactionThread>;
+}
+
+function ReportActionsWithInboxTabDeferredMount({reportID}: {reportID: string | undefined}) {
+    const [shouldDefer] = useState(() => !!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB));
+
+    if (!shouldDefer) {
+        return <ReportActions />;
+    }
+
+    return (
+        <NavigationDeferredMount
+            waitForUpcomingTransition={false}
+            placeholder={
+                <ReportActionsLoadingSkeleton
+                    reportID={reportID}
+                    skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.INBOX_TAB_DEFER}
+                />
+            }
+        >
+            <ReportActions />
+        </NavigationDeferredMount>
+    );
 }
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
@@ -151,7 +176,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                             testID="report-actions-view-wrapper"
                                                         >
-                                                            <ReportActions />
+                                                            <ReportActionsWithInboxTabDeferredMount reportID={reportIDFromRoute} />
                                                             {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
                                                         </View>
                                                     </ConciergeDraftProvider>

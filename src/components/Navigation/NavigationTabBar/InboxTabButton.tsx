@@ -23,9 +23,11 @@ import type {Report, ReportActions} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {TabActions} from '@react-navigation/native';
 import React from 'react';
 
 import getLastRoute from './getLastRoute';
+import getReusableReportsTabStateKey from './getReusableReportsTabStateKey';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
@@ -119,6 +121,17 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 const reportActionID = getStringParam(lastRoute.params, 'reportActionID');
                 const referrer = getStringParam(lastRoute.params, 'referrer');
                 const backTo = getStringParam(lastRoute.params, 'backTo');
+                const reusableReportsTabStateKey = getReusableReportsTabStateKey(rootState, reportID, reportActionID, doesLastReportActionExist);
+
+                if (reusableReportsTabStateKey) {
+                    // Focusing the existing tab without nested params preserves the mounted ReportScreen and
+                    // avoids rebuilding its cached report list as part of the tab navigation commit.
+                    navigationRef.dispatch({
+                        ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
+                        target: reusableReportsTabStateKey,
+                    });
+                    return;
+                }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo));
                 return;
             }
