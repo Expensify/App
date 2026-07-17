@@ -43,7 +43,6 @@ import {
 } from './MoneyRequestReportPreviewContext';
 import useConfirmApproveReportAction from './useConfirmApproveReportAction';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
-import useReportPreviewFilteredTransactions from './useReportPreviewFilteredTransactions';
 
 function PayActionButton() {
     const {isOffline} = useNetwork();
@@ -56,13 +55,15 @@ function PayActionButton() {
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const {iouReportID, chatReportID, chatReport} = useReportPreviewData();
+    const {iouReportID, chatReportID, chatReport, transactions} = useReportPreviewData();
     const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
     const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide, onHoldMenuOpen} = useReportPreviewActions();
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const activePolicy = usePolicy(activePolicyID);
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
     const {iouReport, policy, userBillingGracePeriodEnds, iouReportNextStep, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
@@ -70,8 +71,6 @@ function PayActionButton() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-
-    const transactions = useReportPreviewFilteredTransactions(iouReportID);
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -114,6 +113,7 @@ function PayActionButton() {
                     methodID,
                     paymentMethod,
                     activePolicy,
+                    conciergeChat,
                     betas,
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),

@@ -36,7 +36,7 @@ const chatReport = {
 } as Report;
 
 // PayActionButton reads from context instead of props; these mock-prefixed objects back the mocked context slice hooks.
-const mockReportPreviewData = {iouReportID: TEST_IOU_REPORT_ID, chatReportID: TEST_CHAT_REPORT_ID, chatReport};
+const mockReportPreviewData = {iouReportID: TEST_IOU_REPORT_ID, chatReportID: TEST_CHAT_REPORT_ID, chatReport, transactions: []};
 const mockReportPreviewAnimationState = {isPaidAnimationRunning: false, isApprovedAnimationRunning: false, isSubmittingAnimationRunning: false};
 const mockReportPreviewActions = {
     stopAnimation: jest.fn(),

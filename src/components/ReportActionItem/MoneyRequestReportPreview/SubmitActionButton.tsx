@@ -23,7 +23,6 @@ import React from 'react';
 
 import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewTransactionViolations} from './MoneyRequestReportPreviewContext';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
-import useReportPreviewFilteredTransactions from './useReportPreviewFilteredTransactions';
 
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
@@ -53,7 +52,7 @@ function SubmitActionButtonContent() {
     const {isBetaEnabled} = usePermissions();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
-    const {iouReportID} = useReportPreviewData();
+    const {iouReportID, transactions} = useReportPreviewData();
     const {isSubmittingAnimationRunning} = useReportPreviewAnimationState();
     const {stopAnimation, startSubmittingAnimation} = useReportPreviewActions();
 
@@ -69,7 +68,6 @@ function SubmitActionButtonContent() {
     } = useReportPreviewActionButtonData(iouReportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const transactions = useReportPreviewFilteredTransactions(iouReportID);
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 

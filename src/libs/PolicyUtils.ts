@@ -1511,17 +1511,6 @@ function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
     return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
 }
 
-function getPolicyEmployeeAccountIDs(policy: OnyxEntry<Pick<Policy, 'employeeList'>>, currentUserAccountID?: number) {
-    if (!policy) {
-        return [];
-    }
-
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-    return Object.values(policyMemberEmailsToAccountIDs)
-        .map((policyMemberAccountID) => Number(policyMemberAccountID))
-        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
-}
-
 function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
@@ -1636,6 +1625,38 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return policy?.approver || policy?.owner || '';
+}
+
+/**
+ * Whether the policy has at least one custom approval workflow. A workflow is considered custom when either:
+ * - the default workflow was modified by changing its first approver or adding an "Approves to" user, or
+ * - a new workflow was created (a member submits to an approver other than the default approver).
+ */
+function hasCustomApprovalWorkflow(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const defaultApprover = getDefaultApprover(policy);
+
+    // The default workflow's first approver was changed away from the workspace owner.
+    if (!!policy.approver && !!policy.owner && policy.approver !== policy.owner) {
+        return true;
+    }
+
+    const employees = policy.employeeList ?? {};
+
+    // The default approver forwards approvals to someone, i.e. an "Approves to" user was added,
+    // either unconditionally (forwardsTo) or above an approval limit (overLimitForwardsTo).
+    const defaultApproverEmployee = employees[defaultApprover];
+    if (!!defaultApprover && (!!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo)) {
+        return true;
+    }
+
+    // A new workflow exists when a member submits to an approver other than the default approver.
+    return Object.values(employees).some(
+        (employee) => employee?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!employee?.submitsTo && employee.submitsTo !== defaultApprover,
+    );
 }
 
 function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
@@ -2900,6 +2921,7 @@ export {
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
     getDefaultApprover,
+    hasCustomApprovalWorkflow,
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
@@ -2949,7 +2971,6 @@ export {
     getTagGLCode,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
-    getPolicyEmployeeAccountIDs,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     getTravelStep,

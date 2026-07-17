@@ -1,3 +1,7 @@
+/**
+ * Returns the confirm-approval handler shared by the report-preview Approve and Pay buttons,
+ * handling delegate-access restrictions, held expenses, and the approveMoneyRequest call.
+ */
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
