@@ -29,7 +29,6 @@ function classifyFailure(reason: MultifactorAuthenticationReason | undefined): F
 type CredentialsState = {
     hasServerCredentials: boolean;
     hasLocalCredentials: boolean;
-    hasEverAcceptedSoftPrompt: boolean;
 };
 
 type MFAFlowOutcomeContext = {

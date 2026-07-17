@@ -10,17 +10,13 @@ import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthenti
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInspectedMachine from '@hooks/useInspectedMachine';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 
 import getPlatform from '@libs/getPlatform';
-
-import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
-import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
 import React from 'react';
 
 import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
@@ -40,7 +36,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {isOffline} = useNetwork();
     const platform = getPlatform();
     const biometrics = useBiometrics();
-    const [hasEverAcceptedSoftPrompt = false] = useOnyx(getDeviceBiometricsOnyxKey(accountID), {selector: hasAcceptedSoftPromptSelector});
 
     const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
@@ -50,7 +45,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             hasLocalCredentials,
-            hasEverAcceptedSoftPrompt,
         };
     };
 
@@ -74,7 +68,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             hasPayload: params !== undefined && Object.keys(params).length > 0,
             platform,
             isOffline,
-            hasAcceptedSoftPrompt: startCredentialsState.hasEverAcceptedSoftPrompt,
             serverHasAnyCredentials: startCredentialsState.hasServerCredentials,
         });
         trackMFAFlowStart({scenario: scenarioName, isOffline, credentialsState: startCredentialsState});
