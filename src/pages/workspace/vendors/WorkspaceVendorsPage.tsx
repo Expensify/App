@@ -4,7 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceVendorTableRowData} from '@components/Tables/WorkspaceVendorsTable';
 import WorkspaceVendorsTable from '@components/Tables/WorkspaceVendorsTable';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -34,7 +34,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Suitcase']);
+    const illustrations = useMemoizedLazyIllustrations(['Luggage']);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.vendors');
 
@@ -79,7 +79,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={expensifyIcons.Suitcase}
+                    icon={illustrations.Luggage}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
