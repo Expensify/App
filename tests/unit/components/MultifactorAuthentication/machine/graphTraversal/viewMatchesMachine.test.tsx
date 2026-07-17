@@ -15,6 +15,7 @@ import type {SnapshotFrom} from 'xstate';
 import Onyx from 'react-native-onyx';
 import getWalkedPaths, {
     isAutoDrivenEvent,
+    READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
     READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE,
     VALIDATE_DEVICE_DONE_EVENT_TYPE,
     VALIDATE_DEVICE_ERROR_EVENT_TYPE,
@@ -60,7 +61,6 @@ const TEST_ID = CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID;
 type MfaEventType = MfaEvent['type'];
 
 type MfaInitEvent = Extract<MfaEvent, {type: 'INIT'}>;
-type SoftPromptAcceptanceReadEvent = Extract<MfaEvent, {type: 'ACTOR_SOFT_PROMPT_ACCEPTANCE_READ'}>;
 type MfaEventExecutorStep<Type extends MfaEventType> = {event: {type: Type}};
 type MfaEventExecutors = {
     [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
@@ -68,6 +68,7 @@ type MfaEventExecutors = {
 type MfaActorEventExecutors = {
     [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step: {event: {type: typeof VALIDATE_DEVICE_DONE_EVENT_TYPE; output: MFAResult}}) => Promise<void>;
     [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => Promise<void>;
+    [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step: {event: {type: typeof READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE; output: boolean}}) => Promise<void>;
     [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => Promise<void>;
 };
 
@@ -75,10 +76,6 @@ type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 
 function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
     return event.type === 'INIT' && 'accountID' in event && 'scenarioName' in event && 'scenario' in event && 'payload' in event;
-}
-
-function isSoftPromptAcceptanceReadEvent(event: {type: string}): event is SoftPromptAcceptanceReadEvent {
-    return event.type === 'ACTOR_SOFT_PROMPT_ACCEPTANCE_READ' && 'accepted' in event;
 }
 
 /**
@@ -121,19 +118,13 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             act(() => pendingModalClose.run());
             await waitForBatchedUpdatesWithAct();
         },
-        ACTOR_SOFT_PROMPT_ACCEPTANCE_READ: (step) => {
-            if (!isSoftPromptAcceptanceReadEvent(step.event)) {
-                throw new Error('Soft-prompt acceptance executor received a path event without the accepted fixture value.');
-            }
-            const {accepted} = step.event;
-            return settleActor(() => resolveSoftPromptAcceptance(accepted));
-        },
         SOFT_PROMPT_APPROVED: async () => {
             fireEvent.press(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON));
             await waitForBatchedUpdatesWithAct();
         },
         [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleActor(() => resolveValidateDevice(step.event.output)),
         [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleActor(rejectValidateDevice),
+        [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => resolveSoftPromptAcceptance(step.event.output)),
         [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => settleActor(rejectSoftPromptAcceptanceRead),
     } satisfies MfaEventExecutors & MfaActorEventExecutors;
 }

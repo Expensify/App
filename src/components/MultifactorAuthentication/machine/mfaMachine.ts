@@ -157,8 +157,8 @@ const MFAMachine = setup({
                                 },
                             },
                         },
-                        // Subscribes to the per-account Onyx flag. The callback actor sends the first
-                        // value back as an event, and leaving this state disconnects it.
+                        // Reads the per-account Onyx flag through a one-shot promise actor. Its done
+                        // event carries the first value and leaving this state cancels the read.
                         [MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE]: {
                             invoke: {
                                 id: 'readHasAcceptedSoftPrompt',
@@ -169,13 +169,11 @@ const MFAMachine = setup({
                                     }
                                     return {accountID: context.accountID};
                                 },
+                                onDone: [{guard: ({event}) => event.output, target: OUTCOME_TARGET}, {target: PROMPT_TARGET}],
                                 onError: {
                                     target: OUTCOME_TARGET,
                                     actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Soft-prompt acceptance read', event.error)}),
                                 },
-                            },
-                            on: {
-                                ACTOR_SOFT_PROMPT_ACCEPTANCE_READ: [{guard: ({event}) => event.accepted, target: OUTCOME_TARGET}, {target: PROMPT_TARGET}],
                             },
                         },
                     },

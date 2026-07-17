@@ -64,18 +64,15 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
     payload: MultifactorAuthenticationScenarioParams<T> | undefined;
 };
 
-/** Carries the device-local soft-prompt flag read by the Onyx callback actor. */
-type SoftPromptAcceptanceReadEvent = {type: 'ACTOR_SOFT_PROMPT_ACCEPTANCE_READ'; accepted: boolean};
-
 /**
  * Events accepted by the machine. INIT starts a flow and lifecycle events drive the modal.
  *
  * CLOSE_MODAL requests the close so the flow moves to `closing`. MODAL_CLOSED is the navigator's
  * notification that the close animation fully finished, which moves `closing` to `closed` and wipes
- * the context. Events with the `ACTOR_` prefix are sent internally by invoked actors, while
- * SOFT_PROMPT_APPROVED comes from the prompt screen's confirm button.
+ * the context. SOFT_PROMPT_APPROVED is sent by the prompt screen's confirm button and moves the flow
+ * past the soft prompt.
  */
-type MfaEvent = MultifactorAuthenticationInitEvent | SoftPromptAcceptanceReadEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'} | {type: 'SOFT_PROMPT_APPROVED'};
+type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'} | {type: 'SOFT_PROMPT_APPROVED'};
 
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
@@ -83,4 +80,4 @@ type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationM
 /** Identifies the per-account Onyx member read by the soft-prompt actor. */
 type ReadHasAcceptedSoftPromptInput = {accountID: number};
 
-export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ReadHasAcceptedSoftPromptInput, SoftPromptAcceptanceReadEvent, ValidateDeviceInput};
+export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput};
