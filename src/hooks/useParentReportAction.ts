@@ -10,7 +10,7 @@ import {useCallback} from 'react';
 
 import useOnyx from './useOnyx';
 
-function useParentReportAction(report: OnyxEntry<Report>) {
+function useParentReportAction(report: OnyxEntry<Report>, isActive = true) {
     const getParentReportAction = useCallback(
         (parentReportActions: OnyxEntry<ReportActions>) => getParentReportActionSelector(parentReportActions, report?.parentReportActionID),
         [report?.parentReportActionID],
@@ -22,6 +22,7 @@ function useParentReportAction(report: OnyxEntry<Report>) {
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
         {
             selector: getParentReportAction,
+            subscribed: isActive,
         },
         [getParentReportAction],
     );

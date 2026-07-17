@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import {render} from '@testing-library/react-native';
 
@@ -34,6 +35,10 @@ jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
+    useIsFocused: jest.fn(() => true),
+}));
 
 // useThemeStyles throws without a <ThemeStylesProvider>; return a proxy that yields an empty style object
 // for any key so the (mostly-mocked) tree renders without wiring up the full provider stack.

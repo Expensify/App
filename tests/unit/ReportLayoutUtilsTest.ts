@@ -24,14 +24,9 @@ const createMockReport = (overrides: Partial<Report> = {}): Report =>
     }) as Report;
 
 describe('groupTransactionsByCategory', () => {
-    it('returns empty array when report is undefined', () => {
-        const transactions = [createMockTransaction({category: 'Travel'})];
-        expect(groupTransactionsByCategory(transactions, undefined, mockLocaleCompare)).toEqual([]);
-    });
-
     it('returns empty array when transactions array is empty', () => {
         const report = createMockReport();
-        expect(groupTransactionsByCategory([], report, mockLocaleCompare)).toEqual([]);
+        expect(groupTransactionsByCategory([], report.currency, mockLocaleCompare)).toEqual([]);
     });
 
     it('groups transactions by category', () => {
@@ -42,7 +37,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '3', category: 'Travel', amount: -2000}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(2);
         expect(result.find((g) => g.groupKey === 'Meals')?.transactions).toHaveLength(1);
@@ -53,7 +48,7 @@ describe('groupTransactionsByCategory', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', category: '', amount: -1000}), createMockTransaction({transactionID: '2', category: 'Travel', amount: -500})];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(2);
         expect(result.find((g) => g.groupKey === '')?.transactions).toHaveLength(1);
@@ -67,7 +62,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '3', category: 'Alpha', amount: -200}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(3);
         expect(result.at(0)?.groupKey).toBe('Alpha');
@@ -79,7 +74,7 @@ describe('groupTransactionsByCategory', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000}), createMockTransaction({transactionID: '2', category: 'Meals', amount: -500})];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
 
         expect(result.every((g) => g.isExpanded === true)).toBe(true);
     });
@@ -91,7 +86,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Travel', amount: -2000, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
         const travelGroup = result.find((g) => g.groupKey === 'Travel');
 
         expect(travelGroup?.subTotalAmount).toBe(3000);
@@ -104,7 +99,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Travel', amount: -500, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
         const travelGroup = result.find((g) => g.groupKey === 'Travel');
 
         expect(travelGroup?.subTotalAmount).toBe(1700);
@@ -117,7 +112,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Travel', amount: -500, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
         const travelGroup = result.find((g) => g.groupKey === 'Travel');
 
         expect(travelGroup?.subTotalAmount).toBe(500);
@@ -137,7 +132,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Travel', amount: -500, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
         const travelGroup = result.find((g) => g.groupKey === 'Travel');
 
         expect(travelGroup?.subTotalAmount).toBe(508);
@@ -147,7 +142,7 @@ describe('groupTransactionsByCategory', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000})];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
 
         expect(result.at(0)?.groupName).toBe(result.at(0)?.groupKey);
         expect(result.at(0)?.groupName).toBe('Travel');
@@ -160,7 +155,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Uncategorized', amount: -500}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(1);
         expect(result.at(0)?.groupKey).toBe('');
@@ -174,7 +169,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Travel', amount: -1200, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
         const travelGroup = result.find((g) => g.groupKey === 'Travel');
 
         expect(travelGroup?.subTotalAmount).toBe(1000);
@@ -188,7 +183,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Travel', amount: -1200, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
         const travelGroup = result.find((g) => g.groupKey === 'Travel');
 
         expect(travelGroup?.subTotalAmount).toBe(0);
@@ -202,7 +197,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Travel', amount: -500, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
         const travelGroup = result.find((g) => g.groupKey === 'Travel');
 
         expect(travelGroup?.subTotalAmount).toBe(1200);
@@ -224,7 +219,7 @@ describe('groupTransactionsByCategory', () => {
             }),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
         const travelGroup = result.find((g) => g.groupKey === 'Travel');
 
         expect(travelGroup?.subTotalAmount).toBe(1000);
@@ -238,7 +233,7 @@ describe('groupTransactionsByCategory', () => {
             createMockTransaction({transactionID: '2', category: 'Auto (including Tolls & Parking)', amount: -2000, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByCategory(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(1);
         expect(result.at(0)?.groupKey).toBe('Auto (including Tolls & Parking)');
@@ -248,14 +243,9 @@ describe('groupTransactionsByCategory', () => {
 });
 
 describe('groupTransactionsByTag', () => {
-    it('returns empty array when report is undefined', () => {
-        const transactions = [createMockTransaction({tag: 'Project A'})];
-        expect(groupTransactionsByTag(transactions, undefined, mockLocaleCompare)).toEqual([]);
-    });
-
     it('returns empty array when transactions array is empty', () => {
         const report = createMockReport();
-        expect(groupTransactionsByTag([], report, mockLocaleCompare)).toEqual([]);
+        expect(groupTransactionsByTag([], report.currency, mockLocaleCompare)).toEqual([]);
     });
 
     it('groups transactions by tag', () => {
@@ -266,7 +256,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '3', tag: 'Project A', amount: -2000}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(2);
         expect(result.find((g) => g.groupKey === 'Project A')?.transactions).toHaveLength(2);
@@ -277,7 +267,7 @@ describe('groupTransactionsByTag', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', tag: '', amount: -1000}), createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500})];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(2);
         expect(result.find((g) => g.groupKey === '')?.transactions).toHaveLength(1);
@@ -291,7 +281,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '3', tag: 'Alpha', amount: -200}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(3);
         expect(result.at(0)?.groupKey).toBe('Alpha');
@@ -303,7 +293,7 @@ describe('groupTransactionsByTag', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', tag: 'Project A', amount: -1000}), createMockTransaction({transactionID: '2', tag: 'Project B', amount: -500})];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
 
         expect(result.every((g) => g.isExpanded === true)).toBe(true);
     });
@@ -315,7 +305,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '2', tag: 'Project A', amount: -2000, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
         const projectAGroup = result.find((g) => g.groupKey === 'Project A');
 
         expect(projectAGroup?.subTotalAmount).toBe(3000);
@@ -328,7 +318,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
         const projectAGroup = result.find((g) => g.groupKey === 'Project A');
 
         expect(projectAGroup?.subTotalAmount).toBe(1700);
@@ -341,7 +331,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
         const projectAGroup = result.find((g) => g.groupKey === 'Project A');
 
         expect(projectAGroup?.subTotalAmount).toBe(500);
@@ -361,7 +351,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
         const projectAGroup = result.find((g) => g.groupKey === 'Project A');
 
         expect(projectAGroup?.subTotalAmount).toBe(508);
@@ -371,7 +361,7 @@ describe('groupTransactionsByTag', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', tag: 'Project A', amount: -1000})];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
 
         expect(result.at(0)?.groupName).toBe(result.at(0)?.groupKey);
         expect(result.at(0)?.groupName).toBe('Project A');
@@ -381,7 +371,7 @@ describe('groupTransactionsByTag', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', tag: 'none', amount: -1000}), createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500})];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(2);
         expect(result.find((g) => g.groupKey === '')?.transactions).toHaveLength(1);
@@ -394,7 +384,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '2', tag: 'Project A', amount: -1200, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
         const projectAGroup = result.find((g) => g.groupKey === 'Project A');
 
         expect(projectAGroup?.subTotalAmount).toBe(1000);
@@ -408,7 +398,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '2', tag: 'Project A', amount: -1200, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
         const projectAGroup = result.find((g) => g.groupKey === 'Project A');
 
         expect(projectAGroup?.subTotalAmount).toBe(0);
@@ -422,7 +412,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
         const projectAGroup = result.find((g) => g.groupKey === 'Project A');
 
         expect(projectAGroup?.subTotalAmount).toBe(1200);
@@ -444,7 +434,7 @@ describe('groupTransactionsByTag', () => {
             }),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
         const projectAGroup = result.find((g) => g.groupKey === 'Project A');
 
         expect(projectAGroup?.subTotalAmount).toBe(1000);
@@ -458,7 +448,7 @@ describe('groupTransactionsByTag', () => {
             createMockTransaction({transactionID: '2', tag: 'R&D', amount: -2000, currency: 'USD'}),
         ];
 
-        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const result = groupTransactionsByTag(transactions, report.currency, mockLocaleCompare);
 
         expect(result).toHaveLength(1);
         expect(result.at(0)?.groupKey).toBe('R&D');

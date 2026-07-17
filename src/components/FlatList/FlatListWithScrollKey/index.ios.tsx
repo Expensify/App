@@ -2,7 +2,7 @@ import mergeRefs from '@libs/mergeRefs';
 
 import type {LayoutChangeEvent, FlatList as RNFlatList} from 'react-native';
 
-import React, {useCallback, useRef} from 'react';
+import React, {memo, useCallback, useRef} from 'react';
 
 import type {FlatListWithScrollKeyProps} from './types';
 
@@ -63,4 +63,5 @@ function FlatListWithScrollKey<T>({ref, ...props}: FlatListWithScrollKeyProps<T>
     );
 }
 
-export default FlatListWithScrollKey;
+// memo() so unchanged props skip a re-render; RC memoizes internals but adds no memo() boundary of its own.
+export default memo(FlatListWithScrollKey);

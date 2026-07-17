@@ -43,7 +43,8 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -117,6 +118,7 @@ function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: T
 function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -126,7 +128,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID, undefined, {isActive: isFocused});
 
     const reportActions = useMemo(() => {
         return getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -300,4 +302,4 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     );
 }
 
-export default MoneyRequestReportView;
+export default memo(MoneyRequestReportView);

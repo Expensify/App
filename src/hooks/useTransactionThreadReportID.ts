@@ -12,13 +12,14 @@ import useReportTransactionsCollection from './useReportTransactionsCollection';
 /**
  * Derives the single-transaction thread report IDs and filtered actions for a money request report.
  */
-function useTransactionThreadReportID(reportID: string | undefined) {
+function useTransactionThreadReportID(reportID: string | undefined, isActive = true) {
     const {isOffline} = useNetwork();
 
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {subscribed: isActive});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`, {subscribed: isActive});
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID, undefined, {isActive});
+
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const allReportTransactions = useReportTransactionsCollection(reportID);

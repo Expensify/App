@@ -61,6 +61,7 @@ function endSpan(spanId: string) {
     const now = performance.now();
     const durationMs = Math.round(now - startTimeForLog);
     console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
+
     span.setStatus({code: SPAN_STATUS_OK});
 
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);

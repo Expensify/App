@@ -9,6 +9,7 @@ import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleto
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
+import useOnyxFocused from '@hooks/useOnyxFocused';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
@@ -65,6 +66,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
+import {reportVisibleActionsSelector} from '@src/selectors/ReportAction';
 import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -124,17 +126,20 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const reportID = report?.reportID;
 
-    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
+    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID, {isActive: isFocused});
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+
     const {draftReportAction} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
-    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
+    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute, isFocused);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
+
     const transactions = useMemo(
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) ?? [],
         [reportTransactions, isOffline],
     );
+
     const hasPendingDeletionTransaction = useMemo(
         () => Object.values(allReportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         [allReportTransactions],
@@ -149,7 +154,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const linkedReportActionID = route?.params?.reportActionID;
 
-    const parentReportAction = useParentReportAction(report);
+    const parentReportAction = useParentReportAction(report, isFocused);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -161,7 +166,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+
+    const [visibleReportActionsData] = useOnyxFocused(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+        selector: reportVisibleActionsSelector(reportID),
+    });
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
@@ -170,6 +178,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
+
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
             const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
@@ -683,6 +692,47 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
     const showEmptyState = isReportEmpty;
 
+    const listContentContainerStyle = useMemo(() => [shouldUseNarrowLayout ? styles.pt4 : styles.pt3], [shouldUseNarrowLayout, styles.pt3, styles.pt4]);
+
+    const listHeaderComponent = useMemo(
+        () => (
+            <>
+                <MoneyRequestViewReportFields
+                    report={reportStable}
+                    policy={policy}
+                />
+                {!!reportStable && (
+                    <MoneyRequestReportTransactionList
+                        report={reportStable}
+                        onLayout={onLayout}
+                        transactions={transactions}
+                        newTransactions={newTransactions}
+                        isReportVisible={isReportVisible}
+                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
+                        reportActions={reportActions}
+                        scrollToNewTransaction={scrollToNewTransaction}
+                        policy={policy}
+                        hasComments={visibleReportActions.length > 0}
+                        isLoadingInitialReportActions={showReportActionsLoadingState}
+                    />
+                )}
+            </>
+        ),
+        [
+            policy,
+            reportStable,
+            onLayout,
+            transactions,
+            newTransactions,
+            isReportVisible,
+            hasPendingDeletionTransaction,
+            reportActions,
+            scrollToNewTransaction,
+            visibleReportActions.length,
+            showReportActionsLoadingState,
+        ],
+    );
+
     if (!report) {
         return null;
     }
@@ -742,32 +792,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         onEndReachedThreshold={0.75}
                         onStartReached={onStartReached}
                         onStartReachedThreshold={0.75}
-                        ListHeaderComponent={
-                            <>
-                                <MoneyRequestViewReportFields
-                                    report={report}
-                                    policy={policy}
-                                />
-                                {!!reportStable && (
-                                    <MoneyRequestReportTransactionList
-                                        report={reportStable}
-                                        onLayout={onLayout}
-                                        transactions={transactions}
-                                        newTransactions={newTransactions}
-                                        isReportVisible={isReportVisible}
-                                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                        reportActions={reportActions}
-                                        scrollToNewTransaction={scrollToNewTransaction}
-                                        policy={policy}
-                                        hasComments={visibleReportActions.length > 0}
-                                        isLoadingInitialReportActions={showReportActionsLoadingState}
-                                    />
-                                )}
-                            </>
-                        }
+                        ListHeaderComponent={listHeaderComponent}
                         keyboardShouldPersistTaps="handled"
-                        onScroll={trackVerticalScrolling}
-                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
+                        onScroll={isFocused ? trackVerticalScrolling : undefined}
+                        contentContainerStyle={listContentContainerStyle}
                         ref={listRef}
                         ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                         removeClippedSubviews={false}

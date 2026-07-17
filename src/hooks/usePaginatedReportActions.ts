@@ -28,17 +28,24 @@ type UsePaginatedReportActionsOptions = {
      * anchor from ever resolving. Scoped to Concierge so regular inbox chat pagination keeps the first-render ref behavior.
      */
     shouldSnapshotInitialLastReadTime?: boolean;
+
+    /**
+     * Defaults to `true`. When `false`, the underlying Onyx subscriptions stay cache-warm but stop re-rendering
+     * the consumer on background writes (e.g. while the consuming screen is blurred). Report actions churn on
+     * every message sent in an RHP layered on top, so pausing here keeps an off-screen list from re-rendering.
+     */
+    isActive?: boolean;
 };
 
 /**
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
  */
 function usePaginatedReportActions(reportID: string | undefined, reportActionID?: string, options?: UsePaginatedReportActionsOptions) {
-    const {shouldLinkToOldestUnreadReportAction = false, treatAsNoPaginationAnchor = false, shouldSnapshotInitialLastReadTime = false} = options ?? {};
+    const {shouldLinkToOldestUnreadReportAction = false, treatAsNoPaginationAnchor = false, shouldSnapshotInitialLastReadTime = false, isActive = true} = options ?? {};
 
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
-    const isReportArchived = useReportIsArchived(report?.reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`, {subscribed: isActive});
+    const isReportArchived = useReportIsArchived(report?.reportID, isActive);
     const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
 
     const getSortedAllReportActionsSelector = useCallback(
@@ -52,10 +59,11 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`,
         {
             selector: getSortedAllReportActionsSelector,
+            subscribed: isActive,
         },
         [getSortedAllReportActionsSelector],
     );
-    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
+    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`, {subscribed: isActive});
 
     // Default (regular inbox chats): snapshot lastReadTime at first render via a ref — production behavior.
     const firstRenderLastReadTime = useRef(report?.lastReadTime);

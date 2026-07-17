@@ -12,10 +12,10 @@ import useOnyx from './useOnyx';
 
 const DEFAULT_RETURN_VALUE: ReportTransactionsAndViolations = {transactions: {}, violations: {}};
 
-function useTransactionsAndViolationsForReport(reportID?: string) {
+function useTransactionsAndViolationsForReport(reportID?: string, isActive = true) {
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {subscribed: isActive});
     const [reportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
 
