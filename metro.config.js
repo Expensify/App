@@ -70,7 +70,6 @@ const config = {
     },
 };
 
-let mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
-mergedConfig = getBundleModeMetroConfig(mergedConfig);
+const mergedConfig = getBundleModeMetroConfig(wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config)));
 
 module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);
