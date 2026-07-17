@@ -1,8 +1,11 @@
-import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import React from 'react';
+
+import type {ExpenseReportListItemRowProps} from './types';
+
 import ExpenseReportListItemRowNarrow from './ExpenseReportListItemRowNarrow';
 import ExpenseReportListItemRowWide from './ExpenseReportListItemRowWide';
-import type {ExpenseReportListItemRowProps} from './types';
 
 function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -25,6 +28,7 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
                 isHovered={props.isHovered}
                 isFocused={props.isFocused}
                 isPendingDelete={props.isPendingDelete}
+                shouldDisableActionPointerEvents={props.shouldDisableActionPointerEvents}
                 columns={props.columns}
                 isMarkAsDone={props.isMarkAsDone}
             />

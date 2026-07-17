@@ -1,6 +1,9 @@
-import {useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import {getEmailDomain, isDomainPublic} from '@libs/LoginUtils';
+
+import {useMemo} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 /**
@@ -19,11 +22,13 @@ export default function useShortMentionsList() {
         }
 
         const currentUserDomain = getEmailDomain(currentUserPersonalDetails.login ?? '');
-        const isCurrentUserPublicDomain = isDomainPublic(currentUserDomain);
+        if (isDomainPublic(currentUserDomain)) {
+            return [];
+        }
 
         return Object.values(personalDetails)
             .map((personalDetail) => {
-                if (!personalDetail?.login || isCurrentUserPublicDomain) {
+                if (!personalDetail?.login) {
                     return;
                 }
 

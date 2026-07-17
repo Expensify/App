@@ -1,9 +1,11 @@
-import {primaryLoginSelector} from '@selectors/Account';
 import useOnyx from '@hooks/useOnyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {primaryLoginSelector} from '@selectors/Account';
 
 type LockedBankAccount = {
     /** Stable key used to render this account widget */

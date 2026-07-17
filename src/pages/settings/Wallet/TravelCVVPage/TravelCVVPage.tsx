@@ -1,6 +1,3 @@
-import {useNavigationState} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,19 +5,26 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import {resetValidateActionCodeSent} from '@libs/actions/User';
+
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useNavigationState} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
@@ -95,7 +99,6 @@ function TravelCVVPage() {
             return;
         }
         hasAutoNavigatedRef.current = true;
-        resetValidateActionCodeSent();
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
     }, [isLoadingAccount, isLoadingLockAccountDetails, cvv, isSignedInAsDelegate, isOffline, isAccountLocked, isVerifyAccountInStack]);
 
@@ -105,9 +108,6 @@ function TravelCVVPage() {
             return;
         }
 
-        // ValidateCodeActionContent only sends a magic code when validateCodeSent is false
-        // so we need to reset it to ensure a code is always sent
-        resetValidateActionCodeSent();
         // Navigate to the verify account page
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
     };

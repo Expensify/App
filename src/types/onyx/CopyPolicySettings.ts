@@ -1,5 +1,9 @@
-import type {ValueOf} from 'type-fest';
+import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
+
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Errors} from './OnyxCommon';
 
 /** Onyx state of the Copy Policy Settings (bulk workspace edits) flow */
@@ -11,7 +15,7 @@ type CopyPolicySettings = {
     targetPolicyIDs?: string[];
 
     /** Which feature parts are selected for copying */
-    parts?: string[];
+    parts?: Part[];
 
     /**
      * Current step of the copy progress modal (UI state, not backend state)

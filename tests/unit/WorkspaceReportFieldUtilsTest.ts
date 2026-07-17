@@ -1,4 +1,5 @@
 import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
 describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {

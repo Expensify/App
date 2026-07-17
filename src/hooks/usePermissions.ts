@@ -1,7 +1,10 @@
-import {useContext, useMemo} from 'react';
 import {BetaConfigurationContext, BetasContext} from '@components/OnyxListItemProvider';
+
 import Permissions from '@libs/Permissions';
+
 import type Beta from '@src/types/onyx/Beta';
+
+import {useContext, useMemo} from 'react';
 
 type PermissionKey = keyof typeof Permissions;
 type UsePermissions = Partial<Record<Exclude<PermissionKey, 'isBetaEnabled'>, boolean>> & {isBetaEnabled: (beta: Beta) => boolean};

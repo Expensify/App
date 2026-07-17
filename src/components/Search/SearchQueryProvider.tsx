@@ -1,16 +1,22 @@
-import {useNavigation} from '@react-navigation/native';
-import type {NavigationState} from '@react-navigation/routers';
-import React, {useState} from 'react';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
+
 import SCREENS from '@src/SCREENS';
-import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
+
+import type {NavigationState} from '@react-navigation/routers';
+
+import {useNavigation} from '@react-navigation/native';
+import React, {useState} from 'react';
+
 import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
+
+import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
 
 type SearchQueryProviderProps = {
     children: React.ReactNode;

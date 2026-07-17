@@ -1,13 +1,9 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
-// Animated required for side panel navigation
-// eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -18,16 +14,28 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
+
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+// Animated required for side panel navigation
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
+
+import type BaseModalProps from './types';
+
 import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
-import type BaseModalProps from './types';
 
 function BaseModal({
     isVisible,
@@ -65,7 +73,7 @@ function BaseModal({
     swipeDirection,
     shouldPreventScrollOnFocus = false,
     enableEdgeToEdgeBottomSafeAreaPadding,
-    shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+    shouldApplySidePanelOffset: shouldApplySidePanelOffsetProp,
     hasBackdrop,
     backdropOpacity,
     shouldDisableBottomSafeAreaPadding = false,
@@ -76,8 +84,6 @@ function BaseModal({
     shouldKeepRightDockedBackdropInNarrowPane = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
-    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
-    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -89,6 +95,9 @@ function BaseModal({
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal, isInLandscapeMode} = useResponsiveLayout();
 
     const {sidePanelOffset} = useSidePanelState();
+
+    // This prop does not have a default value, because React Compiler throws an internal error if this is provided as a default value.
+    const shouldApplySidePanelOffset = shouldApplySidePanelOffsetProp ?? type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
@@ -100,16 +109,20 @@ function BaseModal({
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
     const bottomDockedDismissButtonRef = useRef<View>(null);
+    const fallbackModalIdRef = useRef<number | undefined>(undefined);
+    if (fallbackModalIdRef.current === undefined) {
+        fallbackModalIdRef.current = ComposerFocusManager.getId();
+    }
 
     const wasVisible = usePrevious(isVisible);
 
-    const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
-    const saveFocusState = useCallback(() => {
+    const uniqueModalId = modalId ?? fallbackModalIdRef.current;
+    const saveFocusState = () => {
         if (shouldEnableNewFocusManagement) {
             ComposerFocusManager.saveFocusState(uniqueModalId);
         }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
-    }, [shouldEnableNewFocusManagement, uniqueModalId]);
+    };
     /**
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
@@ -230,81 +243,50 @@ function BaseModal({
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = useMemo(
-        () =>
-            StyleUtils.getModalStyles(
-                type,
-                {
-                    windowWidth,
-                    windowHeight,
-                    isSmallScreenWidth,
-                    shouldUseNarrowLayout,
-                },
-                popoverAnchorPosition,
-                innerContainerStyle,
-                outerStyle,
-                shouldUseModalPaddingStyle,
-                {
-                    modalOverlapsWithTopSafeArea,
-                    shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
-                },
-                shouldDisplayBelowModals,
-            ),
-        [
-            StyleUtils,
-            type,
+    } = StyleUtils.getModalStyles({
+        type,
+        windowDimensions: {
             windowWidth,
             windowHeight,
             isSmallScreenWidth,
             shouldUseNarrowLayout,
-            popoverAnchorPosition,
-            innerContainerStyle,
-            outerStyle,
-            shouldUseModalPaddingStyle,
-            modalOverlapsWithTopSafeArea,
-            shouldDisableBottomSafeAreaPadding,
-            shouldDisplayBelowModals,
-        ],
-    );
-
-    const modalPaddingStyles = useMemo(() => {
-        const paddings = StyleUtils.getModalPaddingStyles({
-            shouldAddBottomSafeAreaMargin,
-            shouldAddTopSafeAreaMargin,
-            // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-            shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
-            shouldAddTopSafeAreaPadding,
-            modalContainerStyle,
-            insets,
-        });
-        return shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
-    }, [
-        StyleUtils,
-        avoidKeyboard,
-        insets,
-        isUsingEdgeToEdgeMode,
-        keyboardStateContextValue.isKeyboardActive,
-        modalContainerStyle,
-        shouldAddBottomSafeAreaMargin,
-        shouldAddBottomSafeAreaPadding,
-        shouldAddTopSafeAreaMargin,
-        shouldAddTopSafeAreaPadding,
+        },
+        popoverAnchorPosition,
+        innerContainerStyle,
+        outerStyle,
         shouldUseModalPaddingStyle,
-    ]);
+        safeAreaOptions: {
+            modalOverlapsWithTopSafeArea,
+            shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
+        },
+        enableEdgeToEdgeBottomSafeAreaPadding,
+        shouldDisplayBelowModals,
+    });
 
-    const modalContextValue = useMemo(
-        () => ({
-            activeModalType: isVisible ? type : undefined,
-            default: false,
-        }),
-        [isVisible, type],
-    );
+    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
+    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
+
+    const paddings = StyleUtils.getModalPaddingStyles({
+        shouldAddBottomSafeAreaMargin,
+        shouldAddTopSafeAreaMargin,
+        // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
+        shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        modalContainerStyle,
+        insets,
+    });
+    const modalPaddingStyles = shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
+
+    const modalContextValue = {
+        activeModalType: isVisible ? type : undefined,
+        default: false,
+    };
 
     // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
     // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
+    const offlineIndicatorContextValue = isInNarrowPane ? (originalValues ?? {}) : {};
 
     const shouldSuppressRightDockedBackdrop =
         type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;

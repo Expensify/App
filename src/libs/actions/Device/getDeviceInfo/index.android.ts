@@ -1,6 +1,7 @@
+import type {GetDeviceInfo} from './types';
+
 import getBaseInfo from './getBaseInfo';
 import getOSAndName from './getOSAndName/index';
-import type {GetDeviceInfo} from './types';
 
 const getDeviceInfo: GetDeviceInfo = () => ({
     ...getBaseInfo(),

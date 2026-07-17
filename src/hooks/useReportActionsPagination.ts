@@ -1,15 +1,21 @@
-import {useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
-import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
+import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
+
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Pages, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo, useState} from 'react';
+
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
+import useParentReportAction from './useParentReportAction';
 import useTransactionThread from './useTransactionThread';
 
 type UseReportActionsPaginationResult = {
@@ -20,7 +26,6 @@ type UseReportActionsPaginationResult = {
     hasNewerActions: boolean;
     sortedAllReportActions: ReportAction[] | undefined;
     oldestUnreadReportAction: ReportAction | undefined;
-    reportActionPages: OnyxEntry<Pages>;
     transactionThreadReportID: string | undefined;
     transactionThreadReport: OnyxEntry<Report>;
     parentReportActionForTransactionThread: ReportAction | undefined;
@@ -32,10 +37,14 @@ type UseReportActionsPaginationResult = {
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
+    const parentReportAction = useParentReportAction(report);
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
-    const nonEmptyReportIDForPages = getNonEmptyStringOnyxID(reportID);
-    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyReportIDForPages}`);
+
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
+
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
     const {
         reportActions: unfilteredReportActions,
@@ -44,15 +53,15 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         sortedAllReportActions,
         oldestUnreadReportAction,
     } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
-        shouldLinkToOldestUnreadReportAction: true,
+        shouldLinkToOldestUnreadReportAction: !shouldBeAlignedToTop,
         treatAsNoPaginationAnchor,
+        // Scope the first-defined lastReadTime snapshot to Concierge so the cold-open unread anchor resolves
+        // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
+        shouldSnapshotInitialLastReadTime: isConciergeChat,
     });
     const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
     const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
-
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
@@ -87,7 +96,6 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        reportActionPages,
         transactionThreadReportID: thread.transactionThreadReportID,
         transactionThreadReport: thread.transactionThreadReport,
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,

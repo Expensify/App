@@ -1,15 +1,18 @@
-import {isAfter} from 'date-fns';
-import type {NativeEventSubscription} from 'react-native';
-import {AppState} from 'react-native';
-import type {Connection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {onReachabilityConfirmed} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken} from '@src/types/onyx';
+
+import type {NativeEventSubscription} from 'react-native';
+import type {Connection} from 'react-native-onyx';
+
+import {isAfter} from 'date-fns';
+import {AppState} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 let authToken: string | undefined;
 // Use connectWithoutView since this is only for auth token and don't affect to any UI

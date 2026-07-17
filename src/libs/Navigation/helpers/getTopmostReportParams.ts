@@ -1,7 +1,9 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 // This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 

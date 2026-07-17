@@ -1,10 +1,18 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx';
-import type {SetRequired} from 'type-fest';
-import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
+import {readUpdateIDFrom, resolveDuplicationConflictAction, resolveEnableFeatureConflicts, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, LoadTest, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
+import {
+    FailureTracking,
+    handleDeletedAccount,
+    HandleUnusedOptimisticID,
+    LoadTest,
+    Logging,
+    Pagination,
+    Reauthentication,
+    RecordFullReconnectTime,
+    SaveResponseInOnyx,
+    SupportalPermission,
+} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
@@ -12,12 +20,21 @@ import {getIsOffline} from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
-import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+
+import {getAll, getOngoingRequest, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+import type {SetRequired} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+
 import {READ_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
@@ -50,8 +67,11 @@ addMiddleware(Pagination);
 // SentryServerTiming - Tracks server round-trip time for configured command groups via Sentry spans.
 addMiddleware(SentryServerTiming);
 
-// SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
-// middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
+// RecordFullReconnectTime - Records the full-reconnect time into an OpenApp/full-ReconnectApp response. Must run before SaveResponseInOnyx applies the response.
+addMiddleware(RecordFullReconnectTime);
+
+// SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
+// (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 addMiddleware(SaveResponseInOnyx);
 
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
@@ -197,6 +217,24 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
 }
 
 /**
+ * Writes a ReconnectApp through the coverage-based reconnect resolver. See the Conflict Resolution section
+ * of contributingGuides/SEQUENTIAL_QUEUE.md. getOngoingRequest() is read inside the closure so both
+ * evaluation passes see the same in-flight request.
+ */
+function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData<TKey> = {},
+): Promise<void | Response<TKey>> {
+    const incomingRequest: AnyRequest = {command, data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)}};
+    const conflictResolver = {
+        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest),
+    };
+
+    return write(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
  * This function is used to write data to the API while ensuring that there are no conflicts with enabling policy features.
  * If a conflict is found, it resolves the conflict by deleting the duplicated request.
  */
@@ -316,4 +354,13 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     }
 }
 
-export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts, waitForWrites};
+export {
+    write,
+    makeRequestWithSideEffects,
+    read,
+    paginate,
+    writeWithNoDuplicatesConflictAction,
+    writeWithNoDuplicatesReconnectConflictAction,
+    writeWithNoDuplicatesEnableFeatureConflicts,
+    waitForWrites,
+};

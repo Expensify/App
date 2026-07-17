@@ -1,10 +1,14 @@
-import {useEffect, useEffectEvent} from 'react';
 import DateUtils from '@libs/DateUtils';
+
 import {updateAutomaticTimezone} from '@userActions/PersonalDetails';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useEffect, useEffectEvent} from 'react';
+
 import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';

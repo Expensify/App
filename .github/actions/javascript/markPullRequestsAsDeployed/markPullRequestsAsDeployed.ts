@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-import * as core from '@actions/core';
-import {context} from '@actions/github';
-import type {RequestError} from '@octokit/types';
-import memoize from 'lodash/memoize';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
+import PromisePool from '@scripts/utils/PromisePool';
+
+import type {RequestError} from '@octokit/types';
+
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import memoize from 'lodash/memoize';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
@@ -51,55 +55,62 @@ async function commentOnDeployChecklistPRs(
     recentTags: Awaited<ReturnType<typeof GithubUtils.octokit.repos.listTags>>['data'],
     getDeployMessage: (deployer: string, deployVerb: string, prTitle?: string) => string,
 ) {
-    for (const prNumber of prList) {
-        try {
-            const {data: pr} = await GithubUtils.octokit.pulls.get({
-                owner: CONST.GITHUB_OWNER,
-                repo: repoName,
-                pull_number: prNumber,
-            });
+    const pool = new PromisePool<void>(8);
+    const commentPromises = prList.map((prNumber) =>
+        pool.add(async () => {
+            try {
+                const {data: pr} = await GithubUtils.octokit.pulls.get({
+                    owner: CONST.GITHUB_OWNER,
+                    repo: repoName,
+                    pull_number: prNumber,
+                });
 
-            // Find the deployer: either the merger, or for CPs, the tag creator
-            const isCP = pr.labels.some(({name: labelName}) => labelName === CONST.LABELS.CP_STAGING);
-            let deployer = pr.merged_by?.login;
-            if (isCP) {
-                for (const tag of recentTags) {
-                    const {data: commit} = await getCommit({
-                        owner: CONST.GITHUB_OWNER,
-                        repo: repoName,
-                        commit_sha: tag.commit.sha,
-                    });
-                    const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
-                    if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
-                        const cpActor = commit.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
-                        if (cpActor) {
-                            deployer = cpActor;
+                // Find the deployer: either the merger, or for CPs, the tag creator
+                const isCP = pr.labels.some(({name: labelName}) => labelName === CONST.LABELS.CP_STAGING);
+                let deployer = pr.merged_by?.login;
+                if (isCP) {
+                    for (const tag of recentTags) {
+                        const {data: commit} = await getCommit({
+                            owner: CONST.GITHUB_OWNER,
+                            repo: repoName,
+                            commit_sha: tag.commit.sha,
+                        });
+                        const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
+                        if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
+                            const cpActor = commit.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
+                            if (cpActor) {
+                                deployer = cpActor;
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
-            }
 
-            const title = pr.title;
-            const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
-            await commentPR(prNumber, deployMessage, repoName);
-        } catch (error) {
-            if ((error as RequestError).status === 404) {
-                console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
-            } else if (repoName === CONST.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
-                console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
-            } else {
-                throw error;
+                const title = pr.title;
+                const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
+                await commentPR(prNumber, deployMessage, repoName);
+            } catch (error) {
+                if ((error as RequestError).status === 404) {
+                    console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
+                } else if (repoName === CONST.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
+                    console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
+                } else {
+                    throw error;
+                }
             }
-        }
-    }
+        }),
+    );
+
+    await Promise.all(commentPromises);
 }
 
 async function run() {
     const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
     const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', {required: false});
     const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num: string) => Number.parseInt(num, 10)) : [];
-    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
+    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {
+        required: true,
+    }) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}) as PlatformResult);
@@ -155,17 +166,14 @@ async function run() {
         // who closed the last deploy checklist?
         const deployer = await GithubUtils.getActorWhoClosedIssue(previousChecklistID);
 
-        // Create comment on each pull request (one at a time to avoid throttling issues)
+        // Create comment on each pull request (up to 8 at a time via PromisePool to avoid throttling issues)
         const deployMessage = getDeployMessage(deployer, 'Deployed');
-        for (const pr of prList) {
-            await commentPR(pr, deployMessage);
-        }
+        const pool = new PromisePool<void>(8);
+        await Promise.all(prList.map((pr) => pool.add(() => commentPR(pr, deployMessage))));
         console.log(`✅ Added production deploy comment on ${prList.length} App PRs`);
 
         // Comment on Mobile-Expensify PRs as well
-        for (const pr of mobileExpensifyPRList) {
-            await commentPR(pr, deployMessage, CONST.MOBILE_EXPENSIFY_REPO);
-        }
+        await Promise.all(mobileExpensifyPRList.map((pr) => pool.add(() => commentPR(pr, deployMessage, CONST.MOBILE_EXPENSIFY_REPO))));
         if (mobileExpensifyPRList.length > 0) {
             console.log(`✅ Added production deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
         }

@@ -1,11 +1,17 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
+import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import {useMultifactorAuthentication} from './MultifactorAuthentication/Context';
 import TestToolRow from './TestToolRow';
@@ -33,7 +39,15 @@ function BiometricsTestToolRow() {
                     small
                     isDisabled={isOffline}
                     text={translate('multifactorAuthentication.biometricsTest.test')}
-                    onPress={() => executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST)}
+                    onPress={() => {
+                        // When launched from the hidden Test Tools modal (4-finger tap), dismiss that modal so the MFA
+                        // overlay isn't hidden behind it on iOS. When rendered inline on the Troubleshoot page there is no
+                        // modal on top, so this is a no-op and we don't accidentally open one.
+                        if (Navigation.getActiveRoute().includes(ROUTES.TEST_TOOLS_MODAL.route)) {
+                            Navigation.dismissModal();
+                        }
+                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+                    }}
                 />
                 {isCurrentDeviceRegistered && !!localCredentialID && (
                     <Button

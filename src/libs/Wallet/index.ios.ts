@@ -1,9 +1,12 @@
-import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
-import type {IOSCardData, TokenizationStatus} from '@expensify/react-native-wallet';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
+
+import type {IOSCardData, TokenizationStatus} from '@expensify/react-native-wallet';
+
+import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();

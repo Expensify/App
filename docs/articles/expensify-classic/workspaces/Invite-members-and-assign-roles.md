@@ -63,6 +63,8 @@ The following table shows the permissions available for each role:
 |                                           |                                            | &#10004; Approve all workspace reports    |
 |                                           |                                            | &#10004; Edit workspace settings          |
 
+**Note:** A **Card Admin** role — which lets you delegate Expensify Card and company card management without granting full Workspace Admin access — is available only in New Expensify. To assign or use it, switch to New Expensify. [Learn more](https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members).
+
 ---
 
 # Import a Group of Members

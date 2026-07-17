@@ -6,7 +6,7 @@ keywords: [New Expensify, workflows, approval workflows, delay submission, add a
 
 Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
 
-**Note:** Workflows are available on **Collect** and **Control** workspaces. Only **Workspace Admins** can enable and configure them.
+**Note:** Workflows are available on **Collect** and **Control** workspaces. **Workspace Admins** can enable and configure all workflow settings. **People Admins** can configure the **Approvals** section, and **Payments Admins** can configure the **Payments** section. The **Submissions** section remains available to Workspace Admins only.
 
 ---
 
@@ -40,6 +40,7 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 - You can assign an approver per workspace member.
 - You can also set an over-limit approver for reports that exceed a specific amount. 
 - The default approver is the **Workspace Owner**, but any workspace member can be selected.
+- Both **Workspace Admins** and **People Admins** can enable and configure Approvals.
 
 Learn how to [enable Approvals](https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals) on your workspace. 
 
@@ -53,16 +54,17 @@ Learn how to [enable Approvals](https://help.expensify.com/articles/new-expensif
    - Twice a month – Reports are submitted on the 15th and the last day of the month. Violations are submitted at the next applicable date.
    - Monthly – Reports are submitted once a month on your selected day. Violations are submitted the following month.
    - By trip – A report is submitted when no new expenses are added for two full days. A new trip report starts after that.
-   - Manually – Expenses are auto-added to a report, but employees must submit them manually.
-- If turned **off**, all reimbursable and non-reimbursable expenses are submitted instantly.
+   - Manually – Expenses are automatically added to reports. Reports remain unsubmitted until a member submits them manually.
 
-Learn how to [configure Submissions](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-set-a-submission-frequency) on your workspace. 
+Note: If **Submissions** is disabled, expenses remain in the **Unreported** state until a member manually adds them to a report, and reports must be submitted manually. Use this configuration if you do not want expenses to be automatically added to reports.
+
+[Learn how to configure Submissions](/articles/new-expensify/workspaces/Workspace-Workflows#how-to-set-a-submission-frequency) on your workspace. 
 
 ---
 
 ## How to Set Up a Payment Account
 
-To reimburse employees or pay invoices directly from Expensify, connect your business bank account.
+To reimburse employees or pay invoices directly from Expensify, connect your business bank account. Both **Workspace Admins** and **Payments Admins** can connect a bank account, set the authorized expense payer, and manage payment methods.
 
 1. Go to **Workflows**.
 2. Toggle on **Payments**.

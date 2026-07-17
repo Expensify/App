@@ -1,8 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import BaseOnboardingPurpose from './BaseOnboardingPurpose';
+
 import type {OnboardingPurposeProps} from './types';
+
+import BaseOnboardingPurpose from './BaseOnboardingPurpose';
 
 function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     // To block android native back button behavior

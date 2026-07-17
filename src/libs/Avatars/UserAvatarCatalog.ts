@@ -1,40 +1,23 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {SvgProps} from 'react-native-svg';
 import * as SeasonF1 from '@components/Icon/CustomAvatars/SeasonF1';
 import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
 import * as LetterDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
-import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
-import {createAvatarCatalog} from './AvatarCatalog';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {SvgProps} from 'react-native-svg';
+
 import type {AvatarEntry} from './AvatarCatalog';
-import type {DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, SeasonF1AvatarIDs, UserAvatarID} from './UserAvatarCatalog.types';
+import type {DefaultAvatarIDs, LetterAvatarIDs, SeasonF1AvatarIDs, UserAvatarID} from './UserAvatarCatalog.types';
+
+import {createAvatarCatalog} from './AvatarCatalog';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
 
 const DEFAULT_AVATAR_PREFIX = `default-avatar`;
-
-const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = [
-    {backgroundColor: colors.blue100, fillColor: colors.blue600},
-    {backgroundColor: colors.blue400, fillColor: colors.blue700},
-    {backgroundColor: colors.blue700, fillColor: colors.blue200},
-    {backgroundColor: colors.green100, fillColor: colors.green600},
-    {backgroundColor: colors.green400, fillColor: colors.green700},
-    {backgroundColor: colors.green700, fillColor: colors.green200},
-    {backgroundColor: colors.yellow100, fillColor: colors.yellow600},
-    {backgroundColor: colors.yellow400, fillColor: colors.yellow700},
-    {backgroundColor: colors.yellow700, fillColor: colors.yellow200},
-    {backgroundColor: colors.tangerine100, fillColor: colors.tangerine600},
-    {backgroundColor: colors.tangerine400, fillColor: colors.tangerine700},
-    {backgroundColor: colors.tangerine700, fillColor: colors.tangerine200},
-    {backgroundColor: colors.pink100, fillColor: colors.pink600},
-    {backgroundColor: colors.pink400, fillColor: colors.pink700},
-    {backgroundColor: colors.pink700, fillColor: colors.pink200},
-    {backgroundColor: colors.ice100, fillColor: colors.ice600},
-    {backgroundColor: colors.ice400, fillColor: colors.ice700},
-    {backgroundColor: colors.ice700, fillColor: colors.ice200},
-];
 
 const DEFAULTS: Record<DefaultAvatarIDs, AvatarEntry> = {
     'default-avatar_1': {local: DefaultAvatars.Avatar1, url: `${CDN_DEFAULT_AVATARS}/default-avatar_1.png`},
@@ -210,4 +193,4 @@ function getLetterAvatar(name?: string): React.FC<SvgProps> | null {
     return LETTER_DEFAULTS[workspaceKey].local;
 }
 
-export {USER_AVATARS, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, DEFAULT_AVATAR_PREFIX, getLetterAvatar};
+export {USER_AVATARS, LETTER_DEFAULTS, DEFAULT_AVATAR_PREFIX, getLetterAvatar};

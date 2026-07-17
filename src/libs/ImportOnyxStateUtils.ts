@@ -1,18 +1,18 @@
-import cloneDeep from 'lodash/cloneDeep';
-import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
-import type {UnknownRecord} from 'type-fest';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {UnknownRecord} from 'type-fest';
+
+import cloneDeep from 'lodash/cloneDeep';
+
 import {clearOnyxStateBeforeImport, importOnyxCollectionState, importOnyxRegularState} from './actions/ImportOnyxState';
+import {isRecord} from './ObjectUtils';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
 const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.PREFERRED_THEME, ...Object.values(ONYXKEYS.DERIVED)];
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && !Array.isArray(value) && value !== null;
-}
 
 function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unknown[] {
     const dataCopy = cloneDeep(data);
