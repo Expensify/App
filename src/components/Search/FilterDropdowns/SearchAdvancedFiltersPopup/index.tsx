@@ -1,5 +1,3 @@
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import SafeTriangle from '@components/SafeTriangle';
@@ -9,6 +7,7 @@ import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery'
 import type {SearchQueryJSON} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,14 +15,21 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
 import CommonFilterContentPopupWrapper from './CommonFilterContentPopupWrapper';
 import DateFilterContentPopupWrapper from './DateFilterContentPopupWrapper';

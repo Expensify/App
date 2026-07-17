@@ -4,6 +4,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SpacerView from '@components/SpacerView';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
