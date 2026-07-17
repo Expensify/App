@@ -39,6 +39,7 @@ import {
     getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCurrencyDefaultTaxUpdateMessage,
@@ -1224,6 +1225,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getIntegrationSyncFailedMessage(translate, reportAction, report?.policyID, isTryNewDotNVPDismissed));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
                     setClipboardMessage(getCompanyCardConnectionBrokenMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+                    setClipboardMessage(getCompanyCardConnectionBroken30DaysMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
                     setClipboardMessage(getPlaidBalanceFailureMessage(translate, reportAction));
                 } else if (isCardIssuedAction(reportAction)) {
