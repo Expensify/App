@@ -2,6 +2,7 @@
 title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
 keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer]
+internalScope: Audience is Workspace Admins. Covers configuring approval, submission, and reimbursement workflows including choosing an authorized payer; does not cover connecting a bank account.
 ---
 
 Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
@@ -10,7 +11,9 @@ Workflows help you automate how expenses are submitted, approved, and reimbursed
 
 ---
 
-# Enable Workflows
+# Workspace Workflows
+
+## How to enable Workflows 
 
 To get started, enable the **Workflows** feature for your workspace.
 
@@ -25,7 +28,7 @@ To get started, enable the **Workflows** feature for your workspace.
 
 ---
 
-## Configure Workflow Settings
+## How to configure Workflow Settings
 
 Once enabled, go to the **Workflows** tab in the left menu to customize your submission and approval logic.
 
