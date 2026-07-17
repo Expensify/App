@@ -18,6 +18,7 @@ import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccou
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
+    getCardConnectionStatusDisplay,
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
@@ -309,7 +310,16 @@ function PaymentMethodList({
 
                 const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
                 const isCardInactiveState = isCardInactive(card);
-                const shouldShowCardConnectionMessage = shouldShowConnectionStatus && (isCardBroken || shouldShowRBR || isCardInactiveState);
+                const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
+                    shouldShowConnectionStatus,
+                    isCardBroken,
+                    shouldShowRBR,
+                    isCardInactive: isCardInactiveState,
+                    isPersonalCard: isUserPersonalCard,
+                    isAdminForCardPolicy,
+                    policyID: policyIDForCard,
+                });
+                const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
                 const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
                 let cardLastSyncText: string | undefined;
@@ -321,34 +331,26 @@ function PaymentMethodList({
                     }
                 }
                 let cardConnectionStatus: PaymentMethodItem['connectionStatus'];
-                if (shouldShowConnectionStatus) {
-                    let cardStatusTone: NonNullable<PaymentMethodItem['connectionStatus']>['statusTone'] = 'success';
-                    if (shouldShowCardConnectionMessage) {
-                        cardStatusTone = 'danger';
-                    }
-
+                if (cardConnectionStatusDisplay) {
                     let cardConnectionMessage: string | undefined;
-                    if (shouldShowCardConnectionMessage) {
-                        if (!isUserPersonalCard && isAdminForCardPolicy && policyIDForCard) {
-                            cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard)}`);
-                        } else if (isUserPersonalCard) {
-                            cardConnectionMessage = translate('walletPage.cardStatus.fixConnection');
-                        } else {
-                            cardConnectionMessage = translate('walletPage.cardStatus.askAdminToFixConnection');
-                        }
+                    if (cardConnectionStatusDisplay.messageKey === 'walletPage.cardStatus.fixConnectionIn' && policyIDForCard) {
+                        cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard)}`);
+                    } else if (cardConnectionStatusDisplay.messageKey === 'walletPage.cardStatus.fixConnection') {
+                        cardConnectionMessage = translate('walletPage.cardStatus.fixConnection');
+                    } else if (cardConnectionStatusDisplay.messageKey === 'walletPage.cardStatus.askAdminToFixConnection') {
+                        cardConnectionMessage = translate('walletPage.cardStatus.askAdminToFixConnection');
                     }
 
                     cardConnectionStatus = {
-                        statusText: translate(shouldShowCardConnectionMessage ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active'),
-                        statusTone: cardStatusTone,
+                        statusText: translate(cardConnectionStatusDisplay.statusKey),
+                        statusTone: cardConnectionStatusDisplay.statusTone,
                         message: cardConnectionMessage,
-                        actionText: isUserPersonalCard && shouldShowCardConnectionMessage ? translate('common.actionBadge.fix') : undefined,
-                        onActionPress:
-                            isUserPersonalCard && shouldShowCardConnectionMessage
-                                ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
-                                : undefined,
+                        actionText: cardConnectionStatusDisplay.actionKey ? translate(cardConnectionStatusDisplay.actionKey) : undefined,
+                        onActionPress: cardConnectionStatusDisplay.shouldUsePersonalCardFix
+                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
+                            : undefined,
                         onLinkPress:
-                            !isUserPersonalCard && isAdminForCardPolicy && policyIDForCard && shouldShowCardConnectionMessage
+                            cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard
                                 ? () => {
                                       Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard));
                                   }

@@ -22,6 +22,7 @@ import {
     getBankCardDetailsImage,
     getBankName,
     getBrokenConnectionUrlToFixPersonalCard,
+    getCardConnectionStatusDisplay,
     getCardDescription,
     getCardDescriptionForSearchTable,
     getCardFeedIcon,
@@ -4612,5 +4613,76 @@ describe('getCompanyCardCustomName', () => {
 
     it('returns undefined when neither NVP has a name for the card', () => {
         expect(getCompanyCardCustomName('9999', sharedCardCustomNames, customCardNames)).toBeUndefined();
+    });
+});
+
+describe('getCardConnectionStatusDisplay', () => {
+    const defaultParams = {
+        shouldShowConnectionStatus: true,
+        isCardBroken: false,
+        shouldShowRBR: false,
+        isCardInactive: false,
+        isPersonalCard: false,
+        isAdminForCardPolicy: false,
+        policyID: undefined,
+    };
+
+    it('returns undefined when connection status is disabled', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, shouldShowConnectionStatus: false})).toBeUndefined();
+    });
+
+    it('returns an active success status for a healthy card', () => {
+        expect(getCardConnectionStatusDisplay(defaultParams)).toEqual({
+            statusKey: 'walletPage.cardStatus.active',
+            statusTone: 'success',
+            messageKey: undefined,
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+        });
+    });
+
+    it('returns the personal-card fix action for a broken personal card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isPersonalCard: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.fixConnection',
+            actionKey: 'common.actionBadge.fix',
+            shouldUsePersonalCardFix: true,
+            shouldUseCompanyCardsLink: false,
+        });
+    });
+
+    it('returns the company-cards link message for an admin company card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, shouldShowRBR: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.fixConnectionIn',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: true,
+        });
+    });
+
+    it('returns the ask-admin message for a non-admin company card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+        });
+    });
+
+    it('does not show a company-cards link without a policy ID', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, shouldShowRBR: true, isAdminForCardPolicy: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+        });
     });
 });
