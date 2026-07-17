@@ -17,22 +17,25 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useFilterFormValues from '@hooks/useFilterFormValues';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {saveSearch} from '@libs/actions/Search';
+import {clearSaveAsNewViewQuery, saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type FilterValueProps = {
@@ -149,28 +152,44 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
     return appliedDisplays;
 }
 
-function SearchSavePage() {
+type SearchSaveFormProps = {
+    /** The query being saved — drives the applied-display list and the save itself */
+    queryJSONToSave: SearchQueryJSON | undefined;
+
+    /** The filter form values previewed as "applied filters" */
+    formToDisplay: Partial<SearchAdvancedFiltersForm>;
+
+    /** Set on the small-screen "Save as new view" flow; when present we land on the new view after saving */
+    saveAsNewViewQuery?: string;
+};
+
+function SearchSaveForm({queryJSONToSave, formToDisplay, saveAsNewViewQuery}: SearchSaveFormProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
-    const {currentSearchQueryJSON} = useSearchQueryContext();
-
     const onSaveSearch = () => {
-        if (!currentSearchQueryJSON) {
+        if (!queryJSONToSave) {
             Navigation.goBack();
             return;
         }
 
-        const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
-        saveSearch({queryJSON: currentSearchQueryJSON, newName});
-        Navigation.goBack();
+        const newName = name.trim() || queryJSONToSave.inputQuery;
+        saveSearch({queryJSON: queryJSONToSave, newName});
+
+        // For "Save as new view" land on the newly-created view; for the regular save just return to the current search.
+        if (saveAsNewViewQuery) {
+            // Clear the carried query immediately (don't rely on unmount timing) so it can't leak into a later save.
+            clearSaveAsNewViewQuery();
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: saveAsNewViewQuery}));
+        } else {
+            Navigation.goBack();
+        }
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
-    const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
+    const appliedFilters = mapFiltersFormToLabelValueList(formToDisplay, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
+    const appliedDisplays = getAppliedDisplays(formToDisplay, queryJSONToSave, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -239,6 +258,47 @@ function SearchSavePage() {
                 )}
             </FormProvider>
         </ScreenWrapper>
+    );
+}
+
+// Only mounts for the small-screen "Save as new view" flow, so useFilterFormValues (which subscribes to the
+// report/policy/card collections) runs only when we actually need to derive the form from the carried query.
+function SearchSaveNewViewForm({saveAsNewViewQuery}: {saveAsNewViewQuery: string}) {
+    const overrideQueryJSON = buildSearchQueryJSON(saveAsNewViewQuery);
+    const formToDisplay = useFilterFormValues(overrideQueryJSON);
+    return (
+        <SearchSaveForm
+            queryJSONToSave={overrideQueryJSON}
+            formToDisplay={formToDisplay}
+            saveAsNewViewQuery={saveAsNewViewQuery}
+        />
+    );
+}
+
+function SearchSavePage() {
+    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    // The small-screen (mobile) "Save as new view" flow carries the edited query here so we save those filters without
+    // changing the active search (mobile filters are a draft). When set, we derive the form/preview from it instead.
+    const [saveAsNewViewQuery] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_SAVE_AS_NEW_VIEW_QUERY);
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+
+    // Clear the carried query when leaving the save page (saved or backed out) so it can't leak into a later save.
+    useEffect(
+        () => () => {
+            clearSaveAsNewViewQuery();
+        },
+        [],
+    );
+
+    if (saveAsNewViewQuery) {
+        return <SearchSaveNewViewForm saveAsNewViewQuery={saveAsNewViewQuery} />;
+    }
+
+    return (
+        <SearchSaveForm
+            queryJSONToSave={currentSearchQueryJSON}
+            formToDisplay={searchAdvancedFiltersForm}
+        />
     );
 }
 

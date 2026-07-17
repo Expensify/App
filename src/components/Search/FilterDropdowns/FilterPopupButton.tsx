@@ -3,10 +3,13 @@ import withViewportOffsetTop from '@components/withViewportOffsetTop';
 
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import usePopstateListener from '@hooks/usePopstateListener';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import subscribeToRootNavigation from '@libs/Navigation/helpers/subscribeToRootNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,7 +20,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/core';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type PopoverComponentProps = {
@@ -47,6 +50,20 @@ type FilterPopupButtonProps = {
 
     /** The component to render as the button */
     renderButton: (props: ButtonComponentProps) => ReactNode;
+
+    /** Exposes an imperative `open` (same code path as pressing the button), e.g. for the saved-view "Edit filters" flow */
+    handleRef?: RefObject<FilterPopupButtonHandle | null>;
+
+    /** Called whenever the popover closes (click-outside, Cancel, Save or browser back) so the caller can leave any associated edit mode */
+    onOverlayClose?: (isClosedByBrowserNavigation?: boolean) => void;
+
+    /** Called after a browser back/forward while the popover is open; return true to close it (in-app pushes/pops never trigger this) */
+    shouldCloseOnBrowserNavigation?: () => boolean;
+};
+
+type FilterPopupButtonHandle = {
+    /** Opens the popover, bypassing the transient modal-transition guard (e.g. the LHN 3-dot menu is still closing) */
+    open: () => void;
 };
 
 const ANCHOR_ORIGIN = {
@@ -54,7 +71,20 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popoverAnchorAlignment: popoverAnchorAlignmentProp, PopoverComponent, renderButton}: FilterPopupButtonProps) {
+// Fallback wait after a popstate in case the navigation state event fired before our listener ran.
+const POPSTATE_SETTLE_TIME_MS = 1000;
+
+function FilterPopupButton({
+    viewportOffsetTop,
+    popoverWidth,
+    wrapperStyle,
+    popoverAnchorAlignment: popoverAnchorAlignmentProp,
+    PopoverComponent,
+    renderButton,
+    handleRef,
+    onOverlayClose,
+    shouldCloseOnBrowserNavigation,
+}: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -77,27 +107,84 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
 
     const popoverAnchorAlignment = popoverAnchorAlignmentProp ?? ANCHOR_ORIGIN;
 
-    const toggleOverlay = () => {
-        setIsOverlayVisible((previousValue) => {
-            if (!previousValue && willAlertModalBecomeVisible) {
-                return false;
-            }
-
-            return !previousValue;
-        });
-    };
-
-    const calculatePopoverPositionAndToggleOverlay = () => {
+    const openOverlay = (shouldBypassAlertModalCheck = false) => {
+        if (willAlertModalBecomeVisible && !shouldBypassAlertModalCheck) {
+            return;
+        }
         calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
             setPopoverTriggerPosition({...position, vertical: position.vertical});
-            toggleOverlay();
+            setIsOverlayVisible(true);
         });
     };
+
+    const closeOverlay = () => {
+        setIsOverlayVisible(false);
+        onOverlayClose?.();
+    };
+
+    const toggleOverlay = () => {
+        if (isOverlayVisible) {
+            closeOverlay();
+            return;
+        }
+        openOverlay();
+    };
+
+    // Imperative open — the same code path as pressing the button, bypassing the transient modal-transition guard.
+    useImperativeHandle(handleRef, () => ({open: () => openOverlay(true)}));
+
+    // Close on browser back/forward when the caller confirms the navigation left the popover's context (in-app
+    // pushes/pops never fire popstate here, so e.g. RHP year pickers keep the popover open).
+    const shouldCloseOnBrowserNavigationRef = useRef(shouldCloseOnBrowserNavigation);
+    const onOverlayCloseRef = useRef(onOverlayClose);
+    const isOverlayVisibleRef = useRef(isOverlayVisible);
+    useEffect(() => {
+        shouldCloseOnBrowserNavigationRef.current = shouldCloseOnBrowserNavigation;
+        onOverlayCloseRef.current = onOverlayClose;
+        isOverlayVisibleRef.current = isOverlayVisible;
+    });
+    // If the component unmounts while the popover is open (e.g. the screen remounts on browser back), end the caller's
+    // edit session too — otherwise its state would outlive the popover.
+    useEffect(
+        () => () => {
+            if (!isOverlayVisibleRef.current) {
+                return;
+            }
+            onOverlayCloseRef.current?.(true);
+        },
+        [],
+    );
+    usePopstateListener(isOverlayVisible && !!shouldCloseOnBrowserNavigation, () => {
+        // Capture the pre-navigation check now (its closure holds the pre-back query), then evaluate it on the next
+        // navigation state event — or on a fallback timer in case that event already fired before this listener ran.
+        const didNavigateAway = shouldCloseOnBrowserNavigationRef.current;
+        if (!didNavigateAway) {
+            return;
+        }
+        let isDone = false;
+        let unsubscribe: (() => void) | undefined;
+        let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+        const evaluate = () => {
+            if (isDone) {
+                return;
+            }
+            isDone = true;
+            unsubscribe?.();
+            clearTimeout(fallbackTimer);
+            if (!isOverlayVisibleRef.current || !didNavigateAway()) {
+                return;
+            }
+            setIsOverlayVisible(false);
+            onOverlayCloseRef.current?.(true);
+        };
+        unsubscribe = subscribeToRootNavigation(evaluate);
+        fallbackTimer = setTimeout(evaluate, POPSTATE_SETTLE_TIME_MS);
+    });
 
     const actualPopoverWidth = customPopoverWidth ?? popoverWidth ?? CONST.POPOVER_DROPDOWN_WIDTH;
     const containerStyles = isSmallScreenWidth ? styles.w100 : {width: actualPopoverWidth};
 
-    const popoverContent = PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
+    const popoverContent = PopoverComponent({closeOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
 
     return (
         <View
@@ -105,7 +192,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             style={wrapperStyle}
         >
             {/* Dropdown Trigger */}
-            {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
+            {renderButton({ref: triggerRef, onPress: toggleOverlay, isExpanded: isOverlayVisible})}
 
             {/* Dropdown overlay */}
             {isFocused && (
@@ -113,7 +200,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
                     anchorRef={triggerRef}
                     avoidKeyboard
                     isVisible={isOverlayVisible}
-                    onClose={toggleOverlay}
+                    onClose={closeOverlay}
                     anchorPosition={popoverTriggerPosition}
                     anchorAlignment={popoverAnchorAlignment}
                     restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
@@ -139,5 +226,5 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     );
 }
 
-export type {PopoverComponentProps, ButtonComponentProps, FilterPopupButtonProps};
+export type {PopoverComponentProps, ButtonComponentProps, FilterPopupButtonProps, FilterPopupButtonHandle};
 export default withViewportOffsetTop(FilterPopupButton);

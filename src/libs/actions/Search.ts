@@ -65,6 +65,7 @@ import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     BillingGraceEndPeriod,
+    EditingSavedSearch,
     ExportTemplate,
     IntroSelected,
     LastPaymentMethod,
@@ -754,9 +755,12 @@ function getOnyxLoadingData(
     return {optimisticData, successData, finallyData, failureData};
 }
 
-function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
+function saveSearch({queryJSON, newName, previousHash}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string; previousHash?: number}) {
     const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
+
+    // When the edited query's hash changes, mirror the backend's previousHash override by removing the stale LHN entry.
+    const previousHashToRemove = previousHash !== undefined && previousHash !== queryJSON.hash ? previousHash : undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
@@ -768,6 +772,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
                     name: saveSearchName,
                     query: queryJSON.inputQuery,
                 },
+                ...(previousHashToRemove !== undefined ? {[previousHashToRemove]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}} : {}),
             },
         },
     ];
@@ -778,6 +783,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
                 [queryJSON.hash]: null,
+                ...(previousHashToRemove !== undefined ? {[previousHashToRemove]: {pendingAction: null}} : {}),
             },
         },
     ];
@@ -790,10 +796,11 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
                 [queryJSON.hash]: {
                     pendingAction: null,
                 },
+                ...(previousHashToRemove !== undefined ? {[previousHashToRemove]: null} : {}),
             },
         },
     ];
-    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName, previousHash: previousHashToRemove}, {optimisticData, failureData, successData});
 }
 
 function deleteSavedSearch(hash: number) {
@@ -830,6 +837,56 @@ function deleteSavedSearch(hash: number) {
     ];
 
     write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
+}
+
+// Each "Edit filters" click requests ONE open of the filters UI. Consumed exactly once (read-and-clear), so nothing
+// can replay it on remounts, browser back or stale Onyx emissions.
+let hasPendingOpenEditFilters = false;
+
+/** Read-and-clear the pending "Edit filters" open request. Returns true exactly once per click. */
+function consumePendingOpenEditFilters(): boolean {
+    const hasPending = hasPendingOpenEditFilters;
+    hasPendingOpenEditFilters = false;
+    return hasPending;
+}
+
+/** Enters "Edit filters" mode: flags the view as being edited and re-executes its query so filters can be tweaked. */
+function enterSavedViewEditMode({hash, name, query}: EditingSavedSearch) {
+    hasPendingOpenEditFilters = true;
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, {hash, name, query});
+    setSearchContext(false);
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name}));
+}
+
+/** Clears the "Edit filters" mode. Used when the filters popover is dismissed (click-outside acts as "leave editing"). */
+function clearSavedViewEditMode() {
+    hasPendingOpenEditFilters = false;
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, null);
+}
+
+/** Cancels "Edit filters" mode and re-executes the view's original query so the table returns to the saved filters. */
+function cancelSavedViewEdits(editingSavedView: EditingSavedSearch) {
+    hasPendingOpenEditFilters = false;
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, null);
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: editingSavedView.query, name: editingSavedView.name}));
+}
+
+/** Carries the edited query to the save page for the narrow "Save as new view" flow (without changing the active search). */
+function setSaveAsNewViewQuery(query: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_SAVE_AS_NEW_VIEW_QUERY, query);
+}
+
+/** Clears the carried "Save as new view" query (on leaving the save page) so it can't leak into a later save. */
+function clearSaveAsNewViewQuery() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_SAVE_AS_NEW_VIEW_QUERY, null);
+}
+
+/** Saves the edited filters back onto the view, passing the old hash as previousHash so the backend updates it in place. */
+function saveSavedViewEdits({queryJSON, editingSavedView}: {queryJSON: Readonly<SearchQueryJSON>; editingSavedView: EditingSavedSearch}) {
+    // Re-auto-name auto-named views (name === query) to the edited query; keep custom names.
+    const wasAutoNamed = editingSavedView.name === editingSavedView.query;
+    saveSearch({queryJSON, newName: wasAutoNamed ? undefined : editingSavedView.name, previousHash: editingSavedView.hash});
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW, null);
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
@@ -1880,5 +1937,12 @@ export {
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
+    enterSavedViewEditMode,
+    clearSavedViewEditMode,
+    cancelSavedViewEdits,
+    consumePendingOpenEditFilters,
+    setSaveAsNewViewQuery,
+    clearSaveAsNewViewQuery,
+    saveSavedViewEdits,
 };
 export type {TransactionPreviewData};

@@ -74,6 +74,7 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type EditingSavedSearch from './EditingSavedSearch';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
@@ -238,6 +239,7 @@ export type {
     CopyPolicySettingsNVP,
     CopyPolicySettings,
     WorkspaceCardsList,
+    EditingSavedSearch,
     ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
