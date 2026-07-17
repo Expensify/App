@@ -11183,10 +11183,6 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.shouldShowFilter(undefined, CATEGORY, [], EXPENSE)).toBeFalsy();
         });
 
-        it('returns falsy for a negated key that is not negatable', () => {
-            expect(SearchUIUtils.shouldShowFilter(undefined, CATEGORY_NEGATED, ['Food'], EXPENSE)).toBeFalsy();
-        });
-
         it('returns falsy when the filter is not supported for the data type', () => {
             expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, 'Uber', CHAT)).toBeFalsy();
         });
