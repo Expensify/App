@@ -43,7 +43,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout Code
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ inputs.app_ref }}
           submodules: ${{ matrix.is_hybrid }}
@@ -106,7 +106,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout Code
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ inputs.app_ref }}
           submodules: ${{ matrix.is_hybrid }}
@@ -185,7 +185,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Checkout Code
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ inputs.app_ref }}
           submodules: ${{ matrix.is_hybrid }}
@@ -216,10 +216,11 @@ jobs:
 
       - name: Determine new patched RN version
         id: getNewPatchedVersion
-        uses: ./.github/actions/composite/determineNewPatchedRNVersion
-        with:
-          artifact_id: react-native-artifacts
-          is_hybrid_build: ${{ matrix.is_hybrid }}
+        run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+          ARTIFACT_ID: react-native-artifacts
 
       - name: Download artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131

@@ -85,10 +85,11 @@ jobs:
 
       - name: Determine new patched RN version
         id: getNewPatchedVersion
-        uses: ./.github/actions/composite/determineNewPatchedRNVersion
-        with:
-          artifact_id: react-android
-          is_hybrid_build: ${{ matrix.is_hybrid }}
+        run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+          ARTIFACT_ID: react-android
 
       - name: Build and publish React Native artifacts
         working-directory: ${{ matrix.is_hybrid == 'true' && 'Mobile-Expensify/Android' || 'android' }}
