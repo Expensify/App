@@ -704,6 +704,7 @@ function startSplitBill({
         policyRecentlyUsedTags,
         participantsPolicyTags,
         delegateAccountID,
+        formatPhoneNumber,
     };
 
     if (existingSplitChatReport) {

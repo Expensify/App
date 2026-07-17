@@ -876,6 +876,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
+                        formatPhoneNumber,
                     });
                 }
             }
