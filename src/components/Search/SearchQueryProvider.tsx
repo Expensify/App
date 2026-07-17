@@ -53,16 +53,42 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
-    const suggestedSearchKey = Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
-    const typeToGenericKey: Record<string, SearchKey> = {
-        [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-        [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-    };
-    const searchKeyFromType = currentSearchQueryJSON?.type ? typeToGenericKey[currentSearchQueryJSON.type] : undefined;
-    const searchKeyFallback = suggestedSearchKey ?? searchKeyFromType;
 
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [currentSearchKeyOnyx] = useOnyx(ONYXKEYS.RAM_ONLY_CURRENT_SEARCH_KEY);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
+
+    const currentSearchKey = (() => {
+        if (currentSearchKeyOnyx) {
+            return currentSearchKeyOnyx;
+        }
+
+        const suggestedSearchKey = Object.values(suggestedSearches).find((search) => {
+            const savedSearchFilterQuery = searchFilters?.[search.key];
+            const savedSearchFilter = savedSearchFilterQuery ? buildSearchQueryJSON(savedSearchFilterQuery) : undefined;
+            return (savedSearchFilter ?? search).similarSearchHash === currentSimilarSearchHash;
+        })?.key;
+        if (suggestedSearchKey) {
+            return suggestedSearchKey;
+        }
+
+        const savedSearchKey = Object.keys(savedSearches ?? {}).find((key) => {
+            const query = searchFilters?.[`${CONST.SEARCH.SAVED_SEARCH_PREFIX}${key}`] ?? savedSearches?.[key].query;
+            return query ? buildSearchQueryJSON(query)?.similarSearchHash === currentSimilarSearchHash : false;
+        });
+
+        if (savedSearchKey) {
+            return `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${savedSearchKey}` as const;
+        }
+
+        const typeToGenericKey: Record<string, SearchKey> = {
+            [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+        };
+        return currentSearchQueryJSON?.type ? typeToGenericKey[currentSearchQueryJSON.type] : undefined;
+    })();
 
     const currentQueryFilterKeys = new Set(currentSearchQueryJSON?.flatFilters.map((filter) => filter.key));
     const currentSearchKeyDefaultFilterKeys = new Set(currentSearchKeyOnyx ? suggestedSearches[currentSearchKeyOnyx]?.searchQueryJSON?.flatFilters.map((filter) => filter.key) : undefined);
@@ -79,17 +105,17 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     }, [currentSearchHash]);
 
     useEffect(() => {
-        // currentSearchKey is a RAM-only Onyx data, so the initial value will always be empty and need to be hydrated.
-        if (currentSearchKeyOnyx || !searchKeyFallback) {
+        // currentSearchKeyOnyx is a RAM-only Onyx data, so the initial value will always be empty and need to be hydrated.
+        if (currentSearchKeyOnyx) {
             return;
         }
-        setCurrentSearchKey(searchKeyFallback);
-    }, [searchKeyFallback]);
+        setCurrentSearchKey(currentSearchKey ?? null);
+    }, [currentSearchKey]);
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
         currentSimilarSearchHash,
-        currentSearchKey: currentSearchKeyOnyx ?? searchKeyFallback,
+        currentSearchKey,
         currentSearchQueryJSON,
         suggestedSearches,
         shouldResetSearchQuery,
