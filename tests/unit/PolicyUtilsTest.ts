@@ -30,6 +30,7 @@ import {
     getMatchingVendors,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
+    getPolicyIDFromDomainName,
     getRateDisplayValue,
     getSubmitToAccountID,
     getSubmitToEmail,
@@ -3681,5 +3682,27 @@ describe('getDefaultChatEnabledPolicy', () => {
 
     it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
         expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
+    });
+});
+
+describe('getPolicyIDFromDomainName', () => {
+    it('extracts the policy ID from an Expensify workspace-feed domain name', () => {
+        expect(getPolicyIDFromDomainName('expensify-policyA1B2C3.exfy')).toBe('A1B2C3');
+    });
+
+    it('uppercases the extracted policy ID', () => {
+        expect(getPolicyIDFromDomainName('expensify-policyabc123.exfy')).toBe('ABC123');
+    });
+
+    it('returns undefined for a domain name that is not a workspace feed', () => {
+        expect(getPolicyIDFromDomainName('mybank.com')).toBeUndefined();
+    });
+
+    it('returns undefined for an empty string', () => {
+        expect(getPolicyIDFromDomainName('')).toBeUndefined();
+    });
+
+    it('returns undefined when the extension is missing', () => {
+        expect(getPolicyIDFromDomainName('expensify-policyA1B2C3')).toBeUndefined();
     });
 });
