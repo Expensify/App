@@ -17,6 +17,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {escapeTagName} from '@libs/PolicyUtils';
 import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -63,14 +64,22 @@ function getRuleContentKey(rule: Pick<CodingRule, 'filters' | 'merchant' | 'cate
 }
 
 /**
- * Normalizes an imported tag cell to the canonical multi-level encoding (levels joined by ":" with no surrounding
- * spaces), matching what the manual "Add tag" flow stores via trimTag(levels.join(':')). Without this, a cell typed as
- * "Parent: Child" would be persisted verbatim and later split into ["Parent", " Child"] on display, so the rule row
- * would render "Parent, Child" and the tag field would only resolve the first level.
+ * Normalizes an imported tag cell into the encoding the manual "Add tag" flow stores.
+ *
+ * On a multi-level policy ":" separates levels, so the levels are trimmed and re-joined (e.g. "Parent: Child" →
+ * "Parent:Child"), matching trimTag(levels.join(':')). Without this, the cell would be persisted verbatim and later
+ * split into ["Parent", " Child"] on display, so the rule row would render "Parent, Child" and the tag field would
+ * only resolve the first level.
+ *
+ * On a single-level policy the whole cell is one literal tag name, so its colons are escaped instead (e.g. "ab:cd" →
+ * "ab\:cd"), matching how tag names are stored on the policy. Internal spaces are part of the name and are preserved.
  */
-function normalizeImportedTag(tag: string): string {
+function normalizeImportedTag(tag: string, hasMultipleTagLists: boolean): string {
     if (!tag) {
         return '';
+    }
+    if (!hasMultipleTagLists) {
+        return escapeTagName(tag);
     }
     return trimTag(
         getTagArrayFromName(tag)
@@ -192,7 +201,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
             const updatedMerchant = getCellValue(updatedMerchantColumn, rowIndex);
             const category = getCellValue(categoryColumn, rowIndex);
-            const tag = normalizeImportedTag(getCellValue(tagColumn, rowIndex));
+            const tag = normalizeImportedTag(getCellValue(tagColumn, rowIndex), !!policy?.hasMultipleTagLists);
             const comment = getCellValue(commentColumn, rowIndex);
             const reimbursable = parseCsvBooleanValue(getCellValue(reimbursableColumn, rowIndex));
             const billable = parseCsvBooleanValue(getCellValue(billableColumn, rowIndex));

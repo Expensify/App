@@ -2,33 +2,56 @@ import {normalizeImportedTag} from '@pages/workspace/rules/MerchantRules/Importe
 
 describe('ImportedMerchantRulesPage', () => {
     describe('normalizeImportedTag', () => {
-        it('collapses the space after the colon in a multi-level tag', () => {
-            // "Parent: Child" was previously stored verbatim and split into ["Parent", " Child"] on display
-            expect(normalizeImportedTag('Parent: Child')).toBe('Parent:Child');
+        describe('multi-level tag policy', () => {
+            it('collapses the space after the colon in a multi-level tag', () => {
+                expect(normalizeImportedTag('Parent: Child', true)).toBe('Parent:Child');
+            });
+
+            it('trims surrounding spaces around every level', () => {
+                expect(normalizeImportedTag(' Parent : Child : Grandchild ', true)).toBe('Parent:Child:Grandchild');
+            });
+
+            it('leaves a single-level tag unchanged', () => {
+                expect(normalizeImportedTag('Travel', true)).toBe('Travel');
+            });
+
+            it('preserves internal spaces within a level', () => {
+                expect(normalizeImportedTag('North America: New York', true)).toBe('North America:New York');
+            });
+
+            it('preserves an already canonical multi-level tag', () => {
+                expect(normalizeImportedTag('Parent:Child', true)).toBe('Parent:Child');
+            });
+
+            it('preserves escaped colons within a single level', () => {
+                expect(normalizeImportedTag('Time\\: Tracking', true)).toBe('Time\\: Tracking');
+            });
+
+            it('returns an empty string for an empty cell', () => {
+                expect(normalizeImportedTag('', true)).toBe('');
+            });
         });
 
-        it('trims surrounding spaces around every level', () => {
-            expect(normalizeImportedTag(' Parent : Child : Grandchild ')).toBe('Parent:Child:Grandchild');
-        });
+        describe('single-level tag policy', () => {
+            it('escapes a colon so the cell stays one literal tag name', () => {
+                expect(normalizeImportedTag('ab:cd', false)).toBe('ab\\:cd');
+            });
 
-        it('leaves a single-level tag unchanged', () => {
-            expect(normalizeImportedTag('Travel')).toBe('Travel');
-        });
+            it('preserves internal spaces around a colon in the tag name', () => {
+                expect(normalizeImportedTag('ab: cd', false)).toBe('ab\\: cd');
+            });
 
-        it('preserves internal spaces within a level', () => {
-            expect(normalizeImportedTag('North America: New York')).toBe('North America:New York');
-        });
+            it('escapes every colon in the tag name', () => {
+                expect(normalizeImportedTag('a:b:c', false)).toBe('a\\:b\\:c');
+            });
 
-        it('preserves an already canonical multi-level tag', () => {
-            expect(normalizeImportedTag('Parent:Child')).toBe('Parent:Child');
-        });
+            it('leaves a tag without colons unchanged', () => {
+                expect(normalizeImportedTag('Travel', false)).toBe('Travel');
+            });
 
-        it('preserves escaped colons within a single level', () => {
-            expect(normalizeImportedTag('Time\\: Tracking')).toBe('Time\\: Tracking');
-        });
-
-        it('returns an empty string for an empty cell', () => {
-            expect(normalizeImportedTag('')).toBe('');
+            it('returns an empty string for an empty cell', () => {
+                expect(normalizeImportedTag('', false)).toBe('');
+            });
         });
     });
 });
