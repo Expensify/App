@@ -185,12 +185,7 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 ## What happens to receipts that are still uploading when I sign out on mobile?
 
-On the Expensify mobile app (iOS and Android), if you sign out while one or more receipts are still uploading, Expensify saves those receipt images to your device's photos first so you don't lose them.
-
-- When you sign out from **Settings**, a **Save your receipts?** prompt appears. Tap **Save and sign out** to save the pending receipts to your photos and finish signing out.
-- If you're signed out automatically (for example, when your session expires), the receipts are saved to your photos without a prompt.
-
-The next time you sign in, you can add the saved images to a new expense. If Expensify can't save the receipts (for example, if photo access is denied), sign-out still completes.
+If you manually sign out of the Expensify mobile app while receipts are still uploading, Expensify prompts you to save the pending receipt images to your device's photos before signing out.
 
 ## Why can't I forward receipts to receipts@expensify.com?
 
