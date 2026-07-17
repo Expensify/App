@@ -2953,6 +2953,8 @@ function getReportSections({
                 if (isIOUReport) {
                     reportIDToTransactions[reportKey].reportName = getIOUReportName(translate, convertToDisplayString, data, reportIDToTransactions[reportKey]);
                 }
+
+                reportIDToTransactions[reportKey].reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportIDToTransactions[reportKey].reportName ?? ''));
             }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
