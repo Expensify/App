@@ -1,5 +1,10 @@
+import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+
 import useHover from '@hooks/useHover';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
 import type {ReactNode} from 'react';
 
@@ -25,6 +30,8 @@ type VictoryChartExpandableProps = {
  */
 function VictoryChartExpandable({children}: VictoryChartExpandableProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {chartContentStyles} = useVictoryChartContext();
     const {hovered, deviceHasHoverSupport, bind: hoverBind} = useHover();
     const [isExpanded, setIsExpanded] = useState(false);
     const [shouldRenderModal, setShouldRenderModal] = useState(false);
@@ -34,21 +41,29 @@ function VictoryChartExpandable({children}: VictoryChartExpandableProps) {
         setIsExpanded(true);
     };
 
+    // The inline chart never renders wider than its design width (inline scaling caps at 1). On web
+    // the wrapper shrinks to its content, but native Yoga stretches a width-less view to the full
+    // message column — which would detach the corner-anchored button from the chart on wide surfaces
+    // (tablets). Capping the wrapper at the design width keeps the anchor on the chart everywhere,
+    // while mw100 still lets it shrink in narrow containers (e.g. the side panel).
+    const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
+
+    // Devices can support both touch and hover (touchscreen laptops, iPad with trackpad). A touch
+    // interaction can't produce a hover, so the button must stay visible whenever touch is possible.
+    const shouldAlwaysShowButton = !deviceHasHoverSupport || canUseTouchScreen();
+
     return (
         <>
-            {/* Wrapper anchors the absolutely-positioned expand button to the chart's corner.
-                mw100 keeps it from sizing to the chart's design width, so the responsive
-                container's onLayout measures the real available width (e.g. in the side panel). */}
             <View
-                style={styles.mw100}
+                style={[styles.mw100, designWidth !== undefined && StyleUtils.getWidthStyle(designWidth)]}
                 onMouseEnter={hoverBind.onMouseEnter}
                 onMouseLeave={hoverBind.onMouseLeave}
             >
                 {children}
-                {/* Shown on hover only (like receipt actions) on devices with hover support; always shown on touch devices. */}
+                {/* Shown on hover only (like receipt actions) on hover-only devices; always shown when touch input is possible. */}
                 <VictoryChartExpandButton
                     onPress={openModal}
-                    shouldShow={hovered || !deviceHasHoverSupport}
+                    shouldShow={hovered || shouldAlwaysShowButton}
                 />
             </View>
             {shouldRenderModal && (
