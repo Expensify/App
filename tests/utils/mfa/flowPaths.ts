@@ -72,8 +72,13 @@ function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
 
 type MfaActors = ReturnType<typeof createActors>;
 
+// Callback actors have no done output and must not require done-output fixtures.
+type MfaActorIdWithDoneOutput = {
+    [Id in keyof MfaActors]: undefined extends OutputFrom<MfaActors[Id]> ? never : Id;
+}[keyof MfaActors];
+
 type MfaActorDoneOutputFixtures = {
-    readonly [Id in keyof MfaActors]: readonly [OutputFrom<MfaActors[Id]>, ...Array<OutputFrom<MfaActors[Id]>>];
+    readonly [Id in MfaActorIdWithDoneOutput]: readonly [OutputFrom<MfaActors[Id]>, ...Array<OutputFrom<MfaActors[Id]>>];
 };
 
 /**
@@ -94,6 +99,7 @@ const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
             error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, 'Graph-traversal device-check enrollment refusal'),
         },
     ],
+    readHasAcceptedSoftPrompt: [false, true],
 } satisfies MfaActorDoneOutputFixtures;
 
 function hasActorDoneOutputFixtures(actorId: string): actorId is keyof typeof MFA_ACTOR_DONE_OUTPUT_FIXTURES {
@@ -106,6 +112,8 @@ const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
 const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
 const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevice`;
 const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice`;
+const READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
+const READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
 
 type PathSteps = ReadonlyArray<{event: {type: string}}>;
 
@@ -194,4 +202,12 @@ function getWalkedPaths() {
 }
 
 export default getWalkedPaths;
-export {getDrivingJourneyPaths, getMfaShortestPaths, isAutoDrivenEvent, VALIDATE_DEVICE_DONE_EVENT_TYPE, VALIDATE_DEVICE_ERROR_EVENT_TYPE};
+export {
+    getDrivingJourneyPaths,
+    getMfaShortestPaths,
+    isAutoDrivenEvent,
+    READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
+    READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE,
+    VALIDATE_DEVICE_DONE_EVENT_TYPE,
+    VALIDATE_DEVICE_ERROR_EVENT_TYPE,
+};

@@ -1,6 +1,6 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
-import type {ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
+import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -14,6 +14,10 @@ type CapturedCallback = () => void;
 type NavigationTransitionOverrides = Pick<typeof Navigation, 'runAfterTransition' | 'runAfterUpcomingTransition'>;
 type PendingValidateDevice = {
     resolve: (result: MFAResult) => void;
+    reject: (error: Error) => void;
+};
+type PendingReadHasAcceptedSoftPrompt = {
+    resolve: (accepted: boolean) => void;
     reject: (error: Error) => void;
 };
 
@@ -51,6 +55,7 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
 };
 
 let pendingValidateDeviceCall: PendingValidateDevice | undefined;
+let pendingSoftPromptAcceptanceCall: PendingReadHasAcceptedSoftPrompt | undefined;
 
 function takePendingValidateDeviceCall(): PendingValidateDevice {
     const pendingCall = pendingValidateDeviceCall;
@@ -69,9 +74,27 @@ function rejectValidateDevice() {
     takePendingValidateDeviceCall().reject(new Error('Mock validateDevice actor rejected for this path'));
 }
 
+function takePendingSoftPromptAcceptanceCall(): PendingReadHasAcceptedSoftPrompt {
+    const pendingCall = pendingSoftPromptAcceptanceCall;
+    pendingSoftPromptAcceptanceCall = undefined;
+    if (!pendingCall) {
+        throw new Error('No pending readHasAcceptedSoftPrompt call is available.');
+    }
+    return pendingCall;
+}
+
+function resolveSoftPromptAcceptance(accepted: boolean) {
+    takePendingSoftPromptAcceptanceCall().resolve(accepted);
+}
+
+function rejectSoftPromptAcceptanceRead() {
+    takePendingSoftPromptAcceptanceCall().reject(new Error('Mock readHasAcceptedSoftPrompt actor rejected for this path'));
+}
+
 function resetMfaUiMocks() {
     pendingModalClose.clear();
     pendingValidateDeviceCall = undefined;
+    pendingSoftPromptAcceptanceCall = undefined;
 }
 
 const validateDeviceMock = fromPromise<MFAResult, ValidateDeviceInput>(
@@ -81,10 +104,18 @@ const validateDeviceMock = fromPromise<MFAResult, ValidateDeviceInput>(
         }),
 );
 
+const readHasAcceptedSoftPromptMock = fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(
+    () =>
+        new Promise<boolean>((resolve, reject) => {
+            pendingSoftPromptAcceptanceCall = {resolve, reject};
+        }),
+);
+
 /** Replaces the machine's side-effect actors with controlled test implementations. */
 function mfaActorsMock() {
     const actors = {
         validateDevice: validateDeviceMock,
+        readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptMock,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -142,4 +173,16 @@ function navigationMock() {
     };
 }
 
-export {pendingModalClose, resolveValidateDevice, rejectValidateDevice, resetMfaUiMocks, mfaActorsMock, biometricsHookMock, renderHtmlMock, syncHistoryMock, navigationMock};
+export {
+    pendingModalClose,
+    resolveValidateDevice,
+    rejectValidateDevice,
+    resolveSoftPromptAcceptance,
+    rejectSoftPromptAcceptanceRead,
+    resetMfaUiMocks,
+    mfaActorsMock,
+    biometricsHookMock,
+    renderHtmlMock,
+    syncHistoryMock,
+    navigationMock,
+};

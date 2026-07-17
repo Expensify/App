@@ -4,6 +4,7 @@ import type {MultifactorAuthenticationInitEvent} from '@components/MultifactorAu
 import CONST from '@src/CONST';
 
 const MFA_TEST_SCENARIO_NAME = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST;
+const MFA_TEST_ACCOUNT_ID = 12345;
 
 /**
  * Builds the INIT event fixture for the test scenario.
@@ -11,6 +12,7 @@ const MFA_TEST_SCENARIO_NAME = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETR
 function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_SCENARIO_NAME> {
     return {
         type: 'INIT',
+        accountID: MFA_TEST_ACCOUNT_ID,
         scenarioName: MFA_TEST_SCENARIO_NAME,
         scenario: getScenarioConfig(MFA_TEST_SCENARIO_NAME),
         payload: undefined,
@@ -18,3 +20,4 @@ function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_S
 }
 
 export default createInitEvent;
+export {MFA_TEST_ACCOUNT_ID};

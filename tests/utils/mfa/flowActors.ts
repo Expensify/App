@@ -18,6 +18,7 @@ type ValidateDeviceOutput = OutputFrom<ReturnType<typeof createActors>['validate
 function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
     const initEvent = createInitEvent();
     return {
+        accountID: initEvent.accountID,
         error: undefined,
         scenarioName: initEvent.scenarioName,
         scenario: initEvent.scenario,

@@ -221,6 +221,7 @@ const MFA_STATE = {
     CLOSING: 'closing',
     PREPARING: 'preparing',
     VALIDATING_DEVICE: 'validatingDevice',
+    CHECKING_SOFT_PROMPT_ACCEPTANCE: 'checkingSoftPromptAcceptance',
     PROMPT: 'prompt',
     AWAITING_SOFT_PROMPT: 'awaitingSoftPrompt',
     OUTCOME: 'outcome',

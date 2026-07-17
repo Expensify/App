@@ -4,7 +4,7 @@ import {navigate as mfaNavigate, resetMfaNavigation} from '@components/Multifact
 import {createUnhandledExceptionMFAError, getMFAFailureError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {hasEverAcceptedSoftPrompt, markHasAcceptedSoftPrompt} from '@userActions/MultifactorAuthentication';
+import {markHasAcceptedSoftPrompt} from '@userActions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -26,6 +26,7 @@ const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
 const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
 
 const DEFAULT_CONTEXT: MfaContext = {
+    accountID: undefined,
     error: undefined,
     scenarioName: undefined,
     scenario: undefined,
@@ -64,6 +65,7 @@ const MFAMachine = setup({
             }
             return {
                 ...DEFAULT_CONTEXT,
+                accountID: event.accountID,
                 scenarioName: event.scenarioName,
                 scenario: event.scenario,
                 payload: event.payload,
@@ -83,7 +85,12 @@ const MFAMachine = setup({
         approveSoftPrompt: assign({softPromptApproved: true}),
         // The durable "asked once" flag lives in Onyx, so future flows on this device can skip the
         // prompt. Owned by the machine so every sender of SOFT_PROMPT_APPROVED persists it.
-        persistSoftPromptAcceptance: () => markHasAcceptedSoftPrompt(),
+        persistSoftPromptAcceptance: ({context}) => {
+            if (context.accountID === undefined) {
+                throw new Error('MFA account must be initialized before persisting soft-prompt acceptance');
+            }
+            markHasAcceptedSoftPrompt(context.accountID);
+        },
         // Runs on CLOSE_MODAL: drops the cancel-confirmation modal so it cannot linger over the
         // closing navigator (CLOSE_MODAL can fire without the flow completing, e.g. an offline cancel).
         hideCancelConfirmModal: assign({isCancelConfirmVisible: false}),
@@ -134,16 +141,12 @@ const MFAMachine = setup({
                                     }
                                     return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
                                 },
-                                // An eligible device moves on to the soft prompt, with two overrides.
-                                // A stored error always wins: the flow goes straight to the outcome
-                                // resolver, which selects failure. A user who already accepted the
-                                // soft prompt on this device (read from Onyx at decision time) skips
-                                // it. A refusal stores its blocking MFAError first and resolves the
-                                // same way as a stored error.
+                                // An eligible device moves on to the soft-prompt acceptance check. A
+                                // stored error always wins and goes straight to the outcome resolver,
+                                // while a refusal stores its blocking MFAError before resolving it.
                                 onDone: [
                                     {guard: ({context, event}) => event.output.success && context.error !== undefined, target: OUTCOME_TARGET},
-                                    {guard: ({event}) => event.output.success && hasEverAcceptedSoftPrompt(), target: OUTCOME_TARGET},
-                                    {guard: ({event}) => event.output.success, target: PROMPT_TARGET},
+                                    {guard: ({event}) => event.output.success, target: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE},
                                     {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
                                 ],
                                 // Expected refusals travel as failed results through onDone, so a
@@ -151,6 +154,25 @@ const MFAMachine = setup({
                                 onError: {
                                     target: OUTCOME_TARGET,
                                     actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Device check', event.error)}),
+                                },
+                            },
+                        },
+                        // Reads the per-account Onyx flag through a one-shot promise actor. Its done
+                        // event carries the first value and leaving this state cancels the read.
+                        [MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE]: {
+                            invoke: {
+                                id: 'readHasAcceptedSoftPrompt',
+                                src: 'readHasAcceptedSoftPrompt',
+                                input: ({context}) => {
+                                    if (context.accountID === undefined) {
+                                        throw new Error('MFA account must be initialized before reading soft-prompt acceptance');
+                                    }
+                                    return {accountID: context.accountID};
+                                },
+                                onDone: [{guard: ({event}) => event.output, target: OUTCOME_TARGET}, {target: PROMPT_TARGET}],
+                                onError: {
+                                    target: OUTCOME_TARGET,
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Soft-prompt acceptance read', event.error)}),
                                 },
                             },
                         },
