@@ -468,6 +468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -1032,6 +1033,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Emitir tarjetas Expensify',
             issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
+            configureApprovals: 'Configura el flujo de aprobación',
             talkToAccountExecutive: 'Habla con tu ejecutivo de cuenta',
             begin: 'Empezar',
             done: 'Hecho',
@@ -1044,6 +1046,7 @@ const translations: TranslationDeepObject<typeof en> = {
             needHelp: '¿Necesitas ayuda?',
             talkToConcierge: 'Habla con Concierge',
             forGuidedSetup: 'para la configuración guiada.',
+            configureApprovalsSubText: 'Definir aprobaciones de informes',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -1122,6 +1125,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'No se han añadido reglas de comerciante, ya que todas ya existen.';
+            }
+            return rules > 1 ? `Se han añadido ${rules} reglas de comerciante.` : 'Se ha añadido 1 regla de comerciante.';
+        },
+        importMerchantRulesRequiredColumns:
+            '¡Ups! Debes asignar al menos una columna "El comerciante es" o "El comerciante contiene", además de al menos un campo para actualizar. Por favor, revisa e inténtalo de nuevo.',
         importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.',
@@ -2758,6 +2769,14 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Agentes',
         subtitle: `<muted-text>Los agentes gestionan tus flujos de trabajo por ti, para que recuperes horas en tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
         findAgent: 'Buscar agente',
+        deleteAgentsTitle: () => ({
+            one: 'Eliminar agente',
+            other: 'Eliminar agentes',
+        }),
+        deleteAgentsMessage: () => ({
+            one: '¿Seguro que quieres eliminar a este agente? Esta acción no se puede deshacer.',
+            other: '¿Seguro que quieres eliminar a estos agentes? Esta acción no se puede deshacer.',
+        }),
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
@@ -4294,17 +4313,6 @@ ${amount} para ${merchant} - ${date}`,
         positiveButton: '¡Sí!',
         negativeButton: 'No mucho',
     },
-    trialPaymentReminder: {
-        title: 'Adelántate al plazo',
-        subtitle: 'No esperes hasta el último momento, añade tu método de pago hoy para asegurar el acceso continuo a tus gastos en Expensify.',
-        trialEndsInDays: () => ({
-            one: 'La prueba termina en 1 día',
-            other: (pluralCount: number) => `La prueba termina en ${pluralCount} días`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `La prueba termina en ${hours}h : ${minutes}m : ${seconds}s`,
-        closeButton: 'Cerrar',
-        addPaymentCardButton: 'Añadir tarjeta de pago',
-    },
     workspace: {
         common: {
             card: 'Tarjetas',
@@ -4358,6 +4366,7 @@ ${amount} para ${merchant} - ${date}`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
             deleteOpenExpensifyCardsError: 'Tu empresa todavía tiene Tarjetas Expensify. Por favor, <concierge-link>contacta con Concierge</concierge-link> para eliminarlas.',
+            deleteTravelInvoicingError: 'Tu empresa todavía tiene habilitada la Facturación Consolidada de Viajes.',
             outstandingBalanceWarning:
                 'Tienes un saldo pendiente que debe liquidarse antes de eliminar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
             settleBalance: 'Ir a Suscripción',
@@ -5455,6 +5464,35 @@ ${amount} para ${merchant} - ${date}`,
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
             travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Reemplaza la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Sobrescribe la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} programas con cuentas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Sobrescribe la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Reemplaza la cuenta del programa para estas tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todas las tarjetas usan cuentas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} tarjeta con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} tarjetas con cuentas personalizadas`;
+                },
+            },
         },
         type: {
             free: 'Gratis',
@@ -7399,6 +7437,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 findRule: 'Buscar regla de comerciante',
                 addRuleTitle: 'Añadir regla',
                 editRuleTitle: 'Editar regla',
+                importRulesTitle: 'Importar reglas de comerciante',
+                importRulesSupportingText:
+                    'Asigna cada columna de tu hoja de cálculo a un campo de la regla de comerciante. Cuando todo esté correcto, haz clic abajo para importar tus reglas.',
+                importColumnMerchantIs: 'El comerciante es',
+                importColumnMerchantContains: 'El comerciante contiene',
+                importColumnUpdatedMerchant: 'Comerciante actualizado',
+                importColumnUpdatedCategory: 'Categoría actualizada',
+                importColumnUpdatedTag: 'Etiqueta actualizada',
+                importColumnUpdatedDescription: 'Descripción actualizada',
                 expensesWith: 'Para gastos con:',
                 expensesExactlyMatching: 'Para gastos que coincidan exactamente con:',
                 applyUpdates: 'Aplicar estas actualizaciones:',
@@ -7546,7 +7593,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Transporte y transporte compartido',
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agencias de viajes',
                 },
-                defaultRuleSummary: 'Categorías que incluyen servicios para adultos, cajeros automáticos, juegos de azar y...',
+                defaultRuleSummary: 'Categorías que incluyen servicios para adultos, cajeros automáticos, juegos de azar y transferencias de dinero',
                 findRule: 'Buscar regla',
                 defaultSection: 'Predeterminado',
                 customRulesSection: 'Reglas personalizadas',

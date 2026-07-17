@@ -516,6 +516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} van ${total}`,
         editor: 'Editor',
         restrictions: 'Beperkingen',
         tryAgain: 'Probeer het opnieuw',
@@ -1078,6 +1079,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Pas controles aan en stroomlijn uitgaven',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+            configureApprovals: 'Goedkeuringsworkflow instellen',
             begin: 'Begin',
             done: 'Klaar',
             createWorkspaceSubText: 'Werkruimte klaar voor configuratie',
@@ -1090,6 +1092,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Praat met Concierge',
             talkToAccountExecutive: 'Praat met je accountmanager',
             forGuidedSetup: 'voor begeleide installatie.',
+            configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
         },
         yourSpend: {
             title: 'Je uitgaven',
@@ -1161,6 +1164,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags zijn toegevoegd.` : '1 tag is toegevoegd.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags met meerdere niveaus zijn toegevoegd.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem-tarieven zijn toegevoegd.` : '1 dagvergoeding is toegevoegd.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'Er zijn geen handelaarregels toegevoegd, omdat ze allemaal al bestaan.';
+            }
+            return rules > 1 ? `${rules} handelaarregels zijn toegevoegd.` : '1 handelaarregel is toegevoegd.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Oeps! Je moet ten minste één kolom "Handelaar is" of "Handelaar bevat" toewijzen, plus ten minste één veld om bij te werken. Controleer het en probeer het opnieuw.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
         importFailedTitle: 'Import mislukt',
@@ -2889,6 +2900,14 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Agenten',
         subtitle: `<muted-text>Agents verwerken je workflows voor je, zodat je uren per dag terugkrijgt. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
         findAgent: 'Agent zoeken',
+        deleteAgentsTitle: () => ({
+            one: 'Agent verwijderen',
+            other: 'Agents verwijderen',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Weet je zeker dat je deze agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+            other: 'Weet je zeker dat je deze agents wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+        }),
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {
             title: 'Geen agents aangemaakt',
@@ -4459,6 +4478,7 @@ ${amount} voor ${merchant} - ${date}`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
             deleteOpenExpensifyCardsError: 'Je bedrijf heeft nog Expensify Kaarten. <concierge-link>Neem contact op met Concierge</concierge-link> om ze te verwijderen.',
+            deleteTravelInvoicingError: 'Je bedrijf heeft nog steeds Geconsolideerde Reisfacturering ingeschakeld.',
             outstandingBalanceWarning:
                 'Je hebt een openstaand saldo dat moet worden vereffend voordat je je laatste werkruimte kunt verwijderen. Ga naar je abonnementsinstellingen om de betaling af te ronden.',
             settleBalance: 'Ga naar abonnement',
@@ -5582,6 +5602,35 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             travelInvoicingSettlementAccount: {
                 label: 'Rekening voor verrekening van reiskostenfacturen',
                 description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.',
+            },
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: "Overschrijf de werkruimte-account voor deze kaartprogramma's.",
+                descriptionLevel2: 'Overschrijf het werkruimteaccount voor dit kaartprogramma.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} programma's met aangepaste rekeningen`;
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Stel een andere programmarekening in voor deze kaarten.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} kaart met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} kaarten met aangepaste rekeningen`;
+                },
             },
         },
         type: {
@@ -7429,6 +7478,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 addRule: 'Merchantregel toevoegen',
                 addRuleTitle: 'Regel toevoegen',
                 editRuleTitle: 'Regel bewerken',
+                importRulesTitle: 'Handelaarregels importeren',
+                importRulesSupportingText: 'Koppel elke kolom in je spreadsheet aan een veld van een handelaarregel. Als alles er goed uitziet, klik hieronder om je regels te importeren.',
+                importColumnMerchantIs: 'Handelaar is',
+                importColumnMerchantContains: 'Handelaar bevat',
+                importColumnUpdatedMerchant: 'Bijgewerkte handelaar',
+                importColumnUpdatedCategory: 'Bijgewerkte categorie',
+                importColumnUpdatedTag: 'Bijgewerkte tag',
+                importColumnUpdatedDescription: 'Bijgewerkte omschrijving',
                 expensesWith: 'Voor declaraties met:',
                 expensesExactlyMatching: 'Voor onkosten die exact overeenkomen met:',
                 applyUpdates: 'Pas deze updates toe:',
@@ -7603,7 +7660,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
-                defaultRuleSummary: 'Categorieën zoals erotische diensten, geldautomaten, gokken en...',
+                defaultRuleSummary: 'Categorieën zoals diensten voor volwassenen, geldautomaten, gokken en geldoverdrachten',
                 findRule: 'Regel zoeken',
                 defaultSection: 'Standaard',
                 customRulesSection: 'Aangepaste regels',
@@ -10308,17 +10365,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         description: 'Laat het ons weten, zodat we je uitgavenervaring nog beter kunnen maken.',
         positiveButton: 'Ja!',
         negativeButton: 'Niet echt',
-    },
-    trialPaymentReminder: {
-        title: 'Blijf de deadline voor',
-        subtitle: 'Wacht niet tot het laatste moment, voeg vandaag nog je betaalmethode toe om doorlopende toegang tot je uitgaven op Expensify te garanderen.',
-        trialEndsInDays: () => ({
-            one: 'Proefperiode eindigt over 1 dag',
-            other: (pluralCount: number) => `Proefperiode eindigt over ${pluralCount} dagen`,
-        }),
-        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Proefperiode eindigt over ${hours}u : ${minutes}m : ${seconds}s`,
-        closeButton: 'Sluiten',
-        addPaymentCardButton: 'Betaalkaart toevoegen',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
     aiFeaturesPromoModal: {
