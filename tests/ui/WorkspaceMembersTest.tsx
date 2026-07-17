@@ -459,6 +459,10 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByLabelText(confirmText)).toBeOnTheScreen();
             });
 
+            // The prompt resolves the approver's and workspace owner's display names through the translate-aware pipeline
+            const warningPrompt = TestHelper.translateLocal('workspace.people.removeMembersWarningPrompt', 'Admin User', 'Owner User');
+            expect(screen.getByText(warningPrompt)).toBeOnTheScreen();
+
             unmount();
         });
     });
