@@ -1147,6 +1147,8 @@ const translations = {
             linkCompanyCardsSubText: 'Import expenses automatically',
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
+            configureApprovals: 'Configure approval workflow',
+            configureApprovalsSubText: 'Define report approvals',
             setupRules: 'Set up spend rules',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
@@ -1231,6 +1233,13 @@ const translations = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'No merchant rules have been added, since they all already exist.';
+            }
+            return rules > 1 ? `${rules} merchant rules have been added.` : '1 merchant rule has been added.';
+        },
+        importMerchantRulesRequiredColumns: 'Oops! You must map at least one "Merchant is" or "Merchant contains" column, plus at least one field to update. Please review and try again.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions have been imported.` : '1 transaction has been imported.',
         importFailedTitle: 'Import failed',
@@ -2966,6 +2975,14 @@ const translations = {
         title: 'Agents',
         subtitle: `<muted-text>Agents handle your workflows for you, so you get hours back in your day. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</muted-text>`,
         findAgent: 'Find agent',
+        deleteAgentsTitle: () => ({
+            one: 'Delete agent',
+            other: 'Delete agents',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Are you sure you want to delete this agent? This action cannot be undone.',
+            other: 'Are you sure you want to delete these agents? This action cannot be undone.',
+        }),
         newAgent: 'New agent',
         emptyAgents: {
             title: 'No agents created',
@@ -4575,6 +4592,7 @@ const translations = {
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             deleteOpenExpensifyCardsError: 'Your company still has Expensify Cards. Please <concierge-link>reach out to Concierge</concierge-link> to remove them.',
+            deleteTravelInvoicingError: 'Your company still has Consolidated Travel Billing enabled.',
             outstandingBalanceWarning:
                 'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Go to subscription',
@@ -5667,6 +5685,35 @@ const translations = {
             companyCardAccount: {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
+            },
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'All programs use default account';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} program with custom account`;
+                    }
+                    return `${customAccountsCount} programs with custom accounts`;
+                },
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'All cards use program accounts';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} card with custom account`;
+                    }
+                    return `${customAccountsCount} cards with custom accounts`;
+                },
             },
             autoSyncDescription: 'Sync Rillet and Expensify automatically, every day. Reports sync in realtime.',
             accountingMethods: {
@@ -7693,6 +7740,14 @@ const translations = {
                 findRule: 'Find merchant rule',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
+                importRulesTitle: 'Import merchant rules',
+                importRulesSupportingText: 'Map each column in your spreadsheet to a merchant rule field. Once everything looks good, click below to import your rules.',
+                importColumnMerchantIs: 'Merchant is',
+                importColumnMerchantContains: 'Merchant contains',
+                importColumnUpdatedMerchant: 'Updated merchant',
+                importColumnUpdatedCategory: 'Updated category',
+                importColumnUpdatedTag: 'Updated tag',
+                importColumnUpdatedDescription: 'Updated description',
                 expensesWith: 'For expenses with:',
                 expensesExactlyMatching: 'For expenses exactly matching:',
                 applyUpdates: 'Apply these updates:',
@@ -7850,7 +7905,7 @@ const translations = {
                 defaultRuleDescription: 'All cards',
                 block: 'Block',
                 defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
-                defaultRuleSummary: 'Categories including adult services, ATMs, gambling, and...',
+                defaultRuleSummary: 'Categories including adult services, ATMs, gambling, and money transfers',
                 findRule: 'Find rule',
                 defaultSection: 'Default',
                 customRulesSection: 'Custom rules',

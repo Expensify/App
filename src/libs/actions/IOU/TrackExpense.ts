@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {
@@ -105,7 +106,7 @@ import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
-import type {ReplaceReceipt} from './Receipt';
+import type {ReplaceReceiptRetryParams} from './Receipt';
 import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
@@ -179,12 +180,13 @@ type GetTrackExpenseInformationParams = {
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
@@ -224,7 +226,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     shouldCreateNewMoneyRequestReport: boolean;
     existingTransactionThreadReportID?: string;
     actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>;
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     participant?: Participant;
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -239,7 +241,6 @@ function buildOnyxDataForTrackExpense({
     shouldCreateNewMoneyRequestReport,
     existingTransactionThreadReportID,
     actionableTrackExpenseWhisper,
-    retryParams,
     participant,
     isASAPSubmitBetaEnabled,
     quickAction,
@@ -552,7 +553,7 @@ function buildOnyxDataForTrackExpense({
                     ...(shouldCreateNewMoneyRequestReport
                         ? {
                               [iouCreatedAction.reportActionID]: {
-                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
+                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE),
                               },
                               [iouAction.reportActionID]: {
                                   errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
@@ -560,7 +561,7 @@ function buildOnyxDataForTrackExpense({
                           }
                         : {
                               [iouAction.reportActionID]: {
-                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
+                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE),
                               },
                           }),
                 },
@@ -572,7 +573,7 @@ function buildOnyxDataForTrackExpense({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [iouAction.reportActionID]: {
-                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
+                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE),
                 },
             },
         });
@@ -604,7 +605,7 @@ function buildOnyxDataForTrackExpense({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
+                errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE),
                 pendingFields: clearedPendingFields,
             },
         },
@@ -852,6 +853,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         currentUserEmailParam,
         introSelected,
         activePolicy,
+        conciergeChat,
         quickAction,
         betas,
         isSelfTourViewed,
@@ -1007,6 +1009,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currentUserEmailParam,
             introSelected,
             activePolicy,
+            conciergeChat,
             // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
             hasActiveAdminPolicies: undefined,
             betas,
@@ -2261,7 +2264,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         accountantParams,
         currentUser,
         reportActionsList,
-        personalDetailsList,
     } = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
 
@@ -2270,7 +2272,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const accountantEmail = addSMSDomainIfPhoneNumber(accountantParams?.accountant?.login);
     const accountantAccountID = accountantParams?.accountant?.accountID;
 
-    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID) {
+    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID || !accountantParams.newLogins || !accountantParams.newAccountIDs) {
         return;
     }
 
@@ -2326,11 +2328,10 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             failureData: addAccountantToWorkspaceFailureData,
         } = buildAddMembersToWorkspaceOnyxData(
             {[accountantEmail]: accountantAccountID},
+            getPersonalDetailsOnyxDataForOptimisticUsers(accountantParams.newLogins, accountantParams.newAccountIDs, formatPhoneNumber),
             policyParams.policy,
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.ADMIN,
-            formatPhoneNumber,
-            personalDetailsList,
             {accountID: currentUserAccountID},
             reportActionsList,
         );
@@ -2355,7 +2356,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, personalDetailsList, formatPhoneNumber);
+        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, accountantParams.newAccountIDs, accountantParams.newLogins, formatPhoneNumber);
         onyxData.optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         onyxData.successData?.push(...inviteAccountantToRoomSuccessData);
         onyxData.failureData?.push(...inviteAccountantToRoomFailureData);
@@ -2407,6 +2408,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUser,
         introSelected,
         activePolicy,
+        conciergeChat,
         quickAction,
         recentWaypoints = [],
         betas,
@@ -2416,7 +2418,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         delegateAccountID,
         reportActionsList,
         isDraftChatReport,
-        personalDetailsList,
         currentUserLocalCurrency,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
@@ -2571,6 +2572,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserEmailParam,
         introSelected,
         activePolicy,
+        conciergeChat,
         quickAction,
         betas,
         isSelfTourViewed,
@@ -2725,7 +2727,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 accountantParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
-                personalDetailsList,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
