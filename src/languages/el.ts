@@ -528,6 +528,8 @@ const translations: TranslationDeepObject<typeof en> = {
         apiKey: 'Κλειδί API',
         tryAgain: 'Δοκιμάστε ξανά',
         noResultsFoundSubtitle: 'Δεν βρέθηκαν αποτελέσματα. Δοκιμάστε να προσαρμόσετε τα φίλτρα ή το ερώτημα αναζήτησης σας',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
+        submitViaPDF: 'Υποβολή μέσω PDF',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -1224,6 +1226,14 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Παρακαλούμε επιβεβαιώστε τα παρακάτω στοιχεία για τα ${count} νέα μέλη του χώρου εργασίας που θα προστεθούν ως μέρος αυτής της μεταφόρτωσης. Τα υπάρχοντα μέλη δεν θα λάβουν ενημερώσεις ρόλων ή μηνύματα πρόσκλησης.`,
         }),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'Δεν προστέθηκαν κανόνες εμπόρων, καθώς όλοι υπάρχουν ήδη.';
+            }
+            return rules > 1 ? `Προστέθηκαν ${rules} κανόνες εμπόρου.` : 'Προστέθηκε 1 κανόνας εμπόρου.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Ουπς! Πρέπει να αντιστοιχίσετε τουλάχιστον μία στήλη «Ο έμπορος είναι» ή «Ο έμπορος περιέχει», καθώς και τουλάχιστον ένα πεδίο για ενημέρωση. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.',
     },
     receipt: {
         upload: 'Μεταφορτώστε απόδειξη',
@@ -7836,6 +7846,15 @@ ${reportName}`,
                 expenseDefaultsSubtitle: 'Ενημέρωση πεδίων χωρίς να χρειάζεται ο υποβάλλων να κάνει τίποτα',
                 ifAnyExpenseMatches: 'Αν κάποια δαπάνη αντιστοιχεί σε:',
                 thenApplyFollowingDefaults: 'Στη συνέχεια, εφαρμόστε τις ακόλουθες προεπιλογές:',
+                importRulesTitle: 'Εισαγωγή κανόνων εμπόρου',
+                importRulesSupportingText:
+                    'Αντιστοιχίστε κάθε στήλη στο υπολογιστικό σας φύλλο με ένα πεδίο κανόνα εμπόρου. Όταν όλα φαίνονται σωστά, κάντε κλικ παρακάτω για να εισαγάγετε τους κανόνες σας.',
+                importColumnMerchantIs: 'Ο έμπορος είναι',
+                importColumnMerchantContains: 'Ο έμπορος περιέχει',
+                importColumnUpdatedMerchant: 'Ενημερώθηκε ο έμπορος',
+                importColumnUpdatedCategory: 'Ενημερωμένη κατηγορία',
+                importColumnUpdatedTag: 'Ενημερωμένη ετικέτα',
+                importColumnUpdatedDescription: 'Ενημερωμένη περιγραφή',
             },
             newRule: {
                 title: 'Νέος κανόνας',
