@@ -331,8 +331,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             });
             return;
         }
+        // Submit 2026 workspaces gate approvals behind the Submit approvals upgrade, so route them there instead of the importer.
+        if (canAccessSubmit2026Features) {
+            navigateToSubmitWorkspaceApprovalsUpgrade();
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(route.params.policyID));
-    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, route.params.policyID]);
+    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, route.params.policyID, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(
         () => [
