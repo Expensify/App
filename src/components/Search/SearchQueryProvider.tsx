@@ -106,11 +106,12 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     useEffect(() => {
         // currentSearchKeyOnyx is a RAM-only Onyx data, so the initial value will always be empty and need to be hydrated.
+        // currentSearchKeyOnyx can also be invalidated, so we need to set it back with the correct value.
         if (currentSearchKeyOnyx) {
             return;
         }
         setCurrentSearchKey(currentSearchKey ?? null);
-    }, [currentSearchKey]);
+    }, [currentSearchKey, currentSearchKeyOnyx]);
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
