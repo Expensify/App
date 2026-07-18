@@ -15,7 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
@@ -39,6 +39,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
+    joinReportViaSecureLink,
     openReport,
     readNewestAction,
     setViewingPublicRoomReportID,
@@ -84,9 +85,12 @@ function ReportFetchHandler() {
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
+
+    // Only the main report route carries a Submit-via-PDF secure access key.
+    const secureKeyFromRoute = route.name === SCREENS.REPORT ? route.params?.secureKey : undefined;
     const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
-    const navigation = useNavigation();
+    const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
@@ -98,6 +102,7 @@ function ReportFetchHandler() {
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
@@ -243,6 +248,28 @@ function ReportFetchHandler() {
         }
         navigation.setParams({reportActionID: ''});
     }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
+
+    // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
+    // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard
+    // shows the standard 404. The ref is keyed by reportID so it fires once per report and re-navigation is handled
+    // naturally, without a separate reset effect that could clobber the flag on mount before the report loads.
+    useEffect(() => {
+        if (!secureKeyFromRoute || !reportIDFromRoute || isAnonymousUser || joinedSecureLinkReportIDRef.current === reportIDFromRoute) {
+            return;
+        }
+        joinedSecureLinkReportIDRef.current = reportIDFromRoute;
+        joinReportViaSecureLink(reportIDFromRoute, secureKeyFromRoute);
+    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser]);
+
+    // Keep secureKey in the URL until the join has actually granted access to the report. Clearing it earlier would drop
+    // the "secure-link visit" signal that suppresses onboarding, so a slow join could bounce a new user into onboarding
+    // before they gain access. Once the report is accessible we clear it so it isn't reused or left in history.
+    useEffect(() => {
+        if (!secureKeyFromRoute || joinedSecureLinkReportIDRef.current !== reportIDFromRoute || !report?.reportID || !!report?.errorFields?.notFound) {
+            return;
+        }
+        navigation.setParams({secureKey: undefined});
+    }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
