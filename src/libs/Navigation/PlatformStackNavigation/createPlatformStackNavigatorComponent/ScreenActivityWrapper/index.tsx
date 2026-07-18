@@ -3,6 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import CustomViewWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/CustomViewWrapper';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {Activity, useEffect, useRef} from 'react';
 
 import type ScreenActivityWrapperProps from './types';
@@ -12,14 +13,17 @@ import type ScreenActivityWrapperProps from './types';
  * processing state updates at background priority and runs effect cleanups when hiding, so a modal or popover that
  * is still dismissing when the screen gets blurred always finishes its close chain.
  *
- * The mode flips to hidden as soon as the screen is blurred. CustomViewWrapper neutralizes the display none that a
- * hidden Activity applies to its content, so the screen stays painted and the navigator's card visibility keeps
- * deciding what is actually shown - a covered screen that is still on screen (e.g. dimmed under the RHP overlay on
- * wide layouts) does not disappear, it only stops updating until it is revealed again.
+ * A screen hides when it is covered inside its own navigator (blurred) or when the whole navigator lost focus to
+ * another route higher in the tree - useIsFocused is chain-aware, so e.g. the search expense list hides while an
+ * RHP is open on top of it. CustomViewWrapper neutralizes the display none that a hidden Activity applies to its
+ * content, so the screen stays painted and the navigator's card visibility keeps deciding what is actually shown -
+ * a covered screen that is still on screen (e.g. dimmed under the RHP overlay on wide layouts) does not disappear,
+ * it only stops updating until it is revealed again.
  */
 function ScreenActivityWrapper({isScreenBlurred, routeKey, routeName, children}: ScreenActivityWrapperProps) {
     const styles = useThemeStyles();
-    const mode = isScreenBlurred ? 'hidden' : 'visible';
+    const isFocused = useIsFocused();
+    const mode = isScreenBlurred || !isFocused ? 'hidden' : 'visible';
     const previousModeRef = useRef<typeof mode | null>(null);
 
     useEffect(() => {

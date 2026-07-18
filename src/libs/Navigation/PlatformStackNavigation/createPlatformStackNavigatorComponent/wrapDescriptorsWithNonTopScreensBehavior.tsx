@@ -31,7 +31,9 @@ const WRAPPER_FOR_BEHAVIOR: Record<NonTopScreensBehavior, ComponentType<NonTopSc
 /**
  * Wraps each screen's render function so that non-top screens either freeze (react-freeze) or get deprioritized
  * (React <Activity>), depending on the chosen behavior. This prevents off-screen components from re-rendering
- * on the critical path. Persistent screens (e.g. sidebar on web) are excluded so they stay interactive.
+ * on the critical path. Persistent screens (e.g. sidebar on web) are left unwrapped because they stay visible
+ * and interactive alongside the top screen, so they must never be hidden - not even when the whole navigator
+ * loses focus.
  */
 function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
     descriptors: Record<string, T>,
@@ -43,9 +45,11 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
     const topRouteKey = state.routes[state.index]?.key;
     const result: Record<string, T> = {};
     for (const [key, descriptor] of Object.entries(descriptors)) {
-        const isOnTop = key === topRouteKey;
-        const isPersistent = persistentScreens?.includes(descriptor.route.name);
-        const isScreenBlurred = !isOnTop && !isPersistent;
+        if (persistentScreens?.includes(descriptor.route.name)) {
+            result[key] = descriptor;
+            continue;
+        }
+        const isScreenBlurred = key !== topRouteKey;
         result[key] = {
             ...descriptor,
             render: () => (
