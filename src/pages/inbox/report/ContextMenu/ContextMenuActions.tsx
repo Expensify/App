@@ -165,7 +165,7 @@ import {
     isWhisperAction as isWhisperActionReportActionsUtils,
     wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName, getReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canEditReportAction,
