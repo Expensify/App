@@ -63,7 +63,11 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LIST_ROW}
-            offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, onClose: item.dismissError}}
+            offlineWithFeedback={{
+                errors: item.errors,
+                pendingAction: item.pendingAction,
+                onClose: item.dismissError,
+            }}
             onPress={item.action}
         >
             {(hovered) => (
@@ -99,7 +103,14 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <Text numberOfLines={1}>{item.employeeUserID}</Text>
+                            {!!item.employeeUserID && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.employeeUserID}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
                         </View>
                     )}
 
@@ -108,7 +119,14 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <Text numberOfLines={1}>{item.employeePayrollID}</Text>
+                            {!!item.employeePayrollID && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.employeePayrollID}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
                         </View>
                     )}
 
