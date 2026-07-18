@@ -1217,11 +1217,19 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellFullHeightHoverTarget: {
-            width: '100%',
-            marginVertical: -variables.spacing2,
-            paddingVertical: (variables.tableRowHeight - variables.editableCellHeight) / 2,
+        editableCellColumn: {
+            alignSelf: 'stretch',
             justifyContent: 'center',
+        },
+
+        editableCellFullHeightHoverTarget: {
+            flex: 1,
+            width: '100%',
+            justifyContent: 'center',
+        },
+
+        transactionItemRowWide: {
+            alignSelf: 'stretch',
         },
 
         editableCellEditButtonContainer: {

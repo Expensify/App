@@ -201,7 +201,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionColumnWide={transactionItem.isActionColumnWide}
                         shouldShowCheckbox={!!canSelectMultiple}
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                        style={[styles.p3, styles.pv2, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
+                        style={[styles.ph3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                         violations={transactionViolations}
                         onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                         isHover={hovered}
