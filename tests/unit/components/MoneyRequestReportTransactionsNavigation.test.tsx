@@ -63,6 +63,10 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     default: () => ({accountID: 1, email: 'me@example.com'}),
 }));
 
+jest.mock('@components/OnyxListItemProvider', () => ({
+    usePersonalDetails: () => ({1: {accountID: 1, login: 'me@example.com'}}),
+}));
+
 jest.mock('@components/WideRHPContextProvider', () => ({
     useWideRHPActions: () => ({markReportRHPWidth: mockMarkReportRHPWidth}),
 }));
