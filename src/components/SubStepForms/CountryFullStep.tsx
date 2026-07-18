@@ -68,11 +68,12 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         reimbursementAccount?.achData?.currency ??
         CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''];
 
-    const shouldAllowChange = (currency === CONST.CURRENCY.EUR || currency === CONST.CURRENCY.GBP) && !reimbursementAccount?.achData?.accountNumber;
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
+    // GBP maps 1:1 to GB outside the Expensify Card flow, so only unlock the country picker for GBP during card onboarding, where GI is also valid
+    const shouldAllowChange = (currency === CONST.CURRENCY.EUR || (currency === CONST.CURRENCY.GBP && isUkEuCurrencySupported)) && !reimbursementAccount?.achData?.accountNumber;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const currencyMappedToCountry = mapCurrencyToCountry(currency) || countryDefaultValue;
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
     const countriesSupportedForExpensifyCard = getAvailableEuCountries(supportedCountriesByCurrency, currency, localeCompare);
 
     const [userSelectedCountry, setUserSelectedCountry] = useState<string>('');
