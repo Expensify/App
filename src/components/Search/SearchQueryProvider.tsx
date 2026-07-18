@@ -7,7 +7,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {setCurrentSearchKey} from '@libs/actions/Search';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, savedSearchIDToSearchKey, searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -19,7 +19,7 @@ import type {NavigationState} from '@react-navigation/routers';
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 
-import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
+import type {SearchFilterKey, SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
 import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
 
@@ -113,11 +113,19 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         setCurrentSearchKey(currentSearchKey ?? null);
     }, [currentSearchKey, currentSearchKeyOnyx]);
 
+    const currentDefaultSearchQueryString = currentSearchKey
+        ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
+        : undefined;
+    const currentDefaultSearchQueryFilterKeys = new Set<SearchFilterKey>(
+        currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString)?.flatFilters.map((filter) => filter.key) : undefined,
+    );
+
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
         currentSimilarSearchHash,
         currentSearchKey,
         currentSearchQueryJSON,
+        currentDefaultSearchQueryFilterKeys,
         suggestedSearches,
         shouldResetSearchQuery,
     };
