@@ -1,8 +1,17 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 
-const ukEuSupportedCountrySet = new Set<string>(CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES);
+import type {OnyxEntry} from 'react-native-onyx';
+
 const europeanCountries = Object.entries(CONST.EUROPEAN_UNION_COUNTRIES_WITH_GB);
 
-export default function getAvailableEuCountries(): Record<string, string> {
-    return Object.fromEntries(europeanCountries.filter(([code]) => ukEuSupportedCountrySet.has(code)));
+export default function getAvailableEuCountries(
+    supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>,
+    currency: string | undefined,
+    localeCompare: LocaleContextProps['localeCompare'],
+): Record<string, string> {
+    const supportedCountriesForCurrency: Record<string, readonly string[]> = supportedCountriesByCurrency ?? CONST.EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY;
+    const supportedCountrySet = new Set<string>(supportedCountriesForCurrency[currency ?? ''] ?? []);
+    return Object.fromEntries(europeanCountries.filter(([code]) => supportedCountrySet.has(code)).sort(([, nameA], [, nameB]) => localeCompare(nameA, nameB)));
 }
