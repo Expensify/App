@@ -1,6 +1,7 @@
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink} from '@libs/PendingConciergeDeepLink';
+import type * as PendingConciergeDeepLink from '@libs/PendingConciergeDeepLink';
 import type * as ReportUtils from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -229,8 +230,7 @@ describe('navigateAfterOnboarding', () => {
         setPendingConciergeDeepLink();
 
         jest.isolateModules(() => {
-            const {consumePendingConciergeDeepLink: consumePendingConciergeDeepLinkAfterReload} =
-                jest.requireActual<typeof import('@libs/PendingConciergeDeepLink')>('@libs/PendingConciergeDeepLink');
+            const {consumePendingConciergeDeepLink: consumePendingConciergeDeepLinkAfterReload} = jest.requireActual<typeof PendingConciergeDeepLink>('@libs/PendingConciergeDeepLink');
             expect(consumePendingConciergeDeepLinkAfterReload()).toBe(true);
         });
 
