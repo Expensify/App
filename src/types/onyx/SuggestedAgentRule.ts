@@ -3,7 +3,7 @@
  * Selecting one prefills the add-rule prompt the admin can still edit before saving.
  */
 type SuggestedAgentRule = {
-    /** id for the suggestion */
+    /** ID for the suggestion */
     id: string;
 
     /** Display title shown in the Suggestions tab */

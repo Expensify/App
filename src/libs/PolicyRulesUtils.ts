@@ -13,7 +13,7 @@ type SuggestedAgentRuleIconRule = {
     /** Higher priority wins when multiple rules match the same suggestion. */
     priority: number;
 
-    /** keywords matched against suggestion id + title */
+    /** Keywords matched against suggestion id + title */
     keywords: readonly string[];
 };
 
