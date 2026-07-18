@@ -36,7 +36,7 @@ type UseSearchSelectorConfig = {
     /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
     excludeFromSuggestionsOnly?: Record<string, boolean>;
 
-    /** Whether to include recent reports (for getMemberInviteOptions) */
+    /** Whether to include recent reports */
     includeRecentReports?: boolean;
 
     /** Whether to include current user */
