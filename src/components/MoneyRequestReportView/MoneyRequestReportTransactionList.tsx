@@ -1,11 +1,3 @@
-import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-// ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
-// eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -20,6 +12,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
+
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -37,6 +30,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
@@ -65,9 +59,12 @@ import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpActi
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
+
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -77,6 +74,18 @@ import SCREENS from '@src/SCREENS';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+// ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
+// eslint-disable-next-line no-restricted-imports
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+
+import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import isEmpty from 'lodash/isEmpty';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
@@ -98,6 +107,7 @@ function filterTransactionViolations(
     email: string,
     accountID: number,
     report: OnyxTypes.Report,
+    ownerLogin: string | undefined,
     policy: OnyxTypes.Policy | undefined,
 ): OnyxTypes.TransactionViolations {
     if (!allViolations) {
@@ -107,7 +117,7 @@ function filterTransactionViolations(
     if (!raw?.length) {
         return EMPTY_VIOLATIONS;
     }
-    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, policy);
+    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, ownerLogin, policy);
     return filtered.length === 0 ? EMPTY_VIOLATIONS : filtered;
 }
 
@@ -126,6 +136,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
+
+    /** Whether the report table is visible — gates the new-row highlight (background on wide, on-close on narrow) */
+    isReportVisible?: boolean;
 
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
@@ -157,6 +170,7 @@ function MoneyRequestReportTransactionList({
     report,
     transactions,
     newTransactions,
+    isReportVisible = true,
     reportActions,
     hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
@@ -192,6 +206,7 @@ function MoneyRequestReportTransactionList({
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -206,6 +221,7 @@ function MoneyRequestReportTransactionList({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -360,12 +376,12 @@ function MoneyRequestReportTransactionList({
         const ids = new Set<string>();
         for (const transaction of transactions) {
             const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-            if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap, actionErrors)) {
+            if (transactionHasRBR(transaction, violations, login, accountID, report, ownerLogin, policy, reportActionsMap, actionErrors)) {
                 ids.add(transaction.transactionID);
             }
         }
         return ids;
-    }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, policy, reportActionsMap]);
+    }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, ownerLogin, policy, reportActionsMap]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions].sort((a, b) => {
@@ -378,15 +394,15 @@ function MoneyRequestReportTransactionList({
                 }
             }
             return compareValues(
-                getTransactionSortValue(a, sortBy, report, policy, policyCategories),
-                getTransactionSortValue(b, sortBy, report, policy, policyCategories),
+                getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
+                getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
                 sortOrder,
                 sortBy,
                 localeCompare,
                 true,
             );
         });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, rbrTransactionIDs]);
+    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, policyTagLists, rbrTransactionIDs]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
 
@@ -400,6 +416,7 @@ function MoneyRequestReportTransactionList({
         return getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: transactions,
+            report,
             visibleColumns: (isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? [])) as SearchCustomColumnIds[],
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport,
@@ -408,19 +425,8 @@ function MoneyRequestReportTransactionList({
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
-            policyCategories,
         });
-    }, [
-        transactions,
-        currentUserDetails?.accountID,
-        isExpenseReportViewFromIOUReport,
-        shouldShowBillableColumn,
-        shouldShowCommentsColumn,
-        reportDetailsColumns,
-        report?.currency,
-        isTaxEnabled,
-        policyCategories,
-    ]);
+    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report, isTaxEnabled]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
@@ -479,16 +485,18 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
 
-    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
-    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
-    // Onyx key with a different ordering. Using the raw array reference would cause the effect
-    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
-    // the effect only re-fires when the actual content changes.
-    const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
+    const transactionIDsMembershipKey = useMemo(() => [...visualOrderTransactionIDs].sort().join(','), [visualOrderTransactionIDs]);
+
+    const [latestActiveTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+            return;
+        }
+
+        const anchorTransactionID = (focusedRoute?.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
+        if (anchorTransactionID && latestActiveTransactionIDs?.includes(anchorTransactionID)) {
             return;
         }
         // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
@@ -498,12 +506,24 @@ function MoneyRequestReportTransactionList({
         if (getActiveTransactionIDs().descriptors) {
             return;
         }
+
+        if (visualOrderTransactionIDs.length < 2) {
+            return;
+        }
+
+        if (
+            latestActiveTransactionIDs &&
+            latestActiveTransactionIDs.length > visualOrderTransactionIDs.length &&
+            visualOrderTransactionIDs.every((id) => latestActiveTransactionIDs.includes(id))
+        ) {
+            return;
+        }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {
             clearActiveTransactionIDs();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
-    }, [visualOrderTransactionIDsKey]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- transactionIDsMembershipKey is a membership proxy for the array, and we intentionally don't depend on latestActiveTransactionIDs to avoid re-firing when the carousel changes elsewhere
+    }, [transactionIDsMembershipKey]);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
@@ -694,21 +714,22 @@ function MoneyRequestReportTransactionList({
         const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         for (const transaction of resolvedTransactions) {
-            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, policy ?? undefined));
+            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy ?? undefined));
         }
         return map;
-    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, policy]);
+    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, ownerLogin, policy]);
 
     const renderTransactionItem = (transaction: TransactionWithOptionalHighlight) => (
         <MoneyRequestReportTransactionItem
             key={transaction.transactionID}
             transaction={transaction}
             violations={violationsByTransactionID.get(transaction.transactionID) ?? EMPTY_VIOLATIONS}
-            shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
+            shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
             columns={columnsToShow}
             report={report}
             policy={policy}
             policyCategories={policyCategories}
+            policyTagLists={policyTagLists}
             isSelectionModeEnabled={isMobileSelectionModeEnabled}
             toggleTransaction={toggleTransaction}
             isSelected={isTransactionSelected(transaction.transactionID)}
@@ -923,8 +944,7 @@ function MoneyRequestReportTransactionList({
                             customText={translate('iou.addExpense')}
                             options={addExpenseDropdownOptions}
                             isSplitButton={false}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                            success={false}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,

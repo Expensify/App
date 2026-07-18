@@ -1,11 +1,15 @@
-import React from 'react';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 const baseTranslationPath = 'multifactorAuthentication.pleaseEnableInSystemSettings' as const;
 

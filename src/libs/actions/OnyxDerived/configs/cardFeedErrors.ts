@@ -1,13 +1,16 @@
-import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
-import {filterInactiveCards, getCardFeedWithDomainID, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CardErrors, CardFeedErrorsObject, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
 
 const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     shouldShowRBR: false,
@@ -29,7 +32,9 @@ function getShouldShowRBR(state: Partial<CardFeedErrorState>): boolean {
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CARD_FEED_ERRORS,
-    dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER],
+    // CURRENT_DATE (day-granularity) is a trigger-only dependency: it makes this value recompute when the day rolls over so the
+    // 90-day broken-connection grace period (isBrokenConnectionPastDismissThreshold) is re-evaluated even if no card/feed data changes.
+    dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, ONYXKEYS.CURRENT_DATE],
     compute: ([globalCardList, allWorkspaceCards, cardFeeds]) => {
         const feedKeysWithCards = buildFeedKeysWithAssignedCards(allWorkspaceCards);
         const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds, undefined, feedKeysWithCards);
@@ -61,7 +66,9 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            const isFeedConnectionBroken = isCardConnectionBroken(card);
+            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
+            // grace period; the underlying error on the card is kept so the user can still fix it.
+            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
             // Track personal cards with broken feed connection
             if (isFeedConnectionBroken) {
                 personalCardsWithBrokenConnection[card.cardID] = card;
@@ -116,7 +123,9 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            const isFeedConnectionBroken = isCardConnectionBroken(card);
+            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
+            // grace period; the underlying error on the card is kept so the user can still fix it.
+            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
 
             const newFeedState: Omit<CardFeedErrorState, 'shouldShowRBR'> = {
                 isFeedConnectionBroken: isFeedConnectionBroken || previousFeedErrors.isFeedConnectionBroken,

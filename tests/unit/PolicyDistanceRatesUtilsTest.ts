@@ -1,4 +1,5 @@
 import {validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
+
 import {translateLocal} from '../utils/TestHelper';
 
 describe('PolicyDistanceRatesUtils', () => {

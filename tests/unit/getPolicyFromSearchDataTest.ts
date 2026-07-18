@@ -1,7 +1,9 @@
 import getPolicyFromSearchData from '@libs/getPolicyFromSearchData';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
 import createRandomPolicy from '../utils/collections/policies';
 
 const policy: Policy = {...createRandomPolicy(1), id: 'policy-1'};

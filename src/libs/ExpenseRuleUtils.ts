@@ -1,7 +1,9 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
+
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';

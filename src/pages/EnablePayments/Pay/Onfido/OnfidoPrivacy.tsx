@@ -1,21 +1,27 @@
-import React, {useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormScrollView from '@components/FormScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import {openOnfidoFlow} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import type {WalletOnfido} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 const DEFAULT_WALLET_ONFIDO_DATA = {
     applicantID: '',
@@ -71,7 +77,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                             }}
                             message={onfidoError}
                             isLoading={isLoading}
-                            buttonText={onfidoError ? translate('onfidoStep.tryAgain') : translate('common.continue')}
+                            buttonText={translate(onfidoError ? 'common.tryAgain' : 'common.continue')}
                             containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                         />
                     </FixedFooter>

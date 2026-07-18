@@ -1,9 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
+
 import type {IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type UseConfirmationCtaTextParams = {
     /** Number of expenses being created on confirm (drives bulk copy) */

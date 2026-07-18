@@ -1,7 +1,10 @@
-import React from 'react';
 import CONST from '@src/CONST';
-import SelectionButton from './SelectionButton';
+
+import React from 'react';
+
 import type {RadioButtonProps} from './SelectionButton';
+
+import SelectionButton from './SelectionButton';
 
 /**
  * A circular radio button for single-selection contexts.

@@ -1,11 +1,13 @@
-import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import {reportVisibleActionsSelector} from '@selectors/ReportAction';
+
 import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
@@ -60,10 +62,9 @@ function useReportActionsVisibility({
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [reportVisibleActions] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
     });
-    const visibleReportActionsData: VisibleReportActionsDerivedValue | undefined = reportID && reportVisibleActions ? {[reportID]: reportVisibleActions} : undefined;
 
     const isInSidePanel = useIsInSidePanel();
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);

@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {HeaderIndices} from '@libs/EmojiUtils';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {HeaderIndices} from '@libs/EmojiUtils';
+
 import CategoryShortcutButton from './CategoryShortcutButton';
 
 type CategoryShortcutBarProps = {

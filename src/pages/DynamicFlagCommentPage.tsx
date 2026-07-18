@@ -1,7 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -9,22 +5,34 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {canFlagReportAction, getOriginalReportID, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
+
 import {flagComment as flagCommentUtil} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import withReportAndReportActionOrNotFound from './inbox/report/withReportAndReportActionOrNotFound';
+
+import type {SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WithReportAndReportActionOrNotFoundProps} from './inbox/report/withReportAndReportActionOrNotFound';
+
+import withReportAndReportActionOrNotFound from './inbox/report/withReportAndReportActionOrNotFound';
 
 type DynamicFlagCommentPageProps = WithReportAndReportActionOrNotFoundProps;
 

@@ -1,10 +1,12 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard, isUkEuExpensifyCard} from '@libs/CardUtils';
+import {hasAssignedCardMatching, isActiveCard, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * Builds a lightweight map of "${domainID}_${feedName}" keys that have card entries.
@@ -93,13 +95,22 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .filter((card) => isCard(card) && isExpensifyCard(card))
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
-/** Checks whether the Expensify card matching the given cardID supports UK/EU features (e.g. PIN management). */
-const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
-    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && isUkEuExpensifyCard(card ?? undefined));
-
 const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean | string | undefined): boolean | undefined => {
     return typeof value === 'string' ? value === '1' : value;
 };
+
+/** Picks the shared company card custom names from a domain's card feeds, avoiding a subscription to the entire CardFeeds object. */
+const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => cardFeeds?.settings?.companyCardCustomNames;
+
+/**
+ * Determines whether a workspace has at least one active Expensify Card.
+ * Intended to run against a single WorkspaceCardsList entry subscribed by its exact
+ * `cards_${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` key. It drops the `cardList` of cards still available to
+ * assign and any inactive cards, then checks whether an active Expensify Card remains. Reducing to a boolean in the
+ * selector keeps consumers from re-rendering on unrelated card changes.
+ */
+const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>): boolean =>
+    hasAssignedCardMatching(cardsList, (card) => card.bank === CONST.EXPENSIFY_CARD.BANK && isActiveCard(card));
 
 export {
     filterCardsHiddenFromSearch,
@@ -108,7 +119,8 @@ export {
     cardByIdSelector,
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
-    isExpensifyCardUkEuSupportedSelector,
     getBankLinkedPersonalCards,
     isExpensifyCardContinuousReconciliationEnabledSelector,
+    companyCardCustomNamesSelector,
+    hasIssuedExpensifyCardSelector,
 };

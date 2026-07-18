@@ -1,10 +1,13 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {typeOptionsPoliciesSelector} from '@components/Search/FilterComponents/TypeSelector';
+
 import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
 import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
 import {policiesSelector, policyCategoriesSelector, policyTagsSelector} from '@hooks/useFilterFormValues';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}1`;
 const POLICY_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY}2`;

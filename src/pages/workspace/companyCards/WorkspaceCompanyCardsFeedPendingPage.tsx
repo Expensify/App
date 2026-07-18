@@ -1,17 +1,21 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChat} from '@libs/actions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
 
 function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();

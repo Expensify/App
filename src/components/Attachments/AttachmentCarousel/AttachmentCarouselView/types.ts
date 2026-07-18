@@ -1,4 +1,5 @@
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+
 import type {Report} from '@src/types/onyx';
 
 type AttachmentCarouselViewProps = {

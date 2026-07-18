@@ -1,10 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import debounce from 'lodash/debounce';
-import isEmpty from 'lodash/isEmpty';
-import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -20,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -36,17 +30,20 @@ import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleBankAccountShareRecipient, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
+
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
@@ -54,13 +51,26 @@ import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMe
 import {enableCompanyCards} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ForwardedRef, RefObject} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import debounce from 'lodash/debounce';
+import isEmpty from 'lodash/isEmpty';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
+
 import useWalletSectionIllustration from './useWalletSectionIllustration';
+import shouldOpenBankAccountByPolicy from './utils';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
@@ -125,7 +135,7 @@ function WalletPage() {
     const shouldShowGBDisclaimer = countryByIp === CONST.COUNTRY.GB;
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
-    const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
+    const hasEligibleShareRecipient = hasEligibleBankAccountShareRecipient(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
     const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', shouldShowLoadingSpinner};
 
@@ -224,7 +234,7 @@ function WalletPage() {
             showLockedAccountModal();
             return;
         }
-        if (accountPolicyID) {
+        if (accountPolicyID && shouldOpenBankAccountByPolicy(accountData, allPolicies, currentUserLogin)) {
             navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
             return;
         }
@@ -485,7 +495,7 @@ function WalletPage() {
                       },
                   ]
                 : []),
-            ...(shouldShowShareButton && hasEligibleActiveAdmin
+            ...(shouldShowShareButton && hasEligibleShareRecipient
                 ? [
                       {
                           text: translate('common.share'),
@@ -562,7 +572,7 @@ function WalletPage() {
             icons.Trashcan,
             icons.Globe,
             shouldShowShareButton,
-            hasEligibleActiveAdmin,
+            hasEligibleShareRecipient,
             shouldShowUnshareButton,
             shouldShowEnableGlobalReimbursementsButton,
             isAccountLocked,
@@ -616,7 +626,6 @@ function WalletPage() {
                             ROUTES.SEARCH_ROOT.getRoute({
                                 query: buildCannedSearchQuery({
                                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                                     cardID: String(paymentMethod.methodID),
                                 }),
                             }),

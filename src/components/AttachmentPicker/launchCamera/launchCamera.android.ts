@@ -1,6 +1,8 @@
 import {PermissionsAndroid} from 'react-native';
 import {launchCamera as launchCameraImagePicker} from 'react-native-image-picker';
+
 import type {LaunchCamera} from './types';
+
 import {ErrorLaunchCamera} from './types';
 
 /**

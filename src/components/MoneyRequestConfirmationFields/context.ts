@@ -1,7 +1,9 @@
-import {createContext, useContext} from 'react';
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
+
+import {createContext, useContext} from 'react';
 
 /**
  * Cross-cutting state for the money-request confirmation surface. Anything that
@@ -35,6 +37,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow). */
     scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
+
+    /** Submits the whole expense. Used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups (new manual expense flow). */
+    onSubmitForm?: () => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

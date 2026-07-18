@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Names of quick actions that the user can execute */
 type QuickActionName = ValueOf<typeof CONST.QUICK_ACTIONS>;

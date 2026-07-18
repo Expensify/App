@@ -73,6 +73,13 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             return
         }
 
+        // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
+        SentryNativeSDKManager.initialize(this)
+
+        // Install certificate pinning for React Native's shared OkHttp client (covers fetch(),
+        // react-native-blob-util, etc.). Must run before any networking starts.
+        CertificatePinning.install()
+
         loadReactNative(this)
 
         // Force the app to LTR mode.

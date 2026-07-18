@@ -3,7 +3,7 @@ description: Set up Node
 
 inputs:
   IS_HYBRID_BUILD:
-    description: "Indicates if node is set up for hybrid app"
+    description: 'Indicates if node is set up for hybrid app'
     required: false
     default: 'false'
 
@@ -33,7 +33,7 @@ runs:
       with:
         path: node_modules
         key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**'))}}
-    
+
     - id: cache-old-dot-node-modules
       if: inputs.IS_HYBRID_BUILD == 'true'
       # v5.0.1
@@ -48,7 +48,7 @@ runs:
       run: rm -rf node_modules
 
     - name: Install root project node packages
-      if:  steps.cache-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true')
+      if: steps.cache-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true')
       uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
       with:
         timeout_minutes: 30

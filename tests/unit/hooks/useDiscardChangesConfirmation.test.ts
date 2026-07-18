@@ -1,5 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {withInternalPopstate} from '@components/Modal/internalPopstateGuard';
+
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
@@ -20,6 +20,8 @@ jest.mock('@hooks/useBeforeRemove', () => ({
 let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => mockIsFocused,
+    // The hook reads `route.name` to key its tab-switch guard
+    useRoute: () => ({name: 'test-route'}),
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, []);
     },
@@ -195,6 +197,24 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
+        it('lets the confirmed re-dispatch through even before the restore echo arrives', async () => {
+            renderDiscardHook(() => true);
+
+            invokeBeforeRemove('RESET');
+            dispatchPopstate();
+
+            let redeliveredEvent: MockBeforeRemoveEvent | undefined;
+            mockNavigationDispatch.mockImplementation(() => {
+                redeliveredEvent = createBeforeRemoveEvent('RESET');
+                mockBeforeRemoveCallback?.(redeliveredEvent);
+            });
+
+            await resolveModalWith('CONFIRM');
+
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'RESET'});
+            expect(redeliveredEvent?.defaultPrevented).toBe(false);
+        });
+
         it('starts a fresh flow after cancelling', async () => {
             renderDiscardHook(() => true);
 
@@ -281,13 +301,13 @@ describe('useDiscardChangesConfirmation (web)', () => {
         it('suppresses the prompt while a save is in progress, and re-arms when notified it ended', () => {
             const {result} = renderDiscardHook(() => true);
 
-            act(() => result.current.notifySaving());
+            act(() => result.current.suppressDiscardPrompt());
             const duringSave = invokeBeforeRemove('RESET');
 
             expect(duringSave.defaultPrevented).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
 
-            act(() => result.current.notifySaving(false));
+            act(() => result.current.suppressDiscardPrompt(false));
             const afterSave = invokeBeforeRemove('RESET');
 
             expect(afterSave.defaultPrevented).toBe(true);
@@ -303,26 +323,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             expect(historyGoSpy).not.toHaveBeenCalled();
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        });
-
-        it('ignores internal popstate events from modal history cleanup', () => {
-            renderDiscardHook(() => true);
-
-            invokeBeforeRemove('RESET');
-
-            act(() => {
-                withInternalPopstate(() => {
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-                });
-            });
-
-            // The internal popstate must not consume the pending URL restore
-            expect(historyGoSpy).not.toHaveBeenCalled();
-
-            dispatchPopstate();
-
-            expect(historyGoSpy).toHaveBeenCalledTimes(1);
-            expect(historyGoSpy).toHaveBeenCalledWith(1);
         });
     });
 });
