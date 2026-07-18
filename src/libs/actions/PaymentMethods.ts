@@ -420,8 +420,7 @@ function dismissSuccessfulTransferBalancePage() {
 /**
  * Looks through each payment method to see if there is an existing error.
  * When session and policies are provided, card list errors are only counted if the current user
- * is a member of that card's workspace (for company cards), or counted for personal cards unless the
- * card's broken connection has been unresolved past the dismiss grace period.
+ * is a member of that card's workspace (for company cards) or always counted for personal cards.
  * Only cards with non-empty errors are considered (error cards).
  */
 function hasPaymentMethodError(
@@ -438,10 +437,7 @@ function hasPaymentMethodError(
     const policyList = Object.values(policies ?? {}).filter(Boolean);
     const hasRelevantCardError = cardsWithErrors.some((card) => {
         if (CardUtils.isPersonalCard(card)) {
-            // Once a personal card's broken connection has been unresolved past the grace period we stop leading the user
-            // to it, so it must not light the Account/Wallet RBR. The error itself is kept on the card so it can still be
-            // fixed from the Wallet page.
-            return !CardUtils.isBrokenConnectionPastDismissThreshold(card);
+            return true;
         }
         const workspaceAccountID = Number(card?.fundID);
         const policy = policyList.find((p) => p?.policyAccountID === workspaceAccountID);
