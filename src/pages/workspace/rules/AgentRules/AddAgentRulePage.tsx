@@ -1,7 +1,6 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {BotAvatarBlue} from '@components/Icon/DefaultBotAvatars';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
@@ -85,12 +84,15 @@ function AddAgentRulePage({
         setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
     }
 
+    // Clear the draft on unmount only.
     useEffect(() => {
-        Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, CONST.TAB.AGENT_RULE.SUGGESTIONS);
+        return () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
+    }, []);
+
+    useEffect(() => {
         if (!isOffline) {
             getAgentRuleSuggestions(policyID);
         }
-        return () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
     }, [policyID, isOffline]);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
@@ -117,7 +119,6 @@ function AddAgentRulePage({
         }
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[INPUT_IDS.PROMPT]: suggestion.prompt});
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
-        Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, CONST.TAB.AGENT_RULE.WRITE);
     };
 
     const selectTab = (key: string) => {
@@ -125,41 +126,14 @@ function AddAgentRulePage({
             return;
         }
         setActiveTab(key);
-        Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, key);
-    };
-
-    const leavePage = () => {
-        clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
-        Navigation.goBack();
-    };
-
-    const confirmLeaveIfNeeded = () => {
-        if (!hasDraftPrompt) {
-            leavePage();
-            return;
-        }
-
-        showConfirmModal({
-            title: translate('discardChangesConfirmation.title'),
-            prompt: translate('discardChangesConfirmation.body'),
-            danger: true,
-            confirmText: translate('discardChangesConfirmation.confirmText'),
-            cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            leavePage();
-        });
     };
 
     const handleBackButtonPress = () => {
         if (activeTab === CONST.TAB.AGENT_RULE.WRITE) {
             setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
-            Tab.setSelectedTab(CONST.TAB.AGENT_RULE_TAB_TYPE, CONST.TAB.AGENT_RULE.SUGGESTIONS);
             return;
         }
-        confirmLeaveIfNeeded();
+        Navigation.goBack();
     };
 
     const navigateBackToAgentsTab = () => {

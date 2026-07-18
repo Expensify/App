@@ -6057,7 +6057,6 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
         },
-        AGENT_RULE_TAB_TYPE: 'agentRuleTabType',
         AGENT_RULE: {
             SUGGESTIONS: 'suggestions',
             WRITE: 'write',
