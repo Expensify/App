@@ -63,8 +63,10 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     default: () => ({accountID: 1, email: 'me@example.com'}),
 }));
 
+// The component only forwards personalDetails to createTransactionThreadReport/getReportIDToOpenForExpense,
+// both of which are mocked below, so an empty list is enough to satisfy the provider.
 jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => ({1: {accountID: 1, login: 'me@example.com'}}),
+    usePersonalDetails: () => ({}),
 }));
 
 jest.mock('@components/WideRHPContextProvider', () => ({
