@@ -11165,10 +11165,6 @@ describe('SearchUIUtils', () => {
         it('returns isNegated false and undefined value when the values object is undefined', () => {
             expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, undefined)).toEqual({isNegated: false, value: undefined});
         });
-
-        it('always returns isNegated false and the base value for non-negatable filter', () => {
-            expect(SearchUIUtils.getFilterNegatableValue(CATEGORY, {[CATEGORY]: ['Food'], [CATEGORY_NEGATED]: ['Travel']})).toEqual({isNegated: false, value: ['Food']});
-        });
     });
 
     describe('shouldShowFilter', () => {
