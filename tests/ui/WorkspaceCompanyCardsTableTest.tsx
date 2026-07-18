@@ -140,6 +140,7 @@ function renderTable(companyCards: UseCompanyCardsResult) {
                 policyID={POLICY_ID}
                 isPolicyLoaded
                 domainOrWorkspaceAccountID={DOMAIN_OR_WORKSPACE_ACCOUNT_ID}
+                isWaitingForDomainFeedData={false}
                 companyCards={companyCards}
                 onAssignCard={jest.fn()}
                 isAssigningCardDisabled={false}
