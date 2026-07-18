@@ -68,7 +68,7 @@ Concierge reviews your request and contacts you if any additional information is
 
 After your workspace is approved and a spending limit has been assigned to your workspace, you can begin issuing cards to members.
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name] > Expensify Card**.
+1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name] > Expensify Card**.
 2. Click **Issue new card**.
 3. Select the member who will receive the card.
 4. Choose **Virtual** or **Physical**.
