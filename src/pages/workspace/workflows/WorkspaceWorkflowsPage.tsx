@@ -170,6 +170,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isWalletConnectionStatusBetaEnabled = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
@@ -199,6 +200,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
 
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
+    const canAccessWalletConnectionStatusFeatures = canAccessSubmitWorkspaceFeatures(policy, isWalletConnectionStatusBetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
@@ -432,7 +434,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     return undefined;
             }
         };
-        const bankConnectionStatus = canAccessSubmit2026Features ? getBankAccountConnectionStatus(state) : undefined;
+        const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state) : undefined;
         const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
         const bankConnectionStatusAddon = bankConnectionStatus ? (
             <ConnectionStatusBadge
@@ -443,7 +445,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         ) : undefined;
         const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
         const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
-        const bankBadgeIcon = !canAccessSubmit2026Features && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
+        const bankBadgeIcon =
+            !canAccessWalletConnectionStatusFeatures && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
         const canInteractWithBankAccountRow = canWritePayments && !isOffline;
 
         const updateWorkspaceCurrencyPrompt = (
@@ -487,7 +490,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             });
         };
         let bankAccountMenuItemOnPress: React.ComponentProps<typeof MenuItem>['onPress'];
-        if (canAccessSubmit2026Features) {
+        if (canAccessWalletConnectionStatusFeatures) {
             bankAccountMenuItemOnPress = canInteractWithBankAccountRow ? handleBankAccountPress : undefined;
         } else {
             bankAccountMenuItemOnPress = canWritePayments ? handleBankAccountPress : undefined;
@@ -509,7 +512,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             shouldShowRightIcon: canWritePayments,
             interactive: canWritePayments,
             shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
-            ...(canAccessSubmit2026Features
+            ...(canAccessWalletConnectionStatusFeatures
                 ? {
                       badgeIcon: bankBadgeIcon,
                       descriptionAddon: bankConnectionStatusAddon,
@@ -780,7 +783,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                           <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                               <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                                           </View>
-                                          {canAccessSubmit2026Features ? (
+                                          {canAccessWalletConnectionStatusFeatures ? (
                                               <Hoverable>
                                                   {(isHovered) => (
                                                       <View style={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3, isHovered && styles.hoveredComponentBG]}>
@@ -944,6 +947,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
         canAccessSubmit2026Features,
+        canAccessWalletConnectionStatusFeatures,
         canWriteApprovals,
         canWritePayments,
         canWriteWorkflows,

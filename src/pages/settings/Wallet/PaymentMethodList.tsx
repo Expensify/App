@@ -10,7 +10,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -105,6 +104,9 @@ type PaymentMethodListProps = {
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
+    /** Whether connection statuses and sync details should be shown */
+    shouldShowConnectionStatus?: boolean;
+
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
 
@@ -177,6 +179,7 @@ function PaymentMethodList({
     shouldShowAddBankAccount = true,
     addBankAccountItemStyle,
     shouldShowAssignedCards = false,
+    shouldShowConnectionStatus = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
@@ -198,7 +201,6 @@ function PaymentMethodList({
     const {translate, datetimeToRelative} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -229,7 +231,6 @@ function PaymentMethodList({
 
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const shouldShowListFooterComponent = shouldShowAddBankAccount;
-    const shouldShowConnectionStatus = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const appendCardLastSync = (description: string | undefined, lastSyncText: string) => [description, lastSyncText].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
 

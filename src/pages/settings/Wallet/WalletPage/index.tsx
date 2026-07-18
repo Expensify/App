@@ -27,6 +27,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -100,6 +101,8 @@ function WalletPage() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowWalletConnectionStatus = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin, email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -712,6 +715,7 @@ function WalletPage() {
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
+                                shouldShowConnectionStatus={shouldShowWalletConnectionStatus}
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
@@ -731,6 +735,7 @@ function WalletPage() {
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    shouldShowConnectionStatus={shouldShowWalletConnectionStatus}
                                 />
                                 <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
                                     <MenuItem
