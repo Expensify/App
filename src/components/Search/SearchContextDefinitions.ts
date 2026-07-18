@@ -24,7 +24,7 @@ const defaultSearchQueryContext: SearchQueryContextValue = {
     currentSimilarSearchHash: -1,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
-    currentDefaultSearchQueryFilterKeys: new Set<SearchFilterKeyy>(),
+    currentDefaultSearchQueryFilterKeys: new Set<SearchFilterKey>(),
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
     shouldResetSearchQuery: false,
 };

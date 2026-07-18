@@ -52,7 +52,7 @@ type FilterPopupProps = {
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
+function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey) {
     return `Search-Filter-${filterKey}`;
 }
 
@@ -147,11 +147,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
+        currentDefaultSearchQueryFilterKeys,
         SKIPPED_SEARCH_FILTERS,
         translate,
         localeCompare,
         convertToDisplayStringWithoutCurrency,
-        (filterKey) => ({
+        (filterKey, isDefault) => ({
             PopoverComponent: ({closeOverlay, setPopoverWidth}) => (
                 <ListFilterHeightContextProvider>
                     <FilterPopup
@@ -164,7 +165,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 </ListFilterHeightContextProvider>
             ),
             sentryLabel: getFilterSentryLabel(filterKey),
-            onClosePress: currentDefaultSearchQueryFilterKeys.has(filterKey)
+            onClosePress: isDefault
                 ? undefined
                 : () => {
                       if (isAmountFilterKey(filterKey)) {

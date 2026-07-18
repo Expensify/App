@@ -156,7 +156,7 @@ function SearchSavePage() {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
 
     const onSaveSearch = () => {
         if (!currentSearchQueryJSON) {
@@ -169,7 +169,14 @@ function SearchSavePage() {
         Navigation.goBack();
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
+    const appliedFilters = mapFiltersFormToLabelValueList(
+        searchAdvancedFiltersForm,
+        currentDefaultSearchQueryFilterKeys,
+        undefined,
+        translate,
+        localeCompare,
+        convertToDisplayStringWithoutCurrency,
+    );
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();
