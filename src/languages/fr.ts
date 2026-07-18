@@ -434,6 +434,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Valider',
         downloadAsPDF: 'Télécharger en PDF',
         downloadAsCSV: 'Télécharger au format CSV',
+        submitViaPDF: 'Soumettre via PDF',
         print: 'Imprimer',
         help: 'Aide',
         collapsed: 'Réduit',
@@ -516,6 +517,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} sur ${total}`,
         editor: 'Éditeur',
         restrictions: 'Restrictions',
         tryAgain: 'Réessayer',
@@ -1167,6 +1169,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags ont été ajoutés.` : '1 tag a été ajouté.'),
         importMultiLevelTagsSuccessfulDescription: 'Des tags à plusieurs niveaux ont été ajoutés.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} indemnités journalières ont été ajoutées.` : '1 taux de per diem a été ajouté.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return "Aucune règle de marchand n'a été ajoutée, car elles existent toutes déjà.";
+            }
+            return rules > 1 ? `${rules} règles de marchand ont été ajoutées.` : '1 règle de marchand a été ajoutée.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Oups ! Vous devez associer au moins une colonne « Le marchand est » ou « Le marchand contient », ainsi qu’au moins un champ à mettre à jour. Veuillez examiner et réessayer.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions ont été importées.` : '1 transaction a été importée.',
         importFailedTitle: 'Échec de l’importation',
@@ -5634,6 +5644,35 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte de règlement de facturation de voyage',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.',
             },
+            exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte de programme de carte',
+                description: 'Remplacer le compte d’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte d’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programme avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carte avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                },
+            },
         },
         type: {
             free: 'Gratuit',
@@ -7505,6 +7544,15 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 addRule: 'Ajouter une règle de marchand',
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
+                importRulesTitle: 'Importer des règles de marchand',
+                importRulesSupportingText:
+                    'Faites correspondre chaque colonne de votre feuille de calcul à un champ de règle de marchand. Si tout semble correct, cliquez ci-dessous pour importer vos règles.',
+                importColumnMerchantIs: 'Le marchand est',
+                importColumnMerchantContains: 'Le marchand contient',
+                importColumnUpdatedMerchant: 'Marchand mis à jour',
+                importColumnUpdatedCategory: 'Catégorie mise à jour',
+                importColumnUpdatedTag: 'Tag mis à jour',
+                importColumnUpdatedDescription: 'Description mise à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
                 applyUpdates: 'Appliquer ces mises à jour :',
@@ -7739,6 +7787,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 agentCreatedTitle: 'RuleBot a été ajouté à votre espace de travail !',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
+                revampSubtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                newRuleTitle: 'Nouvelle règle',
+                describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
+                gotIt: 'Compris',
+                createRule: 'Créer une règle',
             },
             tabs: {
                 general: 'Général',
@@ -7746,6 +7799,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 expenseDefaults: 'Paramètres par défaut des dépenses',
                 requireFields: 'Champs obligatoires',
                 flagForReview: 'Marquer pour examen',
+                agents: 'Agents',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7804,9 +7858,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 applyExpenseDefaults: 'Appliquer les valeurs de dépense par défaut',
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
                 flagForReview: 'Marquer pour examen',
-                flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
+                flagForReviewDescription: 'Avertir lorsque vos conditions sont remplies.',
                 requireFields: 'Champs obligatoires',
-                requireFieldsDescription: 'Assurez-vous que les champs clés sont remplis avant que les dépenses soient soumises',
+                requireFieldsDescription: 'Reçus, catégories, etc., lors de la soumission.',
+                createAgentRule: 'Règle d’agent',
+                createAgentRuleDescription: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -7869,6 +7925,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie.',
                 confirmErrorAmount: 'Veuillez saisir un montant.',
                 thenFlagForReview: 'Puis signaler pour examen lorsque :',
+            },
+            agentRulesEmptyState: {
+                title: 'Aucune règle d’agent ajoutée',
+                subtitle: 'Créez une règle pour automatiser les politiques de votre espace de travail.',
+                cta: 'Ajouter une règle IA',
             },
         },
         planTypePage: {
