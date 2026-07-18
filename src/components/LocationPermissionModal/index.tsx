@@ -25,6 +25,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const [showModal, setShowModal] = useState(false);
     const isGrantedExternallyRef = useRef(false);
     const isModalActiveRef = useRef(false);
+    const dismissedViaBackdropRef = useRef(false);
     const onGrantRef = useRef(onGrant);
     const onDenyRef = useRef(onDeny);
 
@@ -105,6 +106,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 shouldReverseStackedButtons: true,
                 prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
                 onBackdropPress: () => {
+                    dismissedViaBackdropRef.current = true;
                     closeModal();
                     resetFlowState();
                 },
@@ -122,7 +124,11 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
             if (action !== ModalActions.CONFIRM) {
                 resetFlowState();
-                onDenyRef.current(true);
+                // A backdrop tap just dismisses the prompt - it's not an explicit denial, unlike tapping "Not now".
+                if (!dismissedViaBackdropRef.current) {
+                    onDenyRef.current(true);
+                }
+                dismissedViaBackdropRef.current = false;
                 return;
             }
 

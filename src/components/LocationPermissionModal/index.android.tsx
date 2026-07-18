@@ -18,6 +18,7 @@ const isPermissionGranted = (status: string) => status === RESULTS.GRANTED || st
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const isModalActiveRef = useRef(false);
+    const dismissedViaBackdropRef = useRef(false);
     const onGrantRef = useRef(onGrant);
     const onDenyRef = useRef(onDeny);
     const resetPermissionFlowRef = useRef(resetPermissionFlow);
@@ -62,7 +63,11 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 iconHeight: 120,
                 shouldCenterIcon: true,
                 shouldReverseStackedButtons: true,
-                onBackdropPress: () => resetPermissionFlowRef.current(),
+                onBackdropPress: () => {
+                    dismissedViaBackdropRef.current = true;
+                    closeModal();
+                    resetPermissionFlowRef.current();
+                },
                 isConfirmLoading: false,
             });
             if (ignore) {
@@ -72,7 +77,11 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             // User cancelled/dismissed — the modal already closed itself internally
             if (action !== ModalActions.CONFIRM) {
                 isModalActiveRef.current = false;
-                onDenyRef.current(true);
+                // A backdrop tap just dismisses the prompt - it's not an explicit denial, unlike tapping "Not now".
+                if (!dismissedViaBackdropRef.current) {
+                    onDenyRef.current(true);
+                }
+                dismissedViaBackdropRef.current = false;
                 return;
             }
 
