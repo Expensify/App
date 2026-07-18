@@ -20,7 +20,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -48,6 +48,7 @@ function RilletCardAccountCardList({
     const cardProgramAccountCode = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode;
     const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT.getRoute(policyID) : undefined;
 
     return (
         <ConnectionLayout
@@ -59,6 +60,7 @@ function RilletCardAccountCardList({
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             shouldBeBlocked
         >
             <View>
