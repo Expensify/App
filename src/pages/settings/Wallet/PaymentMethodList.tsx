@@ -334,11 +334,11 @@ function PaymentMethodList({
                 let cardConnectionStatus: PaymentMethodItem['connectionStatus'];
                 if (cardConnectionStatusDisplay) {
                     let cardConnectionMessage: string | undefined;
-                    if (cardConnectionStatusDisplay.messageKey === 'walletPage.cardStatus.fixConnectionIn' && policyIDForCard) {
+                    if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard) {
                         cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard)}`);
-                    } else if (cardConnectionStatusDisplay.messageKey === 'walletPage.cardStatus.fixConnection') {
+                    } else if (cardConnectionStatusDisplay.shouldUsePersonalCardFix) {
                         cardConnectionMessage = translate('walletPage.cardStatus.fixConnection');
-                    } else if (cardConnectionStatusDisplay.messageKey === 'walletPage.cardStatus.askAdminToFixConnection') {
+                    } else if (cardConnectionStatusDisplay.messageKey) {
                         cardConnectionMessage = translate('walletPage.cardStatus.askAdminToFixConnection');
                     }
 
