@@ -196,7 +196,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
     // Permissions
@@ -743,6 +743,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     accountant: item.accountant,
                     newLogins,
                     newAccountIDs,
+                    formatPhoneNumber,
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,

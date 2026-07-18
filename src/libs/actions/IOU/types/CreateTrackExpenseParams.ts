@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
 import type {IOUAction} from '@src/CONST';
@@ -14,6 +16,7 @@ type TrackExpenseAccountantParams = {
     accountant?: Accountant;
     newAccountIDs: number[] | undefined;
     newLogins: string[] | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CreateTrackExpenseParams = {

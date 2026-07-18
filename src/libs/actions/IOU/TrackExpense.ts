@@ -11,7 +11,6 @@ import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalytic
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -2271,7 +2270,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const accountantEmail = addSMSDomainIfPhoneNumber(accountantParams?.accountant?.login);
     const accountantAccountID = accountantParams?.accountant?.accountID;
 
-    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID || !accountantParams.newLogins || !accountantParams.newAccountIDs) {
+    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID || !accountantParams || !accountantParams.newLogins || !accountantParams.newAccountIDs) {
         return;
     }
 
@@ -2327,7 +2326,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             failureData: addAccountantToWorkspaceFailureData,
         } = buildAddMembersToWorkspaceOnyxData(
             {[accountantEmail]: accountantAccountID},
-            getPersonalDetailsOnyxDataForOptimisticUsers(accountantParams.newLogins, accountantParams.newAccountIDs, formatPhoneNumber),
+            getPersonalDetailsOnyxDataForOptimisticUsers(accountantParams.newLogins, accountantParams.newAccountIDs, accountantParams.formatPhoneNumber),
             policyParams.policy,
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.ADMIN,
@@ -2355,7 +2354,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, accountantParams.newAccountIDs, accountantParams.newLogins, formatPhoneNumber);
+        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, accountantParams.newAccountIDs, accountantParams.newLogins, accountantParams.formatPhoneNumber);
         onyxData.optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         onyxData.successData?.push(...inviteAccountantToRoomSuccessData);
         onyxData.failureData?.push(...inviteAccountantToRoomFailureData);
