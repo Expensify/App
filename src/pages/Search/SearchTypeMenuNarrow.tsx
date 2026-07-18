@@ -47,11 +47,11 @@ type SearchTypeMenuNarrowProps = {
 };
 
 type SearchTypeMenuNarrowContentProps = {
-    tabs: TabSelectorBaseItem[];
-    activeTabKey: string;
-    onActiveTabPress?: (key: string) => void;
-    onTabPress?: (key: string) => void;
-    onLongTabPress?: (key: string) => void;
+    tabs: Array<TabSelectorBaseItem<SearchKey>>;
+    activeTabKey: SearchKey | undefined;
+    onActiveTabPress?: (key: SearchKey) => void;
+    onTabPress?: (key: SearchKey) => void;
+    onLongTabPress?: (key: SearchKey) => void;
     containerRef?: React.RefObject<View | null>;
     children?: React.ReactNode;
 };
@@ -119,7 +119,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         enabled: !!queryJSON,
     });
 
-    const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<string | null>(null);
+    const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<SearchKey | null>(null);
     const menuAnchorRef = useRef<View>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
@@ -147,12 +147,12 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     ]);
 
     const queryMap = new Map<SearchKey, {query: string; name?: string}>();
-    const tabItems: TabSelectorBaseItem[] = [];
+    const tabItems: Array<TabSelectorBaseItem<SearchKey>> = [];
     const savedSearchesPopoverMenuItems: Partial<Record<SearchKey, PopoverMenuItem[]>> = {};
 
-    const savedSearchesTabItems: TabSelectorBaseItem[] = savedSearches
+    const savedSearchesTabItems: Array<TabSelectorBaseItem<SearchKey>> = savedSearches
         ? Object.entries(savedSearches)
-              .map(([key, item]): TabSelectorBaseItem | null => {
+              .map(([key, item]): TabSelectorBaseItem<SearchKey> | null => {
                   if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
                       return null;
                   }
@@ -213,7 +213,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const popoverMenuItems = savedSearchToModifyKey ? (savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] ?? []) : [];
     const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
 
-    const handleActiveTabPress = (tabKey: string) => {
+    const handleActiveTabPress = (tabKey: SearchKey) => {
         const searchData = queryMap.get(tabKey);
         if (!searchData) {
             return;
@@ -223,7 +223,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         setSearchContext(false);
     };
 
-    const handleTabPress = (tabKey: string) => {
+    const handleTabPress = (tabKey: SearchKey) => {
         const searchData = queryMap.get(tabKey);
         if (!searchData) {
             return;
@@ -239,7 +239,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         });
     };
 
-    const handleLongTabPress = (tabKey: string) => {
+    const handleLongTabPress = (tabKey: SearchKey) => {
         if (!savedSearchesPopoverMenuItems?.[tabKey]) {
             return;
         }
