@@ -43,6 +43,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         introSelected: OnyxEntry<IntroSelected>;
         personalDetails: OnyxEntry<PersonalDetailsList>;
         isSelfTourViewed: boolean | undefined;
+        hasCompletedGuidedSetupFlow: boolean | undefined;
         betas: OnyxEntry<Beta[]>;
     }) => PromotedAction;
 } & {
@@ -79,7 +80,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas}) => ({
+    message: ({reportID, accountID, login, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -94,7 +95,7 @@ const PromotedActions = {
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, true);
                 return;
             }
 

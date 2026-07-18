@@ -12,6 +12,7 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -48,9 +49,11 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 });
 
 /**
- * Get a list of all search groupings, along with their search items.
+ * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
+ * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
+ * reliably, so this hook never depends on a navigation context itself.
  */
-const useSearchTypeMenuSections = () => {
+const useSearchTypeMenuSections = (isScreenFocused = true) => {
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
@@ -61,6 +64,10 @@ const useSearchTypeMenuSections = () => {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
+    // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
+    // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
+    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -104,6 +111,7 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
+                hasReportAwaitingApproval,
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -116,6 +124,7 @@ const useSearchTypeMenuSections = () => {
             isOffline,
             draftTransactionIDs,
             isTrackIntentUser,
+            hasReportAwaitingApproval,
         ],
     );
 

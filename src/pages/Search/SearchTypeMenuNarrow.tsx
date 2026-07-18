@@ -82,7 +82,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const {translate, localeCompare} = useLocalize();
-    const typeMenuSections = useSearchTypeMenuSections();
+    const isFocused = useIsFocused();
+    const typeMenuSections = useSearchTypeMenuSections(isFocused);
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -95,7 +96,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
-    const isFocused = useIsFocused();
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
