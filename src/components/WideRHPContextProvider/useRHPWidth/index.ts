@@ -1,3 +1,4 @@
+import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKeys';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -26,6 +27,14 @@ function useRHPWidth(width: RHPWidth) {
     const {setRHPWidth, removeRHPRouteKey, getReportRHPWidthHint, unmarkReportRHPWidth} = useWideRHPActions();
 
     const onClose = () => {
+        // Effects also unmount when a covered screen is hidden by <Activity>, so an unmounting effect does not
+        // always mean the screen is closing. Deregister only when the route has actually left the navigation
+        // state; on a hide the registration must survive, otherwise the RHP container snaps to the single width.
+        const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
+        if (rootState && extractNavigationKeys(rootState.routes).has(route.key)) {
+            return;
+        }
+
         removeRHPRouteKey(route);
         // Clear the one-shot hint on unmount so it can't pin the report wide on a later visit.
         if (reportID) {
