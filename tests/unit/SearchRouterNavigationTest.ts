@@ -6,12 +6,19 @@ import {
     sortNavigationSuggestionItems,
     stripNavigationIntentPrefix,
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
-import {buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
+import {buildSpendNavigationItems, buildTopLevelNavigationItems, navigateToSpendSearch} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
+import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+jest.mock('@libs/actions/Search', () => ({
+    setSearchContext: jest.fn(),
+}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -22,6 +29,41 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 const localeCompare = (firstValue: string, secondValue: string) => firstValue.localeCompare(secondValue);
 const mockIcon: IconAsset = () => null;
+const spendIcons = {
+    Basket: mockIcon,
+    CalendarSolid: mockIcon,
+    Receipt: mockIcon,
+    MoneyBag: mockIcon,
+    CreditCard: mockIcon,
+    MoneyHourglass: mockIcon,
+    CreditCardHourglass: mockIcon,
+    Bank: mockIcon,
+    User: mockIcon,
+    Folder: mockIcon,
+    Document: mockIcon,
+    Pencil: mockIcon,
+    ThumbsUp: mockIcon,
+    CheckCircle: mockIcon,
+};
+
+function createSpendMenuItem(
+    key: SearchTypeMenuItem['key'],
+    translationPath: SearchTypeMenuItem['translationPath'],
+    icon: SearchTypeMenuItem['icon'],
+    searchQuery: string,
+): SearchTypeMenuItem {
+    return {
+        key,
+        translationPath,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        icon,
+        searchQuery,
+        searchQueryJSON: undefined,
+        hash: 1,
+        similarSearchHash: 1,
+        recentSearchHash: 1,
+    };
+}
 
 describe('Search Router navigation query helpers', () => {
     it.each([
@@ -178,5 +220,95 @@ describe('top-level Search Router navigation source', () => {
         expect(getSpendRoute).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.WORKSPACES_LIST.route);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.SETTINGS);
+    });
+});
+
+describe('Spend Search Router navigation source', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('reuses Spend menu labels, icons, queries, and excludes saved searches', () => {
+        const reportsQuery = 'type:expense-report';
+        const expensesQuery = 'type:expense';
+        const sections: SearchTypeMenuSection[] = [
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [
+                    createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', reportsQuery),
+                    createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 'search.tabs.expenses', 'Receipt', expensesQuery),
+                ],
+            },
+            {
+                translationPath: 'search.savedSearchesMenuItemTitle',
+                menuItems: [createSpendMenuItem(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}1`, 'search.tabs.expenses', 'Receipt', 'saved-search-query')],
+            },
+        ];
+        const rightElement = 'Spend';
+        const onSelect = jest.fn();
+        const labels = new Map<SearchTypeMenuItem['translationPath'], string>([
+            ['search.tabs.reports', 'Reports'],
+            ['search.tabs.expenses', 'Expenses'],
+        ]);
+
+        const items = buildSpendNavigationItems({
+            sections,
+            icons: spendIcons,
+            rightElement,
+            getItemText: (item) => labels.get(item.translationPath) ?? item.translationPath,
+            getDestinationText: (destination) => `Go to ${destination}`,
+            onSelect,
+        });
+
+        expect(items.map((item) => item.text)).toEqual(['Go to Reports', 'Go to Expenses']);
+        expect(items.map((item) => item.keyForList)).toEqual(['spend_reports', 'spend_expenses']);
+        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon]);
+        expect(items.map((item) => item.rightElement)).toEqual([rightElement, rightElement]);
+        expect(items.map((item) => item.matchTerms)).toEqual([['Reports'], ['Expenses']]);
+
+        items.at(0)?.action?.();
+        expect(onSelect).toHaveBeenCalledWith(reportsQuery);
+    });
+
+    it('does not use the right-side Spend context as a matching term', () => {
+        const items = buildSpendNavigationItems({
+            sections: [
+                {
+                    translationPath: 'search.tabs.expenseReports',
+                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+                },
+            ],
+            icons: spendIcons,
+            rightElement: 'Spend',
+            getItemText: () => 'Reports',
+            getDestinationText: (destination) => `Go to ${destination}`,
+            onSelect: jest.fn(),
+        });
+
+        expect(buildNavigationSuggestions('spend', [items], localeCompare)).toEqual([]);
+        expect(buildNavigationSuggestions('reports', [items], localeCompare).map((item) => item.keyForList)).toEqual(['spend_reports']);
+    });
+
+    it('keeps top-level priority and alphabetizes Spend results', () => {
+        const topLevelItems = [{text: 'Go to Spend', keyForList: 'topLevelSpend', matchTerms: ['Spend']}];
+        const spendItems = [
+            {text: 'Go to Reports', keyForList: 'spend_reports', matchTerms: ['Reports']},
+            {text: 'Go to Expenses', keyForList: 'spend_expenses', matchTerms: ['Expenses']},
+        ];
+
+        expect(buildNavigationSuggestions('go', [topLevelItems, spendItems], localeCompare).map((item) => item.keyForList)).toEqual(['topLevelSpend', 'spend_expenses', 'spend_reports']);
+    });
+
+    it('clears selected transactions and stale search context before opening a canned Spend search', () => {
+        const clearSelectedTransactions = jest.fn();
+        const searchQuery = 'type:expense sortBy:date sortOrder:desc';
+
+        navigateToSpendSearch(searchQuery, clearSelectedTransactions);
+
+        expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
+        expect(setSearchContext).toHaveBeenCalledWith(false);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+        expect(clearSelectedTransactions.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0) ?? 0);
+        expect(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
     });
 });
