@@ -68,6 +68,7 @@ function AddAgentRulePage({
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policy = usePolicy(policyID);
     const linkPressedRef = useRef(false);
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -161,6 +162,16 @@ function AddAgentRulePage({
         confirmLeaveIfNeeded();
     };
 
+    const navigateBackToAgentsTab = () => {
+        if (isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+            return;
+        }
+
+        Navigation.goBack();
+    };
+
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
         // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
         // an admin. Surface a one-time modal explaining this side effect before navigating back.
@@ -169,7 +180,7 @@ function AddAgentRulePage({
         addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
         if (!isFirstRule) {
-            Navigation.goBack();
+            navigateBackToAgentsTab();
             return;
         }
         linkPressedRef.current = false;
@@ -177,6 +188,11 @@ function AddAgentRulePage({
             linkPressedRef.current = true;
             closeModal();
         };
+
+        if (isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+        }
+
         Navigation.dismissModal({
             afterTransition: () => {
                 showConfirmModal({
@@ -190,7 +206,7 @@ function AddAgentRulePage({
                             />
                         </View>
                     ),
-                    confirmText: translate('common.buttonConfirm'),
+                    confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
                     shouldUseSuccessStyleForConfirm: true,
                     iconSource: BotAvatarBlue,
@@ -198,7 +214,11 @@ function AddAgentRulePage({
                     shouldCenterIcon: true,
                     iconWidth: variables.iconSizeUltraLarge,
                     iconHeight: variables.iconSizeUltraLarge,
-                    iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
+                    iconAdditionalStyles: {
+                        borderRadius: variables.iconSizeUltraLarge / 2,
+                        overflow: 'hidden',
+                        marginTop: 12,
+                    },
                 }).then(() => {
                     if (!linkPressedRef.current) {
                         return;
@@ -223,7 +243,7 @@ function AddAgentRulePage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.agentRules.newRuleTitle')}
+                    title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')}
                     shouldDisplayHelpButton
                     onBackButtonPress={handleBackButtonPress}
                 />

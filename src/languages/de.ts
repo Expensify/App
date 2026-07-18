@@ -434,6 +434,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
+        submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
         help: 'Hilfe',
         collapsed: 'Eingeklappt',
@@ -516,6 +517,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -7746,6 +7748,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 ruleBotName: 'RuleBot',
                 addRule: 'Agentenregel hinzufügen',
                 findRule: 'Agentenregel finden',
+                addRuleTitle: 'Regel hinzufügen',
                 newRuleTitle: 'Neue Regel',
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
@@ -7763,6 +7766,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 getHelpFromConcierge: 'Hilfe von Concierge erhalten',
                 emptySuggestionsTitle: 'Keine Vorschläge verfügbar',
                 emptySuggestionsSubtitle: 'Versuchen Sie, Ihre eigene Regel zu schreiben.',
+                revampSubtitle: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
+                describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
+                gotIt: 'Verstanden',
+                createRule: 'Regel erstellen',
             },
             tabs: {
                 general: 'Allgemein',
@@ -7770,6 +7777,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 expenseDefaults: 'Standardausgaben',
                 requireFields: 'Felder erforderlich',
                 flagForReview: 'Zur Überprüfung markieren',
+                agents: 'Agents',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7828,9 +7836,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaults: 'Standardspesen übernehmen',
                 applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 flagForReview: 'Zur Überprüfung markieren',
-                flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
+                flagForReviewDescription: 'Benachrichtigen, wenn Ihre Bedingungen erfüllt sind.',
                 requireFields: 'Felder erforderlich',
-                requireFieldsDescription: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden',
+                requireFieldsDescription: 'Belege, Kategorien usw. beim Einreichen.',
+                createAgentRule: 'Agentenregel',
+                createAgentRuleDescription: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -7893,6 +7903,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
                 confirmErrorAmount: 'Bitte geben Sie einen Betrag ein.',
                 thenFlagForReview: 'Dann zur Überprüfung kennzeichnen, wenn:',
+            },
+            agentRulesEmptyState: {
+                title: 'Keine Agentenregeln hinzugefügt',
+                subtitle: 'Erstellen Sie eine Regel, um Ihre Arbeitsbereichsrichtlinien zu automatisieren.',
+                cta: 'KI-Regel hinzufügen',
             },
         },
         planTypePage: {
