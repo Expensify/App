@@ -154,6 +154,9 @@ function BaseEducationalTooltip({
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
+            // Mark the first display as done only once it has actually happened, so paths that re-measure
+            // on a later layout (e.g. rotation) don't fire against a still-animating layout beforehand.
+            hasDisplayedTooltipRef.current = true;
         }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
@@ -170,7 +173,6 @@ function BaseEducationalTooltip({
         if (hasDisplayedTooltipRef.current) {
             renderTooltip();
         }
-        hasDisplayedTooltipRef.current = true;
     }, [shouldRender, shouldShowTooltip, shouldSuppressTooltip, shouldMeasure, renderTooltip]);
 
     useEffect(() => {

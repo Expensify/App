@@ -117,6 +117,28 @@ describe('EducationalTooltip', () => {
         expect(target.measureInWindow).not.toHaveBeenCalled();
     });
 
+    it('should not re-measure on a second layout that arrives before the first display settles', () => {
+        renderTooltip();
+        const anchor = screen.getByTestId('anchor');
+
+        // First layout schedules the delayed first display but has not shown the tooltip yet.
+        fireEvent(anchor, 'layout', layoutEvent(createTarget(270)));
+
+        // An animated container can fire a second layout while it is still settling, before the delay
+        // elapses. Measuring here would place the tooltip against a transient mid-animation layout.
+        const settlingTarget = createTarget(300);
+        fireEvent(anchor, 'layout', layoutEvent(settlingTarget));
+
+        expect(settlingTarget.measureInWindow).not.toHaveBeenCalled();
+
+        // Once the delayed first display fires, measurement resumes normally.
+        act(() => {
+            jest.advanceTimersByTime(CONST.TOOLTIP_ANIMATION_DURATION + 1);
+        });
+
+        expect(settlingTarget.measureInWindow).toHaveBeenCalled();
+    });
+
     describe('when the window is resizing', () => {
         it('should re-measure the wrapped component once resizing settles', () => {
             const {rerender} = renderTooltip();
