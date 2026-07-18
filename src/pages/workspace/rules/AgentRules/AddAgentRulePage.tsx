@@ -90,9 +90,10 @@ function AddAgentRulePage({
     }, []);
 
     useEffect(() => {
-        if (!isOffline) {
-            getAgentRuleSuggestions(policyID);
+        if (isOffline) {
+            return;
         }
+        getAgentRuleSuggestions(policyID);
     }, [policyID, isOffline]);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({

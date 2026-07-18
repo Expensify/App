@@ -79,7 +79,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                 {!isRulesRevampEnabled && (
                     <>
                         <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
-                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleSubtitle')}</Text>
+                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleForConcierge')}</Text>
                     </>
                 )}
                 <View style={inputWrapperStyles}>

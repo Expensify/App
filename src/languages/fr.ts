@@ -7785,7 +7785,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
                 describeRuleTitle: 'Décrivez la règle que votre agent IA doit suivre',
                 describeRuleHeadline: 'Décrivez votre règle',
-                describeRuleSubtitle: 'Décrivez votre règle et Concierge la créera',
                 disclaimer: 'Les agents IA peuvent faire des erreurs.',
                 agentCreatedTitle: 'RuleBot a été ajouté à votre espace de travail !',
                 agentCreatedDescription: (agentsRoute: string) =>
@@ -7793,7 +7792,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 suggestionsTab: 'Suggestions',
                 writeTab: 'Modifier',
                 findSuggestion: 'Trouver une règle',
-                getHelpFromConcierge: 'Obtenir de l’aide de Concierge',
                 emptySuggestionsTitle: 'Aucune suggestion disponible',
                 emptySuggestionsSubtitle: 'Essayez d’écrire votre propre règle.',
                 revampSubtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',

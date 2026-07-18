@@ -7755,7 +7755,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
                 describeRuleTitle: 'Beschreiben Sie die Regel, der Ihre KI-Agentin/Ihr KI-Agent folgen soll',
                 describeRuleHeadline: 'Beschreibe deine Regel',
-                describeRuleSubtitle: 'Beschreibe deine Regel und Concierge erstellt sie',
                 disclaimer: 'KI-Agenten können Fehler machen.',
                 agentCreatedTitle: 'RuleBot wurde zu Ihrem Arbeitsbereich hinzugefügt!',
                 agentCreatedDescription: (agentsRoute: string) =>
@@ -7763,7 +7762,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 suggestionsTab: 'Vorschläge',
                 writeTab: 'Bearbeiten',
                 findSuggestion: 'Regel finden',
-                getHelpFromConcierge: 'Hilfe von Concierge erhalten',
                 emptySuggestionsTitle: 'Keine Vorschläge verfügbar',
                 emptySuggestionsSubtitle: 'Versuchen Sie, Ihre eigene Regel zu schreiben.',
                 revampSubtitle: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
