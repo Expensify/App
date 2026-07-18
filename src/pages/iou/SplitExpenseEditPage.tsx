@@ -480,22 +480,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         )}
                         {shouldShowTax && (
                             <MenuItemWithTopDescription
-                                shouldShowRightIcon
                                 key={translate('iou.taxAmount')}
                                 description={translate('iou.taxAmount')}
                                 title={convertToDisplayString(Math.abs(splitExpenseDraftTransaction?.taxAmount ?? 0), currency)}
                                 numberOfLinesTitle={2}
-                                onPress={() => {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT,
-                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                            reportID,
-                                            Navigation.getActiveRoute(),
-                                        ),
-                                    );
-                                }}
+                                interactive={false}
                                 style={[styles.moneyRequestMenuItem]}
                                 titleStyle={styles.flex1}
                             />
