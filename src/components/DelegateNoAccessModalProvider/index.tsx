@@ -16,7 +16,7 @@ import type {PropsWithChildren} from 'react';
 
 // This component is memoized by the React Compiler
 /* eslint-disable react/jsx-no-constructed-context-values */
-import React, {createContext, useContext} from 'react';
+import {createContext, useContext} from 'react';
 import {View} from 'react-native';
 
 import type {DelegateNoAccessActionsContextType, DelegateNoAccessStateContextType} from './types';
@@ -49,6 +49,7 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
         );
 
         showConfirmModal({
+            id: 'delegate-no-access-modal',
             title: translate('delegate.notAllowed'),
             prompt: delegateNoAccessPrompt,
             confirmText: translate('common.buttonConfirm'),

@@ -4,16 +4,15 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolling from '@hooks/usePolling';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
-import Visibility from '@libs/Visibility';
 
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 
 import CONST from '@src/CONST';
 
-import lodashDebounce from 'lodash/debounce';
 import {useEffect, useRef, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -42,49 +41,20 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         onDenyRef.current = onDeny;
     }, [onGrant, onDeny]);
 
-    const debouncedCheckPermissionRef = useRef<ReturnType<typeof lodashDebounce> | null>(null);
-
-    // Initialize debounced function in useEffect to avoid ref access during render
-    useEffect(() => {
-        debouncedCheckPermissionRef.current = lodashDebounce(() => {
-            getLocationPermission().then((status) => {
-                if (!isPermissionGranted(status) || isGrantedExternallyRef.current) {
-                    return;
-                }
-
-                // Prevent `onGrant` from being called twice when modal closes
-                isGrantedExternallyRef.current = true;
-                onGrantRef.current();
-            });
-        }, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
-    }, []);
-
-    const handlePermissionResult = (status: string) => {
-        if (isPermissionGranted(status)) {
-            onGrantRef.current();
-        } else {
-            onDenyRef.current(false);
-        }
+    const grantPermission = () => {
+        isGrantedExternallyRef.current = true;
+        onGrantRef.current();
     };
 
-    useEffect(() => {
-        if (!showModal) {
+    const checkPermission = async () => {
+        const status = await getLocationPermission();
+        if (!isPermissionGranted(status) || isGrantedExternallyRef.current) {
             return;
         }
+        grantPermission();
+    };
 
-        const unsubscribe = Visibility.onVisibilityChange(() => {
-            debouncedCheckPermissionRef.current?.();
-        });
-
-        const intervalId = setInterval(() => {
-            debouncedCheckPermissionRef.current?.();
-        }, CONST.TIMING.LOCATION_UPDATE_INTERVAL);
-
-        return () => {
-            unsubscribe();
-            clearInterval(intervalId);
-        };
-    }, [showModal]);
+    usePolling(checkPermission, CONST.TIMING.LOCATION_UPDATE_INTERVAL, showModal, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
 
     useEffect(() => {
         if (!startPermissionFlow) {
@@ -93,110 +63,92 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
         let ignore = false;
 
-        const handlePermissionFlow = () => {
-            getLocationPermission().then((status) => {
-                if (ignore) {
-                    return;
-                }
+        const resetFlowState = () => {
+            isModalActiveRef.current = false;
+            setShowModal(false);
+            resetPermissionFlow();
+        };
 
-                onInitialGetLocationCompleted?.();
-                if (isPermissionGranted(status)) {
-                    onGrantRef.current();
-                    return;
-                }
+        const handlePermissionFlow = async () => {
+            const status = await getLocationPermission();
+            if (ignore) {
+                return;
+            }
 
-                const hasError = status === RESULTS.BLOCKED;
-                isGrantedExternallyRef.current = false;
-                setShowModal(true);
-                isModalActiveRef.current = true;
+            onInitialGetLocationCompleted?.();
+            if (isPermissionGranted(status)) {
+                grantPermission();
+                return;
+            }
 
-                const locationErrorMessage = isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage';
-                let confirmText: string;
-                if (!hasError) {
-                    confirmText = translate('common.continue');
-                } else if (isWeb) {
-                    confirmText = translate('common.buttonConfirm');
-                } else {
-                    confirmText = translate('common.settings');
-                }
+            const hasError = status === RESULTS.BLOCKED;
+            isGrantedExternallyRef.current = false;
+            setShowModal(true);
+            isModalActiveRef.current = true;
 
-                showConfirmModal({
-                    shouldShowCancelButton: !(isWeb && hasError),
-                    confirmText,
-                    cancelText: translate('common.notNow'),
-                    promptStyles: [styles.textLabelSupportingEmptyValue, styles.mb4],
-                    title: translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle'),
-                    titleContainerStyles: [styles.mt2, styles.mb0],
-                    titleStyles: [styles.textHeadline],
-                    iconSource: ReceiptLocationMarker,
-                    iconFill: false,
-                    iconWidth: 140,
-                    iconHeight: 120,
-                    shouldCenterIcon: true,
-                    shouldReverseStackedButtons: true,
-                    prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
-                    onBackdropPress: () => {
-                        isModalActiveRef.current = false;
-                        setShowModal(false);
-                        resetPermissionFlow();
-                    },
-                    isConfirmLoading: false,
-                }).then(({action}) => {
-                    if (ignore) {
-                        return;
-                    }
+            const locationErrorMessage = isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage';
+            const confirmText = !hasError ? translate('common.continue') : translate(isWeb ? 'common.buttonConfirm' : 'common.settings');
 
-                    if (isGrantedExternallyRef.current) {
-                        // Already handled by the visibility listener
-                        isModalActiveRef.current = false;
-                        setShowModal(false);
-                        resetPermissionFlow();
-                        return;
-                    }
-
-                    if (action !== ModalActions.CONFIRM) {
-                        isModalActiveRef.current = false;
-                        setShowModal(false);
-                        resetPermissionFlow();
-                        onDenyRef.current(true);
-                        return;
-                    }
-
-                    const finalizeFlow = () => {
-                        closeModal();
-                        isModalActiveRef.current = false;
-                        setShowModal(false);
-                        resetPermissionFlow();
-                    };
-
-                    if (hasError) {
-                        if (Linking.openSettings) {
-                            Linking.openSettings();
-                            finalizeFlow();
-                        } else {
-                            // Check one more time in case user enabled location before continuing
-                            getLocationPermission().then((result) => {
-                                if (ignore) {
-                                    return;
-                                }
-
-                                finalizeFlow();
-                                handlePermissionResult(result);
-                            });
-                        }
-                        return;
-                    }
-
-                    requestLocationPermission().then((result) => {
-                        if (ignore) {
-                            return;
-                        }
-
-                        finalizeFlow();
-                        handlePermissionResult(result);
-                    });
-                });
+            const {action} = await showConfirmModal({
+                shouldShowCancelButton: !(isWeb && hasError),
+                confirmText,
+                cancelText: translate('common.notNow'),
+                promptStyles: [styles.textLabelSupportingEmptyValue, styles.mb4],
+                title: translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle'),
+                titleContainerStyles: [styles.mt2, styles.mb0],
+                titleStyles: [styles.textHeadline],
+                iconSource: ReceiptLocationMarker,
+                iconFill: false,
+                iconWidth: 140,
+                iconHeight: 120,
+                shouldCenterIcon: true,
+                shouldReverseStackedButtons: true,
+                prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
+                onBackdropPress: () => {
+                    closeModal();
+                    resetFlowState();
+                },
+                isConfirmLoading: false,
             });
+            if (ignore) {
+                return;
+            }
+
+            // Already handled by the visibility listener
+            if (isGrantedExternallyRef.current) {
+                resetFlowState();
+                return;
+            }
+
+            if (action !== ModalActions.CONFIRM) {
+                resetFlowState();
+                onDenyRef.current(true);
+                return;
+            }
+
+            // When hasError (permission is blocked), close the modal and send the user to Settings.
+            // We need to close modal manually since the modal is still open (due to isConfirmLoading)
+            if (hasError && Linking.openSettings) {
+                Linking.openSettings();
+                closeModal();
+                resetFlowState();
+                return;
+            }
+
+            // For the blocked/error case without a settings deep link, re-check permission in case the user
+            // enabled it before continuing. Otherwise, actively request permission for the first-time prompt.
+            const result = hasError ? await getLocationPermission() : await requestLocationPermission();
+            if (ignore) {
+                return;
+            }
+
+            closeModal();
+            resetFlowState();
+            if (isPermissionGranted(result)) {
+                grantPermission();
+            } else {
+                onDenyRef.current(false);
+            }
         };
 
         handlePermissionFlow();
