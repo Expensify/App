@@ -59,6 +59,11 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
                     fetchPerDiemRates(policy.id);
                 }
 
+                const canDestinationResolvePolicy = !!perDiemUnit || (!!targetReport.policyID && targetReport.policyID !== CONST.POLICY.ID_FAKE);
+                if (!canDestinationResolvePolicy) {
+                    return;
+                }
+
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 if (targetIouType === CONST.IOU.TYPE.TRACK) {
                     setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, false);
