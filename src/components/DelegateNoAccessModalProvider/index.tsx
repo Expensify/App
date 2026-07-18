@@ -14,10 +14,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
 
-import React, {createContext, useContext} from 'react';
 // This component is memoized by the React Compiler
 /* eslint-disable react/jsx-no-constructed-context-values */
-import React, {createContext, useContext, useState} from 'react';
+import React, {createContext, useContext} from 'react';
 import {View} from 'react-native';
 
 import type {DelegateNoAccessActionsContextType, DelegateNoAccessStateContextType} from './types';

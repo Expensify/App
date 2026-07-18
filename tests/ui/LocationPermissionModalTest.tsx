@@ -11,22 +11,22 @@ import React from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 
-type MockConfirmModalProps = Record<string, unknown>;
+import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
+
+import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 
 const mockGetLocationPermission = jest.fn();
 const mockRequestLocationPermission = jest.fn();
 const mockUpdateLastLocationPermissionPrompt = jest.fn();
 
-let mockConfirmModalProps: MockConfirmModalProps = {};
+jest.mock('@hooks/useConfirmModal', () => {
+    const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return mockUseConfirmModal;
+});
 
-jest.mock('@components/ConfirmModal', () => {
-    function MockConfirmModal(props: Record<string, unknown>) {
-        mockConfirmModalProps = props;
-        return null;
-    }
-
-    MockConfirmModal.displayName = 'ConfirmModal';
-    return MockConfirmModal;
+jest.mock('@components/Modal/Global/ModalContext', () => {
+    const {createMockModalContextModule} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return createMockModalContextModule();
 });
 
 jest.mock('@components/Icon/IllustrationLoader', () => ({
@@ -92,10 +92,6 @@ function createDefaultProps() {
     };
 }
 
-function getConfirmModalProp<T>(prop: string): T | undefined {
-    return mockConfirmModalProps[prop] as T | undefined;
-}
-
 function renderLocationPermissionModal(props: ReturnType<typeof createDefaultProps>) {
     render(
         <LocationPermissionModal
@@ -121,7 +117,7 @@ function renderAndroidLocationPermissionModal(props: ReturnType<typeof createDef
 describe('LocationPermissionModal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockConfirmModalProps = {};
+        resetMockConfirmModal();
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         mockRequestLocationPermission.mockResolvedValue(RESULTS.GRANTED);
         setOpenSettings(originalOpenSettings);
@@ -138,10 +134,10 @@ describe('LocationPermissionModal', () => {
 
         renderLocationPermissionModal(props);
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
         await act(async () => {
-            getConfirmModalProp<() => void>('onCancel')?.();
+            resolveShowConfirmModal({action: 'CLOSE'});
         });
 
         expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
@@ -155,13 +151,13 @@ describe('LocationPermissionModal', () => {
 
         renderLocationPermissionModal(props);
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
-        expect(getConfirmModalProp<string>('confirmText')).toBe('common.buttonConfirm');
-        expect(getConfirmModalProp<boolean>('shouldShowCancelButton')).toBe(false);
+        expect(getShowConfirmModalOption('confirmText')).toBe('common.buttonConfirm');
+        expect(getShowConfirmModalOption('shouldShowCancelButton')).toBe(false);
 
         await act(async () => {
-            getConfirmModalProp<() => void>('onConfirm')?.();
+            resolveShowConfirmModal({action: 'CONFIRM'});
         });
 
         await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
@@ -176,10 +172,10 @@ describe('LocationPermissionModal', () => {
 
         renderLocationPermissionModal(props);
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
         await act(async () => {
-            getConfirmModalProp<() => void>('onConfirm')?.();
+            resolveShowConfirmModal({action: 'CONFIRM'});
         });
 
         await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
@@ -194,10 +190,10 @@ describe('LocationPermissionModal', () => {
 
         renderAndroidLocationPermissionModal(props);
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
         await act(async () => {
-            getConfirmModalProp<() => void>('onConfirm')?.();
+            resolveShowConfirmModal({action: 'CONFIRM'});
         });
 
         await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
@@ -210,10 +206,10 @@ describe('LocationPermissionModal', () => {
 
         renderAndroidLocationPermissionModal(props);
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
         await act(async () => {
-            getConfirmModalProp<() => void>('onCancel')?.();
+            resolveShowConfirmModal({action: 'CLOSE'});
         });
 
         expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
