@@ -22,7 +22,10 @@ const RightModalNavigatorComponent = createPlatformStackNavigatorComponent(NAVIG
     createRouter: RightModalRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     Effects: RightModalNavigatorEffects,
-    nonTopScreensBehavior: 'activity',
+    // Deliberately no nonTopScreensBehavior. A covered RHP route can be a wide RHP that stays visible behind the
+    // top card and must keep running: it registers its width through useRHPWidth, whose effect CLEANUP deregisters
+    // it. Hiding it with <Activity> runs exactly that cleanup, which the wide RHP system treats as the screen
+    // closing - the container snaps to the single RHP width and the covered screen appears to lose its content.
 });
 
 function createRightModalNavigator<
