@@ -22,7 +22,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
-import Fullstory from '@libs/Fullstory';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
@@ -105,19 +104,6 @@ Onyx.connect({
             HybridAppModule.sendAuthToken({authToken: deprecatedSession.authToken});
         }
     },
-});
-
-let fullstorySession: Session = {};
-// Use connectWithoutView because it is only for fullstory initialization
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => (fullstorySession = value ?? {}),
-});
-
-// Use connectWithoutView because it is only for fullstory initialization
-Onyx.connectWithoutView({
-    key: ONYXKEYS.USER_METADATA,
-    callback: (value) => Fullstory.consentAndIdentify(value, fullstorySession),
 });
 
 let stashedSession: Session = {};

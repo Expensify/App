@@ -2,8 +2,11 @@ import {isSupportAuthToken} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
 
 import {FullStory, init, isInitialized} from '@fullstory/browser';
+import Onyx from 'react-native-onyx';
 
 import type {FSPageLike, Fullstory} from './types';
 
@@ -134,5 +137,16 @@ const FS: Fullstory = {
         // It's a mobile-only feature
     },
 };
+
+let fullstorySession: Session = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => (fullstorySession = value ?? {}),
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.USER_METADATA,
+    callback: (value) => FS.consentAndIdentify(value, fullstorySession),
+});
 
 export default FS;
