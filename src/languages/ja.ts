@@ -433,6 +433,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: '検証',
         downloadAsPDF: 'PDFとしてダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
+        submitViaPDF: 'PDFで提出',
         print: '印刷',
         help: 'ヘルプ',
         collapsed: '折りたたみ',
@@ -515,8 +516,10 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
+        tryAgain: '再試行',
         tagGLCode: 'GL コードにタグを付ける',
         off: 'オフ',
         noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
@@ -976,7 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'ウォレット',
             },
-            addVirtualCardPersonalDetails: {title: '個人情報を追加してください', subtitle: 'Expensify カードを表示して使い始めるには、詳細情報を入力してください。', cta: '詳細を追加'},
+            addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '詳細を追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
         announcements: 'お知らせ',
@@ -1060,6 +1063,7 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'コントロールをカスタマイズして支出を効率化',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+            configureApprovals: '承認ワークフローを設定',
             begin: '開始',
             done: '完了',
             createWorkspaceSubText: 'ワークスペースのセットアップを開始できます',
@@ -1072,6 +1076,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Concierge に問い合わせる',
             talkToAccountExecutive: 'アカウントエグゼクティブに相談する',
             forGuidedSetup: 'ガイド付きセットアップ用です。',
+            configureApprovalsSubText: 'レポート承認を定義する',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -1143,6 +1148,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグを1件追加しました。'),
         importMultiLevelTagsSuccessfulDescription: 'マルチレベルタグが追加されました。',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'すべての加盟店ルールが既に存在するため、追加されませんでした。';
+            }
+            return rules > 1 ? `${rules}件の加盟店ルールが追加されました。` : '1件の加盟店ルールが追加されました。';
+        },
+        importMerchantRulesRequiredColumns:
+            'おっと！「加盟店が一致」または「加盟店を含む」の列を少なくとも1つ、さらに更新するフィールドを少なくとも1つマッピングしてください。確認してもう一度お試しください。',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} 件の取引がインポートされました。` : '1件の取引がインポートされました。',
         importFailedTitle: 'インポートに失敗しました',
@@ -1597,6 +1610,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: '変更済み',
         removed: '削除済み',
         transactionPending: '取引は保留中です。',
+        transactionPendingDescription: '取引は保留中です。処理に数日かかる場合があります。',
         chooseARate: 'ワークスペースの払い戻しレートをマイルまたはキロメートルごとに選択してください',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate}から${endDate}まで有効`,
         rateValidFrom: ({startDate}: {startDate: string}) => `${startDate}から有効`,
@@ -2128,7 +2142,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'New Expensify の最新バージョンにアップデートしてください',
         pleaseInstallExpensifyClassic: '最新バージョンの Expensify をインストールしてください',
         toGetLatestChanges: 'モバイルでは最新バージョンをダウンロードしてインストールしてください。ウェブではブラウザを再読み込みしてください。',
-        newAppNotAvailable: '新しい Expensify アプリは、もう利用できません。',
+        newAppNotAvailable: '今すぐアップデートすると、きっと後で感謝していただけます。',
     },
     initialSettingsPage: {
         about: '概要',
@@ -2195,17 +2209,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'サインアウト',
         restoreStashed: '保存済みログインを復元',
         signOutConfirmationText: 'サインアウトすると、オフライン中の変更内容はすべて失われます。',
-        saveReceiptsConfirmation: {
-            title: 'レシートを保存しますか？',
-            prompt: ({count}: {count: number}) => `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。`,
-            confirm: '保存してサインアウト',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'レシートを保存しますか？',
-            prompt: ({count}: {count: number}) =>
-                `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。その他のオフライン中の変更内容はすべて失われます。`,
-            confirm: '保存してサインアウト',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>をお読みください。`,
         help: 'ヘルプ',
@@ -2868,6 +2871,14 @@ ${date} の ${merchant} への ${amount}`,
         title: '担当者',
         subtitle: `<muted-text>エージェントがワークフローを代わりに処理するので、毎日の時間を数時間取り戻せます。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">詳しく見る</a>。</muted-text>`,
         findAgent: '担当者を探す',
+        deleteAgentsTitle: () => ({
+            one: 'エージェントを削除',
+            other: 'エージェントを削除',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'このエージェントを削除してもよろしいですか？この操作は元に戻せません。',
+            other: 'これらのエージェントを削除してもよろしいですか？この操作は元に戻せません。',
+        }),
         newAgent: '新しいエージェント',
         emptyAgents: {
             title: 'エージェントは作成されていません',
@@ -3720,7 +3731,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         facialScan: 'Onfido 顔認証ポリシーおよび同意書',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfidoの顔スキャンポリシーおよび同意</a>、<a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>プライバシー</a>、および<a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>利用規約</a>。</muted-text-micro>`,
-        tryAgain: '再試行',
         verifyIdentity: '本人確認',
         letsVerifyIdentity: '本人確認を行いましょう',
         butFirst: `その前に、ちょっと退屈な話です。次のステップで法律関連の内容をよく読んで、準備ができたら「同意」をクリックしてください。`,
@@ -4437,6 +4447,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
             deleteOpenExpensifyCardsError: '御社にはまだ Expensify カードが残っています。削除するには、<concierge-link>Concierge までお問い合わせください</concierge-link>。',
+            deleteTravelInvoicingError: 'お客様の会社では、統合トラベル請求がまだ有効になっています。',
             outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
@@ -5542,6 +5553,35 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
             travelInvoicingSettlementAccount: {label: '出張請求の精算口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペース口座を上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムがデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目付きプログラム：${customAccountsCount}`;
+                    }
+                    return `${customAccountsCount} 件のカスタムアカウントを含むプログラム`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位のアカウント',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座のカードが ${customAccountsCount} 枚`;
+                    }
+                    return `${customAccountsCount} 枚のカスタムアカウント付きカード`;
+                },
+            },
         },
         type: {
             free: '無料',
@@ -5560,7 +5600,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',
                 feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
                 feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',
-                tryAgain: '再試行',
             },
             addNewCard: {
                 other: 'その他',
@@ -6339,6 +6378,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 conciergeNotificationTitle: 'Concierge からお知らせします',
                 conciergeNotificationDescription: '処理が完了すると、Concierge からメッセージが送信されます。',
                 copyCompleted: 'ワークスペースの設定がコピーされました。',
+                copyFailedTitle: 'コピーに失敗しました',
             },
             upgrade: {
                 title: '一部の機能は Control プランへの加入が必要です',
@@ -7367,6 +7407,14 @@ ${reportName}`,
                 addRule: '支払先ルールを追加',
                 addRuleTitle: 'ルールを追加',
                 editRuleTitle: 'ルールを編集',
+                importRulesTitle: '加盟店ルールをインポート',
+                importRulesSupportingText: 'スプレッドシートの各列を加盟店ルールのフィールドに対応付けてください。問題なければ、下をクリックしてルールをインポートしてください。',
+                importColumnMerchantIs: '加盟店が一致',
+                importColumnMerchantContains: '加盟店を含む',
+                importColumnUpdatedMerchant: '更新後の加盟店',
+                importColumnUpdatedCategory: '更新後のカテゴリ',
+                importColumnUpdatedTag: '更新後のタグ',
+                importColumnUpdatedDescription: '更新後の説明',
                 expensesWith: '対象となる経費条件:',
                 expensesExactlyMatching: '次の条件に完全一致する経費の場合:',
                 applyUpdates: 'これらの更新を適用する',
@@ -7540,7 +7588,7 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
-                defaultRuleSummary: 'アダルトサービス、ATM、ギャンブルなどを含むカテゴリ',
+                defaultRuleSummary: 'アダルトサービス、ATM、ギャンブル、送金を含むカテゴリ',
                 findRule: 'ルールを検索',
                 defaultSection: 'デフォルト',
                 customRulesSection: 'カスタムルール',
@@ -7596,8 +7644,20 @@ ${reportName}`,
                 agentCreatedTitle: 'RuleBot がワークスペースに追加されました!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>エージェント ルールを適用するために、エージェントを作成し、ワークスペースの管理者として追加しました。<br><br>エージェントの詳細は <a href="${agentsRoute}">「アカウント」&gt;「エージェント」</a> で編集できます。</muted-text>`,
+                revampSubtitle: '必要なときに実行できる柔軟なルールを設定します。',
+                newRuleTitle: '新しいルール',
+                describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
+                gotIt: '了解しました',
+                createRule: 'ルールを作成',
             },
-            tabs: {general: '一般', cardRestrictions: 'カードの制限', expenseDefaults: '経費のデフォルト設定', requireFields: '必須項目', flagForReview: '確認のためにフラグを付ける'},
+            tabs: {
+                general: '一般',
+                cardRestrictions: 'カードの制限',
+                expenseDefaults: '経費のデフォルト設定',
+                requireFields: '必須項目',
+                flagForReview: '確認のためにフラグを付ける',
+                agents: 'エージェント',
+            },
             bulkActions: {
                 deleteMultiple: () => ({
                     one: 'ルールを削除',
@@ -7655,9 +7715,11 @@ ${reportName}`,
                 applyExpenseDefaults: '経費のデフォルトを適用',
                 applyExpenseDefaultsDescription: '申請者が何も操作しなくてもフィールドを更新する',
                 flagForReview: '確認のためにフラグを付ける',
-                flagForReviewDescription: '経費がカテゴリの上限を超えたとき承認者に通知します',
+                flagForReviewDescription: '条件が満たされたときに通知します。',
                 requireFields: '必須項目',
-                requireFieldsDescription: '経費を提出する前に、主要な項目が入力されていることを確認してください',
+                requireFieldsDescription: '提出時の領収書、カテゴリなど',
+                createAgentRule: 'エージェントルール',
+                createAgentRuleDescription: '必要なときに実行できる柔軟なルールを設定します。',
             },
             expenseDefaultsTable: {
                 tableColumnType: '種類',
@@ -7721,6 +7783,7 @@ ${reportName}`,
                 confirmErrorAmount: '金額を入力してください。',
                 thenFlagForReview: '次の条件で確認フラグを付けます：',
             },
+            agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
         },
         planTypePage: {
             planTypes: {
@@ -9089,6 +9152,8 @@ ${reportName}`,
     },
     actionableMentionTrackExpense: {
         submit: '誰かに送信する',
+        submitToFriend: '友達に送信する',
+        submitToEmployer: '勤務先に送信する',
         categorize: '仕分けする',
         share: '会計士と共有する',
         nothing: '今のところ何もありません',
@@ -9904,6 +9969,18 @@ ${reportName}`,
             search: 'モバイル、Web、デスクトップでさらに強力な検索',
             concierge: '経費処理を自動化する内蔵のConcierge AI',
             chat: 'あらゆる経費でチャットして、疑問をすばやく解決しましょう',
+        },
+    },
+    submitPlanWelcomeModal: {
+        title: '無料の従業員プランはいかがですか？',
+        description: '会社がExpensifyを導入するのを待つ必要はありません。あなたのために無料プランを用意しました。',
+        confirmText: '無料プランを利用する',
+        dismissText: 'いいえ、結構です',
+        features: {
+            getReimbursed: 'Expensifyで、より早く精算を受けられます',
+            buildReports: '数秒で経費レポートを作成',
+            categorize: '経費を分類する',
+            inviteBoss: '準備ができたら上司を招待しましょう',
         },
     },
     productTrainingTooltip: {
