@@ -506,7 +506,7 @@ function openReportFromDeepLink(
     if (!isAuthenticated) {
         if (isConciergeRoute(route)) {
             setPendingConciergeDeepLink();
-        } else {
+        } else if (!isPublicScreenRoute(route)) {
             clearPendingConciergeDeepLink();
         }
     }

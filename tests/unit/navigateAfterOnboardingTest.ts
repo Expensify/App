@@ -224,4 +224,17 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenNthCalledWith(1, ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
         expect(navigate).toHaveBeenNthCalledWith(2, ROUTES.HOME);
     });
+
+    it('should preserve the pending Concierge deep link across a module reload', () => {
+        setPendingConciergeDeepLink();
+
+        jest.isolateModules(() => {
+            const {consumePendingConciergeDeepLink: consumePendingConciergeDeepLinkAfterReload} =
+                jest.requireActual<typeof import('@libs/PendingConciergeDeepLink')>('@libs/PendingConciergeDeepLink');
+            expect(consumePendingConciergeDeepLinkAfterReload()).toBe(true);
+        });
+
+        expect(window.sessionStorage.getItem('PENDING_CONCIERGE_DEEP_LINK')).toBeNull();
+        clearPendingConciergeDeepLink();
+    });
 });
