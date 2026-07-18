@@ -48,7 +48,7 @@ function VictoryChartExpandable({children}: VictoryChartExpandableProps) {
     // while mw100 still lets it shrink in narrow containers (e.g. the side panel).
     const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
 
-    // Devices can support both touch and hover (touchscreen laptops, iPad with trackpad). A touch
+    // Devices can support both touch and hover (touchscreen laptops, tablets with a pointer). A touch
     // interaction can't produce a hover, so the button must stay visible whenever touch is possible.
     const shouldAlwaysShowButton = !deviceHasHoverSupport || canUseTouchScreen();
 
