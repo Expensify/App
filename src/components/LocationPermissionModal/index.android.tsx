@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 
-import React, {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 
@@ -64,20 +64,22 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 shouldCenterIcon: true,
                 shouldReverseStackedButtons: true,
                 onBackdropPress: () => resetPermissionFlowRef.current(),
+                isConfirmLoading: false,
             }).then(({action}) => {
                 if (ignore) {
                     return;
                 }
 
-                isModalActiveRef.current = false;
-
                 if (action !== ModalActions.CONFIRM) {
+                    isModalActiveRef.current = false;
                     onDenyRef.current(true);
                     return;
                 }
 
                 // Open settings if permission is blocked
                 if (hasError) {
+                    isModalActiveRef.current = false;
+                    closeModal();
                     Linking.openSettings?.();
                     resetPermissionFlowRef.current();
                     return;
@@ -89,10 +91,12 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                         return;
                     }
 
+                    isModalActiveRef.current = false;
+                    closeModal();
+
                     if (isPermissionGranted(status)) {
                         onGrantRef.current();
                     } else if (status === RESULTS.BLOCKED) {
-                        closeModal();
                         showPermissionModal(true);
                     } else {
                         onDenyRef.current(false);

@@ -135,28 +135,44 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                     shouldCenterIcon: true,
                     shouldReverseStackedButtons: true,
                     prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
+                    onBackdropPress: () => {
+                        isModalActiveRef.current = false;
+                        setShowModal(false);
+                        resetPermissionFlow();
+                    },
+                    isConfirmLoading: false,
                 }).then(({action}) => {
                     if (ignore) {
                         return;
                     }
 
-                    isModalActiveRef.current = false;
-                    setShowModal(false);
-                    resetPermissionFlow();
-
                     if (isGrantedExternallyRef.current) {
                         // Already handled by the visibility listener
+                        isModalActiveRef.current = false;
+                        setShowModal(false);
+                        resetPermissionFlow();
                         return;
                     }
 
                     if (action !== ModalActions.CONFIRM) {
+                        isModalActiveRef.current = false;
+                        setShowModal(false);
+                        resetPermissionFlow();
                         onDenyRef.current(true);
                         return;
                     }
 
+                    const finalizeFlow = () => {
+                        closeModal();
+                        isModalActiveRef.current = false;
+                        setShowModal(false);
+                        resetPermissionFlow();
+                    };
+
                     if (hasError) {
                         if (Linking.openSettings) {
                             Linking.openSettings();
+                            finalizeFlow();
                         } else {
                             // Check one more time in case user enabled location before continuing
                             getLocationPermission().then((result) => {
@@ -164,6 +180,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                                     return;
                                 }
 
+                                finalizeFlow();
                                 handlePermissionResult(result);
                             });
                         }
@@ -175,6 +192,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                             return;
                         }
 
+                        finalizeFlow();
                         handlePermissionResult(result);
                     });
                 });
