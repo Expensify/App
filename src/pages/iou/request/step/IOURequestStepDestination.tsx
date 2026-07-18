@@ -248,13 +248,11 @@ function IOURequestStepDestination({
                                         if (!policy?.id) {
                                             return;
                                         }
+                                        const backToRoute = openedFromStartPage
+                                            ? ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(action, iouType, transactionID, reportID, backToReport)
+                                            : ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID, backToReport);
                                         requestAnimationFrame(() => {
-                                            Navigation.navigate(
-                                                ROUTES.WORKSPACE_PER_DIEM.getRoute(
-                                                    policy.id,
-                                                    ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID, backToReport),
-                                                ),
-                                            );
+                                            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, backToRoute));
                                         });
                                     }}
                                     text={translate('workspace.perDiem.editPerDiemRates')}
