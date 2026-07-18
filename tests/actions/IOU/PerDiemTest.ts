@@ -20,7 +20,7 @@ import createRandomPolicyCategories from '../../utils/collections/policyCategory
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -326,6 +326,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
+                formatPhoneNumber,
                 isTrackIntentUser: false,
             });
 
@@ -417,6 +418,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                formatPhoneNumber,
                 isTrackIntentUser: false,
             });
 
@@ -552,6 +554,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                formatPhoneNumber,
                 isTrackIntentUser: false,
             });
 
@@ -641,6 +644,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                formatPhoneNumber,
                 isTrackIntentUser: false,
             });
 
@@ -717,6 +721,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                formatPhoneNumber,
                 isTrackIntentUser: false,
             });
 
@@ -786,6 +791,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 optimisticTransactionID,
+                formatPhoneNumber,
                 isTrackIntentUser: false,
             });
 
@@ -860,6 +866,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
+                formatPhoneNumber,
                 isTrackIntentUser: false,
             });
 
@@ -925,6 +932,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
+                formatPhoneNumber,
                 isTrackIntentUser: false,
             });
 

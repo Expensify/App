@@ -715,6 +715,7 @@ function createExpenseByType({
                 hasViolations: false,
                 customUnitPolicyID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             };
             return submitPerDiemExpense(perDiemParams);
         }

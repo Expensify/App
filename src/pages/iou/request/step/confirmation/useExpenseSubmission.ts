@@ -638,6 +638,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                formatPhoneNumber,
                 isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
