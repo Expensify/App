@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import {getSupportedCardCountriesForCurrency} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,7 +13,6 @@ export default function getAvailableEuCountries(
     currency: string | undefined,
     localeCompare: LocaleContextProps['localeCompare'],
 ): Record<string, string> {
-    const supportedCountriesForCurrency: Record<string, readonly string[]> = supportedCountriesByCurrency ?? CONST.EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY;
-    const supportedCountrySet = new Set<string>(supportedCountriesForCurrency[currency ?? ''] ?? []);
+    const supportedCountrySet = new Set<string>(getSupportedCardCountriesForCurrency(supportedCountriesByCurrency, currency));
     return Object.fromEntries(europeanCountries.filter(([code]) => supportedCountrySet.has(code)).sort(([, nameA], [, nameB]) => localeCompare(nameA, nameB)));
 }
