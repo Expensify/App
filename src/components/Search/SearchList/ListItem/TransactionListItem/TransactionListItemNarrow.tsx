@@ -84,7 +84,9 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     // the opaque focus background for the full highlight animation so the highlight shows. shouldAnimateInHighlight
     // only stays true for the brief queue window, so latch it for durationHighlightItem.
     const shouldAnimateInHighlight = !!item?.shouldAnimateInHighlight;
-    const [isHighlighting, setIsHighlighting] = useState(false);
+    // Initialize from the prop so a row that mounts already flagged (the split/search highlight case this
+    // fixes) latches immediately - otherwise the render-time guard below never fires on first mount.
+    const [isHighlighting, setIsHighlighting] = useState(shouldAnimateInHighlight);
     const [wasAnimatingHighlight, setWasAnimatingHighlight] = useState(shouldAnimateInHighlight);
     // Start the latch during render (React's "storing information from previous renders" pattern) to avoid
     // calling setState synchronously inside an effect. The effect below only clears it via an async timer.
