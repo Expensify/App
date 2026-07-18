@@ -2800,21 +2800,34 @@ function getReportActionsSections(
 }
 
 /**
- * Returns the earliest APPROVED/FORWARDED action between the snapshot-derived one and the given report actions.
- * Live actions can hold an approval the snapshot lacks: snapshot merges only keep fields already present in the
+ * Scans `actions` for the earliest/latest action of the given types, seeded with an optional starting candidate.
+ * Live actions can hold an action the snapshot lacks: snapshot merges only keep fields already present in the
  * snapshot shape, so a new optimistic action (e.g. approving a report offline) never reaches it.
  */
-function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction | undefined {
-    let firstApprovedAction = snapshotApprovedAction;
+function findActionByCreated(
+    actions: OnyxTypes.ReportAction[],
+    actionNames: Array<OnyxTypes.ReportAction['actionName']>,
+    extreme: 'earliest' | 'latest',
+    seed?: OnyxTypes.ReportAction,
+): OnyxTypes.ReportAction | undefined {
+    let result = seed;
     for (const action of actions) {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.APPROVED && action.actionName !== CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+        if (!actionNames.includes(action.actionName)) {
             continue;
         }
-        if (!firstApprovedAction || new Date(action.created).getTime() < new Date(firstApprovedAction.created).getTime()) {
-            firstApprovedAction = action;
+        const comparison = result ? new Date(action.created).getTime() - new Date(result.created).getTime() : 0;
+        if (!result || (extreme === 'earliest' ? comparison < 0 : comparison > 0)) {
+            result = action;
         }
     }
-    return firstApprovedAction;
+    return result;
+}
+
+/**
+ * Returns the earliest APPROVED/FORWARDED action between the snapshot-derived one and the given report actions.
+ */
+function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction | undefined {
+    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.FORWARDED], 'earliest', snapshotApprovedAction);
 }
 
 /**
@@ -2830,16 +2843,7 @@ function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.Report
     if (reportItem.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
         return '';
     }
-    let latestApprovedAction: OnyxTypes.ReportAction | undefined;
-    for (const action of actions) {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-            continue;
-        }
-        if (!latestApprovedAction || new Date(action.created).getTime() > new Date(latestApprovedAction.created).getTime()) {
-            latestApprovedAction = action;
-        }
-    }
-    return latestApprovedAction?.created ?? '';
+    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED], 'latest')?.created ?? '';
 }
 
 /**
@@ -2858,16 +2862,7 @@ function getSubmittedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.Repor
     if (reportItem.submitted) {
         return reportItem.submitted;
     }
-    let latestSubmittedAction: OnyxTypes.ReportAction | undefined;
-    for (const action of actions) {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-            continue;
-        }
-        if (!latestSubmittedAction || new Date(action.created).getTime() > new Date(latestSubmittedAction.created).getTime()) {
-            latestSubmittedAction = action;
-        }
-    }
-    return latestSubmittedAction?.created ?? '';
+    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.SUBMITTED], 'latest')?.created ?? '';
 }
 
 /**
