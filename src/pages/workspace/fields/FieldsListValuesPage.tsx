@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -319,11 +319,12 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             return (
                 <Button
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    success
-                    icon={icons.Plus}
-                    text={translate('workspace.reportFields.addValue')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(getAddValueRoute(isInvoicePage, policyID, reportFieldID))}
-                />
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.reportFields.addValue')}</Button.Text>
+                </Button>
             );
         }
     };
