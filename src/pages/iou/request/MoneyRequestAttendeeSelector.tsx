@@ -106,28 +106,22 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         initialExtraOptions,
         shouldInitialize: didScreenTransitionEnd,
         maxRecentReportsToShow: 5,
+        // Propagate the selection to the parent directly from the selection event (the hook passes the new selected options)
+        onSelectionChange: (_selectedAccountIDs, newSelectedOptions) => {
+            const newAttendees: Attendee[] = newSelectedOptions.map((option) => {
+                const iconSource = option.icons?.[0]?.source;
+                const icon = typeof iconSource === 'function' ? '' : SafeString(iconSource);
+                return {
+                    email: option.login ?? '',
+                    // Use || to fall back for name-only attendees
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    displayName: option.text || option.login || '',
+                    avatarUrl: icon,
+                };
+            });
+            onAttendeesAdded(newAttendees);
+        },
     });
-
-    // Propagate the selection to the parent whenever the selected account set changes (accountIDs are stable, so this is loop-safe)
-    const selectedKey = selectedOptions.map((option) => option.accountID).join(',');
-    useEffect(() => {
-        if (!areOptionsInitialized) {
-            return;
-        }
-        const newAttendees: Attendee[] = selectedOptions.map((option) => {
-            const iconSource = option.icons?.[0]?.source;
-            const icon = typeof iconSource === 'function' ? '' : SafeString(iconSource);
-            return {
-                email: option.login ?? '',
-                // Use || to fall back for name-only attendees
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                displayName: option.text || option.login || '',
-                avatarUrl: icon,
-            };
-        });
-        onAttendeesAdded(newAttendees);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when the selected account set changes
-    }, [selectedKey, areOptionsInitialized]);
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
