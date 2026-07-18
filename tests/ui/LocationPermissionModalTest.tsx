@@ -197,7 +197,7 @@ describe('LocationPermissionModal', () => {
             expect(mockRequestLocationPermission).toHaveBeenCalledTimes(1);
         });
 
-        it('Prompt -> Confirm -> still Blocked -> denies without cooldown update', async () => {
+        it('Prompt -> Confirm -> still Blocked -> denies without last prompt update', async () => {
             const props = createDefaultProps();
             mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
             setOpenSettings(undefined);
