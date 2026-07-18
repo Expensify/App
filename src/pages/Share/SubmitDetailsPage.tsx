@@ -65,7 +65,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {showErrorAlert} from './ShareRootPage';
@@ -205,7 +205,7 @@ function SubmitDetailsPage({
     useShareFileSizeValidation(currentReceiptSource, setErrorTitle, setErrorMessage, !errorTitle);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
-    const participantReportIDs = selectedParticipants.map((participant) => participant.reportID).filter(Boolean);
+    const participantReportIDs = useMemo(() => selectedParticipants.map((participant) => participant.reportID).filter(Boolean), [selectedParticipants]);
     const sortedActions = useRelevantSortedActions(participantReportIDs);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
