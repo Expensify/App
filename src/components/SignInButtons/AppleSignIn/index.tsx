@@ -1,16 +1,21 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import type {NativeConfig} from 'react-native-config';
-import Config from 'react-native-config';
 import useOnyx from '@hooks/useOnyx';
+
 import {beginAppleSignIn} from '@libs/actions/Session';
 import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
 import type Locale from '@src/types/onyx/Locale';
+
+import type {NativeConfig} from 'react-native-config';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import Config from 'react-native-config';
+
 import MAP_EXFY_LOCALE_TO_APPLE_LOCALE from './AppleSignInLocales';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we

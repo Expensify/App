@@ -1,9 +1,12 @@
-import type {RefObject} from 'react';
-import type {View} from 'react-native';
 import type {AnchorPosition} from '@styles/index';
+
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+
 import useResponsiveLayout from './useResponsiveLayout';
 
 const defaultAnchorAlignment = {

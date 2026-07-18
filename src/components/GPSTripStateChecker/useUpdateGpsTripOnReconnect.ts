@@ -1,9 +1,12 @@
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useNetwork from '@hooks/useNetwork';
+
 import {updateGpsPoints} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, getGpsPoints} from '@libs/GPSDraftDetailsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
+
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
     const updateAddressesToHumanReadable = async () => {

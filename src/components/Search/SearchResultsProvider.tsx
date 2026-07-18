@@ -1,3 +1,11 @@
+import useTodoSearchResults from '@hooks/useTodoSearchResults';
+
+import {isTodoSearch} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+
 import React, {useState} from 'react';
 // This provider is the source of the snapshot data that `@hooks/useOnyx` later routes consumers onto,
 // so going through that wrapper here would be self-referential. The wrapper also short-circuits its own
@@ -5,14 +13,11 @@ import React, {useState} from 'react';
 // so it would add nothing for this read. Use the raw react-native-onyx hook directly.
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
-import useTodos from '@hooks/useTodos';
-import {isTodoSearch} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+
+import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
+
 import {useSearchQueryContext} from './SearchContext';
 import {SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
-import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -22,8 +27,8 @@ type SearchResultsProviderProps = {
 // Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
 const defaultSearchInfo: SearchResultsInfo = {
     offset: 0,
+    hash: 0,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     hasMoreResults: false,
     hasResults: true,
     isLoading: false,
@@ -36,16 +41,16 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON, suggestedSearches} = useSearchQueryContext();
     const currentRecentSearchHash = currentSearchQueryJSON?.recentSearchHash ?? -1;
 
-    const todoSearchResultsData = useTodos();
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
 
     const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
+    const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined);
 
-    // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
-    // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.
+    // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.
+    // We do this so the results stay fresh as the user acts on reports, instead of showing a stale server snapshot.
     let currentSearchResults;
     if (shouldUseLiveData) {
-        const liveData = todoSearchResultsData[currentSearchKey as keyof typeof todoSearchResultsData];
+        const liveData = liveTodoData ?? {data: {}, metadata: {count: 0, total: 0, currency: undefined}};
         const searchInfo: SearchResultsInfo = {
             ...(snapshotSearchResults?.search ?? defaultSearchInfo),
             count: liveData.metadata.count,

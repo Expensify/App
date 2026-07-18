@@ -1,10 +1,14 @@
-import {accountIDSelector} from '@selectors/Session';
-import {useCallback} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import {hasEmptyReportsForPolicy} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {accountIDSelector} from '@selectors/Session';
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 
 function reportIDsWithActiveTransactionsSelector(transactions: OnyxCollection<Transaction>): Record<string, boolean> {

@@ -1,6 +1,8 @@
-import type {NavigationState} from '@react-navigation/native';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
+
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 const isReportOpenInSuperWideRHP = (state: NavigationState | undefined): boolean => {
     const lastRoute = state?.routes?.at(-1);

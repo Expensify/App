@@ -1,17 +1,23 @@
-import lodashDebounce from 'lodash/debounce';
-import {useEffect, useRef, useState} from 'react';
-import {Linking} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlatform from '@libs/getPlatform';
 import Visibility from '@libs/Visibility';
+
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+
 import CONST from '@src/CONST';
+
+import lodashDebounce from 'lodash/debounce';
+import {useEffect, useRef, useState} from 'react';
+import {Linking} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
+
 import type LocationPermissionModalProps from './types';
 
 const isPermissionGranted = (status: string) => status === RESULTS.GRANTED || status === RESULTS.LIMITED;

@@ -1,12 +1,16 @@
-import React from 'react';
-import {Image, View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import type {LinkMetadata} from '@src/types/onyx/ReportAction';
+
+import React from 'react';
+import {Image, View} from 'react-native';
 
 const IMAGE_TYPES = new Set(['jpg', 'jpeg', 'png']);
 const MAX_IMAGE_HEIGHT = 180;

@@ -1,25 +1,33 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+
 import * as AgentActions from '@libs/actions/Agent';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
+
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+
+import type * as ReactNavigation from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -231,16 +239,16 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
-    it('hides contact methods, pronouns, timezone and private section for agent account', async () => {
+    it('shows contact methods and private section but hides pronouns and timezone for agent account', async () => {
         await setupUser('agent_123@expensify.ai');
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByTestId('contact-method-menu-item')).toBeNull();
+        expect(screen.getByTestId('contact-method-menu-item')).toBeDefined();
         expect(screen.queryByTestId('pronouns-menu-item')).toBeNull();
         expect(screen.queryByTestId('timezone-menu-item')).toBeNull();
-        expect(screen.queryByText('Private')).toBeNull();
+        expect(screen.getByText('Private')).toBeDefined();
     });
 
     it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {

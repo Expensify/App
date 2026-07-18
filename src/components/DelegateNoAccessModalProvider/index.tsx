@@ -1,5 +1,5 @@
 // This component is memoized by the React Compiler
-/* eslint-disable react/jsx-no-constructed-context-values */
+ 
 import React, {createContext, useContext} from 'react';
 import type {PropsWithChildren} from 'react';
 import {View} from 'react-native';
@@ -9,10 +9,19 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import {defaultDelegateNoAccessActionsContextValue, defaultDelegateNoAccessStateContextValue} from './default';
+
+
+// This component is memoized by the React Compiler
+/* eslint-disable react/jsx-no-constructed-context-values */
+import React, {createContext, useContext, useState} from 'react';
+
 import type {DelegateNoAccessActionsContextType, DelegateNoAccessStateContextType} from './types';
+
+import {defaultDelegateNoAccessActionsContextValue, defaultDelegateNoAccessStateContextValue} from './default';
 
 const DelegateNoAccessStateContext = createContext<DelegateNoAccessStateContextType>(defaultDelegateNoAccessStateContextValue);
 const DelegateNoAccessActionsContext = createContext<DelegateNoAccessActionsContextType>(defaultDelegateNoAccessActionsContextValue);

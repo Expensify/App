@@ -1,6 +1,9 @@
-import type {ParamListBase} from '@react-navigation/native';
-import React from 'react';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {ParamListBase} from '@react-navigation/native';
+
+import React from 'react';
+
 import ScreenFreezeWrapper from './ScreenFreezeWrapper';
 
 type Descriptor = {

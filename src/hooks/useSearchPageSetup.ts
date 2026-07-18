@@ -1,12 +1,16 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {useEffect} from 'react';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {useEffect} from 'react';
+
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';

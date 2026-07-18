@@ -1,5 +1,7 @@
-import {describe, expect, test} from 'bun:test';
 import type {TNode} from 'react-native-render-html';
+
+import {describe, expect, test} from 'bun:test';
+
 import resolveCanvasSize from '../src/resolveCanvasSize';
 
 function makeChartNode(attributes: TNode['attributes'], children: TNode[] = []): TNode {

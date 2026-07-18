@@ -1,16 +1,21 @@
-import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
-import React from 'react';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
+import React from 'react';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 type UserDetailsRendererProps = CustomRendererProps<TText | TPhrasing>;
 

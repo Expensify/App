@@ -1,14 +1,19 @@
-import React from 'react';
 import RenderHTML from '@components/RenderHTML';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import {getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import React from 'react';
 
 type PaymentContentProps = {
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;

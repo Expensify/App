@@ -1,13 +1,18 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 
@@ -423,14 +428,14 @@ describe('deleteAgent', () => {
         expect((personalDetailUpdate?.value as Record<string, unknown>)[TEST_ACCOUNT_ID]).toBeNull();
     });
 
-    it('failure data merges pendingAction DELETE and errors on the prompt key', () => {
+    it('failure data clears the pendingAction and merges errors on the prompt key', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
         const {failureData} = getWriteOptions();
         const promptUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`);
 
         expect(promptUpdate?.onyxMethod).toBe('merge');
-        expect(promptUpdate?.value).toMatchObject({pendingAction: 'delete'});
+        expect(promptUpdate?.value).toMatchObject({pendingAction: null});
         expect((promptUpdate?.value as Record<string, unknown>)?.errors).toBeTruthy();
     });
 
