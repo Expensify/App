@@ -39,6 +39,20 @@ export type {default as UpdateRilletSubsidiaryParams} from './UpdateRilletSubsid
 export type {default as UpdateRilletEnableNewCategoriesParams} from './UpdateRilletEnableNewCategoriesParams';
 export type {default as UpdateRilletSyncTaxRatesParams} from './UpdateRilletSyncTaxRatesParams';
 export type {default as UpdateRilletFieldMappingParams} from './UpdateRilletFieldMappingParams';
+export type {default as UpdateRilletCreditCardAccountParams} from './UpdateRilletCreditCardAccountParams';
+export type {default as UpdateRilletDefaultVendorParams} from './UpdateRilletDefaultVendorParams';
+export type {default as UpdateRilletExportDateParams} from './UpdateRilletExportDateParams';
+export type {default as UpdateRilletExporterParams} from './UpdateRilletExporterParams';
+export type {default as UpdateRilletExportToMultipleAccountsParams} from './UpdateRilletExportToMultipleAccountsParams';
+export type {default as UpdateRilletCardProgramAccountParams} from './UpdateRilletCardProgramAccountParams';
+export type {default as UpdateRilletAutoSyncParams} from './UpdateRilletAutoSyncParams';
+export type {default as UpdateRilletAccountingMethodParams} from './UpdateRilletAccountingMethodParams';
+export type {default as UpdateRilletSyncReimbursedReportsParams} from './UpdateRilletSyncReimbursedReportsParams';
+export type {default as UpdateRilletBillPaymentAccountParams} from './UpdateRilletBillPaymentAccountParams';
+export type {default as UpdateRilletSyncExpensifyCardSettlementsParams} from './UpdateRilletSyncExpensifyCardSettlementsParams';
+export type {default as UpdateRilletSettlementsAccountParams} from './UpdateRilletSettlementsAccountParams';
+export type {default as UpdateRilletSyncTravelInvoicingSettlementsParams} from './UpdateRilletSyncTravelInvoicingSettlementsParams';
+export type {default as UpdateRilletTravelInvoicingSettlementsAccountParams} from './UpdateRilletTravelInvoicingSettlementsAccountParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -106,6 +120,7 @@ export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTi
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
 export type {default as DuplicateWorkspaceParams} from './DuplicateWorkspaceParams';
 export type {default as CopyPolicySettingsParams} from './CopyPolicySettingsParams';
+export type {default as CopyPolicySettingsNotifyParams} from './CopyPolicySettingsNotifyParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
 export type {default as UpdateChatNameParams} from './UpdateChatNameParams';
 export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
@@ -420,6 +435,7 @@ export type {default as RemovePolicyCategoryItemizedReceiptsRequiredParams} from
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
+export type {default as ImportMerchantRulesSpreadsheetParams} from './ImportMerchantRulesSpreadsheet';
 export type {default as ExportMembersSpreadsheetParams} from './ExportMembersSpreadsheetParams';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
@@ -489,6 +505,7 @@ export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboard
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
 export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
+export type {default as MergeReportsParams} from './MergeReportsParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
 export type {default as AskForCorpaySignerInformationParams} from './AskForCorpaySignerInformationParams';
 export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
@@ -570,3 +587,4 @@ export type {default as SendExportFileFromConciergeParams} from './SendExportFil
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
+export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';

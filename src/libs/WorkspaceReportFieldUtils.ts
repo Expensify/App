@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import type {FormInputErrors} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
@@ -7,6 +6,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
+
+import type {ValueOf} from 'type-fest';
 
 import type {FormulaPart} from './Formula';
 

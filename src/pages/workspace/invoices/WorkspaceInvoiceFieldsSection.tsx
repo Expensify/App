@@ -1,10 +1,15 @@
-import React from 'react';
 import usePolicy from '@hooks/usePolicy';
+
 import {enablePolicyInvoiceFields} from '@libs/actions/Policy/Policy';
+
 import WorkspaceFieldsSection from '@pages/workspace/fields/WorkspaceFieldsSection';
+
 import {openPolicyInvoicesPage} from '@userActions/Policy/ReportField';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type WorkspaceInvoiceFieldsSectionProps = {
     policyID: string;

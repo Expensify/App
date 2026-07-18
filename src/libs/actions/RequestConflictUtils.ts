@@ -149,6 +149,10 @@ function reconnectCoverageFrom(request: AnyRequest): number {
     return typeof updateIDFrom === 'number' ? updateIDFrom : 0;
 }
 
+function isFullDownloadRequest(request: AnyRequest): boolean {
+    return isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) === 0;
+}
+
 /**
  * Coverage-based duplicate resolver for an incoming ReconnectApp. See the Conflict Resolution section of
  * contributingGuides/SEQUENTIAL_QUEUE.md for how coverage and the ongoing-request check decide the outcome.
@@ -354,6 +358,7 @@ export {
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,
+    isFullDownloadRequest,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,

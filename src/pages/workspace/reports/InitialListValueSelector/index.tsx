@@ -1,13 +1,18 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
     /** Currently selected value */

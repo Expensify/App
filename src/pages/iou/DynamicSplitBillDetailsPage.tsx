@@ -6,6 +6,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -39,6 +40,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
@@ -66,17 +68,18 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | OptionData>;
     if (isPolicyExpenseChat(report)) {
         participants = [
-            getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
+            getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, translate),
             getPolicyExpenseReportOption({...report, selected: true, reportID}, privateIsArchived, personalDetails, report, policy, reportAttributesDerived),
         ];
     } else {
-        participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
+        participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, translate));
     }
     const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const payeePersonalDetails = personalDetails?.[actorAccountID];
@@ -90,22 +93,38 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(
-            reportID,
+        completeSplitBill({
+            chatReportID: reportID,
             reportAction,
-            draftTransaction,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            updatedTransaction: draftTransaction,
+            sessionAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
             betas,
             personalDetails,
-            session?.email,
-        );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
+            delegateAccountID,
+            isTrackIntentUser,
+            sessionEmail: session?.email,
+        });
+    }, [
+        reportID,
+        reportAction,
+        draftTransaction,
+        session?.accountID,
+        session?.email,
+        isASAPSubmitBetaEnabled,
+        quickAction,
+        transactionViolations,
+        betas,
+        personalDetails,
+        delegateAccountID,
+        isTrackIntentUser,
+    ]);
 
     return (
         <ScreenWrapper testID="DynamicSplitBillDetailsPage">
