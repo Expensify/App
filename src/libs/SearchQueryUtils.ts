@@ -2464,13 +2464,8 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
 ): Partial<SearchAdvancedFiltersForm> {
     const update: Partial<Record<K | `${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>> = {};
     const negatedFilterKey = addNegation(baseFilterKey, true);
-    if (isFilterNegatable(baseFilterKey)) {
-        update[negatedFilterKey] = isNegated ? value : undefined;
-        update[baseFilterKey] = isNegated ? undefined : value;
-    } else {
-        update[negatedFilterKey] = undefined;
-        update[baseFilterKey] = value;
-    }
+    update[negatedFilterKey] = isNegated ? value : undefined;
+    update[baseFilterKey] = isNegated ? undefined : value;
     return update;
 }
 

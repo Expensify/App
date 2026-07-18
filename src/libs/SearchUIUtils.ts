@@ -186,7 +186,6 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
-    isFilterNegatable,
     isFilterSupported,
     isFilterNegated,
     isSearchDatePreset,
@@ -5513,11 +5512,8 @@ function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey
     value: SearchAdvancedFiltersForm[K] | undefined;
 } {
     const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as const;
-    if (!isFilterNegatable(baseFilterKey) || !values || !hasKey(values, negatedFilterKey)) {
-        return {isNegated: false, value: values?.[baseFilterKey]};
-    }
-
-    return {isNegated: true, value: values[negatedFilterKey]};
+    const negatedValue = values?.[negatedFilterKey];
+    return {isNegated: !!negatedValue, value: negatedValue ?? values?.[baseFilterKey]};
 }
 
 function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths | undefined, translate: LocalizedTranslate) {
