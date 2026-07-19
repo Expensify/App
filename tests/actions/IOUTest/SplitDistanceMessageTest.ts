@@ -148,6 +148,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
@@ -178,6 +179,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
@@ -215,6 +217,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
@@ -242,6 +245,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
@@ -267,6 +271,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
     it('does NOT add selfDM-specific transaction optimistic merge when transaction does not exist in Onyx', async () => {
         // Don't seed Onyx - transaction is absent
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: 'nonexistentTransactionID',
             transactionThreadReport,
             iouReport,
@@ -303,6 +308,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
             transactionThreadReport,
@@ -336,6 +342,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params, onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
             transactionThreadReport,
@@ -375,6 +382,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
             transactionThreadReport,
@@ -407,6 +415,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
             transactionThreadReport,

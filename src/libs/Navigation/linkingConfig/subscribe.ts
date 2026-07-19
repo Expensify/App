@@ -1,3 +1,4 @@
+import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import {markNativeShortcutFlowIfNeeded} from '@libs/NativeShortcutFlow';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -54,6 +55,14 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
 
         // Mark only after all skip/drop guards pass, so a dropped URL cannot leave a stale marker.
         markNativeShortcutFlowIfNeeded(url);
+
+        // For an unauthenticated session, a report deep link (`/r/<reportID>`) targets the Report screen,
+        // which lives in AuthScreens and is not mounted while PublicScreens is showing. Dispatching it here
+        // throws "NAVIGATE ... was not handled by any navigator". openReportFromDeepLink() already opens the
+        // public room as an anonymous user and handles navigation, so defer to it instead. See #92672.
+        if (!hasAuthToken() && url.includes(`/${ROUTES.REPORT}/`)) {
+            return;
+        }
         listener(url);
     });
     return () => subscription.remove();

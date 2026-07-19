@@ -223,6 +223,7 @@ function getOnyxTargetTransactionData({
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     targetTransactionThreadParentReportNextStep,
+    iouReportOwnerLogin,
     policy,
     policyTags,
     policyCategories,
@@ -239,6 +240,7 @@ function getOnyxTargetTransactionData({
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -283,6 +285,7 @@ function getOnyxTargetTransactionData({
             transactionID: targetTransaction.transactionID,
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
+            iouReportOwnerLogin,
             iouReportNextStep: targetTransactionThreadParentReportNextStep,
             transactionChanges: filteredTransactionChanges,
             policy,
@@ -342,6 +345,7 @@ type MergeTransactionRequestParams = {
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -370,6 +374,7 @@ function mergeTransactionRequest({
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     targetTransactionThreadParentReportNextStep,
+    iouReportOwnerLogin,
     allTransactionViolations,
     policy,
     policyTags,
@@ -422,6 +427,7 @@ function mergeTransactionRequest({
         targetTransactionThreadReport,
         targetTransactionThreadParentReport,
         targetTransactionThreadParentReportNextStep,
+        iouReportOwnerLogin,
         policy,
         policyTags,
         policyCategories,
