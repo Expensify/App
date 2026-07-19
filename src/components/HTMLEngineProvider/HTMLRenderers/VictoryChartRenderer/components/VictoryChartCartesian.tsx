@@ -1,7 +1,7 @@
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
-import type {CartesianChartData, CartesianChartProps, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
@@ -28,9 +28,6 @@ type VictoryChartCartesianProps = {
     /** When true, renders without visible chrome (used for snapshots/tests) */
     headless?: boolean;
 
-    /** Custom gesture configuration forwarded to CartesianChart */
-    customGestures?: CartesianChartProps['customGestures'];
-
     /** Callback invoked with render args on each chart render pass */
     onRenderArgs?: (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => void;
 };
@@ -39,7 +36,7 @@ type VictoryChartCartesianProps = {
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
-function VictoryChartCartesian({explicitSize, headless, customGestures, onRenderArgs}: VictoryChartCartesianProps) {
+function VictoryChartCartesian({explicitSize, headless, onRenderArgs}: VictoryChartCartesianProps) {
     const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
@@ -68,7 +65,6 @@ function VictoryChartCartesian({explicitSize, headless, customGestures, onRender
             domain={domain}
             domainPadding={domainPadding}
             padding={padding}
-            customGestures={customGestures}
             {...getChartLayoutModeProps(explicitSize, headless)}
             renderOutside={(renderArgs) => {
                 const overlayContent = (

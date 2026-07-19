@@ -11,6 +11,7 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {StyleSheet} from 'react-native';
+import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 
 import VictoryChartCartesian from './VictoryChartCartesian';
@@ -47,29 +48,28 @@ function VictoryChartCartesianInteractive() {
     }));
 
     return (
-        <Animated.View
-            style={[styles.container, cursorStyle]}
-            onLayout={updateChartWidth}
-        >
-            <VictoryChartCartesian
-                customGestures={customGestures}
-                onRenderArgs={syncBarPositions}
-            />
-            {!!activeTooltipData && hasTooltipLabels && chartWidth > 0 && (
-                <Animated.View
-                    style={tooltipWrapperStyle}
-                    pointerEvents="none"
-                >
-                    <ChartTooltip
-                        label={activeTooltipData.label}
-                        amount={activeTooltipData.amount}
-                        percentage={activeTooltipData.percentage}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                </Animated.View>
-            )}
-        </Animated.View>
+        <GestureDetector gesture={customGestures}>
+            <Animated.View
+                style={[styles.container, cursorStyle]}
+                onLayout={updateChartWidth}
+            >
+                <VictoryChartCartesian onRenderArgs={syncBarPositions} />
+                {!!activeTooltipData && hasTooltipLabels && chartWidth > 0 && (
+                    <Animated.View
+                        style={tooltipWrapperStyle}
+                        pointerEvents="none"
+                    >
+                        <ChartTooltip
+                            label={activeTooltipData.label}
+                            amount={activeTooltipData.amount}
+                            percentage={activeTooltipData.percentage}
+                            chartWidth={chartWidth}
+                            initialTooltipPosition={initialTooltipPosition}
+                        />
+                    </Animated.View>
+                )}
+            </Animated.View>
+        </GestureDetector>
     );
 }
 
