@@ -1,7 +1,5 @@
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
@@ -20,26 +18,17 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import * as FormActions from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    ImportedSpreadsheetMemberData,
-    InvitedEmailsToAccountIDs,
-    PersonalDetailsList,
-    Policy,
-    PolicyEmployee,
-    PolicyOwnershipChangeChecks,
-    Report,
-    ReportAction,
-    ReportActions,
-} from '@src/types/onyx';
+import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
@@ -47,8 +36,15 @@ import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {createPolicyExpenseChats} from './Policy';
+
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import type {CurrentUser} from './Policy';
+
+import {createPolicyExpenseChats} from './Policy';
 
 type WorkspaceMembersRoleData = {
     email: string;
@@ -815,16 +811,14 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
+    reportActionsList: OnyxCollection<ReportActions> | undefined,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -836,16 +830,36 @@ function buildAddMembersToWorkspaceOnyxData(
     // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
     const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
 
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs, personalDetailsList);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
-
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
     const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, hasPolicyAdminsRoomsAccess(effectiveRole) ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
+    const doesPersonalDetailExistByAccountID: Record<number, boolean> = {};
+    const newPersonalDetailAccountIDs = new Set<number>();
+    for (const update of newPersonalDetailsOnyxData.optimisticData ?? []) {
+        if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST) {
+            continue;
+        }
+
+        for (const accountID of Object.keys(update.value ?? {})) {
+            newPersonalDetailAccountIDs.add(Number(accountID));
+        }
+    }
+
+    for (const accountID of accountIDs) {
+        doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
+    }
+
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, currentUser, reportActionsList, undefined, policyExpenseChatNotificationPreference);
+    const membersChats = createPolicyExpenseChats({
+        policyID,
+        invitedEmailsToAccountIDs,
+        currentUser,
+        reportActionsList,
+        notificationPreference: policyExpenseChatNotificationPreference,
+        doesPersonalDetailExistByAccountID,
+    });
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -951,12 +965,11 @@ function buildAddMembersToWorkspaceOnyxData(
  */
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     welcomeNote: string,
     policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
@@ -969,15 +982,13 @@ function addMembersToWorkspace(
     // the effective role so the optimistic data and API params stay in sync.
     const {effectiveRole, optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
+        newPersonalDetailsOnyxData,
         policy,
         policyMemberAccountIDs,
         role,
-        formatPhoneNumber,
-        personalDetailsList,
         currentUser,
-        approverEmail,
-        undefined,
         reportActionsList,
+        approverEmail,
     );
 
     const params: AddMembersToWorkspaceParams = {

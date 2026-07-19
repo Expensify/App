@@ -1,6 +1,8 @@
-import Onyx from 'react-native-onyx';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * When a single transaction report is displayed in RHP it may need extra context in case user navigated to it from MoneyRequestReportView or Reports
@@ -16,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  */
 
 let lastSetIDs: string[] | null = null;
+let lastSetSnapshotHash: number | null = null;
 let lastSetDescriptors: Record<string, TransactionThreadNavigationDescriptor> | null = null;
 
 function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDescriptor> | null, b: Record<string, TransactionThreadNavigationDescriptor> | null) {
@@ -30,27 +33,48 @@ function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDes
         return false;
     }
     // Compare the identity-bearing fields only; the transaction object is keyed by transactionID, so two
-    // descriptors with the same reportID/threadReportID/transactionID describe the same sibling.
+    // descriptors with the same reportID/childReportID/transactionID describe the same sibling.
     return aKeys.every((key) => {
         const next = b[key];
-        return !!next && a[key].reportID === next.reportID && a[key].threadReportID === next.threadReportID && a[key].transaction?.transactionID === next.transaction?.transactionID;
+        return (
+            !!next &&
+            a[key].reportID === next.reportID &&
+            a[key].reportAction?.childReportID === next.reportAction?.childReportID &&
+            a[key].transaction?.transactionID === next.transaction?.transactionID
+        );
     });
 }
 
 /**
- * Idempotent: skips the Onyx write when the IDs and the descriptor map haven't changed.
+ * Idempotent: skips the Onyx write when the IDs, snapshot hash, and descriptor map haven't changed.
  * This lets callers (e.g. useEffect in MoneyRequestReportTransactionList) fire
  * freely without worrying about referential equality of the input array.
+ *
+ * When the navigation list originates from a search, pass the search snapshot hash so the
+ * transaction RHP carousel can fall back to snapshot data for transactions that aren't in the
+ * live collection yet (e.g. an approver opening an expense from the Spend page).
+ *
+ * Snapshot-backed flows (e.g. Home "Recently added") can additionally pass a map of transactionID -> sibling
+ * descriptor so the carousel resolves (and lazily creates) each sibling's thread on demand.
  */
-function setActiveTransactionIDs(ids: string[], siblingDescriptorsByTransactionID?: Record<string, TransactionThreadNavigationDescriptor>) {
+function setActiveTransactionIDs(ids: string[], snapshotHash?: number, siblingDescriptorsByTransactionID?: Record<string, TransactionThreadNavigationDescriptor>) {
+    const nextSnapshotHash = snapshotHash ?? null;
     const nextDescriptors = siblingDescriptorsByTransactionID ?? null;
-    const sameIDs = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
-    if (sameIDs && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors)) {
+    // The comparison is positional on purpose: the array order defines the carousel's prev/next order,
+    // so the same IDs in a different order (e.g. after the source list is re-sorted) are a real change
+    // and must be written to Onyx.
+    const areIDsUnchanged = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
+    if (areIDsUnchanged && lastSetSnapshotHash === nextSnapshotHash && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors)) {
         return Promise.resolve();
     }
     lastSetIDs = ids;
+    lastSetSnapshotHash = nextSnapshotHash;
     lastSetDescriptors = nextDescriptors;
-    return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextDescriptors)]);
+    return Promise.all([
+        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids),
+        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH, nextSnapshotHash),
+        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextDescriptors),
+    ]);
 }
 
 /**
@@ -64,8 +88,13 @@ function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<s
 
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
+    lastSetSnapshotHash = null;
     lastSetDescriptors = null;
-    return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, null)]);
+    return Promise.all([
+        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null),
+        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH, null),
+        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, null),
+    ]);
 }
 
 export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs};

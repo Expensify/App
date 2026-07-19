@@ -1,12 +1,19 @@
-import React, {Activity, useState} from 'react';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
 import variables from '@styles/variables';
+
+import React, {Activity, useState} from 'react';
+
 import ListFilterWrapper from './ListFilterViewWrapper';
 
 type SingleSelectItem<T> = {
@@ -36,7 +43,11 @@ type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefi
     hasHeader?: boolean;
 };
 
-function SingleSelect<T extends string>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function SingleSelectImpl({
     value,
     items,
     isSearchable,
@@ -50,28 +61,28 @@ function SingleSelect<T extends string>({
     footer,
     allowDeselect,
     onChange,
-}: SingleSelectProps<T>) {
+}: SingleSelectProps<string>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
+    // Snapshot the value selected when the filter first opened so it can be floated to the top of a long list on
+    // first render without repinning the row when the selection is changed afterwards. moveInitialSelectionToTop gates
+    // on the list length, so it only pins once the list is long enough to require scrolling.
+    const initialSelectedValues = useInitialValue(() => (value ? [value.value] : []));
+    const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
+
     const {options, noResultsFound} = (() => {
-        // If the selection is searchable, we push the initially selected item into its own section and display it at the top
         if (isSearchable) {
             const searchLower = debouncedSearchTerm.toLowerCase();
-            const initiallySelectedOption =
-                value?.text.toLowerCase().includes(searchLower) || value?.searchableText?.toLowerCase().includes(searchLower)
-                    ? [{text: value.text, keyForList: value.value, isSelected: selectedItem?.value === value.value}]
-                    : [];
-            const remainingOptions = items
-                .filter((item) => item.value !== value?.value && (item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)))
+            const allOptions = orderedItems
+                .filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
                 .map((item) => ({
                     text: item.text,
                     keyForList: item.value,
                     isSelected: selectedItem?.value === item.value,
                 }));
-            const allOptions = [...initiallySelectedOption, ...remainingOptions];
             const isEmpty = allOptions.length === 0;
             return {
                 options: allOptions,
@@ -80,7 +91,7 @@ function SingleSelect<T extends string>({
         }
 
         return {
-            options: items.map((item) => ({
+            options: orderedItems.map((item) => ({
                 text: item.text,
                 keyForList: item.value,
                 isSelected: item.value === selectedItem?.value,
@@ -89,7 +100,7 @@ function SingleSelect<T extends string>({
         };
     })();
 
-    const updateSelectedItem = (item: ListItem<T>) => {
+    const updateSelectedItem = (item: ListItem) => {
         const newItem = items.find((i) => i.value === item.keyForList);
         if (!newItem) {
             return;
@@ -120,7 +131,7 @@ function SingleSelect<T extends string>({
             hasHeader={hasHeader}
             hasTitle={hasTitle}
             isSearchable={isSearchable}
-            itemHeight={itemHeight ?? variables.optionRowHeight}
+            itemHeight={itemHeight ?? variables.optionRowHeightCompact}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList
@@ -132,9 +143,9 @@ function SingleSelect<T extends string>({
                     style={{
                         contentContainerStyle: [styles.pb0],
                         ...selectionListStyle,
-                        listItemWrapperStyle: [itemHeight !== undefined && {minHeight: itemHeight}, selectionListStyle?.listItemWrapperStyle],
+                        listItemWrapperStyle: [{minHeight: itemHeight ?? variables.optionRowHeightCompact}, selectionListStyle?.listItemWrapperStyle],
                     }}
-                    shouldUpdateFocusedIndex={isSearchable}
+                    shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
                     footerContent={footer}
@@ -142,6 +153,10 @@ function SingleSelect<T extends string>({
             </Activity>
         </ListFilterWrapper>
     );
+}
+
+function SingleSelect<T extends string>(props: SingleSelectProps<T>) {
+    return <SingleSelectImpl {...(props as SingleSelectProps<string>)} />;
 }
 
 export type {SingleSelectItem};

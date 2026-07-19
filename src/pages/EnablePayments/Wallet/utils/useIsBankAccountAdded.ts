@@ -1,5 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
+
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccount} from '@src/types/onyx';

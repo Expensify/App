@@ -1,15 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import StatsCounter from '@libs/actions/StatsCounter';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 

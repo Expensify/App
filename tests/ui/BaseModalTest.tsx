@@ -1,7 +1,10 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 describe('BaseModal', () => {
     afterEach(() => {

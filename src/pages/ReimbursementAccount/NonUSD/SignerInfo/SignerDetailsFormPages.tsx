@@ -1,15 +1,21 @@
-import React, {useCallback} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useCallback} from 'react';
+
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
 import DateOfBirth from './subSteps/DateOfBirth';

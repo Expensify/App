@@ -1,17 +1,22 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {Pressable} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Pressable} from 'react-native';
 
 function GenericPressable({
     children,

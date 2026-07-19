@@ -1,16 +1,22 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {setTransactionReport} from '@libs/actions/Transaction';
+
 import IOURequestStepReportWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepReport';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import {createPolicyExpenseChat, createRandomReport} from '../../utils/collections/reports';
 import {signInWithTestUser} from '../../utils/TestHelper';
@@ -85,14 +91,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     comment: {
         attendees: [
             {
-                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
-                login: ACCOUNT_LOGIN,
-                reportID: REPORT_ID_1,
-                selected: true,
-                text: ACCOUNT_LOGIN,
             },
         ],
     },

@@ -1,7 +1,10 @@
-import React from 'react';
-import type {BlurEvent} from 'react-native';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type {BlurEvent} from 'react-native';
+
+import React from 'react';
+
 import SplitAmountInput from './SplitAmountInput';
 import SplitPercentageInput from './SplitPercentageInput';
 

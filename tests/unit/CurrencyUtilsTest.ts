@@ -1,10 +1,13 @@
 import type {RenderAPI} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
 import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import initCurrencyListContext from '../utils/initCurrencyListContext';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:

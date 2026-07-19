@@ -1,5 +1,6 @@
-import type {RefObject} from 'react';
 import type {ComposerRef} from '@components/Composer/types';
+
+import type {RefObject} from 'react';
 
 type UpdateNativeTextInputValueProps = {
     /** The text to update */

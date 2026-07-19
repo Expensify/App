@@ -1,11 +1,14 @@
-import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
-import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
+
+import {md5, Str} from 'expensify-common';
+
 import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
-import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
 import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
+
+import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
+import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
+import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -13,6 +16,11 @@ type AvatarSource = IconAsset | string;
 
 const DEFAULT_AVATAR_URL_PATTERNS = ['images/avatars/avatar_', 'images/avatars/default-avatar_', 'images/avatars/user/default'];
 const LETTER_AVATAR_NAME_REGEX = /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]\.png$/;
+
+/** Folds U+00C0-U+017F to the ASCII base letter; '.' entries have no fold. Index = codepoint - 0xC0. */
+const LETTER_AVATAR_ACCENT_FOLD_TABLE =
+    // cspell:disable-next-line
+    'AAAAAAACEEEEIIIIDNOOOOO.OUUUUYTSAAAAAAACEEEEIIIIDNOOOOO.OUUUUYTYAAAAAACCCCCCCCDDDDEEEEEEEEEEGGGGGGGGHHHHIIIIIIIIIIIIJJKKKLLLLLLLLLLNNNNNNNNNOOOOOOOORRRRRRSSSSSSSSTTTTTTUUUUUUUUUUUUWWYYYZZZZZZS';
 
 /**
  * Avatar naming convention
@@ -78,18 +86,6 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
 }
 
 /**
- * Returns the colors for a letter-avatar scheme key, falling back to the default scheme when the key is missing or unknown.
- *
- * @param avatarSchemeKey - A scheme key, e.g. "blue100"
- */
-function getLetterAvatarScheme(avatarSchemeKey?: string): LetterAvatarColorStyle {
-    if (avatarSchemeKey && isLetterAvatarSchemeKey(avatarSchemeKey)) {
-        return LETTER_AVATAR_SCHEMES[avatarSchemeKey];
-    }
-    return DEFAULT_LETTER_AVATAR_SCHEME;
-}
-
-/**
  * Returns the default avatar asset associated with the given accountID.
  * Special accounts (Concierge, Notifications) have dedicated avatars.
  * Other accounts get an avatar from the default avatar set based on their accountID hash bucket.
@@ -101,10 +97,10 @@ function getLetterAvatarScheme(avatarSchemeKey?: string): LetterAvatarColorStyle
  * @returns The avatar icon asset (SVG component), or undefined if no default avatar matches
  */
 function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL, defaultAvatars}: DefaultAvatarArgsType & DefaultAvatarsType): IconAsset | undefined {
-    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE || accountEmail === CONST.EMAIL.CONCIERGE || avatarURL === CONST.CONCIERGE_ICON_URL) {
         return defaultAvatars.ConciergeAvatar;
     }
-    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS || accountEmail === CONST.EMAIL.NOTIFICATIONS || avatarURL === CONST.NOTIFICATIONS_ICON_URL) {
         return defaultAvatars.NotificationsAvatar;
     }
 
@@ -138,8 +134,18 @@ function getDefaultAvatarName({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail
  *
  */
 function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): string {
-    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE || accountEmail === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
+    }
+    if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS || accountEmail === CONST.EMAIL.NOTIFICATIONS) {
+        return CONST.NOTIFICATIONS_ICON_URL;
+    }
+
+    // The local default has no name to read initials from, so they come from the email. The backend emits
+    // name-based initials on the avatar URL, which the client parses instead of recomputing here.
+    const letterAvatarURL = getLetterAvatarURL(accountID, '', '', accountEmail ?? '');
+    if (letterAvatarURL) {
+        return letterAvatarURL;
     }
 
     return USER_AVATARS.getURL(getDefaultAvatarName({accountID, accountEmail, avatarURL})) ?? '';
@@ -176,6 +182,9 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
         if (avatarSource === CONST.CONCIERGE_ICON_URL_2021 || avatarSource === CONST.CONCIERGE_ICON_URL) {
             return true;
         }
+        if (avatarSource === CONST.NOTIFICATIONS_ICON_URL) {
+            return true;
+        }
     }
 
     return false;
@@ -201,6 +210,112 @@ function isCatalogAvatar(avatarSource?: AvatarSource): avatarSource is string {
  */
 function isLetterAvatar(originalFileName?: string): boolean {
     return !!(originalFileName && LETTER_AVATAR_NAME_REGEX.test(originalFileName));
+}
+
+/**
+ * Determines if an avatar source is a backend-generated letter-avatar URL.
+ * These URLs are served for photo-less users and contain the generated letter path segment.
+ *
+ * @param avatarSource - The avatar source to check
+ * @returns True if the source is a string pointing to a generated letter avatar
+ */
+function isGeneratedLetterAvatarURL(avatarSource?: AvatarSource): boolean {
+    return typeof avatarSource === 'string' && avatarSource.includes(CONST.GENERATED_LETTER_AVATAR_PATH);
+}
+
+/**
+ * Returns the first alphanumeric character of a string uppercased, folding Latin accented letters
+ * to their ASCII base letter, or '' when the string yields no initial.
+ *
+ * @param name - The string to read the first character from
+ */
+function firstLetterAvatarCharacter(name: string): string {
+    for (const character of name) {
+        const codePoint = character.codePointAt(0) ?? 0;
+        if (codePoint < 0x80) {
+            if (/[a-z0-9]/i.test(character)) {
+                return character.toUpperCase();
+            }
+            continue;
+        }
+        // Latin accents fold to their ASCII base letter; any other non-ASCII codepoint contributes no
+        // initial rather than substituting a later ASCII letter.
+        if (codePoint >= 0xc0 && codePoint <= 0x17f) {
+            const folded = LETTER_AVATAR_ACCENT_FOLD_TABLE.charAt(codePoint - 0xc0);
+            return folded === '.' ? '' : folded;
+        }
+        return '';
+    }
+    return '';
+}
+
+/**
+ * Builds the generated letter-avatar URL for an account from its name and login.
+ * Initials come from the first alphanumeric character of the first and last name, falling back to the login
+ * for non-SMS logins. The color key is picked by hashing the login, or by accountID modulo when there is no login.
+ *
+ * @param accountID - The user's account ID
+ * @param firstName - The user's first name
+ * @param lastName - The user's last name
+ * @param login - The user's login (email or SMS), or '' when unknown
+ * @returns The generated letter-avatar URL, or '' when no letter avatar applies
+ */
+function getLetterAvatarURL(accountID: number, firstName: string, lastName: string, login: string): string {
+    // The displayed login has the merge prefix stripped, so derive the initial and color from the
+    // stripped form to match what users see. This is a no-op for non-merged logins.
+    const normalizedLogin = login.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    if (
+        accountID === CONST.ACCOUNT_ID.CONCIERGE ||
+        accountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
+        normalizedLogin === CONST.EMAIL.CONCIERGE ||
+        normalizedLogin === CONST.EMAIL.NOTIFICATIONS
+    ) {
+        return '';
+    }
+
+    let initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
+    // Only a real email seeds the initial. Phone numbers (raw or @expensify.sms) fall back to the illustrated default.
+    if (initials === '' && !normalizedLogin.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(normalizedLogin)) {
+        initials = firstLetterAvatarCharacter(normalizedLogin);
+    }
+    if (initials === '') {
+        return '';
+    }
+
+    const colorIndex = normalizedLogin !== '' ? parseInt(md5(normalizedLogin).substring(0, 4), 16) % LETTER_AVATAR_COLOR_KEYS.length : accountID % LETTER_AVATAR_COLOR_KEYS.length;
+    const colorKey = LETTER_AVATAR_COLOR_KEYS.at(colorIndex) ?? LETTER_AVATAR_COLOR_KEYS.at(0);
+    return `${CONST.CLOUDFRONT_URL}${CONST.GENERATED_LETTER_AVATAR_PATH}v1/${colorKey}/${initials}.png`;
+}
+
+/**
+ * Parses a generated letter-avatar URL into its color scheme and initials.
+ * The last two path segments before the extension are the color key and the initials.
+ *
+ * @param source - The avatar source to parse
+ * @returns The colors and initials, or undefined when the source is not a generated letter-avatar URL
+ */
+function parseLetterAvatarURL(source: AvatarSource | undefined): {colors: LetterAvatarColorStyle; initials: string} | undefined {
+    if (typeof source !== 'string' || !isGeneratedLetterAvatarURL(source)) {
+        return undefined;
+    }
+
+    const fileName = source.split('?').at(0)?.split('/').slice(-2) ?? [];
+    const colorKey = fileName.at(0);
+    const rawInitials = fileName.at(1);
+    if (colorKey === undefined || rawInitials === undefined) {
+        return undefined;
+    }
+
+    const initials = rawInitials
+        .replace(/\.png$/i, '')
+        .replace(/_128$/, '')
+        .toUpperCase();
+    if (initials === '') {
+        return undefined;
+    }
+
+    const colors = isLetterAvatarSchemeKey(colorKey) ? LETTER_AVATAR_SCHEMES[colorKey] : DEFAULT_LETTER_AVATAR_SCHEME;
+    return {colors, initials};
 }
 
 /**
@@ -298,6 +413,11 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
         return source;
     }
 
+    // Generated letter avatars are published at a single size, so they have no _SIZE variants.
+    if (isGeneratedLetterAvatarURL(source)) {
+        return source;
+    }
+
     // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
     const lastPeriodIndex = source.lastIndexOf('.');
     if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
@@ -312,12 +432,14 @@ export {
     getDefaultAvatar,
     getDefaultAvatarName,
     getDefaultAvatarURL,
-    getLetterAvatarScheme,
     getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,
+    getLetterAvatarURL,
+    parseLetterAvatarURL,
     isCatalogAvatar,
     isDefaultAvatar,
+    isGeneratedLetterAvatarURL,
     isLetterAvatar,
 };
 export type {AvatarSource};
