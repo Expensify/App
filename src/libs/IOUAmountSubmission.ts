@@ -44,6 +44,7 @@ import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
 import Permissions from './Permissions';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
@@ -54,6 +55,7 @@ type SubmitAmountArgs = {
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isDraftChatReport: boolean | undefined;
     selectedCurrency: string;
     decimals: number;
@@ -536,8 +538,10 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         delegateAccountID,
         policyRecentlyUsedCurrencies,
         allReports,
+        allPersonalDetails,
         navigateBack,
         isTrackIntentUser,
+        reportPolicyTags,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -572,6 +576,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         transactionID,
         transactionThreadReport: report,
         parentReport,
+        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
         parentReportNextStep,
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,
@@ -587,6 +592,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         isASAPSubmitBetaEnabled,
         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         delegateAccountID,
+        reportPolicyTags,
         isTrackIntentUser,
     });
     navigateBack();

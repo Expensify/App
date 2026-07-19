@@ -101,6 +101,7 @@ function SubmitDetailsPage({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -305,6 +306,7 @@ function SubmitDetailsPage({
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
                 introSelected,
+                conciergeChat,
                 quickAction,
                 recentWaypoints,
                 betas,
