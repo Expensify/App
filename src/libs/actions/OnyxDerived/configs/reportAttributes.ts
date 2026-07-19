@@ -3,6 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {
@@ -182,6 +183,7 @@ const isActionable = (childReport: OnyxEntry<Report>) => isOpenReport(childRepor
 // transactionViolations so this works even when owner data is absent (e.g. masked Onyx exports).
 const needsViolationFix = (
     childReport: OnyxEntry<Report>,
+    childReportOwnerLogin: string | undefined,
     policies: OnyxCollection<Policy>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserAccountID: number,
@@ -191,7 +193,7 @@ const needsViolationFix = (
         return false;
     }
     const childPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${childReport.policyID}`];
-    return hasViolations(childReport.reportID, transactionViolations, currentUserAccountID, currentUserEmail, true, undefined, childReport, childPolicy);
+    return hasViolations(childReport.reportID, transactionViolations, currentUserAccountID, currentUserEmail, true, undefined, childReport, childReportOwnerLogin, childPolicy);
 };
 
 /**
@@ -586,7 +588,14 @@ export default createOnyxDerivedValueConfig({
             actionTargetReportActionID =
                 getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
                 getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
-                    needsViolationFix(childReport, policies, transactionViolations, currentUserAccountID, currentUserEmail),
+                    needsViolationFix(
+                        childReport,
+                        getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
+                        policies,
+                        transactionViolations,
+                        currentUserAccountID,
+                        currentUserEmail,
+                    ),
                 ) ??
                 getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
                 actionTargetReportActionID;
