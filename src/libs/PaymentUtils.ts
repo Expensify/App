@@ -335,8 +335,16 @@ function getActivePaymentType(
 
 /**
  * Get the last 4 digits of a bank account used for payment.
+ *
+ * @param accountNumber - Masked account number stored on the payment action itself. It is the only viewer-independent
+ * source, so it wins over any local lookup: the payer's account is not in every viewer's `bankAccountList`, and
+ * falling back to the policy account would show a different account to different people for the same payment.
  */
-function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
+function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>, accountNumber?: string): string {
+    if (accountNumber) {
+        return accountNumber.slice(-4);
+    }
+
     const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
 
     if (bankAccount?.accountData?.accountNumber) {
