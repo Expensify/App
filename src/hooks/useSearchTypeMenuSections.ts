@@ -1,13 +1,19 @@
+import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
+import type {Policy, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Session} from '@src/types/onyx';
+
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -35,15 +41,13 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
+        areWorkflowsEnabled: policy.areWorkflowsEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
-
-const isTrackIntentUserSelector = (introSelected: OnyxEntry<IntroSelected>) =>
-    introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
 
 type UseSearchTypeMenuSectionsParams = {
     hash?: number;
@@ -55,9 +59,13 @@ type UseSearchTypeMenuSectionsParams = {
 
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
- * currently focused search, based on the hash
+ * currently focused search, based on the hash.
+ *
+ * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
+ * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
+ * reliably, so this hook never depends on a navigation context itself.
  */
-const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
+const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams, isScreenFocused = true) => {
     const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
@@ -69,6 +77,10 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
+    // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
+    // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
+    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -112,6 +124,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 defaultExpensifyCard,
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
+                hasReportAwaitingApproval,
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -124,6 +137,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             isOffline,
             draftTransactionIDs,
             isTrackIntentUser,
+            hasReportAwaitingApproval,
         ],
     );
 
@@ -168,9 +182,12 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         return -1;
     }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
 
+    const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
+
     return {
         typeMenuSections,
         activeItemIndex,
+        activeKey,
     };
 };
 

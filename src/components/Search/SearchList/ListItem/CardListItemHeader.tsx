@@ -1,23 +1,29 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionCardGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionCardGroupListItemType} from './types';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
@@ -51,7 +57,11 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function CardListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function CardListItemHeaderImpl({
     card: cardItem,
     onCheckboxPress,
     isDisabled,
@@ -62,17 +72,35 @@ function CardListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
     isExpanded,
-}: CardListItemHeaderProps<TItem>) {
+}: CardListItemHeaderProps<ListItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(cardItem));
+    const formattedDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardItem, translate}));
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
+            >
+                <UserDetailsTooltip accountID={cardItem.accountID}>
+                    <View>
+                        <ReportActionAvatars
+                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                            subscriptAvatarBorderColor={backgroundColor}
+                            noRightMarginOnSubscriptContainer
+                            accountIDs={[cardItem.accountID]}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD}
@@ -126,7 +154,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(cardItem as ListItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
@@ -155,25 +183,7 @@ function CardListItemHeader<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && (
-                        <>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
-                                <UserDetailsTooltip accountID={cardItem.accountID}>
-                                    <View>
-                                        <ReportActionAvatars
-                                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                                            subscriptAvatarBorderColor={backgroundColor}
-                                            noRightMarginOnSubscriptContainer
-                                            accountIDs={[cardItem.accountID]}
-                                            size={CONST.AVATAR_SIZE.SMALL}
-                                        />
-                                    </View>
-                                </UserDetailsTooltip>
-                            </View>
-
-                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
-                        </>
-                    )}
+                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
@@ -192,6 +202,10 @@ function CardListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     );
+}
+
+function CardListItemHeader<TItem extends ListItem>(props: CardListItemHeaderProps<TItem>) {
+    return <CardListItemHeaderImpl {...(props as CardListItemHeaderProps<ListItem>)} />;
 }
 
 export default CardListItemHeader;

@@ -1,4 +1,3 @@
-import React from 'react';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {
@@ -14,11 +13,16 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
+
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+
 import variables from '@styles/variables';
+
 import {authorizeTransaction, denyTransaction, fireAndForgetDenyTransaction} from '@userActions/MultifactorAuthentication';
+
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type Payload = {
     transactionID: string;
@@ -100,7 +104,7 @@ const AlreadyReviewedFailureScreen = createScreenWithDefaults(
     'AlreadyReviewedFailureScreen',
 );
 
-export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen, AlreadyReviewedFailureScreen};
+export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen};
 
 export default {
     // Allowed methods are hardcoded here; keep in sync with allowedAuthenticationMethods in useNavigateTo3DSAuthorizationChallenge.
@@ -116,7 +120,6 @@ export default {
 
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
-    screen: SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION,
     successScreen: <ApprovedTransactionSuccessScreen />,
     defaultClientFailureScreen: <ApproveTransactionClientFailureScreen />,
     defaultServerFailureScreen: <ApproveTransactionServerFailureScreen />,

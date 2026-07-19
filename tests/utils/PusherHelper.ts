@@ -1,9 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import Pusher from '@libs/Pusher';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
 

@@ -1,14 +1,18 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
 
 type MonthPickerModalProps = {
     /** Whether the modal is visible */
@@ -22,9 +26,12 @@ type MonthPickerModalProps = {
 
     /** Function to call when the user closes the month picker */
     onClose?: () => void;
+
+    /** Whether RIGHT_DOCKED modal should keep backdrop in narrow pane context */
+    shouldEnableBackdropInNarrowPane?: boolean;
 };
 
-function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMonthChange, onClose}: MonthPickerModalProps) {
+function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
@@ -66,6 +73,7 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
             shouldHandleNavigationBack
             shouldUseCustomBackdrop
             onBackdropPress={onClose}
+            shouldKeepRightDockedBackdropInNarrowPane={shouldEnableBackdropInNarrowPane}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper

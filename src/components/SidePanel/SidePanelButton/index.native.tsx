@@ -1,17 +1,22 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+
 import type SidePanelButtonProps from './types';
 
 function SidePanelButton({style}: SidePanelButtonProps) {

@@ -1,8 +1,11 @@
 import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+
 import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
+
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
 import {getAllTransactions} from './index';
 
 /**
@@ -39,14 +42,18 @@ function handleNavigateAfterExpenseCreate({
     transactionID,
     isFromGlobalCreate,
     isInvoice,
+    shouldAddPendingNewTransactionIDs = false,
+    shouldNavigate = true,
 }: {
     activeReportID?: string;
     transactionID?: string;
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
+    shouldAddPendingNewTransactionIDs?: boolean;
+    shouldNavigate?: boolean;
 }) {
     const hasMultipleTransactions = Object.values(getAllTransactions()).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
-    navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions});
+    navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions, shouldAddPendingNewTransactionIDs, shouldNavigate});
 }
 
 export {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded};

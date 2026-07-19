@@ -1,15 +1,22 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnboardingRHPVariant} from '@src/types/onyx';
+import type {Route} from '@src/ROUTES';
+import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {setDisableDismissOnEscape} from './actions/Modal';
+import SidePanelActions from './actions/SidePanel';
+import {setOnboardingRHPVariant} from './actions/Welcome';
+import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
 Onyx.connectWithoutView({
@@ -27,8 +34,8 @@ Onyx.connectWithoutView({
 function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
-    archivedReportsIdSet: ArchivedReportsIDSet,
+    conciergeReportID: string | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -43,7 +50,7 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, archivedReportsIdSet);
+    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, reportNameValuePairs);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
@@ -58,8 +65,8 @@ function getReportIDAfterOnboarding(
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
-    archivedReportsIdSet: ArchivedReportsIDSet,
+    conciergeReportID: string | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -86,14 +93,14 @@ function navigateAfterOnboarding(
         isSmallScreenWidth,
         canUseDefaultRooms,
         conciergeReportID,
-        archivedReportsIdSet,
+        reportNameValuePairs,
         onboardingPolicyID,
         onboardingAdminsChatReportID,
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    } else {
+    } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME);
     }
@@ -102,8 +109,8 @@ function navigateAfterOnboarding(
 function navigateAfterOnboardingWithMicrotaskQueue(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
-    archivedReportsIdSet: ArchivedReportsIDSet,
+    conciergeReportID: string | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -115,7 +122,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             canUseDefaultRooms,
             conciergeReportID,
-            archivedReportsIdSet,
+            reportNameValuePairs,
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
@@ -124,4 +131,33 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     });
 }
 
-export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue};
+/**
+ * After creating or joining a Submit workspace during onboarding,
+ * navigate to Workspace > Categories with the side panel open so
+ * the #admins room is visible in Concierge Anywhere.
+ */
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
+    setDisableDismissOnEscape(false);
+
+    if (!policyID) {
+        Navigation.navigate(ROUTES.HOME);
+        return;
+    }
+
+    setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
+
+    const categoriesRoute = ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID);
+    const backToRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACES_LIST.route;
+    Navigation.navigate(`${categoriesRoute}?backTo=${encodeURIComponent(backToRoute)}` as Route);
+
+    SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
+}
+
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
+    Navigation.dismissModal();
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+    });
+}
+
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};

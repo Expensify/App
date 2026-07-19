@@ -1,5 +1,7 @@
-import {useState} from 'react';
 import type {SetStateAction} from 'react';
+
+import {useState} from 'react';
+
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
@@ -60,6 +62,8 @@ type SortingMethods<ColumnKey extends string = string> = {
 type UseSortingProps<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
     initialSortColumn?: ColumnKey;
+    narrowLayoutSortColumn?: ColumnKey;
+    shouldUseNarrowTableLayout?: boolean;
 };
 
 /**
@@ -74,6 +78,30 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
 };
 
 /**
+ * Resolves the sorting configuration that should actually be applied, forcing `narrowLayoutSortColumn`
+ * when the table is in narrow layout.
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useMemo` callback) because
+ * OXC's React Compiler currently fails to compile a component/hook when a generic type expression
+ * referencing the function's own type parameters (e.g. `satisfies ActiveSorting<ColumnKey>`) appears
+ * inside a nested closure. That bailout is silent (no build warning) and disables automatic memoization
+ * for the entire file.
+ *
+ * @template ColumnKey - The type of column keys.
+ */
+function resolveActiveSorting<ColumnKey extends string = string>(
+    shouldUseNarrowTableLayout: boolean | undefined,
+    narrowLayoutSortColumn: ColumnKey | undefined,
+    userSorting: ActiveSorting<ColumnKey>,
+): ActiveSorting<ColumnKey> {
+    if (shouldUseNarrowTableLayout && narrowLayoutSortColumn) {
+        return {columnKey: narrowLayoutSortColumn, order: 'asc'};
+    }
+
+    return userSorting;
+}
+
+/**
  * Provides functionality to sort table data.
  *
  * @template T - The type of items in the data array.
@@ -82,14 +110,21 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
  * @param initialSortColumn - The initial column to sort by on mount.
  * @returns The result of the sorting middleware.
  */
-function useSorting<T, ColumnKey extends string = string>({compareItems, initialSortColumn}: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
-    const [activeSorting, updateSorting] = useState<ActiveSorting<ColumnKey>>({
+function useSorting<T, ColumnKey extends string = string>({
+    compareItems,
+    initialSortColumn,
+    narrowLayoutSortColumn,
+    shouldUseNarrowTableLayout,
+}: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
+    const [userSorting, setUserSorting] = useState<ActiveSorting<ColumnKey>>({
         columnKey: initialSortColumn,
         order: 'asc',
     });
 
+    const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting);
+
     const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
-        updateSorting((previousSorting) => {
+        setUserSorting((previousSorting) => {
             const columnKeyToUse = columnKey ?? previousSorting.columnKey;
             const orderToUse = previousSorting.order === 'asc' ? 'desc' : 'asc';
 
@@ -100,14 +135,12 @@ function useSorting<T, ColumnKey extends string = string>({compareItems, initial
         });
     };
 
-    const getActiveSorting: SortingMethods<ColumnKey>['getActiveSorting'] = () => {
-        return activeSorting;
-    };
+    const getActiveSorting: SortingMethods<ColumnKey>['getActiveSorting'] = () => activeSorting;
 
     const middleware: Middleware<T> = (data) => sort({data, activeSorting, compareItems});
 
     const methods: SortingMethods<ColumnKey> = {
-        updateSorting,
+        updateSorting: setUserSorting,
         toggleColumnSorting,
         getActiveSorting,
     };
@@ -155,4 +188,4 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
 }
 
 export default useSorting;
-export type {UseSortingProps, UseSortingResult, CompareItemsCallback, SortOrder, ActiveSorting, SortingMethods};
+export type {CompareItemsCallback, ActiveSorting, SortingMethods};

@@ -1,5 +1,3 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,21 +5,30 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isValidPIN} from '@libs/ValidationUtils';
+
 import {PINContextProvider, usePINActions, usePINState} from '@pages/MissingPersonalDetails/PINContext';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+
 type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN>;
 
-function ChangePINPageContent({cardID}: {cardID: string}) {
+function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBlocked: boolean}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
@@ -78,8 +85,9 @@ function ChangePINPageContent({cardID}: {cardID: string}) {
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN, {
             pin: confirmPIN,
             cardID,
+            wasPINBlocked,
         });
-    }, [validatePIN, isConfirmStep, setIsConfirmStep, executeScenario, confirmPIN, cardID]);
+    }, [validatePIN, isConfirmStep, setIsConfirmStep, executeScenario, confirmPIN, cardID, wasPINBlocked]);
 
     const currentPIN = isConfirmStep ? confirmPIN : enteredPIN;
     const title = isConfirmStep ? translate('cardPage.confirmYourChangedPin') : translate('cardPage.changeYourPin');
@@ -87,7 +95,7 @@ function ChangePINPageContent({cardID}: {cardID: string}) {
     return (
         <ScreenWrapper testID={ChangePINPage.displayName}>
             <HeaderWithBackButton
-                title={translate('cardPage.changePin')}
+                title={translate(wasPINBlocked ? 'cardPage.unblockCard' : 'cardPage.changePin')}
                 onBackButtonPress={() => {
                     if (!isConfirmStep) {
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(cardID)));
@@ -148,9 +156,17 @@ function ChangePINPage({
         params: {cardID = ''},
     },
 }: ChangePINPageProps) {
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    // Snapshot the blocked state on first render so the success screen variant is
+    // not affected by the server flipping isPINBlocked to false on successful change.
+    const [wasPINBlocked] = useState(() => cardList?.[cardID]?.nameValuePairs?.isPINBlocked === true);
+
     return (
         <PINContextProvider>
-            <ChangePINPageContent cardID={cardID} />
+            <ChangePINPageContent
+                cardID={cardID}
+                wasPINBlocked={wasPINBlocked}
+            />
         </PINContextProvider>
     );
 }

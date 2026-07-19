@@ -1,16 +1,16 @@
-import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
-import React, {useLayoutEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-// eslint-disable-next-line no-restricted-imports
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
+
+import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
+
+import React, {useLayoutEffect, useRef} from 'react';
+
 import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationProp} from './types';
 
 // screenLayout is invoked as a render function (not JSX), so we need this wrapper to create a proper React component boundary for hooks.
 function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions, string>) {
     return (
         <ScreenLayout
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             // The type cast is needed because useNavigationBuilder hardcodes the Navigation generic to `string`.
             navigation={navigation as unknown as PlatformStackNavigationProp<ParamListBase>}

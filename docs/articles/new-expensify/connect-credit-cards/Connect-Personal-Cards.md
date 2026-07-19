@@ -27,7 +27,7 @@ Anyone with an Expensify account can connect up to two personal cards for free. 
    - If your bank is not listed, select **Other** to connect via Plaid.
 5. Follow the prompts to log into your bank and authorize the connection.
 
-Once your card is connected, it will appear under **Assigned cards** in the **Wallet**, and transactions will begin importing automatically.
+Once your card is connected, it will appear under **Cards** in the **Wallet**, and transactions will begin importing automatically.
 
 ---
 
@@ -63,4 +63,4 @@ You can connect up to two personal cards for free. To add more, you'll need a pa
 
 ## How do I manage a personal card after connecting it?
 
-Once connected, your card appears in **Account > Wallet** under **Assigned cards**. [Learn how to manage your personal cards](/articles/new-expensify/connect-credit-cards/Personal-Cards).
+Once connected, your card appears in **Account > Wallet** under **Cards**. [Learn how to manage your personal cards](/articles/new-expensify/connect-credit-cards/Manage-Personal-Cards).

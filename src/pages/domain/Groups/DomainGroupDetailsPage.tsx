@@ -1,25 +1,33 @@
-import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import {clearDomainSecurityGroupSettingError} from '@userActions/Domain';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
+import React from 'react';
+import {View} from 'react-native';
+
 import DefaultGroupToggle from './DefaultGroupToggle';
 import DeleteGroupRow from './DeleteGroupRow';
+import ExpensifyCardPreferredWorkspaceToggle from './ExpensifyCardPreferredWorkspaceToggle';
 import PreferredWorkspaceToggle from './PreferredWorkspaceToggle';
 import RestrictDefaultLoginSelectionToggle from './RestrictDefaultLoginSelectionToggle';
 import RestrictExpenseWorkspaceCreationToggle from './RestrictExpenseWorkspaceCreationToggle';
@@ -40,8 +48,18 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
     const [namePendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: domainSecurityGroupSettingPendingActionSelector('name', groupID)});
     const [nameErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: domainSecurityGroupSettingErrorsSelector('nameErrors', groupID)});
 
+    const [deleteGroupPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        selector: domainSecurityGroupSettingPendingActionSelector('deleteGroup', groupID),
+    });
+
     return (
-        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+        <DomainNotFoundPageWrapper
+            domainAccountID={domainAccountID}
+            shouldBeBlocked={!group || !!deleteGroupPendingAction}
+            fullPageNotFoundViewProps={{
+                onBackButtonPress: () => Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID)),
+            }}
+        >
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID="DomainGroupDetailsPage"
@@ -84,6 +102,10 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         groupID={groupID}
                     />
                     <PreferredWorkspaceToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <ExpensifyCardPreferredWorkspaceToggle
                         domainAccountID={domainAccountID}
                         groupID={groupID}
                     />

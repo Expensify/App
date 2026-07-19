@@ -1,10 +1,13 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
-import {DeviceEventEmitter} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import CONST from '@src/CONST';
 import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {DeviceEventEmitter} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -913,6 +916,71 @@ describe('replaceOptimisticReportWithActualReport', () => {
 
         // Then the navigation should go to the preexisting thread, NOT the parent IOU report
         expect(mockSetParams).toHaveBeenCalledWith({reportID: preexistingReportID});
+
+        subscription.remove();
+    });
+
+    it('should swap to preexisting thread when focused on the search RHP transaction-thread carousel', async () => {
+        // Given an optimistic transaction thread under a multi-transaction IOU report opened in the
+        // "Review X expenses" carousel, i.e. the focused route is the SEARCH_REPORT RHP (search/view/:reportID)
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+
+        mockIsReady.mockReturnValue(true);
+        // The carousel route is search/view/<id>, NOT /r/<id>
+        mockGetActiveRoute.mockReturnValue(`/search/view/${optimisticReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, params: {reportID: optimisticReportID}});
+
+        const reportActionID1 = '1';
+        const reportActionID2 = '2';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 2,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID1]: {
+                reportActionID: reportActionID1,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans1'},
+            },
+            [reportActionID2]: {
+                reportActionID: reportActionID2,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans2'},
+            },
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID1,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
+
+        // When replaceOptimisticReportWithActualReport is called and the callback is executed
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        // Then the switch event is emitted (the focused optimistic report is recognized on the RHP route)
+        expect(capturedEventData).toBeDefined();
+
+        capturedEventData?.callback();
+        await waitForBatchedUpdates();
+
+        // And the carousel is swapped to the preexisting thread via setParams (staying in the RHP),
+        // instead of being cleared out and bounced to the parent report
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: preexistingReportID.toString()});
 
         subscription.remove();
     });

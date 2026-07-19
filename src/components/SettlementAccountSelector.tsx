@@ -1,15 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {BankName} from '@src/types/onyx/Bank';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ListItem} from './SelectionList/types';
+
 import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
 import MenuItem from './MenuItem';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from './SelectionList/types';
 
 type BankAccountListItem = ListItem & {value: number | undefined};
 
@@ -111,4 +115,4 @@ function SettlementAccountSelector({
 
 export default SettlementAccountSelector;
 export {BankAccountListItemLeftElement};
-export type {BankAccountListItem, SettlementAccountSelectorProps};
+export type {BankAccountListItem};

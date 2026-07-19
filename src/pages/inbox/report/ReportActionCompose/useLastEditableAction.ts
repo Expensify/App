@@ -1,34 +1,23 @@
-import {useRoute} from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+
+import {getCombinedReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+
+import useComposerReportData from './useComposerReportData';
+
 function useLastEditableAction(reportID: string): OnyxEntry<OnyxTypes.ReportAction> {
-    const {isOffline} = useNetwork();
     const route = useRoute();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
-
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
+    const {report, filteredReportActions, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
 
     const parentReportAction = useParentReportAction(report);
     const [transactionThreadReportActionsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);

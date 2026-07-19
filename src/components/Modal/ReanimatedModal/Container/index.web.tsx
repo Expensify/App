@@ -1,10 +1,13 @@
-import React, {useEffect, useMemo, useRef} from 'react';
-import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {easing, getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useRef} from 'react';
+import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 function Container({
     style,
@@ -64,7 +67,6 @@ function Container({
         <Animated.View
             style={[style, type !== CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && type !== CONST.MODAL.MODAL_TYPE.POPOVER && styles.modalAnimatedContainer, animatedStyles, {zIndex: 1}]}
             exiting={Exiting}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {props.children}

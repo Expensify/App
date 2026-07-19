@@ -1,11 +1,14 @@
+import useOnyx from '@hooks/useOnyx';
+
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
+
+import {clearDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
-import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
-import {clearDeleteTransactionNavigateBackUrl} from '@userActions/Report';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Component that does not render anything but isolates the NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL
@@ -24,11 +27,13 @@ function DeleteTransactionNavigateBackHandler() {
             return;
         }
         // Clear the URL only after we navigate away to avoid a brief Not Found flash.
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                clearDeleteTransactionNavigateBackUrl();
-            });
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
     return null;

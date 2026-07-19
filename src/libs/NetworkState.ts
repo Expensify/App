@@ -1,8 +1,12 @@
-import NetInfo from '@react-native-community/netinfo';
-import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import NetInfo from '@react-native-community/netinfo';
+import Onyx from 'react-native-onyx';
+
+import {getCommandURL} from './ApiUtils';
+import getEnvironment from './Environment/getEnvironment';
 import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
 
@@ -135,7 +139,9 @@ function setSustainedFailures(active: boolean) {
         // A successful request proved connectivity — trigger reconnect to backfill
         // missed Onyx updates. Without this, a backend outage recovery (where NetInfo
         // never transitions false→true) would leave the UI online but stale.
-        // Duplicate reconnectApp() calls are safe — SQ deduplicates them.
+        // A reconnect that coincides with one already in flight is collapsed at push time by the
+        // reconnect coverage resolver (resolveReconnectDuplicationConflictAction): a redundant one is
+        // dropped, a wider one runs after. It consults the ongoing request and the waiting queue.
 
         // Jitter (0–5s) staggers reconnection across clients after a server-wide outage
         // to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.
@@ -289,7 +295,7 @@ function configureAndSubscribe() {
 
     if (!CONFIG.IS_USING_LOCAL_WEB) {
         NetInfo.configure({
-            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
+            reachabilityUrl: `${getCommandURL({command: 'Ping'})}accountID=${accountID ?? 'unknown'}`,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
                 if (!response.ok) {
@@ -345,10 +351,14 @@ function configureAndSubscribe() {
     });
 }
 
-// Subscribe to NetInfo immediately so logged-out screens (login, offline indicator)
-// have network detection from the start. Reconfigure when accountID changes to
-// update the reachability URL.
-configureAndSubscribe();
+// Subscribe to NetInfo once getEnvironment() resolves so the first ping uses the correct root.
+// queueMicrotask defers configureAndSubscribe past the current tick so ApiUtils' own
+// SHOULD_USE_STAGING_SERVER Onyx callback — which is the source of truth for getApiRoot() — has
+// already updated its cached flag. Without this defer, configureAndSubscribe samples ApiUtils'
+// stale module-level flag and bakes the wrong reachabilityUrl into NetInfo.
+getEnvironment().then(() => {
+    queueMicrotask(configureAndSubscribe);
+});
 
 // --- Onyx subscriptions (inputs for state computation) ---
 
@@ -361,6 +371,18 @@ Onyx.connectWithoutView({
         }
         accountID = newAccountID;
         configureAndSubscribe();
+    },
+});
+
+// Re-target the reachability ping when the in-app staging-server toggle flips at runtime.
+// queueMicrotask defers configureAndSubscribe so ApiUtils' Onyx callback for the same key —
+// registered later and therefore firing later on the same tick — has already updated
+// shouldUseStagingServer before we re-sample getApiRoot(). Removing the defer causes
+// configureAndSubscribe to read the previous toggle state and invert the URL on every flip.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    callback: () => {
+        queueMicrotask(configureAndSubscribe);
     },
 });
 

@@ -1,12 +1,16 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
 import MenuItem from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuProps} from '@components/PopoverMenu';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 // eslint-disable-next-line no-restricted-imports
 import themeColors from '@styles/theme/themes/dark';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 type PopoverMenuStory = StoryFn<typeof PopoverMenu>;
 
@@ -34,7 +38,6 @@ function Template(props: PopoverMenuProps) {
             />
             <SafeAreaProvider>
                 <PopoverMenu
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     isVisible={isVisible}
                     onClose={toggleVisibility}

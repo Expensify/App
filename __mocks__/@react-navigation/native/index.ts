@@ -1,4 +1,7 @@
 import type * as ReactNavigation from '@react-navigation/native';
+
+import {useEffect} from 'react';
+
 import createAddListenerMock from '../../../tests/utils/createAddListenerMock';
 
 const isJestEnv = process.env.NODE_ENV === 'test';
@@ -16,15 +19,14 @@ const {triggerTransitionEnd, addListener} = isJestEnv
           addListener: () => {},
       };
 
-const useNavigation = isJestEnv
-    ? realReactNavigation.useNavigation
-    : {
-          navigate: isJestEnv ? jest.fn() : () => {},
-          getState: () => ({
-              routes: [],
-          }),
-          addListener,
-      };
+const navigationMock = {
+    navigate: () => {},
+    getState: () => ({routes: []}),
+    isFocused: () => true,
+    addListener,
+};
+
+const useNavigation = isJestEnv ? realReactNavigation.useNavigation : () => navigationMock;
 
 type NativeNavigationMock = typeof ReactNavigation & {
     triggerTransitionEnd: () => void;
@@ -42,7 +44,12 @@ const useLinkProps = isJestEnv ? realReactNavigation.useLinkProps : () => null;
 const useLinkTo = isJestEnv ? realReactNavigation.useLinkTo : () => null;
 const useScrollToTop = isJestEnv ? realReactNavigation.useScrollToTop : () => null;
 const useRoute = isJestEnv ? realReactNavigation.useRoute : () => ({params: {}});
-const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callback: () => void) => callback();
+// Run callback in useEffect (like real useFocusEffect), not synchronously during render
+const useFocusEffect = isJestEnv
+    ? realReactNavigation.useFocusEffect
+    : (callback: () => (() => void) | void) => {
+          useEffect(() => callback(), [callback]);
+      };
 const usePreventRemove = isJestEnv ? jest.fn() : () => {};
 const useNavigationState = isJestEnv ? realReactNavigation.useNavigationState : () => {};
 

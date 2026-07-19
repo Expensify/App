@@ -1,11 +1,14 @@
-import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
+import CONST from '@src/CONST';
+
+import type {Span, SpanAttributeValue, StartSpanOptions} from '@sentry/core';
+
+import {SPAN_STATUS_OK} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
-import CONST from '@src/CONST';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
-    startTime: number;
+    startTimeForLog: number;
 };
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
@@ -35,7 +38,15 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     if (extraOptions.minDuration) {
         span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
     }
-    activeSpans.set(spanId, {span, startTime: performance.now()});
+
+    let startTimeForLog: number;
+    if (typeof options.startTime === 'number') {
+        startTimeForLog = options.startTime;
+    } else {
+        startTimeForLog = performance.now();
+    }
+
+    activeSpans.set(spanId, {span, startTimeForLog});
 
     return span;
 }
@@ -46,11 +57,12 @@ function endSpan(spanId: string) {
     if (!entry) {
         return;
     }
-    const {span, startTime} = entry;
+    const {span, startTimeForLog} = entry;
     const now = performance.now();
-    const durationMs = Math.round(now - startTime);
+    const durationMs = Math.round(now - startTimeForLog);
     console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
-    span.setStatus({code: 1});
+    span.setStatus({code: SPAN_STATUS_OK});
+
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
     span.end();
     activeSpans.delete(spanId);
@@ -64,7 +76,7 @@ function cancelSpan(spanId: string) {
     entry.span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
     // In Sentry there are only OK or ERROR status codes.
     // We treat canceled spans as OK, so we can properly track spans that are not finished at all (their status would be different)
-    entry.span.setStatus({code: 1});
+    entry.span.setStatus({code: SPAN_STATUS_OK});
     endSpan(spanId);
 }
 
@@ -82,14 +94,30 @@ function cancelSpansByPrefix(prefix: string) {
     }
 }
 
+/**
+ * Cancel a tracked span by its Sentry span instance rather than its id (e.g. from a lifecycle listener that
+ * only has the raw span). Optionally stamps attributes first. No-op if the span isn't tracked.
+ */
+function cancelSpanByInstance(target: Span, attributes?: Record<string, SpanAttributeValue>) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (entry.span === target) {
+            if (attributes) {
+                entry.span.setAttributes(attributes);
+            }
+            cancelSpan(spanID);
+            return;
+        }
+    }
+}
+
 function getSpan(spanId: string) {
     return activeSpans.get(spanId)?.span;
 }
 
-function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue>) {
+function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue | undefined>) {
     const span = getSpan(spanId);
     span?.setAttributes(attributes);
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

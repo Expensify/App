@@ -1,6 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
+
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {ColorScheme, StatusBarStyle} from '..';
 
 type Color = string;
@@ -33,10 +36,14 @@ type ThemeColors = {
     syntax: Color;
     link: Color;
     linkHover: Color;
+    linkReversed: Color;
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
+    /** Hover background for buttons rendered on an inverse-colored surface (e.g. the growl notification). */
+    buttonHoveredBGReversed: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
+    buttonDangerText: Color;
     danger: Color;
     dangerHover: Color;
     dangerPressed: Color;
@@ -47,6 +54,7 @@ type ThemeColors = {
     transparent: Color;
     signInPage: Color;
     darkSupportingText: Color;
+    receiptPlaceholderPlus: Color;
 
     // Additional keys
     overlay: Color;

@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useViolations from '@hooks/useViolations';
+
 import CONST from '@src/CONST';
 import type {TransactionViolation} from '@src/types/onyx';
 
@@ -56,6 +58,22 @@ describe('useViolations', () => {
             // so the UI can show all relevant errors for that input
             expect(result.current.getViolationsForField('amount')).toHaveLength(3);
         });
+
+        it('should group customUnitRateOutOfDateRange under customUnitRateID', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {startDate: '2025-01-01', endDate: '2025-12-31'},
+                },
+            ];
+
+            const {result} = renderHook(() => useViolations(violations, false));
+
+            expect(result.current.getViolationsForField('customUnitRateID')).toHaveLength(1);
+            expect(result.current.getViolationsForField('customUnitRateID').at(0)?.name).toBe(CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+        });
     });
 
     describe('shouldShowOnlyViolations filtering', () => {
@@ -95,6 +113,24 @@ describe('useViolations', () => {
             expect(result.current.getViolationsForField('category')).toHaveLength(1);
             expect(result.current.getViolationsForField('tag')).toHaveLength(0);
             expect(result.current.getViolationsForField('receipt')).toHaveLength(0);
+        });
+
+        it('should show customUnitRateOutOfDateRange on customUnitRateID when shouldShowOnlyViolations is true', () => {
+            const violations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.WARNING},
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {startDate: '2025-01-01', endDate: '2025-12-31'},
+                },
+            ];
+
+            const {result} = renderHook(() => useViolations(violations, true));
+
+            expect(result.current.getViolationsForField('amount')).toHaveLength(0);
+            expect(result.current.getViolationsForField('customUnitRateID')).toHaveLength(1);
+            expect(result.current.getViolationsForField('customUnitRateID').at(0)?.name).toBe(CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
         });
     });
 
@@ -339,7 +375,7 @@ describe('useViolations', () => {
                 {
                     name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
-                    data: {formattedLimit: '$1,000 USD', category: 'Travel'},
+                    data: {amount: 100000, currency: CONST.CURRENCY.USD, category: 'Travel'},
                 },
             ];
 
@@ -349,7 +385,7 @@ describe('useViolations', () => {
 
             // Then all original data should be preserved for the UI to display detailed error messages
             expect(amountViolations).toHaveLength(1);
-            expect(amountViolations.at(0)?.data).toEqual({formattedLimit: '$1,000 USD', category: 'Travel'});
+            expect(amountViolations.at(0)?.data).toEqual({amount: 100000, currency: CONST.CURRENCY.USD, category: 'Travel'});
         });
     });
 });

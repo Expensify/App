@@ -1,18 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemList from '@components/MenuItemList';
+
 import useLocalize from '@hooks/useLocalize';
 import useReusablePoliciesConnectedTo from '@hooks/useReusablePoliciesConnectedTo';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS>;
 
@@ -23,7 +27,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToNetSuite} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, policyID);
 
     const menuItems = reusablePoliciesConnectedToNetSuite.map((policy) => {
-        const lastSuccessfulSyncDate = policy.connections?.netsuite.lastSyncDate;
+        const lastSuccessfulSyncDate = policy.connections?.netsuite?.lastSyncDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
         return {
             title: policy.name,

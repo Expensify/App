@@ -1,5 +1,6 @@
-import React from 'react';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+
+import React from 'react';
 import {View} from 'react-native';
 
 type CellRendererComponentProps = ViewProps & {
@@ -10,7 +11,6 @@ type CellRendererComponentProps = ViewProps & {
 function CellRendererComponent(props: CellRendererComponentProps) {
     return (
         <View
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             style={[
                 props.style,

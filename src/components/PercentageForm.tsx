@@ -1,11 +1,17 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+
 import CONST from '@src/CONST';
-import TextInput from './TextInput';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
+import TextInput from './TextInput';
 
 type PercentageFormProps = BaseTextInputProps & {
     /** Amount supplied by the FormProvider */
@@ -96,7 +102,6 @@ function PercentageForm({
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

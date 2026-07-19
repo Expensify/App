@@ -1,22 +1,30 @@
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {startNavigateToReportsSpans} from '@libs/telemetry/navigateToReportsSpans';
+
 import navigationRef from '@navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import getLastRoute from './getLastRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
@@ -44,6 +52,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
                 forceTransaction: true,
             });
+            startNavigateToReportsSpans();
 
             const lastSearchRoute = getLastRoute(navigationRef.getRootState(), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
 

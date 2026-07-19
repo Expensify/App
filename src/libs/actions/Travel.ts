@@ -1,16 +1,18 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
  */
-function acceptSpotnanaTerms(domain?: string, policyID?: string) {
+function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
@@ -43,6 +45,7 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
             value: {
                 travelSettings: {
                     hasAcceptedTerms: true,
+                    ...(taxID ? {taxID} : {}),
                 },
             },
         },
@@ -61,12 +64,11 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
             key: ONYXKEYS.TRAVEL_PROVISIONING,
             value: {
                 isLoading: false,
-                errors: getMicroSecondOnyxErrorWithTranslationKey('travel.errorMessage'),
             },
         },
     ];
 
-    const params: AcceptSpotnanaTermsParams = {domainName: domain, policyID};
+    const params: AcceptSpotnanaTermsParams = {domainName: domain, policyID, taxID};
 
     // We need to call this API immediately to get the response and open the travel page.
     // See https://github.com/Expensify/App/pull/69769#discussion_r2368967354 for more info.
@@ -91,8 +93,12 @@ function setTravelProvisioningNextStep(nextStepRoute?: Route) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute});
 }
 
+function setTravelProvisioningTaxID(taxID: string) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {taxID});
+}
+
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep};
+export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep, setTravelProvisioningTaxID};

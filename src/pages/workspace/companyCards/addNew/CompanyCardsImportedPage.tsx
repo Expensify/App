@@ -1,22 +1,28 @@
-import React, {useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
+import {applyCompanyCardSavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {importCSVCompanyCards} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,6 +30,8 @@ import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
@@ -33,11 +41,12 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
@@ -75,11 +84,41 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         return [...baseRoles, ...advancedRoles];
     })();
 
+    const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
+    const hasAppliedSavedMappings = useRef(false);
+    const lastProcessedDataRef = useRef(spreadsheet?.data);
+    const lastAdvancedFieldsRef = useRef(shouldUseAdvancedFields);
+
+    useEffect(() => {
+        // Reset the flag when new spreadsheet data is loaded, or when the set of selectable roles changes.
+        if (spreadsheet?.data !== lastProcessedDataRef.current || shouldUseAdvancedFields !== lastAdvancedFieldsRef.current) {
+            hasAppliedSavedMappings.current = false;
+            lastProcessedDataRef.current = spreadsheet?.data;
+            lastAdvancedFieldsRef.current = shouldUseAdvancedFields;
+        }
+
+        if (hasAppliedSavedMappings.current) {
+            return;
+        }
+
+        if (!spreadsheet?.data || isEmptyObject(savedColumnMappings)) {
+            return;
+        }
+
+        hasAppliedSavedMappings.current = true;
+        applyCompanyCardSavedColumnMappings(
+            spreadsheet.data,
+            savedColumnMappings,
+            columnRoles.map((role) => role.value),
+        );
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles, shouldUseAdvancedFields]);
+
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
+    const {containsHeader = true} = spreadsheet ?? {};
 
     const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        let errors: Errors = {};
+        const errors: Errors = {};
 
         const missingRequiredColumns = requiredColumns
             .filter((requiredColumn) => !columns.includes(requiredColumn.value))
@@ -87,20 +126,39 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             .join(', ');
         if (missingRequiredColumns) {
             errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns', missingRequiredColumns);
-        } else {
-            const duplicate = findDuplicate(columns);
-            if (duplicate) {
-                errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns', duplicate);
-            } else {
-                errors = {};
-            }
+            return errors;
         }
+
+        const duplicate = findDuplicate(columns);
+        if (duplicate) {
+            errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns', duplicate);
+            return errors;
+        }
+
+        const columnWithEmptyValues = requiredColumns.find((requiredColumn) => {
+            const columnIndex = columns.findIndex((column) => column === requiredColumn.value);
+            if (columnIndex === -1) {
+                return false;
+            }
+            const columnData = spreadsheet?.data?.at(columnIndex) ?? [];
+            return columnData.some((value, index) => (!containsHeader || index > 0) && !value?.toString().trim());
+        });
+        if (columnWithEmptyValues) {
+            errors.emptyValues = translate('spreadsheet.emptyMappedField', columnWithEmptyValues.text);
+        }
+
         return errors;
     };
 
     const validationErrors = validate();
 
-    const importTransactions = () => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingTransactions(false);
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+    };
+
+    const importTransactions = async () => {
         const errors = validate();
         if (Object.keys(errors).length > 0) {
             return;
@@ -117,8 +175,10 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         const columns = spreadsheet?.data ?? [];
         const rows: string[][] = [];
         if (columns.length > 0) {
-            const startRowIndex = spreadsheet?.containsHeader ? 1 : 0;
-            for (let rowIndex = startRowIndex; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
+            if (!spreadsheet?.containsHeader) {
+                rows.push(columnMappings);
+            }
+            for (let rowIndex = 0; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
                 const row: string[] = [];
                 for (const column of columns) {
                     row.push(column.at(rowIndex) ?? '');
@@ -127,7 +187,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             }
         }
         setIsImportingTransactions(true);
-        importCSVCompanyCards({
+        const importFinalModal = await importCSVCompanyCards({
             policyID,
             workspaceAccountID,
             layoutName,
@@ -138,6 +198,12 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             workspaceCardFeeds,
             existingInstanceID: addNewCard?.data?.existingInstanceID,
         });
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+        if (!didShowImportFinalModal) {
+            setIsImportingTransactions(false);
+            return;
+        }
+        closeImportPageAndModal();
     };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
@@ -149,16 +215,12 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         return <NotFoundPage />;
     }
 
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingTransactions(false);
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-    };
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
@@ -178,10 +240,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                     columnRoles={columnRoles}
                     learnMoreLink={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                     isButtonLoading={isImportingTransactions}
-                />
-                <ImportSpreadsheetConfirmModal
-                    isVisible={spreadsheet?.shouldFinalModalBeOpened ?? false}
-                    closeImportPageAndModal={closeImportPageAndModal}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

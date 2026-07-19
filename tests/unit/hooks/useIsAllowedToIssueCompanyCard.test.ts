@@ -1,10 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 
 const currentUserAccountID = 999;
@@ -12,7 +16,7 @@ const domainID = 19475968;
 const mockPolicyID = '123456';
 const workspaceAccountID = 11111111;
 
-const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, workspaceAccountID};
+const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, policyAccountID: workspaceAccountID};
 
 const linkedFeedDomainID = 22222222;
 

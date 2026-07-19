@@ -1,20 +1,28 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
+import {createOutstandingReportsForPolicySelector, reportFieldTransactionStateSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type ReportFieldProps = {
     /** The selected participants */
@@ -35,9 +43,6 @@ type ReportFieldProps = {
     /** The transaction ID */
     transactionID: string | undefined;
 
-    /** The transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
 
@@ -45,51 +50,52 @@ type ReportFieldProps = {
     isPolicyExpenseChat: boolean;
 };
 
-function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, transaction, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
+function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
     const reportAttributes = useReportAttributes();
+    const policyID = selectedParticipants?.at(0)?.policyID;
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)}, [policyID]);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+    // Self-resolved narrow slice of the transaction; replaces the previously prop-drilled `transaction` object.
+    const transactionState = useTransactionSelector(transactionID, reportFieldTransactionStateSelector);
+    const transactionReportID = transactionState?.reportID;
+    const participantReportID = transactionState?.participantReportID;
+    const isFromGlobalCreate = transactionState?.isFromGlobalCreate ?? false;
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
-    const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [mainReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
+    const [mainReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
     const iouReportIDFromMain = mainReport?.iouReportID;
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportIDFromMain}`);
 
-    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
+    const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     /**
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
-    const policyID = selectedParticipants?.at(0)?.policyID;
-    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, undefined, false)) || isUnreported;
+    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, reportNameValuePairs, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
-    const availableOutstandingReports = getOutstandingReportsForUser(
-        policyID,
-        ownerAccountID,
-        outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-        reportNameValuePairs,
-        false,
-    ).sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort((a, b) =>
+        localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
+    );
 
     const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? availableOutstandingReports.at(0)?.reportID) : reportID;
 
     const [selectedReportID, selectedReport] = (() => {
-        const reportIDToUse = shouldUseTransactionReport ? transaction?.reportID : outstandingReportID;
+        const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
         if (!reportIDToUse) {
             // Even if we have no report to use we still need a report id for proper navigation
             return [generateReportID(), undefined] as const;
         }
         // Resolve from already-fetched per-key reports or available outstanding reports
         let reportToUse: OnyxEntry<OnyxTypes.Report> | undefined;
-        if (reportIDToUse === transaction?.reportID) {
+        if (reportIDToUse === transactionReportID) {
             reportToUse = transactionReportEntry;
         } else if (reportIDToUse === reportID) {
             reportToUse = mainReport;

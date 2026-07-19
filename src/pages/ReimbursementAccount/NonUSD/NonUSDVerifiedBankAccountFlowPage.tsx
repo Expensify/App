@@ -1,15 +1,21 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
+import type NonUSDPageProps from './types';
+
 import Agreements from './Agreements';
 import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
@@ -18,7 +24,6 @@ import Country from './Country';
 import Docusign from './Docusign';
 import Finish from './Finish';
 import SignerInfo from './SignerInfo';
-import type NonUSDPageProps from './types';
 import getInitialSubPageForSignerInfoStep from './utils/getInitialSubPageForSignerInfoStep';
 import requiresDocusignStep from './utils/requiresDocusignStep';
 
@@ -121,7 +126,7 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     }, [backTo, currentPageIndex, pages, policyID]);
 
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, styles.appBG]}>
             <CurrentPage
                 onSubmit={onSubmit}
                 onBackButtonPress={onBackButtonPress}

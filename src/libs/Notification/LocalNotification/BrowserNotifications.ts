@@ -1,43 +1,39 @@
-// Web implementation only. Do not import for direct use. Use LocalNotification.
-import {Str} from 'expensify-common';
-import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
+
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import {translateLocal} from '@libs/Localize';
+import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
+import NotificationPermission from '@libs/Notification/notificationPermission';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+
 import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
-import SafeString from '@src/utils/SafeString';
+
+import type {ImageSourcePropType} from 'react-native';
+
+// Web implementation only. Do not import for direct use. Use LocalNotification.
+import {SafeString, Str} from 'expensify-common';
+
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
 /**
- * Checks if the user has granted permission to show browser notifications
+ * Checks if the user has granted permission to show browser notifications, prompting them
+ * if they have not yet decided.
  */
 function canUseBrowserNotifications(): Promise<boolean> {
-    return new Promise((resolve) => {
-        // They have no browser notifications so we can't use this feature
-        if (!window.Notification) {
-            resolve(false);
-            return;
+    return NotificationPermission.getStatus().then((status) => {
+        if (status === 'granted') {
+            return true;
         }
-
-        // Check if they previously granted or denied us access to send a notification
-        const permissionGranted = Notification.permission === 'granted';
-
-        if (permissionGranted || Notification.permission === 'denied') {
-            resolve(permissionGranted);
-            return;
+        if (status === 'denied') {
+            return false;
         }
-
-        // Check their global preferences for browser notifications and ask permission if they have none
-        Notification.requestPermission().then((status) => {
-            resolve(status === 'granted');
-        });
+        return NotificationPermission.request().then((requested) => requested === 'granted');
     });
 }
 
@@ -57,33 +53,50 @@ function push(
     silent = false,
     tag = '',
 ) {
-    canUseBrowserNotifications().then((canUseNotifications) => {
-        if (!canUseNotifications) {
-            return;
-        }
+    canUseBrowserNotifications()
+        .then((canUseNotifications) => {
+            if (!canUseNotifications) {
+                return;
+            }
 
-        // We cache these notifications so that we can clear them later
-        const notificationID = Str.guid();
-        notificationCache[notificationID] = new Notification(title, {
-            body,
-            icon: SafeString(icon),
-            data,
-            silent: true,
-            tag,
+            // Some browsers (e.g. Samsung Internet, Chrome on Android) forbid constructing a Notification in the page
+            // context and throw a "TypeError: Illegal constructor". Guard the construction so an unsupported browser
+            // degrades to "no local notification" instead of surfacing an unhandled promise rejection.
+            let notification: Notification;
+            try {
+                notification = new Notification(title, {
+                    body,
+                    icon: SafeString(icon),
+                    data,
+                    silent: true,
+                    tag,
+                });
+            } catch (error) {
+                Log.hmmm('[BrowserNotifications] Failed to construct a Notification', {error});
+                return;
+            }
+
+            // We cache these notifications so that we can clear them later
+            const notificationID = Str.guid();
+            notificationCache[notificationID] = notification;
+            if (!silent) {
+                playSound(SOUNDS.RECEIVE);
+            }
+            notification.onclick = () => {
+                onClick();
+                window.parent.focus();
+                window.focus();
+                notification.close();
+            };
+            notification.onclose = () => {
+                delete notificationCache[notificationID];
+            };
+        })
+        .catch((error) => {
+            // Swallow any unexpected errors from the permission check or notification setup so they don't surface as
+            // unhandled promise rejections (the root cause of the reported crash).
+            Log.hmmm('[BrowserNotifications] Failed to push a local notification', {error});
         });
-        if (!silent) {
-            playSound(SOUNDS.RECEIVE);
-        }
-        notificationCache[notificationID].onclick = () => {
-            onClick();
-            window.parent.focus();
-            window.focus();
-            notificationCache[notificationID].close();
-        };
-        notificationCache[notificationID].onclose = () => {
-            delete notificationCache[notificationID];
-        };
-    });
 }
 
 /**

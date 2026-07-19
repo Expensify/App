@@ -1,9 +1,12 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import ToggleDistanceUnitButton from '@components/MapView/ToggleDistanceUnitButton/index.android';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import Text from '@components/Text';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 const onPressMock = jest.fn();
 describe('ToggleDistanceUnitButton', () => {
@@ -13,7 +16,6 @@ describe('ToggleDistanceUnitButton', () => {
                 testID="pressable"
                 accessibilityLabel="fake-button"
                 accessibilityRole={CONST.ROLE.BUTTON}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 <Text>Click me</Text>

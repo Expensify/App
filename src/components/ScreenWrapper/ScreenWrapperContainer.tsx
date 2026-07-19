@@ -1,11 +1,7 @@
-import type {ForwardedRef, ReactNode} from 'react';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, PanResponder, View} from 'react-native';
-import {PickerAvoidingView} from 'react-native-picker-select';
 import {useInputBlurActions, useInputBlurState} from '@components/InputBlurContext';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -13,11 +9,21 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import addViewportResizeListener from '@libs/VisualViewport';
+
 import toggleTestToolsModal from '@userActions/TestTool';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef, ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {Keyboard, PanResponder, View} from 'react-native';
+import {PickerAvoidingView} from 'react-native-picker-select';
 
 type ScreenWrapperContainerProps = ForwardedFSClassProps &
     React.PropsWithChildren<{
@@ -212,7 +218,6 @@ function ScreenWrapperContainer({
             ref={ref}
             // This style gives the background for the screens. Stack cards are transparent to make different width screens in RHP possible.
             style={[styles.flex1, styles.appBG, styles.screenWrapperContainerMinHeight(minHeight)]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...panResponder.panHandlers}
             testID={testID}
             fsClass={forwardedFSClass}
@@ -222,7 +227,6 @@ function ScreenWrapperContainer({
         >
             <View
                 style={[shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, style, paddingTopStyle]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...keyboardDismissPanResponder.panHandlers}
             >
                 <KeyboardAvoidingView

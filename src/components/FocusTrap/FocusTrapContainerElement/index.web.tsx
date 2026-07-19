@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import {View} from 'react-native';
+
 import type FocusTrapContainerElementProps from './FocusTrapContainerElementProps';
 
 function FocusTrapContainerElement({onContainerElementChanged, ref, ...props}: FocusTrapContainerElementProps) {
@@ -17,7 +18,6 @@ function FocusTrapContainerElement({onContainerElementChanged, ref, ...props}: F
                 }
                 onContainerElementChanged?.(node as unknown as HTMLElement | null);
             }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

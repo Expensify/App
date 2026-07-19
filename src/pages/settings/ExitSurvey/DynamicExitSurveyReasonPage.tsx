@@ -1,5 +1,5 @@
-import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -18,17 +19,30 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {saveResponse} from '@libs/actions/ExitSurvey';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
+import {switchToOldDot} from '@libs/actions/ExitSurvey';
+import {setErrorFields} from '@libs/actions/FormActions';
+import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
+import {openOldDotLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback} from 'react';
+
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[INPUT_IDS.RESPONSE];
@@ -48,11 +62,31 @@ function DynamicExitSurveyReasonPage() {
     // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
-    const submitForm = useCallback(() => {
-        saveResponse(draftResponse);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path), {forceReplace: true});
-    }, [draftResponse]);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
+    const goBackJustOnce = useCallback(() => {
+        Log.info('[ExitSurvey] User chose Go back just once');
+        Navigation.dismissModal();
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+    }, []);
+
+    const switchToClassic = useCallback(() => {
+        Log.info('[ExitSurvey] User chose Switch to Classic');
+        if (!draftResponse.trim()) {
+            setErrorFields(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
+                [INPUT_IDS.RESPONSE]: getMicroSecondOnyxErrorWithMessage(translate('common.error.fieldRequired')),
+            });
+            return;
+        }
+        if (draftResponse.length > CONST.MAX_COMMENT_LENGTH) {
+            setErrorFields(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
+                [INPUT_IDS.RESPONSE]: getMicroSecondOnyxErrorWithMessage(translate('common.error.characterLimitExceedCounter', draftResponse.length, CONST.MAX_COMMENT_LENGTH)),
+            });
+            return;
+        }
+        switchToOldDot(draftResponse);
+        Navigation.dismissModal();
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+    }, [draftResponse, translate]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic, {isActive: !isOffline});
 
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
@@ -78,9 +112,10 @@ function DynamicExitSurveyReasonPage() {
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
-                onSubmit={submitForm}
-                submitButtonText={translate('common.next')}
-                shouldValidateOnBlur
+                onSubmit={switchToClassic}
+                submitButtonText=""
+                isSubmitButtonVisible={false}
+                shouldValidateOnBlur={false}
                 validate={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM>) => {
                     const errors: Errors = {};
                     const response = values[INPUT_IDS.RESPONSE] ?? '';
@@ -110,11 +145,27 @@ function DynamicExitSurveyReasonPage() {
                             ref={inputCallbackRef}
                             containerStyles={[baseResponseInputContainerStyle]}
                             shouldSaveDraft
-                            shouldSubmitForm
                         />
                     </>
                 )}
             </FormProvider>
+            <FixedFooter>
+                <Button
+                    large
+                    text={translate('exitSurvey.goToExpensifyClassic')}
+                    onPress={switchToClassic}
+                    isDisabled={isOffline}
+                />
+                <Button
+                    success
+                    large
+                    pressOnEnter
+                    text={translate('exitSurvey.goBackJustOnce')}
+                    onPress={goBackJustOnce}
+                    isDisabled={isOffline}
+                    style={styles.mt3}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }

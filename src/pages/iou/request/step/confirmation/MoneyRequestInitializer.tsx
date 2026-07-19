@@ -1,11 +1,15 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {generateReportID} from '@libs/ReportUtils';
-import {startMoneyRequest} from '@userActions/IOU';
+
+import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type MoneyRequestInitializerProps = {
     isLoadingTransaction: boolean;

@@ -1,12 +1,17 @@
-import React, {createContext, useContext, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import {dismissProductTraining} from '@libs/actions/Welcome';
+
 import useScanRouteParams from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams';
+
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+
+import React, {createContext, useContext, useState} from 'react';
 
 type MultiScanState = {
     isMultiScanEnabled: boolean;
@@ -17,6 +22,7 @@ type MultiScanState = {
 type MultiScanActions = {
     toggleMultiScan: () => void;
     dismissEducationalPopup: () => void;
+    disableMultiScan: () => void;
 };
 
 const defaultState: MultiScanState = {
@@ -28,6 +34,7 @@ const defaultState: MultiScanState = {
 const defaultActions: MultiScanActions = {
     toggleMultiScan: () => {},
     dismissEducationalPopup: () => {},
+    disableMultiScan: () => {},
 };
 
 const MultiScanStateContext = createContext<MultiScanState>(defaultState);
@@ -65,6 +72,10 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
         setIsMultiScanEnabled((prev) => !prev);
     }
 
+    function disableMultiScan() {
+        setIsMultiScanEnabled(false);
+    }
+
     function dismissEducationalPopup() {
         // Defer dismissal to avoid updating state during the modal close animation
         requestAnimationFrame(() => {
@@ -82,6 +93,7 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
     const actionsValue: MultiScanActions = {
         toggleMultiScan,
         dismissEducationalPopup,
+        disableMultiScan,
     };
 
     return (
@@ -92,4 +104,3 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
 }
 
 export {MultiScanProvider, useMultiScanState, useMultiScanActions};
-export type {MultiScanState, MultiScanActions};

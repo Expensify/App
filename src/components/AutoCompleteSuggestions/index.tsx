@@ -1,14 +1,19 @@
-import React, {useEffect} from 'react';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensionsForAutoCompleteSuggestions from '@hooks/useWindowDimensionsForAutoCompleteSuggestions';
+
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect} from 'react';
+
+import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
+
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
 import getLeftOffset from './getSuggestionsLeftOffset';
-import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
 
 const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean, isInLandscapeMode: boolean): number => {
     if (isInLandscapeMode) {
@@ -182,7 +187,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
 
     return (
         <AutoCompleteSuggestionsPortal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             left={containerState.left}
             width={containerState.width}

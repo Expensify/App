@@ -1,10 +1,12 @@
+import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
-import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
-// eslint-disable-next-line no-restricted-imports -- No higher-level Navigation API for waiting on transitions without navigating
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import type CONST from '@src/CONST';
 
 type DeferredLayoutWriteKey = ValueOf<typeof CONST.DEFERRED_LAYOUT_WRITE_KEYS>;
 

@@ -54,8 +54,6 @@ type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
 type OptionalParam<T> = Partial<T>;
 
-type LogSizeAndDateParams = {size: number; date: string};
-
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
@@ -94,16 +92,6 @@ type ExportAgainModalDescriptionParams = {
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
-type RemoveMemberParams = {email: string; role: string};
-
-type StatementPageTitleParams = {year: string | number; monthName: string};
-
-type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
-
-type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
-
-type LowerUpperParams = {lower: string; upper: string};
-
 type YourPlanPriceParams = {lower: string; upper: string};
 
 type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
@@ -113,6 +101,8 @@ type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
 type DelegateRoleParams = {role: DelegateRole};
+
+type RemoveCopilotAccessConfirmationParams = {delegatorName: string};
 
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
@@ -147,12 +137,11 @@ export type {
     InvalidValueParams,
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
+    RemoveCopilotAccessConfirmationParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,
     YourPlanPriceParams,
-    LowerUpperParams,
-    LogSizeAndDateParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
@@ -180,10 +169,6 @@ export type {
     ConnectionNameParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
-    RemoveMemberParams,
-    StatementPageTitleParams,
-    DisconnectPromptParams,
-    DisconnectTitleParams,
     OptionalParam,
     WorkspaceLockedPlanTypeParams,
 };

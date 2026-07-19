@@ -59,10 +59,12 @@ To comply with financial regulations, the following documents are needed:
 5. **Add Director Information** Expensify must verify that the signer is a Director or Senior Officer.
    - If **you are** a Director/Senior Officer:
      - Provide your full legal name, address, and ID.
-     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
+     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only, 2 MB max per file).
    - If **you are not** a Director/Senior Officer:
      - Enter details for someone who is.
      - They must also provide ID and proof of address.
+
+**Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
 
 Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
 
@@ -70,7 +72,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 * Government-issued photo ID
 * Utility bill or bank statement (for proof of address)
-* File types: PDF, PNG, JPEG
+* File types: PDF, PNG, JPEG (each file must be 2 MB or less)
 
 ---
 

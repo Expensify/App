@@ -1,18 +1,23 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
+
+import {getCurrencySymbol, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
+import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
+
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import SearchBarChart from './SearchBarChart';
 import SearchLineChart from './SearchLineChart';
 import SearchPieChart from './SearchPieChart';
-import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
 
 type SearchChartViewProps = {
     /** The current search query JSON */
@@ -71,7 +76,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     };
 
     const firstItem = data.at(0);
-    const currency = firstItem?.currency ?? 'USD';
+    const currency = sanitizeCurrencyCode(firstItem?.currency ?? CONST.CURRENCY.USD);
     const parts = formatToParts(preferredLocale, 0, {style: 'currency', currency});
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');

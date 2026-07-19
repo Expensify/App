@@ -1,14 +1,20 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isReceiptError} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -40,7 +46,8 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    const showDismissButton = !!onDismiss;
+    const hasReceiptUploadError = Object.values(messages).some((message) => isReceiptError(message));
+    const showDismissButton = !!onDismiss && !hasReceiptUploadError;
 
     const dismissText = translate('common.dismiss');
 
@@ -63,6 +70,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
                         onPress={onDismiss}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={dismissText}
+                        sentryLabel={CONST.SENTRY_LABEL.MESSAGES_ROW.DISMISS}
                     >
                         <Icon
                             fill={theme.icon}

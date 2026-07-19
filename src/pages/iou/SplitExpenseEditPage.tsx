@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -7,40 +5,52 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
+
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
+
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
-import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getTagLists} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getTransactionDetails} from '@libs/ReportUtils';
+import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {policyTypeSelector} from '@selectors/Policy';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
@@ -49,7 +59,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
-    const {currentSearchResults} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
@@ -61,30 +71,38 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
     const allTransactions = useAllTransactions();
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
 
     const report = useReportOrReportDraft(reportID);
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
-    const policy = usePolicy(currentReport?.policyID);
-    const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
-        ? policy
-        : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const personalPolicy = usePersonalPolicy();
+    const effectivePolicy = useSplitEffectivePolicy(currentReport, splitExpenseDraftTransaction, transaction);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`);
+    // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
+    const hasAnyPaidWorkspace = hasAnyPaidPolicy(allPolicies ?? {});
+    const {shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`);
+    const effectivePolicyID = effectivePolicy?.id;
+
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${effectivePolicyID}`);
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${effectivePolicyID}`);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const fetchData = useCallback(() => {
         if (!policyCategories) {
-            openPolicyCategoriesPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+            openPolicyCategoriesPage(effectivePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
         if (!policyTags) {
-            openPolicyTagsPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+            openPolicyTagsPage(effectivePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
-    }, [currentReport?.policyID, policyCategories, policyTags]);
+    }, [effectivePolicyID, policyCategories, policyTags]);
 
     // Fetch categories and tags on mount to ensure the screen has the latest data,
     // especially when the edit-split flow is opened from the search screen where these
@@ -101,27 +119,50 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const shouldShowCategory = !!currentPolicy?.areCategoriesEnabled && !!policyCategories;
+    const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
+    const isSelfDMSplit = isSelfDM(draftTransactionReport);
+    const isExpenseUnreported = isSelfDMSplit;
+    const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(draftTransactionPolicyType);
+
+    const originalTransactionCategory = transaction?.category ?? '';
+    const originalTransactionTag = transaction?.tag ?? '';
+
+    const transactionCategory = splitExpenseDraftTransactionDetails?.category ?? '';
+    const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
+    const hasOriginalCategory = !!originalTransactionCategory && !isCategoryMissing(originalTransactionCategory);
+    const shouldShowCategory =
+        hasOriginalCategory ||
+        (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
+        (isExpenseUnreported && (!effectivePolicy || hasEnabledOptions(policyCategories ?? {})));
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy);
+    const {isProduction} = useEnvironment();
+    const isSplitAvailable =
+        report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport, isProduction);
 
-    const isCategoryRequired = !!currentPolicy?.requiresCategory;
-    const reportName = getReportName(currentReport);
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
+    const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
+    const reportAttributes = useReportAttributes();
+    const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
-    const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
+    // (parent) transaction carried a tag — same rationale as `shouldShowCategory` above: workspace
+    // deletion leaves the gate flags false, but the preserved tag should still be re-selectable.
+    const shouldShowTags = !!originalTransactionTag || ((isPolicyExpenseChat || isExpenseUnreported) && !!(transactionTag || hasEnabledTags(policyTagLists)));
     const tagVisibility = useMemo(
         () =>
             getTagVisibility({
                 shouldShowTags,
-                policy: currentPolicy,
+                policy: effectivePolicy,
                 policyTags,
                 transaction: splitExpenseDraftTransaction,
             }),
-        [shouldShowTags, currentPolicy, policyTags, splitExpenseDraftTransaction],
+        [shouldShowTags, effectivePolicy, policyTags, splitExpenseDraftTransaction],
     );
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
@@ -129,20 +170,40 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
+    const {
+        unit,
+        rate,
+        name: rateName,
+    } = DistanceRequestUtils.getRate({
+        transaction: splitExpenseDraftTransaction,
+        policy: effectivePolicy,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+    });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
-    const currentAmount = useMemo(() => {
-        if (isDistance && distance && rate) {
-            return DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign;
-        }
-        return Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
-    }, [isDistance, distance, rate, unit, originalSign, splitExpenseDraftTransaction?.amount]);
+    const currentAmount =
+        isDistance && distance && rate
+            ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
+            : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
-    const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
+    const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
-    const isCustomUnitOutOfPolicy = !rates[currentRateID] || (isDistance && !rate);
+
+    // Compute the header merchant from current distance and rate when available,
+    // so that a stale stored merchant (e.g. "Pending..." set before the MAP route was calculated)
+    // does not appear in the title. Falls back to the stored merchant otherwise.
+    const merchantToDisplay =
+        isDistance && distance && rate && unit
+            ? DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, true)
+            : (splitExpenseDraftTransactionDetails?.merchant ?? '');
+
+    const isP2PRate = currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    const rawPolicyRate = !isP2PRate && currentRateID && effectivePolicy ? getDistanceRateCustomUnitRate(effectivePolicy, currentRateID) : undefined;
+    const isRateBroken =
+        isDistance && !isP2PRate && (!rates[currentRateID] || !rate || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
+    const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(effectivePolicy)).length > 0;
+    const isCustomUnitOutOfPolicy = isSelfDMSplit ? isRateBroken : !rates[currentRateID] || (isDistance && !rate);
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
@@ -198,13 +259,30 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <MenuItemWithTopDescription
                 description={translate('common.rate')}
                 title={rateToDisplay}
-                interactive
-                shouldShowRightIcon
+                interactive={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace}
+                shouldShowRightIcon={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace}
                 titleStyle={styles.flex1}
                 brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={getErrorForField('customUnitRateID')}
                 style={[styles.moneyRequestMenuItem]}
                 onPress={() => {
+                    // SelfDM split whose source workspace is gone and user has no other paid workspace:
+                    // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
+                    // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
+                    // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
+                    // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
+                    if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action: CONST.IOU.ACTION.EDIT,
+                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                            }),
+                        );
+                        return;
+                    }
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
                             CONST.IOU.ACTION.EDIT,
@@ -224,11 +302,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
-                        title={translate(
-                            'iou.splitExpenseEditTitle',
-                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
-                            splitExpenseDraftTransactionDetails?.merchant ?? '',
-                        )}
+                        title={translate('iou.splitExpenseEditTitle', convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency), merchantToDisplay)}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>
@@ -260,19 +334,35 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 shouldShowRightIcon
                                 key={translate('common.category')}
                                 description={translate('common.category')}
-                                title={getDecodedCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
+                                title={getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                            reportID,
-                                            Navigation.getActiveRoute(),
-                                        ),
+                                    const categoryRoute = ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                        reportID,
+                                        Navigation.getActiveRoute(),
                                     );
+                                    if (shouldNavigateToUpgradePath) {
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                action: CONST.IOU.ACTION.EDIT,
+                                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                reportID,
+                                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                backTo: categoryRoute,
+                                            }),
+                                        );
+                                        return;
+                                    }
+                                    if (!effectivePolicy && shouldSelectPolicy) {
+                                        Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryRoute));
+                                        return;
+                                    }
+                                    Navigation.navigate(categoryRoute);
                                 }}
                                 style={[styles.moneyRequestMenuItem]}
                                 titleStyle={styles.flex1}
@@ -369,7 +459,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, currentPolicy);
+                                updateSplitExpenseField(
+                                    splitExpenseDraftTransaction,
+                                    originalTransactionDraft,
+                                    splitExpenseTransactionID,
+                                    transaction,
+                                    effectivePolicy,
+                                    isSelfDMSplit,
+                                    personalPolicy?.outputCurrency,
+                                );
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter

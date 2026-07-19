@@ -1,10 +1,15 @@
-import React from 'react';
-import type {RefObject} from 'react';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+
+import React from 'react';
+
 import useScanActions from './useScanActions';
 
 type FABButtonsProps = {
@@ -29,7 +34,7 @@ function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
                 />
             )}
             <FloatingActionButton
-                accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
+                accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                 role={CONST.ROLE.BUTTON}
                 isActive={isActive}
                 ref={fabRef}

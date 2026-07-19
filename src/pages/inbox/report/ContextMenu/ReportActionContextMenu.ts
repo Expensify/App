@@ -1,12 +1,16 @@
-import React from 'react';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+
+import type CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
+
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
-import type CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+
 import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnConfirm = () => void;
@@ -25,14 +29,9 @@ type ShowContextMenuParams = {
     report?: {
         reportID?: string;
         originalReportID?: string;
-        isArchivedRoom?: boolean;
-        isChronos?: boolean;
-        isPinnedChat?: boolean;
-        isUnreadChat?: boolean;
     };
     reportAction?: {
         reportActionID?: string;
-        draftMessage?: string;
         isThreadReportParentAction?: boolean;
     };
     callbacks?: {
@@ -121,13 +120,8 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
  * @param reportID - Active Report Id
  * @param reportActionID - ReportActionID for ContextMenu
  * @param originalReportID - The current Report Id of the reportAction
- * @param draftMessage - ReportAction draft message
  * @param [onShow=() => {}] - Run a callback when Menu is shown
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
- * @param isArchivedRoom - Whether the provided report is an archived room
- * @param isChronosReport - Flag to check if the chat participant is Chronos
- * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
- * @param isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
  */
 function showContextMenu(showContextMenuParams: ShowContextMenuParams) {
     if (!contextMenuRef.current) {

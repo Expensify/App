@@ -1,22 +1,30 @@
-import React, {useCallback, useEffect} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import type {SearchReportActionsParamList} from '@navigation/types';
+
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import React, {useCallback, useEffect, useMemo} from 'react';
 
 type SearchHoldReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS>
@@ -25,11 +33,19 @@ type SearchHoldReasonPageProps =
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
-    const {selectedTransactionIDs, selectedTransactions} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+    const relevantTransactionIDs = useMemo(
+        () => (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? selectedTransactionIDs : Object.keys(selectedTransactions)),
+        [route.name, selectedTransactionIDs, selectedTransactions],
+    );
+    const violationsSelector = useMemo(() => transactionViolationsByIDsSelector(relevantTransactionIDs), [relevantTransactionIDs]);
+    const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector}, [violationsSelector]);
     const {isOffline} = useNetwork();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
@@ -44,13 +60,34 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors);
+                putTransactionsOnHold(
+                    selectedTransactionIDs,
+                    comment,
+                    reportID,
+                    isOffline,
+                    currentUserLogin ?? '',
+                    currentUserAccountID,
+                    selectedTransactionViolations,
+                    isTrackIntentUser,
+                    ancestors,
+                );
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors);
+                    const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                    putOnHold(
+                        transactionID,
+                        comment,
+                        transactionThreadReportID,
+                        isOffline,
+                        currentUserLogin ?? '',
+                        currentUserAccountID,
+                        transactionViolations,
+                        isTrackIntentUser,
+                        ancestors,
+                    );
                 }
                 clearSelectedTransactions();
             }
@@ -69,6 +106,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             selectedTransactions,
             currentUserLogin,
             currentUserAccountID,
+            selectedTransactionViolations,
+            isTrackIntentUser,
         ],
     );
 

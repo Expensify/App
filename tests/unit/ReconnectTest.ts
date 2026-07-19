@@ -1,17 +1,20 @@
-import Onyx from 'react-native-onyx';
 import {openApp, reconnectApp} from '@libs/actions/App';
-import {reconnect} from '@libs/actions/Reconnect';
+import {initReconnect, reconnect} from '@libs/actions/Reconnect';
 import type AppStateMonitorType from '@libs/AppStateMonitor';
 import {flush} from '@libs/Network/SequentialQueue';
 import {getIsOffline, setHasRadio, setSustainedFailures} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import type * as NetworkStateType from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Log');
 jest.mock('@libs/Network/SequentialQueue', () => ({flush: jest.fn()}));
-jest.mock('@libs/actions/App', () => ({openApp: jest.fn(), reconnectApp: jest.fn(), confirmReadyToOpenApp: jest.fn()}));
+jest.mock('@libs/actions/App', () => ({openApp: jest.fn(), reconnectApp: jest.fn()}));
 jest.mock('@libs/AppStateMonitor', () => ({
     __esModule: true,
     default: {
@@ -24,7 +27,8 @@ jest.mock('@libs/AppStateMonitor', () => ({
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- extracting callback captured during module load
 const AppStateMonitor: typeof AppStateMonitorType = require('@libs/AppStateMonitor').default;
 
-const firstCall = jest.mocked(AppStateMonitor.addBecameActiveListener).mock.calls.at(0);
+initReconnect();
+const firstCall = jest.mocked(AppStateMonitor.addBecameActiveListener).mock.calls.at(-1);
 if (!firstCall) {
     throw new Error('AppStateMonitor.addBecameActiveListener was not called during Reconnect.ts module load');
 }
@@ -40,28 +44,6 @@ describe('Reconnect', () => {
         jest.clearAllMocks();
         setHasRadio(true);
         setSustainedFailures(false);
-    });
-
-    test('calls openApp when isLoadingApp is true', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
-        await waitForBatchedUpdates();
-
-        reconnect();
-
-        expect(jest.mocked(openApp)).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(reconnectApp)).not.toHaveBeenCalled();
-    });
-
-    test('calls reconnectApp when isLoadingApp is false', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
-        await waitForBatchedUpdates();
-
-        reconnect();
-
-        expect(jest.mocked(reconnectApp)).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(openApp)).not.toHaveBeenCalled();
     });
 
     test('passes lastUpdateIDAppliedToClient to reconnectApp', async () => {
@@ -99,7 +81,7 @@ describe('Reconnect', () => {
     test('sustained failure recovery notifies reachability listeners', () => {
         const {onReachabilityConfirmed} = require<typeof NetworkStateType>('@libs/NetworkState');
         const listener = jest.fn();
-        const unsub = onReachabilityConfirmed(listener);
+        const unSub = onReachabilityConfirmed(listener);
 
         setSustainedFailures(true);
         listener.mockClear();
@@ -112,7 +94,7 @@ describe('Reconnect', () => {
         jest.useRealTimers();
 
         expect(listener).toHaveBeenCalledTimes(1);
-        unsub();
+        unSub();
     });
 
     test('reachability confirmed triggers reconnect when sustained failures clear', async () => {

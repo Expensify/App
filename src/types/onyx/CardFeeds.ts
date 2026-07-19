@@ -1,7 +1,9 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Company card feed name */
@@ -37,11 +39,6 @@ type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
  * as a new connection (e.g. banks without an OAuth or Plaid integration).
  */
 type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
-
-/**
- *
- */
-type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
 
 /**
  * Card type name
@@ -232,6 +229,9 @@ type CardFeeds = {
         /** User-friendly feed nicknames */
         companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
 
+        /** Custom card names by card ID */
+        companyCardCustomNames?: Record<string, string>;
+
         /** Company cards feeds */
         companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
 
@@ -357,13 +357,11 @@ export type {
     CardFeedWithDomainID,
     BankName,
     NonConnectableBankName,
-    CardType,
     CardTypeName,
     CompanyCardFeed,
     CompanyCardFeedWithNumber,
     CompanyCardFeedWithDomainID,
     CardFeedDetails,
-    DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
     CardFeedsStatus,

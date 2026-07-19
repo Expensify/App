@@ -1,12 +1,15 @@
-import {useMemo} from 'react';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
+
+import {useMemo} from 'react';
 
 /**
  * Resolves the product-training tooltip state (CONCIERGE_LHN_GBR) for an LHN row.
- * Used by both OptionRowTooltipLayerInner (render the tooltip) and OptionRowPressable (hide on press).
+ * Used by both ProductTrainingTooltipInner (render the tooltip) and OptionRow/Pressable (hide on press).
  */
 function useLHNRowProductTrainingTooltip() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();

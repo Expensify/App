@@ -2,14 +2,15 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isReportTransactionThread} from '@libs/ReportUtils';
 import {getTransactionID} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
 
 function useShouldAddOrReplaceReceipt(reportID: string) {
     const {isOffline} = useNetwork();
@@ -24,7 +25,8 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
     const isExpensesReport = reportTransactions && reportTransactions.length > 1;
 
-    const iouAction = rawReportActions ? (Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) as ReportAction | undefined) : undefined;
+    const reportActionValues = rawReportActions ? Object.values(rawReportActions) : [];
+    const iouAction = reportActionValues.find((action) => isMoneyRequestAction(action));
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
     const transactionID = getTransactionID(report) ?? linkedTransactionID;
 

@@ -1,8 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import PromotedActionsBar from '@components/PromotedActionsBar';
 import type {PromotedAction, PromotedActionsBarProps} from '@components/PromotedActionsBar';
+
 import variables from '@src/styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -14,17 +16,13 @@ const story = {
     component: PromotedActionsBar,
 };
 
-type PromotedActionWithText = Omit<PromotedAction, 'translationKey'> & {text: string};
-type PromotedActionsBarPropsWithText = Omit<PromotedActionsBarProps, 'promotedActions'> & {promotedActions: PromotedActionWithText[]};
+type PromotedActionsBarPropsWithText = Omit<PromotedActionsBarProps, 'promotedActions'> & {promotedActions: PromotedAction[]};
 type StoryType = typeof Template & {args?: Partial<PromotedActionsBarPropsWithText>};
 
 function Template(args: PromotedActionsBarProps) {
     return (
         <View style={{maxWidth: variables.sideBarWidth}}>
-            <PromotedActionsBar
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...args}
-            />
+            <PromotedActionsBar {...args} />
         </View>
     );
 }
@@ -33,29 +31,29 @@ const promotedActions = [
     {
         key: 'join',
         icon: 'CommentBubbles',
-        text: 'Join',
+        translationKey: 'common.message',
         onSelected: () => {},
     },
     {
         key: 'pin',
         icon: 'Pin',
-        text: 'Pin',
+        translationKey: 'common.pin',
         onSelected: () => {},
     },
     {
         key: 'share',
         icon: 'QrCode',
-        text: 'Share',
+        translationKey: 'common.share',
         onSelected: () => {},
     },
-] satisfies PromotedActionWithText[];
+] satisfies PromotedAction[];
 
 const defaultPromotedAction = {
     key: '',
     icon: 'ChatBubbles',
-    text: '',
+    translationKey: 'common.join',
     onSelected: () => {},
-} satisfies PromotedActionWithText;
+} satisfies PromotedAction;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

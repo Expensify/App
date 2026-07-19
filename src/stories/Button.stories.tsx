@@ -1,10 +1,11 @@
-/* eslint-disable react/jsx-props-no-spreading */
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import type {ButtonProps} from '@components/Button';
 import Button from '@components/Button';
 import Text from '@components/Text';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type ButtonStory = StoryFn<typeof Button>;
 
@@ -27,11 +28,11 @@ function Template(props: ButtonProps) {
 const Default: ButtonStory = Template.bind({});
 const Loading: ButtonStory = Template.bind({});
 function PressOnEnter(props: ButtonProps) {
-    const [text, setText] = useState('');
-    const onPress = useCallback(() => {
+    const [text, setText] = useState(props.text);
+    const onPress = () => {
         setText('Button Pressed!');
-        setTimeout(() => setText(''), 500);
-    }, []);
+        setTimeout(() => setText(props.text), 500);
+    };
     return (
         <Button
             {...props}

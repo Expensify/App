@@ -28,4 +28,22 @@ function filterObject<TObject extends Record<string, unknown>>(obj: TObject, pre
         }, {} as TObject);
 }
 
-export {shallowCompare, filterObject};
+function getObjectKeys<T extends Record<string, unknown>>(obj: T): Array<keyof T> {
+    return Object.keys(obj) as Array<keyof T>;
+}
+
+function getObjectValues<T extends Record<string, unknown>>(obj: T): Array<ValueOf<T>> {
+    // Needed for functionality
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return Object.values(obj) as Array<ValueOf<T>>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function hasKey<T extends Record<string, unknown>>(obj: T, key: PropertyKey): key is keyof T {
+    return key in obj;
+}
+
+export {shallowCompare, getObjectValues, filterObject, isRecord, getObjectKeys, hasKey};

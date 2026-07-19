@@ -1,7 +1,3 @@
-import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
@@ -13,21 +9,25 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
-import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
 import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -36,6 +36,12 @@ import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
 
 type VerifiedBankAccountFlowEntryPointProps = {
     /** Bank account currently in setup */
@@ -123,10 +129,10 @@ function VerifiedBankAccountFlowEntryPoint({
     const prepareNextStep = useCallback(
         (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
             setBankAccountSubStep(setupType);
-            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
         },
-        [setUSDBankAccountStep],
+        [policyID, backTo],
     );
 
     /**
@@ -202,6 +208,15 @@ function VerifiedBankAccountFlowEntryPoint({
         Navigation.goBack(isCurrentUserPolicyAdmin ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_WALLET);
     };
 
+    useResetBankAccountModal({
+        reimbursementAccount,
+        isNonUSDWorkspace,
+        setUSDBankAccountStep,
+        setShouldShowContinueSetupButton,
+        navigateAfterReset,
+        backTo,
+    });
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -231,7 +246,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 src={expensifyIcons.Lightbulb}
                                 fill={theme.icon}
                                 additionalStyles={styles.mr2}
-                                medium
+                                size={CONST.ICON_SIZE.MEDIUM}
                             />
                             <Text
                                 style={[styles.textLabelSupportingNormal, styles.flex1]}
@@ -309,17 +324,6 @@ function VerifiedBankAccountFlowEntryPoint({
                     </PressableWithoutFeedback>
                 </View>
             </ScrollView>
-
-            {!!reimbursementAccount?.shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={reimbursementAccount}
-                    isNonUSDWorkspace={isNonUSDWorkspace}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                    setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
-                    navigateAfterReset={navigateAfterReset}
-                    backTo={backTo}
-                />
-            )}
         </ScreenWrapper>
     );
 }

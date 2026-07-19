@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
 
 type TransitionHandle = symbol;
@@ -7,7 +8,7 @@ type CancelHandle = {cancel: () => void};
 
 type RunAfterTransitionsOptions = {
     /** The function to invoke once all active transitions have completed. */
-    callback: () => void;
+    callback: () => void | Promise<void>;
 
     /** If true, the callback fires synchronously regardless of any active transitions. Defaults to false. */
     runImmediately?: boolean;
@@ -16,16 +17,32 @@ type RunAfterTransitionsOptions = {
      *  Useful when a navigation action has just been dispatched but the transition has not yet been registered.
      * Defaults to false. */
     waitForUpcomingTransition?: boolean;
+
+    /** Maximum time to wait for the upcoming transition to start. Used only when waitForUpcomingTransition is true. */
+    maxWaitForUpcomingTransitionMs?: number;
 };
 
 const activeTransitions = new Map<TransitionHandle, ReturnType<typeof setTimeout>>();
 
-let pendingCallbacks: Array<() => void> = [];
+let pendingCallbacks: Array<() => void | Promise<void>> = [];
 
 let nextTransitionStartResolve: (() => void) | null = null;
 let promiseForNextTransitionStart = new Promise<void>((resolve) => {
     nextTransitionStartResolve = resolve;
 });
+
+function runCallback(callback: () => void | Promise<void>): void {
+    try {
+        const result = callback();
+        if (result instanceof Promise) {
+            result.catch((error) => {
+                Log.warn('[TransitionTracker] A pending async callback threw an error', {error});
+            });
+        }
+    } catch (error) {
+        Log.warn('[TransitionTracker] A pending callback threw an error', {error});
+    }
+}
 
 /**
  * Invokes and removes all pending callbacks.
@@ -35,11 +52,7 @@ function flushCallbacks(): void {
     const callbacks = pendingCallbacks;
     pendingCallbacks = [];
     for (const callback of callbacks) {
-        try {
-            callback();
-        } catch (error) {
-            Log.warn('[TransitionTracker] A pending callback threw an error', {error});
-        }
+        runCallback(callback);
     }
 }
 
@@ -106,9 +119,15 @@ function endTransition(handle: TransitionHandle): void {
  * @param options.callback - The function to invoke once transitions finish.
  * @param options.runImmediately - If true, the callback fires synchronously regardless of active transitions. Defaults to false.
  * @param options.waitForUpcomingTransition - If true, waits for the next transition to start before queuing the callback, so it runs after that transition ends. Use when navigation happens just before this call and the transition is not yet registered. Defaults to false.
+ * @param options.maxWaitForUpcomingTransitionMs - Maximum time to wait for the upcoming transition to start. Defaults to {@link CONST.MAX_TRANSITION_START_WAIT_MS}.
  * @returns A handle with a `cancel` method to prevent the callback from firing.
  */
-function runAfterTransitions({callback, runImmediately = false, waitForUpcomingTransition = false}: RunAfterTransitionsOptions): CancelHandle {
+function runAfterTransitions({
+    callback,
+    runImmediately = false,
+    waitForUpcomingTransition = false,
+    maxWaitForUpcomingTransitionMs = CONST.MAX_TRANSITION_START_WAIT_MS,
+}: RunAfterTransitionsOptions): CancelHandle {
     if (waitForUpcomingTransition) {
         let cancelled = false;
         let innerHandle: CancelHandle | null = null;
@@ -118,13 +137,21 @@ function runAfterTransitions({callback, runImmediately = false, waitForUpcomingT
         // Whichever resolves first wins.
         // Afterwards we clearTimeout so the fallback doesn't keep the timer alive unnecessarily.
         let transitionStartTimeoutId!: ReturnType<typeof setTimeout>;
+        let didTimeout = false;
         const transitionStartTimeout = new Promise<void>((resolve) => {
-            transitionStartTimeoutId = setTimeout(resolve, CONST.MAX_TRANSITION_START_WAIT_MS);
+            transitionStartTimeoutId = setTimeout(() => {
+                didTimeout = true;
+                resolve();
+            }, maxWaitForUpcomingTransitionMs);
         });
 
         (async () => {
             await Promise.race([promiseForNextTransitionStart, transitionStartTimeout]);
             clearTimeout(transitionStartTimeoutId);
+
+            if (didTimeout && !cancelled) {
+                Log.info('[TransitionTracker] waitForUpcomingTransition timed out before a transition started', false, {timeoutMs: maxWaitForUpcomingTransitionMs});
+            }
 
             if (!cancelled) {
                 innerHandle = runAfterTransitions({callback});
@@ -141,7 +168,7 @@ function runAfterTransitions({callback, runImmediately = false, waitForUpcomingT
     }
 
     if (activeTransitions.size === 0 || runImmediately) {
-        callback();
+        runCallback(callback);
         return {cancel: () => {}};
     }
 

@@ -1,5 +1,6 @@
-import lodashDebounce from 'lodash/debounce';
 import CONST from '@src/CONST';
+
+import lodashDebounce from 'lodash/debounce';
 
 let active = false;
 

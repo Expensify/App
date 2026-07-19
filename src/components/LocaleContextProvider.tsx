@@ -1,13 +1,14 @@
-import {format as formatDate} from 'date-fns';
-import React, {createContext, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
+
 import {setLocale} from '@userActions/App';
+
 import CONST from '@src/CONST';
 import {isSupportedLocale} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
@@ -16,6 +17,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {format as formatDate} from 'date-fns';
+import React, {createContext, useEffect, useState} from 'react';
 
 type LocaleContextProviderProps = {
     /** Actual content wrapped by this component */
@@ -177,4 +181,4 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
 export {LocaleContext, LocaleContextProvider};
 
-export type {Locale, LocaleContextProps, LocalizedTranslate};
+export type {LocaleContextProps, LocalizedTranslate};

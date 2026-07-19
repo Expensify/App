@@ -1,14 +1,19 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import IOURequestStepTimeRate from '@pages/iou/request/step/IOURequestStepTimeRate';
+
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -75,9 +80,9 @@ describe('IOURequestStepTimeRate', () => {
         jest.clearAllMocks();
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
-        setMoneyRequestAmountSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestAmount');
-        setMoneyRequestMerchantSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestMerchant');
-        setMoneyRequestTimeRateSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestTimeRate');
+        setMoneyRequestAmountSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestAmount');
+        setMoneyRequestMerchantSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestMerchant');
+        setMoneyRequestTimeRateSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestTimeRate');
     });
 
     afterEach(async () => {

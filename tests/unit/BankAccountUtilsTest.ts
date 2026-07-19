@@ -2,13 +2,19 @@ import {
     getCompletedStepsForBankAccount,
     getDefaultCompanyWebsite,
     getLastFourDigits,
+    getRequiredKYBDocuments,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isPersonalBankAccountMissingInfo,
+    isUserAddressVerificationRequired,
+    isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
 } from '@libs/BankAccountUtils';
+import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
+
 import CONST from '@src/CONST';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Account, BankAccountList, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 
@@ -481,6 +487,163 @@ describe('BankAccountUtils', () => {
                 [bankAccountKey]: {accountData: {additionalData: {legalFirstName: 'John'}}, bankCurrency: 'USD', bankCountry: 'US'},
             } as unknown as BankAccountList;
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
+        });
+    });
+
+    describe('isUserAddressVerificationRequired', () => {
+        const qualifier = (key: string) => ({key, message: 'irrelevant'});
+        const PASS = CONST.BANK_ACCOUNT.KYB_STATUS.PASS;
+        const ADDRESS_KEYS = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.ADDRESS;
+        const DOB_KEYS = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.DOB;
+        const SOME_ADDRESS_KEY = ADDRESS_KEYS.at(0) ?? '';
+
+        it('returns false when status is PASS, even with a matching address qualifier', () => {
+            expect(isUserAddressVerificationRequired(PASS, [qualifier(SOME_ADDRESS_KEY)])).toBe(false);
+        });
+
+        it.each(ADDRESS_KEYS)('returns true for non-pass status when qualifiers contain address key "%s"', (key) => {
+            expect(isUserAddressVerificationRequired('fail', [qualifier(key)])).toBe(true);
+        });
+
+        it('returns false when status is non-pass but qualifiers only contain an unrelated key', () => {
+            expect(isUserAddressVerificationRequired('fail', [qualifier('resultcode.some.unrelated.code')])).toBe(false);
+        });
+
+        it('returns false when status is non-pass and qualifiers is undefined', () => {
+            expect(isUserAddressVerificationRequired('fail', undefined)).toBe(false);
+        });
+
+        it('returns false when status is non-pass and qualifiers is empty', () => {
+            expect(isUserAddressVerificationRequired('fail', [])).toBe(false);
+        });
+
+        it('returns true when status is undefined and qualifiers contain a matching address key', () => {
+            expect(isUserAddressVerificationRequired(undefined, [qualifier(SOME_ADDRESS_KEY)])).toBe(true);
+        });
+
+        it.each(DOB_KEYS)('returns false when qualifiers contain only DOB key "%s" (cross-category)', (key) => {
+            expect(isUserAddressVerificationRequired('fail', [qualifier(key)])).toBe(false);
+        });
+    });
+
+    describe('isUserDOBVerificationRequired', () => {
+        const qualifier = (key: string) => ({key, message: 'irrelevant'});
+        const PASS = CONST.BANK_ACCOUNT.KYB_STATUS.PASS;
+        const ADDRESS_KEYS = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.ADDRESS;
+        const DOB_KEYS = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.DOB;
+        const SOME_DOB_KEY = DOB_KEYS.at(0) ?? '';
+
+        it('returns false when status is PASS, even with a matching DOB qualifier', () => {
+            expect(isUserDOBVerificationRequired(PASS, [qualifier(SOME_DOB_KEY)])).toBe(false);
+        });
+
+        it.each(DOB_KEYS)('returns true for non-pass status when qualifiers contain DOB key "%s"', (key) => {
+            expect(isUserDOBVerificationRequired('fail', [qualifier(key)])).toBe(true);
+        });
+
+        it('returns false when status is non-pass but qualifiers only contain an unrelated key', () => {
+            expect(isUserDOBVerificationRequired('fail', [qualifier('resultcode.some.unrelated.code')])).toBe(false);
+        });
+
+        it('returns false when status is non-pass and qualifiers is undefined', () => {
+            expect(isUserDOBVerificationRequired('fail', undefined)).toBe(false);
+        });
+
+        it('returns false when status is non-pass and qualifiers is empty', () => {
+            expect(isUserDOBVerificationRequired('fail', [])).toBe(false);
+        });
+
+        it('returns true when status is undefined and qualifiers contain a matching DOB key', () => {
+            expect(isUserDOBVerificationRequired(undefined, [qualifier(SOME_DOB_KEY)])).toBe(true);
+        });
+
+        it.each(ADDRESS_KEYS)('returns false when qualifiers contain only address key "%s" (cross-category)', (key) => {
+            expect(isUserDOBVerificationRequired('fail', [qualifier(key)])).toBe(false);
+        });
+    });
+
+    describe('getRequiredKYBDocuments', () => {
+        const PASS = CONST.BANK_ACCOUNT.KYB_STATUS.PASS;
+        const ADDRESS_KEY = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.ADDRESS.at(0);
+        const DOB_KEY = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.DOB.at(0);
+
+        const requestorIdentity = (status: string, ...keys: Array<string | undefined>): NonNullable<KYBVerificationResponses>['requestorIdentityID'] => ({
+            status,
+            apiResult: {
+                qualifiers: {
+                    qualifier: keys.filter((key): key is string => key !== undefined).map((key) => ({key, message: 'irrelevant'})),
+                },
+            },
+        });
+
+        it('returns an empty array when externalApiResponses is undefined', () => {
+            expect(getRequiredKYBDocuments(undefined)).toEqual([]);
+        });
+
+        it('returns an empty array when externalApiResponses is empty', () => {
+            expect(getRequiredKYBDocuments({})).toEqual([]);
+        });
+
+        it('returns an empty array when every check passes', () => {
+            const externalApiResponses: KYBVerificationResponses = {
+                companyTaxID: {status: PASS},
+                lexisNexisInstantIDResult: {status: PASS},
+                requestorIdentityID: requestorIdentity(PASS, ADDRESS_KEY, DOB_KEY),
+            };
+            expect(getRequiredKYBDocuments(externalApiResponses)).toEqual([]);
+        });
+
+        it('requires the company tax ID document when the companyTaxID check does not pass', () => {
+            expect(getRequiredKYBDocuments({companyTaxID: {status: 'fail'}})).toEqual([INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]);
+        });
+
+        it('does not require the company tax ID document when the companyTaxID check passes', () => {
+            expect(getRequiredKYBDocuments({companyTaxID: {status: PASS}})).toEqual([]);
+        });
+
+        it('requires the name change and company address documents when the lexisNexis check does not pass', () => {
+            expect(getRequiredKYBDocuments({lexisNexisInstantIDResult: {status: 'fail'}})).toEqual([
+                INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT,
+                INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION,
+            ]);
+        });
+
+        it('does not require the lexisNexis documents when the check passes', () => {
+            expect(getRequiredKYBDocuments({lexisNexisInstantIDResult: {status: PASS}})).toEqual([]);
+        });
+
+        it('requires the user address verification document when a non-passing identity check flags an address error', () => {
+            expect(getRequiredKYBDocuments({requestorIdentityID: requestorIdentity('fail', ADDRESS_KEY)})).toEqual([INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION]);
+        });
+
+        it('requires the user DOB verification document when a non-passing identity check flags a DOB error', () => {
+            expect(getRequiredKYBDocuments({requestorIdentityID: requestorIdentity('fail', DOB_KEY)})).toEqual([INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION]);
+        });
+
+        it('requires both user verification documents when the identity check flags address and DOB errors', () => {
+            expect(getRequiredKYBDocuments({requestorIdentityID: requestorIdentity('fail', ADDRESS_KEY, DOB_KEY)})).toEqual([
+                INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
+                INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
+            ]);
+        });
+
+        it('does not require user verification documents when a non-passing identity check has only unrelated qualifiers', () => {
+            expect(getRequiredKYBDocuments({requestorIdentityID: requestorIdentity('fail', 'resultcode.some.unrelated.code')})).toEqual([]);
+        });
+
+        it('aggregates the documents from all failing checks in a stable order', () => {
+            const externalApiResponses: KYBVerificationResponses = {
+                companyTaxID: {status: 'fail'},
+                lexisNexisInstantIDResult: {status: 'fail'},
+                requestorIdentityID: requestorIdentity('fail', ADDRESS_KEY, DOB_KEY),
+            };
+            expect(getRequiredKYBDocuments(externalApiResponses)).toEqual([
+                INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID,
+                INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT,
+                INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION,
+                INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
+                INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
+            ]);
         });
     });
 });

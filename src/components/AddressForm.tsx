@@ -1,19 +1,25 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
+import {getInvalidAddressErrorTranslationPath, isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
+import type {FormOnyxValues} from './Form/types';
+import type {State} from './StateSelector';
+
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import type {FormOnyxValues} from './Form/types';
-import type {State} from './StateSelector';
 import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
@@ -61,6 +67,9 @@ type AddressFormProps = {
 
     /** Whether the form submit button should be enabled when offline */
     enabledWhenOffline?: boolean;
+
+    /** Whether PO boxes and mail drops are rejected on address lines */
+    shouldValidatePhysicalAddress?: boolean;
 };
 
 function AddressForm({
@@ -77,11 +86,12 @@ function AddressForm({
     zip = '',
     shouldHideCountrySelector = false,
     enabledWhenOffline: enabledWhenOfflineProp = true,
+    shouldValidatePhysicalAddress = false,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const zipSampleFormat = (country && (CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
+    const zipSampleFormat = (country && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
 
     const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
@@ -135,8 +145,20 @@ function AddressForm({
                 errors.state = translate('common.error.characterLimitExceedCounter', values.state.length, CONST.STATE_CHARACTER_LIMIT);
             }
 
+            if (shouldValidatePhysicalAddress) {
+                const addressLine1Error = getInvalidAddressErrorTranslationPath(values.addressLine1);
+                if (values.addressLine1 && addressLine1Error) {
+                    errors.addressLine1 = translate(addressLine1Error);
+                }
+
+                const addressLine2Error = getInvalidAddressErrorTranslationPath(values.addressLine2);
+                if (values.addressLine2 && addressLine2Error) {
+                    errors.addressLine2 = translate(addressLine2Error);
+                }
+            }
+
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-            const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+            const countryRegexDetails = (values.country ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
             // The postal code system might not exist for a country, so no regex either for them.
             const countrySpecificZipRegex = countryRegexDetails?.regex;
@@ -150,13 +172,13 @@ function AddressForm({
                         errors.zipPostCode = translate('common.error.fieldRequired');
                     }
                 }
-            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
+            } else if (!COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
                 errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
 
             return errors;
         },
-        [translate, shouldHideCountrySelector, country],
+        [translate, shouldHideCountrySelector, country, shouldValidatePhysicalAddress],
     );
 
     return (

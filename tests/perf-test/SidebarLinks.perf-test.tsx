@@ -1,9 +1,13 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import {measureRenders} from 'reassure';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+import {measureRenders} from 'reassure';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -18,6 +22,7 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
     getTopmostReportActionId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
 jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({

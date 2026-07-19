@@ -1,13 +1,16 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {ConnectPolicyToGustoParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function getGustoSetupLink(policyID: string) {
     const params: ConnectPolicyToGustoParams = {policyID};
@@ -82,6 +85,66 @@ function updateGustoApprovalMode(
     write(WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE, {policyID, approvalMode}, {optimisticData, successData, failureData});
 }
 
-export {updateGustoApprovalMode};
+function updateGustoFinalApprover(policyID: string | undefined, finalApprover: string | null, currentFinalApprover?: string | null) {
+    if (!policyID) {
+        return;
+    }
+
+    const previousFinalApprover = currentFinalApprover ?? null;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    gusto: {
+                        config: {
+                            finalApprover,
+                            pendingFields: {finalApprover: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {finalApprover: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    gusto: {
+                        config: {
+                            pendingFields: {finalApprover: null},
+                            errorFields: {finalApprover: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    gusto: {
+                        config: {
+                            finalApprover: previousFinalApprover,
+                            pendingFields: {finalApprover: null},
+                            errorFields: {finalApprover: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    write(WRITE_COMMANDS.UPDATE_GUSTO_FINAL_APPROVER, {policyID, finalApprover}, {optimisticData, successData, failureData});
+}
+
+export {updateGustoApprovalMode, updateGustoFinalApprover};
 
 export default getGustoSetupLink;

@@ -1,5 +1,3 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -23,19 +21,28 @@ import {
     generateReportID,
     getDisplayedReportID,
     getOptimisticDataForAncestors,
+    getReimbursableTotal,
     getReportOrDraftReport,
+    getUnheldReimbursableTotal,
     isExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
 } from '@libs/ReportUtils';
 import {getAmount} from '@libs/TransactionUtils';
+
 import {notifyNewAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import {getAllReports, getAllTransactions} from '.';
 
 /**
  * Put expense on HOLD
@@ -47,10 +54,11 @@ function putOnHold(
     isOffline: boolean,
     currentUserLogin: string,
     currentUserAccountID: number,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const allTransactions = getAllTransactions();
-    const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
     const currentTime = DateUtils.getDBTime();
@@ -58,8 +66,7 @@ function putOnHold(
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
     const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-    const updatedViolations = [...transactionViolations, newViolation];
+    const updatedViolations = [...(transactionViolations ?? []), newViolation];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
@@ -128,6 +135,7 @@ function putOnHold(
             value: {
                 unheldTotal: (iouReport.unheldTotal ?? 0) - transactionAmount,
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(iouReport) - transactionAmount : getUnheldReimbursableTotal(iouReport),
             },
         });
     }
@@ -161,6 +169,7 @@ function putOnHold(
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     > = [
         {
@@ -188,6 +197,11 @@ function putOnHold(
             value: {
                 lastVisibleActionCreated: transactionThreadReport.lastVisibleActionCreated,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations ?? null,
         },
     ];
 
@@ -273,6 +287,7 @@ function putOnHold(
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -280,6 +295,7 @@ function putOnHold(
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -350,24 +366,34 @@ function putTransactionsOnHold(
     isOffline: boolean,
     currentUserLogin: string,
     currentUserAccountID: number,
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
     ancestors: Ancestor[] = [],
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, ancestors);
+        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, ancestors);
     }
 }
 
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean, currentUserLogin: string, currentUserAccountID: number) {
+function unholdRequest(
+    transactionID: string,
+    reportID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isOffline: boolean,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
+) {
     const allTransactions = getAllTransactions();
-    const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
     const createdReportAction = buildOptimisticUnHoldReportAction();
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
@@ -423,6 +449,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             value: {
                 unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(iouReport) + transactionAmount : getUnheldReimbursableTotal(iouReport),
             },
         });
     }
@@ -497,6 +524,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -505,6 +533,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -685,6 +714,7 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp,
     betas,
     isApprovalFlow = false,
+    delegateAccountID,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -693,6 +723,8 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp?: string;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
+    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -709,8 +741,10 @@ function getReportFromHoldRequestsOnyxData({
 
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
-    const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
-    const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
+    const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
+    const holdNonReimbursable = (iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
+    const holdAmount = (holdReimbursable + holdNonReimbursable) * coefficient;
+    const holdNonReimbursableAmount = holdNonReimbursable * coefficient;
 
     // Pass held transactions for formula computation (e.g., {report:startdate})
     const reportTransactions: Record<string, OnyxTypes.Transaction> = {};
@@ -752,6 +786,7 @@ function getReportFromHoldRequestsOnyxData({
         firstHoldTransaction,
         optimisticExpenseReport.reportID,
         newParentReportActionID,
+        delegateAccountID,
     );
 
     let optimisticCreatedReportForUnapprovedAction: OnyxTypes.ReportAction | null = null;
@@ -783,10 +818,8 @@ function getReportFromHoldRequestsOnyxData({
         addHoldReportActions[reportActionID] = {
             ...holdReportAction,
             reportActionID,
-            originalMessage: {
-                ...originalMessage,
-                IOUReportID: optimisticExpenseReport.reportID,
-            },
+            reportID: optimisticExpenseReport.reportID,
+            originalMessage,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
         addHoldReportActionsSuccess[reportActionID] = {
@@ -814,6 +847,11 @@ function getReportFromHoldRequestsOnyxData({
 
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
 
+    // Held transactions just moved out, leaving total/nonReimbursableTotal stale on this report —
+    // offline consumers (e.g. the Pay button) would read the wrong amount until server reconciles.
+    // unheldTotal stays as-is: every remaining transaction is unheld, so it already equals the new total.
+    const shouldUpdateOriginalReportTotals = holdTransactions.length > 0 && iouReport?.unheldTotal !== undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -830,6 +868,7 @@ function getReportFromHoldRequestsOnyxData({
                 ...optimisticExpenseReport,
                 unheldTotal: 0,
                 unheldNonReimbursableTotal: 0,
+                unheldReimbursableTotal: 0,
                 ...(isProcessingReport(iouReport) && isApprovalEnabled
                     ? {
                           stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -866,6 +905,18 @@ function getReportFromHoldRequestsOnyxData({
             value: updateHeldTransactions,
         },
     ];
+
+    if (shouldUpdateOriginalReportTotals) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                total: iouReport?.unheldTotal ?? 0,
+                nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
+                reimbursableTotal: getUnheldReimbursableTotal(iouReport),
+            },
+        });
+    }
 
     const bringReportActionsBack: Record<string, OnyxTypes.ReportAction> = {};
     for (const reportAction of holdReportActions) {
@@ -931,6 +982,18 @@ function getReportFromHoldRequestsOnyxData({
             value: bringHeldTransactionsBack,
         },
     ];
+
+    if (shouldUpdateOriginalReportTotals) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                total: iouReport?.total,
+                nonReimbursableTotal: iouReport?.nonReimbursableTotal,
+                reimbursableTotal: iouReport?.reimbursableTotal,
+            },
+        });
+    }
 
     // Copy submission/approval actions to the new report
     const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticReportActionCopyIDs] = getDuplicateActionsForPartialReport(

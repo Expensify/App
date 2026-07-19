@@ -6,7 +6,7 @@ keywords: [New Expensify, workspace setup, personal expenses, New Expensify, Sma
 
 If you're a freelancer, sole proprietor, or just want to track personal expenses, this guide walks you through setting up your workspace and starting your free 30-day trial. The trial begins once you start using your workspace.
 
-**Note:** After creating your workspace, check your email or Expensify notifications to book a free onboarding session with a Setup Specialist.
+**Note:** After creating your workspace, check your email or Expensify notifications to book a free onboarding session with an Account Executive.
 
 ---
 

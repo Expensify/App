@@ -1,4 +1,3 @@
-import {DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
     calculateMinDomainPadding,
@@ -8,9 +7,7 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
-    getChartColor,
-    getNiceLowerBound,
-    getNiceUpperBound,
+    getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -22,6 +19,7 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
+import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 const LINE_HEIGHT = 16;
 
@@ -263,7 +261,7 @@ describe('findSliceAtPosition', () => {
 
 describe('processDataIntoSlices', () => {
     it('returns empty array for empty data', () => {
-        expect(processDataIntoSlices([], 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
+        expect(processDataIntoSlices([], {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });
 
     it('returns empty array when all values are zero', () => {
@@ -271,12 +269,12 @@ describe('processDataIntoSlices', () => {
             {label: 'A', total: 0},
             {label: 'B', total: 0},
         ];
-        expect(processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
+        expect(processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });
 
     it('creates a single slice covering 360 degrees for one data point', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, -90);
 
         expect(slices).toHaveLength(1);
         expect(slices.at(0)?.label).toBe('Only');
@@ -287,12 +285,27 @@ describe('processDataIntoSlices', () => {
         expect(slices.at(0)?.originalIndex).toBe(0);
     });
 
+    it('uses the provided startAngle for the first slice', () => {
+        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, 45);
+
+        expect(slices.at(0)?.startAngle).toBe(45);
+        expect(slices.at(0)?.endAngle).toBe(405);
+    });
+
+    it('defaults to VictoryTheme.pie.startAngle when no startAngle is provided', () => {
+        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+
+        expect(slices.at(0)?.startAngle).toBe(VictoryTheme.pie.startAngle);
+    });
+
     it('sorts slices by absolute value descending', () => {
         const data: ChartDataPoint[] = [
             {label: 'Small', total: 10},
             {label: 'Large', total: 90},
         ];
-        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.label).toBe('Large');
         expect(slices.at(1)?.label).toBe('Small');
@@ -303,7 +316,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Positive', total: 75},
             {label: 'Negative', total: -25},
         ];
-        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices).toHaveLength(2);
         expect(slices.at(0)?.value).toBe(75);
@@ -318,7 +331,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Medium', total: 50},
             {label: 'Large', total: 100},
         ];
-        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.originalIndex).toBe(2); // Large was at index 2
         expect(slices.at(1)?.originalIndex).toBe(1); // Medium was at index 1
@@ -331,7 +344,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 33},
             {label: 'C', total: 34},
         ];
-        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         const totalSweep = slices.reduce((sum, s) => sum + (s.endAngle - s.startAngle), 0);
         expect(totalSweep).toBeCloseTo(360, 5);
@@ -343,7 +356,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 30},
             {label: 'C', total: 20},
         ];
-        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         for (let i = 1; i < slices.length; i++) {
             expect(slices.at(i)?.startAngle).toBeCloseTo(slices.at(i - 1)?.endAngle ?? 0, 10);
@@ -357,11 +370,27 @@ describe('processDataIntoSlices', () => {
             {label: 'C', total: 20},
             {label: 'D', total: 10},
         ];
-        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
         const colors = slices.map((s) => s.color);
         const uniqueColors = new Set(colors);
 
         expect(uniqueColors.size).toBe(4);
+    });
+
+    it('places tooltipPosition at the ring midpoint along each slice mid-angle', () => {
+        // Two equal slices from -90° produce mid-angles 0° (right) and 180° (left).
+        // tooltipRadius = (innerRadius + radius) / 2 = (60 + 100) / 2 = 80.
+        const data: ChartDataPoint[] = [
+            {label: 'Right', total: 50},
+            {label: 'Left', total: 50},
+        ];
+        const slices = processDataIntoSlices(data, {centerX: 200, centerY: 150, radius: 100, innerRadius: 60}, -90);
+
+        expect(slices.at(0)?.tooltipPosition.x).toBeCloseTo(280, 5);
+        expect(slices.at(0)?.tooltipPosition.y).toBeCloseTo(150, 5);
+
+        expect(slices.at(1)?.tooltipPosition.x).toBeCloseTo(120, 5);
+        expect(slices.at(1)?.tooltipPosition.y).toBeCloseTo(150, 5);
     });
 });
 
@@ -540,28 +569,6 @@ describe('isCursorOverChartLabel', () => {
     });
 });
 
-describe('getChartColor', () => {
-    it('returns a non-empty string for index 0', () => {
-        const color = getChartColor(0);
-        expect(typeof color).toBe('string');
-        expect(color.length).toBeGreaterThan(0);
-    });
-
-    it('returns different colors for consecutive indices', () => {
-        expect(getChartColor(0)).not.toBe(getChartColor(1));
-        expect(getChartColor(1)).not.toBe(getChartColor(2));
-    });
-
-    it('wraps around to the same color after the full palette (30 entries)', () => {
-        expect(getChartColor(0)).toBe(getChartColor(30));
-        expect(getChartColor(5)).toBe(getChartColor(35));
-    });
-
-    it('handles large indices via modulo wrapping', () => {
-        expect(getChartColor(0)).toBe(getChartColor(300));
-    });
-});
-
 describe('getAdditionalOffset', () => {
     // variables.iconSizeExtraSmall = 12
     it('returns iconSizeExtraSmall / 3 for 0° (horizontal)', () => {
@@ -659,66 +666,48 @@ describe('calculateMinDomainPadding', () => {
     });
 });
 
-describe('getNiceUpperBound', () => {
-    it('returns rawMax unchanged when range is zero', () => {
-        expect(getNiceUpperBound(0, 5)).toBe(0);
-        expect(getNiceUpperBound(100, 5, 100)).toBe(100);
+// Bar chart domain padding constants, mirrored from BarChartContent.
+const BAR_PAD_TOP = 32;
+const BAR_PAD_BOTTOM = 1;
+
+describe('getNiceYAxisTicks', () => {
+    it('expands a flat series by ±1 and runs D3 nice/ticks so results are always nice values', () => {
+        expect(getNiceYAxisTicks(-1, -1, 5)).toEqual([-2, -1.5, -1, -0.5, 0]);
     });
 
-    it('returns rawMax unchanged when tickCount <= 1', () => {
-        expect(getNiceUpperBound(100, 1)).toBe(100);
-        expect(getNiceUpperBound(90, 0)).toBe(90);
+    it('produces nice ticks even when the singular value is not itself nice', () => {
+        expect(getNiceYAxisTicks(-3.7, -3.7, 5)).toEqual([-4.5, -4, -3.5, -3]);
     });
 
-    it('rounds up to next step boundary when rawMax is already on a step', () => {
-        // range=100, step=20 → ceil(100/20)*20=100
-        expect(getNiceUpperBound(100, 5)).toBe(100);
+    it('treats flat positive series as range [0, value] using bar chart padding', () => {
+        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 1, 2, 3]);
     });
 
-    it('rounds up when rawMax falls between step boundaries', () => {
-        // range=90, step=20 → ceil(90/20)*20=ceil(4.5)*20=5*20=100
-        expect(getNiceUpperBound(90, 5)).toBe(100);
+    it('returns correct ticks for varied positive data with bar chart padding', () => {
+        expect(getNiceYAxisTicks(90, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 20, 40, 60, 80, 100]);
     });
 
-    it('scales correctly for larger values', () => {
-        // range=1000, step=200 → ceil(1000/200)*200=1000
-        expect(getNiceUpperBound(1000, 5)).toBe(1000);
-        // range=900, step=200 → ceil(900/200)*200=ceil(4.5)*200=1000
-        expect(getNiceUpperBound(900, 5)).toBe(1000);
+    it('clamps positive rawDataMin to 0 so the y-axis floor matches Victory', () => {
+        expect(getNiceYAxisTicks(90, 10, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 20, 40, 60, 80, 100]);
     });
 
-    it('uses rawMin to compute the range when negative values are present', () => {
-        // rawMax=100, rawMin=-100 → range=200, roughStep=50, magnitude=10, normalized=5 → step=50
-        // ceil(100/50)*50=100
-        expect(getNiceUpperBound(100, 5, -100)).toBe(100);
-    });
-});
-
-describe('getNiceLowerBound', () => {
-    it('returns rawMin unchanged for non-negative values', () => {
-        expect(getNiceLowerBound(0, 5)).toBe(0);
-        expect(getNiceLowerBound(10, 5)).toBe(10);
-        expect(getNiceLowerBound(100, 5)).toBe(100);
+    it('returns correct ticks for a high positive-only range with bar chart padding', () => {
+        expect(getNiceYAxisTicks(9000, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 2000, 4000, 6000, 8000, 10000]);
     });
 
-    it('returns rawMin unchanged when range is zero or tickCount <= 1', () => {
-        expect(getNiceLowerBound(-100, 1, 0)).toBe(-100);
-        expect(getNiceLowerBound(-100, 5, -100)).toBe(-100);
+    it('includes the next nice tick when data max sits near a tick boundary with bar chart padding', () => {
+        expect(getNiceYAxisTicks(795, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 200, 400, 600, 800, 1000]);
     });
 
-    it('returns rawMin unchanged when rawMin is already on a step boundary', () => {
-        // range=100, step=20 → floor(-100/20)*20=-5*20=-100
-        expect(getNiceLowerBound(-100, 5, 0)).toBe(-100);
+    it('returns correct ticks for mixed positive and negative data with bar chart padding', () => {
+        expect(getNiceYAxisTicks(100, -50, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-50, 0, 50, 100]);
     });
 
-    it('rounds down when rawMin falls between step boundaries', () => {
-        // range=90, step=20 → floor(-90/20)*20=floor(-4.5)*20=-5*20=-100
-        expect(getNiceLowerBound(-90, 5, 0)).toBe(-100);
+    it('returns correct ticks for varied negative data with bar chart padding', () => {
+        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-100, -80, -60, -40, -20, 0]);
     });
 
-    it('uses rawMax to compute the range for mixed positive/negative data', () => {
-        // rawMin=-50, rawMax=100 → range=150, roughStep=37.5, magnitude=10, normalized=3.75 >= 2 → step=20
-        // floor(-50/20)*20=floor(-2.5)*20=-3*20=-60
-        expect(getNiceLowerBound(-50, 5, 100)).toBe(-60);
+    it('rounds intermediate ticks to eliminate floating-point noise', () => {
+        expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
     });
 });

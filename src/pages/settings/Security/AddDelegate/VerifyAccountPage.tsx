@@ -1,11 +1,13 @@
-import React from 'react';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 function VerifyAccountPage() {
     return (
         <VerifyAccountPageBase
-            navigateBackTo={ROUTES.SETTINGS_SECURITY}
+            navigateBackTo={ROUTES.SETTINGS_COPILOT}
             navigateForwardTo={ROUTES.SETTINGS_ADD_DELEGATE}
         />
     );

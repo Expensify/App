@@ -1,6 +1,7 @@
+import CONST from '@src/CONST';
+
 import {useCallback, useEffect, useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import CONST from '@src/CONST';
 
 /**
  * This hook tracks scroll events and emits a "scrolling" event when scrolling starts and ends.

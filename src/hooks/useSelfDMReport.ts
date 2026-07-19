@@ -1,8 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {buildOptimisticSelfDMReport, isSelfDM, isThread} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 const selfDMReportIDSelector = (reports: OnyxCollection<Report>) => {

@@ -1,7 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -13,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,16 +20,24 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
+
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 function AddPaymentCard() {
     const route = useRoute();
@@ -121,7 +126,6 @@ function AddPaymentCard() {
                             addPaymentCard={addPaymentCard}
                             showAcceptTerms
                             showCurrencyField
-                            currencySelectorRoute={ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY}
                             submitButtonText={translate('subscription.paymentCard.addPaymentCard')}
                             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('subscription.paymentCard.enterPaymentCardDetails')}</Text>}
                             footerContent={

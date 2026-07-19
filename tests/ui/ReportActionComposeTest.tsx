@@ -1,14 +1,23 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {KeyboardStateProvider} from '@components/withKeyboardState';
+
 import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as NativeNavigation from '@react-navigation/native';
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -56,16 +65,22 @@ const defaultProps: ReportActionComposeProps = {
     reportID: defaultReport.reportID,
 };
 
+function ReportActionEditMessageContextProviderForReport({children}: PropsWithChildren) {
+    return <ReportActionEditMessageContextProvider reportID={defaultReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
+}
+
+function ReportScreenProviders({children}: PropsWithChildren) {
+    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
+}
+
 const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ReportScreenProviders>
             <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
-        </ComposeProviders>,
+        </ReportScreenProviders>,
     );
 };
 
@@ -252,10 +267,10 @@ describe('ReportActionCompose Integration Tests', () => {
             const iouReportAction = {
                 ...LHNTestUtils.getFakeReportAction(),
                 reportActionID: parentReportActionID,
+                reportID: expenseReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 originalMessage: {
-                    IOUReportID: expenseReportID,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     IOUTransactionID: transactionID,
                     amount: 100,
@@ -395,6 +410,26 @@ describe('ReportActionCompose Integration Tests', () => {
             await waitFor(
                 () => {
                     expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
+                },
+                {timeout: CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 500},
+            );
+
+            unmount();
+        });
+
+        it('should not send when task title length exceeds the limit', async () => {
+            const {unmount} = renderReportActionCompose();
+            const composer = screen.getByTestId('composer');
+
+            // Given a task title that exceeds the title character limit
+            const taskTitle = 'x'.repeat(CONST.TITLE_CHARACTER_LIMIT + 1);
+            fireEvent.changeText(composer, `[] ${taskTitle}`);
+
+            // The debounced validation fires on the trailing edge after COMMENT_LENGTH_DEBOUNCE_TIME
+            await waitFor(
+                () => {
+                    // And the task-title-specific error should be displayed
+                    expect(screen.getByText('composer.taskTitleExceededMaxLength')).toBeOnTheScreen();
                 },
                 {timeout: CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 500},
             );

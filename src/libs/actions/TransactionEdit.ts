@@ -1,11 +1,15 @@
-import {format} from 'date-fns';
-import Onyx from 'react-native-onyx';
-import type {Connection, OnyxEntry} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
-import revokeOdometerImageUri from '@libs/OdometerImageUtils';
+import revokeOdometerImageUri from '@libs/OdometerUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
+
+import type {Connection, OnyxEntry} from 'react-native-onyx';
+
+import {format} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import {generateTransactionID} from './Transaction';
 
 let connection: Connection;
@@ -39,7 +43,9 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
         callback: (transactionBackup) => {
             Onyx.disconnect(conn);
-            if (transactionBackup) {
+            // Treat a backup missing `transactionID` as corrupted (a partial route-fetch shape can
+            // leak in via Pusher) and overwrite it instead of restoring from it.
+            if (transactionBackup?.transactionID) {
                 // If the transactionBackup exists it means we haven't properly restored original value on unmount
                 // such as on page refresh, so we will just restore the transaction from the transactionBackup here.
                 Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transactionBackup);
@@ -175,7 +181,7 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
         amount: 0,
         created: format(new Date(), 'yyyy-MM-dd'),
         currency,
-        comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID)},
+        comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails)},
         iouRequestType,
         reportID,
         transactionID: newTransactionID,

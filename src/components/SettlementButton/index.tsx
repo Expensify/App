@@ -1,10 +1,3 @@
-import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import truncate from 'lodash/truncate';
-import React, {useCallback, useContext} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -14,6 +7,7 @@ import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/type
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
+
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -26,13 +20,16 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
-import {getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
+import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -43,18 +40,31 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport,
 } from '@libs/ReportUtils';
-import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+
+import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {GestureResponderEvent} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
+
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import truncate from 'lodash/truncate';
+import React, {useCallback, useContext} from 'react';
+import {View} from 'react-native';
+
 import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
@@ -73,14 +83,13 @@ function SettlementButton({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    extraSmall = false,
+    size = CONST.BUTTON_SIZE.MEDIUM,
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
     iouReport,
     isDisabled = false,
-    shouldStayNormalOnDisable = false,
+    stayNormalOnDisable = false,
     isLoading = false,
     formattedAmount = '',
     onPress,
@@ -115,12 +124,13 @@ function SettlementButton({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
-    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
+    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : (iouReport?.policyID ?? CONST.POLICY.ID_FAKE);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -168,6 +178,7 @@ function SettlementButton({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
@@ -202,7 +213,7 @@ function SettlementButton({
             }
 
             if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                handleUnvalidatedUserNavigation(chatReportID, reportID);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                 return true;
             }
 
@@ -246,8 +257,6 @@ function SettlementButton({
             ownerBillingGracePeriodEnd,
             showDelegateNoAccessModal,
             showLockedAccountModal,
-            chatReportID,
-            reportID,
             showConfirmModal,
             translate,
             styles.renderHTML,
@@ -270,7 +279,7 @@ function SettlementButton({
     };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
     const businessBankAccountOptions =
         isExpenseReport && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({...account, value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT}))
@@ -387,7 +396,7 @@ function SettlementButton({
                     .filter((method) => {
                         const accountData = method?.accountData as AccountData;
                         const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                        return accountData?.type === requiredAccountType && !isPartiallySetup;
+                        return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
@@ -424,8 +433,10 @@ function SettlementButton({
                 return createWorkspace({
                     introSelected,
                     activePolicy,
+                    conciergeChat,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: email,
+                    currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                     betas,
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
@@ -441,6 +452,7 @@ function SettlementButton({
                         if (payAsBusiness) {
                             navigateToBankAccountRoute({policyID: getPolicyID()});
                         } else {
+                            clearPersonalBankAccount();
                             Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
                         }
                     },
@@ -507,7 +519,6 @@ function SettlementButton({
                 approveMoneyRequest({
                     expenseReport: iouReport,
                     expenseReportPolicy,
-                    policy,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
                     hasViolations,
@@ -517,8 +528,10 @@ function SettlementButton({
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
+                    ownerLogin,
                     full: false,
                     delegateEmail,
+                    isTrackIntentUser,
                 });
             }
             return;
@@ -554,15 +567,15 @@ function SettlementButton({
         }
     };
     const selectPaymentMethod = (event: KYCFlowEvent, paymentType: string, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
+        const shouldContinueKYCAfterAddingBankAccount = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
+
         triggerKYCFlow({
             event,
             iouPaymentType: paymentType as PaymentMethodType,
             paymentMethod,
             policy: selectedPolicy ?? (event ? lastPaymentPolicy : undefined),
+            personalBankAccountOnSuccessFallbackRoute: shouldContinueKYCAfterAddingBankAccount ? ROUTES.ENABLE_PAYMENTS : undefined,
         });
-        if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-            setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
-        }
     };
 
     const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
@@ -679,12 +692,11 @@ function SettlementButton({
                     menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
                     isSplitButton={shouldUseSplitButton}
                     isDisabled={isDisabled}
-                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                    stayNormalOnDisable={stayNormalOnDisable}
                     isLoading={isLoading}
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
-                    success={!hasOnlyHeldExpenses}
-                    extraSmall={extraSmall}
+                    variant={!hasOnlyHeldExpenses ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
@@ -701,7 +713,7 @@ function SettlementButton({
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
                     wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
                     disabledStyle={disabledStyle}
-                    buttonSize={buttonSize}
+                    size={size}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     useKeyboardShortcuts={useKeyboardShortcuts}

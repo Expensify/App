@@ -110,7 +110,7 @@ You can flag rule violations for:
 
 ---
 
-# 6. Secure Your Account
+# Secure Your Account
 
 Enable Two-Factor Authentication (2FA) to protect your account.
 
@@ -148,5 +148,5 @@ By reinforcing this process, you help prevent expense reports from being mis-cat
 
 ---
 
-**Need help?** Schedule a free onboarding session with a Setup Specialist! Check your email and Expensify notifications for your unique signup link.
+**Need help?** Schedule a free onboarding session with an Account Executive! Check your email and Expensify notifications for your unique signup link.
 

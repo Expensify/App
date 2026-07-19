@@ -1,13 +1,18 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
@@ -16,6 +21,27 @@ const REPORT_ID = '3';
 const USER_ID = '4';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn();
+const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+        shouldUseStaging: jest.fn(),
+        closeReactNativeApp: jest.fn(),
+        completeOnboarding: jest.fn(),
+        switchAccount: jest.fn(),
+        sendAuthToken: jest.fn(),
+        getHybridAppSettings: jest.fn(() => Promise.resolve(null)),
+        getInitialURL: jest.fn(() => Promise.resolve(null)),
+        onURLListenerAdded: jest.fn(),
+        signInToOldDot: jest.fn(),
+        signOutFromOldDot: jest.fn(),
+        startSignOut: jest.fn(),
+        cancelSignOut: jest.fn(),
+        clearOldDotAfterSignOut: jest.fn(),
+    },
+}));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -48,6 +74,11 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     default: () => mockShouldOpenOnAdminRoom() as boolean,
 }));
 
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
+    __esModule: true,
+    default: () => mockIsReportTopmostSplitNavigator(),
+}));
+
 describe('navigateAfterOnboarding', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -57,6 +88,7 @@ describe('navigateAfterOnboarding', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         return Onyx.clear();
     });
 
@@ -64,13 +96,25 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const testSession = {email: 'realaccount@gmail.com'};
 
-        navigateAfterOnboarding(false, true, '', new Set(), undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
-    it('should not navigate to the admin room report if onboardingAdminsChatReportID is not provided on larger screens', () => {
-        navigateAfterOnboarding(false, true, '', new Set(), undefined, undefined);
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
+    it('should navigate to home if onboardingAdminsChatReportID is not provided on larger screens and no report is topmost', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+
+        navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
+        // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('should preserve the topmost report if onboardingAdminsChatReportID is not provided on larger screens', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
+        expect(navigate).not.toHaveBeenCalled();
     });
 
     it('should not navigate to last accessed report if it is a concierge chat on small screens', async () => {
@@ -89,7 +133,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, REPORT_ID, new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
@@ -98,7 +142,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
@@ -107,7 +151,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
@@ -117,18 +161,18 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
 
-        navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
-    it('should pass archivedReportsIdSet when looking up last accessed report', () => {
-        const archivedReportsIdSet = new Set<string>(['report_1']);
+    it('should pass reportNameValuePairs when looking up last accessed report', () => {
+        const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: {private_isArchived: '2024-02-01 04:56:47.233'}};
         mockFindLastAccessedReport.mockReturnValue(undefined);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, '', archivedReportsIdSet, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, true, '', reportNameValuePairs, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
-        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, archivedReportsIdSet);
+        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, reportNameValuePairs);
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {
@@ -138,7 +182,13 @@ describe('navigateAfterOnboarding', () => {
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
         const testSession = {email: 'test+account@gmail.com'};
 
-        navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+    });
+
+    it('should navigate to the admin room when the inboxAdminsBespoke variant is assigned', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 });

@@ -1,20 +1,28 @@
-import {PortalProvider} from '@gorhom/portal';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
+
+// eslint-disable-next-line no-restricted-imports -- type-only namespace import, used solely to type jest.requireActual for the ReportUtils mock below
+import type * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const mockAddComment = jest.fn();
-jest.mock('@userActions/Report', () => ({
-    addComment: (...args: unknown[]): void => {
-        mockAddComment(...args);
+const mockStartOrStopChronosTimer = jest.fn();
+jest.mock('@libs/actions/Chronos', () => ({
+    startOrStopChronosTimer: (...args: unknown[]): void => {
+        mockStartOrStopChronosTimer(...args);
     },
 }));
 
@@ -23,6 +31,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: (...args: unknown[]): void => {
         mockNavigate(...args);
     },
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     isTopmostRouteModalScreen: () => false,
 }));
 
@@ -31,32 +41,18 @@ jest.mock('@userActions/Session', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
-    canUserPerformWriteAction: () => true,
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     canWriteInReport: () => true,
-    getAncestors: () => [],
-}));
-
-jest.mock('@libs/ChronosUtils', () => ({
-    isChronosTimerRunningFromVisibleActions: () => false,
-}));
-
-jest.mock('@libs/ReportActionsUtils', () => ({
-    getSortedReportActionsForDisplay: () => [],
-}));
-
-jest.mock('@hooks/useIsInSidePanel', () => ({
-    __esModule: true,
-    default: () => false,
-}));
-
-jest.mock('@hooks/useReportIsArchived', () => ({
-    __esModule: true,
-    default: () => false,
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({accountID: 12345, timezone: {automatic: true, selected: 'America/Los_Angeles'}}),
+}));
+
+jest.mock('@hooks/useDelegateAccountID', () => ({
+    __esModule: true,
+    default: () => undefined,
 }));
 
 /**
@@ -94,6 +90,8 @@ jest.mock('@components/PopoverMenu', () => {
 });
 
 const TEST_REPORT_ID = '123456789';
+const TEST_ACCOUNT_ID = 12345;
+const TEST_START_TIME = '2026-07-13 10:00:00';
 
 const mockReport: Report = {
     reportID: TEST_REPORT_ID,
@@ -129,8 +127,8 @@ describe('ChronosTimerHeaderButton', () => {
         jest.clearAllMocks();
     });
 
-    it('should send a start timer command when the main button is pressed', async () => {
-        // Given a rendered ChronosTimerHeaderButton
+    it('starts the timer when the main button is pressed (no timer running)', async () => {
+        // Given a rendered ChronosTimerHeaderButton with no Chronos timer NVP set
         renderComponent();
         await waitForBatchedUpdates();
 
@@ -138,17 +136,12 @@ describe('ChronosTimerHeaderButton', () => {
         fireEvent.press(screen.getByText('Start Timer'));
         await waitForBatchedUpdates();
 
-        // Then addComment is called with the start timer command
-        expect(mockAddComment).toHaveBeenCalledTimes(1);
-        expect(mockAddComment).toHaveBeenCalledWith(
-            expect.objectContaining({
-                report: mockReport,
-                text: CONST.CHRONOS.TIMER_COMMAND.START,
-            }),
-        );
+        // Then startOrStopChronosTimer is called with a null previousStartTime (i.e. it will start the timer)
+        expect(mockStartOrStopChronosTimer).toHaveBeenCalledTimes(1);
+        expect(mockStartOrStopChronosTimer).toHaveBeenCalledWith(mockReport, TEST_ACCOUNT_ID, null, undefined);
     });
 
-    it('should send a start timer command when Start Timer is selected from the dropdown menu', async () => {
+    it('starts the timer when Start Timer is selected from the dropdown menu', async () => {
         // Given a rendered ChronosTimerHeaderButton
         renderComponent();
         await waitForBatchedUpdates();
@@ -162,17 +155,54 @@ describe('ChronosTimerHeaderButton', () => {
         fireEvent.press(screen.getByTestId('PopoverMenuItem-Start Timer'));
         await waitForBatchedUpdates();
 
-        // Then addComment is called with the start timer command
-        expect(mockAddComment).toHaveBeenCalledTimes(1);
-        expect(mockAddComment).toHaveBeenCalledWith(
-            expect.objectContaining({
-                report: mockReport,
-                text: CONST.CHRONOS.TIMER_COMMAND.START,
-            }),
-        );
+        // Then startOrStopChronosTimer is called with a null previousStartTime
+        expect(mockStartOrStopChronosTimer).toHaveBeenCalledTimes(1);
+        expect(mockStartOrStopChronosTimer).toHaveBeenCalledWith(mockReport, TEST_ACCOUNT_ID, null, undefined);
     });
 
-    it('should navigate to Schedule OOO when the option is selected from the dropdown menu', async () => {
+    it('stops the timer when the main button is pressed while a timer is running', async () => {
+        // Given the Chronos timer NVP reports a running timer (non-empty startTime)
+        await Onyx.merge(ONYXKEYS.NVP_CHRONOS_TIME_TRACKING, {startTime: TEST_START_TIME});
+
+        // When ChronosTimerHeaderButton is rendered, the button reflects the running state
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        // When the main "Stop Timer" button is pressed
+        fireEvent.press(screen.getByText(/^Stop Timer/));
+        await waitForBatchedUpdates();
+
+        // Then startOrStopChronosTimer is called with the running timer's startTime (i.e. it will stop the timer)
+        expect(mockStartOrStopChronosTimer).toHaveBeenCalledTimes(1);
+        expect(mockStartOrStopChronosTimer).toHaveBeenCalledWith(mockReport, TEST_ACCOUNT_ID, TEST_START_TIME, undefined);
+    });
+
+    it('stays enabled and sends the command while OpenReport is in progress', async () => {
+        // Given the OpenReport API is in flight for this report (RAM-only loading state set).
+        // The button state no longer depends on report actions, so it must not be disabled during load.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${TEST_REPORT_ID}`, {
+            isLoadingInitialReportActions: true,
+        });
+
+        // When ChronosTimerHeaderButton is rendered
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        // Then no rendered button is marked disabled via accessibility state
+        const buttons = screen.getAllByRole('button');
+        expect(buttons.length).toBeGreaterThan(0);
+        for (const btn of buttons) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- React test instance `.props` is typed as `unknown`; we read the rendered accessibilityState directly here
+            expect(btn.props.accessibilityState?.disabled).not.toBe(true);
+        }
+
+        // And pressing the main "Start Timer" button still triggers the action
+        fireEvent.press(screen.getByText('Start Timer'));
+        await waitForBatchedUpdates();
+        expect(mockStartOrStopChronosTimer).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to Schedule OOO when the option is selected from the dropdown menu', async () => {
         // Given a rendered ChronosTimerHeaderButton
         renderComponent();
         await waitForBatchedUpdates();

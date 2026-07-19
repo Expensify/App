@@ -1,7 +1,8 @@
+import type {ReportAction} from '../../src/types/onyx';
+
 import CONST from '../../src/CONST';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '../../src/libs/ReportActionFollowupUtils';
 import {stripFollowupListFromHtml} from '../../src/libs/ReportActionsUtils';
-import type {ReportAction} from '../../src/types/onyx';
 
 describe('ReportActionsFollowupUtils', () => {
     describe('parseFollowupsFromHtml', () => {

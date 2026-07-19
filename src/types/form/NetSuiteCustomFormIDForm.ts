@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 type InputID = ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
