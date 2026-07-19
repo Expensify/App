@@ -951,7 +951,7 @@ function getSecondaryReportActions({
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
     isProduction: boolean;
-    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    /** Whether the client is currently offline. Will become required once #66407 lands. */
     isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
