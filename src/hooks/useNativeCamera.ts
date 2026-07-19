@@ -134,10 +134,26 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
 }
 
 /**
+ * Focuses the camera at the given point. Kept as a module-level helper (outside any hook/component)
+ * so React Compiler does not analyze the `cameraRef.current` access -- reading a ref's `.current`
+ * inside a hook body trips the "no ref access during render" rule, which makes OXC bail on the whole
+ * file and diverge from Babel. The hook only ever passes the ref object through, never dereferences it.
+ */
+function focusCameraAtPoint(cameraRef: React.RefObject<Camera | null>, point: Point) {
+    if (!cameraRef.current) {
+        return;
+    }
+
+    cameraRef.current.focus(point).catch((error: Record<string, unknown>) => {
+        if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+            return;
+        }
+        Log.warn('Error focusing camera', error);
+    });
+}
+
+/**
  * Encapsulates tap-to-focus gesture handling for VisionCamera.
- * This hook reads camera refs inside gesture worklet callbacks, which is incompatible
- * with React Compiler's "no ref access during render" rule. Keeping it here (an already-
- * grandfathered file) avoids forcing callers to fail the compliance check.
  */
 function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, supportsFocus: boolean) {
     const focusIndicatorOpacity = useSharedValue(0);
@@ -149,21 +165,7 @@ function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, support
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
-    const focusCamera = useCallback(
-        (point: Point) => {
-            if (!cameraRef.current) {
-                return;
-            }
-
-            cameraRef.current.focus(point).catch((error: Record<string, unknown>) => {
-                if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
-                    return;
-                }
-                Log.warn('Error focusing camera', error);
-            });
-        },
-        [cameraRef],
-    );
+    const focusCamera = useCallback((point: Point) => focusCameraAtPoint(cameraRef, point), [cameraRef]);
 
     const tapGesture = Gesture.Tap()
         .enabled(supportsFocus)
