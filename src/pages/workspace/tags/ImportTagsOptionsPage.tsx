@@ -67,7 +67,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
-    const shouldRestoreRequiresTagAfterTagCreate = (policy?.requiresTag ?? false) || policyTagLists.some((policyTagList) => policyTagList.required);
 
     const hasVisibleTags = useMemo(() => {
         if (isMultiLevelTags) {
@@ -185,11 +184,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     danger: true,
                 });
                 if (action === ModalActions.CONFIRM) {
-                    cleanPolicyTags({
-                        policyID,
-                        shouldRestoreRequiresTagAfterTagCreate,
-                        requiresTag: policy?.requiresTag,
-                    });
+                    cleanPolicyTags(policyID);
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         Navigation.navigate(
                             isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath,
@@ -210,11 +205,9 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         overrideMultiTagPrompt,
         isQuickSettingsFlow,
         policyID,
-        policy?.requiresTag,
         backTo,
         switchSingleToMultiLevelTagPrompt,
         workspaceTagsImportPath,
-        shouldRestoreRequiresTagAfterTagCreate,
     ]);
 
     useFocusEffect(
@@ -267,11 +260,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     danger: true,
                                 });
                                 if (action === ModalActions.CONFIRM) {
-                                    cleanPolicyTags({
-                                        policyID,
-                                        shouldRestoreRequiresTagAfterTagCreate,
-                                        requiresTag: policy?.requiresTag,
-                                    });
+                                    cleanPolicyTags(policyID);
                                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                                         Navigation.navigate(
                                             isQuickSettingsFlow

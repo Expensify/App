@@ -63,15 +63,6 @@ type CreatePolicyTagParams = {
     policyHasCustomCategories: boolean;
 };
 
-type CleanPolicyTagsParams = {
-    policyID: string;
-    shouldRestoreRequiresTagAfterTagCreate?: boolean;
-    requiresTag?: boolean;
-};
-
-// Track policies whose tags were cleared while required tags was enabled, so the next local tag creation can restore that state.
-const policiesToRestoreRequiresTagAfterTagCreate = new Set<string>();
-
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
         Log.warn('openPolicyTagsPage invalid params', {policyID});
@@ -148,11 +139,8 @@ function createPolicyTag({
     const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
-    const shouldRestoreRequiresTag = !!policyID && policiesToRestoreRequiresTagAfterTagCreate.has(policyID);
-    const policyRequiresTagOptimisticData: Partial<Policy> = shouldRestoreRequiresTag ? {requiresTag: true} : {};
     const tagListsOptimisticData = {
         [policyTag.name]: {
-            ...(shouldRestoreRequiresTag ? {required: true} : {}),
             tags: {
                 [newTagName]: {
                     name: newTagName,
@@ -164,12 +152,7 @@ function createPolicyTag({
         },
     };
 
-    // Consume the marker once so later unrelated tag creations do not re-enable required tags.
-    if (shouldRestoreRequiresTag) {
-        policiesToRestoreRequiresTagAfterTagCreate.delete(policyID);
-    }
-
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -183,7 +166,6 @@ function createPolicyTag({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldRestoreRequiresTag ? {required: true} : {}),
                         tags: {
                             [newTagName]: {
                                 errors: null,
@@ -200,7 +182,6 @@ function createPolicyTag({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldRestoreRequiresTag ? {required: policyTag.required} : {}),
                         tags: {
                             [newTagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
@@ -212,27 +193,7 @@ function createPolicyTag({
         ],
     };
 
-    if (shouldRestoreRequiresTag) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: policyRequiresTagOptimisticData,
-        });
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: policyRequiresTagOptimisticData,
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                requiresTag: policy?.requiresTag ?? false,
-            },
-        });
-    }
-
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyRequiresTagOptimisticData, {}, tagListsOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, tagListsOptimisticData);
     const parameters = {
         policyID,
         tags: JSON.stringify([{name: newTagName}]),
@@ -927,41 +888,9 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     }
 }
 
-function cleanPolicyTags({policyID, shouldRestoreRequiresTagAfterTagCreate = false, requiresTag = false}: CleanPolicyTagsParams) {
-    if (shouldRestoreRequiresTagAfterTagCreate) {
-        policiesToRestoreRequiresTagAfterTagCreate.add(policyID);
-    } else {
-        policiesToRestoreRequiresTagAfterTagCreate.delete(policyID);
-    }
-
-    // Clear tags locally immediately so the switch-tag-levels flow does not wait for the backend response.
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: CONST.POLICY.DEFAULT_TAG_LIST,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    requiresTag: false,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    requiresTag,
-                },
-            },
-        ],
-    };
-
-    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID}, onyxData);
+function cleanPolicyTags(policyID: string) {
+    // We do not have any optimistic data or success data for this command as this action cannot be done offline
+    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
 }
 
 function setImportedSpreadsheetIsImportingMultiLevelTags(isImportingMultiLevelTags: boolean) {
@@ -1093,11 +1022,6 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 
 function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
     const policyID = policyData.policy?.id;
-    // Clear any pending restore marker when the user explicitly changes the required-tags setting.
-    if (policyID) {
-        policiesToRestoreRequiresTagAfterTagCreate.delete(policyID);
-    }
-
     const policyOptimisticData: Partial<Policy> = {
         requiresTag,
         errors: {requiresTag: null},
