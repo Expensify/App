@@ -39,12 +39,18 @@ type SearchRequestData = {
     }>;
 };
 
+type SearchResponse = {
+    onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>;
+    jsonCode: number;
+};
+
 function getMakeRequestWithSideEffectsMock() {
     return makeRequestWithSideEffects as unknown as {
         mock: {
-            calls: Array<[unknown, unknown, SearchRequestData?]>;
+            calls: Array<[unknown, {jsonQuery?: string}, SearchRequestData?]>;
         };
-        mockResolvedValue: (value: {onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>; jsonCode: number}) => void;
+        mockResolvedValue: (value: SearchResponse) => void;
+        mockImplementationOnce: (implementation: () => Promise<SearchResponse>) => void;
     };
 }
 
@@ -133,5 +139,90 @@ describe('search loading totals handling', () => {
         expect(loadingSearchData?.count).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
+    });
+
+    it('queues a totals request when the same non-totals search is already in flight', async () => {
+        const queryJSON = getQueryJSON();
+        const response: SearchResponse = {
+            onyxData: [{value: {search: {offset: 50, hasMoreResults: true}, data: {}}}],
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+        let resolveFirstRequest: (value: SearchResponse) => void = () => {};
+        const firstRequestPromise = new Promise<SearchResponse>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+        makeRequestWithSideEffectsMock.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: false,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+
+        await Promise.resolve();
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+
+        resolveFirstRequest(response);
+        await firstSearch;
+        await Promise.resolve();
+
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(2);
+        const [, queuedRequestParameters] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
+        const queuedQuery: unknown = JSON.parse(queuedRequestParameters?.jsonQuery ?? '{}');
+        expect(queuedQuery).toEqual(expect.objectContaining({shouldCalculateTotals: true}));
+    });
+
+    it('does not queue another request when the in-flight search already calculates totals', async () => {
+        const queryJSON = getQueryJSON();
+        const response: SearchResponse = {
+            onyxData: [{value: {search: {offset: 50, hasMoreResults: true}, data: {}}}],
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+        let resolveFirstRequest: (value: SearchResponse) => void = () => {};
+        const firstRequestPromise = new Promise<SearchResponse>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+        makeRequestWithSideEffectsMock.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+
+        await Promise.resolve();
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+
+        resolveFirstRequest(response);
+        await firstSearch;
+
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
     });
 });
