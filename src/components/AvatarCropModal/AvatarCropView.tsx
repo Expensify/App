@@ -398,7 +398,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
                                     onPressIn={(e) => scheduleOnUI(sliderOnPress, e.nativeEvent.locationX)}
-                                    accessibilityLabel="slider"
+                                    accessibilityLabel={translate('common.zoom')}
                                     role={CONST.ROLE.SLIDER}
                                     sentryLabel={CONST.SENTRY_LABEL.AVATAR_CROP_MODAL.ZOOM_SLIDER}
                                 >

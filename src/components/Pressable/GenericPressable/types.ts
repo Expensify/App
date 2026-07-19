@@ -49,6 +49,9 @@ type PressableProps = RNPressableProps &
          */
         onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
+        /** Destination URL. On web this renders a real anchor, so the press can be opened in a new tab or copied. */
+        href?: string;
+
         /**
          * Specifies keyboard shortcut to trigger onPressHandler
          * @example {shortcutKey: 'a', modifiers: ['ctrl', 'shift'], descriptionKey: 'keyboardShortcut.description'}

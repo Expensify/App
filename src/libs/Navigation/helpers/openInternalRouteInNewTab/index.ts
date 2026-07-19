@@ -28,6 +28,6 @@ function openInternalRouteInNewTab(route: Route, event?: ModifiedMouseEvent) {
     return true;
 }
 
-export {isModifiedMousePress};
+export {isModifiedMousePress, getRouteURL};
 export type {ModifiedMouseEvent};
 export default openInternalRouteInNewTab;

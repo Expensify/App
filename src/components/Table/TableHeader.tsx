@@ -20,13 +20,16 @@ import {View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
-import {useTableContext} from './TableContext';
+import {isDataColumn, useTableContext} from './TableContext';
+import {HEADER_ROW_INDEX, useIsInTableGrid} from './TableSemantics';
 
 /**
  * Number of times a column can be toggled before sorting is reset.
  * Allows user to cycle through: asc -> desc -> reset.
  */
 const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
+
+const sortOrderToAriaSort = {asc: 'ascending', desc: 'descending'} as const;
 
 /**
  * Props for the TableHeader component.
@@ -64,6 +67,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal} =
         useTableContext<DataType, ColumnKey>();
+    const isInTableGrid = useIsInTableGrid();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
@@ -116,6 +120,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
                 style,
             ]}
+            role={isInTableGrid ? CONST.ROLE.ROW : undefined}
+            aria-rowindex={isInTableGrid ? HEADER_ROW_INDEX : undefined}
             {...props}
         >
             {shouldUseNarrowTableLayout && (
@@ -144,15 +150,26 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 
             {!shouldUseNarrowTableLayout && (
                 <>
-                    {!!selectionEnabled && (
-                        <Checkbox
-                            disabled={!hasSelectableRows}
-                            isChecked={isEverySelectableRowSelected}
-                            isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
-                            onPress={tableMethods.handleSelectAll}
-                            accessibilityLabel={translate('workspace.common.selectAll')}
-                        />
-                    )}
+                    {!!selectionEnabled &&
+                        (isInTableGrid ? (
+                            <View role={CONST.ROLE.COLUMNHEADER}>
+                                <Checkbox
+                                    disabled={!hasSelectableRows}
+                                    isChecked={isEverySelectableRowSelected}
+                                    isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
+                                    onPress={tableMethods.handleSelectAll}
+                                    accessibilityLabel={translate('workspace.common.selectAll')}
+                                />
+                            </View>
+                        ) : (
+                            <Checkbox
+                                disabled={!hasSelectableRows}
+                                isChecked={isEverySelectableRowSelected}
+                                isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
+                                onPress={tableMethods.handleSelectAll}
+                                accessibilityLabel={translate('workspace.common.selectAll')}
+                            />
+                        ))}
 
                     {columns.map((column) => {
                         return (
@@ -179,6 +196,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     const toggleCount = useRef(0);
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
+    const isInTableGrid = useIsInTableGrid();
 
     const {
         activeSorting,
@@ -203,25 +221,14 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         toggleColumnSorting(columnKey);
     };
 
-    const tableHeaderStyles = [
-        styles.flexRow,
-        styles.alignItemsCenter,
-        styles.tableHeaderContentHeight,
-        column.styling?.flex ? {flex: column.styling.flex} : styles.flex1,
-        column.styling?.containerStyles,
-        !column.sortable && styles.cursorDefault,
-    ];
+    const sizingStyles = [column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles, !column.sortable && styles.cursorDefault];
+    const tableHeaderStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, ...sizingStyles];
 
-    return (
-        <PressableWithFeedback
-            accessible
-            accessibilityLabel={column.label}
-            accessibilityRole="button"
-            disabled={!column.sortable}
-            sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
-            style={tableHeaderStyles}
-            onPress={() => toggleSorting(column.key)}
-        >
+    // The columnheader wrapper carries the grid track, so the column just fills it.
+    const columnStyles = isInTableGrid ? [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.flex1] : tableHeaderStyles;
+
+    const columnContent = (
+        <>
             <Text
                 numberOfLines={1}
                 color={theme.textSupporting}
@@ -239,7 +246,40 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
                     fill={theme.icon}
                 />
             )}
+        </>
+    );
+
+    // A disabled button is still announced ("dimmed button"), so an unsortable column is plain text.
+    const headerColumn = column.sortable ? (
+        <PressableWithFeedback
+            accessible
+            accessibilityLabel={column.label}
+            accessibilityRole="button"
+            sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
+            style={columnStyles}
+            onPress={() => toggleSorting(column.key)}
+        >
+            {columnContent}
         </PressableWithFeedback>
+    ) : (
+        <View style={columnStyles}>{columnContent}</View>
+    );
+
+    if (!isInTableGrid) {
+        return headerColumn;
+    }
+
+    const ariaSort = isSortingByColumn ? sortOrderToAriaSort[activeSorting.order] : undefined;
+    const isColumnExposed = isDataColumn(column);
+
+    return (
+        <View
+            role={isColumnExposed ? CONST.ROLE.COLUMNHEADER : undefined}
+            aria-sort={isColumnExposed ? ariaSort : undefined}
+            style={sizingStyles}
+        >
+            {headerColumn}
+        </View>
     );
 }
 

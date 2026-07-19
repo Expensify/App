@@ -300,7 +300,7 @@ function MapViewImpl({
                     >
                         <PressableWithoutFeedback
                             sentryLabel="MapView-ToggleDistanceUnit"
-                            accessibilityLabel={CONST.ROLE.BUTTON}
+                            accessibilityLabel={DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters, distanceUnit)}
                             role={CONST.ROLE.BUTTON}
                             onPress={toggleDistanceUnit}
                         >

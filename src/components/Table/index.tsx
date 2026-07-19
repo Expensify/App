@@ -39,9 +39,11 @@ import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableFilterBar from './TableFilterBar';
+import TableGrid from './TableGrid';
 import TableHeader from './TableHeader';
 import TableLoadingState from './TableLoadingState';
 import TableRow from './TableRow';
+import TableRowLink from './TableRowLink';
 
 /**
  * Table compound component with attached sub-components.
@@ -68,6 +70,12 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders a row in the table */
     Row: TableRow,
+
+    /** Exposes Header + Body as a `role="table"`. */
+    Grid: TableGrid,
+
+    /** The row's keyboard affordance, placed around the subject cell's content. Required on interactive rows. */
+    RowLink: TableRowLink,
 
     /** The filter bar with a searchbar/filters menu */
     FilterBar: TableFilterBar,

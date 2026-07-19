@@ -14,18 +14,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 
 import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
 
-import React from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import {useTableContext} from './TableContext';
+import {isDataColumn, useTableContext} from './TableContext';
+import {HEADER_ROW_INDEX, hasErrorRow, TableRowActionContext, TableSemanticsContext, useIsInTableGrid} from './TableSemantics';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
-    /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
-    accessible?: boolean;
+    /** The row's accessible name, used when the row is a button rather than part of a table */
+    accessibilityLabel: string;
+
+    /** Short name identifying the row, used to say what the selection checkbox selects. Defaults to the row's name. */
+    selectionLabel?: string;
 
     /** Whether or not the table row is pressable or not */
     interactive: boolean;
@@ -36,27 +41,28 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** The index of the row in the table */
     rowIndex: number;
 
+    /** Where the row leads. Supplying it turns the row's affordance into a real link, openable in a new tab. */
+    route?: Route;
+
     /** Attributes for when the client is offline and there is an error related to the table row */
     offlineWithFeedback?: OfflineWithFeedbackProps;
 
     /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
     checkboxReplacementElement?: React.ReactNode;
-
-    /** Optional content rendered below the row grid */
-    rowFooter?: React.ReactNode;
 };
 
 export default function TableRow({
     children,
-    accessible,
+    accessibilityLabel,
+    selectionLabel,
     rowIndex,
+    route,
     disabled,
     sentryLabel,
     interactive,
     onPress,
     offlineWithFeedback,
     checkboxReplacementElement,
-    rowFooter,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -64,7 +70,17 @@ export default function TableRow({
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
+    const {
+        processedData,
+        columns,
+        shouldUseNarrowTableLayout,
+        tableMethods,
+        selectionEnabled,
+        isMobileSelectionEnabled,
+        renderRowFooter,
+        shouldEnableSelectionInNarrowPaneModal = false,
+    } = useTableContext();
+    const {isInTableGrid, dataRowIndexes} = useContext(TableSemanticsContext);
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
     // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
@@ -80,6 +96,13 @@ export default function TableRow({
     const isDisabled = !!disabled;
     const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
+
+    const cellRole = isInTableGrid ? CONST.ROLE.CELL : undefined;
+    const hasErrors = hasErrorRow(item);
+    const dataRowIndex = dataRowIndexes.at(rowIndex) ?? HEADER_ROW_INDEX;
+    const exposedColumnCount = columns.filter(isDataColumn).length + (isSelectionCheckboxVisible ? 1 : 0);
+    const rowAction = {onPress, isDisabled: !!disabled || !interactive, route};
+    const selectLabel = isInTableGrid ? `${translate('common.select')} ${selectionLabel ?? accessibilityLabel}` : translate('common.select');
 
     if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
@@ -184,16 +207,15 @@ export default function TableRow({
             {...offlineWithFeedback}
             shouldShowErrorMessages={false}
         >
-            <PressableWithFeedback
-                accessible={accessible}
-                accessibilityLabel="row"
+            <TableRowPressable
+                rowIndex={rowIndex}
+                accessibilityLabel={accessibilityLabel}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
                 disabled={isDisabled}
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
-                role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 onMouseDown={(e) => {
                     const target = e?.target;
 
@@ -217,36 +239,110 @@ export default function TableRow({
                 onLongPress={handleRowLongPress}
                 {...props}
             >
-                {(state) => (
-                    <Animated.View style={tableRowContentContainerStyles}>
-                        <View style={tableRowContentStyles}>
-                            {!!isSelectionCheckboxVisible &&
-                                (checkboxReplacementElement ?? (
-                                    <Checkbox
-                                        shouldStopMouseDownPropagation
-                                        containerStyle={styles.m0}
-                                        style={styles.flex1}
-                                        isChecked={!!item.selected}
-                                        disabled={!!item.disabled || !!item.isSelectionDisabled}
-                                        accessibilityLabel={translate('common.select')}
-                                        onPress={(event) => handleCheckboxPress(event)}
-                                    />
-                                ))}
-                            {renderChildren(state)}
-                        </View>
+                {(state) => {
+                    // Each of these renders below the row, and inside a table each is a row of its own.
+                    const extraRows = [
+                        {key: 'footer', content: renderRowFooter?.(item)},
+                        {
+                            key: 'errors',
+                            content: hasErrors && (
+                                <ErrorMessageRow
+                                    errors={item.errors}
+                                    dismissError={offlineWithFeedback?.dismissError}
+                                    onDismiss={offlineWithFeedback?.onClose}
+                                />
+                            ),
+                        },
+                    ].filter((extraRow) => !!extraRow.content);
 
-                        {rowFooter}
+                    const selectionControl = checkboxReplacementElement ?? (
+                        <Checkbox
+                            shouldStopMouseDownPropagation
+                            containerStyle={styles.m0}
+                            style={styles.flex1}
+                            isChecked={!!item.selected}
+                            disabled={!!item.disabled || !!item.isSelectionDisabled}
+                            accessibilityLabel={selectLabel}
+                            onPress={(event) => handleCheckboxPress(event)}
+                        />
+                    );
 
-                        {!!offlineWithFeedback?.errors && (
-                            <ErrorMessageRow
-                                errors={offlineWithFeedback.errors}
-                                dismissError={offlineWithFeedback.dismissError}
-                                onDismiss={offlineWithFeedback.onClose}
-                            />
-                        )}
-                    </Animated.View>
-                )}
-            </PressableWithFeedback>
+                    return (
+                        // Chrome keeps this layout wrapper in the accessibility tree, so without `presentation` it would own the rows.
+                        <Animated.View
+                            style={tableRowContentContainerStyles}
+                            role={isInTableGrid ? CONST.ROLE.PRESENTATION : undefined}
+                        >
+                            <View
+                                style={tableRowContentStyles}
+                                role={isInTableGrid ? CONST.ROLE.ROW : undefined}
+                                aria-rowindex={isInTableGrid ? dataRowIndex : undefined}
+                            >
+                                {!!isSelectionCheckboxVisible && (isInTableGrid ? <View role={cellRole}>{selectionControl}</View> : selectionControl)}
+                                <TableRowActionContext.Provider value={rowAction}>{renderChildren(state)}</TableRowActionContext.Provider>
+                            </View>
+
+                            {extraRows.map((extraRow, extraRowIndex) =>
+                                isInTableGrid ? (
+                                    <View
+                                        key={extraRow.key}
+                                        role={CONST.ROLE.ROW}
+                                        aria-rowindex={dataRowIndex + extraRowIndex + 1}
+                                    >
+                                        <View
+                                            role={cellRole}
+                                            aria-colspan={exposedColumnCount}
+                                        >
+                                            {extraRow.content}
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <React.Fragment key={extraRow.key}>{extraRow.content}</React.Fragment>
+                                ),
+                            )}
+                        </Animated.View>
+                    );
+                }}
+            </TableRowPressable>
         </OfflineWithFeedback>
+    );
+}
+
+type TableRowPressableProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
+    /** The row's accessible name, used when the row is a button rather than part of a table */
+    accessibilityLabel: string;
+
+    /** The index of the row in the table */
+    rowIndex: number;
+
+    /** Whether the row is pressable */
+    interactive: boolean;
+};
+
+/** Inside a table this is only the pressable shell that the rows render within; elsewhere it is the named button. */
+function TableRowPressable({accessibilityLabel, rowIndex, interactive, sentryLabel, ...props}: TableRowPressableProps) {
+    const isInTableGrid = useIsInTableGrid();
+
+    if (isInTableGrid) {
+        return (
+            <PressableWithFeedback
+                accessible={false}
+                focusable={false}
+                role={CONST.ROLE.PRESENTATION}
+                interactive={interactive}
+                sentryLabel={sentryLabel}
+                {...props}
+            />
+        );
+    }
+
+    return (
+        <PressableWithFeedback
+            accessibilityLabel={accessibilityLabel}
+            role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+            interactive={interactive}
+            sentryLabel={sentryLabel}
+            {...props}
+        />
     );
 }

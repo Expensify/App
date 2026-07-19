@@ -666,7 +666,7 @@ function TransactionItemRowWide({
                             onPress={() => {
                                 onCheckboxPress(transactionItem.transactionID);
                             }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            accessibilityLabel={translate('common.select')}
                             isChecked={isSelected}
                             containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
@@ -680,7 +680,7 @@ function TransactionItemRowWide({
                                 isChecked={isSelected}
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
-                                accessibilityLabel={CONST.ROLE.RADIO}
+                                accessibilityLabel={translate('common.select')}
                                 shouldStopMouseDownPropagation={shouldStopRadioButtonMouseDownPropagation}
                             />
                         </View>
@@ -691,7 +691,7 @@ function TransactionItemRowWide({
                             onPress={onArrowRightPress}
                             style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.view')}
                             sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
                         >
                             <Icon

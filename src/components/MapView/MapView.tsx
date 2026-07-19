@@ -353,7 +353,7 @@ function MapView({
                         <View style={styles.zIndex1}>
                             <ToggleDistanceUnitButton
                                 accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel="distance-label"
+                                accessibilityLabel={distanceLabelText}
                                 onPress={toggleDistanceUnit}
                             >
                                 <View style={[styles.distanceLabelWrapper]}>

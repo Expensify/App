@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -53,16 +53,8 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialP
 };
 
 const selectCheckboxByMemberName = (memberName: string) => {
-    const memberEmailByName: Record<string, string> = {
-        Owner: 'owner@gmail.com',
-        Admin: 'admin@example.com',
-        Auditor: 'auditor@example.com',
-        Member: 'user@example.com',
-        Self: 'test@example.com',
-    };
     const displayName = memberName === 'Owner' || memberName === 'Self' ? memberName : `${memberName} User`;
-    const row = screen.getByLabelText(new RegExp(`^${displayName}, ${memberEmailByName[memberName]}`));
-    fireEvent.press(within(row).getByLabelText(TestHelper.translateLocal('common.select')));
+    fireEvent.press(screen.getByLabelText(new RegExp(`^${TestHelper.translateLocal('common.select')} ${displayName},`)));
 };
 
 describe('WorkspaceMembers', () => {
@@ -477,14 +469,12 @@ describe('WorkspaceMembers', () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
-            // When the members list renders the owner row
-            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}`));
-
-            // Then the owner's role is displayed as Editor, not Owner
             const editorLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.EDITOR);
             const ownerLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
-            expect(within(ownerRow).getByText(editorLabel)).toBeOnTheScreen();
-            expect(within(ownerRow).queryByText(ownerLabel)).not.toBeOnTheScreen();
+
+            // Only the owner is remapped, so a second Editor would mean another member's role was rewritten too
+            expect(await screen.findAllByText(editorLabel)).toHaveLength(1);
+            expect(screen.queryByText(ownerLabel)).not.toBeOnTheScreen();
 
             unmount();
         });

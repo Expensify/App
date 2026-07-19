@@ -1,4 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
+import {useSession} from '@components/OnyxListItemProvider';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 
@@ -26,6 +27,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import getFrozenByText from './getFrozenByText';
+import WorkspaceExpensifyCardRowFooter from './WorkspaceExpensifyCardRowFooter';
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
 type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'limit' | 'actions';
@@ -99,6 +102,7 @@ export default function WorkspaceExpensifyCardsTable({
 }: WorkspaceExpensifyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const session = useSession();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -200,6 +204,21 @@ export default function WorkspaceExpensifyCardsTable({
         />
     );
 
+    const renderCardRowFooter = (item: WorkspaceExpensifyCardTableRowData) => {
+        const frozenByText = getFrozenByText(item, translate, session?.accountID);
+
+        if (!frozenByText) {
+            return null;
+        }
+
+        return (
+            <WorkspaceExpensifyCardRowFooter
+                frozenByText={frozenByText}
+                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            />
+        );
+    };
+
     const cardListHeaderContent = (
         <>
             <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1, styles.mb5]}>
@@ -227,6 +246,7 @@ export default function WorkspaceExpensifyCardsTable({
             data={cards}
             columns={columns}
             renderItem={renderCardItem}
+            renderRowFooter={renderCardRowFooter}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="name"

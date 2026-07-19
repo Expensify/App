@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import variables from '@styles/variables';
@@ -23,6 +22,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceExpensifyCardTableRowData} from '.';
+
+import getFrozenByText from './getFrozenByText';
 
 type WorkspaceExpensifyCardsTableRowProps = {
     /** Data about the Expensify card */
@@ -50,35 +51,9 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
     const statusLabel = statusTranslationKey ? translate(statusTranslationKey) : '';
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
-    const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
-    let frozenByText: string | undefined;
-    if (formattedFrozenDate) {
-        if (item.frozenByAccountID === session?.accountID) {
-            frozenByText = translate('cardPage.youFroze', {date: formattedFrozenDate});
-        } else {
-            const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
-            frozenByText = `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
-        }
-    }
+    const frozenByText = getFrozenByText(item, translate, session?.accountID);
 
     const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, statusLabel, formattedLimit, frozenByText].filter(Boolean).join(', ');
-
-    const frozenByRowFooter = !!frozenByText && (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
-            <Icon
-                src={icons.FreezeCard}
-                fill={theme.icon}
-                size={CONST.ICON_SIZE.SMALL}
-            />
-            <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                style={[styles.textLabelSupporting, styles.colorMuted, styles.ml2, styles.flexShrink1, shouldUseNarrowTableLayout ? styles.lh16 : styles.textMicro]}
-            >
-                {frozenByText}
-            </Text>
-        </View>
-    );
 
     return (
         <Table.Row
@@ -92,7 +67,6 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                 shouldHideOnDelete: false,
                 onClose: item.onClose,
             }}
-            rowFooter={frozenByRowFooter}
             onPress={item.action}
         >
             {({hovered}) => (

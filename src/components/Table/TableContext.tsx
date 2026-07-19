@@ -4,6 +4,7 @@ import React, {createContext, useContext} from 'react';
 
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
+import type {RenderRowFooter} from './TableSemantics';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
 /**
@@ -70,6 +71,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Callback when the user changes the search string in the filter bar. */
     onSearchStringChange?: (searchString: string) => void;
+
+    /** Renders content beneath a row, or nothing when that row has none. */
+    renderRowFooter?: RenderRowFooter<TableRow<DataType>>;
 };
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
@@ -122,6 +126,11 @@ function useTableContext<DataType extends TableData, ColumnKey extends string = 
     return context as unknown as TableContextValue<DataType, ColumnKey>;
 }
 
+/** A label-less column is the decorative caret column, not a real table column. */
+function isDataColumn<ColumnKey extends string>(column: TableColumn<ColumnKey>) {
+    return column.label !== '';
+}
+
 export default TableContext;
-export {useTableContext};
+export {useTableContext, isDataColumn};
 export type {TableContextValue};

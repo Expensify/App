@@ -83,7 +83,7 @@ export default function SortableHeaderText({
             <PressableWithFeedback
                 onPress={() => onPress(nextSortOrder)}
                 role={CONST.ROLE.BUTTON}
-                accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityLabel={text}
                 accessible
                 disabled={!isSortable}
                 sentryLabel={sentryLabel}

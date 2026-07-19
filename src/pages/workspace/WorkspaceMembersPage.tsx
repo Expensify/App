@@ -287,19 +287,26 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
 
+    /** Where a member row leads, known at render time so the row can be a real link */
+    const getMemberDetailsRoute = useCallback(
+        (accountID: number) =>
+            canWriteMembers && canManageMembers ? ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, accountID) : createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)),
+        [canWriteMembers, canManageMembers, route.params.policyID],
+    );
+
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (accountID: number) => {
             if (!canWriteMembers || !canManageMembers) {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+                Navigation.navigate(getMemberDetailsRoute(accountID));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, accountID));
+                Navigation.navigate(getMemberDetailsRoute(accountID));
             });
         },
-        [canWriteMembers, canManageMembers, policyID, route.params.policyID],
+        [canWriteMembers, canManageMembers, policyID, getMemberDetailsRoute],
     );
 
     const dismissError = useCallback(
@@ -392,6 +399,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 disabled: isPendingDeleteOrError,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
+                route: getMemberDetailsRoute(accountID),
                 action: () => openMemberDetails(accountID),
                 dismissError: () => dismissError(login, accountID, policyEmployee.pendingAction),
             };
@@ -410,6 +418,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         shouldShowCustomField2Column,
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
+        getMemberDetailsRoute,
         dismissError,
     ]);
 

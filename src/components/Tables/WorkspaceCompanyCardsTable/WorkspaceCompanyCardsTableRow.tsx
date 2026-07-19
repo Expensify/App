@@ -129,6 +129,7 @@ function WorkspaceCompanyCardTableRow({
             interactive
             rowIndex={rowIndex}
             disabled={isCardDeleted || !canPressRow}
+            accessibilityLabel={`${memberColumnTitle}, ${narrowWidthCardName}`}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
             offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
             onPress={handleRowPress}

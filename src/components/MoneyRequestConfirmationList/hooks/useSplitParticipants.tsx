@@ -162,7 +162,7 @@ function useSplitParticipants({
                         Keyboard.dismiss();
                         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
                     }}
-                    accessibilityLabel={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.reset')}
                     role={CONST.ROLE.BUTTON}
                     shouldUseAutoHitSlop
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RESET_SPLIT_SHARES}

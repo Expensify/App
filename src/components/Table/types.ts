@@ -1,3 +1,5 @@
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -7,6 +9,7 @@ import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
 import type {CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+import type {RenderRowFooter} from './TableSemantics';
 
 /**
  * Defines the required minimum shape for each row of data in the table
@@ -20,6 +23,9 @@ type TableData = {
 
     /** Optionally disable a specific row from selection, when selection is enabled */
     isSelectionDisabled?: boolean;
+
+    /** Errors for the row. Inside a table these render a second row, and are what the `aria-rowindex` contract counts. */
+    errors?: OnyxCommon.Errors;
 };
 
 /**
@@ -203,6 +209,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Optional callback fired when the active search string changes. */
         onSearchStringChange?: (searchString: string) => void;
+
+        /** Renders content beneath a row, or nothing when that row has none. */
+        renderRowFooter?: RenderRowFooter<TableRow<DataType>>;
     }>;
 
 export type {

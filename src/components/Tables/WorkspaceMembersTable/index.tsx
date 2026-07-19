@@ -10,6 +10,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -36,6 +37,7 @@ type WorkspaceMemberRowData = TableData & {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     invitedSecondaryLogin: string;
+    route: Route;
     action: () => void;
     dismissError: () => void;
 };
@@ -333,8 +335,10 @@ export default function WorkspaceMembersTable({
         >
             <Table.FilterBar label={translate('workspace.people.findMember')} />
             <Table.NoResultsState />
-            <Table.Header />
-            <Table.Body />
+            <Table.Grid>
+                <Table.Header />
+                <Table.Body />
+            </Table.Grid>
         </Table>
     );
 }

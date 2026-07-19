@@ -4,13 +4,12 @@ import RadioButton from '@components/RadioButton';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
-
-import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -83,6 +82,7 @@ function TransactionItemRowNarrow({
 }: TransactionItemRowNarrowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
@@ -99,7 +99,7 @@ function TransactionItemRowNarrow({
                             onPress={() => {
                                 onCheckboxPress(transactionItem.transactionID);
                             }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            accessibilityLabel={translate('common.select')}
                             isChecked={isSelected}
                             style={styles.mr3}
                             containerStyle={styles.m0}
@@ -170,7 +170,7 @@ function TransactionItemRowNarrow({
                                 isChecked={isSelected}
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
-                                accessibilityLabel={CONST.ROLE.RADIO}
+                                accessibilityLabel={translate('common.select')}
                                 shouldStopMouseDownPropagation={shouldStopRadioButtonMouseDownPropagation}
                                 style={radioButtonWrapperStyle}
                             />
