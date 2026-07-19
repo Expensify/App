@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, mergePolicyCategoriesForSearch, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,10 +50,12 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
         },
         [availableNonPersonalPolicyCategoriesSelector],
     );
+    const [searchPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_CATEGORIES);
+    const policyCategoriesForSearch = mergePolicyCategoriesForSearch(allPolicyCategories, searchPolicyCategories);
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
     const uniqueCategoryNames = new Set<string>(
-        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories).flatMap((policyCategories) =>
+        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategoriesForSearch).flatMap((policyCategories) =>
             Object.values(policyCategories ?? {}).map((category) => category.name),
         ),
     );

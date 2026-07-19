@@ -2,7 +2,7 @@ import type {Filter} from '@components/Search/types';
 
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
-import {getAllPolicyValues} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, mergePolicyCategoriesForSearch} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -327,7 +327,11 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: F
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: availablePolicyCategoriesSelector,
     });
-    const selectedPolicyCategories = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories) : [];
+    const [searchPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_CATEGORIES, {
+        selector: availablePolicyCategoriesSelector,
+    });
+    const policyCategoriesForSearch = mergePolicyCategoriesForSearch(allPolicyCategories, searchPolicyCategories);
+    const selectedPolicyCategories = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategoriesForSearch) : [];
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const selectedPolicyTagLists = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists) : [];
     const [hasTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: hasTagsSelector});
@@ -336,7 +340,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: F
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
-    const hasNonPersonalPolicyCategories = Object.keys(allPolicyCategories).some((policyCategoryId) => {
+    const hasNonPersonalPolicyCategories = Object.keys(policyCategoriesForSearch).some((policyCategoryId) => {
         const categoryPolicyID = policyCategoryId.replace(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, '');
         const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${categoryPolicyID}`];
         return !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
