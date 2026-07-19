@@ -1,4 +1,3 @@
-import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
@@ -32,7 +31,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
             // Logging) would otherwise surface as a stack-less, context-free onunhandledrejection (APP-5J).
             // Wrap it so the next occurrence on any command carries command context and a stack.
             const normalizedError = new Error(`[API] ${request.command} rejected: ${String(reason)}`);
-            Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} non-Error rejection surfaced from the request pipeline`, {command: request.command, reason: String(reason)});
+            Log.alert('[API] non-Error rejection surfaced from the request pipeline', {command: request.command, reason: String(reason)});
             throw normalizedError;
         });
 }
