@@ -8351,6 +8351,32 @@ describe('OptionsListUtils', () => {
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
         });
+
+        it('should keep the room name for a chat room unless showPersonalDetails is enabled', () => {
+            const report: Report = {
+                reportID: '20',
+                reportName: '#admins',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    1: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
+
+            const roomOption = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY, sortedActions);
+            const personalDetailsOption = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY, sortedActions, undefined, {showPersonalDetails: true});
+
+            expect(roomOption.text).toBe('#admins');
+            expect(personalDetailsOption.text).not.toBe('#admins');
+        });
     });
 
     describe('createFilteredOptionList', () => {
