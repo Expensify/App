@@ -87,5 +87,16 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isGovernmentRateUnmodified(editedRate)).toBe(false);
             expect(isGovernmentRateUnmodified({...editedRate, rate: baseGovernmentRate.rate})).toBe(true);
         });
+
+        it('should return true when the restored amount differs only by floating-point noise from the cents conversion', () => {
+            // Restoring 0.29 through the submit path stores `Number('0.29') * 100`, which yields 28.999999999999996 rather than 29.
+            const governmentRate = {sourceRateID: 'US_2026-01-01', rate: 29, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: Number('0.29') * 100}, governmentRate))).toBe(true);
+        });
+
+        it('should return false when the snapshot is malformed and has no rate amount', () => {
+            // A snapshot missing its rate amount alongside an unset rate must not be reported as unmodified.
+            expect(isGovernmentRateUnmodified(buildRate({rate: undefined}, {sourceRateID: 'US_2026-01-01', startDate: '2026-01-01', endDate: '2026-12-31'}))).toBe(false);
+        });
     });
 });

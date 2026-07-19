@@ -185,15 +185,22 @@ function getRateStatus(rate: Rate): string {
 /**
  * Whether a government-managed rate still matches the government-published snapshot it was copied from.
  * Returns true only when the rate amount, start date, and end date each match the snapshot in attributes.governmentRate.
+ * The amount is compared within a small tolerance to absorb floating-point noise from the stored cents value.
  * A date omitted on both sides counts as a match; a date omitted on only one side does not.
  */
 function isGovernmentRateUnmodified(rate: Rate): boolean {
     const governmentRate = rate.attributes?.governmentRate;
-    if (!governmentRate) {
+    // A snapshot without a rate amount (e.g. malformed data) can never be matched, otherwise `undefined === undefined` would
+    // incorrectly report an unset rate as unmodified.
+    if (!governmentRate || governmentRate.rate === undefined || rate.rate === undefined) {
         return false;
     }
 
-    return rate.rate === governmentRate.rate && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
+    // The submit path stores the amount as `Number(value) * 100`, which can introduce tiny floating-point errors (e.g. restoring
+    // 0.29 yields 28.999999999999996), so compare amounts within a tolerance rather than requiring strict equality.
+    const isRateAmountMatching = Math.abs(rate.rate - governmentRate.rate) < CONST.CUSTOM_UNITS.GOVERNMENT_RATE_MATCH_TOLERANCE;
+
+    return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
 export {validateRateValue, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus, isGovernmentRateUnmodified};
