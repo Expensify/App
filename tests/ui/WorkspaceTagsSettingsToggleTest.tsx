@@ -1,22 +1,30 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import RulesRequireFieldsPage from '@pages/workspace/rules/RulesRequireFieldsPage';
 import WorkspaceTagsSettingsPage from '@pages/workspace/tags/WorkspaceTagsSettingsPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Policy, PolicyTagLists} from '@src/types/onyx';
+import type {Beta, Policy, PolicyTagLists} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -152,8 +160,13 @@ afterEach(async () => {
     jest.clearAllMocks();
 });
 
-const setupPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: boolean, policyOverrides: Partial<Policy> = {}) => {
+const setupPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: boolean, policyOverrides: Partial<Policy> = {}, betas: Beta[] = []) => {
     await TestHelper.signInWithTestUser();
+    // signInWithTestUser seeds BETAS with 'all', which turns on rulesRevamp everywhere. Each page needs a different
+    // side of that beta, so pin the exact list after signing in.
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.BETAS, betas);
+    });
     const policy = {
         ...LHNTestUtils.getFakePolicy(),
         role: CONST.POLICY.ROLE.ADMIN,
@@ -168,6 +181,8 @@ const setupPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: bool
     return policy;
 };
 
+// With rulesRevamp on, this page no longer renders the toggle at all; it lives on RulesRequireFieldsPage. These cases
+// therefore run with the beta off, which is the path where the gate still applies.
 describe('WorkspaceTagsSettingsPage required-tag toggle visibility', () => {
     it('shows the "Members must tag all expenses" toggle for single-level tags', async () => {
         const policy = await setupPolicy(singleLevelTags, false);
@@ -220,12 +235,8 @@ describe('RulesRequireFieldsPage tag toggle visibility', () => {
     const getRulesCategoryLabel = () => TestHelper.translateLocal('workspace.rules.requireFields.category');
 
     // The page is gated behind the rulesRevamp beta and the Rules feature (Control plan).
-    const setupRulesPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: boolean) => {
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.RULES_REVAMP]);
-        });
-        return setupPolicy(policyTags, hasMultipleTagLists, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: true});
-    };
+    const setupRulesPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: boolean) =>
+        setupPolicy(policyTags, hasMultipleTagLists, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: true}, [CONST.BETAS.RULES_REVAMP]);
 
     it('shows the "Tag" toggle for single-level tags', async () => {
         const policy = await setupRulesPolicy(singleLevelTags, false);
