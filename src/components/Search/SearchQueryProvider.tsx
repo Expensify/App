@@ -19,7 +19,7 @@ import type {NavigationState} from '@react-navigation/routers';
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 
-import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
+import type {QueryFilters, SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
 import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
 
@@ -116,7 +116,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentDefaultSearchQueryString = currentSearchKey
         ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
         : undefined;
-    const currentDefaultSearchQueryFilterKeys = new Set<SearchFilterKey>(
+    const currentDefaultSearchQueryFilterKeys = new Set<QueryFilters[number]['key']>(
         currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString)?.flatFilters.map((filter) => filter.key) : undefined,
     );
 

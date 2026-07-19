@@ -185,7 +185,7 @@ type SearchQueryContextValue = {
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
-    currentDefaultSearchQueryFilterKeys: Set<SearchFilterKey>;
+    currentDefaultSearchQueryFilterKeys: Set<QueryFilters[number]['key']>;
     suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     shouldResetSearchQuery: boolean;
 };
@@ -333,7 +333,7 @@ type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
 type QueryFilters = Array<{
-    key: SearchFilterKey;
+    key: SyntaxFilterKey | ReportFieldTextKey;
     filters: QueryFilter[];
 }>;
 

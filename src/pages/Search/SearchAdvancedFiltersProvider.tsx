@@ -42,12 +42,12 @@ type SearchAdvancedFiltersProviderProps = {
 
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
     const {getUpdatedFilterFormValues, setFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
 
-    const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm) : undefined;
+    const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm, currentDefaultSearchQueryFilterKeys) : undefined;
 
     const applyFilters = () => {
         Navigation.dismissModal({afterTransition: () => setFilterQueryParams(values)});

@@ -67,6 +67,7 @@ import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './Pers
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {filterKeyToSyntaxKey, isRootFilterKey} from './SearchUIUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -2357,21 +2358,17 @@ function getEmptyDateValues(): SearchDateValues {
 
 /**
  * Returns an object containing the filter values needed to reset
- * the currently applied advanced filters back to their initial state.
- *
- * - STATUS is reset to `ALL`
- * - TYPE is reset to `EXPENSE`
- * - COLUMNS is reset to undefined only if the current TYPE is not EXPENSE
- * - Other filters are reset to `undefined`
+ * the currently applied advanced filters back to their default state.
  */
-function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
-    const isTypeExpense = searchAdvancedFiltersForm.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
-        if (filterKey === FILTER_KEYS.TYPE) {
-            if (!isTypeExpense) {
-                acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            }
-        } else if (filterKey !== FILTER_KEYS.COLUMNS || !isTypeExpense) {
+function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, defaultSearchQueryFilterKeys: ReadonlySet<string>): Partial<SearchAdvancedFiltersForm> {
+    return Object.entries(searchAdvancedFiltersForm).reduce((acc, [filterKey, value]) => {
+        const syntaxKey = filterKeyToSyntaxKey(filterKey);
+        if (isRootFilterKey(syntaxKey) || defaultSearchQueryFilterKeys.has(syntaxKey) || filterKey === FILTER_KEYS.TYPE) {
+            Object.assign(acc, {[filterKey]: value});
+            return acc;
+        }
+
+        if (filterKey !== FILTER_KEYS.COLUMNS) {
             Object.assign(acc, {[filterKey]: undefined});
         }
 

@@ -203,7 +203,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     );
 
     const resetFilters = () => {
-        setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
+        setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}, currentDefaultSearchQueryFilterKeys));
         setSearchContext(false);
     };
 

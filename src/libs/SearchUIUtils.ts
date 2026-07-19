@@ -5070,7 +5070,7 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
     };
 }
 
-const FILTER_TO_SYNTAX_KEY: Partial<Record<SearchAdvancedFiltersKey, Exclude<SearchDateFilterKeys, ReportFieldTextKey> | SearchAmountFilterKeys>> = {
+const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.DATE_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     [FILTER_KEYS.DATE_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     [FILTER_KEYS.DATE_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -5535,11 +5535,21 @@ function isReportFieldKey(key: string): key is ReportFieldKey {
     return key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
 }
 
+const ROOT_FILTER_KEYS = new Set<string>(Object.values(CONST.SEARCH.SYNTAX_ROOT_KEYS));
+
+function isRootFilterKey(key: string): key is ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS> {
+    return ROOT_FILTER_KEYS.has(key);
+}
+
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
     label: string;
     value: string | string[];
 };
+
+function filterKeyToSyntaxKey(filterKey: string) {
+    return hasKey(FILTER_TO_SYNTAX_KEY, filterKey) ? FILTER_TO_SYNTAX_KEY[filterKey] : filterKey;
+}
 
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
@@ -5562,8 +5572,8 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
         }
 
         // Handle grouped filters (date, amount) - only add once per group
-        const syntax = FILTER_TO_SYNTAX_KEY[key];
-        if (syntax) {
+        if (hasKey(FILTER_TO_SYNTAX_KEY, key)) {
+            const syntax = FILTER_TO_SYNTAX_KEY[key];
             if (addedGroups.has(syntax)) {
                 continue;
             }
@@ -6585,10 +6595,12 @@ export {
     getDateDisplayValue,
     getFilterNegatableValue,
     shouldShowFilter,
+    filterKeyToSyntaxKey,
     mapFiltersFormToLabelValueList,
     isTextFilterKey,
     isAmountFilterKey,
     isDateFilterKey,
+    isRootFilterKey,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
     TODO_SEARCH_KEYS,
