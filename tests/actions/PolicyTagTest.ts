@@ -11,6 +11,7 @@ import {
     clearPolicyTagErrors,
     clearPolicyTagListErrorField,
     clearPolicyTagListErrors,
+    cleanPolicyTags,
     createPolicyTag,
     deletePolicyTags,
     enablePolicyTags,
@@ -383,6 +384,59 @@ describe('actions/Policy', () => {
             const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
             expect(newTag?.errors).toBeTruthy();
+        });
+
+        it('restores required tags when creating the first tag after required tags were cleared by switching tag levels', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+            fakePolicy.requiresTag = true;
+
+            const tagListName = CONST.POLICY.DEFAULT_TAG_NAME;
+            const newTagName = 'new tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+            fakePolicyTags[tagListName].required = true;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            mockFetch.pause();
+            cleanPolicyTags(fakePolicy.id, true);
+            await waitForBatchedUpdates();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {requiresTag: false});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, CONST.POLICY.DEFAULT_TAG_LIST);
+            await waitForBatchedUpdates();
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            createPolicyTag({
+                policyData: policyData.current,
+                tagName: newTagName,
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: undefined,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+            });
+            await waitForBatchedUpdates();
+
+            const policy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            const shouldRestoreRequiresTag = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH}${fakePolicy.id}`);
+
+            expect(policy?.requiresTag).toBe(true);
+            expect(policyTags?.[tagListName]?.required).toBe(true);
+            expect(shouldRestoreRequiresTag).toBeFalsy();
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
         });
 
         it('should handle empty policy tags object', async () => {
