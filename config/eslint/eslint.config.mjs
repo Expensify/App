@@ -535,6 +535,14 @@ const config = defineConfig([
         },
     },
 
+    // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
+    {
+        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        rules: {
+            'no-invalid-this': 'off',
+        },
+    },
+
     {
         files: ['**/en.ts', '**/es.ts'],
         rules: {
