@@ -19,7 +19,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import getAvailableEuCountries from '@pages/ReimbursementAccount/utils/getAvailableEuCountries';
+import getAvailableCardCountryOptions from '@pages/ReimbursementAccount/utils/getAvailableCardCountryOptions';
 
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
@@ -74,7 +74,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const currencyMappedToCountry = mapCurrencyToCountry(currency) || countryDefaultValue;
-    const countriesSupportedForExpensifyCard = getAvailableEuCountries(supportedCountriesByCurrency, currency, localeCompare);
+    const countriesSupportedForExpensifyCard = getAvailableCardCountryOptions(supportedCountriesByCurrency, currency, localeCompare);
 
     const [userSelectedCountry, setUserSelectedCountry] = useState<string>('');
     const selectedCountry = shouldAllowChange ? userSelectedCountry || countryDefaultValue : currencyMappedToCountry;
