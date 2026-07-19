@@ -63,6 +63,12 @@ type ListItem<K extends string | number = string> = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
 
+    /**
+     * When set by SelectionList at render time, the row title should use muted styling even if the row
+     * remains selected and interactive. This decouples visual disabled state from interaction state.
+     */
+    shouldUseMutedTitle?: boolean;
+
     /** Whether to hide the selection button (radio/checkbox) entirely, e.g. for structural parent rows that only provide hierarchy context */
     shouldHideSelectionButton?: boolean;
 

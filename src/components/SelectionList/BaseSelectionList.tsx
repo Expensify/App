@@ -288,6 +288,7 @@ function BaseSelectionListImpl({
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
         const isItemVisuallyFocused = isItemFocused && (shouldHighlightInitiallyFocusedItem || isKeyboardNavigating);
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList);
+        const shouldUseMutedTitle = isDisabled || !!item.isDisabled;
 
         return (
             <ListItemRenderer
@@ -298,6 +299,7 @@ function BaseSelectionListImpl({
                     shouldAnimateInHighlight: isItemHighlighted,
                     isSelected: selected,
                     ...item,
+                    shouldUseMutedTitle,
                 }}
                 setFocusedIndex={setFocusedIndex}
                 index={index}

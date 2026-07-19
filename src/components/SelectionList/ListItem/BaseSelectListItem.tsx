@@ -80,7 +80,7 @@ function BaseSelectListItem<TItem extends ListItem>({
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText ? styles.mb1 : null,
-                            isDisabled && styles.colorMuted,
+                            item.shouldUseMutedTitle && styles.colorMuted,
                             isMultilineSupported ? {paddingLeft} : null,
                             titleStyles,
                         ]}

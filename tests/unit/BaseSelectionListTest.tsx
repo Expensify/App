@@ -14,6 +14,7 @@ import type ReactNative from 'react-native';
 
 import * as NativeNavigation from '@react-navigation/native';
 import React, {useState} from 'react';
+import {StyleSheet} from 'react-native';
 
 // Captures scrollToIndex calls so tests can assert on scroll behaviour
 const mockScrollToIndex = jest.fn();
@@ -378,5 +379,39 @@ describe('BaseSelectionList', () => {
         fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}7`), 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
 
         expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
+    it('should mute the title of a selected disabled item while keeping the row pressable', () => {
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
+        const data = [
+            {
+                text: 'Enabled rate',
+                keyForList: 'enabled-rate',
+                isSelected: true,
+                isDisabled: false,
+            },
+            {
+                text: 'Disabled rate',
+                keyForList: 'disabled-rate',
+                isSelected: true,
+                isDisabled: true,
+            },
+        ];
+
+        render(
+            <SelectionListRenderer
+                data={data}
+                canSelectMultiple={false}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}disabled-rate`));
+        expect(onSelectRowMock).toHaveBeenCalledWith(expect.objectContaining(data.at(1)));
+
+        const enabledTitleColor = StyleSheet.flatten(screen.getByText('Enabled rate').props.style)?.color;
+        const disabledTitleColor = StyleSheet.flatten(screen.getByText('Disabled rate').props.style)?.color;
+
+        expect(disabledTitleColor).toBeDefined();
+        expect(disabledTitleColor).not.toEqual(enabledTitleColor);
     });
 });

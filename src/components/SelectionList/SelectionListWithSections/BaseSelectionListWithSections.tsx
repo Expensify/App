@@ -281,7 +281,10 @@ function BaseSelectionListWithSectionsImpl({
                         ListItem={ListItem}
                         selectRow={selectRow}
                         showTooltip={shouldShowTooltips}
-                        item={item}
+                        item={{
+                            ...item,
+                            shouldUseMutedTitle: !!item.isDisabled,
+                        }}
                         index={index}
                         normalizedIndex={index}
                         isFocused={isItemFocused}
