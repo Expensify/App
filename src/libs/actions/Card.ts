@@ -31,7 +31,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
