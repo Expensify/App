@@ -183,8 +183,6 @@ function MoneyRequestReportTransactionItemBody({
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
-            errors={transaction.errors}
-            errorRowStyles={[styles.ph3, styles.pb2]}
             style={!shouldUseNarrowLayout && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]}
         >
             <PressableWithFeedback
