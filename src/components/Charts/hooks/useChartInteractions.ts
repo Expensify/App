@@ -161,6 +161,9 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
      * Canvas-space y positions for each data point, set by the chart content via setPointPositions.
      */
     const pointOY = useSharedValue<number[]>([]);
+    const isCursorOverTarget = useSharedValue(false);
+    const isCursorOverClickable = useSharedValue(false);
+    const isTooltipActive = useSharedValue(false);
 
     /**
      * Called by chart content from handleScaleChange to populate canvas positions.
@@ -236,41 +239,44 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
         chartInteractionState.y.y.position.set(oy.at(targetIndex) ?? 0);
     };
 
-    /**
-     * Derived value that checks only whether the cursor is over a clickable element
-     * (e.g. dot, bar) — excludes labels which show tooltip but aren't clickable.
-     */
-    const isCursorOverClickable = useDerivedValue(() => {
-        const hitTestArgs = getCurrentHitTestArgs();
-        if (!hitTestArgs) {
+    const updateInteractionFlags = (targetIndex: number, cursorX: number, cursorY: number, currentChartBottom: number) => {
+        'worklet';
+
+        const ox = pointOX.get();
+        const oy = pointOY.get();
+        const targetX = targetIndex >= 0 ? ox.at(targetIndex) : undefined;
+        const targetY = targetIndex >= 0 ? oy.at(targetIndex) : undefined;
+        if (targetX === undefined || targetY === undefined) {
+            isCursorOverTarget.set(false);
+            isCursorOverClickable.set(false);
+            isTooltipActive.set(false);
             return false;
         }
 
-        return (checkIsClickable ?? checkIsOver)(hitTestArgs);
-    });
+        const hitTestArgs = getHitTestArgs(targetIndex, cursorX, cursorY, targetX, targetY, currentChartBottom);
+        const isOverTarget = checkIsOver(hitTestArgs) || (isCursorOverLabel?.(hitTestArgs, targetIndex) ?? false);
+        const isOverClickableElement = (checkIsClickable ?? checkIsOver)(hitTestArgs);
 
-    /**
-     * Derived value performing the hit-test on the UI thread.
-     * Runs whenever cursor position or matched data points change.
-     * Includes both clickable targets and labels (for tooltip display).
-     */
-    const isCursorOverTarget = useDerivedValue(() => {
+        isCursorOverTarget.set(isOverTarget);
+        isCursorOverClickable.set(isOverClickableElement);
+        isTooltipActive.set(isOverTarget && chartInteractionState.isActive.get());
+
+        return isOverTarget;
+    };
+
+    const updateCurrentInteractionFlags = () => {
+        'worklet';
+
         const hitTestArgs = getCurrentHitTestArgs();
         if (!hitTestArgs) {
+            isCursorOverTarget.set(false);
+            isCursorOverClickable.set(false);
+            isTooltipActive.set(false);
             return false;
         }
 
-        if (checkIsOver(hitTestArgs)) {
-            return true;
-        }
-        return isCursorOverLabel?.(hitTestArgs, hitTestArgs.targetIndex) ?? false;
-    });
-
-    /**
-     * Derived value that combines hover active state with hit-test result.
-     * Drives tooltip visibility entirely on the UI thread — no React state needed.
-     */
-    const isTooltipActive = useDerivedValue(() => isCursorOverTarget.get() && chartInteractionState.isActive.get());
+        return updateInteractionFlags(hitTestArgs.targetIndex, hitTestArgs.cursorX, hitTestArgs.cursorY, hitTestArgs.chartBottom);
+    };
 
     /**
      * Hover gesture to be placed on the full-height outer container (chart + label area).
@@ -290,26 +296,34 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
                 chartInteractionState.cursor.y.set(e.y);
                 const bottom = chartBottom?.get() ?? e.y;
                 const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
-                applyTargetIndex(getResolvedTargetIndex(e.x, e.y, touchX));
+                const targetIndex = getResolvedTargetIndex(e.x, e.y, touchX);
+                applyTargetIndex(targetIndex);
+                updateInteractionFlags(targetIndex, e.x, e.y, bottom);
             })
             .onUpdate((e) => {
                 'worklet';
 
                 chartInteractionState.cursor.x.set(e.x);
                 chartInteractionState.cursor.y.set(e.y);
+                const bottom = chartBottom?.get() ?? e.y;
+                const isOverCurrentTarget = updateCurrentInteractionFlags();
                 // Only update the matched index when the cursor is not over the current target.
                 // This keeps the active index locked while hovering over a bar/point/label,
                 // preventing it from jumping to a different point during continuous movement.
-                if (!isCursorOverTarget.get()) {
-                    const bottom = chartBottom?.get() ?? e.y;
+                if (!isOverCurrentTarget) {
                     const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
-                    applyTargetIndex(getResolvedTargetIndex(e.x, e.y, touchX));
+                    const targetIndex = getResolvedTargetIndex(e.x, e.y, touchX);
+                    applyTargetIndex(targetIndex);
+                    updateInteractionFlags(targetIndex, e.x, e.y, bottom);
                 }
             })
             .onEnd(() => {
                 'worklet';
 
                 chartInteractionState.isActive.set(false);
+                isCursorOverTarget.set(false);
+                isCursorOverClickable.set(false);
+                isTooltipActive.set(false);
             });
 
     /**
@@ -333,7 +347,9 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
             const targetY = oy.at(idx) ?? 0;
             const currentChartBottom = chartBottom?.get() ?? 0;
             const hitTestArgs = getHitTestArgs(idx, e.x, e.y, targetX, targetY, currentChartBottom);
-            if ((checkIsClickable ?? checkIsOver)(hitTestArgs)) {
+            const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
+            updateInteractionFlags(idx, e.x, e.y, currentChartBottom);
+            if (isClickable) {
                 scheduleOnRN(handlePress, idx);
             }
         });
@@ -367,9 +383,9 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
         setPointPositions,
         /** SharedValue for the currently matched data index — read on the UI thread or sync via useAnimatedReaction */
         matchedIndex: chartInteractionState.matchedIndex,
-        /** DerivedValue that is true when the tooltip should be visible */
+        /** SharedValue that is true when the tooltip should be visible */
         isTooltipActive,
-        /** DerivedValue that is true when the cursor is over a clickable element (dot/bar, not label) */
+        /** SharedValue that is true when the cursor is over a clickable element (dot/bar, not label) */
         isCursorOverClickable,
         /** Raw tooltip positioning data */
         initialTooltipPosition,
