@@ -140,18 +140,6 @@ Onyx.connectWithoutView({
     },
 });
 
-/**
- * Only for use in this non-React module; React code should read the list via
- * `useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST)` and pass it down instead.
- */
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value;
-    },
-});
-
 const NO_EDIT: Readonly<TransactionEditPermissions> = Object.freeze({
     canEditDate: false,
     canEditMerchant: false,
@@ -287,7 +275,7 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
-            personalDetails: allPersonalDetails,
+            personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
         });
