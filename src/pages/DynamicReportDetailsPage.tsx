@@ -993,6 +993,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 parentReportAction,
                 conciergeReportID,
                 delegateEmail,
+                reportActionsForOriginalReportID,
                 ancestors,
             );
             return;
@@ -1046,6 +1047,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
+        reportActionsForOriginalReportID,
         moneyRequestReport,
         iouReport,
         chatIOUReport,
