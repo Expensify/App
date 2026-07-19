@@ -23,6 +23,9 @@ function parseRawChartData(attribute: string): RawChartData[] {
                 if ('label' in parsedData && typeof parsedData.label === 'string') {
                     rawChartData.label = parsedData.label;
                 }
+                if ('currency' in parsedData && typeof parsedData.currency === 'string') {
+                    rawChartData.currency = parsedData.currency;
+                }
                 if ('searchQuery' in parsedData && typeof parsedData.searchQuery === 'string') {
                     rawChartData.searchQuery = parsedData.searchQuery;
                 }

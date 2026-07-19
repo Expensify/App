@@ -30,6 +30,9 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
         } else if (fallbackLabel) {
             metadata.label = fallbackLabel;
         }
+        if (point.currency) {
+            metadata.currency = point.currency;
+        }
         if (point.searchQuery) {
             metadata.searchQuery = point.searchQuery;
         }

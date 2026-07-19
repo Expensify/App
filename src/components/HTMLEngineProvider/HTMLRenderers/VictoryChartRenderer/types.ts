@@ -12,6 +12,7 @@ type RawChartData = {
     x: string | number;
     y: number;
     label?: string;
+    currency?: string;
     searchQuery?: string;
 };
 
@@ -68,6 +69,7 @@ type CartesianChartData = {
 
 type ChartPointMetadata = {
     label?: string;
+    currency?: string;
     searchQuery?: string;
 };
 

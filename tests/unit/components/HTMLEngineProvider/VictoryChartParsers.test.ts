@@ -47,14 +47,15 @@ describe('victorySeriesParser', () => {
     });
 
     it('preserves point metadata by series and x value', () => {
-        const node = createNode('victorybar', {data: "[{x: 1, y: 10, label: 'Jan 2026: $10', searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01'}]"});
+        const node = createNode('victorybar', {data: "[{x: 1, y: 10, label: 'January 2026', currency: 'USD', searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01'}]"});
         const result = parseVictorySeriesNode(node, null, null);
         const numberOneKey = 'number:1';
 
         expect(result.pointMetadata).toEqual({
             y0: {
                 [numberOneKey]: {
-                    label: 'Jan 2026: $10',
+                    label: 'January 2026',
+                    currency: 'USD',
                     searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01',
                 },
             },
