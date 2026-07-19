@@ -200,11 +200,11 @@ describe('useConfirmationValidation', () => {
     });
 
     describe('per diem move guard — moving a tracked per diem expense into a workspace', () => {
-        const PER_DIEM_TRANSACTION_OVERRIDES = {
+        const PER_DIEM_TRANSACTION_OVERRIDES: Partial<OnyxTypes.Transaction> = {
             amount: 5000,
             iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
             comment: {customUnit: {subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
-        } as const;
+        };
 
         function createPolicyWithPerDiemEnabled(): OnyxTypes.Policy {
             return {
