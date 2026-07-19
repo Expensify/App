@@ -1,4 +1,3 @@
-import CONST from '@src/CONST';
 import Log from '@src/libs/Log';
 import * as Request from '@src/libs/Request';
 import type {Middleware} from '@src/libs/Request';
@@ -86,7 +85,7 @@ test('Request.processWithMiddleware() normalizes a non-Error rejection into an E
         .rejects.toThrow('[API] MockCommand rejected: null')
         .then(() => {
             // And an alert should be logged with the command context for diagnosis
-            expect(mockLogAlert).toHaveBeenCalledWith(`${CONST.ERROR.ENSURE_BUG_BOT} non-Error rejection surfaced from the request pipeline`, {command: 'MockCommand', reason: 'null'});
+            expect(mockLogAlert).toHaveBeenCalledWith('[API] non-Error rejection surfaced from the request pipeline', {command: 'MockCommand', reason: 'null'});
         });
 });
 
