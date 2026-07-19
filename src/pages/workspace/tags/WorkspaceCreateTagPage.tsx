@@ -14,6 +14,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {escapeTagName, getTagList, hasCustomCategories} from '@libs/PolicyUtils';
@@ -103,7 +104,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             setupCategoriesAndTagsParentReportAction,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             policyHasCustomCategories,
-        });
+        }).catch((error: unknown) => Log.warn('[WorkspaceCreateTagPage] Failed to create policy tag', {error}));
         Keyboard.dismiss();
         Navigation.goBack(isDynamicFlow ? backPath : undefined);
     };

@@ -305,7 +305,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When creating a new tag
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -360,7 +360,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When the API fails
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -409,7 +409,7 @@ describe('actions/Policy', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -454,7 +454,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When adding the first tag
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -522,7 +522,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // When using data from useOnyx hook
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -2508,7 +2508,7 @@ describe('actions/Policy', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: fakeTaskReport,
@@ -2563,7 +2563,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_PARENT_REPORT_ID}`, fakeParentReport);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -2619,7 +2619,7 @@ describe('actions/Policy', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: undefined,
@@ -2676,7 +2676,7 @@ describe('actions/Policy', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
-            createPolicyTag({
+            await createPolicyTag({
                 policyData: policyData.current,
                 tagName: newTagName,
                 setupTagsTaskReport: fakeTaskReport,

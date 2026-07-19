@@ -41,10 +41,11 @@ import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import lodashCloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 type CreatePolicyTagParams = {
     policyData: PolicyData;
@@ -62,14 +63,6 @@ type CreatePolicyTagParams = {
     currentUserAccountID: number;
     policyHasCustomCategories: boolean;
 };
-
-// The tag-level switch flow clears all tags before import, so keep the previous required state outside the policy/tag payload.
-let policyTagsRequiredAfterSwitch: OnyxCollection<boolean> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH,
-    waitForCollectionCallback: true,
-    callback: (value) => (policyTagsRequiredAfterSwitch = value),
-});
 
 function getPolicyTagsRequiredAfterSwitchKey(policyID: string): `${typeof ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH}${string}` {
     return `${ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH}${policyID}`;
@@ -135,7 +128,7 @@ function getImportMultiLevelTagsFinalModal(): ImportFinalModal {
     };
 }
 
-function createPolicyTag({
+async function createPolicyTag({
     policyData,
     tagName,
     setupTagsTaskReport,
@@ -157,7 +150,7 @@ function createPolicyTag({
     const newTagName = PolicyUtils.escapeTagName(tagName);
     const requiredAfterSwitchKey = policyID ? getPolicyTagsRequiredAfterSwitchKey(policyID) : undefined;
     // Restore the required toggle only for the first tag created after the switch-level cleanup.
-    const shouldRestoreRequiresTag = !!requiredAfterSwitchKey && policyTagsRequiredAfterSwitch?.[requiredAfterSwitchKey] === true && getEnabledPolicyTagsCount(policyTag) === 0;
+    const shouldRestoreRequiresTag = !!requiredAfterSwitchKey && (await OnyxUtils.get(requiredAfterSwitchKey)) === true && getEnabledPolicyTagsCount(policyTag) === 0;
     const policyRequiresTagOptimisticData: Partial<Policy> = shouldRestoreRequiresTag ? {requiresTag: true} : {};
     const tagListsOptimisticData = {
         [policyTag.name]: {
