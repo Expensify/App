@@ -19,12 +19,13 @@ import type {ValueOf} from 'type-fest';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
-    hasIntegrationAutoSync,
     isGroupPolicy,
     isInstantSubmitEnabled,
     isPolicyAdmin,
@@ -257,8 +258,12 @@ function isSubmitAction({
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const isManager = report.managerID === currentUserAccountID;
-    if (!isReportSubmitter && !isAdmin && !isManager) {
+    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
+    const isWorkflowApprover =
+        !isReportSubmitter && currentUserAccountID !== undefined && !!ownerLogin && !isSubmitAndClose(policy) && currentUserAccountID === getManagerAccountID(policy, ownerLogin);
+
+    if (!isReportSubmitter && !isAdmin && !isWorkflowApprover) {
         return false;
     }
 
@@ -267,7 +272,6 @@ function isSubmitAction({
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
@@ -283,7 +287,7 @@ function isSubmitAction({
         return true;
     }
 
-    if (isAdmin || isManager) {
+    if (isAdmin || isWorkflowApprover) {
         return true;
     }
 
@@ -492,7 +496,7 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
     return !hasBankPaymentAction;
 }
 
-function isExportAction(currentAccountID: number, currentUserLogin: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
+function isExportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -516,22 +520,20 @@ function isExportAction(currentAccountID: number, currentUserLogin: string, repo
     }
 
     const isReportApproved = isReportApprovedUtils({report});
-    const isReportPayer = isPayerUtils(currentAccountID, currentUserLogin, report, bankAccountList, policy, false);
-    const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
-
     const isReportSettled = isSettled(report);
-    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed || isReportSettled)) {
-        return true;
+    const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isReportFinished = isReportApproved || isReportClosed || isReportReimbursed || isReportSettled;
+
+    // If the report is not in a finished state, don't show the export action
+    if (!isReportFinished) {
+        return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const connectedIntegration = getConnectedIntegration(policy);
-    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isReportFinished = isReportApproved || isReportReimbursed || isReportClosed;
+    const hasAccountingExportPermission =
+        canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.ACCOUNTING) || canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
-    return isAdmin && isReportFinished && syncEnabled;
+    return hasAccountingExportPermission || isPreferredExporter(policy, currentUserLogin);
 }
 
 function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
@@ -572,11 +574,10 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: stri
         return true;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasAccountingExportPermission =
+        canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.ACCOUNTING) || canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
-    const isExporter = isPreferredExporter(policy, currentUserLogin);
-
-    return isAdmin || isExporter;
+    return hasAccountingExportPermission || isPreferredExporter(policy, currentUserLogin);
 }
 
 function isHoldAction(
@@ -971,6 +972,7 @@ function getSecondaryReportActions({
             isChatReportArchived,
             reportActions,
             isSecondaryAction: true,
+            canNonPayerAdminPay: true,
         }) &&
         (hasOnlyHeldExpenses(reportTransactions) || didExportFail)
     ) {
@@ -1126,7 +1128,7 @@ function getSecondaryExportReportActions(
     exportTemplates: ExportTemplate[] = [],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(currentUserAccountID, currentUserLogin, report, bankAccountList, policy)) {
+    if (isExportAction(currentUserLogin, report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
