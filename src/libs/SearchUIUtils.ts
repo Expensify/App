@@ -5549,7 +5549,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     mapper?: (filterKey: SearchFilter['key'], isDefault: boolean) => T,
-): Array<SearchFilter & T> {
+): {allFilters: Array<SearchFilter & T>; defaultFilters: Array<SearchFilter & T>} {
     const defaultFilters: Array<SearchFilter & T> = [];
     const nonDefaultFilters: Array<SearchFilter & T> = [];
     const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX>();
@@ -5610,7 +5610,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
         }
     }
 
-    return [...defaultFilters, ...nonDefaultFilters];
+    return {allFilters: [...defaultFilters, ...nonDefaultFilters], defaultFilters};
 }
 
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {

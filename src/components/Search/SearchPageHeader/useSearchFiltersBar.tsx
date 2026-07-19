@@ -146,7 +146,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const {currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
-    const filters = mapFiltersFormToLabelValueList<FilterItem>(
+    const {defaultFilters, allFilters} = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
         SKIPPED_SEARCH_FILTERS,
@@ -208,10 +208,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     };
 
     return {
-        filters,
+        filters: allFilters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
-        shouldShowResetFilters: filters.length > currentDefaultSearchQueryFilterKeys.size,
+        shouldShowResetFilters: allFilters.length > defaultFilters.length,
         resetFilters,
     };
 }
