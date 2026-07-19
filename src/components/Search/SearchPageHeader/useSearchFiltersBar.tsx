@@ -6,7 +6,7 @@ import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopu
 import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
-import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';

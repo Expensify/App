@@ -19,7 +19,7 @@ import type {NavigationState} from '@react-navigation/routers';
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 
-import type {SearchFilterKey, SearchQueryActionsValue, SearchQueryContextValue} from './types';
+import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
 import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
 
