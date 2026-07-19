@@ -199,6 +199,69 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidSubrateLength'});
     });
 
+    describe('per diem move guard — moving a tracked per diem expense into a workspace', () => {
+        const PER_DIEM_TRANSACTION_OVERRIDES = {
+            amount: 5000,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            comment: {customUnit: {subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
+        } as const;
+
+        function createPolicyWithPerDiemEnabled(): OnyxTypes.Policy {
+            return {
+                ...createRandomPolicy(1),
+                id: 'policy1',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                customUnits: {
+                    perDiemUnit: {
+                        customUnitID: 'perDiemUnit',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        enabled: true,
+                        rates: {},
+                    },
+                },
+            };
+        }
+
+        it('returns moveExpensesError when the destination workspace cannot process per diem', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isPerDiemRequest: true,
+                    isMovingTransactionFromTrackExpense: true,
+                    policy: {...createRandomPolicy(1), id: 'policy1', type: CONST.POLICY.TYPE.SUBMIT, customUnits: {}},
+                    transaction: createTransactionBase(PER_DIEM_TRANSACTION_OVERRIDES),
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'iou.moveExpensesError'});
+        });
+
+        it('returns errorKey: null when the destination workspace has per diem enabled', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isPerDiemRequest: true,
+                    isMovingTransactionFromTrackExpense: true,
+                    policy: createPolicyWithPerDiemEnabled(),
+                    transaction: createTransactionBase(PER_DIEM_TRANSACTION_OVERRIDES),
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not block a per diem expense that is not being moved from a tracked expense', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isPerDiemRequest: true,
+                    isMovingTransactionFromTrackExpense: false,
+                    policy: {...createRandomPolicy(1), id: 'policy1', type: CONST.POLICY.TYPE.SUBMIT, customUnits: {}},
+                    transaction: createTransactionBase(PER_DIEM_TRANSACTION_OVERRIDES),
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+    });
+
     it('returns distanceAmountTooLarge when distance amount exceeds max', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation({
