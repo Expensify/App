@@ -27,7 +27,7 @@ function VictoryChartCartesianInteractive() {
     const {chartContentStyles} = useVictoryChartContext();
     const designWidth = getChartDesignWidth(undefined, chartContentStyles.width);
     const [chartWidth, setChartWidth] = useState(designWidth ?? 0);
-    const {customGestures, syncBarPositions, activeLabel, hasTooltipLabels, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useVictoryBarInteractions();
+    const {customGestures, syncBarPositions, activeTooltipData, hasTooltipLabels, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useVictoryBarInteractions();
 
     const updateChartWidth = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
@@ -55,14 +55,15 @@ function VictoryChartCartesianInteractive() {
                 customGestures={customGestures}
                 onRenderArgs={syncBarPositions}
             />
-            {!!activeLabel && hasTooltipLabels && chartWidth > 0 && (
+            {!!activeTooltipData && hasTooltipLabels && chartWidth > 0 && (
                 <Animated.View
                     style={tooltipWrapperStyle}
                     pointerEvents="none"
                 >
                     <ChartTooltip
-                        label={activeLabel}
-                        amount=""
+                        label={activeTooltipData.label}
+                        amount={activeTooltipData.amount}
+                        percentage={activeTooltipData.percentage}
                         chartWidth={chartWidth}
                         initialTooltipPosition={initialTooltipPosition}
                     />

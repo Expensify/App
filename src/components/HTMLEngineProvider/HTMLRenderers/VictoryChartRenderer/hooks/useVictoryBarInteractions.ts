@@ -10,8 +10,13 @@ import type {CartesianChartData, PolarChartData, YKey} from '@components/HTMLEng
 import getChartPointMetadataKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartPointMetadataKey';
 import {getVictoryBarInteractionGeometry, isCursorInVerticalBar} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryBarInteractionGeometry';
 import type {BarSeriesLayoutConfig} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryBarInteractionGeometry';
+import getVictoryBarTooltipData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryBarTooltipData';
+import type {VictoryBarTooltipData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryBarTooltipData';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -30,6 +35,8 @@ type InteractiveBar = {
     xValue: CartesianChartData[typeof X_KEY];
     yKey: YKey;
     label: string;
+    value: number;
+    currency?: string;
     searchQuery?: string;
 };
 
@@ -95,6 +102,8 @@ function buildInteractiveBars(rows: CartesianChartData[], yKeys: YKey[], barSeri
                 xValue,
                 yKey,
                 label: metadata.label ?? String(xValue),
+                value: row[yKey],
+                currency: metadata.currency,
                 searchQuery: metadata.searchQuery,
             });
         }
@@ -103,11 +112,45 @@ function buildInteractiveBars(rows: CartesianChartData[], yKeys: YKey[], barSeri
     return interactiveBars;
 }
 
+function getVisibleVerticalBarValues(rows: CartesianChartData[], yKeys: YKey[], barSeriesConfig: BarSeriesConfig) {
+    const values: number[] = [];
+
+    for (const row of rows) {
+        for (const yKey of yKeys) {
+            if (!(yKey in barSeriesConfig) || typeof row[yKey] !== 'number') {
+                continue;
+            }
+
+            values.push(row[yKey]);
+        }
+    }
+
+    return values;
+}
+
+function getActiveTooltipData(
+    activeBar: InteractiveBar | undefined,
+    visibleVerticalBarValues: number[],
+    numberFormat: LocaleContextProps['numberFormat'],
+): VictoryBarTooltipData | undefined {
+    if (!activeBar) {
+        return undefined;
+    }
+
+    if (!activeBar.currency) {
+        return {label: activeBar.label, amount: '', percentage: ''};
+    }
+
+    return getVictoryBarTooltipData(activeBar, visibleVerticalBarValues, numberFormat);
+}
+
 function useVictoryBarInteractions() {
     const {tnode, data, yKeys, pointMetadata, isHorizontal} = useVictoryChartContext();
+    const {numberFormat} = useLocalize();
     const rows = Object.values(data).filter(isCartesianChartData);
     const barSeriesConfig = isHorizontal ? {} : collectVerticalBarSeries(tnode.children);
     const interactiveBars = buildInteractiveBars(rows, yKeys, barSeriesConfig, pointMetadata);
+    const visibleVerticalBarValues = getVisibleVerticalBarValues(rows, yKeys, barSeriesConfig);
     const pointWidth = useSharedValue<number[]>([]);
     const hasSearchQuery = useSharedValue<number[]>([]);
     const chartBottom = useSharedValue(0);
@@ -185,6 +228,9 @@ function useVictoryBarInteractions() {
         },
     );
 
+    const activeBar = activeBarIndex >= 0 ? interactiveBars.at(activeBarIndex) : undefined;
+    const activeTooltipData = getActiveTooltipData(activeBar, visibleVerticalBarValues, numberFormat);
+
     const syncBarPositions = (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => {
         const {points, chartBounds, yScale} = renderArgs;
         const xs: number[] = [];
@@ -220,7 +266,7 @@ function useVictoryBarInteractions() {
     return {
         customGestures,
         syncBarPositions,
-        activeLabel: activeBarIndex >= 0 ? interactiveBars.at(activeBarIndex)?.label : undefined,
+        activeTooltipData,
         hasTooltipLabels: interactiveBars.some((bar) => !!bar.label),
         isTooltipActive,
         isCursorOverClickable,
