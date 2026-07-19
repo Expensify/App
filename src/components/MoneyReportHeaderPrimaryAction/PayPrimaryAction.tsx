@@ -21,6 +21,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import {isPending} from '@libs/TransactionUtils';
@@ -65,6 +66,8 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
 
     const activePolicy = usePolicy(activePolicyID);
@@ -74,6 +77,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const {convertToDisplayString} = useCurrencyListActions();
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
@@ -152,10 +156,12 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 methodID,
                 paymentMethod,
                 activePolicy,
+                conciergeChat,
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                isTrackIntentUser,
             });
         } else {
             startAnimation();
@@ -178,6 +184,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onPaid: startAnimation,
                 chatReportActions: getChatReportActions(false),
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

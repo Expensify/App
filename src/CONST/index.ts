@@ -230,7 +230,10 @@ const CONST = {
     TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
-    CUSTOM_FIELD_KEYS: {customField1: 'employeeUserID', customField2: 'employeePayrollID'},
+    CUSTOM_FIELD_KEYS: {
+        customField1: 'employeeUserID',
+        customField2: 'employeePayrollID',
+    },
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
     ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
@@ -302,6 +305,16 @@ const CONST = {
     // from concurrent navigation state mutations, but short enough to finish well before most users
     // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
     PRE_INSERT_FULLSCREEN_DELAY: 300,
+    /**
+     * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
+     */
+    NARROW_DESTINATION_STRATEGY: {
+        /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
+        PRE_INSERT: 'preInsert',
+
+        /** Wait until submit to put the destination behind the RHP, avoiding early navigation changes. */
+        REVEAL: 'reveal',
+    },
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
 
@@ -976,15 +989,13 @@ const CONST = {
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
-        DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
-        CERTINIA: 'financialForceNewDot',
-        MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1070,7 +1081,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'k',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1111,8 +1125,14 @@ const CONST = {
             modifiers: ['CTRL'],
             trigger: {
                 DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: keyInputEnter,
+                    modifierFlags: keyModifierCommand,
+                },
+                [PLATFORM_IOS]: {
+                    input: keyInputEnter,
+                    modifierFlags: keyModifierCommand,
+                },
             },
         },
         COPY: {
@@ -1199,7 +1219,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'g', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'g',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1210,7 +1233,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'p', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'p',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1464,6 +1490,12 @@ const CONST = {
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
+        },
+        // The way a Submit-workspace report can be submitted. Persisted per-user so the report-view button
+        // can default to the last-used method.
+        SUBMISSION_METHOD: {
+            SUBMIT: 'submit',
+            SUBMIT_VIA_PDF: 'submitViaPDF',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
@@ -2192,7 +2224,9 @@ const CONST = {
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
+        ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
         ATTRIBUTE_CANCELED: 'canceled',
+        ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_MIN_DURATION: 'min_duration',
@@ -2228,6 +2262,13 @@ const CONST = {
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
+        /** Which report-actions skeleton cancelled a send-message span (value of the canceled_by_skeleton attribute). */
+        CANCELED_BY_SKELETON: {
+            REPORT_ACTIONS_REPORT_DATA_LOADING: 'report_actions_report_data_loading',
+            REPORT_ACTIONS_APP_LOAD: 'report_actions_app_load',
+            SKELETON_GUARD_LOADING: 'skeleton_guard_loading',
+            SKELETON_GUARD_DERIVED_TIMING: 'skeleton_guard_derived_timing',
+        },
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
@@ -2264,6 +2305,46 @@ const CONST = {
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
             SEND_MONEY: 'send_money',
+        },
+        SEND_MESSAGE_SOURCE: {
+            CONCIERGE_SIDE_PANEL: 'concierge_side_panel',
+            // Side Panel hosting the workspace admins chat (admin onboarding), not Concierge.
+            SIDE_PANEL: 'side_panel',
+            // Expense report, split single- vs multi-expense (only multi has a heavy transactions table). e/:id and
+            // search/r/:id render the same component, so they share this base rather than owning a `_search` value.
+            EXPENSE_REPORT_SINGLE: 'expense_report_single',
+            EXPENSE_REPORT_MULTI: 'expense_report_multi',
+            // Single-transaction expense thread (chat-type, expense parent).
+            EXPENSE_TRANSACTION_THREAD: 'expense_transaction_thread',
+            CONCIERGE: 'concierge',
+            REPORT_THREAD: 'report_thread',
+            INVOICE_ROOM: 'invoice_room',
+            WORKSPACE_ROOM: 'workspace_room',
+            POLICY_EXPENSE_CHAT: 'policy_expense_chat',
+            TASK_REPORT: 'task_report',
+            GROUP_CHAT: 'group_chat',
+            DIRECT_MESSAGE: 'direct_message',
+            SELF_DM: 'self_dm',
+            OTHER_CHAT: 'other_chat',
+        },
+        // Tab prefix on every send_message_source value. OTHER = a tab that doesn't host these surfaces
+        // (Workspaces) or an unresolved tab.
+        SEND_MESSAGE_SOURCE_TAB: {
+            HOME: 'home',
+            INBOX: 'inbox',
+            SPEND: 'spend',
+            SETTINGS: 'settings',
+            OTHER: 'other',
+        },
+        // Surface suffix, added for the RHP report routes (e/:id, search/r/:id, search/view/:id), e.g.
+        // `inbox_report_thread_rhp`. Central pane has no suffix; the Side Panel lives in the base.
+        SEND_MESSAGE_SOURCE_SURFACE: {
+            RHP: 'rhp',
+        },
+        // Extra suffix (alongside `_rhp`) marking that the RHP screen was drilled into from its parent expense
+        // report vs opened directly from a list, e.g. `spend_expense_transaction_thread_rhp_from_report`.
+        SEND_MESSAGE_SOURCE_RHP_ORIGIN: {
+            FROM_REPORT: 'from_report',
         },
         // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
         // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.
@@ -2488,6 +2569,9 @@ const CONST = {
     EMAIL_SEARCH_REGEX: /\.(?=[^\s@]*@)/g,
 
     VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
+
+    // Matches an opening or closing HTML tag that starts with a letter (e.g. <b>, </strong>, <br/>)
+    HTML_TAG_REGEX: /<\/?[a-z][^>]*>/i,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -2892,7 +2976,7 @@ const CONST = {
 
     /** Salesforce package install URLs for the Certinia Expensify bundles (see help: Connect to Certinia). */
     CERTINIA_PSA_BUNDLE_INSTALL_URL: {
-        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BM',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
     },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
@@ -3036,6 +3120,12 @@ const CONST = {
             AUTO: 'auto',
             WEBHOOK: 'webhook',
         },
+
+        /** Maximum number of manual syncs ("Sync now") allowed within the rolling window */
+        MANUAL_SYNC_LIMIT: 2,
+
+        /** Rolling window (in milliseconds) over which manual syncs are counted against MANUAL_SYNC_LIMIT (24 hours) */
+        MANUAL_SYNC_WINDOW_MS: 24 * 60 * 60 * 1000,
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
@@ -3379,7 +3469,6 @@ const CONST = {
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
-        CARD_PROGRAM_ACCOUNTS: 'cardProgramAccounts',
         ACCOUNTING_METHOD: 'accountingMethod',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
@@ -3389,6 +3478,7 @@ const CONST = {
         SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
         TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
 
     RILLET_MAPPING_VALUE: {
@@ -3706,6 +3796,11 @@ const CONST = {
             SUBMIT: 'submit',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
+        },
+        // Destination chosen from the track-expense "Submit" whisper on the Submit (submit2026) plan.
+        SUBMIT_DESTINATION: {
+            FRIEND: 'friend',
+            EMPLOYER: 'employer',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
@@ -4114,6 +4209,8 @@ const CONST = {
             FIXED_DISTANCE: 'fixedDistance',
             // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
         },
+        // Upper bound for the commuter exclusion fixed distance. Matches the length of the longest road in the world
+        COMMUTER_EXCLUSION_MAX_DISTANCE: 19000,
         COMMUTER_EXCLUSION_TYPE: {
             METHOD: 'method',
             FIXED_DISTANCE: 'fixedDistance',
@@ -4148,9 +4245,7 @@ const CONST = {
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
             },
-            SUPPORTED_ONLY_ON_OLDDOT: {
-                FINANCIALFORCE: 'financialforce',
-            },
+            SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
                 GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
             },
@@ -4611,6 +4706,9 @@ const CONST = {
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
+        // After a card connection has been broken and unresolved for this many days, stop actively
+        // prompting the user: the time-sensitive home task and the RBR are removed (the error itself is kept).
+        BROKEN_CONNECTION_DISMISS_AFTER_DAYS: 90,
         WORKSPACE_FEEDS_LOAD_ERROR: 'workspaceFeedsLoadError',
         FEED_LOAD_ERROR: 'feedLoadError',
         STEP: {
@@ -4727,9 +4825,14 @@ const CONST = {
             NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT: 'quickbooks_desktop_export_account_credit',
 
             /**
-             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             * Name of Card NVP for Certinia custom export vendors
              */
             NVP_FINANCIALFORCE_EXPORT_VENDOR: 'financialforce_export_vendor',
+
+            /**
+             * Name of Card NVP for Rillet custom export accounts
+             */
+            NVP_RILLET_EXPORT_ACCOUNT: 'rillet_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -4769,9 +4872,14 @@ const CONST = {
             NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT_POLICY_ID: 'quickbooks_desktop_export_account_credit_policy_id',
 
             /**
-             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             * Name of Card NVP for Certinia custom export vendors
              */
             NVP_FINANCIALFORCE_EXPORT_VENDOR_POLICY_ID: 'financialforce_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Rillet custom export accounts
+             */
+            NVP_RILLET_EXPORT_ACCOUNT_POLICY_ID: 'rillet_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -5599,7 +5707,7 @@ const CONST = {
         SE: 'Sweden',
     },
 
-    EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES: ['BE', 'CY', 'EE', 'FI', 'DE', 'GR', 'IE', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES', 'GB', 'GI'],
+    EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES: ['BE', 'DK', 'ES', 'FI', 'IE', 'LT', 'LU', 'LV', 'NL', 'PL', 'SE', 'GB', 'GI'],
 
     EU_REGISTRATION_NUMBER_REGEX: {
         AT: /^FN\d{6}[a-z]?$/i,
@@ -5947,6 +6055,7 @@ const CONST = {
             EXPENSE_DEFAULTS: 'expenseDefaults',
             REQUIRE_FIELDS: 'requireFields',
             FLAG_FOR_REVIEW: 'flagForReview',
+            AGENTS: 'agents',
         },
         SPLIT: {
             AMOUNT: 'amount',
@@ -5990,6 +6099,17 @@ const CONST = {
         LARGE: 'large',
         MEDIUM: 'medium',
         SMALL: 'small',
+    },
+
+    BUTTON_VARIANT: {
+        SUCCESS: 'success',
+        DANGER: 'danger',
+    },
+
+    BUTTON_REMOVE_BORDER_RADIUS: {
+        LEFT: 'left',
+        RIGHT: 'right',
+        ALL: 'all',
     },
 
     ICON_SIZE: {
@@ -6499,6 +6619,13 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        // Terminal lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
+        // (loading on request start, loaded/error on resolve) so the snapshot always has an explicit, mutually exclusive state.
+        SNAPSHOT_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+            ERROR: 'error',
+        },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -6533,6 +6660,7 @@ const CONST = {
             SUBMIT: 'submit',
             HOLD: 'hold',
             MERGE: 'merge',
+            MERGE_REPORTS: 'mergeReports',
             UNHOLD: 'unhold',
             DELETE: 'delete',
             REJECT: 'reject',
@@ -6611,44 +6739,184 @@ const CONST = {
          */
         get COLUMN_AVAILABILITY() {
             return {
-                RECEIPT: {column: this.TABLE_COLUMNS.RECEIPT, search: true, reportView: true},
-                DATE: {column: this.TABLE_COLUMNS.DATE, search: true, reportView: true},
-                STATUS: {column: this.TABLE_COLUMNS.STATUS, search: true, reportView: false},
-                SUBMITTED: {column: this.TABLE_COLUMNS.SUBMITTED, search: true, reportView: false},
-                APPROVED: {column: this.TABLE_COLUMNS.APPROVED, search: true, reportView: false},
-                POSTED: {column: this.TABLE_COLUMNS.POSTED, search: true, reportView: true},
-                EXPORTED: {column: this.TABLE_COLUMNS.EXPORTED, search: true, reportView: false},
-                MERCHANT: {column: this.TABLE_COLUMNS.MERCHANT, search: true, reportView: true},
-                DESCRIPTION: {column: this.TABLE_COLUMNS.DESCRIPTION, search: true, reportView: true},
-                FROM: {column: this.TABLE_COLUMNS.FROM, search: true, reportView: false},
+                RECEIPT: {
+                    column: this.TABLE_COLUMNS.RECEIPT,
+                    search: true,
+                    reportView: true,
+                },
+                DATE: {
+                    column: this.TABLE_COLUMNS.DATE,
+                    search: true,
+                    reportView: true,
+                },
+                STATUS: {
+                    column: this.TABLE_COLUMNS.STATUS,
+                    search: true,
+                    reportView: false,
+                },
+                SUBMITTED: {
+                    column: this.TABLE_COLUMNS.SUBMITTED,
+                    search: true,
+                    reportView: false,
+                },
+                APPROVED: {
+                    column: this.TABLE_COLUMNS.APPROVED,
+                    search: true,
+                    reportView: false,
+                },
+                POSTED: {
+                    column: this.TABLE_COLUMNS.POSTED,
+                    search: true,
+                    reportView: true,
+                },
+                EXPORTED: {
+                    column: this.TABLE_COLUMNS.EXPORTED,
+                    search: true,
+                    reportView: false,
+                },
+                MERCHANT: {
+                    column: this.TABLE_COLUMNS.MERCHANT,
+                    search: true,
+                    reportView: true,
+                },
+                DESCRIPTION: {
+                    column: this.TABLE_COLUMNS.DESCRIPTION,
+                    search: true,
+                    reportView: true,
+                },
+                FROM: {
+                    column: this.TABLE_COLUMNS.FROM,
+                    search: true,
+                    reportView: false,
+                },
                 TO: {column: this.TABLE_COLUMNS.TO, search: true, reportView: false},
-                POLICY_NAME: {column: this.TABLE_COLUMNS.POLICY_NAME, search: true, reportView: false},
-                CARD: {column: this.TABLE_COLUMNS.CARD, search: true, reportView: true},
-                CATEGORY: {column: this.TABLE_COLUMNS.CATEGORY, search: true, reportView: true},
-                CATEGORY_GL_CODE: {column: this.TABLE_COLUMNS.CATEGORY_GL_CODE, search: true, reportView: true},
-                ATTENDEES: {column: this.TABLE_COLUMNS.ATTENDEES, search: true, reportView: true},
-                TOTAL_PER_ATTENDEE: {column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, search: true, reportView: true},
+                POLICY_NAME: {
+                    column: this.TABLE_COLUMNS.POLICY_NAME,
+                    search: true,
+                    reportView: false,
+                },
+                CARD: {
+                    column: this.TABLE_COLUMNS.CARD,
+                    search: true,
+                    reportView: true,
+                },
+                CATEGORY: {
+                    column: this.TABLE_COLUMNS.CATEGORY,
+                    search: true,
+                    reportView: true,
+                },
+                CATEGORY_GL_CODE: {
+                    column: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                ATTENDEES: {
+                    column: this.TABLE_COLUMNS.ATTENDEES,
+                    search: true,
+                    reportView: true,
+                },
+                TOTAL_PER_ATTENDEE: {
+                    column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+                    search: true,
+                    reportView: true,
+                },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
-                TAG_GL_CODE: {column: this.TABLE_COLUMNS.TAG_GL_CODE, search: true, reportView: true},
-                EXCHANGE_RATE: {column: this.TABLE_COLUMNS.EXCHANGE_RATE, search: true, reportView: true},
-                ORIGINAL_AMOUNT: {column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT, search: true, reportView: true},
-                REPORT_ID: {column: this.TABLE_COLUMNS.REPORT_ID, search: true, reportView: false},
-                BASE_62_REPORT_ID: {column: this.TABLE_COLUMNS.BASE_62_REPORT_ID, search: true, reportView: false},
-                REIMBURSABLE: {column: this.TABLE_COLUMNS.REIMBURSABLE, search: true, reportView: true},
-                BILLABLE: {column: this.TABLE_COLUMNS.BILLABLE, search: true, reportView: true},
+                TAG_GL_CODE: {
+                    column: this.TABLE_COLUMNS.TAG_GL_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                EXCHANGE_RATE: {
+                    column: this.TABLE_COLUMNS.EXCHANGE_RATE,
+                    search: true,
+                    reportView: true,
+                },
+                ORIGINAL_AMOUNT: {
+                    column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                REPORT_ID: {
+                    column: this.TABLE_COLUMNS.REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                BASE_62_REPORT_ID: {
+                    column: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                REIMBURSABLE: {
+                    column: this.TABLE_COLUMNS.REIMBURSABLE,
+                    search: true,
+                    reportView: true,
+                },
+                BILLABLE: {
+                    column: this.TABLE_COLUMNS.BILLABLE,
+                    search: true,
+                    reportView: true,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
-                TAX_CODE: {column: this.TABLE_COLUMNS.TAX_CODE, search: true, reportView: true},
-                TAX_RATE: {column: this.TABLE_COLUMNS.TAX_RATE, search: true, reportView: true},
-                TAX_AMOUNT: {column: this.TABLE_COLUMNS.TAX_AMOUNT, search: true, reportView: true},
-                TITLE: {column: this.TABLE_COLUMNS.TITLE, search: true, reportView: false},
-                AMOUNT: {column: this.TABLE_COLUMNS.TOTAL_AMOUNT, search: true, reportView: true},
-                TOTAL: {column: this.TABLE_COLUMNS.TOTAL, search: false, reportView: true},
-                EXPORTED_TO: {column: this.TABLE_COLUMNS.EXPORTED_TO, search: true, reportView: false},
-                ACTION: {column: this.TABLE_COLUMNS.ACTION, search: true, reportView: false},
-                WITHDRAWAL_ID: {column: this.TABLE_COLUMNS.WITHDRAWAL_ID, search: true, reportView: true},
-                SUBMITTER_USER_ID: {column: this.TABLE_COLUMNS.SUBMITTER_USER_ID, search: true, reportView: true},
-                SUBMITTER_PAYROLL_ID: {column: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID, search: true, reportView: true},
-                ORDER_DEAL_NUMBERS: {column: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS, search: true, reportView: true},
+                TAX_CODE: {
+                    column: this.TABLE_COLUMNS.TAX_CODE,
+                    search: true,
+                    reportView: true,
+                },
+                TAX_RATE: {
+                    column: this.TABLE_COLUMNS.TAX_RATE,
+                    search: true,
+                    reportView: true,
+                },
+                TAX_AMOUNT: {
+                    column: this.TABLE_COLUMNS.TAX_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                TITLE: {
+                    column: this.TABLE_COLUMNS.TITLE,
+                    search: true,
+                    reportView: false,
+                },
+                AMOUNT: {
+                    column: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                    search: true,
+                    reportView: true,
+                },
+                TOTAL: {
+                    column: this.TABLE_COLUMNS.TOTAL,
+                    search: false,
+                    reportView: true,
+                },
+                EXPORTED_TO: {
+                    column: this.TABLE_COLUMNS.EXPORTED_TO,
+                    search: true,
+                    reportView: false,
+                },
+                ACTION: {
+                    column: this.TABLE_COLUMNS.ACTION,
+                    search: true,
+                    reportView: false,
+                },
+                WITHDRAWAL_ID: {
+                    column: this.TABLE_COLUMNS.WITHDRAWAL_ID,
+                    search: true,
+                    reportView: true,
+                },
+                SUBMITTER_USER_ID: {
+                    column: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
+                    search: true,
+                    reportView: true,
+                },
+                SUBMITTER_PAYROLL_ID: {
+                    column: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+                    search: true,
+                    reportView: true,
+                },
+                ORDER_DEAL_NUMBERS: {
+                    column: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+                    search: true,
+                    reportView: true,
+                },
             };
         },
         get TYPE_CUSTOM_COLUMNS() {
@@ -6819,7 +7087,6 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6829,7 +7096,6 @@ const CONST = {
                 DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
-                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6837,18 +7103,15 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {},
             TASK: {
-                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
@@ -6938,7 +7201,6 @@ const CONST = {
         },
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
-            STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             VIEW: 'view',
@@ -7193,6 +7455,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
         },
+        SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 200,
@@ -7264,6 +7527,8 @@ const CONST = {
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
         SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
         ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),
@@ -7633,6 +7898,11 @@ const CONST = {
         EXTERNAL_ID: 'externalID',
         MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
         MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
+        MERCHANT_IS: 'merchantIs',
+        MERCHANT_CONTAINS: 'merchantContains',
+        UPDATED_MERCHANT: 'updatedMerchant',
+        REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
     },
 
     IMPORT_SPREADSHEET: {
@@ -7798,6 +8068,18 @@ const CONST = {
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
+    // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
+    // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
+    SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
+
+    AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
+
+    AI_FEATURES_PROMO_LEARN_MORE_URLS: {
+        SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
+        EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
+        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
+    },
+
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     SELECTION_BUTTON_TEST_ID: 'selection-button-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
@@ -7960,6 +8242,9 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        ACCOUNT_MANAGER_BOOK_CALL: {
+            BUTTON: 'AccountManagerBookCallButton-Button',
         },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
@@ -8144,6 +8429,8 @@ const CONST = {
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
+            PARTICIPANTS_ROW: 'Report-ParticipantsRow',
+            ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -8494,6 +8781,9 @@ const CONST = {
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
             },
+            REPORT_FIELDS: {
+                LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
+            },
             TAXES: {
                 ROW: 'WorkspaceTaxes-Row',
                 ADD_BUTTON: 'WorkspaceTaxes-AddButton',
@@ -8544,6 +8834,7 @@ const CONST = {
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
+                IMPORT_MERCHANT_RULES: 'WorkspaceRules-ImportMerchantRules',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
@@ -8561,6 +8852,7 @@ const CONST = {
                 NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
                 NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS: 'WorkspaceRules-NewRuleMenuItem-ApplyExpenseDefaults',
+                NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE: 'WorkspaceRules-NewRuleMenuItem-CreateAgentRule',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
@@ -8809,6 +9101,20 @@ const CONST = {
             MEMBERS: {
                 ROW: 'DomainMembers-Row',
             },
+        },
+        FEATURE_TRAINING: {
+            CLOSE_BUTTON: 'FeatureTraining-CloseButton',
+            BACK_BUTTON: 'FeatureTraining-BackButton',
+        },
+        AI_FEATURES_PROMO_MODAL: {
+            CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
+            HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
+        },
+    },
+
+    AGENTS: {
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
         },
     },
 

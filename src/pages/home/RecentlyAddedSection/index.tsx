@@ -51,7 +51,7 @@ function RecentlyAddedSection() {
     // Once the screen blurs (e.g. after opening an expense), we hide the preview instead of leaving it floating over the RHP.
     const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -87,8 +87,8 @@ function RecentlyAddedSection() {
         // Each row opens a single-expense view that always lands in (Wide) RHP on both layouts so the carousel
         // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
         // data loads, instead of flickering from narrow to wide.
-        setActiveTransactionIDs(siblingTransactionIDs, siblingDescriptorsByTransactionID).then(() => {
-            markReportIDAsExpense(reportID);
+        setActiveTransactionIDs(siblingTransactionIDs, undefined, siblingDescriptorsByTransactionID).then(() => {
+            markReportRHPWidth(reportID, 'wide');
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
         });
     };

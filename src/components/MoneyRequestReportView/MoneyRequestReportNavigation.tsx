@@ -3,6 +3,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +22,8 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type MoneyRequestReportNavigationProps = {
@@ -113,6 +115,8 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const isFocused = useIsFocused();
 
     // Lightweight subscriptions only: the current search query and its loading flag. These never mount
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
@@ -151,7 +155,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const shouldDisplayNavigationArrows = effectiveAllReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
-        if (!lastSearchQuery?.queryJSON) {
+        if (!isFocused || !lastSearchQuery?.queryJSON) {
             return;
         }
 
@@ -181,7 +185,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             ...lastSearchQuery,
             previousLengthOfResults: effectiveAllReports.length,
         });
-    }, [currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
+    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
@@ -191,10 +195,12 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             name: 'ReportNavigation',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.setParams({
-            reportID: reportId,
-            reportActionID: undefined,
-            referrer: undefined,
+        startTransition(() => {
+            Navigation.setParams({
+                reportID: reportId,
+                reportActionID: undefined,
+                referrer: undefined,
+            });
         });
     };
 
@@ -206,14 +212,17 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 
         if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
-            search({
-                queryJSON: lastSearchQuery.queryJSON,
-                offset: newOffset,
-                prevReportsLength: effectiveAllReports.length,
-                shouldCalculateTotals: false,
-                searchKey: lastSearchQuery.searchKey,
-                isLoading: isSearchLoading,
-                shouldUpdateLastSearchParams: true,
+            const queryJSON = lastSearchQuery.queryJSON;
+            requestAnimationFrame(() => {
+                search({
+                    queryJSON,
+                    offset: newOffset,
+                    prevReportsLength: effectiveAllReports.length,
+                    shouldCalculateTotals: false,
+                    searchKey: lastSearchQuery.searchKey,
+                    isLoading: isSearchLoading,
+                    shouldUpdateLastSearchParams: true,
+                });
             });
         }
 
@@ -237,7 +246,11 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             {!shouldUseContextReports && <MoneyRequestReportNavigationStandalone onReportsChange={setStandaloneReports} />}
             {shouldDisplayNavigationArrows && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+                    {!shouldDisplayNarrowVersion && (
+                        <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.mnw8]}>
+                            {translate('common.currentOfTotal', {current: currentIndex + 1, total: allReportsCount})}
+                        </Text>
+                    )}
                     <PrevNextButtons
                         isPrevButtonDisabled={hidePrevButton}
                         isNextButtonDisabled={hideNextButton}
