@@ -1283,6 +1283,7 @@
 "../../src/pages/inbox/ReportNavigateAwayHandler.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/inbox/cleanStaleReportActionBackToParam.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/hooks/useReportWasDeleted.ts"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/inbox/report/ContextMenu/BaseReportActionContextMenu.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/inbox/report/ContextMenu/BaseReportActionContextMenu.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/report/ContextMenu/BaseReportActionContextMenu.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/inbox/report/ContextMenu/BaseReportActionContextMenu.tsx"	"react-hooks/refs"	1
