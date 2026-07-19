@@ -32,9 +32,11 @@ function IntegrationSyncFailedMessage({action, policyID, originalReport}: Integr
     const message = getIntegrationSyncFailedMessage(translate, action, policyID, isTryNewDotNVPDismissed);
 
     if (hasReasoning(action)) {
+        // `AskToExplain` already supplies its own leading period; strip the trailing period
+        // from the sync-failure message so the rendered string reads "…settings. Explain" not "…settings.. Explain".
         return (
             <ReportActionItemMessageWithExplain
-                message={message}
+                message={message.replace(/\.\s*$/, '')}
                 action={action}
                 childReport={childReport}
                 originalReport={originalReport}
