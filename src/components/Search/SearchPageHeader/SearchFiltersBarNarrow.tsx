@@ -23,7 +23,7 @@ type SearchFiltersBarNarrowProps = {
 function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
     const styles = useThemeStyles();
     const scrollRef = useRef<FlatList<SearchFilter & FilterItem>>(null);
-    const {filters, hasErrors, shouldShowFiltersBarLoading, resetFilters} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, shouldShowResetFilters, resetFilters} = useSearchFiltersBar(queryJSON);
 
     const adjustScroll = (info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -69,7 +69,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             renderItem={renderFilterItem}
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}
-            ListFooterComponent={filters.length > 0 ? <SearchFiltersResetButton onPress={resetFilters} /> : undefined}
+            ListFooterComponent={shouldShowResetFilters ? <SearchFiltersResetButton onPress={resetFilters} /> : undefined}
         />
     );
 }

@@ -41,6 +41,7 @@ type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
+    shouldShowResetFilters: boolean;
     resetFilters: () => void;
 };
 
@@ -210,6 +211,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
+        shouldShowResetFilters: filters.length > currentDefaultSearchQueryFilterKeys.size,
         resetFilters,
     };
 }
