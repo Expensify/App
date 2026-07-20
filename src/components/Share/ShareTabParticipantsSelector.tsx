@@ -1,9 +1,11 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 
 import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {cancelSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -28,6 +30,14 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
 
     const isSubmitFlow = detailsPageRouteObject === ROUTES.SHARE_SUBMIT_DETAILS;
 
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+
+    // When the user's domain security group restricts submission to a single workspace, skip the participant picker and
+    // go straight to confirmation for the locked workspace's expense chat, matching the in-product submit flow. Falls back
+    // to the picker if the locked policy's expense chat isn't in Onyx yet, so we never navigate to an empty report.
+    const lockedExpenseChatReportID =
+        isSubmitFlow && isRestrictedToPreferredPolicy && preferredPolicyID ? getPolicyExpenseChat(currentUserAccountID, preferredPolicyID)?.reportID : undefined;
+
     // This span belongs to the submit flow, so the share flow instance must not cancel a span it never started. For the submit flow this cancels an attempt that closes before SubmitDetailsPage mounts to end the span, so it is
     useEffect(
         () => () => {
@@ -38,6 +48,33 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
         },
         [isSubmitFlow],
     );
+
+    useEffect(() => {
+        if (!lockedExpenseChatReportID) {
+            return;
+        }
+
+        // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
+        clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
+
+        startSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW, {
+            name: CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,
+            op: CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,
+            forceTransaction: true,
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: lockedExpenseChatReportID.toString(),
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: Navigation.getActiveRoute() || 'unknown',
+            },
+        });
+
+        Navigation.navigate(detailsPageRouteObject.getRoute(lockedExpenseChatReportID.toString()));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lockedExpenseChatReportID]);
+
+    // Avoid flashing the full picker while we route the restricted user straight to the locked workspace.
+    if (lockedExpenseChatReportID) {
+        return null;
+    }
 
     return (
         <MoneyRequestParticipantsSelector
