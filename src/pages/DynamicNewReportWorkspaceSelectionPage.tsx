@@ -181,14 +181,19 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         },
     });
 
-    // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
+    // Open the confirmation modal once after pendingPolicySelection is committed so the hook has the correct policyName.
+    // We intentionally do NOT list openCreateReportConfirmation in the dependency array: that function is recreated on
+    // every render because it comes from useCreateEmptyReportConfirmation (which is not memoized). Including it made
+    // the effect re-fire on every render while pendingPolicySelection stayed truthy, causing a
+    // "Maximum update depth exceeded" crash. The effect only needs to react to pendingPolicySelection changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
     useEffect(() => {
         if (!pendingPolicySelection) {
             return;
         }
 
         openCreateReportConfirmation();
-    }, [pendingPolicySelection, openCreateReportConfirmation]);
+    }, [pendingPolicySelection]);
 
     const selectPolicy = (policy?: WorkspaceListItem) => {
         if (!policy?.policyID) {
