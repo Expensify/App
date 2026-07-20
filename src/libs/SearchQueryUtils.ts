@@ -2361,17 +2361,13 @@ function getEmptyDateValues(): SearchDateValues {
  * the currently applied advanced filters back to their default state.
  */
 function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, defaultSearchQueryFilterKeys: ReadonlySet<string>): Partial<SearchAdvancedFiltersForm> {
-    return Object.entries(searchAdvancedFiltersForm).reduce((acc, [filterKey, value]) => {
+    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
         const syntaxKey = filterKeyToSyntaxKey(filterKey);
         if (isRootFilterKey(syntaxKey) || defaultSearchQueryFilterKeys.has(syntaxKey) || filterKey === FILTER_KEYS.TYPE) {
-            Object.assign(acc, {[filterKey]: value});
             return acc;
         }
 
-        if (filterKey !== FILTER_KEYS.COLUMNS) {
-            Object.assign(acc, {[filterKey]: undefined});
-        }
-
+        Object.assign(acc, {[filterKey]: undefined});
         return acc;
     }, {} as Partial<SearchAdvancedFiltersForm>);
 }
