@@ -287,10 +287,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
 
-    /** Where a member row leads, known at render time so the row can be a real link */
+    /** Where a member row leads. It runs during render, so it builds from this page's own route rather than the active one. */
     const getMemberDetailsRoute = useCallback(
         (accountID: number) =>
-            canWriteMembers && canManageMembers ? ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, accountID) : createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)),
+            canWriteMembers && canManageMembers
+                ? ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, accountID)
+                : createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID), ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID)),
         [canWriteMembers, canManageMembers, route.params.policyID],
     );
 
