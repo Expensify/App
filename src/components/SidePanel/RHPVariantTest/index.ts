@@ -67,7 +67,6 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride, navigationOptions) => {
     const variant = variantOverride ?? onboardingRHPVariant;
     if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.HOME, navigationOptions);
         const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
         if (!shouldPreserveRevealedReport) {
             Navigation.navigate(ROUTES.HOME, navigationOptions);
