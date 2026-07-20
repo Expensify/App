@@ -2897,4 +2897,5 @@ export type {
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
+    RilletSubsidiary,
 };
