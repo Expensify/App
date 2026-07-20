@@ -1,12 +1,13 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 
 import ValidateLoginPage from '@pages/ValidateLoginPage/index.web';
 
-import {handleExitToNavigation} from '@userActions/Session';
+import {beginSignIn, handleExitToNavigation} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -18,6 +19,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Controllable deferred so tests can assert the *ordering* guarantee (navigate only after
@@ -65,21 +67,24 @@ jest.mock('@userActions/Session', () => ({
     initAutoAuthState: jest.fn(),
     signInWithValidateCode: jest.fn(),
     handleExitToNavigation: jest.fn(),
+    beginSignIn: jest.fn(),
 }));
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 const renderPage = (initialParams: PublicScreensParamList[typeof SCREENS.VALIDATE_LOGIN]) => {
     return render(
-        <NavigationContainer>
-            <RootStack.Navigator>
-                <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN}
-                    component={ValidateLoginPage}
-                    initialParams={initialParams}
-                />
-            </RootStack.Navigator>
-        </NavigationContainer>,
+        <LocaleContextProvider>
+            <NavigationContainer>
+                <RootStack.Navigator>
+                    <RootStack.Screen
+                        name={SCREENS.VALIDATE_LOGIN}
+                        component={ValidateLoginPage}
+                        initialParams={initialParams}
+                    />
+                </RootStack.Navigator>
+            </NavigationContainer>
+        </LocaleContextProvider>,
     );
 };
 
@@ -239,6 +244,36 @@ describe('ValidateLoginPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Resolve the navigation-ready gate, then the effect resets the public stack to the SignInPage.
+        await act(async () => {
+            mockIsNavigationReady.resolve();
+            await Promise.resolve();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+    });
+
+    it('Should request a new code and reset to the sign-in page when "request one here" is pressed on the expired-code page', async () => {
+        // Fresh-tab repro: the magic code expired (FAILED) so ExpiredValidateCodeModal renders. Pressing
+        // "request one here" must both request a new code and surface the sign-in page. goBack no-ops from
+        // the root /v/ route, so we reset the public stack to TAB_NAVIGATOR (which hosts SignInPage).
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.FAILED,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                login: 'test@example.com',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(translateLocal('validateCodeModal.requestOneHere')));
+
+        expect(beginSignIn).toHaveBeenCalledWith('test@example.com');
+
+        // Resolve the navigation-ready gate, then the press handler resets the public stack to SignInPage.
         await act(async () => {
             mockIsNavigationReady.resolve();
             await Promise.resolve();
