@@ -70,7 +70,7 @@ After your workspace is approved and a spending limit has been assigned to your 
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name] > Expensify Card**.
 2. Click **Issue new card**.
-3. Select the member who will receive the card.
+3. Select the member who will be assigned the card.
 4. Choose **Virtual** or **Physical**.
 5. Choose a spending limit type:
    - **Smart limit** – Spend up to a threshold before approval is required.
@@ -98,7 +98,7 @@ To activate a physical Expensify Card:
 
 After activation, the card is ready to use.
 
-For details on how to set, view, change, or unblock an Expensify Card's PIN, see [Manage Your Expensify Card PIN (GBP/EUR Cards Only)](/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
+For details on how to set, view, or change an Expensify Card's PIN, see [Manage Your Expensify Card PIN (GBP/EUR Cards Only)](/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
 
 ---
 
