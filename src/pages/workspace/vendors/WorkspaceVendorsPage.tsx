@@ -14,7 +14,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getConnectedIntegration, getCurrentConnectionName, getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
+import {getActiveVendorMatchingIntegration, getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -40,8 +40,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const vendors = getMatchingVendors(policy);
-    const connectedIntegration = getConnectedIntegration(policy);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const connectedIntegration = getActiveVendorMatchingIntegration(policy);
+    const currentConnectionName = connectedIntegration ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration] : undefined;
 
     const vendorRows: WorkspaceVendorTableRowData[] = useMemo(
         () =>
