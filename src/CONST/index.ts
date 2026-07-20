@@ -1491,6 +1491,12 @@ const CONST = {
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
         },
+        // The way a Submit-workspace report can be submitted. Persisted per-user so the report-view button
+        // can default to the last-used method.
+        SUBMISSION_METHOD: {
+            SUBMIT: 'submit',
+            SUBMIT_VIA_PDF: 'submitViaPDF',
+        },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
@@ -2564,6 +2570,9 @@ const CONST = {
 
     VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
+    // Matches an opening or closing HTML tag that starts with a letter (e.g. <b>, </strong>, <br/>)
+    HTML_TAG_REGEX: /<\/?[a-z][^>]*>/i,
+
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
     PUSHER: {
@@ -2967,7 +2976,7 @@ const CONST = {
 
     /** Salesforce package install URLs for the Certinia Expensify bundles (see help: Connect to Certinia). */
     CERTINIA_PSA_BUNDLE_INSTALL_URL: {
-        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BM',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
     },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
@@ -3460,7 +3469,6 @@ const CONST = {
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
-        CARD_PROGRAM_ACCOUNTS: 'cardProgramAccounts',
         ACCOUNTING_METHOD: 'accountingMethod',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
@@ -3470,6 +3478,7 @@ const CONST = {
         SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
         TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
 
     RILLET_MAPPING_VALUE: {
@@ -4816,9 +4825,14 @@ const CONST = {
             NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT: 'quickbooks_desktop_export_account_credit',
 
             /**
-             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             * Name of Card NVP for Certinia custom export vendors
              */
             NVP_FINANCIALFORCE_EXPORT_VENDOR: 'financialforce_export_vendor',
+
+            /**
+             * Name of Card NVP for Rillet custom export accounts
+             */
+            NVP_RILLET_EXPORT_ACCOUNT: 'rillet_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -4858,9 +4872,14 @@ const CONST = {
             NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT_POLICY_ID: 'quickbooks_desktop_export_account_credit_policy_id',
 
             /**
-             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             * Name of Card NVP for Certinia custom export vendors
              */
             NVP_FINANCIALFORCE_EXPORT_VENDOR_POLICY_ID: 'financialforce_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Rillet custom export accounts
+             */
+            NVP_RILLET_EXPORT_ACCOUNT_POLICY_ID: 'rillet_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -5689,7 +5708,11 @@ const CONST = {
         SE: 'Sweden',
     },
 
-    EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES: ['BE', 'CY', 'EE', 'FI', 'DE', 'GR', 'IE', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES', 'GB', 'GI'],
+    // Hard-coded fallback for the Expensify Card supported countries keyed by settlement currency
+    EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY: {
+        GBP: ['GB', 'GI'],
+        EUR: ['BE', 'DK', 'ES', 'FI', 'IE', 'LT', 'LU', 'LV', 'NL', 'PL', 'SE'],
+    },
 
     EU_REGISTRATION_NUMBER_REGEX: {
         AT: /^FN\d{6}[a-z]?$/i,
@@ -6037,6 +6060,7 @@ const CONST = {
             EXPENSE_DEFAULTS: 'expenseDefaults',
             REQUIRE_FIELDS: 'requireFields',
             FLAG_FOR_REVIEW: 'flagForReview',
+            AGENTS: 'agents',
         },
         SPLIT: {
             AMOUNT: 'amount',
@@ -6600,6 +6624,13 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        // Terminal lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
+        // (loading on request start, loaded/error on resolve) so the snapshot always has an explicit, mutually exclusive state.
+        SNAPSHOT_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+            ERROR: 'error',
+        },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -6634,6 +6665,7 @@ const CONST = {
             SUBMIT: 'submit',
             HOLD: 'hold',
             MERGE: 'merge',
+            MERGE_REPORTS: 'mergeReports',
             UNHOLD: 'unhold',
             DELETE: 'delete',
             REJECT: 'reject',
@@ -7428,6 +7460,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
         },
+        SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 200,
@@ -7870,6 +7903,11 @@ const CONST = {
         EXTERNAL_ID: 'externalID',
         MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
         MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
+        MERCHANT_IS: 'merchantIs',
+        MERCHANT_CONTAINS: 'merchantContains',
+        UPDATED_MERCHANT: 'updatedMerchant',
+        REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
     },
 
     IMPORT_SPREADSHEET: {
@@ -8801,6 +8839,7 @@ const CONST = {
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
+                IMPORT_MERCHANT_RULES: 'WorkspaceRules-ImportMerchantRules',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
@@ -8818,6 +8857,7 @@ const CONST = {
                 NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
                 NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS: 'WorkspaceRules-NewRuleMenuItem-ApplyExpenseDefaults',
+                NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE: 'WorkspaceRules-NewRuleMenuItem-CreateAgentRule',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',

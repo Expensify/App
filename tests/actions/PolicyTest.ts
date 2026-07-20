@@ -1540,6 +1540,47 @@ describe('actions/Policy', () => {
             apiWriteSpy.mockRestore();
         });
 
+        it('should post onboarding tasks to the threaded conciergeChat instead of the deprecated CONCIERGE_REPORT_ID fallback', async () => {
+            mockFetch?.pause?.();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            // Given the deprecated Onyx.connect fallback points at a DIFFERENT report than the threaded param,
+            // so the assertions below fail if buildPolicyData stops forwarding conciergeChat (#66411).
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'deprecated-fallback-report');
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const threadedConciergeChat: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'threaded-concierge-report',
+            };
+
+            // When creating a workspace with an explicitly threaded conciergeChat (EMPLOYER posts tasks to Concierge)
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                introSelected: {},
+                conciergeChat: threadedConciergeChat,
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the onboarding task actions are written optimistically to the threaded report, never the fallback report
+            const threadedReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}threaded-concierge-report`);
+            expect(Object.keys(threadedReportActions ?? {}).length).toBeGreaterThan(0);
+
+            const fallbackReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}deprecated-fallback-report`);
+            expect(fallbackReportActions).toBeUndefined();
+        });
+
         it('should include memberData when adminParticipant is provided', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
@@ -3254,7 +3295,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3327,13 +3368,14 @@ describe('actions/Policy', () => {
 
             const currentNextStep2 = createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 2'}]});
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, {
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, {
                 reportNextSteps: {
                     [nextStepKey1]: currentNextStep1,
                     [nextStepKey2]: currentNextStep2,
                 },
                 transactionViolations: {},
                 betas: [],
+                personalDetailsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3397,12 +3439,13 @@ describe('actions/Policy', () => {
 
             const currentNextStep = createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step'}]});
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, {
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, false, {
                 reportNextSteps: {
                     [nextStepKey]: currentNextStep,
                 },
                 transactionViolations: {},
                 betas: [],
+                personalDetailsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3415,6 +3458,7 @@ describe('actions/Policy', () => {
                 undefined,
                 undefined,
                 expect.anything(),
+                undefined,
                 expect.anything(),
             );
 
@@ -3452,7 +3496,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             expect(getAllPolicyReportsSpy).not.toHaveBeenCalled();
@@ -3500,7 +3544,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3547,7 +3591,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DISABLE_POLICY_APPROVALS, expect.objectContaining({policyID}), expect.anything());
@@ -3572,7 +3616,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, expect.objectContaining({policyID}), expect.anything());
@@ -3614,7 +3658,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             // optimisticMembersState should be empty for non-OPTIONAL mode
@@ -3659,7 +3703,7 @@ describe('actions/Policy', () => {
             // Simulate API failure
             mockFetch?.fail?.();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3716,7 +3760,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as
@@ -3766,7 +3810,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as
@@ -3803,7 +3847,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3859,7 +3903,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3912,7 +3956,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3969,7 +4013,7 @@ describe('actions/Policy', () => {
 
             mockFetch?.fail?.();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
