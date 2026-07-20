@@ -6,9 +6,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
 import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -37,7 +39,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
 
 /** Column roles that update the matched expense; at least one must be mapped alongside a merchant filter */
 const ACTION_COLUMNS: string[] = [
@@ -133,6 +136,23 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+
+    // Fetch categories if they're not loaded (e.g. after a cache clear) so imported category cells are
+    // validated against the policy's real category list instead of an empty one
+    const fetchPolicyCategories = useCallback(() => {
+        if (!policy?.areCategoriesEnabled || policyCategories) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+
+    useNetwork({onReconnect: fetchPolicyCategories});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyCategories();
+        }, [fetchPolicyCategories]),
+    );
 
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
