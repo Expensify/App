@@ -1046,6 +1046,9 @@ function MenuItem({
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
+                                                                        {/* Use Text instead of RenderHTML when the title is plain text.
+                                                                            Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
+                                                                        */}
                                                                         {shouldRenderTitleAsHTML || shouldParseTitle ? (
                                                                             <RenderHTML html={processedTitle} />
                                                                         ) : (
