@@ -63,8 +63,8 @@ function InteractiveStepButton({stepNumber, stepLabel, currentStepDescription, i
     ];
 
     // Keep accessibilityLabel and screenReaderOnlyAnchor together on both paths.
-    // aria-label wins per ACCNAME (no double announce); the hidden text is the JAWS
-    // fallback when aria-label alone is ignored.
+    // aria-label wins for the accessible name (no double announce); the hidden text
+    // is the JAWS fallback when aria-label alone is ignored.
     const stepAccessibilityContent = (
         <>
             <Text style={styles.screenReaderOnlyAnchor}>{accessibilityLabel}</Text>
