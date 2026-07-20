@@ -1,3 +1,5 @@
+import July26PromoImage from '@assets/images/july26-promo.png';
+
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 
 import CONST from '@src/CONST';
@@ -5,14 +7,25 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
+import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 
+type ProductMarketingAnnouncementVisual =
+    | {
+          type: 'image';
+          source: ImageSourcePropType;
+      }
+    | {
+          type: 'illustration';
+          name: IllustrationName;
+      };
+
 /** One audience-specific content variant of a product marketing announcement. All content is authored by marketing per release. */
 type ProductMarketingAnnouncementVariant = {
-    /** Illustration shown at the top of the window. */
-    illustration: IllustrationName;
+    /** Marketing-supplied product screenshot or fallback illustration shown at the top of the window. */
+    visual: ProductMarketingAnnouncementVisual;
 
     /** Short, bolded heading describing the feature being promoted. */
     heading: TranslationPaths;
@@ -47,14 +60,14 @@ type ProductMarketingAnnouncement = {
 const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null = {
     updateKey: 'productUpdateJuly2026',
     admin: {
-        illustration: 'Rules',
-        heading: 'productMarketingWindow.expensePolicyPdf.admin.heading',
-        body: 'productMarketingWindow.expensePolicyPdf.admin.body',
-        ctaLabel: 'productMarketingWindow.expensePolicyPdf.admin.cta',
+        visual: {type: 'image', source: July26PromoImage},
+        heading: 'productMarketingWindow.roleTypes.admin.heading',
+        body: 'productMarketingWindow.roleTypes.admin.body',
+        ctaLabel: 'productMarketingWindow.roleTypes.admin.cta',
         getCtaRoute: () => ROUTES.WORKSPACES_LIST.getRoute(),
     },
     member: {
-        illustration: 'MultiScan',
+        visual: {type: 'illustration', name: 'MultiScan'},
         heading: 'productMarketingWindow.expensePolicyPdf.member.heading',
         body: 'productMarketingWindow.expensePolicyPdf.member.body',
         ctaLabel: 'productMarketingWindow.expensePolicyPdf.member.cta',

@@ -10170,6 +10170,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
     },
     productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nouveaux types de rôles pour les administrateurs',
+                body: 'Accordez à votre équipe des autorisations plus granulaires grâce aux nouveaux rôles d’administrateur des cartes, des personnes et des paiements.',
+                cta: 'Essayer',
+            },
+        },
         expensePolicyPdf: {
             admin: {
                 heading: 'Importez le PDF de votre politique de dépenses',

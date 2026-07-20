@@ -16,13 +16,13 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 
 type ProductMarketingWindowProps = {
     /** Content variant to display, already resolved for the user's audience. */
     variant: ProductMarketingAnnouncementVariant;
 
-    /** Resolved illustration asset for the variant (a placeholder while the illustrations chunk loads). Typed optional to match ImageSVG's src. */
+    /** Resolved illustration asset for illustration-backed variants. Typed optional to match ImageSVG's src. */
     illustration: IconAsset | undefined;
 
     /** Called when the primary CTA is pressed. */
@@ -39,13 +39,14 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
     const insets = useSafeAreaInsets();
     const theme = useTheme();
     const shouldUseLightMarketingWindow = theme.colorScheme === CONST.COLOR_SCHEME.DARK;
+    const buttonSize = shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL;
 
     return (
         <View
             style={[
                 styles.productMarketingWindowContainer,
                 shouldUseLightMarketingWindow ? styles.productMarketingWindowContainerLight : styles.productMarketingWindowContainerDark,
-                styles.p4,
+                styles.p5,
                 shouldUseNarrowLayout
                     ? [styles.productMarketingWindowContainerNarrow, {bottom: variables.productMarketingWindowOffsetNarrow + insets.bottom}]
                     : styles.productMarketingWindowContainerWide,
@@ -56,43 +57,56 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                 style={[
                     styles.productMarketingWindowIllustrationContainer,
                     shouldUseLightMarketingWindow ? styles.productMarketingWindowIllustrationContainerLight : styles.productMarketingWindowIllustrationContainerDark,
-                    styles.mb4,
+                    styles.mb5,
                 ]}
+                testID="ProductMarketingWindowVisual"
             >
-                <ImageSVG
-                    src={illustration}
-                    width={variables.productMarketingWindowIllustrationSize}
-                    height={variables.productMarketingWindowIllustrationSize}
-                    contentFit="contain"
-                />
+                {variant.visual.type === 'image' ? (
+                    <Image
+                        source={variant.visual.source}
+                        style={styles.productMarketingWindowImage}
+                        resizeMode="cover"
+                        accessibilityIgnoresInvertColors
+                        testID="ProductMarketingWindowImage"
+                    />
+                ) : (
+                    <ImageSVG
+                        src={illustration}
+                        width={variables.productMarketingWindowIllustrationSize}
+                        height={variables.productMarketingWindowIllustrationSize}
+                        contentFit="contain"
+                    />
+                )}
             </View>
-            <Text style={[styles.textHeadlineH2, shouldUseLightMarketingWindow ? styles.productMarketingWindowHeadingLight : styles.productMarketingWindowHeadingDark]}>
+            <Text style={[styles.textStrong, shouldUseLightMarketingWindow ? styles.productMarketingWindowHeadingLight : styles.productMarketingWindowHeadingDark]}>
                 {translate(variant.heading)}
             </Text>
             <Text style={[styles.textLabel, shouldUseLightMarketingWindow ? styles.productMarketingWindowBodyLight : styles.productMarketingWindowBodyDark, styles.mt1]}>
                 {translate(variant.body)}
             </Text>
-            <View style={[styles.flexRow, styles.gap2, styles.mt4]}>
+            <View style={[styles.flexRow, styles.gap3, styles.mt5]}>
                 <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.MEDIUM}
-                    style={styles.flex1}
-                    onPress={onCtaPress}
-                    sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
-                >
-                    <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
-                </Button>
-                <Button
-                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    size={buttonSize}
                     style={styles.flex1}
                     innerStyles={shouldUseLightMarketingWindow ? styles.productMarketingWindowDismissButtonLight : styles.productMarketingWindowDismissButtonDark}
                     hoverStyles={styles.productMarketingWindowDismissButtonHovered}
                     onPress={onDismiss}
                     sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.DISMISS}
+                    testID="ProductMarketingWindowDismiss"
                 >
                     <Button.Text style={shouldUseLightMarketingWindow ? styles.productMarketingWindowDismissButtonTextLight : styles.productMarketingWindowDismissButtonTextDark}>
                         {translate('common.dismiss')}
                     </Button.Text>
+                </Button>
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={buttonSize}
+                    style={styles.flex1}
+                    onPress={onCtaPress}
+                    sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
+                    testID="ProductMarketingWindowCTA"
+                >
+                    <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
                 </Button>
             </View>
         </View>

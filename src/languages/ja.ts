@@ -9983,6 +9983,13 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '管理者向けの新しい役割タイプ',
+                body: '新しいカード管理者、ユーザー管理者、支払い管理者の役割により、チームによりきめ細かな権限を付与できます。',
+                cta: 'お試しください',
+            },
+        },
         expensePolicyPdf: {
             admin: {
                 heading: '経費ポリシーのPDFをアップロード',

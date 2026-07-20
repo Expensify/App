@@ -1203,8 +1203,12 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusNormal,
-            height: variables.productMarketingWindowIllustrationHeight,
+            aspectRatio: variables.productMarketingWindowVisualAspectRatio,
             overflow: 'hidden',
+        },
+        productMarketingWindowImage: {
+            width: '100%',
+            height: '100%',
         },
         productMarketingWindowIllustrationContainerDark: {
             backgroundColor: colors.productDark300,

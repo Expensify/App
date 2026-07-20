@@ -6,14 +6,14 @@ import ROUTES from '@src/ROUTES';
 const activeAnnouncement: ProductMarketingAnnouncement = {
     updateKey: 'productUpdateJuly2026',
     admin: {
-        illustration: 'Rules',
+        visual: {type: 'illustration', name: 'Rules'},
         heading: 'productMarketingWindow.expensePolicyPdf.admin.heading',
         body: 'productMarketingWindow.expensePolicyPdf.admin.body',
         ctaLabel: 'productMarketingWindow.expensePolicyPdf.admin.cta',
         getCtaRoute: () => ROUTES.WORKSPACES_LIST.getRoute(),
     },
     member: {
-        illustration: 'MultiScan',
+        visual: {type: 'illustration', name: 'MultiScan'},
         heading: 'productMarketingWindow.expensePolicyPdf.member.heading',
         body: 'productMarketingWindow.expensePolicyPdf.member.body',
         ctaLabel: 'productMarketingWindow.expensePolicyPdf.member.cta',

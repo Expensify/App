@@ -68,10 +68,9 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
-    // Both variants' illustrations are resolved here with a fixed name list because useMemoizedLazyIllustrations
-    // doesn't reload assets when the requested names change after mount (e.g. when the audience flips to admin
-    // as soon as policies arrive for a first-time sign-in).
-    const illustrationNames = announcement ? [announcement.admin.illustration, announcement.member.illustration] : [];
+    // Every illustration-backed variant is resolved up front because useMemoizedLazyIllustrations doesn't reload
+    // assets when the requested names change after mount (e.g. when the audience flips after policies arrive).
+    const illustrationNames = announcement ? [announcement.admin.visual, announcement.member.visual].flatMap((visual) => (visual.type === 'illustration' ? [visual.name] : [])) : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const variant = getProductMarketingAnnouncementVariant(announcement, !!hasActiveAdminPolicies, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
@@ -100,7 +99,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     return (
         <ProductMarketingWindow
             variant={variant}
-            illustration={illustrations[variant.illustration]}
+            illustration={variant.visual.type === 'illustration' ? illustrations[variant.visual.name] : undefined}
             onCtaPress={completeCta}
             onDismiss={dismiss}
         />

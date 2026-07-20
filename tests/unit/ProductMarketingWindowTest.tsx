@@ -1,5 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import July26PromoImage from '@assets/images/july26-promo.png';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -64,7 +66,7 @@ const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 const memberHeading = en.productMarketingWindow.expensePolicyPdf.member.heading;
-const adminHeading = en.productMarketingWindow.expensePolicyPdf.admin.heading;
+const adminHeading = en.productMarketingWindow.roleTypes.admin.heading;
 const memberCtaLabel = en.productMarketingWindow.expensePolicyPdf.member.cta;
 
 function buildAdminPolicy(): Policy {
@@ -149,6 +151,8 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText(adminHeading)).toBeTruthy();
+        expect(screen.getByText(en.productMarketingWindow.roleTypes.admin.body)).toBeTruthy();
+        expect(screen.getByTestId('ProductMarketingWindowImage').props.source).toBe(July26PromoImage);
         expect(screen.queryByText(memberHeading)).toBeNull();
     });
 
@@ -533,7 +537,16 @@ describe('ProductMarketingWindowManager', () => {
             width: variables.productMarketingWindowWidth,
             bottom: variables.productMarketingWindowOffset,
             right: variables.productMarketingWindowOffset,
+            padding: 20,
         });
+        expect(screen.getByTestId('ProductMarketingWindowVisual')).toHaveStyle({aspectRatio: variables.productMarketingWindowVisualAspectRatio});
+        expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeSmall});
+        expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeSmall});
+
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(2);
+        expect(buttons.at(0)).toBe(screen.getByTestId('ProductMarketingWindowDismiss'));
+        expect(buttons.at(1)).toBe(screen.getByTestId('ProductMarketingWindowCTA'));
     });
 
     it.each([
@@ -570,5 +583,7 @@ describe('ProductMarketingWindowManager', () => {
             left: variables.productMarketingWindowOffsetNarrow,
             right: variables.productMarketingWindowOffsetNarrow,
         });
+        expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeNormal});
+        expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeNormal});
     });
 });

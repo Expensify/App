@@ -10087,6 +10087,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nieuwe roltypen voor beheerders',
+                body: 'Geef je team gedetailleerdere rechten met de nieuwe beheerdersrollen voor kaarten, personen en betalingen.',
+                cta: 'Probeer het uit',
+            },
+        },
         expensePolicyPdf: {
             admin: {
                 heading: 'Upload de PDF van je declaratiebeleid',

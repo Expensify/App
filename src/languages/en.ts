@@ -10262,6 +10262,13 @@ const translations = {
         },
     },
     productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'New role types for admins',
+                body: 'Give your team more granular permissions with new card, people, and payments admin roles.',
+                cta: 'Try it out',
+            },
+        },
         expensePolicyPdf: {
             admin: {
                 heading: 'Upload your expense policy PDF',

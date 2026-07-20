@@ -10119,6 +10119,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
     },
     productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nuovi tipi di ruolo per gli amministratori',
+                body: 'Offri al tuo team autorizzazioni più granulari con i nuovi ruoli di amministratore delle carte, delle persone e dei pagamenti.',
+                cta: 'Prova ora',
+            },
+        },
         expensePolicyPdf: {
             admin: {
                 heading: 'Carica il PDF della tua politica spese',

@@ -10135,6 +10135,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
     },
     productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Neue Rollentypen für Administratoren',
+                body: 'Gib deinem Team mit neuen Rollen für Karten-, Personen- und Zahlungsadministratoren detailliertere Berechtigungen.',
+                cta: 'Ausprobieren',
+            },
+        },
         expensePolicyPdf: {
             admin: {
                 heading: 'Lade das PDF deiner Spesenrichtlinie hoch',

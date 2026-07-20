@@ -10073,6 +10073,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
     },
     productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Novos tipos de função para administradores',
+                body: 'Dê à sua equipe permissões mais granulares com as novas funções de administrador de cartões, pessoas e pagamentos.',
+                cta: 'Experimente',
+            },
+        },
         expensePolicyPdf: {
             admin: {
                 heading: 'Envie o PDF da sua política de despesas',

@@ -9776,6 +9776,13 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '新的管理员角色类型',
+                body: '通过新的卡片、成员和付款管理员角色，为团队分配更精细的权限。',
+                cta: '试用一下',
+            },
+        },
         expensePolicyPdf: {
             admin: {
                 heading: '上传您的报销政策 PDF',
