@@ -64,4 +64,4 @@ If verification fails, you'll see a "We couldn't verify you" page. Tap **Got it*
 
 ## Can I use my card without a PIN?
 
-Online transactions use 3D Secure verification instead of a PIN. In-person contactless payments via Apple Pay or Google Pay also do not require a PIN. A PIN is only needed for in-person chip-and-PIN transactions.
+Online transactions use 3D Secure verification and will never ask for your PIN. In-person contactless payments also do not require a PIN. A PIN is only required for in-person chip-and-PIN transactions.
