@@ -856,8 +856,10 @@ function addActions({
     const reportID = getStaleDMRecoveryTarget(sourceReportID) ?? sourceReportID;
     const reportForAction = reportID === sourceReportID ? report : (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? report);
 
-    // Anchor the Concierge question's `created` to the server clock so skew can't hide it from the session view.
+    // Anchor the Concierge question's `created` to the server clock so skew can't hide it from the session view,
+    // clamped after the last action so successive sends stay monotonic.
     const isConciergeChat = isConciergeChatReport(reportForAction, conciergeReportID);
+    const lastActionCreated = reportForAction?.lastVisibleActionCreated;
 
     let resolvedNotifyReportID: AddActionsParams['notifyReportID'];
     if (typeof notifyReportID === 'string') {
@@ -874,7 +876,14 @@ function addActions({
 
     const attachmentID = rand64();
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction({text, reportID, reportActionID, delegateAccountIDParam: delegateAccountID, anchorCreatedToServer: isConciergeChat});
+        const reportComment = buildOptimisticAddCommentReportAction({
+            text,
+            reportID,
+            reportActionID,
+            delegateAccountIDParam: delegateAccountID,
+            anchorCreatedToServer: isConciergeChat,
+            lastActionCreated,
+        });
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -883,7 +892,15 @@ function addActions({
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID, delegateAccountIDParam: delegateAccountID, anchorCreatedToServer: isConciergeChat});
+        const attachment = buildOptimisticAddCommentReportAction({
+            text,
+            file,
+            reportID,
+            attachmentID,
+            delegateAccountIDParam: delegateAccountID,
+            anchorCreatedToServer: isConciergeChat,
+            lastActionCreated,
+        });
         attachmentAction = attachment.reportAction;
         cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
     }

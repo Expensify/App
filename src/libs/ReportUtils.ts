@@ -350,6 +350,8 @@ type BuildOptimisticAddCommentReportActionParams = {
     delegateAccountIDParam: number | undefined;
     /** Anchor `created` to the server clock so it is comparable to Concierge's server-stamped replies. */
     anchorCreatedToServer?: boolean;
+    /** Last action's `created` in the report; keeps the anchored `created` monotonic across successive sends. */
+    lastActionCreated?: string;
 };
 
 type OptimisticReportAction = {
@@ -6350,6 +6352,7 @@ function buildOptimisticAddCommentReportAction({
     isHTML = false,
     delegateAccountIDParam,
     anchorCreatedToServer = false,
+    lastActionCreated,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
@@ -6380,7 +6383,7 @@ function buildOptimisticAddCommentReportAction({
             ],
             automatic: false,
             avatar: allPersonalDetails?.[accountID]?.avatar,
-            created: anchorCreatedToServer ? getServerAnchoredDBTime(Date.now() + createdOffset) : getDBTimeWithSkew(Date.now() + createdOffset),
+            created: anchorCreatedToServer ? getServerAnchoredDBTime(Date.now() + createdOffset, lastActionCreated) : getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
                     translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',

@@ -232,10 +232,20 @@ function getDBTimeWithSkew(timestamp: string | number = ''): string {
  * clock even when the client runs ahead. getDBTimeWithSkew only pushes forward (to avoid reordering), so it
  * can't be reused. Keeps the Concierge session boundary and question comparable to server-stamped replies.
  * Relies on networkTimeSkew being set; before it is known the value falls back to the raw client clock.
+ *
+ * notBeforeDBTime clamps the result forward so it never predates that time — used to keep successive optimistic
+ * sends monotonic when skew shifts negative between them (otherwise a later send could sort above an earlier one).
  */
-function getServerAnchoredDBTime(timestamp: string | number = ''): string {
+function getServerAnchoredDBTime(timestamp: string | number = '', notBeforeDBTime?: string): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
-    return formatDBTime(new Date(datetime.valueOf() + networkTimeSkew));
+    let anchoredMs = datetime.valueOf() + networkTimeSkew;
+    if (notBeforeDBTime) {
+        const floorMs = new Date(`${notBeforeDBTime.replace(' ', 'T')}Z`).valueOf();
+        if (Number.isFinite(floorMs) && anchoredMs <= floorMs) {
+            anchoredMs = floorMs + 1;
+        }
+    }
+    return formatDBTime(new Date(anchoredMs));
 }
 
 // --- Poor connection simulation ---

@@ -17,6 +17,11 @@ function dbTimeToMs(dbTime: string): number {
     return new Date(`${dbTime.replace(' ', 'T')}Z`).valueOf();
 }
 
+/** Formats an epoch-ms value as a server DB-time string. */
+function toDBTime(ms: number): string {
+    return new Date(ms).toISOString().replace('T', ' ').replace('Z', '');
+}
+
 async function setSkew(skew: number) {
     await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: skew});
     await waitForBatchedUpdates();
@@ -55,6 +60,21 @@ describe('getServerAnchoredDBTime', () => {
     it('is a no-op when there is no skew', async () => {
         await setSkew(0);
         expect(dbTimeToMs(getServerAnchoredDBTime(CLIENT_TS))).toBe(CLIENT_TS);
+    });
+
+    it('clamps forward past the last action so a later send stays monotonic when skew turns negative', async () => {
+        // Given skew has become 10s negative and the previous send already landed on the server clock 2s back
+        await setSkew(-10000);
+        const previousSend = toDBTime(CLIENT_TS - 2000);
+
+        // Then the anchored time (which alone would be 10s back, before the previous send) is pushed just past it
+        expect(dbTimeToMs(getServerAnchoredDBTime(CLIENT_TS, previousSend))).toBe(CLIENT_TS - 2000 + 1);
+    });
+
+    it('leaves the anchored time untouched when it is already after the last action', async () => {
+        await setSkew(-1000);
+        // The previous send is far in the past, so no clamp is needed
+        expect(dbTimeToMs(getServerAnchoredDBTime(CLIENT_TS, toDBTime(CLIENT_TS - 60000)))).toBe(CLIENT_TS - 1000);
     });
 });
 
