@@ -72,7 +72,7 @@ jobs:
           echo "Checked out Mobile-Expensify PR #${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }} (${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }})"
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 

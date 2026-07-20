@@ -54,7 +54,7 @@ jobs:
         run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Build web
         run: |

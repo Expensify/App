@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
-      - uses: ./.github/actions/composite/setupNode
+      - uses: ./.github/actions/composite/setupNodeStickyDisk
 
       # Verify that no new hubs were created without adding their metadata to _routes.yml
       - name: Validate Docs Routes File

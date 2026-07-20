@@ -28,20 +28,19 @@ jobs:
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup Node
-        # EXPERIMENT: sticky-disk variant for A/B comparison, revert to ./setupNode after measuring
         uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Cache Jest cache
         id: cache-jest-cache
-        # v5.0.1
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        # v1.4.0
+        # Per-shard key, no lockfile/babel hash: sticky disks have no restore-keys fallback, and
+        # Jest's own cache format is self-invalidating on stale entries, so a persistent per-shard
+        # disk (never a fresh/empty one on dependency changes) is strictly better here than
+        # forcing a cold cache on every dependency or babel.config.js change.
+        uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494
         with:
           path: .jest-cache
-          # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
-          # shared key freezes one shard's partial cache for all shards. The hash refreshes the
-          # cache when dependencies or Babel config change; restore-keys warms it in between.
-          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
-          restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
+          key: ${{ runner.os }}-jest-${{ matrix.chunk }}
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
@@ -90,7 +89,7 @@ jobs:
     steps:
       - uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
-      - uses: ./.github/actions/composite/setupNode
+      - uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Storybook run
         run: npm run storybook -- --smoke-test --ci

@@ -768,7 +768,7 @@ jobs:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Build storybook docs
         run: |
@@ -946,7 +946,7 @@ jobs:
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Load retest webhook from 1Password
         id: loadWebhook

@@ -1,7 +1,8 @@
-name: Set up Node (StickyDisk experiment)
+name: Set up Node (StickyDisk)
 description: |
-  Experimental variant of setupNode that mounts node_modules/~/.npm via Blacksmith Sticky Disks
-  instead of actions/cache. For A/B comparison only — not wired into any workflow by default.
+  Set up Node, mounting node_modules/~/.npm via Blacksmith Sticky Disks instead of actions/cache.
+  Blacksmith-runner-only (Ubuntu); not used on macOS jobs pending confirmation of sticky disk
+  support there — those still use ./setupNode.
 
   Sticky disks have no cache-hit output (unlike actions/cache), so "was this disk freshly
   created" is inferred from a marker file (.stickydisk-installed) written after a successful

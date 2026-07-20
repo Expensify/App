@@ -41,7 +41,7 @@ jobs:
         run: sudo apt-get install -y pcregrep
 
       - name: Setup NodeJS
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Create docs routes file
         run: ./.github/scripts/createDocsRoutes.sh

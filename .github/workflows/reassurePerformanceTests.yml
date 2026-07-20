@@ -23,7 +23,7 @@ jobs:
           git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
 
       - name: Setup NodeJS
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Run baseline performance tests
         shell: bash
@@ -45,7 +45,7 @@ jobs:
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup NodeJS
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Run branch performance tests
         shell: bash
@@ -71,7 +71,7 @@ jobs:
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup NodeJS
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Download baseline performance results
         # v7

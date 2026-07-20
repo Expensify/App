@@ -47,7 +47,7 @@ jobs:
           ref: ${{ steps.pr-data.outputs.HEAD_SHA }}
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Setup tmate
         if: runner.debug == '1'
