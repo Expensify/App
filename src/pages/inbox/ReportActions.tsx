@@ -1,4 +1,5 @@
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+import NavigationDeferredMount from '@components/NavigationDeferredMount';
 
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
@@ -9,12 +10,13 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useState} from 'react';
 
 import type ReportScreenNavigationProps from './types';
 
@@ -102,4 +104,27 @@ function ReportActions() {
     );
 }
 
+function ReportActionsWithInboxTabDeferredMount({reportID}: {reportID: string | undefined}) {
+    const [shouldDefer] = useState(() => !!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB));
+
+    if (!shouldDefer) {
+        return <ReportActions />;
+    }
+
+    return (
+        <NavigationDeferredMount
+            waitForUpcomingTransition={false}
+            placeholder={
+                <ReportActionsLoadingSkeleton
+                    reportID={reportID}
+                    skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.INBOX_TAB_DEFER}
+                />
+            }
+        >
+            <ReportActions />
+        </NavigationDeferredMount>
+    );
+}
+
+export {ReportActionsWithInboxTabDeferredMount};
 export default ReportActions;
