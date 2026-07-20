@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
-import OnyxSubscribedBoundary from '@components/OnyxSubscribedBoundary';
+import OnyxFocusBoundary from '@components/OnyxFocusBoundary';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
@@ -426,9 +426,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
 function SearchMoneyRequestReportPageWithOnyxBoundary(props: SearchMoneyRequestPageProps) {
     return (
-        <OnyxSubscribedBoundary>
+        <OnyxFocusBoundary>
             <SearchMoneyRequestReportPage {...props} />
-        </OnyxSubscribedBoundary>
+        </OnyxFocusBoundary>
     );
 }
 

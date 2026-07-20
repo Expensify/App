@@ -583,7 +583,7 @@ const ONYXKEYS = {
     /** List of span operations to highlight in Sentry debug logs */
     SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS: 'sentryDebugHighlightedSpanOps',
 
-    /** Dev toggle: off (default) forces useOnyx `subscribed: true` everywhere; on lets it follow the enclosing OnyxSubscribedBoundary's focus */
+    /** Dev toggle: off (default) forces useOnyx `subscribed: true` everywhere; on lets it follow the enclosing OnyxFocusBoundary's focus */
     SHOULD_ONYX_SUBSCRIBED_FOLLOW_FOCUS: 'shouldOnyxSubscribedFollowFocus',
 
     /** Stores new group chat draft */

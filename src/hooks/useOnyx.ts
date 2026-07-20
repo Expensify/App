@@ -1,4 +1,4 @@
-import OnyxSubscribedDefaultContext from '@components/OnyxSubscribedBoundary/OnyxSubscribedDefaultContext';
+import OnyxFocusDefaultContext from '@components/OnyxFocusBoundary/OnyxFocusDefaultContext';
 import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
@@ -79,9 +79,9 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const isOnSearch = useIsOnSearch();
 
     // Test Tools toggle. Off (default): `subscribed` forced `true` everywhere. On: explicit caller option >
-    // enclosing OnyxSubscribedBoundary default > `true`. Read via raw useOnyx to avoid recursion.
+    // enclosing OnyxFocusBoundary default > `true`. Read via raw useOnyx to avoid recursion.
     const [shouldSubscribedFollowFocus] = originalUseOnyx(ONYXKEYS.SHOULD_ONYX_SUBSCRIBED_FOLLOW_FOCUS);
-    const subscribedContextDefault = use(OnyxSubscribedDefaultContext);
+    const subscribedContextDefault = use(OnyxFocusDefaultContext);
 
     let currentSearchHash: number | undefined;
     let shouldUseLiveData = false;

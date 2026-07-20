@@ -3,7 +3,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {useIsFocused} from '@react-navigation/core';
 import React from 'react';
 
-import OnyxSubscribedDefaultContext from './OnyxSubscribedDefaultContext';
+import OnyxFocusDefaultContext from './OnyxFocusDefaultContext';
 
 /**
  * Makes navigation focus the default `subscribed` for every `useOnyx` in the subtree: while the screen
@@ -12,9 +12,9 @@ import OnyxSubscribedDefaultContext from './OnyxSubscribedDefaultContext';
  * drive effects while blurred. Must be inside a navigator screen (`useIsFocused` throws otherwise) and
  * only covers descendants — wrap the whole screen component, not its children.
  */
-function OnyxSubscribedBoundary({children}: ChildrenProps) {
+function OnyxFocusBoundary({children}: ChildrenProps) {
     const isFocused = useIsFocused();
-    return <OnyxSubscribedDefaultContext.Provider value={isFocused}>{children}</OnyxSubscribedDefaultContext.Provider>;
+    return <OnyxFocusDefaultContext.Provider value={isFocused}>{children}</OnyxFocusDefaultContext.Provider>;
 }
 
-export default OnyxSubscribedBoundary;
+export default OnyxFocusBoundary;

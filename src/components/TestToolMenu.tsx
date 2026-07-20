@@ -51,7 +51,7 @@ function TestToolMenu() {
                 {translate('initialSettingsPage.troubleshoot.testingPreferences')}
             </Text>
 
-            {/* Off (default): useOnyx always live. On: `subscribed` follows OnyxSubscribedBoundary focus */}
+            {/* Off (default): useOnyx always live. On: `subscribed` follows OnyxFocusBoundary focus */}
             <TestToolRow
                 title="useOnyx subscribed follows focus"
                 isTitleAccessible={false}
