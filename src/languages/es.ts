@@ -7005,6 +7005,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             updateToUSD: 'Actualizar a USD',
             updateWorkspaceCurrency: 'Actualizar la moneda del espacio de trabajo',
             workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
+            notAllowedToAddBankAccount:
+                'Tu espacio de trabajo está configurado en una moneda no compatible. Ponte en contacto con un administrador del espacio de trabajo que tenga permiso para cambiarla.',
             yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de monedas soportadas</a>.`,
             chooseAnExisting: 'Elige una cuenta bancaria existente para pagar gastos o añade una nueva.',
         },
