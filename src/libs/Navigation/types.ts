@@ -2453,6 +2453,7 @@ type ReimbursementAccountNavigatorParamList = {
         policyID?: string;
         bankAccountID?: string;
         subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
+        isChangingBankAccount?: boolean;
     };
     [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
         page?: string;
@@ -2492,6 +2493,8 @@ type ConnectExistingBankAccountNavigatorParamList = {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
         backTo?: Routes;
+        /** Identifies the entry point that opened this screen, so shared logic can branch on intent */
+        source?: ValueOf<typeof CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE>;
     };
 };
 

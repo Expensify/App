@@ -74,6 +74,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selfDMReport = useSelfDMReport();
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -105,6 +106,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             delegateAccountID,
             isTrackIntentUser,
             selfDMReport,
+            selfDMReportActions,
             reportPolicyTags,
         });
 
