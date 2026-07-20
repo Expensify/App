@@ -15,7 +15,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
@@ -27,6 +30,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -138,6 +142,10 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate}) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
+    const showConciergeDetails = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+    };
+
     const handleToggle = () => {
         if (!hasReasoningHistory) {
             return;
@@ -163,9 +171,17 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                 <OfflineWithFeedback pendingAction={personalDetails?.[accountID]?.pendingFields?.avatar ?? undefined}>
                     {accountID === CONST.ACCOUNT_ID.CONCIERGE ? (
                         <UserDetailsTooltip accountID={accountID}>
-                            <View style={[styles.actionAvatar]}>
+                            <PressableWithoutFeedback
+                                style={[styles.actionAvatar]}
+                                onPressIn={ControlSelection.block}
+                                onPressOut={ControlSelection.unblock}
+                                onPress={showConciergeDetails}
+                                accessibilityLabel={displayName}
+                                role={CONST.ROLE.BUTTON}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.CONCIERGE_THINKING_AVATAR_BUTTON}
+                            >
                                 <ConciergeAnimatedAvatar />
-                            </View>
+                            </PressableWithoutFeedback>
                         </UserDetailsTooltip>
                     ) : (
                         <ReportActionAvatars
