@@ -21,9 +21,9 @@ import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
 import type {Form} from '@src/types/form';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
