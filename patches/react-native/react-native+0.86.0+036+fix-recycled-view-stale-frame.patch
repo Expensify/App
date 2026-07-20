@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
-index 3b1948bd02d..982121c706b 100644
+index b033b7c..8d4d921 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
-@@ -631,13 +631,16 @@ const CGFloat BACKGROUND_COLOR_ZPOSITION = -1024.0f;
+@@ -689,13 +689,16 @@ - (void)prepareForRecycle
    [super prepareForRecycle];
  
    // If view was managed by animated, its props need to align with UIView's properties.
@@ -25,7 +25,7 @@ index 3b1948bd02d..982121c706b 100644
  
    // Clean up box shadow layers to prevent cross-component contamination
    if (_boxShadowLayers != nullptr) {
-@@ -669,6 +672,17 @@ const CGFloat BACKGROUND_COLOR_ZPOSITION = -1024.0f;
+@@ -723,6 +726,17 @@ - (void)prepareForRecycle
    _removeClippedSubviews = NO;
    _reactSubviews = [NSMutableArray new];
    _layoutMetrics = {};
