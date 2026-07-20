@@ -1433,7 +1433,7 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Stale deprecated message'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, report.nextStep);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, report.nextStep);
             expect(result).toBe(embeddedNextStep);
         });
 
