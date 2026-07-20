@@ -7077,6 +7077,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             notAllowedToAddBankAccount: 'Il tuo spazio di lavoro è impostato su una valuta non supportata. Contatta un amministratore dello spazio di lavoro autorizzato a modificarla.',
             yourWorkspace: `La tua area di lavoro è impostata su una valuta non supportata. Visualizza l’<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">elenco delle valute supportate</a>.`,
             chooseAnExisting: 'Scegli un conto bancario esistente per pagare le spese oppure aggiungine uno nuovo.',
+            changeBankAccount: 'Cambia conto bancario',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Trasferisci proprietario',

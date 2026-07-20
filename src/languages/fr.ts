@@ -7124,6 +7124,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             notAllowedToAddBankAccount: 'Votre espace de travail est défini sur une devise non prise en charge. Contactez un administrateur de l’espace de travail autorisé à la modifier.',
             yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">liste des devises prises en charge</a>.`,
             chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
+            changeBankAccount: 'Changer de compte bancaire',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le responsable',

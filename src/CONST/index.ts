@@ -732,6 +732,9 @@ const CONST = {
             PLAID: 'plaid',
             NONE: '',
         },
+        CONNECT_EXISTING_SOURCE: {
+            CHANGE_BANK_ACCOUNT: 'changeBankAccount',
+        },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
