@@ -61,10 +61,13 @@ function migrateQueuedReceipts(): Promise<void> {
  * them into locations that are never user-visible.
  */
 export default function (): Promise<void> {
-    return Promise.all([migrateAttachmentCache(), migrateQueuedReceipts()])
-        .then(() => undefined)
-        .catch((error) => {
+    return (
+        Promise.resolve()
+            .then(() => Promise.all([migrateAttachmentCache(), migrateQueuedReceipts()]))
+            .then(() => undefined)
             // A failed cleanup must never block app startup; new files already go to the new locations
-            Log.warn('[Migrate Onyx] MoveFilesOutOfDocuments failed', {error: error instanceof Error ? error.message : String(error)});
-        });
+            .catch((error) => {
+                Log.warn('[Migrate Onyx] MoveFilesOutOfDocuments failed', {error: error instanceof Error ? error.message : String(error)});
+            })
+    );
 }
