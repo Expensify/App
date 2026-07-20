@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import AvatarSelector from '@components/AvatarSelector';
 import ComposeProviders from '@components/ComposeProviders';
@@ -7,6 +7,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
+
+import colors from '@styles/theme/colors';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -114,8 +116,12 @@ describe('AvatarSelector', () => {
             renderAvatarSelector({selectedID: selectedId});
             await waitForBatchedUpdates();
 
-            const selectedAvatar = screen.getByTestId(`AvatarSelector_${selectedId}`);
-            expect(selectedAvatar).toBeOnTheScreen();
+            const buttons = screen.getAllByRole('button');
+            const selectedButton = buttons.find((button) => within(button).queryByTestId(`AvatarSelector_${selectedId}`));
+            expect(selectedButton).toHaveStyle({borderColor: colors.green400});
+
+            const unselectedButton = buttons.find((button) => within(button).queryByTestId(`AvatarSelector_${USER_AVATARS.ordered.at(0)?.id}`));
+            expect(unselectedButton).not.toHaveStyle({borderColor: colors.green400});
         });
     });
 
@@ -165,8 +171,12 @@ describe('AvatarSelector', () => {
             renderAvatarSelector({selectedID: selectedSchemeKey});
             await waitForBatchedUpdates();
 
-            const selectedAvatar = screen.getByTestId(`AvatarSelector_${selectedSchemeKey}`);
-            expect(selectedAvatar).toBeOnTheScreen();
+            const buttons = screen.getAllByRole('button');
+            const selectedButton = buttons.find((button) => within(button).queryByTestId(`AvatarSelector_${selectedSchemeKey}`));
+            expect(selectedButton).toHaveStyle({borderColor: colors.green400});
+
+            const unselectedButton = buttons.find((button) => within(button).queryByTestId(`AvatarSelector_${LETTER_AVATAR_COLOR_KEYS.at(0)}`));
+            expect(unselectedButton).not.toHaveStyle({borderColor: colors.green400});
         });
 
         it('renders both custom and letter avatars', async () => {

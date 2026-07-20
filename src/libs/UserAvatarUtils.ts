@@ -263,13 +263,13 @@ function firstLetterAvatarCharacter(name: string): string {
  * @param login - The user's login (email or SMS), or '' when unknown
  */
 function getLetterAvatarInitials(firstName: string, lastName: string, login: string): string {
-    // The displayed login has the merge prefix stripped, so derive the initial from the
-    // stripped form to match what users see. This is a no-op for non-merged logins.
-    const normalizedLogin = login.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
     if (initials !== '') {
         return initials;
     }
+    // The displayed login has the merge prefix stripped, so derive the initial from the
+    // stripped form to match what users see. This is a no-op for non-merged logins.
+    const normalizedLogin = login.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     // Only a real email seeds the initial. Phone numbers (raw or @expensify.sms) fall back to the illustrated default.
     if (!normalizedLogin.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(normalizedLogin)) {
         return firstLetterAvatarCharacter(normalizedLogin);
