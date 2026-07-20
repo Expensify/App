@@ -22,7 +22,7 @@ import getWalkedPaths, {
 } from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
-import {pendingModalClose, rejectSoftPromptAcceptanceRead, rejectValidateDevice, resetMfaUiMocks, resolveSoftPromptAcceptance, resolveValidateDevice} from 'tests/utils/mfa/realUi/mocks';
+import {pendingModalClose, readHasAcceptedSoftPromptControl, resetMfaUiMocks, validateDeviceControl} from 'tests/utils/mfa/realUi/mocks';
 import {translateLocal} from 'tests/utils/TestHelper';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
@@ -122,10 +122,10 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             fireEvent.press(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON));
             await waitForBatchedUpdatesWithAct();
         },
-        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleActor(() => resolveValidateDevice(step.event.output)),
-        [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleActor(rejectValidateDevice),
-        [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => resolveSoftPromptAcceptance(step.event.output)),
-        [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => settleActor(rejectSoftPromptAcceptanceRead),
+        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleActor(() => validateDeviceControl.resolve(step.event.output)),
+        [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleActor(validateDeviceControl.reject),
+        [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(step.event.output)),
+        [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
     } satisfies MfaEventExecutors & MfaActorEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
