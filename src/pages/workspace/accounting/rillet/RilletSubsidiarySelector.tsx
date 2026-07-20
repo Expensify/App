@@ -1,5 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
