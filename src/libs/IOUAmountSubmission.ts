@@ -48,7 +48,7 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -516,7 +516,15 @@ function submitCreateAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): v
     const previousCurrency = getCurrency(transaction);
     const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, transaction, previousCurrency, transaction?.taxCode);
     const isPolicyExpenseChatParticipant = transaction?.participants?.some((participant) => participant.isPolicyExpenseChat) ?? false;
-    const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat(report) || isPolicyExpenseChatParticipant, policy, false);
+    // Mirror the tax contexts the confirmation list uses (see MoneyRequestConfirmationList's shouldShowTax): a Track
+    // expense from a self-DM/default workspace isn't a policy expense chat, but the confirmation page still shows tax
+    // for the track flow, so the currency recompute must run for it too. Otherwise Back → change currency → Next would
+    // leave the stale previous-currency default tax on the draft.
+    const isTaxEnabled = isTaxTrackingEnabled(
+        isPolicyExpenseChat(report) || isPolicyExpenseChatParticipant || iouType === CONST.IOU.TYPE.TRACK || isExpenseUnreported(transaction),
+        policy,
+        false,
+    );
 
     if (isMovingTransactionFromTrackExpense(action) || (isTaxEnabled && selectedCurrency !== previousCurrency && isCurrentTaxAutoDefault)) {
         const taxCode = getDefaultTaxCode(policy, transaction, selectedCurrency);
