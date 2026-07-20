@@ -971,8 +971,6 @@ function getSuggestedSearches(
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
                     // Scope Top Spenders to the eligible workspaces so individual-chat/personal expenses don't leak in.
-                    // Only apply the filter when we actually have eligible workspaces, so an empty list doesn't produce
-                    // a query that silently matches nothing.
                     ...(topSpendersPolicyIDs.length > 0 ? {policyID: topSpendersPolicyIDs} : {}),
                     status: [
                         CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
@@ -1137,7 +1135,7 @@ function getSuggestedSearchesVisibility(
         shouldShowExpensifyCardSuggestion ||= isEligibleForExpensifyCardSuggestion;
         shouldShowReimbursementsSuggestion ||= isEligibleForReimbursementsSuggestion;
         shouldShowTopSpendersSuggestion ||= isEligibleForTopSpendersSuggestion;
-        if (isEligibleForTopSpendersSuggestion && policy.id) {
+        if (policy.id && isEligibleForTopSpendersSuggestion) {
             topSpendersPolicyIDs.push(policy.id);
         }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
