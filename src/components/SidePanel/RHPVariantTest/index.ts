@@ -1,4 +1,5 @@
 import SidePanelActions from '@libs/actions/SidePanel';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -67,6 +68,10 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     const variant = variantOverride ?? onboardingRHPVariant;
     if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         Navigation.navigate(ROUTES.HOME, navigationOptions);
+        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
+        if (!shouldPreserveRevealedReport) {
+            Navigation.navigate(ROUTES.HOME, navigationOptions);
+        }
         SidePanelActions.openSidePanel(true);
         return;
     }
@@ -74,7 +79,10 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
     if (isRHPHomePage) {
-        Navigation.navigate(ROUTES.HOME, navigationOptions);
+        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
+        if (!shouldPreserveRevealedReport) {
+            Navigation.navigate(ROUTES.HOME, navigationOptions);
+        }
     } else {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID), navigationOptions);
     }
