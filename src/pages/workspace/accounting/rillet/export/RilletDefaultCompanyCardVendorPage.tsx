@@ -5,12 +5,14 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletDefaultVendor} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -45,6 +47,13 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
             keyForList: vendorItem.id,
             isSelected: defaultCompanyCardVendorID === vendorItem.id,
         })) ?? [];
+    const filterData = (vendorItem: VendorListItem, searchInput: string) => tokenizedSearch([vendorItem], searchInput, () => [vendorItem.text ?? '', vendorItem.value]).length > 0;
+    const [searchValue, setSearchValue, filteredData] = useSearchResults(data, filterData);
+    const textInputOptions = {
+        label: data.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     const headerContent = (
         <View>
@@ -77,7 +86,8 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletDefaultCompanyCardVendorPage"
             title="workspace.rillet.defaultCompanyCardVendor.label"
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={selectDefaultVendor}
