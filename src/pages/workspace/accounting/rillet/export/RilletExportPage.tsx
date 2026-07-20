@@ -45,7 +45,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const cardProgramsUsingCustomAccountsCount = Object.keys(rilletConfig?.export?.cardProgramAccounts ?? {}).length;
     const cardProgramsOfflineFeedbackKeys = Object.values(cardFeeds ?? {}).map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`);
     const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
-    const hasActiveCards = Object.keys(findMatchingCards(cardFeeds ?? {}, cardLists)).length > 0;
+    const hasActiveCards = findMatchingCards(cardFeeds ?? {}, cardLists).length > 0;
 
     const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
         useAccordionAnimation(exportToMultipleAccounts);
