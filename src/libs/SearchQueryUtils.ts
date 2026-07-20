@@ -2363,7 +2363,7 @@ function getEmptyDateValues(): SearchDateValues {
 function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, defaultSearchQueryFilterKeys: ReadonlySet<string>): Partial<SearchAdvancedFiltersForm> {
     return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
         const syntaxKey = filterKeyToSyntaxKey(filterKey);
-        if (isRootFilterKey(syntaxKey) || defaultSearchQueryFilterKeys.has(syntaxKey) || filterKey === FILTER_KEYS.TYPE) {
+        if (isRootFilterKey(syntaxKey) || defaultSearchQueryFilterKeys.has(syntaxKey)) {
             return acc;
         }
 
