@@ -16,6 +16,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
+    CachesDirectoryPath: '/mock/caches',
     copyFile: jest.fn(() => Promise.resolve()),
     exists: jest.fn(() => Promise.resolve(true)),
     unlink: jest.fn(() => Promise.resolve()),
@@ -104,7 +105,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
         });
     });
     it('should cache markdown attachment', async () => {
@@ -144,7 +145,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
     });
@@ -188,7 +189,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
 
@@ -207,7 +208,7 @@ describe('AttachmentStorage', () => {
         // Then the attachment should be updated with new attachment link
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: newSourceURL,
         });
     });
@@ -260,7 +261,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: fileData.uri,
         });
 
@@ -323,7 +324,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
 
@@ -409,14 +410,14 @@ describe('AttachmentStorage', () => {
                 expect(remoteSourceIndex).toBeDefined();
                 expect(attachment).toEqual({
                     attachmentID,
-                    source: `/mock/documents/attachments/${attachmentID}.jpg`,
+                    source: `/mock/caches/attachments/${attachmentID}.jpg`,
                     remoteSource: markdownAttachments.at(remoteSourceIndex),
                 });
                 continue;
             }
             expect(attachment).toEqual({
                 attachmentID,
-                source: `/mock/documents/attachments/${attachmentID}.jpg`,
+                source: `/mock/caches/attachments/${attachmentID}.jpg`,
             });
         }
 
