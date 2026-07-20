@@ -3,6 +3,9 @@ import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportAction
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
@@ -28,11 +31,17 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     const isConciergeChat = reportID === conciergeReportID;
     const sessionStartTime = isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
 
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const actionsList = Object.values(reportActions ?? {});
-
-    const hasSessionActivity =
-        !!sessionStartTime && actionsList.some((action) => isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime));
+    // Derive the boolean inside the Onyx selector so the indicators re-render only when session activity
+    // flips, not on every report-action change in the Concierge chat.
+    const hasSessionActivitySelector = (actions: OnyxEntry<ReportActions>) => {
+        if (!actions || !sessionStartTime) {
+            return false;
+        }
+        return Object.values(actions).some((action) => isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime));
+    };
+    const [hasSessionActivity] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: hasSessionActivitySelector,
+    });
 
     if (pendingFollowupList) {
         return true;
