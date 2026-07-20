@@ -863,6 +863,18 @@ function openSearchCardFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
+function openSearchCategoryFiltersPage() {
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED,
+            value: true,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {finallyData});
+}
+
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
         {
@@ -1877,6 +1889,7 @@ export {
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
+    openSearchCategoryFiltersPage,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
