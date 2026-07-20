@@ -227,6 +227,17 @@ function getDBTimeWithSkew(timestamp: string | number = ''): string {
     return formatDBTime(datetime);
 }
 
+/**
+ * Like getDBTimeWithSkew, but applies networkTimeSkew in both directions so the result tracks the server
+ * clock even when the client runs ahead. getDBTimeWithSkew only pushes forward (to avoid reordering), so it
+ * can't be reused. Keeps the Concierge session boundary and question comparable to server-stamped replies.
+ * Relies on networkTimeSkew being set; before it is known the value falls back to the raw client clock.
+ */
+function getServerAnchoredDBTime(timestamp: string | number = ''): string {
+    const datetime = timestamp ? new Date(timestamp) : new Date();
+    return formatDBTime(new Date(datetime.valueOf() + networkTimeSkew));
+}
+
 // --- Poor connection simulation ---
 
 let poorConnectionTimerID: NodeJS.Timeout | undefined;
@@ -438,6 +449,7 @@ export {
     setForceOffline,
     setFailAllRequests,
     getDBTimeWithSkew,
+    getServerAnchoredDBTime,
     refresh,
     simulatePoorConnection,
 };

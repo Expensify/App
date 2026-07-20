@@ -138,7 +138,7 @@ import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
-import {getDBTimeWithSkew} from './NetworkState';
+import {getDBTimeWithSkew, getServerAnchoredDBTime} from './NetworkState';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
@@ -348,6 +348,8 @@ type BuildOptimisticAddCommentReportActionParams = {
     attachmentID?: string;
     isHTML?: boolean;
     delegateAccountIDParam: number | undefined;
+    /** Anchor `created` to the server clock so it is comparable to Concierge's server-stamped replies. */
+    anchorCreatedToServer?: boolean;
 };
 
 type OptimisticReportAction = {
@@ -6347,6 +6349,7 @@ function buildOptimisticAddCommentReportAction({
     currentUserAccountID,
     isHTML = false,
     delegateAccountIDParam,
+    anchorCreatedToServer = false,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
@@ -6377,7 +6380,7 @@ function buildOptimisticAddCommentReportAction({
             ],
             automatic: false,
             avatar: allPersonalDetails?.[accountID]?.avatar,
-            created: getDBTimeWithSkew(Date.now() + createdOffset),
+            created: anchorCreatedToServer ? getServerAnchoredDBTime(Date.now() + createdOffset) : getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
                     translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',

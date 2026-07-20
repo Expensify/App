@@ -9,7 +9,6 @@ import type {ReportAction} from '@src/types/onyx';
 import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 
 import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
-import useCurrentSessionActionIDs from './useCurrentSessionActionIDs';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useLocalize from './useLocalize';
@@ -75,16 +74,13 @@ function useReportActionsVisibility({
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
     const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : (mainDMSessionStartTime ?? null);
 
-    // Current-session message IDs captured by arrival, so a clock-skewed message or reply still counts.
-    const currentSessionActionIDs = useCurrentSessionActionIDs(allReportActions, currentUserAccountID, sessionStartTime);
-
     const hasUserSentMessage =
         isConciergeHiddenHistory && sessionStartTime
             ? allReportActions.some(
                   (action) =>
                       !isCreatedAction(action) &&
                       action.actorAccountID === currentUserAccountID &&
-                      (isCurrentUserPendingAddAction(action, currentUserAccountID) || currentSessionActionIDs.has(action.reportActionID) || action.created >= sessionStartTime),
+                      (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime),
               )
             : false;
 
@@ -123,7 +119,6 @@ function useReportActionsVisibility({
             hasOlderActions,
             sessionStartTime,
             currentUserAccountID,
-            currentSessionActionIDs,
             greetingText: translate('common.concierge.greeting'),
             loadOlderChats,
             isConciergeMainDM,

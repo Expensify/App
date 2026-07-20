@@ -1,6 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
-import DateUtils from '@libs/DateUtils';
+import {getServerAnchoredDBTime} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,7 +93,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
                 sessionExpired = true;
             }
             sessionCreatedAtRef.current = Date.now();
-            const now = DateUtils.getDBTime();
+            const now = getServerAnchoredDBTime();
             if (unreadBoundary && unreadBoundary < now) {
                 return unreadBoundary;
             }

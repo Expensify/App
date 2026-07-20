@@ -4,7 +4,6 @@ import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import useCurrentSessionActionIDs from './useCurrentSessionActionIDs';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
@@ -32,17 +31,8 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const actionsList = Object.values(reportActions ?? {});
 
-    // Current-session message IDs captured by arrival, so clock-skewed activity still shows indicators.
-    const currentSessionActionIDs = useCurrentSessionActionIDs(actionsList, currentUserAccountID, sessionStartTime);
-
     const hasSessionActivity =
-        !!sessionStartTime &&
-        actionsList.some(
-            (action) =>
-                isCurrentUserPendingAddAction(action, currentUserAccountID) ||
-                currentSessionActionIDs.has(action.reportActionID) ||
-                (!isCreatedAction(action) && action.created >= sessionStartTime),
-        );
+        !!sessionStartTime && actionsList.some((action) => isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime));
 
     if (pendingFollowupList) {
         return true;
