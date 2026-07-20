@@ -32,7 +32,6 @@ import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
-    isNewManualExpenseFlowEnabled: boolean;
     isReadOnly: boolean;
     didConfirm: boolean;
     isDescriptionRequired: boolean;
@@ -44,18 +43,7 @@ type DescriptionFieldProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-function DescriptionField({
-    isNewManualExpenseFlowEnabled,
-    isReadOnly,
-    didConfirm,
-    isDescriptionRequired,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-    policy,
-}: DescriptionFieldProps) {
+function DescriptionField({isReadOnly, didConfirm, isDescriptionRequired, transactionID, action, iouType, reportID, reportActionID, policy}: DescriptionFieldProps) {
     const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -115,7 +103,7 @@ function DescriptionField({
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
-                        {isNewManualExpenseFlowEnabled && !isReadOnly ? (
+                        {!isReadOnly ? (
                             <View
                                 ref={fieldContainerRef}
                                 style={[styles.mh4, styles.mv2]}
