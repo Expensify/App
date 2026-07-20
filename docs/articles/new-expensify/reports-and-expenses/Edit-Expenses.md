@@ -27,7 +27,7 @@ Expenses on Approved reports must be unapproved before they can be edited. Expen
 4. Make your update. 
 5. Click **Save**.
 
-**Tip (desktop only):** You can also edit an expense directly from the table without opening it. Click a **date**, **merchant**, **description**, **category**, **tag**, or **amount** cell to edit the value inline. Click outside the cell or press Enter to save.
+**Tip (desktop only):** You can also edit an expense directly from the table without opening it. Hover over a **date**, **merchant**, **description**, **category**, **tag**, or **amount** cell (or use the Tab key to move to it), then click the pencil edit icon that appears to edit the value inline. Click outside the cell or press Enter to save. Clicking anywhere else in the cell opens the expense instead.
 
 ---
 

@@ -74,13 +74,22 @@ describe('AttachmentStorage', () => {
         };
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
         const attachments = await new Promise<OnyxCollection<Attachment>>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
+                waitForCollectionCallback: true,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -113,6 +122,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -120,6 +130,7 @@ describe('AttachmentStorage', () => {
         const attachments = await new Promise<OnyxCollection<Attachment>>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
+                waitForCollectionCallback: true,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -148,6 +159,7 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -167,6 +179,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -219,6 +232,7 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -230,7 +244,15 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -273,6 +295,7 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -292,6 +315,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -342,6 +366,7 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -361,8 +386,17 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: attachmentFiles, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: attachmentFiles,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 

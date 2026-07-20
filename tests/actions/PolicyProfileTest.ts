@@ -41,6 +41,7 @@ describe('actions/PolicyProfile', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
 
@@ -56,6 +57,7 @@ describe('actions/PolicyProfile', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.pendingFields?.description).toBeFalsy();
