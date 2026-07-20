@@ -146,10 +146,11 @@ function TransactionListItemInner<TItem extends ListItem>({
     const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     const chatReport = parentChatReport ?? snapshotChatReport;
     const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, delegateEmail} = useReportPaymentContext({
-        reportID: transactionItem.reportID,
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            reportID: transactionItem.reportID,
+            chatReportPolicyID: chatReport?.policyID,
+        });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
@@ -176,7 +177,7 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
-            !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations, submitterLogin) &&
+            !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, submitterLogin, policyForViolations) &&
             shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
     );
 
@@ -237,6 +238,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             searchData: currentSearchResults?.data,
             chatReportActions,
             delegateEmail,
+            delegateAccountID,
             isTrackIntentUser,
         });
     };

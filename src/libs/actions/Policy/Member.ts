@@ -1,4 +1,4 @@
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
@@ -18,7 +18,6 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -29,17 +28,7 @@ import * as FormActions from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    ImportedSpreadsheetMemberData,
-    InvitedEmailsToAccountIDs,
-    PersonalDetailsList,
-    Policy,
-    PolicyEmployee,
-    PolicyOwnershipChangeChecks,
-    Report,
-    ReportAction,
-    ReportActions,
-} from '@src/types/onyx';
+import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
@@ -173,7 +162,7 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number): ImportFinalModal {
+function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number, shouldShowMemberRolePermissionWarning = false): ImportFinalModal {
     return {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMembersSuccessfulDescription',
@@ -181,6 +170,7 @@ function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLe
             added: addedMembersLength,
             updated: updatedMembersLength,
         },
+        ...(shouldShowMemberRolePermissionWarning && {pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning'}),
     };
 }
 
@@ -822,11 +812,10 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions> | undefined,
     approverEmail?: string,
@@ -842,16 +831,36 @@ function buildAddMembersToWorkspaceOnyxData(
     // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
     const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
 
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs, personalDetailsList);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
-
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
     const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, hasPolicyAdminsRoomsAccess(effectiveRole) ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
+    const doesPersonalDetailExistByAccountID: Record<number, boolean> = {};
+    const newPersonalDetailAccountIDs = new Set<number>();
+    for (const update of newPersonalDetailsOnyxData.optimisticData ?? []) {
+        if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST) {
+            continue;
+        }
+
+        for (const accountID of Object.keys(update.value ?? {})) {
+            newPersonalDetailAccountIDs.add(Number(accountID));
+        }
+    }
+
+    for (const accountID of accountIDs) {
+        doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
+    }
+
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats({policyID, invitedEmailsToAccountIDs, currentUser, reportActionsList, notificationPreference: policyExpenseChatNotificationPreference});
+    const membersChats = createPolicyExpenseChats({
+        policyID,
+        invitedEmailsToAccountIDs,
+        currentUser,
+        reportActionsList,
+        notificationPreference: policyExpenseChatNotificationPreference,
+        doesPersonalDetailExistByAccountID,
+    });
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -957,12 +966,11 @@ function buildAddMembersToWorkspaceOnyxData(
  */
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     welcomeNote: string,
     policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
@@ -975,11 +983,10 @@ function addMembersToWorkspace(
     // the effective role so the optimistic data and API params stay in sync.
     const {effectiveRole, optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
+        newPersonalDetailsOnyxData,
         policy,
         policyMemberAccountIDs,
         role,
-        formatPhoneNumber,
-        personalDetailsList,
         currentUser,
         reportActionsList,
         approverEmail,
@@ -1011,7 +1018,7 @@ type PolicyMember = {
     overLimitForwardsTo?: string;
 };
 
-async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]): Promise<ImportFinalModal> {
+async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[], shouldShowMemberRolePermissionWarning = false): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
         return getImportFailedFinalModal();
@@ -1040,7 +1047,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         },
         {added: 0, updated: 0},
     );
-    const importFinalModal = getImportMembersFinalModal(added, updated);
+    const importFinalModal = getImportMembersFinalModal(added, updated, shouldShowMemberRolePermissionWarning);
 
     const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) && isControlPolicy(policy);
 
@@ -1425,8 +1432,8 @@ function clearInviteDraft(policyID: string) {
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
-function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[]) {
-    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData);
+function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[], shouldShowMemberRolePermissionWarning = false) {
+    return Promise.all([Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData), Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {shouldShowMemberRolePermissionWarning})]);
 }
 
 function setImportedSpreadsheetMemberRole(role: ValueOf<typeof CONST.POLICY.ROLE>) {
