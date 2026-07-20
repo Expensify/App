@@ -138,6 +138,7 @@ const FS: Fullstory = {
     },
 };
 
+// These use connectWithoutView() because they initialize the Fullstory library, which isn't attached to any view component, so useOnyx() can't be used here.
 let fullstorySession: Session = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
