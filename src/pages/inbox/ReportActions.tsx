@@ -10,13 +10,12 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
-import {getSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React from 'react';
 
 import type ReportScreenNavigationProps from './types';
 
@@ -104,9 +103,12 @@ function ReportActions() {
     );
 }
 
-function ReportActionsWithInboxTabDeferredMount({reportID}: {reportID: string | undefined}) {
-    const [shouldDefer] = useState(() => !!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB));
+type ReportActionsWithInboxTabDeferredMountProps = {
+    reportID: string | undefined;
+    shouldDefer: boolean;
+};
 
+function ReportActionsWithInboxTabDeferredMount({reportID, shouldDefer}: ReportActionsWithInboxTabDeferredMountProps) {
     if (!shouldDefer) {
         return <ReportActions />;
     }

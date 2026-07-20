@@ -24,10 +24,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {TabActions} from '@react-navigation/native';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import getLastRoute from './getLastRoute';
-import getReusableReportsTabStateKey from './getReusableReportsTabStateKey';
+import getReusableReportsTabStateKey, {getReportsTabStateKey} from './getReusableReportsTabStateKey';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
@@ -80,6 +80,14 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
+    const hasVisitedInboxTab = useRef(selectedTab === NAVIGATION_TABS.INBOX);
+
+    useEffect(() => {
+        if (selectedTab !== NAVIGATION_TABS.INBOX) {
+            return;
+        }
+        hasVisitedInboxTab.current = true;
+    }, [selectedTab]);
 
     const lastReportRouteReportID = useRootNavigationState((rootState) => {
         if (!rootState) {
@@ -121,14 +129,32 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 const reportActionID = getStringParam(lastRoute.params, 'reportActionID');
                 const referrer = getStringParam(lastRoute.params, 'referrer');
                 const backTo = getStringParam(lastRoute.params, 'backTo');
+                const reportsTabStateKey = getReportsTabStateKey(rootState);
                 const reusableReportsTabStateKey = getReusableReportsTabStateKey(rootState, reportID, reportActionID, doesLastReportActionExist);
+                const shouldDeferReportActions = !hasVisitedInboxTab.current;
 
-                if (reusableReportsTabStateKey) {
+                if (reusableReportsTabStateKey && !shouldDeferReportActions) {
                     // Focusing the existing tab without nested params preserves the mounted ReportScreen and
                     // avoids rebuilding its cached report list as part of the tab navigation commit.
                     navigationRef.dispatch({
                         ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
                         target: reusableReportsTabStateKey,
+                    });
+                    return;
+                }
+                if (reportsTabStateKey && reportID) {
+                    navigationRef.dispatch({
+                        ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
+                            screen: SCREENS.REPORT,
+                            params: {
+                                reportID,
+                                reportActionID: doesLastReportActionExist ? reportActionID : undefined,
+                                referrer,
+                                backTo,
+                                ...(shouldDeferReportActions ? {shouldDeferReportActions: true} : {}),
+                            },
+                        }),
+                        target: reportsTabStateKey,
                     });
                     return;
                 }

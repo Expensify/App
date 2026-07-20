@@ -5,6 +5,8 @@ import SCREENS from '@src/SCREENS';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 
+type RootNavigationState = NavigationState | PartialState<NavigationState> | undefined;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
 }
@@ -17,8 +19,16 @@ function getStringParam(params: unknown, key: string): string | undefined {
     return typeof value === 'string' ? value : undefined;
 }
 
+function getTabNavigatorRoute(rootState: RootNavigationState) {
+    return rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+}
+
+function getReportsTabStateKey(rootState: RootNavigationState): string | undefined {
+    return getTabNavigatorRoute(rootState)?.state?.key;
+}
+
 function getReusableReportsTabStateKey(
-    rootState: NavigationState | PartialState<NavigationState> | undefined,
+    rootState: RootNavigationState,
     reportID: string | undefined,
     reportActionID: string | undefined,
     doesReportActionExist: boolean | undefined,
@@ -27,7 +37,7 @@ function getReusableReportsTabStateKey(
         return undefined;
     }
 
-    const tabNavigatorRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabNavigatorRoute = getTabNavigatorRoute(rootState);
     const tabState = getTabState(tabNavigatorRoute);
     const reportsSplitRoute = tabState?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const preservedReportRoute = reportsSplitRoute?.state?.routes.findLast((route) => route.name === SCREENS.REPORT);
@@ -40,4 +50,5 @@ function getReusableReportsTabStateKey(
     return tabNavigatorRoute?.state?.key;
 }
 
+export {getReportsTabStateKey};
 export default getReusableReportsTabStateKey;

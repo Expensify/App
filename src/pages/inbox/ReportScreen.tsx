@@ -75,6 +75,7 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const shouldDeferReportActions = route.name === SCREENS.REPORT && route.params.shouldDeferReportActions === true;
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
@@ -151,7 +152,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                             testID="report-actions-view-wrapper"
                                                         >
-                                                            <ReportActionsWithInboxTabDeferredMount reportID={reportIDFromRoute} />
+                                                            <ReportActionsWithInboxTabDeferredMount
+                                                                reportID={reportIDFromRoute}
+                                                                shouldDefer={shouldDeferReportActions}
+                                                            />
                                                             {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
                                                         </View>
                                                     </ConciergeDraftProvider>
