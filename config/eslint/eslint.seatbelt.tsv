@@ -147,7 +147,6 @@
 "../../src/components/DatePicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DatePicker/index.tsx"	"react-hooks/refs"	1
 "../../src/components/DatePicker/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/DelegateNoAccessModalProvider/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/DialogLabelContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DisplayNames/DisplayNamesWithTooltip.tsx"	"react-hooks/refs"	6
 "../../src/components/DistanceRequest/DistanceRequestFooter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -233,8 +232,6 @@
 "../../src/components/LHNOptionsList/LHNEmptyState.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/LocationPermissionModal/index.android.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/components/LocationPermissionModal/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MagicCodeInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MagicCodeInput.tsx"	"react-hooks/refs"	1
@@ -1900,7 +1897,7 @@
 "../../tests/ui/IOURequestStepScanTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/ui/InitialSettingsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/LHNItemsPresence.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/ui/LocationPermissionModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/ui/LocationPermissionModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/MerchantListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/MoneyRequestReportActionsListRejectModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/MoneyRequestReportFooter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
