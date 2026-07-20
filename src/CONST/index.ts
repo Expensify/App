@@ -732,6 +732,9 @@ const CONST = {
             PLAID: 'plaid',
             NONE: '',
         },
+        CONNECT_EXISTING_SOURCE: {
+            CHANGE_BANK_ACCOUNT: 'changeBankAccount',
+        },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
@@ -1490,6 +1493,12 @@ const CONST = {
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
+        },
+        // The way a Submit-workspace report can be submitted. Persisted per-user so the report-view button
+        // can default to the last-used method.
+        SUBMISSION_METHOD: {
+            SUBMIT: 'submit',
+            SUBMIT_VIA_PDF: 'submitViaPDF',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
@@ -5702,7 +5711,11 @@ const CONST = {
         SE: 'Sweden',
     },
 
-    EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES: ['BE', 'CY', 'EE', 'FI', 'DE', 'GR', 'IE', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES', 'GB', 'GI'],
+    // Hard-coded fallback for the Expensify Card supported countries keyed by settlement currency
+    EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY: {
+        GBP: ['GB', 'GI'],
+        EUR: ['BE', 'DK', 'ES', 'FI', 'IE', 'LT', 'LU', 'LV', 'NL', 'PL', 'SE'],
+    },
 
     EU_REGISTRATION_NUMBER_REGEX: {
         AT: /^FN\d{6}[a-z]?$/i,
@@ -6050,6 +6063,7 @@ const CONST = {
             EXPENSE_DEFAULTS: 'expenseDefaults',
             REQUIRE_FIELDS: 'requireFields',
             FLAG_FOR_REVIEW: 'flagForReview',
+            AGENTS: 'agents',
         },
         SPLIT: {
             AMOUNT: 'amount',
@@ -7449,6 +7463,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
         },
+        SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 200,
@@ -8845,6 +8860,7 @@ const CONST = {
                 NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
                 NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS: 'WorkspaceRules-NewRuleMenuItem-ApplyExpenseDefaults',
+                NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE: 'WorkspaceRules-NewRuleMenuItem-CreateAgentRule',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
