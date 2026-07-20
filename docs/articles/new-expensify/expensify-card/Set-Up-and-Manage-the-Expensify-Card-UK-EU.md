@@ -60,7 +60,7 @@ Once you meet the requirements, you can enable the Expensify Card on your GBP or
 6. Review the **One more step** instructions and click **Go to Concierge**.
 7. In your conversation with Concierge, provide the most recent three months of bank statements for the bank account you selected in Step 5. These statements help determine your workspace's eligible spending limit.
 
-Concierge reviews your request and contacts you if any additional information is needed. Approval typically takes one to two business days. Once your workspace is approved, you can begin issuing Expensify Cards.
+Concierge will review your request and contact you if any additional information is needed. Approval typically takes one to two business days. Once your workspace is approved, you can begin issuing Expensify Cards.
 
 ---
 
