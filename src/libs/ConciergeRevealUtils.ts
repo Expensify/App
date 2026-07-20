@@ -1,11 +1,11 @@
-/** Default trickle duration. Targets ~19 chars/sec start (~7/sec end after ease-out) across a typical multi-paragraph response. */
-const DEFAULT_STREAM_DURATION_MS = 15_000;
+/** Default trickle duration. Targets ~25 chars/sec average (~40-50/sec peak at the front-loaded start) across a typical multi-paragraph response, close to the ChatGPT/Claude reveal feel. */
+const DEFAULT_STREAM_DURATION_MS = 3_000;
 /** Short replies still trickle, but they should not take a full multi-paragraph reveal duration. */
 const MIN_STREAM_DURATION_MS = 600;
 /** Token count that maps to the default multi-paragraph reveal duration. */
 const DEFAULT_STREAM_TOKEN_COUNT = 100;
-/** Trickle tick cadence. 80ms targets ~1 char per tick at char-level granularity. */
-const TICK_INTERVAL_MS = 80;
+/** Trickle tick cadence. 40ms keeps the faster reveal smooth so it doesn't reveal several chars per tick and look chunky. */
+const TICK_INTERVAL_MS = 40;
 /** Hard cap on a running trickle and staleness gate on revisit. */
 const TRICKLE_HARD_CAP_MS = 60_000;
 /** Once the real reportComment lands in REPORT_ACTIONS, finish the remaining reveal within this window. */
