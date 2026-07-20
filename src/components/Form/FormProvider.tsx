@@ -125,6 +125,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Callback fired synchronously when the user presses submit, before validation runs */
     onBeforeSubmit?: () => void;
 
+    /** Whether the confirm button should show a spinner immediately on press */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -146,6 +149,7 @@ function FormProvider({
     shouldHideFixErrorsAlert = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
+    shouldShowLoadingImmediatelyOnPress = true,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -167,7 +171,8 @@ function FormProvider({
 
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
-    const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const hasServerError = !!formState && !isEmptyObject(formState?.errors);
+    const hasServerErrorFields = !!formState && !isEmptyObject(formState?.errorFields);
     const {setIsBlurred} = useInputBlurActions();
     const blurTransitionHandle = useRef<CancelHandle | null>(null);
 
@@ -194,10 +199,12 @@ function FormProvider({
         (values: FormOnyxValues, shouldClearServerError = true) => {
             const trimmedStringValues = shouldTrimValues ? prepareValues(values) : values;
 
-            if (shouldClearServerError) {
+            if (shouldClearServerError && hasServerError) {
                 clearErrors(formID);
             }
-            clearErrorFields(formID);
+            if (hasServerErrorFields) {
+                clearErrorFields(formID);
+            }
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
@@ -251,7 +258,7 @@ function FormProvider({
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation],
+        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation, hasServerError, hasServerErrorFields],
     );
 
     // When locales change from another session of the same account,
@@ -281,7 +288,9 @@ function FormProvider({
         [touchedInputs],
     );
 
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!formState?.isLoading || isOnyxLoading});
+    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
+    const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
 
     const submit = useDebounceNonReactive(
         useCallback(() => {
@@ -315,7 +324,7 @@ function FormProvider({
                 return;
             }
 
-            startWithLoading(() => {
+            const runSubmit = () => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
                     KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
@@ -323,8 +332,28 @@ function FormProvider({
                 } else {
                     onSubmit(trimmedStringValues);
                 }
-            });
-        }, [enabledWhenOffline, isLoading, inputValues, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit, startWithLoading]),
+            };
+
+            if (!shouldShowLoadingImmediatelyOnPress) {
+                runSubmit();
+                return;
+            }
+
+            startWithLoading(runSubmit);
+        }, [
+            enabledWhenOffline,
+            isLoading,
+            inputValues,
+            isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+            shouldShowLoadingImmediatelyOnPress,
+            startWithLoading,
+        ]),
         1000,
         {leading: true, trailing: false},
     );
@@ -549,9 +578,11 @@ function FormProvider({
                 onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
-                isLoading={isLoading}
+                isAlertVisible={isGeneralAlertVisible}
+                serverErrorFields={formState?.errorFields}
+                serverErrorMessage={errorMessage}
+                isLoading={!!formState?.isLoading || isLoading}
                 enabledWhenOffline={enabledWhenOffline}
-                shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
                 ref={formWrapperRef}
