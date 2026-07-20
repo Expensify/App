@@ -90,7 +90,6 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                 offlineWithFeedback={{
                     pendingAction: item.pendingAction,
                     shouldHideOnDelete: false,
-                    errors: item.errors,
                     onClose: item.onCloseError,
                 }}
                 onPress={item.action}

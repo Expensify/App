@@ -62,7 +62,6 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ROW}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
                 onClose: item.onClose,

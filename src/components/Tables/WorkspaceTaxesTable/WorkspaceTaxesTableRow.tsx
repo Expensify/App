@@ -61,7 +61,6 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ROW}
             onPress={item.action}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 onClose: item.onClose,
             }}

@@ -58,7 +58,6 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.ROW}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 onClose: item.dismissError,
             }}

@@ -85,7 +85,7 @@ function WorkspaceCompanyCardTableRow({
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, pendingAction, isCardDeleted, onDismissError} = item;
 
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
@@ -131,7 +131,7 @@ function WorkspaceCompanyCardTableRow({
             disabled={isCardDeleted || !canPressRow}
             accessibilityLabel={`${memberColumnTitle}, ${narrowWidthCardName}`}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
-            offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
+            offlineWithFeedback={{pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
             onPress={handleRowPress}
         >
             {({hovered}) => (

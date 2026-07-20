@@ -1,5 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type * as TableContext from '@components/Table/TableContext';
 import type {AgentRowData} from '@components/Tables/AgentsTable';
 import AgentsTableRow from '@components/Tables/AgentsTable/AgentsTableRow';
 
@@ -62,6 +63,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@components/Table/TableContext', () => ({
+    ...jest.requireActual<typeof TableContext>('@components/Table/TableContext'),
     useTableContext: jest.fn(() => ({
         processedData: [{keyForList: '12345'}],
         columns: [{width: undefined}, {width: 260}],

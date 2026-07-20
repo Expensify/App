@@ -57,8 +57,8 @@ type TestItem = TableData & {name: string};
 type TestColumnKey = 'name' | 'actions';
 
 const mockData: TestItem[] = [
-    {keyForList: '1', name: 'Apple'},
-    {keyForList: '2', name: 'Banana'},
+    {keyForList: '1', name: 'Apple', errors: {}},
+    {keyForList: '2', name: 'Banana', errors: {requestID: null}},
 ];
 
 // The label-less `actions` column is the decorative caret column every table carries.
@@ -127,7 +127,6 @@ const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
         interactive
         rowIndex={index}
         accessibilityLabel={item.name}
-        offlineWithFeedback={{errors: index === 0 ? {} : {requestID: null}}}
     >
         <View role={CONST.ROLE.CELL}>
             <Text>{item.name}</Text>
@@ -270,7 +269,6 @@ function renderTableWithFooters({shouldAddErrors}: {shouldAddErrors: boolean}) {
             interactive
             rowIndex={index}
             accessibilityLabel={item.name}
-            offlineWithFeedback={{errors: item.errors}}
         >
             <View role={CONST.ROLE.CELL}>
                 <Text>{item.name}</Text>
@@ -303,7 +301,6 @@ function renderTableWithErrors() {
             interactive
             rowIndex={index}
             accessibilityLabel={item.name}
-            offlineWithFeedback={{errors: item.errors}}
         >
             <View role={CONST.ROLE.CELL}>
                 <Text>{item.name}</Text>

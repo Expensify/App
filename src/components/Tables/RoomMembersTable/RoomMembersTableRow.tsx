@@ -47,7 +47,6 @@ export default function RoomMembersTableRow({item, rowIndex}: RoomMembersTableRo
             sentryLabel={CONST.SENTRY_LABEL.REPORT.ROOM_MEMBERS_ROW}
             onPress={item.action}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 dismissError: item.dismissError,
             }}

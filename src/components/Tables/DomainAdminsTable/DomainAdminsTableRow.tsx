@@ -54,7 +54,6 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.ROW}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 onClose: item.dismissError,
             }}

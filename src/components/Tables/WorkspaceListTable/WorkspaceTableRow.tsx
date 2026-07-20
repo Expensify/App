@@ -113,7 +113,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
             onPress={item.action}
             offlineWithFeedback={{
-                errors: item.errors,
                 shouldHideOnDelete: false,
                 pendingAction: item.pendingAction,
                 onClose: item.dismissError,

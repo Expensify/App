@@ -76,7 +76,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {processedData} = useTableContext<DistanceRateTableItemData>();
 
-    const {rate, formattedRate, pendingAction, errors} = item;
+    const {rate, formattedRate, pendingAction} = item;
     const isSelected = processedData.at(rowIndex)?.selected ?? false;
 
     const status = getRateStatus(rate);
@@ -93,7 +93,6 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ROW}
             offlineWithFeedback={{
-                errors,
                 pendingAction,
                 shouldHideOnDelete: false,
                 onClose: item.dismissError,

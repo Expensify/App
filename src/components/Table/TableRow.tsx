@@ -44,8 +44,8 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** Where the row leads. Supplying it turns the row's affordance into a real link, openable in a new tab. */
     route?: Route;
 
-    /** Attributes for when the client is offline and there is an error related to the table row */
-    offlineWithFeedback?: OfflineWithFeedbackProps;
+    /** Offline attributes a row may set. Errors are absent because the table reads them from the row's data to count them. */
+    offlineWithFeedback?: Pick<OfflineWithFeedbackProps, 'pendingAction' | 'onClose' | 'dismissError' | 'shouldHideOnDelete'>;
 
     /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
     checkboxReplacementElement?: React.ReactNode;
@@ -205,6 +205,7 @@ export default function TableRow({
     return (
         <OfflineWithFeedback
             {...offlineWithFeedback}
+            errors={item.errors}
             shouldShowErrorMessages={false}
         >
             <TableRowPressable

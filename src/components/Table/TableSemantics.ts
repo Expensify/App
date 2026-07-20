@@ -83,5 +83,5 @@ function getTableSemantics<TRow extends {errors?: unknown}>(rows: TRow[], render
     return {isInTableGrid, dataRowIndexes, rowCount: rows.length ? nextRowIndex - 1 : 0};
 }
 
-export {TableSemanticsContext, TableRowActionContext, HEADER_ROW_INDEX, getExtraRowCount, getTableSemantics, hasErrorRow, useIsInTableGrid};
-export type {TableRowActionContextValue, TableSemanticsContextValue, RenderRowFooter};
+export {TableSemanticsContext, TableRowActionContext, HEADER_ROW_INDEX, getTableSemantics, hasErrorRow, useIsInTableGrid};
+export type {RenderRowFooter};

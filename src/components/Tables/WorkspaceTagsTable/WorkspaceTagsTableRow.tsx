@@ -84,7 +84,6 @@ export default function WorkspaceTagsTableRow({
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ROW}
             onPress={item.action}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 onClose: item.onClose,
             }}

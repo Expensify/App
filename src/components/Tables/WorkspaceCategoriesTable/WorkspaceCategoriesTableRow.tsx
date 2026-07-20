@@ -59,7 +59,6 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW}
             onPress={item.action}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
                 onClose: item.dismissError,

@@ -1451,18 +1451,14 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // The confirmation starts on the first of the two transactions
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
 
-            // When pressing the Next button (the second of the two prev/next nav buttons)
-            const navButtons = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
-            expect(navButtons).toHaveLength(2);
-            const [, nextButton] = navButtons;
-            fireEvent.press(nextButton);
+            // When pressing the Next button
+            fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.next')}));
 
             // Then the second transaction is displayed (setCurrentTransactionID committed inside startTransition)
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
 
             // And pressing the Previous button returns to the first transaction
-            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
-            fireEvent.press(prevButton);
+            fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.previous')}));
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
         });
     });

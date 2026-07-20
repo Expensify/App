@@ -64,7 +64,6 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             selectionLabel={`${item.name}, ${item.email}`}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LIST_ROW}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 onClose: item.dismissError,
             }}

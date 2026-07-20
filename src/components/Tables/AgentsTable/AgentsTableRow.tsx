@@ -58,7 +58,6 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.AGENTS.TABLE_ROW}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 onClose: item.dismissError,
                 shouldHideOnDelete: false,

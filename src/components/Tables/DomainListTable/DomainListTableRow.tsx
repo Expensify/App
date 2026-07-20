@@ -88,7 +88,6 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 onClose: () => clearDomainErrors(item.domainAccountID),
             }}

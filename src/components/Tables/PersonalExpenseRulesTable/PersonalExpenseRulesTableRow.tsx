@@ -38,7 +38,6 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
             sentryLabel={CONST.SENTRY_LABEL.EXPENSE_RULES.TABLE_ROW}
             onPress={item.action}
             offlineWithFeedback={{
-                errors: item.errors,
                 pendingAction: item.pendingAction,
                 onClose: item.dismissError,
                 shouldHideOnDelete: false,
