@@ -39,7 +39,7 @@ import {View} from 'react-native';
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'Location', 'LuggageWithLinesPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'LocationAdd', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -226,7 +226,7 @@ function QuickCreationActionsBar() {
             />
             <Button
                 small
-                icon={icons.Location}
+                icon={icons.LocationAdd}
                 text={translate('common.distance')}
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}
