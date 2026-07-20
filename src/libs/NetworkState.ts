@@ -152,11 +152,9 @@ function setSustainedFailures(active: boolean) {
 }
 
 /**
- * Arms a one-shot recovery for the debug/simulation paths that clear an artificial hard stop.
- * They clear it synchronously, so by the time the refreshed Ping confirms reachability the app
- * is already back online and the confirmation would be ignored as a re-read. The pending token
- * authorizes that one recovery. Resetting prev lets the listener see a transition again — real
- * state is tracked as true during the simulation, so it would otherwise see true→true and skip.
+ * The debug paths clear their hard stop right away, so when the refreshed Ping confirms
+ * reachability the app already looks online and the listener would ignore it. The token
+ * allows that one recovery. Resetting prev makes the listener see a transition again.
  */
 function armReachabilityRecovery() {
     prevIsInternetReachable = null;
@@ -328,18 +326,16 @@ function configureAndSubscribe() {
             setInternetUnreachable(true);
         }
 
-        // A confirmed-reachable event is only a recovery when the app was actually offline
-        // (a hard stop is active), or when a debug path explicitly requested one (the pending
-        // token). Anything else — boot's undefined→null→true sequence, a re-subscription after
-        // NetInfo.configure(), or NetInfo re-emitting its cached state on refresh() — is a
-        // re-read of an unchanged network, not a recovery, and must not fire reconnectApp.
+        // Treat a confirmed-reachable event as a recovery only when the app was actually offline
+        // or a debug path asked for one. Everything else (boot, re-subscription, refresh() re-emits)
+        // is a re-read of an unchanged network and must not fire reconnectApp.
         if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable !== true) {
             if (getIsOffline() || pendingReachabilityRecovery) {
                 pendingReachabilityRecovery = false;
                 Log.info(`[NetworkState] Internet reachability restored (${prevIsInternetReachable}→true)`);
                 onReachabilityRestored();
             } else {
-                Log.info(`[NetworkState] Ignoring reachability re-confirmation (${prevIsInternetReachable}→true) — app was never offline`);
+                Log.info(`[NetworkState] Ignoring reachability re-confirmation (${prevIsInternetReachable}→true) since the app was never offline`);
             }
         }
         prevIsInternetReachable = state.isInternetReachable;
@@ -369,12 +365,10 @@ Onyx.connectWithoutView({
     },
 });
 
-// Re-target the reachability ping when the in-app staging-server toggle flips at runtime.
-// queueMicrotask defers past ApiUtils' Onyx callback for the same key — registered later and
-// therefore firing later on the same tick — which owns the effective flag getApiRoot() uses.
-// Rebuild only when the effective URL changed: rebuilding tears down NetInfo state and fires
-// extra reachability Pings, and the raw toggle value can change without changing the URL
-// (production forces the flag off; null falls back to the environment default).
+// Re-target the reachability ping when the staging-server toggle flips at runtime.
+// queueMicrotask waits for ApiUtils' callback on the same key, which owns the flag behind
+// getApiRoot(). Skip the rebuild when the URL is unchanged: rebuilding tears down NetInfo
+// state and fires extra Pings, and the raw toggle can flip without changing the URL.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     callback: () => {

@@ -114,10 +114,10 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
     });
 
     test('null→true does NOT fire reconnect listener when the app was never offline (fake recovery)', () => {
-        // This is the boot / post-configure / refresh() re-emit shape: NetInfo emits null while
-        // a Ping is in flight, then true when it succeeds. No hard stop was ever active, so
-        // there is nothing to reconnect from. Treating this as a recovery caused serial
-        // Ping+ReconnectApp storms in production (issue #2738).
+        // Boot, post-configure, and refresh() all look like this: NetInfo emits null while a Ping
+        // is in flight, then true when it succeeds. No hard stop was active, so there is nothing
+        // to recover from. Treating this as a recovery caused ReconnectApp storms in production
+        // (issue #2738).
         const reconnectListener = jest.fn();
         onReachabilityConfirmed(reconnectListener);
 
@@ -131,7 +131,7 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
         const reconnectListener = jest.fn();
         onReachabilityConfirmed(reconnectListener);
 
-        // Confirmed unreachable — the internetUnreachable hard stop is active
+        // Confirmed unreachable, so the internetUnreachable hard stop is active
         fireNetInfoState({isInternetReachable: false});
         // Tracking lost mid-outage, then recovery confirmed
         fireNetInfoState({isInternetReachable: null});
