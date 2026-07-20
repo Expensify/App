@@ -3534,29 +3534,34 @@ describe('SearchQueryUtils', () => {
 
     describe('getAdvancedFiltersToReset', () => {
         it('should return an empty object when input is empty', () => {
-            const result = getAdvancedFiltersToReset({});
+            const result = getAdvancedFiltersToReset({}, new Set());
             expect(result).toEqual({});
         });
 
-        it('should reset type to EXPENSE when it has a non-EXPENSE value', () => {
+        it('should reset non-root filter keys to undefined', () => {
             const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                view: CONST.SEARCH.VIEW.TABLE,
+                columns: ['action'],
+                groupBy: 'card',
+                limit: '5',
+                merchant: 'Marriott',
+                currency: ['USD', 'EUR'],
+                dateAfter: '2024-01-01',
+                keyword: 'hotel',
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
             };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            const result = getAdvancedFiltersToReset(form, new Set());
+            expect(result).toStrictEqual({
+                merchant: undefined,
+                currency: undefined,
+                dateAfter: undefined,
+                keyword: undefined,
+                status: undefined,
             });
         });
 
-        it('should not include type in reset when it is already EXPENSE', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.type).toBeUndefined();
-        });
-
-        it('should reset other filter keys to undefined', () => {
+        it('should not reset default filter keys', () => {
             const form: Partial<SearchAdvancedFiltersForm> = {
                 merchant: 'Marriott',
                 currency: ['USD', 'EUR'],
@@ -3564,40 +3569,11 @@ describe('SearchQueryUtils', () => {
                 keyword: 'hotel',
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
             };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                merchant: undefined,
+            const result = getAdvancedFiltersToReset(form, new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]));
+            expect(result).toStrictEqual({
                 currency: undefined,
                 dateAfter: undefined,
                 keyword: undefined,
-            });
-        });
-
-        it('should exclude columns from being reset if type is expense', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
-                merchant: 'test',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.columns).toBeUndefined();
-            expect(result).toEqual({
-                merchant: undefined,
-            });
-        });
-
-        it('should exclude columns from being reset', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
-                merchant: 'test',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.columns).toBeUndefined();
-            expect(result).toEqual({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                merchant: undefined,
-                columns: undefined,
             });
         });
     });
