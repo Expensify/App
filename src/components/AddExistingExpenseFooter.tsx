@@ -1,3 +1,4 @@
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,9 +16,9 @@ import {changeTransactionsReport} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated, Transaction} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -55,7 +56,6 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -65,6 +65,10 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [transactions] = useTransactionsByID([...selectedIds]);
+    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
+        transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]),
+    );
+    const reports = useChangeTransactionsReportReports([...selectedIds], transactionsCollection, reportToConfirm);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -104,7 +108,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         policyTagList,
                         transactions,
                         allTransactionViolation: transactionViolations,
-                        allReports,
+                        reports,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     });

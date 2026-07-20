@@ -7,6 +7,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -82,10 +83,11 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const transactionIDsForReports = Object.keys(selectedTransactions).length ? Object.keys(selectedTransactions) : selectedTransactionIDs;
+    const reports = useChangeTransactionsReportReports(transactionIDsForReports, allTransactions, undefined);
     const personalPolicy = usePersonalPolicy();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
@@ -125,6 +127,10 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
+            const reportsForCall = {
+                ...reports,
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+            };
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
                     transactionIDs,
@@ -138,7 +144,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     policyTagList,
                     transactions,
                     allTransactionViolation: transactionViolations,
-                    allReports,
+                    reports: reportsForCall,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });

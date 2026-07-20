@@ -2,6 +2,7 @@ import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -24,6 +25,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo} from 'react';
@@ -57,6 +60,10 @@ function SearchTransactionsChangeReport() {
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
+        transactions.map((transactionItem) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, transactionItem]),
+    );
+    const reports = useChangeTransactionsReportReports(selectedTransactionsKeys, transactionsCollection, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -170,7 +177,7 @@ function SearchTransactionsChangeReport() {
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
-                allReports,
+                reports,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
@@ -238,6 +245,12 @@ function SearchTransactionsChangeReport() {
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+        const reportsForCall = destinationReport?.reportID
+            ? {
+                  [`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`]: destinationReport,
+                  ...reports,
+              }
+            : reports;
         changeTransactionsReport({
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
@@ -250,7 +263,7 @@ function SearchTransactionsChangeReport() {
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
-            allReports,
+            reports: reportsForCall,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
@@ -271,7 +284,7 @@ function SearchTransactionsChangeReport() {
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
-            allReports,
+            reports,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });

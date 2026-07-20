@@ -2,6 +2,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
@@ -26,9 +27,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
@@ -85,6 +86,10 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
+        transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]),
+    );
+    const reports = useChangeTransactionsReportReports(transactionIDs, transactionsCollection, selectedReport);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
@@ -94,6 +99,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+        const reportsForCall = newReport?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${newReport.reportID}`]: newReport, ...reports} : reports;
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -108,7 +114,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
-                allReports,
+                reports: reportsForCall,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
@@ -133,7 +139,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
-            allReports,
+            reports,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });

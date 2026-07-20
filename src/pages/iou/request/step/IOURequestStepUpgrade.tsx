@@ -8,6 +8,7 @@ import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 
 import useActivePolicy from '@hooks/useActivePolicy';
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -43,6 +44,8 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -97,7 +100,6 @@ function IOURequestStepUpgrade({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -107,6 +109,10 @@ function IOURequestStepUpgrade({
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
+        transactions.map((transactionItem) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, transactionItem]),
+    );
+    const reports = useChangeTransactionsReportReports(selectedTransactionsKeys, transactionsCollection, undefined);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const ownerAccountID = selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID;
 
@@ -150,7 +156,7 @@ function IOURequestStepUpgrade({
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
-                allReports,
+                reports,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
                 personalPolicyOutputCurrency: undefined,
@@ -252,7 +258,7 @@ function IOURequestStepUpgrade({
         allPolicyTags,
         createReportForCurrentUser,
         transactionViolations,
-        allReports,
+        reports,
         isTrackIntentUser,
     ]);
 

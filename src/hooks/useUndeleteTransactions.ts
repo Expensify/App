@@ -18,7 +18,7 @@ function useUndeleteTransactions() {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     return (transactions: Transaction[]) => {
@@ -33,7 +33,7 @@ function useUndeleteTransactions() {
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
-            allReports,
+            reports,
             isTrackIntentUser,
             personalPolicyOutputCurrency: policy?.outputCurrency,
         });
