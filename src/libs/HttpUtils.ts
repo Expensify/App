@@ -53,7 +53,7 @@ const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQ
  * Per-command server response messages we recognize as the PHP-wrapped "AlreadyCreated" error.
  * Add new variants here as we discover them for other non-idempotent commands.
  */
-const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION]);
+const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION, CONST.ERROR_TITLE.ALREADY_PAID]);
 
 /**
  * Regex to get API command from the command
