@@ -5,12 +5,14 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletTravelInvoicingSettlementsAccount} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -50,6 +52,14 @@ function RilletTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnecti
                 keyForList: bankAccountItem.id,
                 isSelected: travelInvoicingSettlementsBankAccountID === bankAccountItem.id,
             })) ?? [];
+    const filterData = (bankAccountItem: BankAccountListItem, searchInput: string) =>
+        tokenizedSearch([bankAccountItem], searchInput, () => [bankAccountItem.text ?? '', bankAccountItem.value]).length > 0;
+    const [searchValue, setSearchValue, filteredData] = useSearchResults(data, filterData);
+    const textInputOptions = {
+        label: data.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     const headerContent = (
         <View>
@@ -83,7 +93,8 @@ function RilletTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnecti
             shouldBeBlocked={shouldBeBlocked}
             displayName="RilletTravelInvoicingSettlementAccountPage"
             title="workspace.rillet.travelInvoicingSettlementAccount.label"
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={setTravelInvoicingSettlementsAccount}
