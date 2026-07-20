@@ -13,6 +13,7 @@ import {
     updatePersonalDetailsAndShipExpensifyCards,
 } from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import type ResendValidateCodeParams from '@libs/API/parameters/ResendValidateCodeParams';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -35,6 +36,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {areAllExpensifyCardsShipped} from '@selectors/Card';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {getSubPageValues} from './utils';
@@ -104,11 +106,19 @@ function MissingPersonalDetailsMagicCodePage({
         [countryCode, values, isVirtualCard, cardID],
     );
 
+    // The validate code minted here must carry the reasonCode of the command handleSubmitForm will
+    // dispatch: virtual cards verify via SetPersonalDetailsAndRevealExpensifyCard (reveal_card_details)
+    // and physical cards via SetPersonalDetailsAndShipExpensifyCards (ship_card). The reasonCode is
+    // baked into the validate-code hash, so this branch must stay in lockstep with handleSubmitForm.
+    const resendValidateCodeParams: ResendValidateCodeParams = isVirtualCard
+        ? {reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: Number(cardID)}
+        : {reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SHIP_CARD};
+
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction(resendValidateCodeParams)}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
             validateError={!isEmptyObject(revealCardError) ? revealCardError : validateLoginError}
