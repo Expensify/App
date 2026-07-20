@@ -31,6 +31,7 @@ const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     currentSearchResults: undefined,
     currentSelectedTransactionReportID: undefined,
     selectedReports: [],
@@ -60,6 +61,7 @@ const mockSearchActionsContext = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
+    setCurrentSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createCategoryListItem = (category: string, options: Partial<TransactionCategoryGroupListItemType> = {}): TransactionCategoryGroupListItemType => ({

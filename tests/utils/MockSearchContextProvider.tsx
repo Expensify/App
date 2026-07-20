@@ -36,6 +36,7 @@ function splitState(value: SearchStateContextValue): {
             currentSimilarSearchHash: value.currentSimilarSearchHash,
             currentSearchKey: value.currentSearchKey,
             currentSearchQueryJSON: value.currentSearchQueryJSON,
+            currentDefaultSearchQueryFilterKeys: value.currentDefaultSearchQueryFilterKeys,
             suggestedSearches: value.suggestedSearches,
             shouldResetSearchQuery: value.shouldResetSearchQuery,
         },
@@ -64,7 +65,7 @@ function splitActions(value: SearchActionsContextValue): {
     selection: SearchSelectionActionsValue;
 } {
     return {
-        query: {setShouldResetSearchQuery: value.setShouldResetSearchQuery},
+        query: {setShouldResetSearchQuery: value.setShouldResetSearchQuery, setCurrentSearchKey: value.setCurrentSearchKey},
         results: {
             setSortedReportIDs: value.setSortedReportIDs,
             setShouldShowFiltersBarLoading: value.setShouldShowFiltersBarLoading,
