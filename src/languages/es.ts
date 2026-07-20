@@ -278,6 +278,7 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Cambio',
         category: 'Categoría',
         vendor: 'Proveedor',
+        supplier: 'Proveedor',
         report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',
@@ -386,6 +387,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validar',
         downloadAsPDF: 'Descargar como PDF',
         downloadAsCSV: 'Descargar como CSV',
+        submitViaPDF: 'Enviar por PDF',
         print: 'Imprimir',
         help: 'Ayuda',
         collapsed: 'Contraído',
@@ -467,6 +469,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -1031,6 +1034,12 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Emitir tarjetas Expensify',
             issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
+            customizeSpendCategories: 'Personaliza las categorías de gasto',
+            customizeSpendCategoriesSubText: 'Organiza y clasifica gastos',
+            createExpense: 'Crear un gasto',
+            createExpenseSubText: 'Escanea, arrastra y suelta o introduce manualmente un gasto usando el botón +',
+            linkPersonalCard: 'Vincular tarjeta personal',
+            linkPersonalCardSubText: 'Importa gastos automáticamente',
             configureApprovals: 'Configura el flujo de aprobación',
             talkToAccountExecutive: 'Habla con tu ejecutivo de cuenta',
             begin: 'Empezar',
@@ -1123,6 +1132,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'No se han añadido reglas de comerciante, ya que todas ya existen.';
+            }
+            return rules > 1 ? `Se han añadido ${rules} reglas de comerciante.` : 'Se ha añadido 1 regla de comerciante.';
+        },
+        importMerchantRulesRequiredColumns:
+            '¡Ups! Debes asignar al menos una columna "El comerciante es" o "El comerciante contiene", además de al menos un campo para actualizar. Por favor, revisa e inténtalo de nuevo.',
         importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.',
@@ -1140,6 +1157,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Por favor confirma los detalles a continuación para los ${count} nuevos miembros del espacio de trabajo que se agregarán como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
         }),
+        importMembersRolePermissionWarning: 'No tienes permiso para asignar algunos roles de miembro. Los nuevos miembros afectados se han invitado como miembros.',
     },
     receipt: {
         upload: 'Subir recibo',
@@ -4320,6 +4338,7 @@ ${amount} para ${merchant} - ${date}`,
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
             categories: 'Categorías',
+            vendors: 'Proveedores',
             tags: 'Etiquetas',
             customField1: 'Campo personalizado 1',
             customField2: 'Campo personalizado 2',
@@ -4846,6 +4865,10 @@ ${amount} para ${merchant} - ${date}`,
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
+            defaultSupplier: 'Proveedor predeterminado',
+            defaultSupplierDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al exportar.',
+            noSuppliersFound: 'No se encontraron proveedores',
+            noSuppliersFoundDescription: 'Por favor, añade el proveedor en Xero y sincroniza de nuevo la conexión.',
             accountingMethods: {
                 label: 'Cuándo Exportar',
                 description: 'Elige cuándo exportar los gastos:',
@@ -5454,6 +5477,35 @@ ${amount} para ${merchant} - ${date}`,
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
             travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Reemplaza la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Sobrescribe la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} programas con cuentas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Sobrescribe la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Reemplaza la cuenta del programa para estas tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todas las tarjetas usan cuentas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} tarjeta con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} tarjetas con cuentas personalizadas`;
+                },
+            },
         },
         type: {
             free: 'Gratis',
@@ -6079,6 +6131,12 @@ ${amount} para ${merchant} - ${date}`,
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `El campo de fórmula ${value} no se reconoce`,
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
             genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
+        },
+        vendors: {
+            emptyTitle: 'Todavía no hay proveedores',
+            emptySubtitle: 'Los proveedores aparecerán aquí una vez que se complete la sincronización de contabilidad.',
+            findVendor: 'Buscar proveedor',
+            managedInAccountingSoftware: 'Los proveedores se gestionan en tu',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -6960,8 +7018,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             updateToUSD: 'Actualizar a USD',
             updateWorkspaceCurrency: 'Actualizar la moneda del espacio de trabajo',
             workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
+            notAllowedToAddBankAccount:
+                'Tu espacio de trabajo está configurado en una moneda no compatible. Ponte en contacto con un administrador del espacio de trabajo que tenga permiso para cambiarla.',
             yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de monedas soportadas</a>.`,
             chooseAnExisting: 'Elige una cuenta bancaria existente para pagar gastos o añade una nueva.',
+            changeBankAccount: 'Cambiar cuenta bancaria',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir la propiedad',
@@ -7398,6 +7459,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 findRule: 'Buscar regla de comerciante',
                 addRuleTitle: 'Añadir regla',
                 editRuleTitle: 'Editar regla',
+                importRulesTitle: 'Importar reglas de comerciante',
+                importRulesSupportingText:
+                    'Asigna cada columna de tu hoja de cálculo a un campo de la regla de comerciante. Cuando todo esté correcto, haz clic abajo para importar tus reglas.',
+                importColumnMerchantIs: 'El comerciante es',
+                importColumnMerchantContains: 'El comerciante contiene',
+                importColumnUpdatedMerchant: 'Comerciante actualizado',
+                importColumnUpdatedCategory: 'Categoría actualizada',
+                importColumnUpdatedTag: 'Etiqueta actualizada',
+                importColumnUpdatedDescription: 'Descripción actualizada',
                 expensesWith: 'Para gastos con:',
                 expensesExactlyMatching: 'Para gastos que coincidan exactamente con:',
                 applyUpdates: 'Aplicar estas actualizaciones:',
@@ -7601,6 +7671,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 agentCreatedTitle: '¡RuleBot se ha añadido a tu espacio de trabajo!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
+                revampSubtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
+                newRuleTitle: 'Nueva regla',
+                describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
+                gotIt: 'Entendido',
+                createRule: 'Crear regla',
             },
             tabs: {
                 general: 'General',
@@ -7608,6 +7683,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 expenseDefaults: 'Valores predeterminados de gastos',
                 requireFields: 'Campos obligatorios',
                 flagForReview: 'Marcar para revisión',
+                agents: 'Agentes',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7666,9 +7742,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 applyExpenseDefaults: 'Aplicar valores predeterminados de gastos',
                 applyExpenseDefaultsDescription: 'Actualizar campos sin que quien los envía haga nada',
                 flagForReview: 'Marcar para revisión',
-                flagForReviewDescription: 'Notificar a los aprobadores cuando los gastos superen los límites de categoría',
+                flagForReviewDescription: 'Notificar cuando se cumplan tus condiciones.',
                 requireFields: 'Campos obligatorios',
-                requireFieldsDescription: 'Asegúrate de que los campos clave estén rellenos antes de enviar los gastos',
+                requireFieldsDescription: 'Recibos, categorías, etc., al enviar.',
+                createAgentRule: 'Regla de agente',
+                createAgentRuleDescription: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7731,6 +7809,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 confirmErrorCategory: 'Por favor, selecciona una categoría.',
                 confirmErrorAmount: 'Por favor, introduce una cantidad.',
                 thenFlagForReview: 'Luego marcar para revisión cuando:',
+            },
+            agentRulesEmptyState: {
+                title: 'No se han añadido reglas de agente',
+                subtitle: 'Crea una regla para automatizar las políticas de tu espacio de trabajo.',
+                cta: 'Añadir regla de IA',
             },
         },
         emptyDomain: {
@@ -9602,7 +9685,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         duplicatedTransaction: 'Posible duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
-        inactiveVendor: 'El proveedor ya no es válido',
+        inactiveVendor: ({isSupplier = false} = {}) => (isSupplier ? 'El proveedor ya no es válido' : 'El proveedor ya no es válido'),
         invoiceMarkup: (invoiceMarkup) => `Incrementado un ${invoiceMarkup}%`,
         maxAge: (maxAge) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
