@@ -186,13 +186,15 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     // every render because it comes from useCreateEmptyReportConfirmation (which is not memoized). Including it made
     // the effect re-fire on every render while pendingPolicySelection stayed truthy, causing a
     // "Maximum update depth exceeded" crash. The effect only needs to react to pendingPolicySelection changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
     useEffect(() => {
         if (!pendingPolicySelection) {
             return;
         }
 
         openCreateReportConfirmation();
+        // The effect only depends on pendingPolicySelection. openCreateReportConfirmation is intentionally excluded
+        // from the deps (see comment above) to avoid re-firing the effect on every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- openCreateReportConfirmation is excluded on purpose (see comment above)
     }, [pendingPolicySelection]);
 
     const selectPolicy = (policy?: WorkspaceListItem) => {
