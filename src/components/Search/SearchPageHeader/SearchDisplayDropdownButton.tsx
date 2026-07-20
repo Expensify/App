@@ -1,5 +1,4 @@
 import Icon from '@components/Icon';
-import type IconSize from '@components/Icon/types';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import DisplayPopup from '@components/Search/FilterDropdowns/DisplayPopup';
@@ -19,6 +18,8 @@ import type {SearchResults} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+
+import getSearchHeaderIconSize from './getSearchHeaderIconSize';
 
 type SearchDisplayDropdownButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -54,12 +55,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
     );
 
     if (shouldUseNarrowLayout || isMediumScreenWidth) {
-        let iconSize: IconSize | undefined;
-        if (isMediumScreenWidth) {
-            iconSize = CONST.ICON_SIZE.EXTRA_SMALL;
-        } else if (shouldUseNarrowLayout) {
-            iconSize = CONST.ICON_SIZE.SMALL;
-        }
+        const iconSize = getSearchHeaderIconSize(isMediumScreenWidth, shouldUseNarrowLayout);
 
         return (
             <FilterPopupButton
