@@ -6857,6 +6857,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             notAllowedToAddBankAccount: '您的工作区设置了不受支持的货币。请联系有权更改该货币的工作区管理员。',
             yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
+            changeBankAccount: '更改银行账户',
         },
         changeOwner: {
             changeOwnerPageTitle: '转移所有者',
