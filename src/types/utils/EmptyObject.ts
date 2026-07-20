@@ -1,5 +1,7 @@
 import CONST from '@src/CONST';
 
+// no-op: trigger CI paths filter to validate setupNode cache change (safe to revert)
+
 type EmptyObject = Record<string, never>;
 
 type EmptyValue = EmptyObject | null | undefined;
