@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import type IconSize from '@components/Icon/types';
 import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -27,6 +28,13 @@ function SearchSaveButton() {
     };
 
     if (shouldUseNarrowLayout || isMediumScreenWidth) {
+        let iconSize: IconSize | undefined;
+        if (isMediumScreenWidth) {
+            iconSize = CONST.ICON_SIZE.EXTRA_SMALL;
+        } else if (shouldUseNarrowLayout) {
+            iconSize = CONST.ICON_SIZE.SMALL;
+        }
+
         return (
             <PressableWithFeedback
                 accessibilityLabel={translate('common.save')}
@@ -39,10 +47,7 @@ function SearchSaveButton() {
                 <Icon
                     src={expensifyIcons.Bookmark}
                     fill={theme.icon}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                    small={shouldUseNarrowLayout}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                    extraSmall={isMediumScreenWidth}
+                    size={iconSize}
                 />
             </PressableWithFeedback>
         );
