@@ -20,6 +20,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
@@ -58,6 +59,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const getYourSpendPatchData = useYourSpendPatchDataGetter();
+    const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -121,6 +123,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 methodID,
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
+                delegateAccountID,
                 isTrackIntentUser,
                 yourSpendPatchData: getYourSpendPatchData(),
             });

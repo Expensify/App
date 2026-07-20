@@ -45,6 +45,7 @@ import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
 import Permissions from './Permissions';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
@@ -236,7 +237,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
 type ParticipantOption = ReturnType<typeof buildReportParticipants>[number];
 
 function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmountContext, participants: ParticipantOption[]): void {
-    const {report, selectedCurrency, paymentMethod, quickAction} = args;
+    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID} = args;
     const {currentUserAccountID, newAmount: backendAmount} = ctx;
     const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const sendMoneyParams = {
@@ -249,6 +250,7 @@ function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmount
         recipient: participants.at(0) ?? {},
         optimisticChatReportID,
         shouldStartTracking: false,
+        delegateAccountID,
     };
 
     const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
@@ -538,6 +540,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         delegateAccountID,
         policyRecentlyUsedCurrencies,
         allReports,
+        allPersonalDetails,
         navigateBack,
         isTrackIntentUser,
         yourSpendPatchData,
@@ -576,6 +579,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         transactionID,
         transactionThreadReport: report,
         parentReport,
+        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
         parentReportNextStep,
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,

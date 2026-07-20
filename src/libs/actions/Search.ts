@@ -228,6 +228,7 @@ type HandleActionButtonPressParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     yourSpendPatchData?: YourSpendPatchData;
 };
@@ -266,6 +267,7 @@ function handleActionButtonPress({
     searchData,
     chatReportActions,
     delegateEmail,
+    delegateAccountID,
     isTrackIntentUser,
     yourSpendPatchData,
 }: HandleActionButtonPressParams) {
@@ -318,6 +320,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
+                delegateAccountID,
                 isTrackIntentUser,
                 yourSpendPatchData,
             });
@@ -540,6 +543,7 @@ type GetPayActionCallbackParams = {
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     yourSpendPatchData?: YourSpendPatchData;
 };
@@ -568,6 +572,7 @@ function getPayActionCallback({
     policy,
     searchData,
     chatReportActions,
+    delegateAccountID,
     isTrackIntentUser,
     yourSpendPatchData,
 }: GetPayActionCallbackParams) {
@@ -617,6 +622,7 @@ function getPayActionCallback({
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
+        delegateAccountID,
         isTrackIntentUser,
         yourSpendPatchData,
     });
@@ -729,6 +735,14 @@ function getOnyxLoadingData(
             },
         },
     ];
+
+    // Side effect: record this query string under SEARCH_QUERY_BY_HASH so IOU optimistic updates
+    // can later fan to every loaded snapshot whose query matches. Done here (not via optimisticData)
+    // because this function's return type only allows snapshot keys; the matching eviction lives
+    // in the SNAPSHOT subscription in IOU/index.ts.
+    if (queryJSON?.inputQuery) {
+        Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
+    }
 
     // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so
     // responses that do carry data stay consistent with the anti-stale isSearchDataLoaded check (which compares
@@ -981,7 +995,10 @@ function search({
         ? {
               ...queryJSONWithoutFlatFilters,
               sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-              inputQuery: buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE}),
+              inputQuery: buildSearchQueryString({
+                  ...queryJSON,
+                  sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              }),
               rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
                   filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
               ),

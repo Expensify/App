@@ -382,6 +382,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTrackExpense({
                     chatReportID: reportIDRef.current,
                     chatReport: report,
+                    chatReportActions: reportActions,
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
@@ -437,6 +438,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
+        reportActions,
         originalReportActions,
         childReportActions,
         childParentReportAction,

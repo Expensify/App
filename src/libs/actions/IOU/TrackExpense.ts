@@ -204,6 +204,7 @@ type GetTrackExpenseInformationParams = {
 type DeleteTrackExpenseParams = {
     chatReportID: string | undefined;
     chatReport: OnyxEntry<OnyxTypes.Report> | undefined;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     transactionID: string | undefined;
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1953,6 +1954,7 @@ function convertBulkTrackedExpensesToIOU({
     personalDetails,
     betas,
     policyTagList,
+    selfDMReportActions,
     delegateAccountID,
     isTrackIntentUser,
 }: {
@@ -1968,6 +1970,7 @@ function convertBulkTrackedExpensesToIOU({
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 }) {
@@ -1999,8 +2002,6 @@ function convertBulkTrackedExpensesToIOU({
         return;
     }
 
-    const selfDMReportActions = getAllReportActions(selfDMReportID);
-
     for (const transaction of transactions) {
         const transactionID = transaction.transactionID;
         if (!transaction) {
@@ -2008,7 +2009,7 @@ function convertBulkTrackedExpensesToIOU({
             continue;
         }
 
-        const linkedTrackedExpenseReportAction = Object.values(selfDMReportActions).find((action) => {
+        const linkedTrackedExpenseReportAction = Object.values(selfDMReportActions ?? {}).find((action) => {
             if (!isMoneyRequestAction(action)) {
                 return false;
             }
@@ -2021,7 +2022,7 @@ function convertBulkTrackedExpensesToIOU({
             continue;
         }
 
-        const actionableWhisperReportActionID = getTrackExpenseActionableWhisper(transactionID, selfDMReportID)?.reportActionID;
+        const actionableWhisperReportActionID = getTrackExpenseActionableWhisper(transactionID, selfDMReportID, selfDMReportActions)?.reportActionID;
 
         const commentText = typeof transaction.comment === 'string' ? transaction.comment : (transaction.comment?.comment ?? '');
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(commentText));
@@ -2907,6 +2908,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
 function deleteTrackExpense({
     chatReportID,
     chatReport,
+    chatReportActions,
     transactionID,
     reportAction,
     iouReport,
@@ -2961,7 +2963,7 @@ function deleteTrackExpense({
         return urlToNavigateBack;
     }
 
-    const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID);
+    const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID, chatReportActions);
     const actionableWhisperReportActionID = whisperAction?.reportActionID;
     const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
         chatReport,

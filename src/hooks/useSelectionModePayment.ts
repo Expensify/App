@@ -35,6 +35,7 @@ import {useContext, useEffect, useRef} from 'react';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -109,6 +110,7 @@ function useSelectionModePayment({
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const email = session?.email;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -194,6 +196,7 @@ function useSelectionModePayment({
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                delegateAccountID,
                 isTrackIntentUser,
             });
         } else {
@@ -217,6 +220,7 @@ function useSelectionModePayment({
                 yourSpendPatchData: getYourSpendPatchData(),
                 onPaid,
                 chatReportActions: getChatReportActions(false),
+                delegateAccountID,
                 isTrackIntentUser,
             });
             refreshSearchAfterReportAction({

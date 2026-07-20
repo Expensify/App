@@ -331,6 +331,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         return report;
     }, [caseID, parentReport, report]);
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
 
     const shouldShowTaskDeleteButton =
         isTaskReport &&
@@ -507,7 +508,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
             const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
-            const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
+            const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID, moneyRequestReportActions);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
             items.push({
@@ -714,6 +715,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         reportActionsForOriginalReportID,
         iouTransactionID,
         moneyRequestReport?.reportID,
+        moneyRequestReportActions,
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
         currentUserPersonalDetails.localCurrencyCode,
@@ -961,6 +963,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             deleteTrackExpense({
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
+                chatReportActions: moneyRequestReportActions,
                 transactionID: iouTransactionID,
                 reportAction: requestParentReportAction,
                 iouReport,
@@ -1001,6 +1004,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         ancestors,
         reportActionsForOriginalReportID,
         moneyRequestReport,
+        moneyRequestReportActions,
         iouReport,
         chatIOUReport,
         duplicateTransactions,

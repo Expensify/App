@@ -282,10 +282,11 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail} = useReportPaymentContext({
-        reportID: reportItem.reportID,
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            reportID: reportItem.reportID,
+            chatReportPolicyID: chatReport?.policyID,
+        });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
@@ -331,6 +332,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             searchData: snapshot?.data,
             chatReportActions,
             delegateEmail,
+            delegateAccountID,
             isTrackIntentUser,
             yourSpendPatchData: getYourSpendPatchData(),
         });

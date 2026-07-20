@@ -5,6 +5,7 @@ import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvide
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -45,6 +46,7 @@ function PayActionButton() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -114,6 +116,7 @@ function PayActionButton() {
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
             } else {
@@ -137,6 +140,7 @@ function PayActionButton() {
                     yourSpendPatchData: getYourSpendPatchData(),
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
             }

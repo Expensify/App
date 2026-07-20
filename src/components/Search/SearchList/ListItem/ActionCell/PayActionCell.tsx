@@ -73,6 +73,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         defaultWorkspaceName,
         nextStep,
         chatReportPolicy,
+        delegateAccountID,
     } = useReportPaymentContext({
         reportID,
         chatReportPolicyID: chatReport?.policyID,
@@ -132,6 +133,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 defaultWorkspaceName,
                 additionalOnyxData,
                 chatReportActions,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             return;
@@ -157,6 +159,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             additionalOnyxData,
             yourSpendPatchData: getYourSpendPatchData(),
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
+            delegateAccountID,
             isTrackIntentUser,
         });
     };
