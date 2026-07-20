@@ -444,6 +444,7 @@ type MergeReportsProps = {
     bankAccountList: OnyxEntry<BankAccountList>;
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
+    selfDMReportActions: OnyxEntry<ReportActions>;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -8105,6 +8106,7 @@ function mergeReports({
     allReports: allReportsParam,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
+    selfDMReportActions,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -8133,6 +8135,7 @@ function mergeReports({
         skippedReportIDs: sourceReportIDs,
         isTrackIntentUser,
         personalPolicyOutputCurrency,
+        selfDMReportActions,
     });
 
     const {

@@ -1153,6 +1153,12 @@ const translations = {
             configureApprovals: 'Configure approval workflow',
             configureApprovalsSubText: 'Define report approvals',
             setupRules: 'Set up spend rules',
+            customizeSpendCategories: 'Customize spend categories',
+            customizeSpendCategoriesSubText: 'Organize and classify expenses',
+            createExpense: 'Create an expense',
+            createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
+            linkPersonalCard: 'Link personal card',
+            linkPersonalCardSubText: 'Import expenses automatically',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
             talkToConcierge: 'Talk to Concierge',
@@ -1233,6 +1239,7 @@ const translations = {
 
             return added > 1 ? `${added} members have been added.` : '1 member has been added.';
         },
+        importMembersRolePermissionWarning: "You don't have permission to assign some member roles. Any affected new members were invited as members.",
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
@@ -7271,8 +7278,10 @@ const translations = {
             updateToUSD: 'Update to USD',
             updateWorkspaceCurrency: 'Update workspace currency',
             workspaceCurrencyNotSupported: 'Workspace currency not supported',
+            notAllowedToAddBankAccount: 'Your workspace is set to an unsupported currency. Contact a workspace admin with permission to change it.',
             yourWorkspace: `Your workspace is set to an unsupported currency. View the <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">list of supported currencies</a>.`,
             chooseAnExisting: 'Choose an existing bank account to pay expenses or add a new one.',
+            changeBankAccount: 'Change bank account',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transfer owner',
