@@ -6210,10 +6210,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
         },
         vendors: {
-            emptyTitle: '取引先はまだありません',
-            emptySubtitle: '会計同期が完了すると、ここにベンダーが表示されます。',
+            emptyTitle: 'まだ取引先がありません',
+            emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
             findVendor: '取引先を検索',
-            managedInAccountingSoftware: '仕入先は次の場所で管理されます:',
+            managedInAccountingSoftware: '取引先は次の場所で管理されます：',
         },
         tags: {
             tagName: 'タグ名',

@@ -6274,7 +6274,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         },
         vendors: {
             emptyTitle: 'Nog geen leveranciers',
-            emptySubtitle: 'Leveranciers verschijnen hier nadat je accounting-synchronisatie is voltooid.',
+            emptySubtitle: 'Leveranciers verschijnen hier zodra je boekhoudkundige synchronisatie is voltooid.',
             findVendor: 'Leverancier zoeken',
             managedInAccountingSoftware: 'Leveranciers worden beheerd in je',
         },

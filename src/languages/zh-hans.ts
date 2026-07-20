@@ -6084,7 +6084,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             reportFieldInitialValueRequiredError: '请选择报表字段的初始值',
             genericFailureMessage: '更新报表字段时出错。请重试。',
         },
-        vendors: {emptyTitle: '尚无供应商', emptySubtitle: '会计同步完成后，供应商将显示在此处。', findVendor: '查找供应商', managedInAccountingSoftware: '供应商由您在以下位置管理：'},
+        vendors: {emptyTitle: '尚无供应商', emptySubtitle: '会计同步完成后，供应商将显示在此处。', findVendor: '查找供应商', managedInAccountingSoftware: '供应商在您的'},
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',

@@ -6255,7 +6255,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         },
         vendors: {
             emptyTitle: 'Brak dostawców',
-            emptySubtitle: 'Dostawcy pojawią się tutaj po zakończeniu synchronizacji księgowej.',
+            emptySubtitle: 'Dostawcy pojawią się tutaj po zakończeniu synchronizacji z księgowością.',
             findVendor: 'Znajdź dostawcę',
             managedInAccountingSoftware: 'Dostawcy są zarządzani w twoim',
         },
