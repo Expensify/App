@@ -51,6 +51,7 @@ import DisplayNames from './DisplayNames';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
+import InlineIcon from './Icon/InlineIcon';
 import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -1076,11 +1077,9 @@ function MenuItem({
                                                         {!!furtherDetails && (
                                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (
-                                                                    <Icon
+                                                                    <InlineIcon
                                                                         src={furtherDetailsIcon}
-                                                                        height={variables.iconSizeNormal}
-                                                                        width={variables.iconSizeNormal}
-                                                                        inline
+                                                                        size={CONST.ICON_SIZE.MEDIUM}
                                                                     />
                                                                 )}
                                                                 <Text
@@ -1221,8 +1220,7 @@ function MenuItem({
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}
                                                             shouldHaveActiveBackground
-                                                            iconHeight={variables.iconSizeExtraSmall}
-                                                            iconWidth={variables.iconSizeExtraSmall}
+                                                            iconSize={CONST.ICON_SIZE.EXTRA_SMALL}
                                                             iconStyles={styles.t0}
                                                             styles={styles.reportActionContextMenuMiniButton}
                                                             shouldUseButtonBackground
