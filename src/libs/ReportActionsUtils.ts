@@ -19,7 +19,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
-    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     VisibleReportActionsDerivedValue,
@@ -51,7 +50,6 @@ import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
-import type {getReportName} from './ReportNameUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
@@ -110,15 +108,6 @@ Onyx.connect({
             return;
         }
         allReportActions = actions;
-    },
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
     },
 });
 
@@ -2007,14 +1996,12 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
     return false;
 }
 
-// We pass getReportName as a param to avoid cyclic dependency.
 function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
-    getReportNameCallback: typeof getReportName,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    memberChangeLogRoomReportName: string | undefined,
 ): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
@@ -2048,8 +2035,7 @@ function getMemberChangeMessageElements(
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`], reportAttributes) || originalMessage?.roomName;
-        if (roomName && originalMessage) {
+        if (memberChangeLogRoomReportName && originalMessage) {
             const preposition = isInviteAction ? ` ${translate('workspace.invite.to')} ` : ` ${translate('workspace.invite.from')} `;
 
             if (originalMessage.reportID) {
@@ -2060,9 +2046,9 @@ function getMemberChangeMessageElements(
                     },
                     {
                         kind: 'roomReference',
-                        roomName,
+                        roomName: memberChangeLogRoomReportName,
                         roomID: originalMessage.reportID,
-                        content: roomName,
+                        content: memberChangeLogRoomReportName,
                     },
                 ];
             }
@@ -2358,16 +2344,14 @@ function getMemberChangeMessageFragment(
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
-    getReportNameCallback: typeof getReportName,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    memberChangeLogRoomReportName: string | undefined,
 ): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(
         translate,
         reportAction,
         actorDetails,
         targetAccountDetailsList,
-        getReportNameCallback,
-        reportAttributes,
+        memberChangeLogRoomReportName,
     );
     const html = messageElements
         .map((messageElement) => {
@@ -2645,13 +2629,12 @@ function getIOUActionForTransactionID(reportActions: ReportAction[], transaction
 /**
  * Get the track expense actionable whisper of the corresponding track expense
  */
-function getTrackExpenseActionableWhisper(transactionID: string | undefined, chatReportID: string | undefined) {
+function getTrackExpenseActionableWhisper(transactionID: string | undefined, chatReportID: string | undefined, reportActionsParam: OnyxEntry<ReportActions>) {
     if (!transactionID || !chatReportID) {
         return undefined;
     }
 
-    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
-    return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
+    return Object.values(reportActionsParam ?? {}).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }
 
 /**
