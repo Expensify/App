@@ -1,5 +1,5 @@
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
@@ -16,6 +16,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 
@@ -36,9 +37,11 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const allMatchingQuery = areAllMatchingItemsSelected && currentSearchQueryJSON ? serializeQueryJSONForBackend(currentSearchQueryJSON) : undefined;
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -177,6 +180,8 @@ function SearchTransactionsChangeReport() {
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
+                jsonQuery: allMatchingQuery,
+                hash: currentSearchQueryJSON?.hash,
             });
             clearSelectedTransactions();
         });
@@ -258,6 +263,8 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            jsonQuery: allMatchingQuery,
+            hash: currentSearchQueryJSON?.hash,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -280,6 +287,8 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            jsonQuery: allMatchingQuery,
+            hash: currentSearchQueryJSON?.hash,
         });
         clearSelectedTransactions();
         Navigation.goBack();
