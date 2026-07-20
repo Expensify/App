@@ -14,7 +14,7 @@ import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
-import type {CompanyCardFeedWithDomainID} from './types/onyx';
+import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
@@ -475,6 +475,10 @@ const DYNAMIC_ROUTES = {
         path: 'bank-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
     },
+    POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT: {
+        path: 'default-supplier-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
     POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
         path: 'purchase-bill-status-selector',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
@@ -805,7 +809,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
         path: 'edit/export',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS, SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST],
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         path: 'assign-card/:feed/:cardID/assignee',
@@ -991,7 +995,6 @@ const DYNAMIC_ROUTES = {
         path: 'public-domain-error',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
         getRoute: (policyID?: string) => getUrlWithParams('public-domain-error', {policyID}),
-        queryParams: ['policyID'],
     },
     TRAVEL_TCS: {
         path: 'terms/:domain/accept/:policyID?',
@@ -1014,7 +1017,6 @@ const DYNAMIC_ROUTES = {
         path: 'domain-selector',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
         getRoute: (policyID?: string) => getUrlWithParams('domain-selector', {policyID}),
-        queryParams: ['policyID'],
     },
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
@@ -1260,12 +1262,15 @@ const ROUTES = {
     // TODO: rename the route as no longer accepts step
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/new',
-        getRoute: ({policyID, bankAccountID, backTo}: {policyID: string | undefined; bankAccountID?: number; backTo?: string}) => {
+        getRoute: ({policyID, bankAccountID, backTo, isChangingBankAccount}: {policyID: string | undefined; bankAccountID?: number; backTo?: string; isChangingBankAccount?: boolean}) => {
             let queryString = '';
             if (bankAccountID) {
                 queryString = `?bankAccountID=${bankAccountID}`;
             } else if (policyID) {
                 queryString = `?policyID=${policyID}`;
+            }
+            if (isChangingBankAccount) {
+                queryString += queryString ? '&isChangingBankAccount=true' : '?isChangingBankAccount=true';
             }
             // TODO this backTo comes from drilling it through bank account form screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
@@ -1284,7 +1289,11 @@ const ROUTES = {
     BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
         route: 'bank-account/connect-existing-business-bank-account',
 
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`bank-account/connect-existing-business-bank-account?policyID=${policyID}`, backTo),
+        getRoute: (policyID: string, backTo?: string, source?: ValueOf<typeof CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE>) => {
+            const baseRoute = `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const;
+            const routeWithSource = source ? (`${baseRoute}&source=${source}` as const) : baseRoute;
+            return getUrlWithBackToParam(routeWithSource, backTo);
+        },
     },
     BANK_ACCOUNT_NON_USD_SETUP: {
         route: 'bank-account/new/global/:page?/:subPage?/:action?',
@@ -1681,7 +1690,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -1691,6 +1700,10 @@ const ROUTES = {
             const queryParams: string[] = [];
             if (referrer) {
                 queryParams.push(`referrer=${encodeURIComponent(referrer)}`);
+            }
+            // Submit-via-PDF secure access link: lets an approver who opens the PDF link join and claim the report.
+            if (secureKey) {
+                queryParams.push(`secureKey=${encodeURIComponent(secureKey)}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -1913,12 +1926,12 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_VENDOR: {
         route: ':action/:iouType/vendor/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_VENDOR route');
             }
 
-            return `${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const;
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_DESTINATION: {
@@ -2640,6 +2653,15 @@ const ROUTES = {
             return `workspaces/${policyID}/categories` as const;
         },
     },
+    WORKSPACE_VENDORS: {
+        route: 'workspaces/:policyID/vendors',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_VENDORS route');
+            }
+            return `workspaces/${policyID}/vendors` as const;
+        },
+    },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
         getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string) => {
@@ -3281,6 +3303,14 @@ const ROUTES = {
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
+    },
+    RULES_MERCHANT_IMPORT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/import` as const,
+    },
+    RULES_MERCHANT_IMPORTED: {
+        route: 'workspaces/:policyID/rules/merchant-rules/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/imported` as const,
     },
     RULES_SPEND_NEW: {
         route: 'workspaces/:policyID/rules/spend-rules/new',
@@ -4113,6 +4143,22 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR: {
         route: 'workspaces/:policyID/accounting/rillet/export/default-company-card-vendor',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_RILLET_ADVANCED: {
         route: 'workspaces/:policyID/accounting/rillet/advanced',

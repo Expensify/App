@@ -25,7 +25,8 @@ jest.mock('@hooks/useThemeStyles', () =>
             new Proxy(
                 {},
                 {
-                    get: () => ({}),
+                    // Return a recognizable object for the selected-row button background so tests can assert it, and an empty style for everything else.
+                    get: (_target, prop) => (prop === 'buttonDefaultHovered' ? {backgroundColor: 'selectedButtonBG'} : {}),
                 },
             ),
     ),
@@ -103,6 +104,15 @@ jest.mock('@components/OfflineWithFeedback', () => {
     return MockOfflineWithFeedback;
 });
 
+// Records the `innerStyles` each labeled action button was rendered with, so tests can assert the selection styling.
+const mockButtonInnerStyles: Record<string, unknown> = {};
+
+// Wrapped in `jest.fn` so the React Compiler sees the recording as an opaque side effect rather than a
+// render-time mutation of a module-scoped object (which it rejects as "This value cannot be modified").
+const mockRecordButtonInnerStyles = jest.fn((accessibilityLabel: string, innerStyles: unknown) => {
+    mockButtonInnerStyles[accessibilityLabel] = innerStyles;
+});
+
 jest.mock('@components/ButtonComposed', () => {
     const {TouchableOpacity, Text} = jest.requireActual<typeof ReactNative>('react-native');
 
@@ -114,7 +124,22 @@ jest.mock('@components/ButtonComposed', () => {
         return <Text>{children}</Text>;
     }
 
-    function MockButton({children, onPress, accessibilityLabel, isDisabled}: {children: React.ReactNode; onPress: () => void; accessibilityLabel?: string; isDisabled?: boolean}) {
+    function MockButton({
+        children,
+        onPress,
+        accessibilityLabel,
+        isDisabled,
+        innerStyles,
+    }: {
+        children: React.ReactNode;
+        onPress: () => void;
+        accessibilityLabel?: string;
+        isDisabled?: boolean;
+        innerStyles?: ReactNative.StyleProp<ReactNative.ViewStyle>;
+    }) {
+        if (accessibilityLabel) {
+            mockRecordButtonInnerStyles(accessibilityLabel, innerStyles);
+        }
         return (
             <TouchableOpacity
                 accessibilityRole="button"
@@ -194,6 +219,9 @@ const BASE_LAYOUT = {
 describe('AgentsTableRow', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        for (const key of Object.keys(mockButtonInnerStyles)) {
+            delete mockButtonInnerStyles[key];
+        }
         mockUseResponsiveLayout.mockReturnValue({...BASE_LAYOUT, shouldUseNarrowLayout: false});
     });
 
@@ -279,5 +307,18 @@ describe('AgentsTableRow', () => {
         fireEvent.press(screen.getByLabelText('editAgentPage.copilotIntoAccount'));
 
         expect(mockOnCopilotPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not override the action button background when the row is not selected', () => {
+        render(
+            <AgentsTableRow
+                item={BASE_ITEM}
+                rowIndex={0}
+                shouldUseNarrowTableLayout={false}
+            />,
+        );
+
+        expect(mockButtonInnerStyles['editAgentPage.chatWithAgent']).toBeUndefined();
+        expect(mockButtonInnerStyles['editAgentPage.copilotIntoAccount']).toBeUndefined();
     });
 });
