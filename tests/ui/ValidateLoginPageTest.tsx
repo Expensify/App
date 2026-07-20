@@ -269,7 +269,8 @@ describe('ValidateLoginPage', () => {
         renderPage({accountID: '1', validateCode: '123456'});
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(screen.getByText(translateLocal('validateCodeModal.requestOneHere')));
+        // TextLink's tap handler calls event.preventDefault(), so pass a minimal synthetic event.
+        fireEvent.press(screen.getByText(translateLocal('validateCodeModal.requestOneHere')), {preventDefault: () => {}});
 
         expect(beginSignIn).toHaveBeenCalledWith('test@example.com');
 
