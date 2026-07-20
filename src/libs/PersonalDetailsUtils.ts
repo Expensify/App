@@ -264,6 +264,10 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
     return emailToPersonalDetailsCache[email.toLowerCase()];
 }
 
+function getAllPersonalDetailLogins(): string[] {
+    return Object.values(allPersonalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
+}
+
 /**
  * Returns the accountID for a login only when it exists in personal details.
  * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
@@ -625,6 +629,7 @@ export {
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
+    getAllPersonalDetailLogins,
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,
