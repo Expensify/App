@@ -1019,6 +1019,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
+                delegateAccountID,
             });
             if (shouldHandleNavigation) {
                 cleanupAndNavigateAfterExpenseCreate({
@@ -1127,6 +1128,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             optimisticChatReportID,
             shouldStartTracking,
             shouldDeferForSearch,
+            delegateAccountID,
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
