@@ -7686,7 +7686,7 @@ describe('createDistanceRequest', () => {
         await waitForBatchedUpdates();
 
         const growlSignal = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
-        expect(Object.keys(growlSignal?.[CONST.SEARCH.DATA_TYPES.EXPENSE] ?? {})).toContain(result.transactionID);
+        expect(growlSignal?.[result.transactionID]).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
     });
 
     it('flags the new transaction for the 1→2 highlight fallback when added to an expense report that already has one transaction', async () => {
