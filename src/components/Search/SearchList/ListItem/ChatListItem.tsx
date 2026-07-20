@@ -45,7 +45,7 @@ function ChatListItem<TItem extends ListItem>({
     const {isSelected} = useRowSelection(item.keyForList);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });

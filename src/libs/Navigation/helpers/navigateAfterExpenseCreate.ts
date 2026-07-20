@@ -1,8 +1,11 @@
 import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
+import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getReportTransactions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
@@ -12,8 +15,10 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
+import isReportOpenInRHP from './isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
+import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 
 type NavigateAfterExpenseCreateParams = {
     activeReportID?: string;
@@ -33,12 +38,77 @@ function getNavigateAfterCreateSearchNavigatorState() {
     return searchNavigatorRoute?.state ?? (searchNavigatorRoute?.key ? getPreservedNavigatorState(searchNavigatorRoute.key) : undefined);
 }
 
+type NavigateToCreatedExpenseParams = {
+    /** The transaction thread report to open. */
+    threadReportID: string;
+
+    /** The created transaction's ID. */
+    transactionID: string;
+
+    /** IOU report the transaction landed in, used to decide whether to stack the expense report underneath. */
+    iouReportID?: string;
+};
+
+/**
+ * Navigates to a just-created expense, choosing the destination from the surface the user
+ * is currently looking at (they may have switched tabs while the growl was up)
+ * - Spend tab: the transaction thread RHP within Spend (report shown underneath via the wide RHP)
+ * - Inbox tab, narrow layout: the transaction thread as a full report view
+ * - Inbox tab, wide layout, with an expense report: the expense report - a multi-transaction report opens super
+ *   wide with the specific thread RHP stacked on top; a single-transaction report collapses to the thread itself
+ * - Inbox tab, wide layout, tracked/unreported expense (no expense report): the transaction thread RHP directly
+ */
+function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: NavigateToCreatedExpenseParams) {
+    const backTo = Navigation.getActiveRoute();
+    const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
+
+    // When a report/expense is already open in the RHP the app's convention is to replace it rather than stack a second
+    // report RHP on top of it.
+    const forceReplace = isReportOpenInRHP(navigationRef.getRootState());
+
+    if (!openOnInbox) {
+        setActiveTransactionIDs([transactionID]).then(() => {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}), {forceReplace});
+        });
+        return;
+    }
+
+    if (getIsNarrowLayout()) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo), {forceReplace});
+        return;
+    }
+    if (iouReportID) {
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}), {forceReplace});
+
+        // A multi-transaction report opens super wide (see SearchMoneyRequestReportPage's `shouldShowSuperWideRHP`),
+        // so stack the specific thread RHP on top of it. A single-transaction report collapses to the thread
+        // itself, so the expense report navigation above already lands on it.
+        const hasMultipleReportTransactions =
+            getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
+        if (hasMultipleReportTransactions) {
+            // Defer so the thread RHP stacks on top of the expense report navigation above. This is always a
+            // push (never a replace) - it stacks on the report we just opened, not on the previously-open one.
+            setNavigationActionToMicrotaskQueue(() => {
+                setActiveTransactionIDs([transactionID]).then(() => {
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: Navigation.getActiveRoute()}));
+                });
+            });
+        }
+        return;
+    }
+
+    // Tracked/unreported expense (self-DM): there's no expense report, so open the transaction thread as a full
+    // report - the same way tapping the expense in its self-DM chat does (see ChatTransactionPreview), rather
+    // than the Search-tab RHP.
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo), {forceReplace});
+}
+
 /**
  * Helper to navigate after an expense is created in order to standardize the post‑creation experience
  * when creating an expense from the global create button.
  * If the expense is created from the global create button then:
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
- * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
+ * - If it is created elsewhere, it will navigate to Reports > Expense and show the "Expense added" growl.
  */
 function navigateAfterExpenseCreate({
     activeReportID,
@@ -69,6 +139,9 @@ function navigateAfterExpenseCreate({
     }
 
     const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+
+    // Signal that an expense was added so we can surface the "Expense added" growl.
+    mergeExpenseAddedGrowlTransactionIDs({[transactionID]: type});
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
@@ -109,3 +182,4 @@ function navigateAfterExpenseCreate({
 }
 
 export default navigateAfterExpenseCreate;
+export {navigateToCreatedExpense};

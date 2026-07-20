@@ -220,7 +220,7 @@ function GroupHeader({
     });
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: false,

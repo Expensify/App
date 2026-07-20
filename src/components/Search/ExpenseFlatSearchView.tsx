@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle} from 'react';
+import React from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -55,7 +55,6 @@ function ExpenseFlatSearchView({
     onScroll,
     contentContainerStyle,
     containerStyle,
-    ref,
 }: ExpenseFlatSearchViewProps) {
     const {type} = queryJSON;
 
@@ -88,9 +87,6 @@ function ExpenseFlatSearchView({
     // Flat-expense selection counts: no empty groups, no group flattening — a single pass over the rows.
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
     const totalItems = data.filter((item) => !isRowDeleted(item)).length;
-
-    // Flat data maps 1:1 to the rendered list, so highlight-scroll-to-index is the same as scroll-to-data-index.
-    useImperativeHandle(ref, () => ({scrollToIndex: scrollToListIndex}), [scrollToListIndex]);
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         const isDisabled = isRowDeleted(item);

@@ -7631,7 +7631,7 @@ describe('createDistanceRequest', () => {
         expect(result.transactionID).toBeTruthy();
     });
 
-    it('flags the created transaction for Search highlight on a global-create distance request', async () => {
+    it('flags the created transaction for the "Expense added" growl on a global-create distance request', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         const result = createDistanceRequest({
@@ -7641,8 +7641,8 @@ describe('createDistanceRequest', () => {
 
         await waitForBatchedUpdates();
 
-        const highlight = await getOnyxValue(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE);
-        expect(Object.keys(highlight?.[CONST.SEARCH.DATA_TYPES.EXPENSE] ?? {})).toContain(result.transactionID);
+        const growlSignal = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+        expect(Object.keys(growlSignal?.[CONST.SEARCH.DATA_TYPES.EXPENSE] ?? {})).toContain(result.transactionID);
     });
 
     it('flags the new transaction for the 1→2 highlight fallback when added to an expense report that already has one transaction', async () => {

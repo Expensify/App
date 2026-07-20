@@ -1235,6 +1235,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Crea nota spese tempo',
     },
     iou: {
+        expenseAdded: 'Spesa aggiunta',
+        invoiceSent: 'Fattura inviata',
         amount: 'Importo',
         percent: 'Percentuale',
         date: 'Data',

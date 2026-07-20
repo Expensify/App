@@ -434,29 +434,31 @@ describe('actions/IOU', () => {
 
     it('handleNavigateAfterExpenseCreate', async () => {
         const mockedIsReportTopmostSplitNavigator = isReportTopmostSplitNavigator as jest.MockedFunction<typeof isReportTopmostSplitNavigator>;
-        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+        const spyOnMergeExpenseAddedGrowlTransactionIDs = jest.spyOn(require('@libs/actions/Transaction'), 'mergeExpenseAddedGrowlTransactionIDs');
         const activeReportID = '1';
         const transactionID = '1';
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
 
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+        expect(spyOnMergeExpenseAddedGrowlTransactionIDs).toHaveBeenCalledTimes(0);
 
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+        expect(spyOnMergeExpenseAddedGrowlTransactionIDs).toHaveBeenCalledTimes(0);
 
         mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+        expect(spyOnMergeExpenseAddedGrowlTransactionIDs).toHaveBeenCalledTimes(0);
 
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+        expect(spyOnMergeExpenseAddedGrowlTransactionIDs).toHaveBeenCalledTimes(1);
+        expect(spyOnMergeExpenseAddedGrowlTransactionIDs).toHaveBeenLastCalledWith({[transactionID]: CONST.SEARCH.DATA_TYPES.EXPENSE});
 
         handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+        expect(spyOnMergeExpenseAddedGrowlTransactionIDs).toHaveBeenCalledTimes(2);
+        expect(spyOnMergeExpenseAddedGrowlTransactionIDs).toHaveBeenLastCalledWith({[transactionID]: CONST.SEARCH.DATA_TYPES.INVOICE});
 
-        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
+        spyOnMergeExpenseAddedGrowlTransactionIDs.mockReset();
     });
 
     describe('createSplitsAndOnyxData', () => {

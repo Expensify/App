@@ -74,7 +74,7 @@ function TaskListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,

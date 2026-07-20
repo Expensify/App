@@ -228,7 +228,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isItemSelected = isSelectAllChecked || liveRowSelected;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: false,

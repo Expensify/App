@@ -1186,6 +1186,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '创建工时报销',
     },
     iou: {
+        expenseAdded: '已添加支出',
+        invoiceSent: '已发送发票',
         amount: '金额',
         percent: '百分比',
         date: '日期',

@@ -44,7 +44,7 @@ function GroupChildrenContainer({
     const isSelected = !!item.isSelected || (item.transactions.length > 0 && item.transactions.every((transaction) => selectedTransactions[transaction.transactionID]?.isSelected));
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: false,

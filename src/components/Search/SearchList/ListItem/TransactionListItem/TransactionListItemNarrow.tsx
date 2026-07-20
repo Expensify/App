@@ -70,7 +70,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: 0,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: true,
