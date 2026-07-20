@@ -52,6 +52,19 @@ Note that if you are physically located in the UK, France, Ireland, Finland, Ice
 
 ---
 
+## How to unblock your Expensify Card PIN
+
+If your card PIN gets blocked due to too many incorrect entries, you can unblock it by changing it in-app - even if you couldn't normally change your PIN in-app due to regional restrictions.
+
+1. Go to **Account > Wallet** and select your physical Expensify Card.
+2. Tap **Change PIN**.
+3. Enter your new 4-digit PIN and confirm it.
+4. Verify your identity via biometrics or passkey.
+
+You'll see a confirmation page once your PIN is changed. The next time you attempt a contactless payment, you will be prompted to insert your card into the reader. Successfully completing a chip-and-PIN transaction will finish unblocking your PIN.
+
+---
+
 # FAQ
 
 ## Which cards have a PIN?
