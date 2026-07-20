@@ -38,6 +38,11 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const lockedExpenseChatReportID =
         isSubmitFlow && isRestrictedToPreferredPolicy && preferredPolicyID ? getPolicyExpenseChat(currentUserAccountID, preferredPolicyID)?.reportID : undefined;
 
+    // Tracks whether the one-shot auto-navigation to the locked workspace has already run. Once it has, we stop
+    // returning null and render the picker underneath instead, so backing out of the details page lands on a usable
+    // screen rather than a blank Submit tab.
+    const [hasAutoNavigatedToLockedReport, setHasAutoNavigatedToLockedReport] = useState(false);
+
     // This span belongs to the submit flow, so the share flow instance must not cancel a span it never started. For the submit flow this cancels an attempt that closes before SubmitDetailsPage mounts to end the span, so it is
     useEffect(
         () => () => {
@@ -49,8 +54,12 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
         [isSubmitFlow],
     );
 
+    // One-shot: auto-navigate the restricted user straight to the locked workspace's confirmation the first time the
+    // locked report resolves. The hasAutoNavigatedToLockedReport guard keeps this from re-running (and re-navigating)
+    // if draftTransactionIDs later changes, while still keeping every captured value in the dependency array so we
+    // clear the up-to-date drafts at navigation time and no dependency lint has to be suppressed.
     useEffect(() => {
-        if (!lockedExpenseChatReportID) {
+        if (!lockedExpenseChatReportID || hasAutoNavigatedToLockedReport) {
             return;
         }
 
@@ -68,11 +77,14 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
         });
 
         Navigation.navigate(detailsPageRouteObject.getRoute(lockedExpenseChatReportID.toString()));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lockedExpenseChatReportID]);
+        setHasAutoNavigatedToLockedReport(true);
+    }, [lockedExpenseChatReportID, hasAutoNavigatedToLockedReport, draftTransactionIDs, detailsPageRouteObject]);
 
-    // Avoid flashing the full picker while we route the restricted user straight to the locked workspace.
-    if (lockedExpenseChatReportID) {
+    // Render null only until the auto-navigation has run, to avoid flashing the full picker while we route the
+    // restricted user to the locked workspace. Afterwards we fall through to the picker so that backing out of the
+    // details page shows a usable screen (still limited to the locked workspace by the option-list filter) instead of
+    // a blank tab.
+    if (lockedExpenseChatReportID && !hasAutoNavigatedToLockedReport) {
         return null;
     }
 
