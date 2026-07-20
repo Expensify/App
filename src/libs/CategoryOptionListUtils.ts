@@ -118,13 +118,11 @@ function getCategoryListSections({
     for (const option of selectedOptions) {
         if (enabledCategoriesNames.has(option.name)) {
             const categoryObj = enabledCategories.find((category) => category.name === option.name);
-            selectedOptionsWithDisabledState.push(
-                withGLCode({
-                    ...(categoryObj ?? option),
-                    isSelected: true,
-                    enabled: true,
-                }),
-            );
+            selectedOptionsWithDisabledState.push({
+                ...(categoryObj ?? option),
+                isSelected: true,
+                enabled: true,
+            });
             continue;
         }
         selectedOptionsWithDisabledState.push(withGLCode({...option, isSelected: true, enabled: false}));
