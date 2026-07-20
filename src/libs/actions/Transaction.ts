@@ -1315,6 +1315,7 @@ function getChangeTransactionsReportOnyxData({
                 hasDependentTags: policyHasDependentTags,
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
+                ownerLogin: undefined,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1814,6 +1815,7 @@ function getChangeTransactionsReportOnyxData({
             policyCategories: policyCategories ?? {},
             hasDependentTags: policyHasDependentTags,
             isInvoiceTransaction: false,
+            ownerLogin: undefined,
         });
         if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
