@@ -14717,7 +14717,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
-                    displayName: "Michal's Agent",
+                    displayName: "Bob's Agent",
                     isOptimisticPersonalDetail: true,
                 },
             });
@@ -14725,7 +14725,7 @@ describe('ReportUtils', () => {
             waitForBatchedUpdates();
 
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: optimisticAccountID});
-            expect(displayName).toBe("Michal's Agent");
+            expect(displayName).toBe("Bob's Agent");
         });
 
         it('should return hidden translation using translate param when participant has no displayName or login', async () => {
