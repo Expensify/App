@@ -1196,6 +1196,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Neue Karten und Transaktionen können etwas Zeit benötigen, bis sie erscheinen. Bitte haben Sie etwas Geduld.',
+        importMembersRolePermissionWarning: 'Sie haben keine Berechtigung, einige Mitgliederrollen zuzuweisen. Alle betroffenen neuen Mitglieder wurden als Mitglieder eingeladen.',
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -7097,6 +7098,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 'Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Wende dich an einen Arbeitsbereichsadministrator, der berechtigt ist, sie zu ändern.',
             yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
+            changeBankAccount: 'Bankkonto ändern',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Besitz übertragen',

@@ -1200,6 +1200,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Veuillez confirmer les détails ci-dessous pour les ${count} nouveaux membres de l’espace de travail qui seront ajoutés dans le cadre de ce téléversement. Les membres existants ne recevront aucune mise à jour de rôle ni message d’invitation.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'L’apparition de nouvelles cartes et transactions peut prendre un certain temps, veuillez patienter.',
+        importMembersRolePermissionWarning: 'Vous n’avez pas l’autorisation d’assigner certains rôles de membre. Tous les nouveaux membres concernés ont été invités en tant que membres.',
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -7124,6 +7125,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             notAllowedToAddBankAccount: 'Votre espace de travail est défini sur une devise non prise en charge. Contactez un administrateur de l’espace de travail autorisé à la modifier.',
             yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">liste des devises prises en charge</a>.`,
             chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
+            changeBankAccount: 'Changer de compte bancaire',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le responsable',

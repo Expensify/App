@@ -1195,6 +1195,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Bevestig hieronder de gegevens voor de ${count} nieuwe werkruimteleden die als onderdeel van deze upload worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Nieuwe kaarten en transacties kunnen even duren voordat ze verschijnen, even geduld.',
+        importMembersRolePermissionWarning: 'Je hebt geen toestemming om sommige ledensrollen toe te wijzen. Alle betrokken nieuwe leden zijn uitgenodigd als lid.',
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -7061,6 +7062,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             notAllowedToAddBankAccount: 'Je werkruimte is ingesteld op een niet-ondersteunde valuta. Neem contact op met een werkruimtebeheerder die toestemming heeft om deze te wijzigen.',
             yourWorkspace: `Je werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lijst met ondersteunde valuta's</a>.`,
             chooseAnExisting: 'Kies een bestaande bankrekening om onkosten te betalen of voeg een nieuwe toe.',
+            changeBankAccount: 'Bankrekening wijzigen',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Eigenaar overdragen',

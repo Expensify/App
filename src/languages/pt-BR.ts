@@ -1195,6 +1195,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Confirme os detalhes abaixo para os ${count} novos membros do workspace que serão adicionados como parte deste upload. Membros existentes não receberão nenhuma atualização de função nem mensagens de convite.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Novos cartões e transações podem levar algum tempo para aparecer, aguarde um momento.',
+        importMembersRolePermissionWarning: 'Você não tem permissão para atribuir alguns cargos de membro. Quaisquer novos membros afetados foram convidados como membros.',
     },
     receipt: {
         upload: 'Carregar recibo',
@@ -7053,6 +7054,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             notAllowedToAddBankAccount: 'Seu workspace está configurado com uma moeda não compatível. Entre em contato com um administrador do workspace que tenha permissão para alterá-la.',
             yourWorkspace: `Seu workspace está configurado para uma moeda não compatível. Veja a <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de moedas compatíveis</a>.`,
             chooseAnExisting: 'Escolha uma conta bancária existente para pagar despesas ou adicione uma nova.',
+            changeBankAccount: 'Alterar conta bancária',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir proprietário',

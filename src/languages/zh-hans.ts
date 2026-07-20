@@ -1147,6 +1147,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) => `请确认以下有关将通过本次上传添加的 ${count} 位新工作区成员的详细信息。现有成员将不会收到任何角色更新或邀请消息。`,
         }),
         importCompanyCardTransactionsPendingMessage: '新卡片和交易可能需要一些时间才会显示，请耐心等待。',
+        importMembersRolePermissionWarning: '您没有权限分配某些成员角色。所有受影响的新成员已按普通成员身份被邀请。',
     },
     receipt: {
         upload: '上传收据',
@@ -6857,6 +6858,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             notAllowedToAddBankAccount: '您的工作区设置了不受支持的货币。请联系有权更改该货币的工作区管理员。',
             yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
+            changeBankAccount: '更改银行账户',
         },
         changeOwner: {
             changeOwnerPageTitle: '转移所有者',
