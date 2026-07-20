@@ -3887,7 +3887,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNReanimated (4.5.1):
+  - RNReanimated (4.5.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -3914,43 +3914,13 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/apple (= 4.5.1)
-    - RNReanimated/common (= 4.5.1)
-    - RNReanimated/view (= 4.5.1)
+    - RNReanimated/apple (= 4.5.2)
+    - RNReanimated/common (= 4.5.2)
+    - RNReanimated/view (= 4.5.2)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/apple (4.5.1):
-    - boost
-    - DoubleConversion
-    - fast_float
-    - fmt
-    - glog
-    - hermes-engine
-    - RCT-Folly
-    - RCT-Folly/Fabric
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - RNWorklets
-    - SocketRocket
-    - Yoga
-  - RNReanimated/common (4.5.1):
+  - RNReanimated/apple (4.5.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -3980,7 +3950,37 @@ PODS:
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/view (4.5.1):
+  - RNReanimated/common (4.5.2):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNWorklets
+    - SocketRocket
+    - Yoga
+  - RNReanimated/view (4.5.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -4184,7 +4184,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNWorklets (0.10.2):
+  - RNWorklets (0.11.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -4211,11 +4211,11 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/apple (= 0.10.2)
-    - RNWorklets/common (= 0.10.2)
+    - RNWorklets/apple (= 0.11.1)
+    - RNWorklets/common (= 0.11.1)
     - SocketRocket
     - Yoga
-  - RNWorklets/apple (0.10.2):
+  - RNWorklets/apple (0.11.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -4244,7 +4244,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNWorklets/common (0.10.2):
+  - RNWorklets/common (0.11.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -4978,12 +4978,12 @@ SPEC CHECKSUMS:
   RNNitroSQLite: a9b5965d511ed6e99ce903380e64934d043a0d2c
   RNPermissions: 518f0a0c439acc74e2b9937e0e7d29e5031ae949
   RNReactNativeHapticFeedback: 5f1542065f0b24c9252bd8cf3e83bc9c548182e4
-  RNReanimated: 1a67ec7c458dd04abadba7549d9d5abb24d6ec8a
+  RNReanimated: 9cd44a8f50a434161e16d4e51eb06c8c71a6d892
   RNScreens: 2b6107925ee4e14a9b2eb0dfb52fe25223aa64d7
   RNSentry: f73f4da92e4c20841ab16e1fa22fc289bc2f9f4e
   RNShare: 1c1fde2c4134b9cf220ffebbd6df9c414036d382
   RNSVG: 0b9792eb17fbbc8e6d186581cb2cf712998dcc2a
-  RNWorklets: 19bb24ca8a33550db9c695f4bd5f8fd18e109c20
+  RNWorklets: 25b8ee140def8e1561209a825b005ee70f3e26f5
   SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
