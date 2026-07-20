@@ -403,6 +403,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            iouReportOwnerLogin: undefined,
             isTrackIntentUser: false,
             yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
@@ -444,6 +445,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            iouReportOwnerLogin: undefined,
             isTrackIntentUser: false,
             yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -30000, CONST.CURRENCY.USD),
         });
@@ -479,6 +481,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
             delegateAccountID: undefined,
+            iouReportOwnerLogin: undefined,
             isTrackIntentUser: false,
             yourSpendPatchData: buildYourSpendPatchData(snapshotKey, -10000, CONST.CURRENCY.USD),
         });
