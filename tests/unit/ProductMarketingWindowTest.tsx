@@ -5,6 +5,8 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ProductMarketingWindowManager from '@components/ProductMarketingWindow/ProductMarketingWindowManager';
+import ThemeProvider from '@components/ThemeProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -12,6 +14,8 @@ import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT} from '@libs/ProductMarketingWindowUtils';
 
+import colors from '@styles/theme/colors';
+import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -81,11 +85,15 @@ function buildAdminPolicy(): Policy {
     } as Policy;
 }
 
-const renderManager = (topmostRouteName?: string) =>
+const renderManager = (topmostRouteName?: string, theme: ThemePreferenceWithoutSystem = CONST.THEME.LIGHT) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
-            <ProductMarketingWindowManager topmostRouteName={topmostRouteName} />
-        </ComposeProviders>,
+        <ThemeProvider theme={theme}>
+            <ThemeStylesProvider>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
+                    <ProductMarketingWindowManager topmostRouteName={topmostRouteName} />
+                </ComposeProviders>
+            </ThemeStylesProvider>
+        </ThemeProvider>,
     );
 
 async function setupOnyxBaseline({isAdmin}: {isAdmin: boolean}) {
@@ -526,6 +534,26 @@ describe('ProductMarketingWindowManager', () => {
             bottom: variables.productMarketingWindowOffset,
             right: variables.productMarketingWindowOffset,
         });
+    });
+
+    it.each([
+        [CONST.THEME.LIGHT, colors.productDark100, colors.productDark900, colors.productDark800],
+        [CONST.THEME.LIGHT_CONTRAST, colors.productDark100, colors.productDark900, colors.productDark800],
+        [CONST.THEME.DARK, colors.productLight100, colors.productLight900, colors.productLight800],
+        [CONST.THEME.DARK_CONTRAST, colors.productLight100, colors.productLight900, colors.productLight800],
+    ] as const)('uses the opposite product palette for the %s app theme', async (themePreference, backgroundColor, headingColor, bodyColor) => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager(undefined, themePreference);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({backgroundColor});
+        expect(screen.getByText(memberHeading)).toHaveStyle({color: headingColor});
+        expect(screen.getByText(en.productMarketingWindow.expensePolicyPdf.member.body)).toHaveStyle({color: bodyColor});
+        expect(screen.getByText(en.common.dismiss)).toHaveStyle({color: headingColor});
     });
 
     it('uses the near-full-width bottom card on narrow layouts', async () => {

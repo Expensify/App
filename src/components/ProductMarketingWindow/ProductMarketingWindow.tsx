@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
@@ -36,11 +37,14 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const insets = useSafeAreaInsets();
+    const theme = useTheme();
+    const shouldUseLightMarketingWindow = theme.colorScheme === CONST.COLOR_SCHEME.DARK;
 
     return (
         <View
             style={[
                 styles.productMarketingWindowContainer,
+                shouldUseLightMarketingWindow ? styles.productMarketingWindowContainerLight : styles.productMarketingWindowContainerDark,
                 styles.p4,
                 shouldUseNarrowLayout
                     ? [styles.productMarketingWindowContainerNarrow, {bottom: variables.productMarketingWindowOffsetNarrow + insets.bottom}]
@@ -48,7 +52,13 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
             ]}
             testID={ProductMarketingWindow.displayName}
         >
-            <View style={[styles.productMarketingWindowIllustrationContainer, styles.mb4]}>
+            <View
+                style={[
+                    styles.productMarketingWindowIllustrationContainer,
+                    shouldUseLightMarketingWindow ? styles.productMarketingWindowIllustrationContainerLight : styles.productMarketingWindowIllustrationContainerDark,
+                    styles.mb4,
+                ]}
+            >
                 <ImageSVG
                     src={illustration}
                     width={variables.productMarketingWindowIllustrationSize}
@@ -56,8 +66,12 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                     contentFit="contain"
                 />
             </View>
-            <Text style={[styles.textHeadlineH2, styles.productMarketingWindowHeading]}>{translate(variant.heading)}</Text>
-            <Text style={[styles.textLabel, styles.productMarketingWindowBody, styles.mt1]}>{translate(variant.body)}</Text>
+            <Text style={[styles.textHeadlineH2, shouldUseLightMarketingWindow ? styles.productMarketingWindowHeadingLight : styles.productMarketingWindowHeadingDark]}>
+                {translate(variant.heading)}
+            </Text>
+            <Text style={[styles.textLabel, shouldUseLightMarketingWindow ? styles.productMarketingWindowBodyLight : styles.productMarketingWindowBodyDark, styles.mt1]}>
+                {translate(variant.body)}
+            </Text>
             <View style={[styles.flexRow, styles.gap2, styles.mt4]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -71,11 +85,14 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                 <Button
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     style={styles.flex1}
-                    innerStyles={styles.productMarketingWindowDismissButton}
+                    innerStyles={shouldUseLightMarketingWindow ? styles.productMarketingWindowDismissButtonLight : styles.productMarketingWindowDismissButtonDark}
+                    hoverStyles={styles.productMarketingWindowDismissButtonHovered}
                     onPress={onDismiss}
                     sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.DISMISS}
                 >
-                    <Button.Text style={styles.productMarketingWindowDismissButtonText}>{translate('common.dismiss')}</Button.Text>
+                    <Button.Text style={shouldUseLightMarketingWindow ? styles.productMarketingWindowDismissButtonTextLight : styles.productMarketingWindowDismissButtonTextDark}>
+                        {translate('common.dismiss')}
+                    </Button.Text>
                 </Button>
             </View>
         </View>

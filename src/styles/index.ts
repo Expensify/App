@@ -1178,13 +1178,17 @@ const staticStyles = (theme: ThemeColors) =>
             }),
         },
 
-        // The product marketing window keeps the same dark branded look in both themes, per design,
-        // so it uses productDark colors directly instead of theme tokens.
+        // The product marketing window intentionally contrasts with the app by using the opposite palette.
         productMarketingWindowContainer: {
             ...positioning.pAbsolute,
-            backgroundColor: colors.productDark100,
             borderRadius: variables.componentBorderRadiusLarge,
             boxShadow: theme.shadow,
+        },
+        productMarketingWindowContainerDark: {
+            backgroundColor: colors.productDark100,
+        },
+        productMarketingWindowContainerLight: {
+            backgroundColor: colors.productLight100,
         },
         productMarketingWindowContainerWide: {
             bottom: variables.productMarketingWindowOffset,
@@ -1198,22 +1202,42 @@ const staticStyles = (theme: ThemeColors) =>
         productMarketingWindowIllustrationContainer: {
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: colors.productDark300,
             borderRadius: variables.componentBorderRadiusNormal,
             height: variables.productMarketingWindowIllustrationHeight,
             overflow: 'hidden',
         },
-        productMarketingWindowHeading: {
+        productMarketingWindowIllustrationContainerDark: {
+            backgroundColor: colors.productDark300,
+        },
+        productMarketingWindowIllustrationContainerLight: {
+            backgroundColor: colors.productLight300,
+        },
+        productMarketingWindowHeadingDark: {
             color: colors.productDark900,
         },
-        productMarketingWindowBody: {
+        productMarketingWindowHeadingLight: {
+            color: colors.productLight900,
+        },
+        productMarketingWindowBodyDark: {
             color: colors.productDark800,
         },
-        productMarketingWindowDismissButton: {
+        productMarketingWindowBodyLight: {
+            color: colors.productLight800,
+        },
+        productMarketingWindowDismissButtonDark: {
             backgroundColor: colors.productDark400,
         },
-        productMarketingWindowDismissButtonText: {
+        productMarketingWindowDismissButtonLight: {
+            backgroundColor: colors.productLight400,
+        },
+        productMarketingWindowDismissButtonHovered: {
+            backgroundColor: theme.buttonHoveredBGReversed,
+        },
+        productMarketingWindowDismissButtonTextDark: {
             color: colors.productDark900,
+        },
+        productMarketingWindowDismissButtonTextLight: {
+            color: colors.productLight900,
         },
 
         cardBadgeText: {
