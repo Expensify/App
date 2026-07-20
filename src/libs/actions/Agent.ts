@@ -62,9 +62,7 @@ function createAgent(
         ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
     };
 
-    // The owner<->agent DM's reportID, generated the same way as any other new chat's reportID. CreateAgent
-    // creates the DM under this exact ID (see CreateAgent.cpp), so we can write the report to Onyx and
-    // navigate to it immediately, instead of waiting for the response and guessing the agent's identity.
+    // Generate the DM report ID client-side so it can be written to Onyx and opened immediately.
     const optimisticReportID = generateReportID();
     const optimisticChatReport = buildOptimisticChatReport({
         participantList: [ownerAccountID, optimisticAccountID],
@@ -72,9 +70,7 @@ function createAgent(
         optimisticReportID,
         currentUserAccountID: ownerAccountID,
     });
-    // Generated up front (rather than left to buildOptimisticCreatedReportAction's default) so it can also
-    // be sent to CreateAgent, the same way OpenReport's callers forward createdReportActionID: the DM's
-    // CREATED action then reconciles onto this exact ID instead of the server generating a duplicate.
+    // Reuse the client-generated CREATED action ID when CreateAgent creates the DM.
     const createdReportActionID = rand64();
     const optimisticCreatedAction = buildOptimisticCreatedReportAction({
         emailCreatingAction: ownerLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE,
