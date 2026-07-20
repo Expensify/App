@@ -1099,6 +1099,15 @@ describe('actions/PolicyMember', () => {
             // Then it should show the singular member added success message
             expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.pendingMessageKey).toBeUndefined();
+        });
+
+        it('should include a role permission warning when restricted roles are replaced', async () => {
+            const policy = createRandomPolicy(1);
+
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER}], true);
+
+            expect(importFinalModal.pendingMessageKey).toBe('spreadsheet.importMembersRolePermissionWarning');
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
