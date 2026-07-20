@@ -25,30 +25,10 @@ let isTransitionPending = false;
  */
 let pendingClearTimeout: ReturnType<typeof setTimeout> | null = null;
 
-/** Last known focused route key from a hydrated `state` event (undefined until first valid key). */
+/**
+ * Last known focused route key. Seeded from the pre-action hydrated ref the first time `__unsafe_action__` fires
+ */
 let lastFocusedRouteKey: string | undefined;
-
-/**
- * True once the first hydrated focused-route key has been observed. Until then, `lastFocusedRouteKey`
- * being `undefined` is just "no baseline yet", not a real key to diff against - without this flag, the
- * very first `state`/ref read on a cold start would look like a focus change (`undefined !== 'route-a'`)
- * even though no navigation actually moved focus.
- */
-let hasCapturedBaselineFocus = false;
-
-/**
- * Compares a freshly read focused-route key against the last known one, treating the first-ever
- * observation as a baseline capture rather than a change. Callers are still responsible for
- * updating {@link lastFocusedRouteKey} when this returns `false` for a non-baseline comparison.
- */
-function didFocusMoveFrom(focusedRouteKey: string): boolean {
-    if (!hasCapturedBaselineFocus) {
-        hasCapturedBaselineFocus = true;
-        lastFocusedRouteKey = focusedRouteKey;
-        return false;
-    }
-    return focusedRouteKey !== lastFocusedRouteKey;
-}
 
 /**
  * True once a pending action was followed by a focused-route key change. Callers should wait for
@@ -123,7 +103,7 @@ function onPredictionWindowExpired(): void {
     }
 
     const focusedRouteKey = getHydratedFocusedRouteKey();
-    if (focusedRouteKey !== undefined && didFocusMoveFrom(focusedRouteKey)) {
+    if (focusedRouteKey !== undefined && focusedRouteKey !== lastFocusedRouteKey) {
         confirmFocusMove(focusedRouteKey);
         return;
     }
@@ -151,6 +131,12 @@ function whenPredictionSettled(onSettled: (shouldWait: boolean) => void): void {
 
 // Phase 1: a navigable action opens a short prediction window.
 navigationRef.addListener('__unsafe_action__', (event) => {
+    // `__unsafe_action__` only fires once the container is mounted with a real focused route,
+    // so this always resolves to a defined key the first time
+    if (lastFocusedRouteKey === undefined) {
+        lastFocusedRouteKey = getHydratedFocusedRouteKey();
+    }
+
     if (event.data.noop || ACTION_TYPES_WITHOUT_TRANSITION.has(event.data.action.type)) {
         return;
     }
@@ -177,7 +163,7 @@ navigationRef.addListener('state', () => {
         return;
     }
 
-    const didFocusedRouteChange = didFocusMoveFrom(focusedRouteKey);
+    const didFocusedRouteChange = focusedRouteKey !== lastFocusedRouteKey;
     lastFocusedRouteKey = focusedRouteKey;
 
     if (!isTransitionPending || hasConfirmedFocusMove) {
