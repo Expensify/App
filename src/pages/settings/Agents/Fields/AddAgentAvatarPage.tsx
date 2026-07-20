@@ -1,3 +1,5 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 
 import Log from '@libs/Log';
@@ -7,6 +9,7 @@ import {setNewAgentAvatarPreset, setNewAgentUploadedAvatar} from '@userActions/A
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
@@ -18,7 +21,7 @@ import {EditAgentAvatarContent} from './EditAgentAvatarPage';
 function AddAgentAvatarPage() {
     const navigation = useNavigation();
     const returnRoute = ROUTES.SETTINGS_AGENTS_ADD.getRoute();
-    const [avatarDraft] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
+    const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const initialPresetID = avatarDraft?.customExpensifyAvatarID;
 
     const handleSave = (params: OnSaveParams) => {
@@ -37,6 +40,10 @@ function AddAgentAvatarPage() {
                 Navigation.goBack(returnRoute);
             });
     };
+
+    if (isLoadingOnyxValue(avatarDraftMetadata)) {
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddAgentAvatarPage'}} />;
+    }
 
     return (
         <EditAgentAvatarContent
