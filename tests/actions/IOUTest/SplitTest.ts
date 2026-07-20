@@ -2395,7 +2395,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -2433,6 +2433,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2553,6 +2554,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2610,6 +2613,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: selfDMReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2672,6 +2677,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2743,6 +2750,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2892,6 +2901,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: selfDMReport,
             expenseReport,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3032,6 +3043,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -5911,6 +5924,8 @@ describe('updateSplitTransactions', () => {
             transactionReport: expenseReport,
             expenseReport,
             isOffline: true,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
