@@ -102,6 +102,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const convertedGroups = footerConversion?.groups;
     const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
     const conversionErrors = footerConversion?.errors;
+
     // Source figures each conversion was stamped against. A conversion is "fresh" only while its stamped source
     // still equals the live snapshot value; an inline edit moves the live value and makes the conversion stale.
     const conversionSources = footerConversion?.sources;
@@ -133,6 +134,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             }, 0),
         [currentSearchResults?.data, selectedTransactions, selectedTransactionsKeys],
     );
+
     // Individually-selected transactions (loose rows in a grouped view, or every row on a flat search).
     const selectedTransactionIDs = useMemo(
         () => selectedTransactionsKeys.map((key) => selectedTransactions[key]?.transaction?.transactionID).filter((transactionID): transactionID is string => !!transactionID),
