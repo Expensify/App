@@ -192,6 +192,7 @@ type SearchQueryContextValue = {
 
 type SearchQueryActionsValue = {
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
+    setCurrentSearchKey: (searchKey: SearchKey | undefined) => void;
 };
 
 type SearchResultsContextValue = {

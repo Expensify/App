@@ -43,7 +43,7 @@ import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
-import {setCurrentSearchKey, setSearchContext} from '@userActions/Search';
+import {setSearchContext} from '@userActions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,7 +80,7 @@ type SearchRouterProps = {
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {setShouldResetSearchQuery} = useSearchQueryActions();
+    const {setShouldResetSearchQuery, setCurrentSearchKey} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -359,7 +359,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             backHistory(() => {
                 onRouterClose();
                 setSearchContext(true);
-                setCurrentSearchKey(null);
+                setCurrentSearchKey(undefined);
                 Navigation.navigate(
                     ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
                 );
@@ -368,7 +368,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton],
+        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, setCurrentSearchKey, isFromSearchPageSearchButton],
     );
 
     const onListItemPress = useCallback(

@@ -1,7 +1,7 @@
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
-import {setCurrentSearchKey, setSearchContext} from '@libs/actions/Search';
+import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
 import type {SearchKey, SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -119,6 +119,7 @@ function SearchTypeMenuWide() {
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const typeMenuSections = useSearchTypeMenuSections();
+    const {setCurrentSearchKey} = useSearchQueryActions();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);

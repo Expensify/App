@@ -3,7 +3,6 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {setCurrentSearchKey} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
@@ -12,8 +11,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {useSearchQueryActions} from '../SearchContext';
+
 function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     const {translate} = useLocalize();
+    const {setCurrentSearchKey} = useSearchQueryActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     function getUpdatedFilterFormValues(currentValues: Partial<SearchAdvancedFiltersForm>, newValues: Partial<SearchAdvancedFiltersForm>) {
@@ -26,7 +28,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             updatedFilterFormValues.columns = [];
             updatedFilterFormValues.status = undefined;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
-            setCurrentSearchKey(null);
+            setCurrentSearchKey(undefined);
         }
 
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {

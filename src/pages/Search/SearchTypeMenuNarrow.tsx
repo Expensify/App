@@ -2,7 +2,7 @@ import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
@@ -20,7 +20,7 @@ import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSear
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 
-import {setCurrentSearchKey, setSearchContext} from '@libs/actions/Search';
+import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getItemBadgeText, getOverflowMenu, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
@@ -100,6 +100,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
     const {currentSearchKey} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);

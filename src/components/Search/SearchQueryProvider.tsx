@@ -4,7 +4,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
-import {setCurrentSearchKey} from '@libs/actions/Search';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, savedSearchIDToSearchKey, searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
@@ -17,7 +16,7 @@ import SCREENS from '@src/SCREENS';
 import type {NavigationState} from '@react-navigation/routers';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 
 import type {QueryFilters, SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
@@ -55,16 +54,11 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
 
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
-    const [currentSearchKeyOnyx] = useOnyx(ONYXKEYS.RAM_ONLY_CURRENT_SEARCH_KEY);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
-    const currentSearchKey = (() => {
-        if (currentSearchKeyOnyx) {
-            return currentSearchKeyOnyx;
-        }
-
+    const getInitialCurrentSearchKey = () => {
         const suggestedSearchKey = Object.values(suggestedSearches).find((search) => {
             const savedSearchFilterQuery = searchFilters?.[search.key];
             const savedSearchFilter = savedSearchFilterQuery ? buildSearchQueryJSON(savedSearchFilterQuery) : undefined;
@@ -88,10 +82,12 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
             [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
         };
         return currentSearchQueryJSON?.type ? typeToGenericKey[currentSearchQueryJSON.type] : undefined;
-    })();
+    };
+
+    const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
 
     const currentQueryFilterKeys = new Set(currentSearchQueryJSON?.flatFilters.map((filter) => filter.key));
-    const currentSearchKeyDefaultFilterKeys = new Set(currentSearchKeyOnyx ? suggestedSearches[currentSearchKeyOnyx]?.searchQueryJSON?.flatFilters.map((filter) => filter.key) : undefined);
+    const currentSearchKeyDefaultFilterKeys = new Set(currentSearchKey ? suggestedSearches[currentSearchKey]?.searchQueryJSON?.flatFilters.map((filter) => filter.key) : undefined);
 
     useEffect(() => {
         // Every time the query changes, we invalidate the currentSearchKey if the new query doesn't have the default filters
@@ -101,17 +97,18 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         if (currentQueryFilterKeys.isSupersetOf(currentSearchKeyDefaultFilterKeys)) {
             return;
         }
-        setCurrentSearchKey(null);
+        setCurrentSearchKey(undefined);
     }, [currentSearchHash]);
 
+    const setInitialCurrentSearchKey = useEffectEvent(() => setCurrentSearchKey(getInitialCurrentSearchKey()));
+
     useEffect(() => {
-        // currentSearchKeyOnyx is a RAM-only Onyx data, so the initial value will always be empty and need to be hydrated.
-        // currentSearchKeyOnyx can also be invalidated, so we need to set it back with the correct value.
-        if (currentSearchKeyOnyx) {
+        // currentSearchKey can be invalidated, so we need to set it back with the correct value.
+        if (currentSearchKey) {
             return;
         }
-        setCurrentSearchKey(currentSearchKey ?? null);
-    }, [currentSearchKey, currentSearchKeyOnyx]);
+        setInitialCurrentSearchKey();
+    }, [currentSearchKey]);
 
     const currentDefaultSearchQueryString = currentSearchKey
         ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
@@ -132,6 +129,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const queryActionsValue: SearchQueryActionsValue = {
         setShouldResetSearchQuery,
+        setCurrentSearchKey,
     };
 
     return (

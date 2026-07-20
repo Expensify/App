@@ -2,7 +2,7 @@ import MenuItemList from '@components/MenuItemList';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -14,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setCurrentSearchKey, setSearchContext} from '@libs/actions/Search';
+import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -47,6 +47,7 @@ type SavedSearchMenuItemBuilderParams = {
     index: number;
     currentSearchKey: SearchKey | undefined;
     title: string;
+    onPress: (searchKey: SearchKey) => void;
     getOverflowMenu: (itemName: string, itemSavedSearchID: string, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     shouldShowSavedSearchTooltip: boolean;
     hideSavedSearchTooltip: (() => void) | undefined;
@@ -63,6 +64,7 @@ function buildSavedSearchMenuItem({
     index,
     currentSearchKey,
     title,
+    onPress,
     getOverflowMenu,
     shouldShowSavedSearchTooltip,
     hideSavedSearchTooltip,
@@ -81,7 +83,7 @@ function buildSavedSearchMenuItem({
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
             setSearchContext(false);
-            setCurrentSearchKey(savedSearchKey);
+            onPress(savedSearchKey);
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: itemQuery, name: item?.name}));
         },
         rightComponent: (
@@ -126,6 +128,7 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
     const {currentSearchKey} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const {showDeleteModal} = useDeleteSavedSearch();
     const {
@@ -174,6 +177,7 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
                       index,
                       currentSearchKey,
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
+                      onPress: (savedSearchKey) => setCurrentSearchKey(savedSearchKey),
                       getOverflowMenu,
                       shouldShowSavedSearchTooltip,
                       hideSavedSearchTooltip,

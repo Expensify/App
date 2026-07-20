@@ -1599,10 +1599,6 @@ function setSearchContext(shouldShowSearchQuery: boolean) {
     Onyx.set(ONYXKEYS.SEARCH_CONTEXT, {shouldShowSearchQuery});
 }
 
-function setCurrentSearchKey(key: SearchKey | null) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_CURRENT_SEARCH_KEY, key);
-}
-
 /**
  * For Expense reports, user can choose both expense and transaction, in this case we need to check for both selected reports and transactions
  * This function checks if all remaining selected transactions (not included in selectedReports) are eligible for bulk pay
@@ -1877,7 +1873,6 @@ export {
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
     setSearchContext,
-    setCurrentSearchKey,
     deleteSavedSearch,
     getSearchPayOnyxData,
     getSearchApproveOnyxData,
