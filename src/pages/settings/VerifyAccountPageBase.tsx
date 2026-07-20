@@ -103,7 +103,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
         <ValidateCodeActionContent
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
-            descriptionSecondary={translate('contacts.enterMagicCode', contactMethod)}
+            descriptionSecondary={translate('contacts.enterSecurityCode', contactMethod)}
             sendValidateCode={requestValidateCodeAction}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}

@@ -38,7 +38,7 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            descriptionPrimary={translate('contacts.enterMagicCode', contactMethod)}
+            descriptionPrimary={translate('contacts.enterSecurityCode', contactMethod)}
             validateCodeActionErrorField="addedLogin"
             validateError={validateCodeError}
             handleSubmitForm={verifyAddSecondaryLoginCode}

@@ -284,11 +284,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 inputValidateCodeRef.current.blur();
             }
             if (!validateCode.trim()) {
-                setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
+                setFormError({validateCode: 'validateCodeForm.error.pleaseFillSecurityCode'});
                 return;
             }
             if (!isValidValidateCode(validateCode)) {
-                setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
+                setFormError({validateCode: 'validateCodeForm.error.incorrectSecurityCode'});
                 return;
             }
         }
@@ -407,11 +407,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                                accessibilityLabel={translate('validateCodeForm.securityCodeNotReceived')}
                                 sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.RESEND_CODE}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
-                                    {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate('validateCodeForm.magicCodeNotReceived')}
+                                    {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate('validateCodeForm.securityCodeNotReceived')}
                                 </Text>
                             </PressableWithFeedback>
                         )}

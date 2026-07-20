@@ -786,7 +786,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Je betalingen komen net zo snel bij je aan als jij je punt kunt maken.',
         enterPassword: 'Voer uw wachtwoord in',
         welcomeNewFace: (login: string) => `${login}, het is altijd leuk om een nieuw gezicht hier te zien!`,
-        welcomeEnterMagicCode: (login: string) => `Voer de beveiligingscode in die naar ${login} is gestuurd. Deze zou binnen een of twee minuten moeten aankomen.`,
+        welcomeEnterSecurityCode: (login: string) => `Voer de beveiligingscode in die naar ${login} is gestuurd. Deze zou binnen een of twee minuten moeten aankomen.`,
     },
     login: {
         hero: {
@@ -796,9 +796,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Ga verder met inloggen via single sign-on:',
-        orContinueWithMagicCode: 'Je kunt ook inloggen met een beveiligingscode',
+        orContinueWithSecurityCode: 'Je kunt ook inloggen met een beveiligingscode',
         useSingleSignOn: 'Single sign-on gebruiken',
-        useMagicCode: 'Beveiligingscode gebruiken',
+        useSecurityCode: 'Beveiligingscode gebruiken',
         launching: 'Opstarten...',
         oneMoment: 'Een moment terwijl we je doorsturen naar het single sign-onportaal van je bedrijf.',
     },
@@ -2092,7 +2092,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms'en naar 47777 (alleen voor Amerikaanse nummers).`,
         pleaseVerify: 'Verifieer deze contactmethode.',
         getInTouch: 'We gebruiken deze methode om contact met je op te nemen.',
-        enterMagicCode: (contactMethod: string) => `Voer de beveiligingscode in die is verzonden naar ${contactMethod}. Die zou binnen een of twee minuten moeten aankomen.`,
+        enterSecurityCode: (contactMethod: string) => `Voer de beveiligingscode in die is verzonden naar ${contactMethod}. Die zou binnen een of twee minuten moeten aankomen.`,
         setAsDefault: 'Instellen als standaard',
         yourDefaultContactMethod:
             'Dit is je huidige standaardcontactmethode. Voordat je deze kunt verwijderen, moet je een andere contactmethode kiezen en op ‘Instellen als standaard’ klikken.',
@@ -2266,9 +2266,9 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmMerge: 'Weet je zeker dat je accounts wilt samenvoegen?',
             lossOfUnsubmittedData: (login: string) =>
                 `Het samenvoegen van je accounts is onomkeerbaar en zal leiden tot het verlies van alle niet-ingediende uitgaven voor <strong>${login}</strong>.`,
-            enterMagicCode: (login: string) => `Om door te gaan, voer de beveiligingscode in die is verzonden naar <strong>${login}</strong>.`,
+            enterSecurityCode: (login: string) => `Om door te gaan, voer de beveiligingscode in die is verzonden naar <strong>${login}</strong>.`,
             errors: {
-                incorrectMagicCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
+                incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
                 fallback: 'Er is iets misgegaan. Probeer het later opnieuw.',
             },
         },
@@ -2624,7 +2624,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Toegevoegd aan ${platform}-wallet`,
         cardDetailsLoadingFailure: 'Er is een fout opgetreden bij het laden van de kaartgegevens. Controleer je internetverbinding en probeer het opnieuw.',
         validateCardTitle: 'We willen zeker weten dat jij het bent',
-        enterMagicCode: (contactMethod: string) =>
+        enterSecurityCode: (contactMethod: string) =>
             `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je kaartgegevens te bekijken. Deze zou binnen een minuut of twee moeten arriveren.`,
         unexpectedError: 'Er is een fout opgetreden bij het ophalen van de gegevens van je Expensify-kaart. Probeer het opnieuw.',
         cardFraudAlert: {
@@ -3057,7 +3057,7 @@ ${amount} voor ${merchant} - ${date}`,
         license: `Geldtransfers worden verzorgd door ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) volgens diens <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenties</a>.`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: 'Geen beveiligingscode ontvangen?',
+        securityCodeNotReceived: 'Geen beveiligingscode ontvangen?',
         avoidScamsMessage: '<strong>Voorkom oplichting. Deel je code met niemand.</strong> Ons team zal je nooit bellen, sms’en of e-mailen om deze code te vragen.',
         enterAuthenticatorCode: 'Voer je authenticatiecode in',
         enterRecoveryCode: 'Voer uw herstelcode in',
@@ -3067,8 +3067,8 @@ ${amount} voor ${merchant} - ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `Resterende tijd: ${timeRemaining} ${timeRemaining === 1 ? 'seconde' : 'seconden'}`,
         timeExpiredAnnouncement: 'De tijd is verstreken',
         error: {
-            pleaseFillMagicCode: 'Voer je beveiligingscode in',
-            incorrectMagicCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
+            pleaseFillSecurityCode: 'Voer je beveiligingscode in',
+            incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
             pleaseFillTwoFactorAuth: 'Voer je twee-factor-authenticatiecode in',
         },
     },
@@ -3169,7 +3169,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Verifieer je werk-e-mailadres',
-            magicCodeSent: (workEmail: string | undefined) => `Voer de beveiligingscode in die naar ${workEmail} is gestuurd. Die zou binnen een minuut of twee moeten aankomen.`,
+            securityCodeSent: (workEmail: string | undefined) => `Voer de beveiligingscode in die naar ${workEmail} is gestuurd. Die zou binnen een minuut of twee moeten aankomen.`,
         },
         workEmailValidationError: {
             publicEmail: 'Voer een geldig zakelijk e-mailadres in van een privédomein, bijv. mitch@company.com',
@@ -3495,7 +3495,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link is opnieuw verzonden',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `Ik heb een beveiligde inloglink naar ${login} gestuurd. Controleer je ${loginType} om in te loggen.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Ik heb een beveiligde inloglink naar ${login} gestuurd. Controleer je ${loginType} om in te loggen.`,
         resendLink: 'Link opnieuw verzenden',
     },
     unlinkLoginForm: {
@@ -9904,9 +9904,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         removeCopilotConfirmation: 'Weet je zeker dat je deze copilot wilt verwijderen?',
         changeAccessLevel: 'Toegangsniveau wijzigen',
         makeSureItIsYou: 'We willen zeker weten dat jij het bent',
-        enterMagicCode: (contactMethod: string) =>
+        enterSecurityCode: (contactMethod: string) =>
             `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om een copiloot toe te voegen. Die zou binnen één à twee minuten moeten aankomen.`,
-        enterMagicCodeUpdate: (contactMethod: string) => `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je copiloot bij te werken.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je copiloot bij te werken.`,
         notAllowed: 'Niet zo snel...',
         noAccessMessage: Str.dedent(`
             Als copiloot heb je geen toegang tot

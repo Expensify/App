@@ -731,7 +731,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
         welcomeNewFace: (login) => `${login}, siempre es genial ver una cara nueva por aquí!`,
-        welcomeEnterMagicCode: (login: string) => `Introduce el código de seguridad enviado a ${login}. Debería llegar en uno o dos minutos.`,
+        welcomeEnterSecurityCode: (login: string) => `Introduce el código de seguridad enviado a ${login}. Debería llegar en uno o dos minutos.`,
     },
     login: {
         hero: {
@@ -741,9 +741,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
-        orContinueWithMagicCode: 'También puedes iniciar sesión con un código de seguridad',
+        orContinueWithSecurityCode: 'También puedes iniciar sesión con un código de seguridad',
         useSingleSignOn: 'Usar el inicio de sesión único',
-        useMagicCode: 'Usar código de seguridad',
+        useSecurityCode: 'Usar código de seguridad',
         launching: 'Cargando...',
         oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
     },
@@ -1977,7 +1977,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Agrega más formas de iniciar sesión y enviar recibos a Expensify.<br/><br/>Agrega una dirección de correo electrónico para reenviar recibos a <a href="mailto:${email}">${email}</a> o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).`,
         pleaseVerify: 'Por favor, verifica este método de contacto.',
         getInTouch: 'Usaremos este método para comunicarnos contigo.',
-        enterMagicCode: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod}. Debería llegar en uno o dos minutos.`,
+        enterSecurityCode: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod}. Debería llegar en uno o dos minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
@@ -2149,9 +2149,9 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
             lossOfUnsubmittedData: (login) => `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de <strong>${login}</strong>.`,
-            enterMagicCode: (login: string) => `Para continuar, introduce el código de seguridad enviado a <strong>${login}</strong>.`,
+            enterSecurityCode: (login: string) => `Para continuar, introduce el código de seguridad enviado a <strong>${login}</strong>.`,
             errors: {
-                incorrectMagicCode: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
+                incorrectSecurityCode: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
                 fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
             },
         },
@@ -2508,7 +2508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}) => `Añadida a ${platform} Wallet`,
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
-        enterMagicCode: (contactMethod: string) =>
+        enterSecurityCode: (contactMethod: string) =>
             `Por favor, introduce el código de seguridad enviado a ${contactMethod} para ver los detalles de tu tarjeta. Debería llegar en uno o dos minutos.`,
         unexpectedError: 'Se produjo un error al intentar obtener los detalles de tu tarjeta Expensify. Vuelve a intentarlo.',
         cardFraudAlert: {
@@ -2928,7 +2928,7 @@ ${amount} para ${merchant} - ${date}`,
         license: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencias</a>.`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: '¿No has recibido un código de seguridad?',
+        securityCodeNotReceived: '¿No has recibido un código de seguridad?',
         avoidScamsMessage:
             '<strong>Evita las estafas. No compartas tu código con nadie.</strong> Nuestro equipo nunca te llamará, enviará mensajes de texto ni correos electrónicos para solicitarte este código.',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
@@ -2939,8 +2939,8 @@ ${amount} para ${merchant} - ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `Tiempo restante: ${timeRemaining} ${timeRemaining === 1 ? 'segundo' : 'segundos'}`,
         timeExpiredAnnouncement: 'El tiempo ha expirado',
         error: {
-            pleaseFillMagicCode: 'Por favor, introduce tu código de seguridad',
-            incorrectMagicCode: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
+            pleaseFillSecurityCode: 'Por favor, introduce tu código de seguridad',
+            incorrectSecurityCode: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores.',
         },
     },
@@ -3042,7 +3042,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Verifica tu correo electrónico de trabajo',
-            magicCodeSent: (workEmail: string | undefined) => `Introduce el código de seguridad enviado a ${workEmail}. Debería llegar en uno o dos minutos.`,
+            securityCodeSent: (workEmail: string | undefined) => `Introduce el código de seguridad enviado a ${workEmail}. Debería llegar en uno o dos minutos.`,
         },
         workEmailValidationError: {
             publicEmail: 'Por favor, introduce un correo electrónico laboral válido de un dominio privado, por ejemplo: mitch@company.com',
@@ -3376,7 +3376,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `He enviado un enlace de acceso seguro a ${login}. Por favor, revisa tu ${loginType} para iniciar sesión.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `He enviado un enlace de acceso seguro a ${login}. Por favor, revisa tu ${loginType} para iniciar sesión.`,
         resendLink: 'Reenviar enlace',
     },
     unlinkLoginForm: {
@@ -10107,8 +10107,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         removeCopilotAccessConfirm: 'Eliminar acceso',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
-        enterMagicCode: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod} para añadir un copiloto. Debería llegar en uno o dos minutos.`,
-        enterMagicCodeUpdate: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod} para actualizar tu copiloto.`,
+        enterSecurityCode: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod} para añadir un copiloto. Debería llegar en uno o dos minutos.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod} para actualizar tu copiloto.`,
         notAllowed: 'No tan rápido...',
         noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
         notAllowedMessage: (accountOwnerEmail) =>

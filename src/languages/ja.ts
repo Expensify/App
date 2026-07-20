@@ -778,7 +778,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'あなたが要点を伝える速さで、支払いもあなたのもとに届きます。',
         enterPassword: 'パスワードを入力してください',
         welcomeNewFace: (login: string) => `${login} さん、ここで新しい顔にお会いできるのはいつでもうれしいです！`,
-        welcomeEnterMagicCode: (login: string) => `${login} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
+        welcomeEnterSecurityCode: (login: string) => `${login} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
     },
     login: {
         hero: {
@@ -788,9 +788,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'シングルサインオンでのログインを続行:',
-        orContinueWithMagicCode: 'セキュリティコードを使ってサインインすることもできます',
+        orContinueWithSecurityCode: 'セキュリティコードを使ってサインインすることもできます',
         useSingleSignOn: 'シングルサインオンを使用',
-        useMagicCode: 'セキュリティコードを使用',
+        useSecurityCode: 'セキュリティコードを使用',
         launching: '起動中…',
         oneMoment: '会社のシングルサインオンポータルへリダイレクトしますので、少々お待ちください。',
     },
@@ -2077,7 +2077,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Expensify へのログイン方法とレシート送信方法をさらに追加しましょう。<br/><br/>レシートを <a href="mailto:${email}">${email}</a> に転送するメールアドレスを追加するか、レシートを 47777（米国の電話番号のみ）宛てにテキスト送信する電話番号を追加してください。`,
         pleaseVerify: 'この連絡方法を確認してください。',
         getInTouch: '今後のご連絡にはこの方法を使用します。',
-        enterMagicCode: (contactMethod: string) => `${contactMethod} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
+        enterSecurityCode: (contactMethod: string) => `${contactMethod} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
         setAsDefault: 'デフォルトに設定',
         yourDefaultContactMethod: 'これは現在のデフォルトの連絡方法です。削除する前に、別の連絡方法を選択し、「デフォルトに設定」をクリックしてください。',
         removeContactMethod: '連絡先方法を削除',
@@ -2248,9 +2248,9 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: '本当にアカウントを統合してもよろしいですか？',
             lossOfUnsubmittedData: (login: string) => `アカウントの統合は元に戻せず、<strong>${login}</strong> の未提出経費はすべて失われます。`,
-            enterMagicCode: (login: string) => `続行するには、<strong>${login}</strong> に送信されたセキュリティコードを入力してください。`,
+            enterSecurityCode: (login: string) => `続行するには、<strong>${login}</strong> に送信されたセキュリティコードを入力してください。`,
             errors: {
-                incorrectMagicCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
+                incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
                 fallback: '問題が発生しました。後でもう一度お試しください。',
             },
         },
@@ -2600,7 +2600,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `${platform}ウォレットに追加しました`,
         cardDetailsLoadingFailure: 'カード詳細の読み込み中にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'ご本人確認を行います',
-        enterMagicCode: (contactMethod: string) => `カード情報を表示するには、${contactMethod} に送信されたセキュリティコードを入力してください。1〜2分以内に届きます。`,
+        enterSecurityCode: (contactMethod: string) => `カード情報を表示するには、${contactMethod} に送信されたセキュリティコードを入力してください。1〜2分以内に届きます。`,
         unexpectedError: 'Expensifyカードの詳細を取得中にエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです',
@@ -3029,7 +3029,7 @@ ${date} の ${merchant} への ${amount}`,
         license: `資金移動サービスは、その<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">認可</a>に基づき、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって提供されています。`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: 'セキュリティコードを受け取っていませんか？',
+        securityCodeNotReceived: 'セキュリティコードを受け取っていませんか？',
         avoidScamsMessage: '<strong>詐欺に注意してください。コードを他人と共有しないでください。</strong> 当社スタッフがこのコードを電話・SMS・メールでお尋ねすることは決してありません。',
         enterAuthenticatorCode: '認証コードを入力してください',
         enterRecoveryCode: 'リカバリーコードを入力してください',
@@ -3039,8 +3039,8 @@ ${date} の ${merchant} への ${amount}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `残り時間: ${timeRemaining}秒`,
         timeExpiredAnnouncement: '時間切れです',
         error: {
-            pleaseFillMagicCode: 'セキュリティコードを入力してください',
-            incorrectMagicCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
+            pleaseFillSecurityCode: 'セキュリティコードを入力してください',
+            incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
             pleaseFillTwoFactorAuth: '2 要素認証コードを入力してください',
         },
     },
@@ -3141,7 +3141,7 @@ ${date} の ${merchant} への ${amount}`,
         },
         workEmailValidation: {
             title: '勤務先メールを確認してください',
-            magicCodeSent: (workEmail: string | undefined) => `${workEmail} に送信されたセキュリティコードを入力してください。1〜2分ほどで届きます。`,
+            securityCodeSent: (workEmail: string | undefined) => `${workEmail} に送信されたセキュリティコードを入力してください。1〜2分ほどで届きます。`,
         },
         workEmailValidationError: {
             publicEmail: 'プライベートドメインの有効な勤務先メールアドレスを入力してください（例：mitch@company.com）',
@@ -3468,7 +3468,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     resendValidationForm: {
         linkHasBeenResent: 'リンクを再送信しました',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `${login} にセキュリティサインインリンクを送信しました。サインインするには ${loginType} をご確認ください。`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `${login} にセキュリティサインインリンクを送信しました。サインインするには ${loginType} をご確認ください。`,
         resendLink: 'リンクを再送',
     },
     unlinkLoginForm: {
@@ -9797,8 +9797,8 @@ ${reportName}`,
         removeCopilotConfirmation: 'このコパイロットを削除してもよろしいですか？',
         changeAccessLevel: 'アクセスレベルを変更',
         makeSureItIsYou: 'ご本人確認を行います',
-        enterMagicCode: (contactMethod: string) => `コパイロットを追加するために、${contactMethod} に送信されたセキュリティコードを入力してください。1〜2分以内に届きます。`,
-        enterMagicCodeUpdate: (contactMethod: string) => `コパイロットを更新するために、${contactMethod} に送信されたセキュリティコードを入力してください。`,
+        enterSecurityCode: (contactMethod: string) => `コパイロットを追加するために、${contactMethod} に送信されたセキュリティコードを入力してください。1〜2分以内に届きます。`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `コパイロットを更新するために、${contactMethod} に送信されたセキュリティコードを入力してください。`,
         notAllowed: 'ちょっと待ってください…',
         noAccessMessage: Str.dedent(`
             副操縦士としては、このページにアクセスできません。申し訳ありません。
