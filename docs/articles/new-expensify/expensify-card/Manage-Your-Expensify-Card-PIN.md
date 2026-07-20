@@ -25,9 +25,9 @@ After your Workspace Admin issues you a physical GBP or EUR Expensify Card, you'
 
 ---
 
-## How to check your Expensify Card PIN
+## How to view your Expensify Card PIN
 
-If you need to check your PIN, you can reveal it from the card details page.
+If you need to view your PIN, you can reveal it from the card details page.
 
 1. In navigation tabs (on the left on web, on the bottom on mobile), **Account > Wallet**.
 2. Choose **Reveal PIN**.
