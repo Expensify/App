@@ -1051,7 +1051,7 @@ function MenuItem({
                                                                         {shouldRenderTitleAsHTML || shouldParseTitle ? (
                                                                             <RenderHTML html={processedTitle} />
                                                                         ) : (
-                                                                            <Text style={styles.webViewStyles.baseFontStyle}>{Parser.htmlToText(processedTitle)}</Text>
+                                                                            <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(processedTitle))}</Text>
                                                                         )}
                                                                     </View>
                                                                 )}
