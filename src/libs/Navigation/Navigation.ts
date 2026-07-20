@@ -289,6 +289,36 @@ function isActiveRoute(routePath: Route): boolean {
     return cleanRoutePath(activeRoute) === cleanRoutePath(routePath);
 }
 
+function startOpenReportSpan(route: Route) {
+    // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
+    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
+    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
+    if (!reportOpenMatch) {
+        return;
+    }
+
+    const routePrefix = reportOpenMatch.at(1);
+    const reportID = reportOpenMatch.at(2);
+    if (!reportID) {
+        return;
+    }
+
+    const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
+    let span = getSpan(spanId);
+    if (!span) {
+        const spanName = `/${routePrefix}/*`;
+        span = startSpan(spanId, {
+            name: spanName,
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
+    }
+    span?.setAttributes({
+        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+        [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+        [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
+    });
+}
+
 /**
  * Navigates to a specified route.
  * Main navigation method for redirecting to a route.
@@ -311,30 +341,7 @@ function navigate(route: Route, options?: LinkToOptions) {
         return;
     }
 
-    // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
-    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
-    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
-    if (reportOpenMatch) {
-        const routePrefix = reportOpenMatch.at(1);
-        const reportID = reportOpenMatch.at(2);
-        if (reportID) {
-            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
-            let span = getSpan(spanId);
-            if (!span) {
-                const spanName = `/${routePrefix}/*`;
-                span = startSpan(spanId, {
-                    name: spanName,
-                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-                });
-            }
-            span?.setAttributes({
-                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
-            });
-        }
-    }
-
+    startOpenReportSpan(route);
     const runImmediately = !options?.waitForTransition;
     TransitionTracker.runAfterTransitions({
         callback: () => {
@@ -1273,4 +1280,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, startOpenReportSpan};

@@ -8,7 +8,7 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {startOpenReportSpan} from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -132,6 +132,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 const reportsTabStateKey = getReportsTabStateKey(rootState);
                 const reusableReportsTabStateKey = getReusableReportsTabStateKey(rootState, reportID, reportActionID, doesLastReportActionExist);
                 const shouldDeferReportActions = !hasVisitedInboxTab.current;
+                const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo);
 
                 if (reusableReportsTabStateKey && !shouldDeferReportActions) {
                     // Focusing the existing tab without nested params preserves the mounted ReportScreen and
@@ -143,6 +144,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     return;
                 }
                 if (reportsTabStateKey && reportID) {
+                    startOpenReportSpan(reportRoute);
                     navigationRef.dispatch({
                         ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
                             screen: SCREENS.REPORT,
@@ -158,7 +160,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     });
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo));
+                Navigation.navigate(reportRoute);
                 return;
             }
         }
