@@ -198,7 +198,7 @@ function AttachmentPicker({
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
             new Promise((resolve, reject) => {
-                imagePickerFunc(getImagePickerOptions(type, fileLimit), (response: ImagePickerResponse) => {
+                imagePickerFunc(getImagePickerOptions(type, fileLimit), async (response: ImagePickerResponse) => {
                     if (response.didCancel) {
                         // When the user cancelled resolve with no attachment
                         return resolve();
@@ -222,68 +222,58 @@ function AttachmentPicker({
                     }
 
                     const processedAssets: Asset[] = [];
-                    let processedCount = 0;
 
-                    const checkAllProcessed = () => {
-                        processedCount++;
-                        if (processedCount === assets.length) {
-                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
-                        }
-                    };
-
+                    // Process assets sequentially so only one full-resolution image is decoded into native memory
+                    // at a time. The previous implementation fired every conversion in parallel, multiplying peak
+                    // memory by the number of selected files (each HEIC conversion decodes a full-resolution
+                    // bitmap via ImageManipulator.renderAsync). On memory-constrained iOS this exceeds the per-app
+                    // budget and triggers a jetsam crash when many HEIC images are attached at once (see #96404).
                     for (const asset of assets) {
                         if (!asset.uri) {
-                            checkAllProcessed();
                             continue;
                         }
 
-                        if (asset.type?.startsWith('image')) {
-                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
-                                .then((isHEIC) => {
-                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                    if (isHEIC && asset.uri) {
-                                        ImageManipulator.manipulate(asset.uri)
-                                            .renderAsync()
-                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                            .then((manipulationResult) => {
-                                                const uri = manipulationResult.uri;
-                                                const convertedAsset = {
-                                                    uri,
-                                                    name: uri
-                                                        .substring(uri.lastIndexOf('/') + 1)
-                                                        .split('?')
-                                                        .at(0),
-                                                    type: 'image/jpeg',
-                                                    width: manipulationResult.width,
-                                                    height: manipulationResult.height,
-                                                };
-                                                processedAssets.push(convertedAsset);
-                                                checkAllProcessed();
-                                            })
-                                            .catch((error: Error) => {
-                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
-                                                const fallbackAsset = processAssetWithFallbacks(asset);
-                                                processedAssets.push(fallbackAsset);
-                                                checkAllProcessed();
-                                            });
-                                    } else {
-                                        // Ensure the asset has proper fileName and type for non-HEIC images
-                                        const processedAsset = processAssetWithFallbacks(asset);
-                                        processedAssets.push(processedAsset);
-                                        checkAllProcessed();
+                        try {
+                            if (asset.type?.startsWith('image')) {
+                                const isHEIC = await verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES});
+                                // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+                                if (isHEIC && asset.uri) {
+                                    try {
+                                        const manipulatedImage = await ImageManipulator.manipulate(asset.uri).renderAsync();
+                                        const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
+                                        const uri = manipulationResult.uri;
+                                        const convertedAsset = {
+                                            uri,
+                                            name: uri
+                                                .substring(uri.lastIndexOf('/') + 1)
+                                                .split('?')
+                                                .at(0),
+                                            type: 'image/jpeg',
+                                            width: manipulationResult.width,
+                                            height: manipulationResult.height,
+                                        };
+                                        processedAssets.push(convertedAsset);
+                                    } catch (error) {
+                                        Log.warn('Failed to convert HEIC image, falling back to original', {error: error instanceof Error ? error.message : String(error)});
+                                        const fallbackAsset = processAssetWithFallbacks(asset);
+                                        processedAssets.push(fallbackAsset);
                                     }
-                                })
-                                .catch((error: Error) => {
-                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
-                                    checkAllProcessed();
-                                });
-                        } else {
-                            // Ensure the asset has proper fileName and type
-                            const processedAsset = processAssetWithFallbacks(asset);
-                            processedAssets.push(processedAsset);
-                            checkAllProcessed();
+                                } else {
+                                    // Ensure the asset has proper fileName and type for non-HEIC images
+                                    const processedAsset = processAssetWithFallbacks(asset);
+                                    processedAssets.push(processedAsset);
+                                }
+                            } else {
+                                // Ensure the asset has proper fileName and type
+                                const processedAsset = processAssetWithFallbacks(asset);
+                                processedAssets.push(processedAsset);
+                            }
+                        } catch (error) {
+                            showGeneralAlert(error instanceof Error ? (error.message ?? 'An unknown error occurred') : 'An unknown error occurred');
                         }
                     }
+
+                    resolve(processedAssets.length > 0 ? processedAssets : undefined);
                 });
             }),
         [fileLimit, showGeneralAlert, translate, type],
