@@ -279,9 +279,30 @@ function IOURequestStepConfirmation({
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
+                    : getReportOption(
+                          participant,
+                          privateIsArchived,
+                          participantPolicy,
+                          personalDetails,
+                          conciergeReportID,
+                          reportAttributesDerived,
+                          participantReportDraft,
+                          currentUserPersonalDetails.accountID,
+                      );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, translate],
+        [
+            transaction?.participants,
+            iouType,
+            personalDetails,
+            reportAttributesDerived,
+            privateIsArchivedMap,
+            participantsPolicies,
+            policy,
+            conciergeReportID,
+            reportDrafts,
+            translate,
+            currentUserPersonalDetails.accountID,
+        ],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
