@@ -98,7 +98,7 @@ To activate a physical Expensify Card:
 
 After activation, the card is ready to use.
 
-For details on how to set, view, or change an Expensify Card's PIN, see [Manage Your Expensify Card PIN (GBP/EUR Cards Only)](/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
+For details on how to set, view, change, or unblock an Expensify Card's PIN, see [Manage Your Expensify Card PIN (GBP/EUR Cards Only)](/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
 
 ---
 
