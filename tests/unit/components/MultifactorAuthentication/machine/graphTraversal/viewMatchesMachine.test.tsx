@@ -149,12 +149,15 @@ const testConfig = {
             expect(state.context.accountID).toBeDefined();
             expect(state.context.error).toBeUndefined();
         },
-        // The screen copy is not asserted because it depends on the platform the operations module resolves to under jest.
+        // The biometrics copy is expected because the jest-expo haste config resolves the operations
+        // module to its native variant, which verifies with HSM-backed biometrics.
         [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
             expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('multifactorAuthentication.verifyYourself.biometrics'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('multifactorAuthentication.enableQuickVerification.biometrics'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
             expect(state.context.softPromptApproved).toBe(false);
         },
