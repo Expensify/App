@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getAllPolicyValues, mergePolicyCategoriesForSearch, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
@@ -68,12 +68,9 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
         },
         [availableNonPersonalPolicyCategoriesSelector],
     );
-    const [searchPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_CATEGORIES);
-    const policyCategoriesForSearch = mergePolicyCategoriesForSearch(allPolicyCategories, searchPolicyCategories);
-
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
     const uniqueCategoryNames = new Set<string>(
-        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategoriesForSearch).flatMap((policyCategories) =>
+        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories).flatMap((policyCategories) =>
             Object.values(policyCategories ?? {}).map((category) => category.name),
         ),
     );

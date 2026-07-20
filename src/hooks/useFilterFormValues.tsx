@@ -3,7 +3,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, mergePolicyCategoriesForSearch} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,7 +86,6 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
-    const [searchPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_CATEGORIES, {selector: policyCategoriesSelector});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
@@ -94,12 +93,10 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [workspaceCardFeeds, userCardList]);
     const {exportedToFilterOptions} = useExportedToFilterOptions();
-    const policyCategoriesForSearch = mergePolicyCategoriesForSearch(policyCategories, searchPolicyCategories);
-
     const formValues = queryJSON
         ? buildFilterFormValuesFromQuery(
               queryJSON,
-              policyCategoriesForSearch,
+              policyCategories,
               policyTagsLists,
               currencyList,
               personalDetails,

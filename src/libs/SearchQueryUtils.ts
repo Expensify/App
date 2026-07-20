@@ -1067,31 +1067,6 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     return policyID.value.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
 }
 
-/**
- * Adds lightweight category data loaded for search to full policy category data already in Onyx.
- * Full category objects win so optimistic state and category rules are preserved.
- */
-function mergePolicyCategoriesForSearch(
-    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
-    searchPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
-): OnyxCollection<OnyxTypes.PolicyCategories> {
-    const mergedPolicyCategories = {...policyCategories};
-
-    for (const [searchCollectionKey, categories] of Object.entries(searchPolicyCategories ?? {})) {
-        if (!categories) {
-            continue;
-        }
-        const policyID = searchCollectionKey.replace(ONYXKEYS.COLLECTION.SEARCH_POLICY_CATEGORIES, '');
-        const policyCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`;
-        mergedPolicyCategories[policyCategoriesKey] = {
-            ...categories,
-            ...mergedPolicyCategories[policyCategoriesKey],
-        };
-    }
-
-    return mergedPolicyCategories;
-}
-
 function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
@@ -2501,7 +2476,6 @@ export {
     shouldHighlight,
     getAllPolicyValues,
     getAllPolicyValuesMap,
-    mergePolicyCategoriesForSearch,
     getConnectedIntegrationNamesForPolicies,
     getUserFriendlyValue,
     getUserFriendlyKey,

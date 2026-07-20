@@ -25,7 +25,6 @@ import {
     getFilterFromQuery,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
-    mergePolicyCategoriesForSearch,
     getParamsState,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
@@ -1851,41 +1850,6 @@ describe('SearchQueryUtils', () => {
             );
 
             expect(result.to).toEqual(['99999']);
-        });
-    });
-
-    describe('mergePolicyCategoriesForSearch', () => {
-        test('combines categories from every workspace and preserves full category data', () => {
-            const firstPolicyID = generatePolicyID();
-            const secondPolicyID = generatePolicyID();
-            const policyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${firstPolicyID}`]: {
-                    Travel: {name: 'Travel', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                },
-            };
-            const searchPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {
-                [`${ONYXKEYS.COLLECTION.SEARCH_POLICY_CATEGORIES}${firstPolicyID}`]: {
-                    Travel: {name: 'Travel', enabled: true},
-                    Meals: {name: 'Meals', enabled: true},
-                },
-                [`${ONYXKEYS.COLLECTION.SEARCH_POLICY_CATEGORIES}${secondPolicyID}`]: {
-                    'Fitness Reimbursement': {name: 'Fitness Reimbursement', enabled: true},
-                },
-            };
-
-            const mergedCategories = mergePolicyCategoriesForSearch(policyCategories, searchPolicyCategories);
-            expect(mergedCategories).toEqual({
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${firstPolicyID}`]: {
-                    Travel: {name: 'Travel', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                    Meals: {name: 'Meals', enabled: true},
-                },
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${secondPolicyID}`]: {
-                    'Fitness Reimbursement': {name: 'Fitness Reimbursement', enabled: true},
-                },
-            });
-            expect(getAllPolicyValues({value: [secondPolicyID], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, mergedCategories)).toEqual([
-                {'Fitness Reimbursement': {name: 'Fitness Reimbursement', enabled: true}},
-            ]);
         });
     });
 
