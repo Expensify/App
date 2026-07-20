@@ -63,6 +63,9 @@ describe('WorkspaceMemberDetailsPage', () => {
     const phoneAccountID = 6666;
     const phoneNumber = '+15005550006';
     const phoneLogin = `${phoneNumber}${CONST.SMS.DOMAIN}`;
+    const primaryAccountID = 7777;
+    const primaryEmail = 'primary@example.com';
+    const secondaryEmail = 'secondary@example.com';
 
     const policy = {
         ...LHNTestUtils.getFakePolicy(),
@@ -70,11 +73,15 @@ describe('WorkspaceMemberDetailsPage', () => {
         owner: ownerEmail,
         ownerAccountID,
         type: CONST.POLICY.TYPE.CORPORATE,
+        primaryLoginsInvited: {
+            [secondaryEmail]: primaryEmail,
+        },
         employeeList: {
             [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN},
             [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.ADMIN},
             [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER},
             [phoneLogin]: {email: phoneLogin, role: CONST.POLICY.ROLE.USER},
+            [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER},
         },
     };
 
@@ -93,6 +100,7 @@ describe('WorkspaceMemberDetailsPage', () => {
                 [selfAccountID]: TestHelper.buildPersonalDetails(selfEmail, selfAccountID, 'Self'),
                 [invitedAccountID]: TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
                 [phoneAccountID]: TestHelper.buildPersonalDetails(phoneLogin, phoneAccountID, 'Phone'),
+                [primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary'),
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
@@ -159,6 +167,23 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
         });
         expect(screen.getAllByText('Phone User').length).toBeGreaterThan(0);
+        expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should resolve the primary member when the stale optimistic accountID was derived from an invited secondary login', async () => {
+        // Inviting a secondary login lists the member under their primary login, so the stale route ID only
+        // matches through the secondary-to-primary mapping the backend records.
+        const staleOptimisticAccountID = generateAccountID(secondaryEmail);
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+        expect(screen.getAllByText('Primary User').length).toBeGreaterThan(0);
         expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
 
         unmount();

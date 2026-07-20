@@ -82,7 +82,14 @@ function isNameValuePairsObject(value: unknown): value is Record<string, unknown
  * so the page keeps resolving the member across that swap.
  */
 function getMemberLoginByOptimisticAccountID(policy: OnyxEntry<Policy>, accountID: number) {
-    return Object.keys(policy?.employeeList ?? {}).find((login) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID) ?? '';
+    const matchesOptimisticAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
+    // A member invited by one of their secondary logins ends up listed under their primary login, so a route ID derived
+    // from the secondary matches no employee — primaryLoginsInvited records that mapping and recovers the member.
+    const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesOptimisticAccountID(secondaryLogin))?.[1];
+    if (primaryLoginOfInvitedSecondary) {
+        return primaryLoginOfInvitedSecondary;
+    }
+    return Object.keys(policy?.employeeList ?? {}).find(matchesOptimisticAccountID) ?? '';
 }
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
