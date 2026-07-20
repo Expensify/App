@@ -5,7 +5,7 @@ keywords: [Expensify Card, PIN, GBP, EUR, UK, EU, set PIN, change PIN, reveal PI
 internalScope: Audience is Expensify cardholders on workspaces set to GBP or EUR currency. Covers PIN setup, reveal, change, and unblock workflows. Does not cover US card management or virtual cards.
 ---
 
-Physical Expensify Cards issued on the GBP or EUR program have a card PIN that is used for in-person transactions. You can manage your PIN directly in New Expensify. Virtual cards and US Expensify Cards do not have PINs.
+Physical Expensify Cards issued on the GBP or EUR program have a PIN that may be used for in-person transactions. You can manage your PIN directly in New Expensify. Virtual cards and US Expensify Cards do not have PINs.
 
 All PIN actions require identity verification via biometrics (on mobile) or passkeys (on web/desktop) to comply with European regulations.
 
