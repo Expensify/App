@@ -25,8 +25,6 @@ import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
-const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
-
 type DotIndicatorMessageProps = {
     /**
      * In most cases this should just be errors from onxyData
@@ -96,7 +94,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
             );
         }
 
-        if (HTML_TAG_PATTERN.test(displayMessage)) {
+        if (CONST.HTML_TAG_REGEX.test(displayMessage)) {
             const html = isErrorMessage ? `<rbr>${displayMessage}</rbr>` : `<muted-text-label>${displayMessage}</muted-text-label>`;
 
             return (

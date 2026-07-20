@@ -72,7 +72,7 @@ const EMPTY_FILTERED_DATA: SearchData = [];
  * for every other search type. It reuses the shared optimistic tracking + gate from `shell`.
  */
 function useExpenseReportSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseExpenseReportSectionsParams): SearchSections {
-    const {type, status, sortBy, sortOrder, hash} = queryJSON;
+    const {type, sortBy, sortOrder, hash} = queryJSON;
     const {shouldComputeSections, searchDataWithOptimisticTransaction, trackingState} = shell;
 
     const {isOffline} = useNetwork();
@@ -109,8 +109,7 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
             isActionLoadingSet,
             bankAccountList,
             reportActions: exportReportActions,
-            queryType: queryJSON?.type,
-            queryStatus: queryJSON?.status,
+            queryJSON,
             onyxPersonalDetailsList,
             convertToDisplayString,
         });
@@ -133,8 +132,7 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
         isActionLoadingSet,
         bankAccountList,
         exportReportActions,
-        queryJSON?.type,
-        queryJSON?.status,
+        queryJSON,
         onyxPersonalDetailsList,
         convertToDisplayString,
     ]);
@@ -143,11 +141,11 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return stampSearchHighlights(getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder), hash, (item) =>
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        return stampSearchHighlights(getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder), hash, (item) =>
             getTransactionRowShouldAnimate(item, newSearchResultKeys),
         );
-    }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
+    }, [shouldComputeSections, filteredData, type, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 

@@ -37,7 +37,7 @@ const EMPTY_FILTERED_DATA: SearchData = [];
  * Section builder for the task search view (`type === TASK`).
  */
 function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParams): SearchSections {
-    const {type, status, sortBy, sortOrder, hash} = queryJSON;
+    const {type, sortBy, sortOrder, hash} = queryJSON;
     const {shouldComputeSections, searchDataWithOptimisticTransaction, trackingState} = shell;
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -75,9 +75,9 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return stampSearchHighlights(getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder), hash, () => false);
-    }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, hash]);
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        return stampSearchHighlights(getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder), hash, () => false);
+    }, [shouldComputeSections, filteredData, type, localeCompare, translate, sortBy, sortOrder, hash]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);

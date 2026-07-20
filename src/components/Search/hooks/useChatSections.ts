@@ -39,7 +39,7 @@ const EMPTY_FILTERED_DATA: SearchData = [];
  * inside `ChatSectionsContainer`, every other search type never opens even these.
  */
 function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseChatSectionsParams): SearchSections {
-    const {type, status, sortBy, sortOrder, hash} = queryJSON;
+    const {type, sortBy, sortOrder, hash} = queryJSON;
     const {shouldComputeSections, searchDataWithOptimisticTransaction, trackingState} = shell;
 
     const {translate, localeCompare} = useLocalize();
@@ -68,11 +68,11 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return stampSearchHighlights(getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder), hash, (item) =>
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        return stampSearchHighlights(getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder), hash, (item) =>
             getReportActionRowShouldAnimate(item, newSearchResultKeys),
         );
-    }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
+    }, [shouldComputeSections, filteredData, type, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 

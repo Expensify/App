@@ -44,7 +44,7 @@ const EMPTY_FILTERED_DATA: SearchData = [];
  * types all route through `getTransactionsSections` and share the same sort/columns path.
  */
 function useTransactionSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseTransactionSectionsParams): SearchSections {
-    const {type, status, sortBy, sortOrder, hash} = queryJSON;
+    const {type, sortBy, sortOrder, hash} = queryJSON;
     const {shouldComputeSections, searchDataWithOptimisticTransaction, trackingState, optimisticTransactionID} = shell;
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -81,8 +81,7 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
             isActionLoadingSet,
             bankAccountList,
             reportActions: exportReportActions,
-            queryType: queryJSON?.type,
-            queryStatus: queryJSON?.status,
+            queryJSON,
             isAttendeesEnabledForMovingPolicy,
             optimisticTransactionID,
         });
@@ -104,8 +103,7 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
         isActionLoadingSet,
         bankAccountList,
         exportReportActions,
-        queryJSON?.type,
-        queryJSON?.status,
+        queryJSON,
         isAttendeesEnabledForMovingPolicy,
         optimisticTransactionID,
     ]);
@@ -114,14 +112,14 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        const sorted = getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, undefined, {
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        const sorted = getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, undefined, {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
         });
         return stampSearchHighlights(sorted, hash, (item) => getTransactionRowShouldAnimate(item, newSearchResultKeys));
-    }, [shouldComputeSections, filteredData, type, status, localeCompare, translate, sortBy, sortOrder, policyCategories, policyTags, policyForMovingExpensesID, newSearchResultKeys, hash]);
+    }, [shouldComputeSections, filteredData, type, localeCompare, translate, sortBy, sortOrder, policyCategories, policyTags, policyForMovingExpensesID, newSearchResultKeys, hash]);
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 

@@ -56,7 +56,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * needs. It reuses the shared optimistic tracking + gate from `shell`.
  */
 function useGroupedTransactionSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseGroupedTransactionSectionsParams): SearchSections {
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
     const {shouldComputeSections, searchDataWithOptimisticTransaction, trackingState, optimisticTransactionID} = shell;
     const validGroupBy = getValidGroupBy(groupBy);
 
@@ -209,8 +209,8 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        const sorted = getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        const sorted = getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
@@ -220,7 +220,6 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
         shouldComputeSections,
         filteredData,
         type,
-        status,
         localeCompare,
         translate,
         sortBy,
