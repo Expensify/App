@@ -5,16 +5,26 @@ import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import {SearchSelectionProvider} from '@components/Search/SearchSelectionProvider';
 import type {SearchQueryContextValue, SelectedTransactions} from '@components/Search/types';
 
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 
+const expenseQueryJSON = buildSearchQueryJSON('type:expense');
+const expenseReportQueryJSON = buildSearchQueryJSON('type:expense-report');
+if (!expenseQueryJSON || !expenseReportQueryJSON) {
+    throw new Error('Expected the search queries to be valid');
+}
+
+let mockCurrentSearchQueryJSON = expenseQueryJSON;
+
 const queryContextValue: SearchQueryContextValue = {
     currentSearchHash: 1,
     currentSimilarSearchHash: 1,
     currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    currentSearchQueryJSON: undefined,
+    currentSearchQueryJSON: expenseQueryJSON,
     suggestedSearches: getEmptyObject<SearchQueryContextValue['suggestedSearches']>(),
     shouldResetSearchQuery: false,
 };
@@ -45,7 +55,7 @@ function buildSelected(...keys: string[]): SelectedTransactions {
 
 function wrapper({children}: {children: React.ReactNode}) {
     return (
-        <SearchQueryContext value={queryContextValue}>
+        <SearchQueryContext value={{...queryContextValue, currentSearchQueryJSON: mockCurrentSearchQueryJSON}}>
             <SearchSelectionProvider>{children}</SearchSelectionProvider>
         </SearchQueryContext>
     );
@@ -75,6 +85,10 @@ function removeTransaction(selectedTransactions: SelectedTransactions, transacti
 }
 
 describe('SearchSelectionProvider all-matching exclusions', () => {
+    beforeEach(() => {
+        mockCurrentSearchQueryJSON = expenseQueryJSON;
+    });
+
     it('keeps all-matching active and records a row exclusion', () => {
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
@@ -193,5 +207,32 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
         expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2']);
         expect(result.current.state.excludedTransactions).toEqual({});
+    });
+
+    it('keeps the original expense-report behavior when a report is deselected', () => {
+        mockCurrentSearchQueryJSON = expenseReportQueryJSON;
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
+                totalSelectableItemsCount: 2,
+                shouldPreserveAllMatchingSelection: false,
+            });
+        });
+
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
+        expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2']);
+        expect(result.current.state.excludedTransactions).toEqual({});
+    });
+
+    it('does not treat an empty expense-report all-matching state as a loaded selection', () => {
+        mockCurrentSearchQueryJSON = expenseReportQueryJSON;
+        const {result} = renderSelection();
+
+        act(() => result.current.actions.selectAllMatchingItems(true));
+
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
+        expect(result.current.state.hasSelectedTransactions).toBe(false);
     });
 });

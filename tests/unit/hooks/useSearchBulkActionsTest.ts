@@ -200,6 +200,13 @@ const baseQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
 };
 
+const expenseReportQueryJSON: SearchQueryJSON = {
+    ...baseQueryJSON,
+    inputQuery: 'type:expense-report status:all',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
+};
+
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
     return {
         isSelected: true,
@@ -276,6 +283,39 @@ describe('useSearchBulkActions - CSV export flow', () => {
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
         });
+    });
+
+    it('keeps the original expense-report export guard when no loaded transaction is selected', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {};
+        mockExcludedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        expect(result.current.headerButtonsOptions).toEqual([]);
+    });
+
+    it('does not send exclusions for an expense-report export', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
+        expect(exportPayload).toBeDefined();
+        expect(exportPayload).not.toHaveProperty('excludedTransactionIDList');
     });
 
     it('handleBasicExport with manual selection does not track any export', async () => {

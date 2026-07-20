@@ -950,7 +950,7 @@ function search({
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
-        if (shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals) {
+        if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals) {
             inFlightRequest.pendingTotalsRequest = () =>
                 search({
                     queryJSON,

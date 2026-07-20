@@ -31,7 +31,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadata = searchResults?.search;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const excludedTransactionsKeys = Object.keys(excludedTransactions);
-    const isExpenseReportType = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const isExpenseType = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     if (!shouldShowFooter) {
@@ -42,13 +42,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const selectedTransactionItems = Object.values(selectedTransactions);
     const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
     const getTransactionCount = (transactionKeys: string[], transactions: typeof selectedTransactions) => {
-        if (isExpenseReportType) {
-            return new Set(
-                Object.values(transactions)
-                    .map((transaction) => transaction.reportID)
-                    .filter((reportID): reportID is string => !!reportID),
-            ).size;
-        }
         return transactionKeys.reduce((acc, key) => {
             if (isGroupEntry(key)) {
                 const group = currentSearchResults?.data?.[key];
@@ -63,13 +56,13 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     };
     const getTransactionTotal = (transactions: typeof selectedTransactionItems) =>
         transactions.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0);
-    const excludedCount = getTransactionCount(excludedTransactionsKeys, excludedTransactions);
+    const excludedCount = isExpenseType ? getTransactionCount(excludedTransactionsKeys, excludedTransactions) : 0;
     const count = shouldUseClientTotal ? getTransactionCount(selectedTransactionsKeys, selectedTransactions) : Math.max((metadata?.count ?? 0) - excludedCount, 0);
     let total: number | undefined;
     if (shouldUseClientTotal) {
         total = getTransactionTotal(selectedTransactionItems);
     } else if (metadata?.total !== undefined) {
-        total = metadata.total - getTransactionTotal(Object.values(excludedTransactions));
+        total = isExpenseType ? metadata.total - getTransactionTotal(Object.values(excludedTransactions)) : metadata.total;
     }
 
     return (

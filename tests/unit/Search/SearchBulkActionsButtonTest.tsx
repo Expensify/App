@@ -90,8 +90,9 @@ jest.mock('@libs/ReportUtils', () => {
 jest.mock('@libs/shouldPopoverUseScrollView', () => ({__esModule: true, default: () => false}));
 
 const queryJSON = buildSearchQueryJSON('type:expense');
-if (!queryJSON) {
-    throw new Error('Expected the expense query to be valid');
+const reportQueryJSON = buildSearchQueryJSON('type:expense-report');
+if (!queryJSON || !reportQueryJSON) {
+    throw new Error('Expected the search queries to be valid');
 }
 
 function makeTransaction(): SelectedTransactions[string] {
@@ -161,5 +162,22 @@ describe('SearchBulkActionsButton all-matching label', () => {
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
         expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
+    });
+
+    it('retains the expense-report loading behavior while the server count is missing', () => {
+        mockSearchIsLoading = true;
+
+        render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
+
+        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
+    });
+
+    it('uses the unmodified server count for expense reports', () => {
+        mockSearchCount = 320;
+        mockExcludedTransactions = {tx2: makeTransaction()};
+
+        render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
+
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:320', isLoading: false});
     });
 });

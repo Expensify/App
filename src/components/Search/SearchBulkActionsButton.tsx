@@ -100,6 +100,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const pendingPaymentAdditionalDataRef = useRef<BulkPaySelectionData | undefined>(undefined);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
@@ -131,15 +132,20 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
     const selectedAllMatchingItemsCount = typeof allMatchingItemsCount === 'number' ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : undefined;
-    const hasExcludedItems = Object.keys(excludedTransactions).length > 0;
+    const hasExcludedItems = isExpenseType && Object.keys(excludedTransactions).length > 0;
     const isAllMatchingItemsCountLoading =
-        areAllMatchingItemsSelected && hasExcludedItems && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
+        areAllMatchingItemsSelected && (!isExpenseType || hasExcludedItems) && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
-        selectionButtonText =
-            !hasExcludedItems || selectedAllMatchingItemsCount === undefined
-                ? translate('search.exportAll.allMatchingItemsSelected')
-                : translate('workspace.common.selected', {count: selectedAllMatchingItemsCount});
+        if (!isExpenseType) {
+            selectionButtonText =
+                typeof allMatchingItemsCount !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
+        } else {
+            selectionButtonText =
+                !hasExcludedItems || selectedAllMatchingItemsCount === undefined
+                    ? translate('search.exportAll.allMatchingItemsSelected')
+                    : translate('workspace.common.selected', {count: selectedAllMatchingItemsCount});
+        }
     } else {
         selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
     }

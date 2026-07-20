@@ -91,7 +91,7 @@ describe('SearchSelectionFooter all-matching exclusions', () => {
         expect(mockSearchPageFooter).toHaveBeenLastCalledWith(expect.objectContaining({count: 171, total: 35900, currency: 'USD'}));
     });
 
-    it('counts multiple excluded transactions from one expense report as one excluded report', () => {
+    it('keeps the expense-report server count and total unchanged', () => {
         mockSearchType = CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
         mockExcludedTransactions = {
             tx1: makeTransaction('report1'),
@@ -100,6 +100,6 @@ describe('SearchSelectionFooter all-matching exclusions', () => {
 
         render(<SearchSelectionFooter searchResults={makeSearchResults(10, 36000)} />);
 
-        expect(mockSearchPageFooter).toHaveBeenLastCalledWith(expect.objectContaining({count: 9, total: 35800, currency: 'USD'}));
+        expect(mockSearchPageFooter).toHaveBeenLastCalledWith(expect.objectContaining({count: 10, total: 36000, currency: 'USD'}));
     });
 });

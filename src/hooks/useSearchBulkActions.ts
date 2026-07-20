@@ -559,8 +559,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     });
 
     const {hash} = queryJSON ?? {};
+    const isExpenseType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-    const excludedTransactionIDs = Object.keys(excludedTransactions);
+    const excludedTransactionIDs = isExpenseType ? Object.keys(excludedTransactions) : [];
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
         (firstTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined) ??
@@ -726,7 +727,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportName = translate(isBasicExport ? 'export.basicExport' : 'export.currentView');
 
             if (areAllMatchingItemsSelected) {
-                if (!hash) {
+                if ((!isExpenseType && selectedTransactionsKeys.length === 0) || !hash) {
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
@@ -735,7 +736,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
-                    excludedTransactionIDList: excludedTransactionIDs,
+                    ...(isExpenseType ? {excludedTransactionIDList: excludedTransactionIDs} : {}),
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
@@ -778,6 +779,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactionReportIDs,
             selectedTransactions,
             selectedTransactionsKeys,
+            isExpenseType,
             excludedTransactionIDs,
             translate,
             clearSelectedTransactions,
@@ -1458,7 +1460,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
 
     const headerButtonsOptions = useMemo(() => {
-        if ((!areAllMatchingItemsSelected && selectedTransactionsKeys.length === 0) || !hash) {
+        if ((selectedTransactionsKeys.length === 0 && !(isExpenseType && areAllMatchingItemsSelected)) || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
@@ -2170,6 +2172,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
+        isExpenseType,
         isOffline,
         selectedReports,
         lastPaymentMethods,

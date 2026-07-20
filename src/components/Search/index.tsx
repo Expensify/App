@@ -181,8 +181,10 @@ function Search({
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const isAllMatchingItemsCountMissing = areAllMatchingItemsSelected && typeof searchResults?.search?.count !== 'number';
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0 || isAllMatchingItemsCountMissing, areAllMatchingItemsSelected);
+    const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
+    const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
+    const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
+    const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
 
@@ -416,7 +418,7 @@ function Search({
         // back to false. Do not immediately repeat that same page request without totals; the next real
         // pagination offset change will trigger the appropriate request.
         const didJustFinishAllMatchingTotalsRequest =
-            areAllMatchingItemsSelected &&
+            isExpenseAllMatchingSelection &&
             previousShouldCalculateTotals === true &&
             !shouldCalculateTotals &&
             typeof searchResults?.search?.count === 'number' &&
@@ -425,7 +427,7 @@ function Search({
             return;
         }
         const didEnableAllMatchingTotalsWithExistingCount =
-            areAllMatchingItemsSelected && previousShouldCalculateTotals === false && shouldCalculateTotals && typeof searchResults?.search?.count === 'number';
+            isExpenseAllMatchingSelection && previousShouldCalculateTotals === false && shouldCalculateTotals && typeof searchResults?.search?.count === 'number';
         if (didEnableAllMatchingTotalsWithExistingCount) {
             return;
         }

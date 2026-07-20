@@ -108,7 +108,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const transactionsWithoutPendingDelete = (reportItem.transactions ?? []).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const areAllReportTransactionsSelected =
         transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
-    const isSelected = transactionsWithoutPendingDelete.length > 0 ? areAllReportTransactionsSelected : liveRowSelected;
+    const isSelected = liveRowSelected || areAllReportTransactionsSelected;
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();

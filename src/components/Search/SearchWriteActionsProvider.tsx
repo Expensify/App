@@ -397,7 +397,7 @@ function SearchWriteActionsProvider({
 
                     return updatedTransactions;
                 },
-                {totalSelectableItemsCount, shouldPreserveAllMatchingSelection: true},
+                {totalSelectableItemsCount, shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE},
             );
             return;
         }
@@ -461,7 +461,7 @@ function SearchWriteActionsProvider({
                     ),
                 };
             },
-            {totalSelectableItemsCount, shouldPreserveAllMatchingSelection: true},
+            {totalSelectableItemsCount, shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE},
         );
     };
 
