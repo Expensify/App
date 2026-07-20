@@ -7710,6 +7710,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 agentCreatedTitle: 'O RuleBot foi adicionado ao seu espaço de trabalho!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.<br><br>Edite os detalhes do seu agente em <a href="${agentsRoute}">Conta &gt; Agentes</a>.</muted-text>`,
+                revampSubtitle: 'Descreva regras flexíveis que são executadas quando você precisar.',
+                newRuleTitle: 'Nova regra',
+                describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
+                gotIt: 'Entendi',
+                createRule: 'Criar regra',
             },
             tabs: {
                 general: 'Geral',
@@ -7717,6 +7722,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 expenseDefaults: 'Padrões de despesa',
                 requireFields: 'Requisitos do campo',
                 flagForReview: 'Marcar para revisão',
+                agents: 'Agentes',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7778,6 +7784,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 flagForReviewDescription: 'Notificar aprovadores quando as despesas excederem os limites da categoria',
                 requireFields: 'Requisitos do campo',
                 requireFieldsDescription: 'Exigir campos específicos de despesa ou dispensar a exigência deles.',
+                createAgentRule: 'Regra do agente',
+                createAgentRuleDescription: 'Descreva regras flexíveis que são executadas quando você precisar.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7850,6 +7858,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 confirmErrorAmount: 'Insira um valor.',
                 thenFlagForReview: 'Então sinalizar para revisão quando:',
             },
+            agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
         },
         planTypePage: {
             planTypes: {

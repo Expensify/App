@@ -7740,6 +7740,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 agentCreatedTitle: 'RuleBot è stato aggiunto al tuo spazio di lavoro!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Per applicare le tue regole dell’agente, abbiamo creato un agente per te e lo abbiamo aggiunto come amministratore del tuo spazio di lavoro.<br><br>Modifica i dettagli del tuo agente in <a href="${agentsRoute}">Account &gt; Agenti</a>.</muted-text>`,
+                revampSubtitle: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno.',
+                newRuleTitle: 'Nuova regola',
+                describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',
+                gotIt: 'Capito',
+                createRule: 'Crea regola',
             },
             tabs: {
                 general: 'Generale',
@@ -7747,6 +7752,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 expenseDefaults: 'Impostazioni predefinite spese',
                 requireFields: 'Requisiti del campo',
                 flagForReview: 'Contrassegna per revisione',
+                agents: 'Agenti',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7808,6 +7814,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 flagForReviewDescription: 'Avvisa gli approvatori quando le spese superano i limiti di categoria',
                 requireFields: 'Requisiti del campo',
                 requireFieldsDescription: 'Richiedi campi specifici per le spese oppure rinuncia a renderli obbligatori.',
+                createAgentRule: 'Regola agente',
+                createAgentRuleDescription: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7880,6 +7888,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 confirmErrorAmount: 'Inserisci un importo.',
                 thenFlagForReview: 'Poi segnala per revisione quando:',
             },
+            agentRulesEmptyState: {title: 'Nessuna regola agente aggiunta', subtitle: 'Crea una regola per automatizzare le policy del tuo workspace.', cta: 'Aggiungi regola IA'},
         },
         planTypePage: {
             planTypes: {

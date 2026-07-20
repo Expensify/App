@@ -7492,8 +7492,13 @@ ${reportName}`,
                 agentCreatedTitle: 'RuleBot 已添加到你的工作区!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
+                revampSubtitle: '按需运行的灵活规则描述',
+                newRuleTitle: '新规则',
+                describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
+                gotIt: '知道了',
+                createRule: '创建规则',
             },
-            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核'},
+            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核', agents: '代理人'},
             bulkActions: {
                 deleteMultiple: () => ({
                     one: '删除规则',
@@ -7554,6 +7559,8 @@ ${reportName}`,
                 flagForReviewDescription: '当费用超出类别限额时通知审批人',
                 requireFields: '字段要求',
                 requireFieldsDescription: '要求填写特定报销字段，或免除其必填限制。',
+                createAgentRule: '代理规则',
+                createAgentRuleDescription: '按需运行的灵活规则描述',
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -7618,6 +7625,7 @@ ${reportName}`,
                 confirmErrorAmount: '请输入金额。',
                 thenFlagForReview: '然后在以下情况下标记为待审核：',
             },
+            agentRulesEmptyState: {title: '未添加代理规则', subtitle: '创建规则以自动化您的工作区策略。', cta: '添加 AI 规则'},
         },
         planTypePage: {
             planTypes: {

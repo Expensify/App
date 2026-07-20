@@ -7718,6 +7718,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 agentCreatedTitle: 'RuleBot is toegevoegd aan je werkruimte!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.<br><br>Bewerk de gegevens van je agent in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
+                revampSubtitle: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
+                newRuleTitle: 'Nieuwe regel',
+                describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
+                gotIt: 'Begrepen',
+                createRule: 'Regel maken',
             },
             tabs: {
                 general: 'Algemeen',
@@ -7725,6 +7730,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 expenseDefaults: 'Standaardinstellingen voor uitgaven',
                 requireFields: 'Veldvereisten',
                 flagForReview: 'Markeren voor controle',
+                agents: 'Agenten',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7786,6 +7792,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 flagForReviewDescription: 'Goedkeurders informeren wanneer onkosten de categorielimieten overschrijden',
                 requireFields: 'Veldvereisten',
                 requireFieldsDescription: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
+                createAgentRule: 'Agentregel',
+                createAgentRuleDescription: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -7858,6 +7866,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 confirmErrorAmount: 'Voer een bedrag in.',
                 thenFlagForReview: 'Vlag dan voor controle wanneer:',
             },
+            agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
         },
         planTypePage: {
             planTypes: {
