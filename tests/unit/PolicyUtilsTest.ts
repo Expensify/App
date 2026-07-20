@@ -42,7 +42,7 @@ import {
     hasConfiguredRules,
     hasDependentTags,
     hasDynamicExternalWorkflow,
-    hasEligibleActiveAdminFromWorkspaces,
+    hasEligibleBankAccountShareRecipient,
     hasIndependentTags,
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
@@ -1917,6 +1917,60 @@ describe('PolicyUtils', () => {
             const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
+        it('should allow Payments Admins to share with and receive from members who can manage payments', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                    },
+                },
+            };
+
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.login).toBe(approverEmail);
+        });
+        it('should not return members who cannot manage payments', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
+                    },
+                },
+            };
+
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+
+            expect(result).toHaveLength(0);
+        });
+        it('should not fall back to the current user role when a recipient role is missing', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail},
+                    },
+                },
+            };
+
+            const recipients = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+
+            expect(recipients).toHaveLength(0);
+            expect(hasEligibleRecipient).toBe(false);
+        });
         it('should not return Expensify guide when policy owner is not Expensify team', () => {
             const policies = {
                 '1': {
@@ -1964,7 +2018,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasEligibleActiveAdminFromWorkspaces', () => {
+    describe('hasEligibleBankAccountShareRecipient', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -1985,7 +2039,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
             expect(result).toBe(false);
         });
         it('should return true when there is a non-guide admin', () => {
@@ -2001,7 +2055,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
             expect(result).toBe(true);
         });
         it('should return true when the guide is on an Expensify-owned policy', () => {
@@ -2016,12 +2070,12 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
             expect(result).toBe(true);
         });
     });
 
-    describe('hasEligibleActiveAdminFromWorkspaces', () => {
+    describe('hasEligibleBankAccountShareRecipient', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -2052,7 +2106,24 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, bankAccountID);
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
+            expect(result).toBe(true);
+        });
+        it('should return true when a Payments Admin can share with another payment-capable member', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+
             expect(result).toBe(true);
         });
         it('should return false when the user only joined another workspace as a member', async () => {
@@ -2087,7 +2158,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, bankAccountID);
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
             expect(result).toBe(false);
         });
     });
