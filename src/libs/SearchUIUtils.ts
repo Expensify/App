@@ -432,6 +432,16 @@ function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.S
     return typeof status === 'string' && status in expenseStatusActionMapping;
 }
 
+// Statuses a freshly created expense can never be in. The tracked optimistic item is kept visible
+// before its server snapshot arrives, but it must not be force-shown under these terminal status
+// filters (e.g. a brand-new "Draft" expense leaking into the "Deleted" tab).
+const OPTIMISTIC_INCOMPATIBLE_EXPENSE_STATUSES = new Set<string>([
+    CONST.SEARCH.STATUS.EXPENSE.DELETED,
+    CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+    CONST.SEARCH.STATUS.EXPENSE.PAID,
+    CONST.SEARCH.STATUS.EXPENSE.DONE,
+]);
+
 function formatBadgeText(count: number): string {
     if (count === 0) {
         return '';
@@ -2067,6 +2077,26 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
 }
 
 /**
+ * Whether the tracked optimistic (just-created) expense may be kept visible under the active status
+ * filter. A newly created expense can plausibly belong to "all", "unreported", "draft" or
+ * "outstanding", but never to a terminal status (deleted/approved/paid/done), so it must not be
+ * force-shown there. Mirrors the negation handling in `isEligibleForStatus`.
+ */
+function canOptimisticExpenseMatchStatusFilter(currentQueryJSON: SearchQueryJSON | undefined): boolean {
+    const status = getFilterFromQuery(currentQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    if (!status.value) {
+        return true;
+    }
+
+    if (status.isNegated) {
+        // e.g. `status!:deleted` — compatible as long as at least one status a fresh expense can be in is not excluded.
+        return Object.keys(expenseStatusActionMapping).some((expenseStatus) => !OPTIMISTIC_INCOMPATIBLE_EXPENSE_STATUSES.has(expenseStatus) && !status.value?.includes(expenseStatus));
+    }
+
+    return status.value.some((expenseStatus) => !OPTIMISTIC_INCOMPATIBLE_EXPENSE_STATUSES.has(expenseStatus));
+}
+
+/**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
  *
@@ -2114,17 +2144,21 @@ function getTransactionsSections({
         const report = getReportOrDraftReport(transactionItem.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
 
         const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`);
-        // Skip status filtering for the tracked optimistic item so it stays
-        // visible before the server snapshot arrives. Scoped to the specific
-        // transaction ID to avoid leaking unrelated pending items into wrong
-        // status tabs (e.g. offline-queued expenses appearing in "approved").
+        // Keep the tracked optimistic item visible before the server snapshot arrives, but only under
+        // status filters a brand-new expense can actually be in. Under a terminal status filter (e.g.
+        // "deleted") it must still be filtered out, since a just-created expense is never
+        // deleted/approved/paid/done. Scoped to the specific transaction ID to avoid leaking unrelated
+        // pending items into wrong status tabs.
         const isTrackedOptimisticItem = !!optimisticTransactionID && transactionItem.transactionID === optimisticTransactionID;
         let shouldShow = true;
 
         if (!transactionItem.transactionID) {
             shouldShow = false;
-        } else if (!isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !isTrackedOptimisticItem) {
-            shouldShow = isEligibleForStatus(currentQueryJSON, report, transactionItem.reportID);
+        } else if (!isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+            const skipStatusFilterForOptimisticItem = isTrackedOptimisticItem && canOptimisticExpenseMatchStatusFilter(currentQueryJSON);
+            if (!skipStatusFilterForOptimisticItem) {
+                shouldShow = isEligibleForStatus(currentQueryJSON, report, transactionItem.reportID);
+            }
         }
 
         if (shouldShow) {
