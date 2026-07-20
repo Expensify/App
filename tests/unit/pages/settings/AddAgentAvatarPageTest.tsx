@@ -30,6 +30,7 @@ jest.mock('@userActions/Agent', () => ({
 }));
 
 jest.mock('@libs/Log', () => ({
+    info: jest.fn(),
     warn: (...args: unknown[]) => mockLogWarn(...args),
 }));
 
