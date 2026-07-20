@@ -44,6 +44,7 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
         areDistanceRatesEnabled: true,
         arePerDiemRatesEnabled: true,
         areInvoicesEnabled: true,
+        areInvoiceFieldsEnabled: true,
         isTravelEnabled: true,
         autoReporting: true,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
@@ -84,6 +85,7 @@ function makeTargetPolicy(overrides: Partial<Policy> = {}): Policy {
         areDistanceRatesEnabled: false,
         arePerDiemRatesEnabled: false,
         areInvoicesEnabled: false,
+        areInvoiceFieldsEnabled: false,
         isTravelEnabled: false,
         autoReporting: false,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
@@ -172,7 +174,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 ],
                 ['distanceRates', ['areDistanceRatesEnabled']],
                 ['perDiem', ['arePerDiemRatesEnabled']],
-                ['invoices', ['areInvoicesEnabled', 'invoice']],
+                ['invoices', ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList']],
                 ['travel', ['isTravelEnabled']],
             ])('marks %s fields pending and patches values from source', (part, expectedFields) => {
                 const sourcePolicy = makeSourcePolicy();
@@ -185,6 +187,9 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 // Each expected field should be patched from the source policy and marked pending.
                 for (const field of expectedFields) {
+                    if (field === 'fieldList') {
+                        continue;
+                    }
                     expect(policy?.[field]).toEqual(sourcePolicy[field]);
                 }
                 expect(policy?.pendingFields).toEqual(expect.objectContaining(Object.fromEntries(expectedFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]))));

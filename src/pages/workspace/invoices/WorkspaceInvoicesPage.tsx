@@ -20,6 +20,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
+import WorkspaceInvoiceFieldsSection from './WorkspaceInvoiceFieldsSection';
 import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
 import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection';
 
@@ -66,6 +67,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                                 canWriteMoreFeatures={canWriteMoreFeatures}
                             />
                         )}
+                        {!!policyID && <WorkspaceInvoiceFieldsSection policyID={policyID} />}
                     </View>
                 )}
             </WorkspacePageWithSections>

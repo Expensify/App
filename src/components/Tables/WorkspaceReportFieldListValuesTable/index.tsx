@@ -34,12 +34,15 @@ type WorkspaceReportFieldListValuesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    isInvoicePage: boolean;
 };
 
-export default function WorkspaceReportFieldListValuesTable({listValues, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceReportFieldListValuesTableProps) {
+export default function WorkspaceReportFieldListValuesTable({listValues, selectionEnabled, selectedKeys, onRowSelectionChange, isInvoicePage}: WorkspaceReportFieldListValuesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
+    const findFieldKey = isInvoicePage ? 'workspace.invoiceFields.findInvoiceField' : 'workspace.reportFields.findReportField';
+    const emptyValuesSubtitleKey = isInvoicePage ? 'workspace.invoiceFields.emptyInvoiceFieldsValues.subtitle' : 'workspace.reportFields.emptyReportFieldsValues.subtitle';
 
     const columns: Array<TableColumn<ReportFieldListValueColumnKey>> = [
         {
@@ -103,10 +106,10 @@ export default function WorkspaceReportFieldListValuesTable({listValues, selecti
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.reportFields.findReportField')} />
+            <Table.FilterBar label={translate(findFieldKey)} />
             <Table.EmptyState
                 title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                subtitle={translate(emptyValuesSubtitleKey)}
                 headerMedia={illustrations.FolderWithPapers}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
                 headerContentStyles={styles.emptyStateFolderWithPaperIconSize}

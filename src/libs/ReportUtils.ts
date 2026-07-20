@@ -185,6 +185,7 @@ import {
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
     getLastVisibleMessage as getLastVisibleMessageReportActionsUtils,
+    getMessageOfOldDotReportAction,
     getMostRecentActiveDEWApproveFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
@@ -4709,6 +4710,10 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
     return reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
 }
 
+function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, reportField: PolicyReportField): boolean {
+    return reportField.target === report?.type || (report?.type === CONST.REPORT.TYPE.EXPENSE && !reportField.target);
+}
+
 /**
  * Check if Report has any held expenses
  */
@@ -4725,9 +4730,6 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | u
  * 2. Report is settled, closed, approved, or submitted and already forwarded for review
  */
 function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
-    if (isInvoiceReport(report)) {
-        return true;
-    }
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
@@ -4846,7 +4848,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
 
     const fields = mergedFieldIds.map((id) => {
-        const field = report?.fieldList?.[getReportFieldKey(id)];
+        const field = report?.fieldList?.[getReportFieldKey(id)] ?? report?.fieldList?.[id];
         const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
 
         if (field) {
@@ -6349,6 +6351,13 @@ function getParentNavigationSubtitle(
             return {reportName: reportOwnerDisplayName ?? ''};
         }
         return {};
+    }
+
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD) {
+        return {
+            reportName: getMessageOfOldDotReportAction(translate, parentReportAction, false),
+        };
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
@@ -9506,7 +9515,8 @@ function hasViolations(
 }
 
 function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
-    if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
+    const areFieldsEnabledForReport = isInvoiceReport(report) ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
+    if (!report || !policy?.fieldList || !areFieldsEnabledForReport) {
         return false;
     }
 
@@ -9528,7 +9538,7 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
     const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
 
     return Object.values(fieldsByName).some((field) => {
-        if (field.target !== report.type) {
+        if (!isReportFieldTargetMatchingReport(report, field)) {
             return false;
         }
         if (shouldHideSingleReportField(field)) {
@@ -13537,19 +13547,39 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
+function isReportNameValuePairField(value: unknown): value is PolicyReportField {
+    return typeof value === 'object' && value !== null && 'fieldID' in value && typeof value.fieldID === 'string' && 'name' in value && typeof value.name === 'string';
+}
+
+function getReportFieldFromReportNameValuePairs(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, reportFieldIDOrKey: string): PolicyReportField | undefined {
+    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
+        if (key === reportFieldIDOrKey && isReportNameValuePairField(value)) {
+            return value;
+        }
+    }
+
+    return undefined;
+}
+
 /**
  * Get both field values map and fields-by-name map in a single pass
  */
 function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
     const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const fieldValues: Record<string, string> = {};
     const fieldsByName: Record<string, PolicyReportField> = {};
 
     for (const field of fields) {
         if (field.name) {
+            const fieldKey = getReportFieldKey(field.fieldID);
+            const shouldReadReportNameValuePair = report?.type === CONST.REPORT.TYPE.INVOICE && field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            const reportNameValuePairField = shouldReadReportNameValuePair
+                ? (getReportFieldFromReportNameValuePairs(reportNameValuePairs, fieldKey) ?? getReportFieldFromReportNameValuePairs(reportNameValuePairs, field.fieldID))
+                : undefined;
             const key = field.name.toLowerCase();
-            fieldValues[key] = field.value ?? field.defaultValue ?? '';
-            fieldsByName[key] = field;
+            fieldValues[key] = reportNameValuePairField?.value ?? field.value ?? field.defaultValue ?? '';
+            fieldsByName[key] = reportNameValuePairField ? {...field, value: reportNameValuePairField.value} : field;
         }
     }
 
@@ -14004,6 +14034,7 @@ export {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    isReportFieldTargetMatchingReport,
     isReportManager,
     isReportOwner,
     isReportParticipant,
@@ -14104,6 +14135,7 @@ export {
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
     getTitleFieldWithFallback,
+    getReportFieldFromReportNameValuePairs,
     getReportFieldsByPolicyID,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,

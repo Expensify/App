@@ -59,7 +59,7 @@ const PARTS_TO_POLICY_FIELDS = {
     codingRules: ['rules'],
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
-    invoices: ['areInvoicesEnabled', 'invoice'],
+    invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
     // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
     // and must not be copied — each target is re-provisioned with its own entity by the backend.
@@ -212,11 +212,17 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
  * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
-function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Policy> {
+function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts: Part[]): Partial<Policy> {
     const patch: Partial<Policy> = {};
+    const shouldCopyReportFields = parts.includes('reports');
+    const shouldCopyInvoiceFields = parts.includes('invoices');
+
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
             if (field === 'customUnits') {
+                continue;
+            }
+            if (field === 'fieldList') {
                 continue;
             }
             if (part === 'codingRules' && field === 'rules') {
@@ -226,6 +232,18 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Pol
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
         }
     }
+
+    if (shouldCopyReportFields || shouldCopyInvoiceFields) {
+        const shouldCopyField = (field: NonNullable<Policy['fieldList']>[string]) => {
+            const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
+        };
+        const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
+        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
+        const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
+        patch.fieldList = mergedFields.length > 0 ? Object.fromEntries(mergedFields) : sourcePolicy.fieldList;
+    }
+
     return patch;
 }
 
@@ -271,7 +289,6 @@ function buildCopyPolicySettingsData(
     const successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
 
-    const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, parts);
     const pendingFields = buildExpandedPendingFields(parts);
     const clearedPendingFields = buildClearedPendingFields(parts);
 
@@ -317,6 +334,7 @@ function buildCopyPolicySettingsData(
 
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
+        const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, targetPolicy, parts);
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
         const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
