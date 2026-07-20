@@ -24,12 +24,8 @@ let unsubscribeNetInfo: (() => void) | null = null;
 let prevIsInternetReachable: boolean | null | undefined;
 let isPoorConnectionSimulated: boolean | undefined;
 let networkTimeSkew = 0;
-// Armed by the debug/simulation paths that clear an artificial hard stop and want the next
-// Ping-verified reachability confirmation to trigger a reconnect even though the app is
-// already back online by then. Without this token, a reachability re-confirmation that
-// arrives while the app was never offline is ignored (it's a re-read, not a recovery).
 let pendingReachabilityRecovery = false;
-let shouldUseStagingServer: boolean | undefined;
+let configuredReachabilityUrl: string | undefined;
 
 // Subscriber sets
 const listeners = new Set<() => void>();
@@ -156,6 +152,19 @@ function setSustainedFailures(active: boolean) {
 }
 
 /**
+ * Arms a one-shot recovery for the debug/simulation paths that clear an artificial hard stop.
+ * They clear it synchronously, so by the time the refreshed Ping confirms reachability the app
+ * is already back online and the confirmation would be ignored as a re-read. The pending token
+ * authorizes that one recovery. Resetting prev lets the listener see a transition again — real
+ * state is tracked as true during the simulation, so it would otherwise see true→true and skip.
+ */
+function armReachabilityRecovery() {
+    prevIsInternetReachable = null;
+    pendingReachabilityRecovery = true;
+    NetInfo.refresh();
+}
+
+/**
  * Called when shouldForceOffline changes in Onyx (debug tool).
  */
 function setForceOffline(force: boolean) {
@@ -164,14 +173,7 @@ function setForceOffline(force: boolean) {
     updateState();
 
     if (!force) {
-        // Reset so the NetInfo listener sees a transition (e.g. null→true) — prevIsInternetReachable
-        // is already true (we track real state during force-offline) so the listener would see
-        // true→true and skip the recovery branch. The pending token authorizes the reconnect:
-        // by the time the refreshed Ping confirms reachability the app is already back online,
-        // and an unauthorized re-confirmation is otherwise ignored.
-        prevIsInternetReachable = null;
-        pendingReachabilityRecovery = true;
-        NetInfo.refresh();
+        armReachabilityRecovery();
     }
 }
 
@@ -193,9 +195,7 @@ function setFailAllRequests(failAll: boolean) {
         resetFailureCounters();
         updateState();
 
-        prevIsInternetReachable = null;
-        pendingReachabilityRecovery = true;
-        NetInfo.refresh();
+        armReachabilityRecovery();
     }
 }
 
@@ -255,10 +255,7 @@ function simulatePoorConnection(shouldSimulate: boolean) {
         simulatedOffline = false;
         updateState();
 
-        // Reset so NetInfo listener sees a transition and fires onReachabilityRestored().
-        prevIsInternetReachable = null;
-        pendingReachabilityRecovery = true;
-        NetInfo.refresh();
+        armReachabilityRecovery();
     }
 }
 
@@ -279,6 +276,10 @@ function setRandomNetworkStatus(initialCall = false) {
 
 // --- NetInfo configuration and subscription ---
 
+function buildReachabilityUrl(): string {
+    return `${getCommandURL({command: 'Ping'})}accountID=${accountID ?? 'unknown'}`;
+}
+
 /**
  * Configure NetInfo with the reachability URL and subscribe to state changes.
  * Must unsubscribe before calling configure() — configure tears down NetInfo internal state.
@@ -289,9 +290,11 @@ function configureAndSubscribe() {
         unsubscribeNetInfo = null;
     }
 
+    configuredReachabilityUrl = buildReachabilityUrl();
+
     if (!CONFIG.IS_USING_LOCAL_WEB) {
         NetInfo.configure({
-            reachabilityUrl: `${getCommandURL({command: 'Ping'})}accountID=${accountID ?? 'unknown'}`,
+            reachabilityUrl: configuredReachabilityUrl,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
                 if (!response.ok) {
@@ -367,21 +370,20 @@ Onyx.connectWithoutView({
 });
 
 // Re-target the reachability ping when the in-app staging-server toggle flips at runtime.
-// queueMicrotask defers configureAndSubscribe so ApiUtils' Onyx callback for the same key —
-// registered later and therefore firing later on the same tick — has already updated
-// shouldUseStagingServer before we re-sample getApiRoot(). Removing the defer causes
-// configureAndSubscribe to read the previous toggle state and invert the URL on every flip.
+// queueMicrotask defers past ApiUtils' Onyx callback for the same key — registered later and
+// therefore firing later on the same tick — which owns the effective flag getApiRoot() uses.
+// Rebuild only when the effective URL changed: rebuilding tears down NetInfo state and fires
+// extra reachability Pings, and the raw toggle value can change without changing the URL
+// (production forces the flag off; null falls back to the environment default).
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
-    callback: (value) => {
-        // Rebuild only on an actual toggle flip. Rebuilding tears down NetInfo state and fires
-        // extra reachability Pings, so a same-value rewrite must not re-run it.
-        const next = !!value;
-        if (next === shouldUseStagingServer) {
-            return;
-        }
-        shouldUseStagingServer = next;
-        queueMicrotask(configureAndSubscribe);
+    callback: () => {
+        queueMicrotask(() => {
+            if (buildReachabilityUrl() === configuredReachabilityUrl) {
+                return;
+            }
+            configureAndSubscribe();
+        });
     },
 });
 
