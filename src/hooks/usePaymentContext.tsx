@@ -4,7 +4,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -31,6 +31,7 @@ type PaymentContextValue = {
     activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
     conciergeReportID: string | undefined;
+    conciergeChat: OnyxEntry<Report>;
     defaultWorkspaceName: string;
     delegateEmail: string | undefined;
     delegateAccountID: number | undefined;
@@ -64,6 +65,7 @@ function usePaymentContextValues(): PaymentContextValue {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const activePolicy = usePolicy(activePolicyID);
@@ -84,6 +86,7 @@ function usePaymentContextValues(): PaymentContextValue {
         activePolicyID,
         activePolicy,
         conciergeReportID,
+        conciergeChat,
         defaultWorkspaceName,
         delegateEmail,
         delegateAccountID,

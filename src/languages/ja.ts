@@ -433,6 +433,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: '検証',
         downloadAsPDF: 'PDFとしてダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
+        submitViaPDF: 'PDFで提出',
         print: '印刷',
         help: 'ヘルプ',
         collapsed: '折りたたみ',
@@ -515,6 +516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
         tryAgain: '再試行',
@@ -1061,6 +1063,12 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'コントロールをカスタマイズして支出を効率化',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+            customizeSpendCategories: '支出カテゴリをカスタマイズする',
+            customizeSpendCategoriesSubText: '経費を整理して分類する',
+            createExpense: '経費を作成',
+            createExpenseSubText: 'スキャンするか、ドラッグ＆ドロップするか、または＋ボタンから手入力して経費を追加します',
+            linkPersonalCard: '個人カードをリンクする',
+            linkPersonalCardSubText: '経費を自動的にインポートします',
             configureApprovals: '承認ワークフローを設定',
             begin: '開始',
             done: '完了',
@@ -1146,6 +1154,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグを1件追加しました。'),
         importMultiLevelTagsSuccessfulDescription: 'マルチレベルタグが追加されました。',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'すべての加盟店ルールが既に存在するため、追加されませんでした。';
+            }
+            return rules > 1 ? `${rules}件の加盟店ルールが追加されました。` : '1件の加盟店ルールが追加されました。';
+        },
+        importMerchantRulesRequiredColumns:
+            'おっと！「加盟店が一致」または「加盟店を含む」の列を少なくとも1つ、さらに更新するフィールドを少なくとも1つマッピングしてください。確認してもう一度お試しください。',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} 件の取引がインポートされました。` : '1件の取引がインポートされました。',
         importFailedTitle: 'インポートに失敗しました',
@@ -5543,6 +5559,35 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
             travelInvoicingSettlementAccount: {label: '出張請求の精算口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペース口座を上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムがデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目付きプログラム：${customAccountsCount}`;
+                    }
+                    return `${customAccountsCount} 件のカスタムアカウントを含むプログラム`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位のアカウント',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座のカードが ${customAccountsCount} 枚`;
+                    }
+                    return `${customAccountsCount} 枚のカスタムアカウント付きカード`;
+                },
+            },
         },
         type: {
             free: '無料',
@@ -7368,6 +7413,14 @@ ${reportName}`,
                 addRule: '支払先ルールを追加',
                 addRuleTitle: 'ルールを追加',
                 editRuleTitle: 'ルールを編集',
+                importRulesTitle: '加盟店ルールをインポート',
+                importRulesSupportingText: 'スプレッドシートの各列を加盟店ルールのフィールドに対応付けてください。問題なければ、下をクリックしてルールをインポートしてください。',
+                importColumnMerchantIs: '加盟店が一致',
+                importColumnMerchantContains: '加盟店を含む',
+                importColumnUpdatedMerchant: '更新後の加盟店',
+                importColumnUpdatedCategory: '更新後のカテゴリ',
+                importColumnUpdatedTag: '更新後のタグ',
+                importColumnUpdatedDescription: '更新後の説明',
                 expensesWith: '対象となる経費条件:',
                 expensesExactlyMatching: '次の条件に完全一致する経費の場合:',
                 applyUpdates: 'これらの更新を適用する',
@@ -7597,8 +7650,20 @@ ${reportName}`,
                 agentCreatedTitle: 'RuleBot がワークスペースに追加されました!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>エージェント ルールを適用するために、エージェントを作成し、ワークスペースの管理者として追加しました。<br><br>エージェントの詳細は <a href="${agentsRoute}">「アカウント」&gt;「エージェント」</a> で編集できます。</muted-text>`,
+                revampSubtitle: '必要なときに実行できる柔軟なルールを設定します。',
+                newRuleTitle: '新しいルール',
+                describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
+                gotIt: '了解しました',
+                createRule: 'ルールを作成',
             },
-            tabs: {general: '一般', cardRestrictions: 'カードの制限', expenseDefaults: '経費のデフォルト設定', requireFields: '必須項目', flagForReview: '確認のためにフラグを付ける'},
+            tabs: {
+                general: '一般',
+                cardRestrictions: 'カードの制限',
+                expenseDefaults: '経費のデフォルト設定',
+                requireFields: '必須項目',
+                flagForReview: '確認のためにフラグを付ける',
+                agents: 'エージェント',
+            },
             bulkActions: {
                 deleteMultiple: () => ({
                     one: 'ルールを削除',
@@ -7656,9 +7721,11 @@ ${reportName}`,
                 applyExpenseDefaults: '経費のデフォルトを適用',
                 applyExpenseDefaultsDescription: '申請者が何も操作しなくてもフィールドを更新する',
                 flagForReview: '確認のためにフラグを付ける',
-                flagForReviewDescription: '経費がカテゴリの上限を超えたとき承認者に通知します',
+                flagForReviewDescription: '条件が満たされたときに通知します。',
                 requireFields: '必須項目',
-                requireFieldsDescription: '経費を提出する前に、主要な項目が入力されていることを確認してください',
+                requireFieldsDescription: '提出時の領収書、カテゴリなど',
+                createAgentRule: 'エージェントルール',
+                createAgentRuleDescription: '必要なときに実行できる柔軟なルールを設定します。',
             },
             expenseDefaultsTable: {
                 tableColumnType: '種類',
@@ -7722,6 +7789,7 @@ ${reportName}`,
                 confirmErrorAmount: '金額を入力してください。',
                 thenFlagForReview: '次の条件で確認フラグを付けます：',
             },
+            agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
         },
         planTypePage: {
             planTypes: {
