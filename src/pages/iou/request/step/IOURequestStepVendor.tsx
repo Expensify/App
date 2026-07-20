@@ -8,7 +8,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import usePolicy from '@hooks/usePolicy';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,7 +16,6 @@ import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
-import {isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -52,13 +51,7 @@ function IOURequestStepVendor({
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
 
-    const {policy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: report?.policyID,
-        action,
-        iouType,
-        isPerDiemRequest: isPerDiemRequest(transaction),
-    });
+    const policy = usePolicy(report?.policyID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const delegateAccountID = useDelegateAccountID();
 
