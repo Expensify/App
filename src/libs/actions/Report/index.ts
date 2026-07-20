@@ -149,6 +149,7 @@ import {
     isAdminRoom,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
+    isTaskReport as isTaskReportReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport,
     isGroupChat as isGroupChatReportUtils,
@@ -4785,7 +4786,7 @@ function navigateToMostRecentReport(
 }
 
 function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route | undefined {
-    if (!isSearchTopmostFullScreenRoute() || !isChatThreadReportUtils(report) || !report.parentReportID || !report.parentReportActionID) {
+    if (!isSearchTopmostFullScreenRoute() || (!isChatThreadReportUtils(report) && !isTaskReportReportUtils(report)) || !report.parentReportID || !report.parentReportActionID) {
         return undefined;
     }
 
@@ -4891,6 +4892,7 @@ function leaveRoom(
 ) {
     const reportID = report.reportID;
     const isChatThread = isChatThreadReportUtils(report);
+    const isTaskReport = isTaskReportReportUtils(report);
     const activeRoute = Navigation.getActiveRoute();
 
     // Pusher's leavingStatus should be sent earlier.
@@ -4906,7 +4908,7 @@ function leaveRoom(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value:
-                isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
+                isWorkspaceMemberLeavingWorkspaceRoom || isChatThread || isTaskReport
                     ? {
                           participants: {
                               [currentUserAccountID]: {
@@ -4928,7 +4930,7 @@ function leaveRoom(
     ];
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
+    if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread || isTaskReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
