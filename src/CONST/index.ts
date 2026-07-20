@@ -9161,7 +9161,7 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
-                title: 'Expensify launches Corporate Card in Europe',
+                title: 'The Expensify Card: Now in the UK & EU',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
                 publishedDate: '2026-07-20',
