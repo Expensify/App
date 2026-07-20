@@ -13,7 +13,7 @@ All PIN actions require identity verification via biometrics (on mobile) or pass
 
 ## How to activate your Expensify Card and set your PIN
 
-After your Workspace Admin issues you a physical GBP or EUR Expensify Card, you'll receive a task to provide your shipping address before the card is sent.
+After your Workspace Admin issues you a physical GBP or EUR Expensify Card, you'll be prompted to provide your shipping address before the card is sent.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Home**.
 2. In the **We need your shipping address** task, click **Add address**.
