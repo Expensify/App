@@ -19,6 +19,8 @@ type ExpensifyCardStatementFeed = {
     /** The feed these settlements belong to. */
     fundID?: number;
     entryIDs: number[];
+    /** Whether the user may export every selected settlement in this feed (backend canExportStatement, AND-ed across them). */
+    canExportStatement: boolean;
 };
 
 type ExpensifyCardStatementSelection = {
@@ -167,25 +169,24 @@ function getExpensifyCardStatementSelection(
         return undefined;
     }
 
-    // The statement export is admin-only. The backend already knows whether the current user may export each
-    // settlement (it applies the same authorization when generating the PDF) and stamps canExportStatement on the
-    // group, so drop any selected settlement the user cannot export rather than re-deriving admin access on the client.
-    const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData).filter((settlementGroup) => settlementGroup.canExportStatement);
+    const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData);
     if (selectedSettlementGroups.length === 0) {
         return undefined;
     }
 
     const scopedPolicyID = getScopedPolicyID(queryJSON);
 
-    // A statement covers one feed, so group settlements by feed (fundID, not feedCountry: one program can have several
-    // feeds) and reject a selection spanning more than one. A settlement with no fundID already spans multiple feeds,
-    // so key it uniquely by entryID; that keeps the multi-feed guard firing instead of merging mixed feeds.
+    // A statement covers one feed, so group the selected settlements by feed (fundID, not feedCountry: one program can
+    // have several feeds). Group before checking exportability so a selection spanning more than one feed still trips
+    // the multi-feed message, even when the user is not an admin of one of those feeds. A settlement with no fundID
+    // already spans multiple feeds, so key it uniquely by entryID to keep it a distinct feed.
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
     for (const settlementGroup of selectedSettlementGroups) {
         const feedKey = settlementGroup.fundID !== undefined ? `fund_${settlementGroup.fundID}` : `entry_${settlementGroup.entryID}`;
         const existingFeed = feedsByKey.get(feedKey);
         if (existingFeed) {
             existingFeed.entryIDs.push(settlementGroup.entryID);
+            existingFeed.canExportStatement = existingFeed.canExportStatement && !!settlementGroup.canExportStatement;
             continue;
         }
 
@@ -194,17 +195,28 @@ function getExpensifyCardStatementSelection(
             feedCountry: settlementGroup.feedCountry,
             fundID: settlementGroup.fundID,
             entryIDs: [settlementGroup.entryID],
+            canExportStatement: !!settlementGroup.canExportStatement,
         });
     }
 
     const feeds = Array.from(feedsByKey.values());
-    if (feeds.length === 0) {
+
+    // More than one feed selected: show the multi-feed message regardless of which feeds the user can export, so the
+    // user isn't silently given a statement for only the feeds they administer.
+    if (feeds.length > 1) {
+        return {feeds, hasMultipleFeeds: true};
+    }
+
+    // Single feed: the export is admin-only, and the backend stamps canExportStatement per settlement (same
+    // authorization it applies when generating the PDF), so hide the action when the user can't export the feed
+    // rather than re-deriving admin access on the client.
+    if (feeds.length === 0 || !feeds.at(0)?.canExportStatement) {
         return undefined;
     }
 
     return {
         feeds,
-        hasMultipleFeeds: feeds.length > 1,
+        hasMultipleFeeds: false,
     };
 }
 

@@ -137,7 +137,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
-        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
     });
 
     it("hides the export when only some of a settlement's transactions are selected", () => {
@@ -157,7 +157,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
-        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
     });
 
     it('does not treat an unselected zero-count settlement as fully selected', () => {
@@ -172,7 +172,7 @@ describe('ExpensifyCardStatementUtils', () => {
         });
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
-        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
     });
 
     it('scopes the statement to the workspace when a single policyID filter is applied', () => {
@@ -182,7 +182,7 @@ describe('ExpensifyCardStatementUtils', () => {
 
         const selection = getExpensifyCardStatementSelection(scopedQueryJSON, selectedTransactions, searchData);
         expect(selection?.hasMultipleFeeds).toBe(false);
-        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
 
         const params = getStatementParamsForExport(scopedQueryJSON, selectedTransactions, searchData);
         expect(params).toEqual({
@@ -210,7 +210,7 @@ describe('ExpensifyCardStatementUtils', () => {
         // A settlement that spans workspaces has no single policyID, so it is exported unscoped (no policyID sent).
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(selection?.hasMultipleFeeds).toBe(false);
-        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
 
         const params = getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(params).toEqual({policyID: undefined, feedCountry: 'US', entryIDs: [123]});
@@ -245,6 +245,25 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({
             [firstGroupKey]: makeSettlementGroup({entryID: 123, feedCountry: 'US', fundID: 1}),
             [secondGroupKey]: makeSettlementGroup({entryID: 456, feedCountry: 'US', fundID: 2}),
+        });
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(true);
+        expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('flags multiple feeds even when one feed is not exportable (admin of one feed, not the other)', () => {
+        const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        const selectedTransactions: SelectedTransactions = {
+            ...makeSettlementSelection(firstGroupKey, 1),
+            ...makeSettlementSelection(secondGroupKey, 1),
+        };
+        // The user administers feed 1 but not feed 2. Grouping by feed before checking exportability keeps feed 2 in
+        // the count, so the multi-feed message fires instead of silently exporting only feed 1.
+        const searchData = makeSearchData({
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, fundID: 1, canExportStatement: true}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, fundID: 2, canExportStatement: false}),
         });
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
@@ -315,7 +334,7 @@ describe('ExpensifyCardStatementUtils', () => {
         };
 
         const selection = getExpensifyCardStatementSelection(scopeFilteredQueryJSON, selectedTransactions, searchData);
-        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
     });
 
     it('includes failed settlements in the selection (the statement labels their status)', () => {
@@ -324,7 +343,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 5})});
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
-        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
     });
 
     it('includes pending settlements in the selection', () => {
@@ -333,7 +352,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 0})});
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
-        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
     });
 
     it('includes settlements that are settled pending batch processing (state 9)', () => {
@@ -343,7 +362,7 @@ describe('ExpensifyCardStatementUtils', () => {
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(selection?.hasMultipleFeeds).toBe(false);
-        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
     });
 
     it('hides the export when the backend marks the settlement as not exportable', () => {
@@ -362,6 +381,6 @@ describe('ExpensifyCardStatementUtils', () => {
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, canExportStatement: true})});
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
-        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123]}]);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
     });
 });
