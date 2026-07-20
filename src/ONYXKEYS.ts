@@ -389,6 +389,9 @@ const ONYXKEYS = {
     /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
+    /** Authoritative country codes where the Expensify Card is supported, keyed by settlement currency, sent by the backend */
+    CARD_SUPPORTED_COUNTRIES: 'cardSupportedCountries',
+
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
@@ -406,6 +409,9 @@ const ONYXKEYS = {
 
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
+
+    /** Indicates whether the user started changing their business bank account to a fresh account */
+    IS_CHANGING_TO_NEW_BANK_ACCOUNT: 'isChangingToNewBankAccount',
 
     /** Stores Workspace ID that will be tied to reimbursement account during setup */
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
@@ -654,6 +660,9 @@ const ONYXKEYS = {
     /** Stores the current search page context (e.g., whether to show the search query) */
     SEARCH_CONTEXT: 'searchContext',
 
+    /** Maps each loaded search snapshot's hash to its original query string, used to fan optimistic IOU updates to every matching snapshot */
+    SEARCH_QUERY_BY_HASH: 'searchQueryByHash',
+
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
@@ -749,6 +758,10 @@ const ONYXKEYS = {
 
     /** List of transaction IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS: 'transactionThreadNavigationTransactionIDs',
+
+    /** Hash of the search snapshot that holds the transactions referenced by TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS.
+     * Used to fall back to snapshot data when the live transaction collection hasn't loaded those transactions yet (e.g. opening an expense from the Spend page as an approver). */
+    TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH: 'transactionThreadNavigationSnapshotHash',
 
     /** Optional map of transactionID -> sibling descriptor for prev/next navigation in snapshot-backed flows (e.g. Home "Recently added"), where siblings may be absent from the main Onyx collections. When set, navigation resolves (and lazily creates) each sibling's thread on demand from its descriptor. */
     TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS: 'transactionThreadNavigationThreadReportIDs',
@@ -928,6 +941,9 @@ const ONYXKEYS = {
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
 
         NVP_EXPENSIFY_REPORT_PDF_FILENAME: 'nvp_expensify_report_PDFFilename_',
+
+        /** The last submission method (Submit / Submit via PDF) the user chose on a given workspace, so the Submit button can default to it. Keyed by policyID. */
+        NVP_PREFERRED_REPORT_SUBMISSION_METHOD: 'preferredReportSubmissionMethod_',
 
         /** Stores the information about the state of issuing a new card */
         RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
@@ -1432,6 +1448,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SELECTED_DISTANCE_REQUEST_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME]: string;
+    [ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD]: ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStepDeprecated;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
@@ -1478,6 +1495,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
+    [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
@@ -1573,6 +1591,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
+    [ONYXKEYS.CARD_SUPPORTED_COUNTRIES]: Record<string, string[]>;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.TRAVEL_INVOICE_STATEMENT]: OnyxTypes.TravelInvoiceStatement;
@@ -1581,6 +1600,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
     [ONYXKEYS.UNSHARE_BANK_ACCOUNT]: OnyxTypes.UnshareBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
+    [ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT]: boolean;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED]: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: number;
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
@@ -1712,6 +1732,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY]: OnyxTypes.LastSearchParams;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS]: string[];
+    [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH]: number;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
