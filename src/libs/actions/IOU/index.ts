@@ -124,7 +124,6 @@ let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
 let knownSnapshotHashes = new Set<string>();
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SNAPSHOT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allSnapshots = value ?? {};
         // Keep SEARCH_QUERY_BY_HASH bounded by mirroring the snapshot collection's lifecycle:

@@ -2454,7 +2454,6 @@ describe('actions/IOU', () => {
                 let iouReport: Report | undefined;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         iouReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                     },

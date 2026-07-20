@@ -2739,7 +2739,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransactions: Transaction[] = [];
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransactions = Object.values(allTransactions ?? {}).filter((tx): tx is Transaction => !!tx && tx.transactionID !== splitDistanceTx.transactionID);
                 },
