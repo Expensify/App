@@ -47,9 +47,10 @@ function InteractiveStepButton({stepNumber, stepLabel, currentStepDescription, i
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const accessibilityLabel = isCurrentStep && currentStepDescription ? `${stepLabel}, ${currentStepDescription}` : stepLabel;
-    // Display-only steps are never actionable. Mark them disabled so TalkBack announces
-    // "Disabled" (production behavior) instead of "Double tap to activate". Keep selected
-    // for the current step. Web stays focusable via tabIndex so JAWS can still read labels.
+    // Display-only steps are never actionable. Set disabled so TalkBack says
+    // "Disabled" instead of "Double tap to activate". Mark the current step selected so
+    // VoiceOver/TalkBack announce it. On web, tabIndex keeps
+    // the element focusable so JAWS can read the label.
     const accessibilityState = {
         selected: isCurrentStep,
         ...(!onPress ? {disabled: true} : {}),
@@ -61,6 +62,9 @@ function InteractiveStepButton({stepNumber, stepLabel, currentStepDescription, i
         !onPress && styles.cursorDefault,
     ];
 
+    // Keep accessibilityLabel and screenReaderOnlyAnchor together on both paths.
+    // aria-label wins per ACCNAME (no double announce); the hidden text is the JAWS
+    // fallback when aria-label alone is ignored.
     const stepAccessibilityContent = (
         <>
             <Text style={styles.screenReaderOnlyAnchor}>{accessibilityLabel}</Text>
