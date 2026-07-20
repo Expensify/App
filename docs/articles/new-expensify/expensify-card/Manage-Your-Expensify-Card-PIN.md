@@ -25,9 +25,9 @@ After your Workspace Admin issues you a physical GBP or EUR Expensify Card, you'
 
 ---
 
-## How to check your Expensify Card PIN
+## How to view your Expensify Card PIN
 
-If you need to check your PIN, you can reveal it from the card details page.
+If you need to view your PIN, you can reveal it from the card details page.
 
 1. In navigation tabs (on the left on web, on the bottom on mobile), **Account > Wallet**.
 2. Choose **Reveal PIN**.
@@ -49,6 +49,19 @@ You can change your PIN from the card details page:
 You'll see a confirmation page once your PIN is changed.
 
 Note that if you are physically located in the UK, France, Ireland, Finland, Iceland, or Israel, you cannot change your PIN in-app. When you tap **Change PIN**, you'll be directed to change your PIN at any ATM instead.
+
+---
+
+## How to unblock your Expensify Card PIN
+
+If your card PIN gets blocked due to too many incorrect entries, you can unblock it by changing it in-app - even if you couldn't normally change your PIN in-app due to regional restrictions.
+
+1. Go to **Account > Wallet** and select your physical Expensify Card.
+2. Tap **Change PIN**.
+3. Enter your new 4-digit PIN and confirm it.
+4. Verify your identity via biometrics or passkey.
+
+You'll see a confirmation page once your PIN is changed. The next time you attempt a contactless payment, you will be prompted to insert your card into the reader. Successfully completing a chip-and-PIN transaction will finish unblocking your PIN.
 
 ---
 
