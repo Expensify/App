@@ -400,9 +400,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         >
             <View style={[styles.p4, styles.pb3]}>
                 <TextInput
-                    label={translate('common.search')}
+                    placeholder={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
+                    touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
+                    textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
                     onChangeText={(text: string) => {
                         setSearchText(text);
                         filterEmojis(text);

@@ -6,6 +6,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
@@ -73,6 +74,7 @@ function TextInput({
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {
         label,
         value,
@@ -155,12 +157,13 @@ function TextInput({
                     onKeyPress={onKeyPress}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
-                    label={label}
-                    accessibilityLabel={accessibilityLabel}
+                    // Use the smaller "above the table" search input size. The compact height cannot fit a
+                    // floating label, so the label is rendered as a placeholder while a11y is preserved via accessibilityLabel.
+                    accessibilityLabel={accessibilityLabel ?? label}
                     hint={hint}
                     role={CONST.ROLE.PRESENTATION}
                     value={value}
-                    placeholder={placeholder}
+                    placeholder={placeholder ?? label}
                     maxLength={maxLength}
                     onChangeText={handleTextInputChange}
                     inputMode={inputMode}
@@ -173,6 +176,9 @@ function TextInput({
                     errorText={errorText}
                     autoCorrect={!disableAutoCorrect}
                     shouldInterceptSwipe={shouldInterceptSwipe ?? false}
+                    touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
+                    textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
                 />
             </View>
             {shouldShowHeaderMessage && (
