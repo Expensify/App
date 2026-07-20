@@ -61,6 +61,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
+        // The flow captures the account at INIT and keeps it for per-account device state, so a
+        // session that has not hydrated yet must not start a flow keyed to the placeholder account.
+        if (accountID === CONST.DEFAULT_NUMBER_ID) {
+            addMFABreadcrumb('Flow rejected: account not initialized', {scenario: scenarioName}, 'warning');
+            return;
+        }
+
         const startCredentialsState = await captureCredentialsState();
 
         addMFABreadcrumb('Flow started', {
