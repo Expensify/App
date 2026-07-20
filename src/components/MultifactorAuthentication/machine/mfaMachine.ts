@@ -83,8 +83,6 @@ const MFAMachine = setup({
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType: PROMPT_TYPE}));
         },
         approveSoftPrompt: assign({softPromptApproved: true}),
-        // The durable "asked once" flag lives in Onyx, so future flows on this device can skip the
-        // prompt. Owned by the machine so every sender of SOFT_PROMPT_APPROVED persists it.
         persistSoftPromptAcceptance: ({context}) => {
             if (context.accountID === undefined) {
                 throw new Error('MFA account must be initialized before persisting soft-prompt acceptance');
@@ -178,10 +176,7 @@ const MFAMachine = setup({
                         },
                     },
                 },
-                // The soft-prompt screen: asks the user to consent to biometric verification before
-                // the flow continues. Entered only when the user has never accepted the prompt on
-                // this device; the registration vs reinstall variants arrive with the registration
-                // decision.
+                // Shows the soft prompt after device validation when the current account has not accepted it.
                 [MFA_STATE.PROMPT]: {
                     id: MFA_STATE.PROMPT,
                     entry: ['navigateToPrompt'],

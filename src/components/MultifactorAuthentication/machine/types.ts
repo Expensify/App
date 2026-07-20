@@ -49,12 +49,8 @@ type MfaModalState =
     | typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.CLOSING;
 
 /**
- * The INIT event that starts a flow, with the owning `accountID`, `scenarioName`, `scenario` config,
- * and `payload` correlated through `T`. `executeScenario` dispatches it with `T` fixed to the started
- * scenario, so pairing a name with another scenario's config or params is a compile error at the call site.
- *
- * `T` defaults to the full scenario union so the non-specialized event (and {@link MfaEvent}) stays
- * usable as the actor's event type, where the running scenario is not known statically.
+ * `T` keeps the scenario name, config, and payload aligned.
+ * The default allows this event to be used as part of `MfaEvent`.
  */
 type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScenario = MultifactorAuthenticationScenario> = {
     type: 'INIT';
@@ -64,14 +60,7 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
     payload: MultifactorAuthenticationScenarioParams<T> | undefined;
 };
 
-/**
- * Events accepted by the machine. INIT starts a flow and lifecycle events drive the modal.
- *
- * CLOSE_MODAL requests the close so the flow moves to `closing`. MODAL_CLOSED is the navigator's
- * notification that the close animation fully finished, which moves `closing` to `closed` and wipes
- * the context. SOFT_PROMPT_APPROVED is sent by the prompt screen's confirm button and moves the flow
- * past the soft prompt.
- */
+/** Events handled by the MFA state machine. */
 type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'} | {type: 'SOFT_PROMPT_APPROVED'};
 
 /** Describes the input the machine passes to the device-check actor. */
