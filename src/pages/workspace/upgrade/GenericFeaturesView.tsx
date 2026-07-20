@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
@@ -100,19 +100,21 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
             {policyID ? (
                 <Button
                     isLoading={loading}
-                    text={translate('common.upgrade')}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('common.upgrade')}</Button.Text>
+                </Button>
             ) : (
                 <Button
-                    text={translate('workspace.common.goToWorkspaces')}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('workspace.common.goToWorkspaces')}</Button.Text>
+                </Button>
             )}
         </View>
     );

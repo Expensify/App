@@ -306,6 +306,7 @@ type ShouldShow = (args: {
 
 type ContextMenuActionPayload = {
     reportActions: OnyxEntry<ReportActions>;
+    childReportActions: OnyxEntry<ReportActions>;
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
     reportID: string | undefined;
@@ -355,6 +356,7 @@ type ContextMenuActionPayload = {
     originalReportOfUnapprovedTransaction?: OnyxEntry<ReportType>;
     delegateAccountID: number | undefined;
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+    memberChangeLogRoomReportName: string | undefined;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string) => void;
@@ -605,11 +607,11 @@ const ContextMenuActions: ContextMenuAction[] = [
             (canEditReportAction(reportAction, iouTransaction) || canEditReportAction(moneyRequestAction, iouTransaction)) &&
             !isArchivedRoom &&
             !isChronosReport,
-        onPress: (closePopover, {reportID, originalReportID, reportAction, moneyRequestAction, introSelected, betas}) => {
+        onPress: (closePopover, {reportID, originalReportID, reportAction, moneyRequestAction, introSelected, betas, childReportActions}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, betas});
+                    openReport({reportID: childReportID, introSelected, betas, hasReportActions: !!childReportActions});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
@@ -937,6 +939,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 reportAttributes,
                 originalReportOfUnapprovedTransaction,
                 personalDetails,
+                memberChangeLogRoomReportName,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -997,8 +1000,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                             reportAction,
                             getPersonalDetailsByID(reportAction.actorAccountID, personalDetails),
                             getPersonalDetailsListByIDs(targetAccountIDs, personalDetails),
-                            getReportName,
-                            reportAttributes,
+                            memberChangeLogRoomReportName,
                         ).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {

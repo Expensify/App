@@ -13,17 +13,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import genericMemo from '@libs/genericMemo';
 import mergeRefs from '@libs/mergeRefs';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 
-import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -111,7 +109,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
+    const dropdownButtonRef = mergeRefs(buttonRef, isSplitButton ? undefined : dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(size);
@@ -124,7 +122,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     } else if (isButtonSizeLarge) {
         dropdownArrowIconSize = CONST.ICON_SIZE.MEDIUM;
     }
-    const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
     const splitButtonIcon = hasError ? icons.DotIndicator : icon;
     const singleOptionButtonIcon = shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon;
@@ -146,24 +143,21 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         calculatePopoverPosition(dropdownAnchor, anchorAlignment).then(setPopoverAnchorPosition);
     }, [isMenuVisible, calculatePopoverPosition, anchorAlignment]);
 
-    const handleSingleOptionPress = useCallback(
-        (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-            const option = options.at(0);
-            if (!option) {
-                return;
-            }
+    const handleSingleOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        const option = options.at(0);
+        if (!option) {
+            return;
+        }
 
-            if (option.onSelected) {
-                option.onSelected();
-            } else {
-                onOptionSelected?.(option);
-                onPress(event, option.value);
-            }
+        if (option.onSelected) {
+            option.onSelected();
+        } else {
+            onOptionSelected?.(option);
+            onPress(event, option.value);
+        }
 
-            onSubItemSelected?.(option, 0, event);
-        },
-        [options, onPress, onOptionSelected, onSubItemSelected],
-    );
+        onSubItemSelected?.(option, 0, event);
+    };
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
@@ -197,16 +191,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const nonSplitButtonStyle = buttonStyle ? [styles.w100, buttonStyle] : defaultStyle;
     const isTextTooLong = customText && customText?.length > 6;
 
-    const handlePress = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!isSplitButton) {
-                setIsMenuVisible(!isMenuVisible);
-            } else if (selectedItem?.value) {
-                onPress(event, selectedItem.value);
-            }
-        },
-        [isMenuVisible, isSplitButton, onPress, selectedItem?.value],
-    );
+    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (!isSplitButton) {
+            setIsMenuVisible(!isMenuVisible);
+        } else if (selectedItem?.value) {
+            onPress(event, selectedItem.value);
+        }
+    };
 
     useImperativeHandle(ref, () => ({
         setIsMenuVisible,
@@ -350,7 +341,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     }}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowRadioButton={shouldShowRadioButton}
-                    anchorRef={nullCheckRef(dropdownAnchor)}
+                    anchorRef={dropdownAnchor}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     anchorAlignment={anchorAlignment}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
@@ -386,6 +377,4 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
 }
 
-// OXC's React Compiler bails on this file (refs accessed during render), so it is not memoized on
-// web. Memoize it explicitly (genericMemo preserves the generic call signature).
-export default genericMemo(ButtonWithDropdownMenu);
+export default ButtonWithDropdownMenu;
