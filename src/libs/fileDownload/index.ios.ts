@@ -30,24 +30,28 @@ const isUserCancelled = (err: unknown) => {
 };
 
 /**
- * Downloads the file to Documents section in iOS
+ * Downloads the file to the app's cache directory. The cache directory is not exposed
+ * to the user, so files meant for the user must be handed off via the share sheet afterwards.
  */
 function downloadFile(fileUrl: string, fileName: string) {
     const dirs = RNFetchBlob.fs.dirs;
 
-    // The iOS files will download to documents directory
-    const path = dirs.DocumentDir;
+    const path = dirs.CacheDir;
 
     // Fetching the attachment
     return RNFetchBlob.config({
         fileCache: true,
         path: `${path}/${fileName}`,
-        addAndroidDownloads: {
-            useDownloadManager: true,
-            notification: true,
-            path: `${path}/Expensify/${fileName}`,
-        },
     }).fetch('GET', fileUrl);
+}
+
+/**
+ * Presents the iOS share sheet so the user can save the file to the Files app,
+ * then removes the local copy. The app sandbox is not browsable by the user,
+ * so this hand-off is the only way a downloaded file reaches them.
+ */
+function shareFileToFilesApp(localPath: string) {
+    return Share.open({url: localPath, failOnCancel: false, saveToFiles: true}).then(() => RNFS.unlink(localPath));
 }
 
 const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true) => {
@@ -70,12 +74,10 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
         .then((fileData) => {
             const resolvedFileName = fileName ?? 'Expensify';
             const finalFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
-            const expensifyDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
+            const expensifyDir = `${RNFS.CachesDirectoryPath}/Expensify`;
             const localPath = `${expensifyDir}/${finalFileName}`;
             return RNFS.mkdir(expensifyDir).then(() => {
-                return RNFS.writeFile(localPath, fileData, 'utf8')
-                    .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
-                    .then(() => RNFS.unlink(localPath));
+                return RNFS.writeFile(localPath, fileData, 'utf8').then(() => shareFileToFilesApp(localPath));
             });
         })
         .catch((error) => {
@@ -152,7 +154,25 @@ const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage
                     break;
                 }
 
-                fileDownloadPromise = downloadFile(fileUrl, attachmentName);
+                // The downloaded file lives in the app cache, which the user cannot browse,
+                // so hand it off through the share sheet ("Save to Files"). The share sheet
+                // provides its own confirmation, so we resolve without a success alert.
+                fileDownloadPromise = downloadFile(fileUrl, attachmentName)
+                    .then((attachment) => {
+                        const localPath = attachment.path();
+                        if (!localPath) {
+                            throw new Error('Error downloading file');
+                        }
+                        return shareFileToFilesApp(localPath);
+                    })
+                    .then(() => undefined)
+                    .catch((err: unknown) => {
+                        // If the user cancels the iOS share/save dialog, we exit silently without showing an error
+                        if (isUserCancelled(err)) {
+                            return undefined;
+                        }
+                        throw err;
+                    });
                 break;
         }
 

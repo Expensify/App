@@ -1,0 +1,59 @@
+diff --git a/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm b/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
+index 6ce7258..38ea210 100644
+--- a/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
++++ b/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
+@@ -10,6 +10,33 @@ @implementation OnLoad
+ using namespace margelo::nitro;
+ using namespace margelo::nitro::rnnitrosqlite;
+ 
++// The Documents directory can be exposed to the user (Files app) when file sharing
++// is enabled, so databases are stored in Library/Application Support instead.
++// Databases created by older app versions are moved out of Documents on first launch.
++static void migrateDatabaseFiles(NSString *fromDirectory, NSString *toDirectory) {
++  NSFileManager *fileManager = [NSFileManager defaultManager];
++  NSArray<NSString *> *files = [fileManager contentsOfDirectoryAtPath:fromDirectory error:nil];
++
++  for (NSString *file in files) {
++    // Covers the database itself plus its -wal/-shm journal files
++    if (![file hasPrefix:@"OnyxDB"]) {
++      continue;
++    }
++
++    NSString *sourcePath = [fromDirectory stringByAppendingPathComponent:file];
++    NSString *destinationPath = [toDirectory stringByAppendingPathComponent:file];
++
++    if ([fileManager fileExistsAtPath:destinationPath]) {
++      continue;
++    }
++
++    NSError *error = nil;
++    if (![fileManager moveItemAtPath:sourcePath toPath:destinationPath error:&error]) {
++      NSLog(@"Failed to migrate database file %@: %@", file, error.localizedDescription);
++    }
++  }
++}
++
+ + (void)load {
+   // Get appGroupID value from Info.plist using key "AppGroup"
+   NSString *appGroupID = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"RNNitroSQLite_AppGroup"];
+@@ -30,9 +57,18 @@ + (void)load {
+ 
+     documentPath = [storeUrl path];
+   } else {
+-    // Get iOS app's document directory (to safely store database .sqlite3 file)
+-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
++    // Store databases in Library/Application Support, which is persistent, backed up,
++    // and never exposed to the user via the Files app (unlike the Documents directory)
++    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, true);
+     documentPath = [paths objectAtIndex:0];
++
++    NSFileManager *fileManager = [NSFileManager defaultManager];
++    if (![fileManager fileExistsAtPath:documentPath]) {
++      [fileManager createDirectoryAtPath:documentPath withIntermediateDirectories:YES attributes:nil error:nil];
++    }
++
++    NSArray *documentPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
++    migrateDatabaseFiles([documentPaths objectAtIndex:0], documentPath);
+   }
+ 
+   HybridNitroSQLite::docPath = [documentPath UTF8String];
