@@ -39,6 +39,7 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {DisplayNameWithTooltip} from './DisplayNames/types';
+import type HoverableProps from './Hoverable/types';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 
 import ActivityIndicator from './ActivityIndicator';
@@ -50,6 +51,7 @@ import DisplayNames from './DisplayNames';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
+import InlineIcon from './Icon/InlineIcon';
 import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -82,7 +84,8 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = ForwardedFSClassProps &
-    WithSentryLabel & {
+    WithSentryLabel &
+    Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         /** Reference to the outer element */
         ref?: PressableRef | Ref<View>;
 
@@ -616,6 +619,7 @@ function MenuItem({
     forwardedFSClass,
     ref,
     isFocused,
+    shouldUseNativeHoverEvents = false,
     sentryLabel,
     rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
@@ -868,7 +872,10 @@ function MenuItem({
                 shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
-                    <Hoverable isFocused={isFocused}>
+                    <Hoverable
+                        isFocused={isFocused}
+                        shouldUseNativeHoverEvents={shouldUseNativeHoverEvents}
+                    >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
@@ -1079,11 +1086,9 @@ function MenuItem({
                                                         {!!furtherDetails && (
                                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (
-                                                                    <Icon
+                                                                    <InlineIcon
                                                                         src={furtherDetailsIcon}
-                                                                        height={variables.iconSizeNormal}
-                                                                        width={variables.iconSizeNormal}
-                                                                        inline
+                                                                        size={CONST.ICON_SIZE.MEDIUM}
                                                                     />
                                                                 )}
                                                                 <Text
@@ -1224,8 +1229,7 @@ function MenuItem({
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}
                                                             shouldHaveActiveBackground
-                                                            iconHeight={variables.iconSizeExtraSmall}
-                                                            iconWidth={variables.iconSizeExtraSmall}
+                                                            iconSize={CONST.ICON_SIZE.EXTRA_SMALL}
                                                             iconStyles={styles.t0}
                                                             styles={styles.reportActionContextMenuMiniButton}
                                                             shouldUseButtonBackground
