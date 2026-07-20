@@ -5,12 +5,14 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletCreditCardAccount} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -52,6 +54,13 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
                 keyForList: accountItem.code,
                 isSelected: creditCardAccountCode === accountItem.code,
             })) ?? [];
+    const filterData = (accountItem: AccountListItem, searchInput: string) => tokenizedSearch([accountItem], searchInput, () => [accountItem.text ?? '', accountItem.value]).length > 0;
+    const [searchValue, setSearchValue, filteredData] = useSearchResults(data, filterData);
+    const textInputOptions = {
+        label: data.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     const headerContent = (
         <View>
@@ -84,7 +93,8 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletCompanyCardAccountPage"
             title="workspace.rillet.companyCardAccount.label"
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={selectCreditCardAccount}
