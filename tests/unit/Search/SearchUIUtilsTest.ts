@@ -8639,6 +8639,30 @@ describe('SearchUIUtils', () => {
             expect(response2.visibility.export).toBe(true);
         });
 
+        test('Should show approve suggestion for a report awaiting approval even when the user is not a workflow approver', () => {
+            // An approval-enabled group policy where the current user is neither the approver nor a submitsTo/forwardsTo target.
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someoneelse@policy.com',
+                    employeeList: {
+                        'employee@policy.com': {email: 'employee@policy.com', submitsTo: 'someoneelse@policy.com'},
+                    },
+                },
+            };
+
+            // Without a report awaiting approval, the workflow gate hides the suggestion.
+            const withoutReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, false);
+            expect(withoutReport.visibility.approve).toBe(false);
+
+            // A report awaiting the user's approval surfaces the suggestion regardless of workflow membership.
+            const withReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, true);
+            expect(withReport.visibility.approve).toBe(true);
+        });
+
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
             const policyKey = `policy_${policyID}`;
 
