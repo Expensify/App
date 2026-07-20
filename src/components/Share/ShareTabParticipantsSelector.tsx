@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
@@ -38,9 +38,13 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const lockedExpenseChatReportID =
         isSubmitFlow && isRestrictedToPreferredPolicy && preferredPolicyID ? getPolicyExpenseChat(currentUserAccountID, preferredPolicyID)?.reportID : undefined;
 
-    // Tracks whether the one-shot auto-navigation to the locked workspace has already run. Once it has, we stop
-    // returning null and render the picker underneath instead, so backing out of the details page lands on a usable
-    // screen rather than a blank Submit tab.
+    // Synchronous one-shot guard for the auto-navigation effect. A ref (rather than the render state below) is used so
+    // the guard flips immediately: clearing the draft transaction mutates draftTransactionIDs, which re-runs the effect
+    // before a state update could commit, so a state-based guard would navigate twice.
+    const hasAutoNavigatedRef = useRef(false);
+
+    // Drives rendering: once the one-shot auto-navigation has run, we stop returning null and render the picker
+    // underneath instead, so backing out of the details page lands on a usable screen rather than a blank Submit tab.
     const [hasAutoNavigatedToLockedReport, setHasAutoNavigatedToLockedReport] = useState(false);
 
     // This span belongs to the submit flow, so the share flow instance must not cancel a span it never started. For the submit flow this cancels an attempt that closes before SubmitDetailsPage mounts to end the span, so it is
@@ -55,13 +59,14 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     );
 
     // One-shot: auto-navigate the restricted user straight to the locked workspace's confirmation the first time the
-    // locked report resolves. The hasAutoNavigatedToLockedReport guard keeps this from re-running (and re-navigating)
-    // if draftTransactionIDs later changes, while still keeping every captured value in the dependency array so we
-    // clear the up-to-date drafts at navigation time and no dependency lint has to be suppressed.
+    // locked report resolves. The hasAutoNavigatedRef guard keeps this from re-running (and re-navigating) if
+    // draftTransactionIDs later changes, while still keeping every captured value in the dependency array so we clear
+    // the up-to-date drafts at navigation time and no dependency lint has to be suppressed.
     useEffect(() => {
-        if (!lockedExpenseChatReportID || hasAutoNavigatedToLockedReport) {
+        if (!lockedExpenseChatReportID || hasAutoNavigatedRef.current) {
             return;
         }
+        hasAutoNavigatedRef.current = true;
 
         // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
         clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
@@ -76,9 +81,13 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
             },
         });
 
-        Navigation.navigate(detailsPageRouteObject.getRoute(lockedExpenseChatReportID.toString()));
-        setHasAutoNavigatedToLockedReport(true);
-    }, [lockedExpenseChatReportID, hasAutoNavigatedToLockedReport, draftTransactionIDs, detailsPageRouteObject]);
+        // Flip the render state once the transition to the details page completes so the picker mounts underneath it,
+        // giving the user a usable screen when they back out. Doing this in the afterTransition callback (rather than
+        // calling setState synchronously in the effect body) avoids the react-hooks/set-state-in-effect violation.
+        Navigation.navigate(detailsPageRouteObject.getRoute(lockedExpenseChatReportID.toString()), {
+            afterTransition: () => setHasAutoNavigatedToLockedReport(true),
+        });
+    }, [lockedExpenseChatReportID, draftTransactionIDs, detailsPageRouteObject]);
 
     // Render null only until the auto-navigation has run, to avoid flashing the full picker while we route the
     // restricted user to the locked workspace. Afterwards we fall through to the picker so that backing out of the
