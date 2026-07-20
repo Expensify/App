@@ -6830,6 +6830,36 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_ROOM, 1);
         });
+
+        it('should only hide notification preference when leaving a task report (not null it)', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const parentReport = createRandomReport(Number(PARENT_REPORT_ID), undefined);
+            const taskReport = {
+                ...createRandomReport(Number(ROOM_REPORT_ID), undefined),
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: PARENT_REPORT_ID,
+                parentReportActionID: PARENT_REPORT_ACTION_ID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: {
+                    [TEST_CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, taskReport);
+            await waitForBatchedUpdates();
+
+            Report.leaveRoom(taskReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
+            // A task report is a thread-like report: leaving it should only hide the notification
+            // preference and keep the report object intact, so the report screen won't show "Not here".
+            expect(updatedReport?.participants?.[TEST_CURRENT_USER_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            expect(updatedReport?.reportID).toBe(ROOM_REPORT_ID);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
     });
 
     describe('leaveGroupChat with introSelected', () => {
