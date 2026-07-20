@@ -9985,7 +9985,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         switch: 'Wechseln',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Delegierter Zugriff',
-        copilotDelegatedAccessDescription: 'Anderen Mitgliedern erlauben, auf dein Konto zuzugreifen.',
+        copilotDelegatedAccessDescription: 'Anderen Mitgliedern und Agenten den Zugriff auf Ihr Konto erlauben.',
         learnMoreAboutDelegatedAccess: 'Mehr über delegierten Zugriff erfahren',
         addCopilot: 'Copilot hinzufügen',
         membersCanAccessYourAccount: 'Diese Mitglieder haben Zugriff auf Ihr Konto:',

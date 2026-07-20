@@ -10017,7 +10017,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     delegate: {
         switchAccount: 'Changer de compte :',
         copilotDelegatedAccess: 'Copilot : Accès délégué',
-        copilotDelegatedAccessDescription: 'Autoriser les autres membres à accéder à votre compte.',
+        copilotDelegatedAccessDescription: 'Autoriser les autres membres et agents à accéder à votre compte.',
         learnMoreAboutDelegatedAccess: "En savoir plus sur l'accès délégué",
         addCopilot: 'Ajouter un copilote',
         switch: 'Changer',
