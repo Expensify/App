@@ -2702,6 +2702,7 @@ describe('actions/IOU/TrackExpense', () => {
             const result = deleteTrackExpense({
                 chatReportID: selfDMReport.reportID,
                 chatReport: selfDMReport,
+                chatReportActions: undefined,
                 transactionID: transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 reportAction: iouReportAction!,
@@ -2827,6 +2828,7 @@ describe('actions/IOU/TrackExpense', () => {
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
+                    selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
@@ -2900,6 +2902,7 @@ describe('actions/IOU/TrackExpense', () => {
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
+                    selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
@@ -2943,6 +2946,7 @@ describe('actions/IOU/TrackExpense', () => {
                     personalDetails: undefined,
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
+                    selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
@@ -2986,6 +2990,7 @@ describe('actions/IOU/TrackExpense', () => {
                     personalDetails: undefined,
                     policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
+                    selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
