@@ -296,7 +296,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
         /** Should render the content in HTML format */
-        shouldRenderAsHTML?: boolean;
+  /** Should render the content in HTML format. A title without HTML content is rendered as plain text even when this is set. */
+shouldRenderAsHTML?: boolean;
 
         /** Whether or not the text should be escaped */
         shouldEscapeText?: boolean;
