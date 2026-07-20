@@ -483,9 +483,6 @@
 "../../src/components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow.tsx"	"no-restricted-imports"	1
 "../../src/components/Tables/WorkspaceCompanyCardsTable/index.tsx"	"no-restricted-imports"	1
-"../../src/components/Tables/WorkspaceListTable/LeaveWorkspaceFlow.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
-"../../src/components/Tables/WorkspaceListTable/WorkspaceRowBrickRoadIndicator.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
-"../../src/components/Tables/WorkspaceListTable/WorkspaceRowThreeDotsMenu.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/TagPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TaxPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TestCrash/index.native.tsx"	"no-restricted-imports"	1
@@ -1077,10 +1074,8 @@
 "../../src/pages/Debug/TransactionViolation/DebugTransactionViolationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
-"../../src/pages/DynamicReportDetailsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"no-restricted-imports"	1
@@ -1235,12 +1230,9 @@
 "../../src/pages/domain/DomainsListPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Groups/DomainGroupsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Groups/PreferredWorkspaceToggle.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/domain/Members/DomainAddMemberPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/domain/Members/DomainMemberDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Members/DomainMembersPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/domain/Members/DomainReportSuspiciousActivityPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/domain/Members/MoveUserBetweenGroupsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/domain/Members/MoveUserBetweenGroupsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/domain/Members/MoveUsersBetweenGroupsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Saml/SamlLoginSectionContent.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/domain/Saml/ScimTokenContent.tsx"	"no-restricted-imports"	1
@@ -1502,12 +1494,10 @@
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspacesListPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspacesListPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	3
 "../../src/pages/workspace/accounting/AccountingContext/default.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1656,7 +1646,6 @@
 "../../src/pages/workspace/reports/ReportFieldsListValuesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/workspace/rules/AgentRules/EditAgentRulePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rules/MerchantRules/MerchantRulePageBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rules/PolicyRulesPageRevamp.tsx"	"no-restricted-imports"	1

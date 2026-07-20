@@ -32,6 +32,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
@@ -58,13 +61,9 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    const [policyReports] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            selector: policyChatRoomsSelector(policyID, reportNameValuePairs),
-        },
-        [policyID, reportNameValuePairs],
-    );
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports: OnyxCollection<Report>) => policyChatRoomsSelector(policyID, reportNameValuePairs)(reports),
+    });
 
     // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.
     // It is cleared by the create page once the navigation transition ends (see WorkspaceNewRoomPage), so the animation doesn't replay on a later visit.

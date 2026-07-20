@@ -29,8 +29,11 @@ import type SCREENS from '@src/SCREENS';
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
 import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/AddDomainMemberForm';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useRef} from 'react';
 
@@ -59,7 +62,9 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const [memberIDs = getEmptyArray<number>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: memberAccountIDsSelector,
     });
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: multiPersonalDetailsSelector(memberIDs)}, [memberIDs]);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => multiPersonalDetailsSelector(memberIDs)(personalDetailsList),
+    });
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
 
