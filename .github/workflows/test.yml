@@ -32,8 +32,8 @@ jobs:
 
       - name: Cache Jest cache
         id: cache-jest-cache
-        # v5.0.1
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        # v5.0.2
+        uses: useblacksmith/cache@71c7c918062ba3861252d84b07fe5ab2a6b467a6
         with:
           path: .jest-cache
           # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single

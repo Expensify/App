@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-// no-op: trigger CI paths filter to validate setupNode cache change (safe to revert)
+// no-op: trigger CI paths filter to validate blacksmith cache change — run 1 (safe to revert)
 
 type EmptyObject = Record<string, never>;
 

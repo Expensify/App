@@ -26,16 +26,16 @@ runs:
         node-version-file: '.nvmrc'
 
     - id: cache-node-modules
-      # v5.0.1
-      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+      # v5.0.2
+      uses: useblacksmith/cache@71c7c918062ba3861252d84b07fe5ab2a6b467a6
       with:
         path: node_modules
         key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**'))}}
 
     - id: cache-old-dot-node-modules
       if: inputs.IS_HYBRID_BUILD == 'true'
-      # v5.0.1
-      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+      # v5.0.2
+      uses: useblacksmith/cache@71c7c918062ba3861252d84b07fe5ab2a6b467a6
       with:
         path: Mobile-Expensify/node_modules
         key: ${{ runner.os }}-node-modules-${{ hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**') }}
@@ -44,8 +44,8 @@ runs:
     # On a node_modules cache hit, npm ci is skipped, so restoring ~/.npm (~1GB) would be wasted bandwidth.
     - id: cache-npm
       if: steps.cache-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true')
-      # v5.0.1
-      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+      # v5.0.2
+      uses: useblacksmith/cache@71c7c918062ba3861252d84b07fe5ab2a6b467a6
       with:
         path: ~/.npm
         key: ${{ runner.os }}-npm-${{ hashFiles('normalized-package-lock.json') }}
