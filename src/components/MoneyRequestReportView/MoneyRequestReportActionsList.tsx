@@ -1,4 +1,5 @@
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -213,6 +214,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const scrollingVerticalBottomOffset = useRef(0);
     const scrollingVerticalTopOffset = useRef(0);
+    const tailIndicatorHeightRef = useRef(0);
     const wrapperViewRef = useRef<View>(null);
     const readActionSkipped = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
@@ -483,6 +485,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
+    useEffect(() => {
+        tailIndicatorHeightRef.current = 0;
+    }, [report?.reportID]);
+
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
      */
@@ -646,6 +652,24 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         [reportScrollManager],
     );
 
+    const handleTailIndicatorLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            const previousHeight = tailIndicatorHeightRef.current;
+            const nextHeight = event.nativeEvent.layout.height;
+            tailIndicatorHeightRef.current = nextHeight;
+
+            if (previousHeight > 0 || nextHeight <= 0 || linkedReportActionID || !hasNewestReportAction || scrollOffsetRef.current >= AUTOSCROLL_TO_TOP_THRESHOLD) {
+                return;
+            }
+
+            setIsFloatingMessageCounterVisible(false);
+            requestAnimationFrame(() => {
+                reportScrollManager.scrollToEnd();
+            });
+        },
+        [hasNewestReportAction, linkedReportActionID, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible],
+    );
+
     /**
      * Runs when the FlatList finishes laying out
      */
@@ -689,10 +713,15 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     }
 
     const listFooterComponent = (
-        <ReportActionsListTailIndicator
-            reportID={report.reportID}
-            isDraftPendingCompletion={isDraftPendingCompletion}
-        />
+        <View
+            testID="money-request-report-tail-indicator"
+            onLayout={handleTailIndicatorLayout}
+        >
+            <ReportActionsListTailIndicator
+                reportID={report.reportID}
+                isDraftPendingCompletion={isDraftPendingCompletion}
+            />
+        </View>
     );
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
