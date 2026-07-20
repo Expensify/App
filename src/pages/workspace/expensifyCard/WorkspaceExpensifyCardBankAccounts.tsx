@@ -45,6 +45,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const policyID = route?.params?.policyID;
@@ -92,7 +93,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         }
 
         const eligibleBankAccounts = isUkEuCurrencySupported
-            ? getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency)
+            ? getEligibleBankAccountsForUkEuCard(bankAccountsList, supportedCountriesByCurrency, policy?.outputCurrency)
             : getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {

@@ -732,6 +732,9 @@ const CONST = {
             PLAID: 'plaid',
             NONE: '',
         },
+        CONNECT_EXISTING_SOURCE: {
+            CHANGE_BANK_ACCOUNT: 'changeBankAccount',
+        },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
@@ -987,7 +990,6 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
-        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
@@ -5707,7 +5709,11 @@ const CONST = {
         SE: 'Sweden',
     },
 
-    EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES: ['BE', 'DK', 'ES', 'FI', 'IE', 'LT', 'LU', 'LV', 'NL', 'PL', 'SE', 'GB', 'GI'],
+    // Hard-coded fallback for the Expensify Card supported countries keyed by settlement currency
+    EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY: {
+        GBP: ['GB', 'GI'],
+        EUR: ['BE', 'DK', 'ES', 'FI', 'IE', 'LT', 'LU', 'LV', 'NL', 'PL', 'SE'],
+    },
 
     EU_REGISTRATION_NUMBER_REGEX: {
         AT: /^FN\d{6}[a-z]?$/i,

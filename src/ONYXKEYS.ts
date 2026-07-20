@@ -388,6 +388,9 @@ const ONYXKEYS = {
     /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
+    /** Authoritative country codes where the Expensify Card is supported, keyed by settlement currency, sent by the backend */
+    CARD_SUPPORTED_COUNTRIES: 'cardSupportedCountries',
+
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
@@ -405,6 +408,9 @@ const ONYXKEYS = {
 
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
+
+    /** Indicates whether the user started changing their business bank account to a fresh account */
+    IS_CHANGING_TO_NEW_BANK_ACCOUNT: 'isChangingToNewBankAccount',
 
     /** Stores Workspace ID that will be tied to reimbursement account during setup */
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
@@ -652,6 +658,9 @@ const ONYXKEYS = {
 
     /** Stores the current search page context (e.g., whether to show the search query) */
     SEARCH_CONTEXT: 'searchContext',
+
+    /** Maps each loaded search snapshot's hash to its original query string, used to fan optimistic IOU updates to every matching snapshot */
+    SEARCH_QUERY_BY_HASH: 'searchQueryByHash',
 
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
@@ -1485,6 +1494,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
+    [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
@@ -1580,6 +1590,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
+    [ONYXKEYS.CARD_SUPPORTED_COUNTRIES]: Record<string, string[]>;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.TRAVEL_INVOICE_STATEMENT]: OnyxTypes.TravelInvoiceStatement;
@@ -1588,6 +1599,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
     [ONYXKEYS.UNSHARE_BANK_ACCOUNT]: OnyxTypes.UnshareBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
+    [ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT]: boolean;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED]: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: number;
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
