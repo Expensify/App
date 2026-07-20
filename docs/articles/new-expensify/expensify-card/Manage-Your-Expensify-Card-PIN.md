@@ -23,8 +23,6 @@ After your Workspace Admin issues you a physical GBP or EUR Expensify Card, you'
 6. Review the confirmation page. If you need to make changes, select the relevant field.
 7. Click **Confirm** and verify your identity using biometrics (on mobile) or a passkey (on web or desktop).
 
-Your PIN becomes active after you activate your physical Expensify Card.
-
 ---
 
 ## How to check your Expensify Card PIN
