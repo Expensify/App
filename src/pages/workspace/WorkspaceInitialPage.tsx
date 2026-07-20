@@ -260,11 +260,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         goBackFromInvalidPolicy();
     }, [isFocused, isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
 
-    // Only the active policy has connections data at app start; non-active workspaces have to fetch
-    // it. hasVendorFeature() and isMatchingVendorListLoaded() both read connections, so the Vendors
-    // menu row would otherwise never render on a non-active workspace until the user visited its
-    // Accounting tab. Trigger the prefetch inline, scoped to read-access + beta so we don't add an
-    // accounting-page fetch to every workspace visit for non-beta users.
+    // The Vendors row gate below reads policy.connections (via hasVendorFeature and
+    // isMatchingVendorListLoaded), which is empty on a non-active workspace until Accounting
+    // has been opened. Prefetch it here, gated on read-access + beta so this doesn't fire an
+    // accounting-page read on every workspace visit.
     const canReadVendors = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS);
     usePolicyConnectionsPrefetch(policy, canReadVendors && isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 

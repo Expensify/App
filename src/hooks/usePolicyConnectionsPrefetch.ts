@@ -19,14 +19,14 @@ type PrefetchState = {
 };
 
 /**
- * Fetches `policy.connections` lazily for a non-active workspace. `withPolicyConnections`
- * uses this to hydrate connections before rendering an accounting-adjacent page, and callers
- * that need the connection data without wrapping (e.g. `WorkspaceInitialPage` deciding whether
- * to render the Vendors row) pass a scoped `enabled` gate to opt in.
+ * Fetches `policy.connections` lazily for a non-active workspace. Only the currently active
+ * policy has its connections field populated at app start; anything else needs to trigger
+ * `openPolicyAccountingPage` on-demand.
  *
- * The hook itself only bails on the shared safety guards — Onyx flag still hydrating, offline,
- * no policy loaded, no accounting/connections on the policy, already fetched — that need to
- * stay in sync across callers so callers don't reinvent them.
+ * Callers pass `enabled` to opt in — the hook stays inert unless the caller has a reason to
+ * need the connection data. The shared safety guards (Onyx flag still hydrating, offline,
+ * policy missing, no accounting connection to fetch, already fetched) live here so callers
+ * can't drift out of sync.
  */
 function usePolicyConnectionsPrefetch(policy: OnyxEntry<OnyxTypes.Policy>, enabled: boolean): PrefetchState {
     const {isOffline} = useNetwork();
