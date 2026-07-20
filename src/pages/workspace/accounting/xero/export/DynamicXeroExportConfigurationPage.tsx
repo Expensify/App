@@ -34,6 +34,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     const {export: exportConfiguration, errorFields, pendingFields, defaultVendor} = policy?.connections?.xero?.config ?? {};
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+
     // Gate the Xero default-supplier row on Xero specifically being configured, not on the global
     // hasVendorFeature predicate. hasVendorFeature OR's all integrations, so on a dual-connected
     // workspace where QBO/Intacct is the active vendor-matching source it would still expose the

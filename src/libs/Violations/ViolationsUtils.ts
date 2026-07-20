@@ -591,6 +591,7 @@ const ViolationsUtils = {
                 // positive in Onyx, and rejecting it would strip a legitimate one. Leave the
                 // existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
+
                 // Stamp Xero-specific copy on the violation so the render site can use the
                 // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the default
                 // "Vendor" wording.

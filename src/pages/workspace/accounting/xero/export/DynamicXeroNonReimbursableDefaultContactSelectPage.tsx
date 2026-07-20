@@ -39,6 +39,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
     const currentContactID = xeroConfig?.defaultVendor;
+
     // Match the parent page's gate so direct deep-links (or stale-open tabs after the beta is
     // revoked) cannot reach the supplier updater. The parent page hides the row when the feature
     // is off, but the route remains addressable on its own. Gated on Xero specifically being
@@ -74,8 +75,8 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     );
 
     // Match the threshold the Company Cards export picker uses for its search input — Xero
-    // tenants with hundreds or thousands of contacts need filtering, but the search row would
-    // be wasted chrome on a 5-supplier workspace.
+    // tenants with hundreds or thousands of contacts need filtering, but a 5-supplier workspace
+    // doesn't need the extra search row.
     const shouldShowTextInput = supplierOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const filteredSupplierOptions = useMemo(
@@ -100,12 +101,13 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
 
     const selectSupplier = useCallback(
         ({value}: SelectorType) => {
-            // Defense-in-depth: if the screen render race-ended with isFeatureAvailable still
-            // truthy and the user managed to tap, refuse to persist the update.
+            // If the screen render race-ended with isFeatureAvailable still truthy and the user
+            // managed to tap, refuse to persist the update.
             if (!isFeatureAvailable) {
                 goBack();
                 return;
             }
+
             // Treat the clear row and an already-empty default as the same state so picking
             // "None" on a workspace that never had a default doesn't fire a no-op write.
             const isAlreadySelected = value === currentContactID || (!value && !currentContactID);
