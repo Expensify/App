@@ -113,6 +113,11 @@ type PathSteps = ReadonlyArray<{event: {type: string}}>;
 
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
 
+/**
+ * Tells whether this event happens without a user gesture. Every event that XState synthesizes,
+ * such as actor completion or a delayed transition firing, carries the `xstate.` prefix, and none
+ * of them corresponds to a gesture, so the prefix check matches exactly the framework events.
+ */
 function isAutoDrivenEvent(eventType: string): boolean {
     return eventType.startsWith('xstate.');
 }
