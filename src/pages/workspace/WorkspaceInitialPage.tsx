@@ -261,9 +261,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     }, [isFocused, isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
 
     // The Vendors row gate below reads policy.connections (via hasVendorFeature and
-    // isMatchingVendorListLoaded), which is empty on a non-active workspace until Accounting
-    // has been opened. Prefetch it here, gated on read-access + beta so this doesn't fire an
-    // accounting-page read on every workspace visit.
+    // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page
+    // requiring connections is opened. Prefetch it here, gated on read-access + beta so this
+    // doesn't fire an accounting-page read on every workspace visit.
     const canReadVendors = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS);
     usePolicyConnectionsPrefetch(policy, canReadVendors && isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
