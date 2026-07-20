@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-// no-op: trigger CI paths filter — stickydisk experiment, run 2 (marker present, no npm ci, safe to revert)
+// no-op: trigger CI paths filter for a sticky disk rollout follow-up run (safe to revert)
 
 type EmptyObject = Record<string, never>;
 
