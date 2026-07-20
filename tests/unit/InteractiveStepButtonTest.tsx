@@ -67,7 +67,7 @@ describe('InteractiveStepButton', () => {
 
             const step = screen.getByLabelText(STEP_LABEL);
             expect(step.props.accessibilityState).toMatchObject({selected: false});
-            expect(step.props.accessibilityState?.disabled).toBeFalsy();
+            expect(step).not.toBeDisabled();
 
             fireEvent.press(step);
             expect(onPress).toHaveBeenCalledTimes(1);
