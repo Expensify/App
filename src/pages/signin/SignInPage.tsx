@@ -6,6 +6,7 @@ import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -166,6 +167,12 @@ function getRenderOptions({
 function SignInPage({ref}: SignInPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    // The page title is set by whichever screen last called useDocumentTitle and is never cleared on its own, so
+    // without this the tab would stay stuck on the last authenticated page's title (e.g. "Profile") after signing out.
+    // Passing an empty title resets it to the default site title on focus.
+    useDocumentTitle('');
+
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
