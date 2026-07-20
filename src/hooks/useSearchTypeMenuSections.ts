@@ -49,6 +49,8 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 });
 
 /**
+ * Get a list of all search groupings, along with their search items.
+ *
  * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
  * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
  * reliably, so this hook never depends on a navigation context itself.
