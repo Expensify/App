@@ -373,7 +373,6 @@
 "../../src/components/Search/FilterComponents/AdvancedFilters/DateFilterContent.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterComponents/AdvancedFilters/ReportFieldFilterContent.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent.tsx"	"no-restricted-imports"	1
-"../../src/components/Search/FilterComponents/CategorySelector.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/Search/FilterComponents/DateFilterBase.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterComponents/DateFilterBase.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Search/FilterComponents/DatePresetFilterBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -407,7 +406,6 @@
 "../../src/components/Search/SearchList/ListItem/MemberListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchList/ListItem/ReportListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Search/SearchList/ListItem/TaskListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Search/SearchList/ListItem/TaskListItem.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/Search/SearchList/ListItem/TaskListItemRow.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/SearchList/ListItem/TransactionGroupListExpanded.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/TransactionGroupListExpanded.tsx"	"no-restricted-imports"	1
@@ -415,12 +413,10 @@
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemNarrow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemWide.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/components/Search/SearchList/ListItem/TransactionListItem/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/Search/SearchList/ListItem/WithdrawalIDListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchMultipleSelectionPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchPageHeader/SearchActionsBarCreateButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchPageHeader/SearchActionsBarCreateButton.tsx"	"no-restricted-imports"	1
-"../../src/components/Search/SearchPageHeader/SearchActionsBarCreateButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/Search/SearchPageHeader/SearchAdvancedFiltersButton.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/SearchPageHeader/SearchFilterBar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Search/SearchPageHeader/SearchSaveButton.tsx"	"no-restricted-imports"	1
@@ -1213,7 +1209,6 @@
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultiplePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleTagPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/Search/SearchHoldReasonPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
