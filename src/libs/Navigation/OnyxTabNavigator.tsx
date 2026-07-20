@@ -29,9 +29,12 @@ import React, {useCallback, useContext, useEffect, useRef, useState} from 'react
 import {StyleSheet, View} from 'react-native';
 
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
+import type {TransitionHandle} from './TransitionTracker';
 
+import onTabTransitionEnd from './helpers/onTabTransitionEnd';
 import {backBehavior, defaultScreenOptions} from './OnyxTabNavigatorConfig';
 import TabSwitchGuardContext from './TabSwitchGuardContext';
+import TransitionTracker from './TransitionTracker';
 
 type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = ChildrenProps & {
     /** ID of the tab component to be saved in onyx */
@@ -117,6 +120,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
 }: OnyxTabNavigatorProps<TTabName>) {
     const styles = useThemeStyles();
     const isFirstMountRef = useRef(true);
+    const tabPressTransitionHandleRef = useRef<TransitionHandle | null>(null);
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
@@ -173,12 +177,14 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         }
         const navState = navigation.getState();
         const currentRouteName = navState.routes.at(navState.index)?.name;
-        const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
-        if (!guard || !guard.getHasUnsavedChanges()) {
-            return;
-        }
         const targetRoute = navState.routes.find((tabRoute) => tabRoute.key === event.target);
         if (!targetRoute || targetRoute.name === currentRouteName) {
+            return;
+        }
+        const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
+        if (!guard || !guard.getHasUnsavedChanges()) {
+            // No guard blocking the switch: we don't preventDefault, so TabSelector dispatches jumpTo to the target tab right after this returns.
+            tabPressTransitionHandleRef.current = TransitionTracker.startTransition();
             return;
         }
         event.preventDefault();
@@ -200,9 +206,18 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                     Growl.error(translate('common.genericErrorMessage'));
                 })
                 .then(() => {
+                    tabPressTransitionHandleRef.current = TransitionTracker.startTransition();
                     navigation.dispatch(TabActions.jumpTo(targetRoute.name));
                 });
         });
+    };
+
+    const endTabPressTransition = () => {
+        if (!tabPressTransitionHandleRef.current) {
+            return;
+        }
+        TransitionTracker.endTransition(tabPressTransitionHandleRef.current);
+        tabPressTransitionHandleRef.current = null;
     };
 
     /**
@@ -233,6 +248,19 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         onActiveTabFocusTrapContainerElementChanged?.(selectedTab ? focusTrapContainerElementMapping[selectedTab] : null);
     }, [selectedTab, focusTrapContainerElementMapping, onActiveTabFocusTrapContainerElementChanged]);
 
+    // Unmounting mid-switch (e.g. the RHP closes before the slide settles) means the settle event never fires, so end
+    // any in-flight transition here to avoid leaking an open handle.
+    useEffect(
+        () => () => {
+            if (!tabPressTransitionHandleRef.current) {
+                return;
+            }
+            TransitionTracker.endTransition(tabPressTransitionHandleRef.current);
+            tabPressTransitionHandleRef.current = null;
+        },
+        [],
+    );
+
     if (isLoadingOnyxValue(selectedTabResult)) {
         return null;
     }
@@ -247,7 +275,10 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                     backBehavior={backBehavior}
                     keyboardDismissMode="none"
                     tabBar={TabBarWithFocusTrapInclusion}
-                    onTabSelect={onTabSelect}
+                    onTabSelect={(props) => {
+                        onTabTransitionEnd('tabSelect', endTabPressTransition);
+                        onTabSelect?.(props);
+                    }}
                     screenListeners={({navigation}: {navigation: NavigationProp<ParamListBase>}) => {
                         const callerListeners = screenListeners ?? {};
                         return {
@@ -270,6 +301,10 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                                     persistSelectedTab(id, newSelectedTab);
                                 }
                                 notifyTabSelected(newSelectedTab);
+                            },
+                            swipeEnd: (e) => {
+                                onTabTransitionEnd('swipeEnd', endTabPressTransition);
+                                callerListeners.swipeEnd?.(e);
                             },
                             tabPress: (e) => {
                                 // Let a caller's own tabPress run first; if it blocked the switch, don't also run the guard.
