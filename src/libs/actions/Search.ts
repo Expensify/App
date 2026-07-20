@@ -225,6 +225,7 @@ type HandleActionButtonPressParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -262,6 +263,7 @@ function handleActionButtonPress({
     searchData,
     chatReportActions,
     delegateEmail,
+    delegateAccountID,
     isTrackIntentUser,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
@@ -313,6 +315,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             return;
@@ -519,6 +522,7 @@ type GetPayActionCallbackParams = {
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -546,6 +550,7 @@ function getPayActionCallback({
     policy,
     searchData,
     chatReportActions,
+    delegateAccountID,
     isTrackIntentUser,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
@@ -594,6 +599,7 @@ function getPayActionCallback({
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
+        delegateAccountID,
         isTrackIntentUser,
     });
 }
