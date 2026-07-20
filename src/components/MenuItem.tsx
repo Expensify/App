@@ -296,8 +296,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
         /** Should render the content in HTML format */
-  /** Should render the content in HTML format. A title without HTML content is rendered as plain text even when this is set. */
-shouldRenderAsHTML?: boolean;
+        /** Should render the content in HTML format. A title without HTML content is rendered as plain text even when this is set. */
+        shouldRenderAsHTML?: boolean;
 
         /** Whether or not the text should be escaped */
         shouldEscapeText?: boolean;
@@ -769,8 +769,6 @@ function MenuItem({
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
     }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
 
-    const processedPlainTextTitle = shouldRenderAsHTML && !shouldRenderTitleAsHTML && !shouldParseTitle ? Parser.htmlToText(processedTitle) : '';
-
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
 
@@ -1051,7 +1049,7 @@ function MenuItem({
                                                                         {shouldRenderTitleAsHTML || shouldParseTitle ? (
                                                                             <RenderHTML html={processedTitle} />
                                                                         ) : (
-                                                                            <Text style={styles.webViewStyles.baseFontStyle}>{processedPlainTextTitle}</Text>
+                                                                            <Text style={styles.webViewStyles.baseFontStyle}>{Parser.htmlToText(processedTitle)}</Text>
                                                                         )}
                                                                     </View>
                                                                 )}
