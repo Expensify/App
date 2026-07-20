@@ -386,6 +386,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validar',
         downloadAsPDF: 'Descargar como PDF',
         downloadAsCSV: 'Descargar como CSV',
+        submitViaPDF: 'Enviar por PDF',
         print: 'Imprimir',
         help: 'Ayuda',
         collapsed: 'Contraído',
@@ -467,6 +468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -1123,6 +1125,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'No se han añadido reglas de comerciante, ya que todas ya existen.';
+            }
+            return rules > 1 ? `Se han añadido ${rules} reglas de comerciante.` : 'Se ha añadido 1 regla de comerciante.';
+        },
+        importMerchantRulesRequiredColumns:
+            '¡Ups! Debes asignar al menos una columna "El comerciante es" o "El comerciante contiene", además de al menos un campo para actualizar. Por favor, revisa e inténtalo de nuevo.',
         importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.',
@@ -7427,6 +7437,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 findRule: 'Buscar regla de comerciante',
                 addRuleTitle: 'Añadir regla',
                 editRuleTitle: 'Editar regla',
+                importRulesTitle: 'Importar reglas de comerciante',
+                importRulesSupportingText:
+                    'Asigna cada columna de tu hoja de cálculo a un campo de la regla de comerciante. Cuando todo esté correcto, haz clic abajo para importar tus reglas.',
+                importColumnMerchantIs: 'El comerciante es',
+                importColumnMerchantContains: 'El comerciante contiene',
+                importColumnUpdatedMerchant: 'Comerciante actualizado',
+                importColumnUpdatedCategory: 'Categoría actualizada',
+                importColumnUpdatedTag: 'Etiqueta actualizada',
+                importColumnUpdatedDescription: 'Descripción actualizada',
                 expensesWith: 'Para gastos con:',
                 expensesExactlyMatching: 'Para gastos que coincidan exactamente con:',
                 applyUpdates: 'Aplicar estas actualizaciones:',
@@ -7630,6 +7649,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 agentCreatedTitle: '¡RuleBot se ha añadido a tu espacio de trabajo!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
+                revampSubtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
+                newRuleTitle: 'Nueva regla',
+                describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
+                gotIt: 'Entendido',
+                createRule: 'Crear regla',
             },
             tabs: {
                 general: 'General',
@@ -7637,6 +7661,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 expenseDefaults: 'Valores predeterminados de gastos',
                 requireFields: 'Campos obligatorios',
                 flagForReview: 'Marcar para revisión',
+                agents: 'Agentes',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7695,9 +7720,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 applyExpenseDefaults: 'Aplicar valores predeterminados de gastos',
                 applyExpenseDefaultsDescription: 'Actualizar campos sin que quien los envía haga nada',
                 flagForReview: 'Marcar para revisión',
-                flagForReviewDescription: 'Notificar a los aprobadores cuando los gastos superen los límites de categoría',
+                flagForReviewDescription: 'Notificar cuando se cumplan tus condiciones.',
                 requireFields: 'Campos obligatorios',
-                requireFieldsDescription: 'Asegúrate de que los campos clave estén rellenos antes de enviar los gastos',
+                requireFieldsDescription: 'Recibos, categorías, etc., al enviar.',
+                createAgentRule: 'Regla de agente',
+                createAgentRuleDescription: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7760,6 +7787,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 confirmErrorCategory: 'Por favor, selecciona una categoría.',
                 confirmErrorAmount: 'Por favor, introduce una cantidad.',
                 thenFlagForReview: 'Luego marcar para revisión cuando:',
+            },
+            agentRulesEmptyState: {
+                title: 'No se han añadido reglas de agente',
+                subtitle: 'Crea una regla para automatizar las políticas de tu espacio de trabajo.',
+                cta: 'Añadir regla de IA',
             },
         },
         emptyDomain: {
