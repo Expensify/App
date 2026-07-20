@@ -31,6 +31,17 @@ describe('getAnchoredPreviewPosition', () => {
         expect(position?.left).toBe(anchor.left + anchor.width + RECEIPT_PREVIEW_GAP);
     });
 
+    it('clamps the preview to the right edge when neither side fits on a narrow viewport', () => {
+        const narrowWidth = 801;
+        // Neither side has room: too little space on the left, and flipping right would overflow the edge.
+        const anchor = {top: 300, left: 400, width: 68, height: 64};
+
+        const position = getAnchoredPreviewPosition(anchor, narrowWidth, WINDOW_HEIGHT);
+
+        expect(position?.left).toBe(narrowWidth - RECEIPT_PREVIEW_WIDTH - RECEIPT_PREVIEW_EDGE_MARGIN);
+        expect((position?.left ?? 0) + RECEIPT_PREVIEW_WIDTH).toBeLessThanOrEqual(narrowWidth - RECEIPT_PREVIEW_EDGE_MARGIN);
+    });
+
     it('aligns the preview top with the hovered row before it has been measured', () => {
         const anchor = {top: 420, left: 120, width: 68, height: 64};
 
