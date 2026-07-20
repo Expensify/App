@@ -153,7 +153,10 @@ function BaseGenericTooltip({
         );
     }
 
-    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
+    // Collapse the component union to a single concrete type. The union of both animated components'
+    // prop types overflows tsc's union limit (TS2590) with reanimated's AnimatedStyle types. The cast is
+    // type-only; the runtime ternary is unchanged and Animated.View ignores the pressable-only props.
+    const AnimatedWrapper = (isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View) as typeof AnimatedPressableWithoutFeedback;
 
     const body = document.querySelector('body');
 
