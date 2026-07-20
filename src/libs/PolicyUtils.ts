@@ -2311,6 +2311,26 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
  * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
  * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI.
  */
+/**
+ * Returns the connection name whose export mode is currently scoping vendor matching for the
+ * workspace, or undefined when none is. Callers that render vendor-matching UI should use this
+ * to stay in sync with `getActiveVendorMatchingVendors` — picking a connection via a generic
+ * "first accounting connection" lookup can mismatch when the workspace still has a stale
+ * secondary connection attached.
+ */
+function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): ConnectionName | undefined {
+    if (!policy) {
+        return undefined;
+    }
+    if (isQBOVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.QBO;
+    }
+    if (isIntacctVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
+    }
+    return undefined;
+}
+
 function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | undefined {
     if (!policy) {
         return undefined;
@@ -2319,7 +2339,10 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors;
     }
     if (isIntacctVendorMatchingActive(policy)) {
-        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
+        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors;
+        if (intacctVendors === undefined) {
+            return undefined;
+        }
         return intacctVendors.map((vendor) => ({
             id: vendor.id,
             name: vendor.value,
@@ -2792,6 +2815,7 @@ export {
     getConnectedIntegration,
     getConnectionExporters,
     findVendorByID,
+    getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
     hasVendorFeature,

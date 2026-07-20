@@ -3978,6 +3978,7 @@ const CONST = {
             EXPENSIFY_CARD: 'expensifyCard',
             COMPANY_CARDS: 'companyCards',
             CATEGORIES: 'categories',
+            VENDORS: 'vendors',
             TAGS: 'tags',
             TAXES: 'taxes',
             RULES: 'rules',
@@ -8753,6 +8754,7 @@ const CONST = {
                 TIME_TRACKING: 'WorkspaceInitial-TimeTracking',
                 INVOICES: 'WorkspaceInitial-Invoices',
                 MORE_FEATURES: 'WorkspaceInitial-MoreFeatures',
+                VENDORS: 'WorkspaceInitial-Vendors',
             },
             OVERVIEW: {
                 AVATAR: 'WorkspaceOverview-Avatar',

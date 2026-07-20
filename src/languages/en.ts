@@ -4565,6 +4565,7 @@ const translations = {
             delete: 'Delete workspace',
             settings: 'Settings',
             categories: 'Categories',
+            vendors: 'Vendors',
             tags: 'Tags',
             customField1: 'Custom field 1',
             customField2: 'Custom field 2',
@@ -6381,6 +6382,12 @@ const translations = {
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formula field ${value} not recognized`,
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
+        },
+        vendors: {
+            emptyTitle: 'No vendors yet',
+            emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
+            findVendor: 'Find vendor',
+            managedInAccountingSoftware: 'Vendors are managed in your',
         },
         tags: {
             tagName: 'Tag name',

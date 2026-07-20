@@ -4419,6 +4419,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             delete: 'ワークスペースを削除',
             settings: '設定',
             categories: 'カテゴリ',
+            vendors: '仕入先',
             tags: 'タグ',
             customField1: 'カスタムフィールド1',
             customField2: 'カスタムフィールド2',
@@ -6207,6 +6208,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `数式フィールド ${value} が認識されません`,
             reportFieldInitialValueRequiredError: 'レポート項目の初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
+        },
+        vendors: {
+            emptyTitle: 'まだ取引先がありません',
+            emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
+            findVendor: '取引先を検索',
+            managedInAccountingSoftware: '取引先は次の場所で管理されます：',
         },
         tags: {
             tagName: 'タグ名',
