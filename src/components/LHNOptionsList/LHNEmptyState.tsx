@@ -1,14 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
 import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
+import Text from '@components/Text';
 import TextBlock from '@components/TextBlock';
+import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 
 function LHNEmptyState() {
@@ -16,7 +25,34 @@ function LHNEmptyState() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
-    const emptyLHNIllustration = useEmptyLHNIllustration();
+    const emptyLHNIllustration = useEmptyLHNIllustration() as BlockingViewProps;
+    const {activeTab} = useSidebarOrderedReportsState();
+    const {setActiveTab} = useSidebarOrderedReportsActions();
+
+    if (activeTab === CONST.INBOX_TAB.UNREAD || activeTab === CONST.INBOX_TAB.TODO) {
+        const title = activeTab === CONST.INBOX_TAB.UNREAD ? translate('common.emptyLHN.noUnreadChats') : translate('common.emptyLHN.noTodos');
+        const caughtUpSubtitle = (
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('common.emptyLHN.caughtUp')}</Text>
+                <TextLink
+                    onPress={() => setActiveTab(CONST.INBOX_TAB.ALL)}
+                    style={[styles.textStrong, styles.mt5, styles.ph4, styles.textAlignCenter]}
+                >
+                    {translate('common.emptyLHN.seeAllChats')}
+                </TextLink>
+            </View>
+        );
+
+        return (
+            <BlockingView
+                {...emptyLHNIllustration}
+                title={title}
+                titleStyles={styles.mb2}
+                CustomSubtitle={caughtUpSubtitle}
+                accessibilityLabel={title}
+            />
+        );
+    }
 
     const subtitle = (
         <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
@@ -30,7 +66,7 @@ function LHNEmptyState() {
                 width={variables.emptyLHNIconWidth}
                 height={variables.emptyLHNIconHeight}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
                 additionalStyles={styles.mh1}
             />
             <TextBlock
@@ -43,7 +79,7 @@ function LHNEmptyState() {
                 width={variables.emptyLHNIconWidth}
                 height={variables.emptyLHNIconHeight}
                 fill={theme.icon}
-                small
+                size={CONST.ICON_SIZE.SMALL}
                 additionalStyles={styles.mh1}
             />
             <TextBlock
@@ -56,7 +92,7 @@ function LHNEmptyState() {
 
     return (
         <BlockingView
-            {...(emptyLHNIllustration as BlockingViewProps)}
+            {...emptyLHNIllustration}
             title={translate('common.emptyLHN.title')}
             CustomSubtitle={subtitle}
             accessibilityLabel={translate('common.emptyLHN.title')}

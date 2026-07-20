@@ -1,6 +1,8 @@
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
+
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
+
 import {dynamicRoutePaths} from './isDynamicRouteSuffix';
 
 /**

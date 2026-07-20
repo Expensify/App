@@ -1,20 +1,25 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type HrSyncResult from '@libs/API/HrSyncResult';
 import {getConnectedHRProvider} from '@libs/HRUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+import type {ModalProps} from './Modal/Global/ModalContext';
+
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import Modal from './Modal';
-import type {ModalProps} from './Modal/Global/ModalContext';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ScrollView from './ScrollView';
 import Text from './Text';

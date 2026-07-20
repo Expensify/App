@@ -1,13 +1,11 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
-import Onyx from 'react-native-onyx';
-import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
+
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -18,6 +16,13 @@ import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+
+import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
+
+import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -217,7 +222,7 @@ function signOutTestUser() {
  * - fail() - start returning a failure response
  * - success() - go back to returning a success response
  */
-function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let responses = new Map<string, (params: any) => OnyxResponse<any>>();
@@ -280,7 +285,11 @@ function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
     mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
         responses.set(command, responseHandler);
     };
-    return mockFetch as typeof fetch;
+    return mockFetch;
+}
+
+function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+    return createGlobalFetchMock(mockResponse);
 }
 
 function setupGlobalFetchMock(): MockFetch {
@@ -394,6 +403,7 @@ export {
     buildTestReportComment,
     getFetchMockCalls,
     getGlobalFetchMock,
+    createGlobalFetchMock,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,

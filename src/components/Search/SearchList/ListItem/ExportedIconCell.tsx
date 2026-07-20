@@ -1,13 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ExportedIconCellProps = {
     reportActions?: ReportAction[];
@@ -20,7 +24,18 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     const styles = useThemeStyles();
 
     const actions = reportActions ?? [];
-    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'TablePencil', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'NetSuiteSquare',
+        'XeroSquare',
+        'IntacctSquare',
+        'QBOSquare',
+        'Table',
+        'TablePencil',
+        'ZenefitsSquare',
+        'BillComSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+    ]);
 
     let isExportedToStandardTemplate = false;
     let isExportedToCustomTemplate = false;
@@ -30,6 +45,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     let isExportedToQuickbooksOnline = false;
     let isExportedToQuickbooksDesktop = false;
     let isExportedToCertinia = false;
+    let isExportedToRillet = false;
     let isExportedToBillCom = false;
     let isExportedToZenefits = false;
 
@@ -58,6 +74,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             isExportedToZenefits = isExportedToZenefits || label === CONST.EXPORT_LABELS.ZENEFITS;
             isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
             isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
+            isExportedToRillet = isExportedToRillet || label === CONST.EXPORT_LABELS.RILLET;
             isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT || label === CONST.EXPORT_LABELS.SAGE_INTACCT;
         }
     }
@@ -68,14 +85,14 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
                 <Icon
                     src={icons.Table}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             )}
             {isExportedToCustomTemplate && (
                 <Icon
                     src={icons.TablePencil}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             )}
             {isExportedToNetsuite && (
@@ -109,6 +126,13 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             {isExportedToCertinia && (
                 <Avatar
                     source={icons.CertiniaSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToRillet && (
+                <Avatar
+                    source={icons.RilletSquare}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                 />

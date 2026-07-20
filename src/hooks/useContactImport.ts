@@ -1,14 +1,19 @@
-import {useCallback, useState} from 'react';
-import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import {getContactsExtended} from '@libs/ContactUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {useCallback, useState} from 'react';
+import {RESULTS} from 'react-native-permissions';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -32,7 +37,7 @@ function useContactImport(): UseContactImportResult {
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
     const {localeCompare, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {

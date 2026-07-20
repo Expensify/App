@@ -75,8 +75,8 @@ To manage automation and other connection preferences:
 - **Sync reimbursed reports**:
   - If marked as paid in QuickBooks Online, the report will show as reimbursed in Expensify
   - If reimbursed via ACH in Expensify, the status will sync to paid in QuickBooks
-- **QuickBooks bill payment account**: Select where paid expense reports are stored
-- **QuickBooks invoice collections account**: Select where paid invoices are stored
+- **QuickBooks bill payment account**: Select where payments for expense reports are recorded
+- **QuickBooks invoice collections account**: Select where payments for invoices are recorded
 
 ---
 

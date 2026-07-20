@@ -1,21 +1,26 @@
-import {useIsFocused} from '@react-navigation/native';
-import type {ComponentType} from 'react';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
+
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ComponentType} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React from 'react';
 
 type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
@@ -40,6 +45,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_REPORT
@@ -62,46 +68,65 @@ type MoneyRequestRouteName =
 type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
     PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
+type WithFullTransactionOrNotFoundImplProps<TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>> = {
+    WrappedComponent: ComponentType<TProps>;
+    shouldShowLoadingIndicator: boolean;
+} & Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>;
+
+function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>({
+    WrappedComponent,
+    shouldShowLoadingIndicator,
+    ...props
+}: WithFullTransactionOrNotFoundImplProps<TProps>) {
+    const {route} = props;
+    const transactionID = route.params.transactionID;
+    const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
+
+    const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
+    const isLoadingTransaction = isLoadingOnyxValue(transactionResult, transactionDraftResult);
+
+    const [splitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
+
+    const userType = 'iouType' in route.params && route.params.iouType ? route.params.iouType : CONST.IOU.TYPE.CREATE;
+
+    const isFocused = useIsFocused();
+
+    const transactionDraftData = userType === CONST.IOU.TYPE.SPLIT_EXPENSE ? splitTransactionDraft : transactionDraft;
+
+    // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown.
+    // In addition, the not-found page should be shown only if the component screen's route is active (i.e. is focused).
+    // This is to prevent it from showing when the modal is being dismissed while navigating to a different route (e.g. on requesting money).
+    if (!transactionID) {
+        return <FullPageNotFoundView shouldShow={isFocused} />;
+    }
+
+    if (isLoadingTransaction && shouldShowLoadingIndicator) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'withFullTransactionOrNotFound',
+            isLoadingTransaction,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            transaction={shouldUseTransactionDraft(userAction, userType) ? transactionDraftData : transaction}
+            isLoadingTransaction={isLoadingTransaction}
+        />
+    );
+}
+
 export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>(
     WrappedComponent: ComponentType<TProps>,
     shouldShowLoadingIndicator = false,
 ): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
-        const {route} = props;
-        const transactionID = route.params.transactionID;
-        const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
-
-        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
-        const isLoadingTransaction = isLoadingOnyxValue(transactionResult, transactionDraftResult);
-
-        const [splitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
-
-        const userType = 'iouType' in route.params && route.params.iouType ? route.params.iouType : CONST.IOU.TYPE.CREATE;
-
-        const isFocused = useIsFocused();
-
-        const transactionDraftData = userType === CONST.IOU.TYPE.SPLIT_EXPENSE ? splitTransactionDraft : transactionDraft;
-
-        // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown.
-        // In addition, the not-found page should be shown only if the component screen's route is active (i.e. is focused).
-        // This is to prevent it from showing when the modal is being dismissed while navigating to a different route (e.g. on requesting money).
-        if (!transactionID) {
-            return <FullPageNotFoundView shouldShow={isFocused} />;
-        }
-
-        if (isLoadingTransaction && shouldShowLoadingIndicator) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'withFullTransactionOrNotFound',
-                isLoadingTransaction,
-            };
-            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
-        }
         return (
-            <WrappedComponent
-                {...(props as TProps)}
-                transaction={shouldUseTransactionDraft(userAction, userType) ? transactionDraftData : transaction}
-                isLoadingTransaction={isLoadingTransaction}
+            <WithFullTransactionOrNotFoundImpl
+                WrappedComponent={WrappedComponent}
+                shouldShowLoadingIndicator={shouldShowLoadingIndicator}
+                {...props}
             />
         );
     }

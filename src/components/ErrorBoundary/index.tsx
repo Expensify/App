@@ -1,8 +1,11 @@
-import React, {useEffect} from 'react';
 import Log from '@libs/Log';
+
+import React, {useEffect} from 'react';
+
+import type {BaseErrorBoundaryProps} from './types';
+
 import BaseErrorBoundary from './BaseErrorBoundary';
 import logError from './logError';
-import type {BaseErrorBoundaryProps} from './types';
 
 const onUnhandledRejection = (event: PromiseRejectionEvent) => {
     let rejection: unknown = event.reason;

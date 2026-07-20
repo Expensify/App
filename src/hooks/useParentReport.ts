@@ -1,6 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 function useParentReport(reportID?: string): OnyxEntry<Report> {

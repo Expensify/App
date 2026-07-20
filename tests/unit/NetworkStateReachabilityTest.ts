@@ -1,5 +1,6 @@
-import type {NetInfoState} from '@react-native-community/netinfo';
 import type * as NetworkState from '@src/libs/NetworkState';
+
+import type {NetInfoState} from '@react-native-community/netinfo';
 
 let netInfoListener: ((state: NetInfoState) => void) | null = null;
 const mockOnyxCallbacks = new Map<string, (value: unknown) => void>();

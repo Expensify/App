@@ -1,11 +1,15 @@
 ---
 title: Set Up and Manage Expensify Cards
 description: Learn how Workspace Admins can enable, issue, and manage Expensify Cards for employees, including spending limits, bank connections, and virtual card setup.
-keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin]
-internalScope: Applies to Workspace Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
+keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin, Card Admin]
+internalScope: Applies to Workspace Admins and Card Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
 ---
 
 Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manage company spending with real-time controls and flexibility across employees and subscriptions.
+
+**Note:** This guide covers the Expensify Card for companies with a U.S. business bank account. If your company is based in the UK or EU, see [Set Up and Manage the Expensify Card in the UK and EU](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-UK-EU) instead. Cash back and other perks described below apply to the U.S. Expensify Card only.
+
+**Card Admins** can also issue and manage Expensify Cards — including setting limits, freezing or unfreezing cards, and adjusting card settings — once the Expensify Card is enabled on the workspace.
 
 **The Expensify Card offers powerful spend control tools, including:**
 
@@ -69,6 +73,8 @@ You can issue virtual or physical cards to employees:
 8. Name the card for easier tracking
 9. Click **Issue card** to confirm
 
+When issuing a card, you can also apply an existing Spend Rule or create a new one so the card has real-time spending controls from its first use. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+
 ![Choose a Smart limit type]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_03.png){:width="100%"}
 
 ![Click issue card to confirm and issue the card]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_04.png){:width="100%"}
@@ -88,11 +94,26 @@ You can issue virtual or physical cards to employees:
    - Deactivation
 4. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
 
+Your workspace also has built-in default protections that automatically block certain transaction categories on every Expensify Card, and you can set Spend Rules to approve or decline transactions in real time. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+
 ![Click Expensify Card in the left menu to see a list of cards]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_05.png){:width="100%"}
 
 ![Click the card row to view the card details and make settings adjustments]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_06.png){:width="100%"}
 
 ![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
+
+## What the Status column shows in the Expensify Card list
+
+The Expensify Card list includes a **Status** column so you can see each card's lifecycle state at a glance without opening the card. Click the **Status** column header to sort the list by status.
+
+Each card shows one of the following statuses:
+
+- **Pending order** — A physical card has been issued but not yet ordered by the cardholder.
+- **Shipped** — A physical card has shipped and is on its way to the cardholder.
+- **Active** — The card is ready to use. Virtual cards are immediately **Active** once issued.
+- **Inactive** — The card is frozen or otherwise not currently usable.
+
+**Note:** The **Status** column is hidden on narrow and medium screens. Widen your browser window or view the list on a larger screen to see it.
 
 ---
 
@@ -130,7 +151,7 @@ The downloaded CSV file includes the following columns for each selected card: e
 
 # How to freeze or unfreeze an Expensify Card
 
-As a Workspace Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
+As a Workspace Admin or Card Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
 
 Freezing a card is helpful if:
 - You suspect misuse or a policy violation

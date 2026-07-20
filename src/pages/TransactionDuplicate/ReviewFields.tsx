@@ -1,14 +1,18 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {ReviewDuplicates} from '@src/types/onyx';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type FieldItemType<T extends keyof ReviewDuplicates> = {
     text: string;
@@ -70,6 +74,7 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
                     <InteractiveStepSubHeader
                         stepNames={stepNames}
                         startStepIndex={index}
+                        currentStepAccessibilityDescription={label}
                     />
                 </View>
             )}

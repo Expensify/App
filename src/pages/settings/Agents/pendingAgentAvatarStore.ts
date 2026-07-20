@@ -1,4 +1,5 @@
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+
 import type {Route} from '@src/ROUTES';
 
 type PendingPresetAvatar = {type: 'preset'; id: string};

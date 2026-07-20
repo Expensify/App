@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Network} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const shouldFailAllRequestsSelector = (network: OnyxEntry<Network>) => !!network?.shouldFailAllRequests;
 

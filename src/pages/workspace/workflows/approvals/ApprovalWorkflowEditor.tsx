@@ -1,10 +1,3 @@
-import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as ScrollViewRN} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -12,19 +5,33 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 import UserPills from '@components/UserPills';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as ScrollViewRN} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type ApprovalWorkflowEditorProps = {
     /** The approval workflow to display */
@@ -92,7 +99,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const memberPills = useMemo(
         () =>
             sortedMembers.map((m) => ({
-                avatar: m.avatar,
+                // A just-invited member is stored without an avatar, so fall back to the email-based default
+                // avatar instead of the generic fallback icon.
+                avatar: m.avatar ?? getDefaultAvatarURL({accountEmail: m.email}),
                 displayName: m.displayName,
                 email: m.email,
             })),
@@ -132,8 +141,20 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     );
 
     const handleExpensesFromPress = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID));
-    }, [policyID]);
+        // Key the EDIT backTo off the persisted first approver, not the mutated draft. The edit page
+        // resolves its workflow from policy.employeeList by first-approver email, so an unsaved approver
+        // change would point backTo at a non-existent workflow and render the not-found ("Not here") view.
+        const firstApproverEmail = approvalWorkflow.originalApprovers?.at(0)?.email ?? '';
+        // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
+        // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
+        // confirm (new) page, so return there instead of falling through to the Approver step.
+        const backTo =
+            approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
+                : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, backTo));
+    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
@@ -181,7 +202,12 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
                     const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, convertToDisplayString});
+                    const limitDescription = getApprovalLimitDescription({
+                        approver,
+                        currency,
+                        translate,
+                        convertToDisplayString,
+                    });
                     const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (

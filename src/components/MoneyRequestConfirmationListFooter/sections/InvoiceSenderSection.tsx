@@ -1,24 +1,34 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import InvoiceSenderField from '@components/MoneyRequestConfirmationList/sections/InvoiceSenderField';
+import {invoiceSenderSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
+
 import CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import React from 'react';
 
 type InvoiceSenderSectionProps = {
     /** Selected participants (used to derive the sender workspace) */
     selectedParticipants: Participant[];
-
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-function InvoiceSenderSection({selectedParticipants, transaction}: InvoiceSenderSectionProps) {
-    const {iouType, reportID, isReadOnly, didConfirm} = useConfirmationFields();
+/**
+ * Two-level guard: the outer component reads only the cheap `iouType` scalar from context and
+ * short-circuits on every non-invoice flow. The inner component is the only place that subscribes
+ * to the transaction slice, so non-invoice flows avoid the extra Onyx subscriptions.
+ */
+function InvoiceSenderSection({selectedParticipants}: InvoiceSenderSectionProps) {
+    const {iouType} = useConfirmationFields();
     if (iouType !== CONST.IOU.TYPE.INVOICE) {
         return null;
     }
+    return <InvoiceSenderSectionContent selectedParticipants={selectedParticipants} />;
+}
+
+function InvoiceSenderSectionContent({selectedParticipants}: InvoiceSenderSectionProps) {
+    const {iouType, reportID, transactionID, isReadOnly, didConfirm} = useConfirmationFields();
+    const transaction = useTransactionSelector(transactionID, invoiceSenderSliceSelector);
     return (
         <InvoiceSenderField
             selectedParticipants={selectedParticipants}

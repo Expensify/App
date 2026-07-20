@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type {ViolationName, ViolationType} from '@src/types/onyx/TransactionViolation';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const INPUT_IDS = {

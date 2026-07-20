@@ -1,7 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import SafeString from '@src/utils/SafeString';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {SafeString} from 'expensify-common';
 
 type BeneficialOwnerValues = {
     firstName: string;

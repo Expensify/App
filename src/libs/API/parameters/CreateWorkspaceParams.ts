@@ -21,6 +21,7 @@ type CreateWorkspaceParams = {
     shouldAddGuideWelcomeMessage?: boolean;
     areDistanceRatesEnabled?: boolean;
     optimisticConciergeReportActionID?: string;
+    personalTrackGoal?: string;
 };
 
 export default CreateWorkspaceParams;

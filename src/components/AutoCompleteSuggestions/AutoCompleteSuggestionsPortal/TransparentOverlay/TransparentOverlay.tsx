@@ -1,14 +1,18 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {PointerEvent} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useDragAndDrop from '@hooks/useDragAndDrop';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
+
+import type {PointerEvent} from 'react-native';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 type TransparentOverlayProps = {
     onPress: () => void;

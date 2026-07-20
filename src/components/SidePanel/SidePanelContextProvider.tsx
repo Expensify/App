@@ -1,22 +1,27 @@
-import type {PropsWithChildren, RefObject} from 'react';
-import React, {createContext, useEffect, useRef, useState} from 'react';
-// Import Animated directly from 'react-native' as animations are used with navigation.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import SidePanelActions from '@libs/actions/SidePanel';
 import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {SidePanel} from '@src/types/onyx';
+
+import type {PropsWithChildren, RefObject} from 'react';
+
+import React, {createContext, useEffect, useRef, useState} from 'react';
+// Import Animated directly from 'react-native' as animations are used with navigation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 
 type SidePanelStateContextProps = {
     isSidePanelTransitionEnded: boolean;
@@ -32,8 +37,8 @@ type SidePanelStateContextProps = {
 };
 
 type SidePanelActionsContextProps = {
-    openSidePanel: () => void;
-    closeSidePanel: () => void;
+    openSidePanel: (options?: {forceConcierge?: boolean}) => void;
+    closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
 const SidePanelStateContext = createContext<SidePanelStateContextProps>({
@@ -86,8 +91,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
-    const reportID = (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const reportID = !sidePanelNVP?.forceConcierge && (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
 
+    const onCloseCompleteRef = useRef<(() => void) | undefined>(undefined);
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
     const [prevShouldHideSidePanel, setPrevShouldHideSidePanel] = useState(shouldHideSidePanel);
 
@@ -121,25 +127,30 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => setIsSidePanelTransitionEnded(true));
+        ]).start(() => {
+            setIsSidePanelTransitionEnded(true);
+            onCloseCompleteRef.current?.();
+            onCloseCompleteRef.current = undefined;
+        });
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
-    const closeSidePanel = (shouldUpdateNarrow = false) => {
+    const closeSidePanel = (options?: {afterTransition?: () => void}) => {
         // User shouldn't be able to close side panel if side panel NVP is undefined
         if (!sidePanelNVP) {
             return;
         }
 
+        onCloseCompleteRef.current = options?.afterTransition;
         setIsSidePanelTransitionEnded(false);
-        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
+        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth);
 
         // Focus the composer after closing the Side Panel
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
-    const openSidePanel = () => {
+    const openSidePanel = (options?: {forceConcierge?: boolean}) => {
         setSessionStartTime(DateUtils.getDBTime());
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge);
     };
 
     // Because of the React Compiler we don't need to memoize it manually

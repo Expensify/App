@@ -1,5 +1,7 @@
-import React from 'react';
 import useChartFonts from '@components/Charts/hooks/useChartFonts';
+
+import React from 'react';
+
 import {ChartFontsContext} from './ChartFontsContext';
 
 function ChartFontsLoaderProvider({children}: {children: React.ReactNode}) {

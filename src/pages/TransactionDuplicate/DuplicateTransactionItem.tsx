@@ -1,6 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -9,15 +6,25 @@ import RadioButton from '@components/RadioButton';
 import type {ExpenseReportListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import TransactionItemRow from '@components/TransactionItemRow';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+
 import variables from '@styles/variables';
+
 import {createTransactionThreadReport} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
@@ -110,7 +117,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                             policy={policy}
                             shouldUseNarrowLayout
                             isSelected={isSelected}
-                            shouldShowTooltip={false}
+                            shouldShowTooltip
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

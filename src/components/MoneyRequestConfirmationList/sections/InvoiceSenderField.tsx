@@ -1,19 +1,24 @@
-import {emailSelector} from '@selectors/Session';
-import React from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {emailSelector} from '@selectors/Session';
+import React from 'react';
 
 type InvoiceSenderFieldProps = {
     /** The selected participants */
@@ -31,8 +36,8 @@ type InvoiceSenderFieldProps = {
     /** The report ID */
     reportID: string;
 
-    /** The transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** The transaction (only the fields this field reads) */
+    transaction: OnyxEntry<Pick<OnyxTypes.Transaction, 'isFromGlobalCreate' | 'transactionID'>>;
 };
 
 const senderWorkspaceSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => (policy ? {id: policy.id, name: policy.name, avatarURL: policy.avatarURL} : undefined);

@@ -1,13 +1,16 @@
-import {StackActions, TabActions} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
+
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-// eslint-disable-next-line no-restricted-imports -- TransitionTracker is mocked here to assert the tab-jump sequencing after popToTop in navigateToWorkspacesPage.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {StackActions, TabActions} from '@react-navigation/native';
+
 import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState', () => ({

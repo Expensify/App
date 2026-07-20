@@ -1,12 +1,9 @@
-import React, {useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -14,18 +11,27 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCompanyFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canModifyPlan, isCollectPolicy} from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import DowngradeConfirmation from './DowngradeConfirmation';
 import DowngradeIntro from './DowngradeIntro';
 
@@ -48,13 +54,10 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const isDowngraded = isCollectPolicy(policy);
 
     const dismissModalAndNavigate = (targetPolicyID: string) => {
-        Navigation.dismissModal();
+        Navigation.dismissModal({waitForTransition: true});
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
-
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
-            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
         });
     };
 
@@ -63,8 +66,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             return;
         }
         closeModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
+        dismissModalAndNavigate(policyID);
     };
 
     const onDowngradeToTeam = async () => {

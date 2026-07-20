@@ -1,7 +1,10 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import CopilotPage from '@pages/settings/Copilot/CopilotPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 const SESSION_EMAIL = 'me@example.com';
 const AGENT_SESSION_EMAIL = 'agent_42@expensify.ai';
@@ -73,6 +76,7 @@ jest.mock('@libs/actions/Delegate', () => ({
     connect: jest.fn(),
     openSecuritySettingsPage: jest.fn(),
     removeDelegate: jest.fn(),
+    removeDelegator: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -158,7 +162,7 @@ describe('CopilotPage', () => {
         expect(output).toContain('delegate.addCopilot');
     });
 
-    it('renders a delegator row with a Switch button when the user has delegators', () => {
+    it('renders a delegator row with a three-dot menu when the user has delegators', () => {
         setOnyxAccount({
             validated: true,
             delegatedAccess: {
@@ -171,7 +175,7 @@ describe('CopilotPage', () => {
         const output = JSON.stringify(toJSON());
 
         expect(output).toContain('boss@example.com');
-        expect(output).toContain('delegate.switch');
+        expect(output).toContain('icon-three-dots');
         expect(output).toContain('delegate.youCanAccessTheseAccounts');
         expect(output).not.toContain('delegate.membersCanAccessYourAccount');
     });

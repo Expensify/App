@@ -1,11 +1,14 @@
-import type {OnyxKey} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {AnyOnyxUpdatesFromServer, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import type {PingPongEvent} from './Pusher/types';
+
 import {reconnect} from './actions/Reconnect';
 import Log from './Log';
 import Pusher from './Pusher';
-import type {PingPongEvent} from './Pusher/types';
 
 type Callback<TKey extends OnyxKey> = (data: Array<OnyxServerUpdate<TKey>>) => Promise<void>;
 

@@ -1,11 +1,18 @@
-import React from 'react';
 import SpendRuleMerchantEditBase from '@components/SpendRules/configuration/SpendRuleMerchantEditBase';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {setIssueNewCardData} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT>;
 
@@ -17,14 +24,21 @@ export default function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEdit
     const merchantMatchTypes = issueNewCardForm?.data.spendRuleValue?.merchantMatchTypes ?? [];
 
     return (
-        <SpendRuleMerchantEditBase
+        <AccessOrNotFoundWrapper
             policyID={policyID}
-            merchantIndex={merchantIndex}
-            merchantMatchTypes={merchantMatchTypes}
-            merchantNames={merchantNames}
-            onMerchantDataChange={(newMerchantNames, newMerchantMatchTypes) => {
-                setIssueNewCardData(policyID, {spendRuleValue: {merchantNames: newMerchantNames, merchantMatchTypes: newMerchantMatchTypes}});
-            }}
-        />
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <SpendRuleMerchantEditBase
+                policyID={policyID}
+                merchantIndex={merchantIndex}
+                merchantMatchTypes={merchantMatchTypes}
+                merchantNames={merchantNames}
+                onMerchantDataChange={(newMerchantNames, newMerchantMatchTypes) => {
+                    setIssueNewCardData(policyID, {spendRuleValue: {merchantNames: newMerchantNames, merchantMatchTypes: newMerchantMatchTypes}});
+                }}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }

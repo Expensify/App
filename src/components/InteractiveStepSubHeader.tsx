@@ -1,12 +1,18 @@
-import type {ForwardedRef} from 'react';
-import React, {useImperativeHandle, useState} from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef} from 'react';
+import type {ViewStyle} from 'react-native';
+
+import React, {useImperativeHandle, useState} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
@@ -20,6 +26,9 @@ type InteractiveStepSubHeaderProps = {
 
     /** The index of the step to start with */
     startStepIndex?: number;
+
+    /** Description of the current step, appended to its accessibility label */
+    currentStepAccessibilityDescription: string;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<InteractiveStepSubHeaderHandle>;
@@ -39,8 +48,9 @@ type InteractiveStepSubHeaderHandle = {
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
-function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
+function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAccessibilityDescription, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
@@ -68,11 +78,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
     const amountOfUnions = stepNames.length - 1;
 
     return (
-        <View
-            style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}
-            accessible={false}
-            aria-hidden
-        >
+        <View style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}>
             {stepNames.map((stepName, index) => {
                 const isCompletedStep = currentStep > index;
                 const isLockedStep = currentStep < index;
@@ -104,9 +110,14 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                             ]}
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
-                            accessible={false}
-                            aria-hidden
-                            role={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.GROUP}
+                            aria-current={currentStep === index ? 'step' : undefined}
+                            accessibilityState={{selected: currentStep === index}}
+                            accessibilityLabel={translate('stepCounter', {
+                                step: index + 1,
+                                total: stepNames.length,
+                                text: currentStep === index ? currentStepAccessibilityDescription : undefined,
+                            })}
                             sentryLabel={CONST.SENTRY_LABEL.INTERACTIVE_STEP_SUB_HEADER.STEP_BUTTON}
                         >
                             {isCompletedStep ? (

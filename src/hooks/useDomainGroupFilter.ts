@@ -1,32 +1,28 @@
-import {groupsSelector} from '@selectors/Domain';
-import type {DomainSecurityGroupWithID} from '@selectors/Domain';
-import {useEffect, useState} from 'react';
-import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
+import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
+import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {DomainSecurityGroupWithID} from '@selectors/Domain';
+
+import {groupsSelector} from '@selectors/Domain';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
-const ALL_MEMBERS_VALUE = 'all';
-
 type UseDomainGroupFilterResult = {
-    /** Pre-filter function for useSearchResults that filters members by the selected group. */
-    groupPreFilter: (item: MemberOption) => boolean;
+    /** Filter configuration for the domain members table group filter. */
+    filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
 
-    /** All group dropdown options including the "All Members" entry. */
-    groupOptions: Array<SingleSelectItem<string>>;
+    /** Callback to determine whether a member matches the active group filter. */
+    isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
 
-    /** The currently selected group, or null when "All Members" is active. */
-    selectedGroup: SingleSelectItem<string> | null;
+    /** Whether the group filter should be shown. */
+    shouldShowGroupFilter: boolean;
 
-    /** Handler for when the user picks a different group in the dropdown. */
-    handleGroupChange: (item: SingleSelectItem<string> | undefined) => void;
-
-    /** Display label for the dropdown button. */
-    dropdownLabel: string;
-
-    /** Translated "All Members" label (useful as the default value for SingleSelectPopup). */
-    allMembersLabel: string;
+    /** Whether the group column should be shown in the table. */
+    shouldShowGroupColumn: boolean;
 
     /** The raw security groups from Onyx, needed for per-row group name display. */
     groups: DomainSecurityGroupWithID[] | undefined;
@@ -35,57 +31,44 @@ type UseDomainGroupFilterResult = {
 function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResult {
     const {translate} = useLocalize();
 
-    const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
+    const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        selector: groupsSelector,
+    });
 
-    const [selectedGroup, setSelectedGroup] = useState<SingleSelectItem<string> | null>(null);
+    const shouldShowGroupFilter = (groups?.length ?? 0) > 1;
+    const shouldShowGroupColumn = (groups?.length ?? 0) > 0;
 
-    const allMembersLabel = translate('domain.members.allMembers');
+    const filterConfig: FilterConfig<DomainMembersTableFilterKey> | undefined = !shouldShowGroupFilter
+        ? undefined
+        : {
+              group: {
+                  label: translate('common.group'),
+                  filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
+                  options: (groups ?? []).map((group) => ({
+                      label: group.details.name ?? '',
+                      value: group.id,
+                  })),
+              },
+          };
 
-    const groupOptions: Array<SingleSelectItem<string>> = [
-        {text: allMembersLabel, value: ALL_MEMBERS_VALUE},
-        ...(groups ?? []).map((group) => ({text: group.details.name ?? '', value: group.id})),
-    ];
+    const isItemInFilter: IsItemInFilterCallback<DomainMemberRowData> | undefined = !shouldShowGroupFilter
+        ? undefined
+        : (item, filterValues) => {
+              const filterValue = filterValues.at(0);
+              const matchedGroup = groups?.find((group) => group.id === filterValue);
 
-    const matchedGroup = selectedGroup && selectedGroup.value !== ALL_MEMBERS_VALUE ? groups?.find((g) => g.id === selectedGroup.value) : undefined;
+              if (!matchedGroup) {
+                  return true;
+              }
 
-    // If the selected group disappears from Onyx (e.g. during rollback/refresh), clear the
-    // selection from state so it cannot silently reactivate if the same group ID reappears later.
-    useEffect(() => {
-        if (!selectedGroup || selectedGroup.value === ALL_MEMBERS_VALUE || matchedGroup) {
-            return;
-        }
-        setSelectedGroup(null);
-    }, [matchedGroup, selectedGroup]);
-
-    const effectiveSelection = matchedGroup ? selectedGroup : null;
-
-    const selectedGroupMemberIDs = matchedGroup
-        ? new Set(
-              Object.keys(matchedGroup.details.shared)
-                  .map(Number)
-                  .filter((id) => !Number.isNaN(id)),
-          )
-        : null;
-
-    const groupPreFilter = (item: MemberOption) => !selectedGroupMemberIDs || selectedGroupMemberIDs.has(item.accountID);
-
-    const handleGroupChange = (item: SingleSelectItem<string> | undefined) => {
-        if (!item || item.value === ALL_MEMBERS_VALUE) {
-            setSelectedGroup(null);
-        } else {
-            setSelectedGroup(item);
-        }
-    };
-
-    const dropdownLabel = effectiveSelection?.text ?? allMembersLabel;
+              return String(item.accountID) in matchedGroup.details.shared;
+          };
 
     return {
-        groupPreFilter,
-        groupOptions,
-        selectedGroup: effectiveSelection,
-        handleGroupChange,
-        dropdownLabel,
-        allMembersLabel,
+        filterConfig,
+        isItemInFilter,
+        shouldShowGroupFilter,
+        shouldShowGroupColumn,
         groups,
     };
 }

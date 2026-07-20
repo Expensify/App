@@ -1,24 +1,30 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {getTransactionDetails, isOpenReport, isSelfDM} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BillingGraceEndPeriod, Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplitItemReportID, resolveSplitMileageRate, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
 
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when any transaction changes. This data should ONLY
-// be used for `initSplitExpense`
+// We read the whole transactions collection here only because `initSplitExpense` runs in the action
+// layer (not a component/hook), where `useOnyx` can't be called, and it doesn't affect UI rendering, so
+// connectWithoutView avoids re-rendering components when any transaction changes. This data should ONLY
+// be used for `initSplitExpense`.
+// Do NOT copy this pattern into components/hooks: use `useOnyx` (with a selector to narrow the data)
+// there so subscriptions stay scoped, the UI updates when the value changes, and they're torn down with
+// the component.
 let allTransactions: OnyxCollection<Transaction>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -26,9 +32,13 @@ Onyx.connectWithoutView({
     callback: (value) => (allTransactions = value),
 });
 
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when any report changes. This data should ONLY
-// be used for `initSplitExpense`
+// We read the whole reports collection here only because `initSplitExpense` runs in the action layer
+// (not a component/hook), where `useOnyx` can't be called, and it doesn't affect UI rendering, so
+// connectWithoutView avoids re-rendering components when any report changes. This data should ONLY be
+// used for `initSplitExpense`.
+// Do NOT copy this pattern into components/hooks: use `useOnyx` (with a selector to narrow the data)
+// there so subscriptions stay scoped, the UI updates when the value changes, and they're torn down with
+// the component.
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -36,69 +46,26 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when any policy changes. This data should ONLY
-// be used for `initSplitExpense`
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when the selfDM report ID changes. This data should ONLY
-// be used for `initSplitExpense`
-let selfDMReportID: string | undefined;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SELF_DM_REPORT_ID,
-    callback: (value) => (selfDMReportID = value ?? undefined),
-});
-
-let ownerBillingGracePeriodEnd: OnyxEntry<number>;
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when owner billing grace period changes. This data should ONLY
-// be used for `initSplitExpense`
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (ownerBillingGracePeriodEnd = value),
-});
-
-let userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when user billing grace periods change. This data should ONLY
-// be used for `initSplitExpense`
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-    waitForCollectionCallback: true,
-    callback: (value) => (userBillingGracePeriodEnds = value),
-});
-
-let amountOwed: OnyxEntry<number>;
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when amount owed changes. This data should ONLY
-// be used for `initSplitExpense`
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-    callback: (value) => (amountOwed = value),
-});
-
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
 function initSplitExpense(
     transaction: OnyxEntry<Transaction>,
-    policy: OnyxEntry<Policy>,
     report: OnyxEntry<Report>,
-    currentUserAccountID: number | undefined,
+    // The caller-resolved effective policy for the transaction's report, used for mileage rate resolution in distance requests
+    effectivePolicy: OnyxEntry<Policy>,
+    selfDMReportID: string | undefined,
+    // When set, the caller's workspace is billing-restricted: redirect to RESTRICTED_ACTION instead of opening the split flow
+    restrictedActionPolicyID: string | undefined,
+    personalPolicyOutputCurrency: string | undefined,
     {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
 ): void {
     if (!transaction) {
         return;
     }
 
-    if (!!policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+    if (restrictedActionPolicyID) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedActionPolicyID));
         return;
     }
 
@@ -184,23 +151,9 @@ function initSplitExpense(
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
 
     if (isDistanceRequest(transaction)) {
-        // When policy is undefined (e.g. viewing from self-DM), find the correct policy
-        // by searching all policies for one that contains the transaction's customUnitID.
-        // If customUnitID is not yet available (e.g. optimistic transaction before server response),
-        // fall back to searching by customUnitRateID.
-        // Skip both lookups when the rate is P2P — the expense has no workspace policy to resolve.
-        const customUnitID = transaction?.comment?.customUnit?.customUnitID;
-        const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
-        const isP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-        const policyByCustomUnitID = !isP2PRate && customUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[customUnitID]) ?? undefined) : undefined;
-        const policyByCustomUnitRateID =
-            !policyByCustomUnitID && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
-                ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[customUnitRateID])) ?? undefined)
-                : undefined;
-        const fallbackPolicyForDeletedSource =
-            isSelfDMReport && !isP2PRate && !policy && !policyByCustomUnitID && !policyByCustomUnitRateID ? getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}).at(0) : undefined;
-        const effectivePolicy = policy ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackPolicyForDeletedSource;
-        const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport});
+        // Use the caller-resolved `effectivePolicy` (from `useSplitEffectivePolicy`) for the mileage rate so
+        // distance calculations stay in sync with the split edit screens; raw `policy` drives only the billing guard.
+        const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport, personalPolicyOutputCurrency});
         const {rate, unit, currency} = mileageRate;
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {

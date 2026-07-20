@@ -1,20 +1,24 @@
-import React, {useMemo, useState} from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
+
+import React, {useMemo, useState} from 'react';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -161,20 +165,20 @@ function TagPicker({
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
-    const listItemTitleStyles = [styles.breakAll, styles.w100];
-
     return (
         <SelectionListWithSections
             sections={sections}
             ListItem={SingleSelectListItem}
             style={{
                 sectionTitleStyles: styles.mt5,
-                listItemTitleStyles,
+                listItemTitleStyles: styles.w100,
             }}
             textInputOptions={textInputOptions}
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
+            isRowMultilineSupported
+            titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );
 }

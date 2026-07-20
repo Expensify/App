@@ -1,7 +1,4 @@
-/** Onyx selectors used by the confirmation field leaves. */
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
-import getReportNameValuePairsForReports from '@libs/ReportNameValuePairsUtils';
 import {
     getCategory,
     getCreated,
@@ -14,9 +11,13 @@ import {
     isMerchantMissing,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+/** Onyx selectors used by the confirmation field leaves. */
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 type Transaction = OnyxTypes.Transaction;
 
@@ -89,7 +90,7 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
     if (!t) {
         return undefined;
     }
-    return getTagForDisplay({tag: t.tag} as OnyxEntry<Transaction>, tagIndex);
+    return getTagForDisplay({tag: t.tag}, tagIndex);
 };
 
 // --- CategoryField ---
@@ -196,6 +197,105 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
     };
 };
 
+// --- ConfirmationFieldList: useFooterDerivedFlags ---
+
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard'>;
+
+const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: DerivedFlagsSlice = {
+        modifiedCurrency: t.modifiedCurrency,
+        currency: t.currency,
+        iouRequestType: t.iouRequestType,
+        reportID: t.reportID,
+        managedCard: t.managedCard,
+    };
+    return slice;
+};
+
+// --- ConfirmationFieldList: useFooterTagVisibility ---
+
+type TagSlice = Pick<Transaction, 'tag'>;
+
+const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<TagSlice> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: TagSlice = {tag: t.tag};
+    return slice;
+};
+
+// --- InvoiceSenderSection ---
+
+type InvoiceSenderSlice = Pick<Transaction, 'isFromGlobalCreate' | 'transactionID'>;
+
+const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<InvoiceSenderSlice> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: InvoiceSenderSlice = {
+        isFromGlobalCreate: t.isFromGlobalCreate,
+        transactionID: t.transactionID,
+    };
+    return slice;
+};
+
+// --- DistanceMapSection ---
+
+type DistanceMapSlice = Pick<Transaction, 'pendingFields' | 'errors' | 'errorFields' | 'routes'> & {
+    comment: {waypoints: NonNullable<Transaction['comment']>['waypoints']} | undefined;
+};
+
+const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: DistanceMapSlice = {
+        pendingFields: t.pendingFields,
+        errors: t.errors,
+        errorFields: t.errorFields,
+        routes: t.routes,
+        comment: t.comment ? {waypoints: t.comment.waypoints} : undefined,
+    };
+    return slice as Transaction;
+};
+
+// --- PerDiemSection ---
+
+type PerDiemSlice = {comment: {customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined};
+
+const perDiemSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: PerDiemSlice = {
+        comment: t.comment ? {customUnit: t.comment.customUnit} : undefined,
+    };
+    return slice as Transaction;
+};
+
+// --- ReceiptSection ---
+
+type ReceiptSlice = Pick<Transaction, 'iouRequestType' | 'receipt' | 'hasEReceipt' | 'transactionID' | 'pendingFields' | 'errors' | 'errorFields'>;
+
+const receiptSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: ReceiptSlice = {
+        iouRequestType: t.iouRequestType,
+        receipt: t.receipt,
+        hasEReceipt: t.hasEReceipt,
+        transactionID: t.transactionID,
+        pendingFields: t.pendingFields,
+        errors: t.errors,
+        errorFields: t.errorFields,
+    };
+    return slice as Transaction;
+};
+
 // --- ReportField ---
 
 type ReportFieldTransactionState = {
@@ -203,7 +303,6 @@ type ReportFieldTransactionState = {
     isFromGlobalCreate: boolean;
     participantReportID: string | undefined;
 };
-type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
     if (!t) {
@@ -218,15 +317,6 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
 
 const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
     derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
-
-const createOutstandingReportsNVPsSelector =
-    (outstandingReports: OutstandingReportsForPolicy | undefined) =>
-    (allNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): OnyxCollection<OnyxTypes.ReportNameValuePairs> | undefined => {
-        if (!outstandingReports || !allNVPs) {
-            return undefined;
-        }
-        return getReportNameValuePairsForReports(outstandingReports, allNVPs);
-    };
 
 // --- InvoiceSenderField ---
 
@@ -251,14 +341,19 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
-    createOutstandingReportsNVPsSelector,
     createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
+    derivedFlagsSliceSelector,
     descriptionStateSelector,
+    distanceMapSliceSelector,
+    invoiceSenderSliceSelector,
     invoiceSenderWorkspaceSelector,
     merchantStateSelector,
+    perDiemSliceSelector,
+    receiptSliceSelector,
     reportFieldTransactionStateSelector,
+    tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,
     toggleStateSelector,

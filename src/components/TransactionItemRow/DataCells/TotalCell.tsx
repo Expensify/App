@@ -1,22 +1,27 @@
-import React, {useRef, useState} from 'react';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
 import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
 import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useRef, useState} from 'react';
+
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TotalCellProps = TransactionDataCellProps &
@@ -47,7 +52,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     const effectiveReport = report ?? transactionItem.report;
     const effectivePolicy = policy ?? transactionItem.policy;
     const isDeleted = isDeletedTransaction(transactionItem);
-    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isPaidGroupPolicy(effectivePolicy);
+    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isGroupPolicy(effectivePolicy);
     const amount = getTransactionAmount(transactionItem, isFromExpenseReport, transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, isDeleted);
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
@@ -147,6 +152,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={handleStartEditing}
+            editIconPosition="left"
             editContent={
                 <MoneyRequestAmountInput
                     ref={focusOnMount}

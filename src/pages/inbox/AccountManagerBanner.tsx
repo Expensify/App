@@ -1,17 +1,21 @@
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useState} from 'react';
 import Banner from '@components/Banner';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import React, {useState} from 'react';
 
 type AccountManagerBannerProps = {
     reportID: string | undefined;
@@ -22,6 +26,7 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [accountManagerData] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => ({
             accountManagerReportID: account?.accountManagerReportID,
@@ -35,10 +40,10 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
     });
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
-    if (!accountManagerReportID || !isConciergeChatReport(report) || !isBannerVisible) {
+    if (!accountManagerReportID || !isConciergeChatReport(report, conciergeReportID) || !isBannerVisible) {
         return null;
     }
-    const displayName = getDisplayNameOrDefault(participantPersonalDetail);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: participantPersonalDetail, translate});
     const login = participantPersonalDetail?.login;
     const chatWithAccountManagerText = displayName && login ? translate('common.chatWithAccountManager', `${displayName} (${login})`) : '';
 

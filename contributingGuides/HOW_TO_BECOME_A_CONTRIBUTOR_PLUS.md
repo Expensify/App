@@ -2,6 +2,7 @@
 C+ are contributors who are experienced at working with Expensify and have gained the confidence of the internal Expensify team. Accordingly, they are allocated additional opportunities and responsibilities:
   - They review proposed solutions in external GitHub issues, validate them, and make recommendations to an internal Contributor Manager Engineer (CME).
   - Once a proposal has been accepted by a CME, the C+ will be the first person to review the pull request associated with that proposal.
+  - On [MelvinBot issues](./HOW_TO_WORK_WITH_MELVINBOT.md), the C+ reviews Melvin's proposal, recommends it to the CME, asks Melvin to implement after CME approval, and owns the PR as the human author before CME PR review.
 
 ## Why would someone want to be a C+
 - C+ are compensated the same price as the contributor for reviewing proposals and the associated PR. (ie. if a job is listed at $250, that’s how much the C+ will make if they review both the proposals and PR).  If regressions are found that should have* been caught after the PR has been approved, C+ payment is reduced by 50% for each regression found.

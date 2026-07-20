@@ -1,7 +1,5 @@
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
@@ -20,13 +18,14 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import * as FormActions from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
@@ -37,13 +36,30 @@ import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {createPolicyExpenseChats} from './Policy';
+
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import type {CurrentUser} from './Policy';
+
+import {createPolicyExpenseChats} from './Policy';
 
 type WorkspaceMembersRoleData = {
     email: string;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
+
+function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
+    return (
+        role === CONST.POLICY.ROLE.ADMIN ||
+        role === CONST.POLICY.ROLE.CARD_ADMIN ||
+        role === CONST.POLICY.ROLE.PEOPLE_ADMIN ||
+        role === CONST.POLICY.ROLE.PAYMENTS_ADMIN ||
+        role === CONST.POLICY.ROLE.EDITOR
+    );
+}
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -146,7 +162,7 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number): ImportFinalModal {
+function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number, shouldShowMemberRolePermissionWarning = false): ImportFinalModal {
     return {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMembersSuccessfulDescription',
@@ -154,6 +170,7 @@ function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLe
             added: addedMembersLength,
             updated: updatedMembersLength,
         },
+        ...(shouldShowMemberRolePermissionWarning && {pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning'}),
     };
 }
 
@@ -349,7 +366,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         selectedMemberEmails
             .filter((login) => {
                 const role = login ? policy?.employeeList?.[login]?.role : '';
-                return role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR;
+                return hasPolicyAdminsRoomsAccess(role);
             })
             .map((login) => policyMemberEmailsToAccountIDs[login]),
     );
@@ -643,7 +660,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
     if (adminRoom) {
         const failureDataParticipants: Record<number, Participant | null> = {...adminRoom.participants};
         const optimisticParticipants: Record<number, Participant | null> = {};
-        if (newRole === CONST.POLICY.ROLE.ADMIN || newRole === CONST.POLICY.ROLE.AUDITOR) {
+        if (hasPolicyAdminsRoomsAccess(newRole)) {
             for (const accountID of selectedMemberAccountIDs) {
                 if (adminRoom?.participants?.[accountID]) {
                     continue;
@@ -795,15 +812,14 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUser: CurrentUser,
+    reportActionsList: OnyxCollection<ReportActions> | undefined,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -815,19 +831,36 @@ function buildAddMembersToWorkspaceOnyxData(
     // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
     const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
 
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
-
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
-    // Admins and auditors are always in the #admins room. Editors (Submit workspaces) join it too for
-    // visibility into configuration changes.
-    const shouldAddToAdminsRoom = effectiveRole === CONST.POLICY.ROLE.ADMIN || effectiveRole === CONST.POLICY.ROLE.AUDITOR || effectiveRole === CONST.POLICY.ROLE.EDITOR;
-    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, shouldAddToAdminsRoom ? accountIDs : []);
+    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, hasPolicyAdminsRoomsAccess(effectiveRole) ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
+    const doesPersonalDetailExistByAccountID: Record<number, boolean> = {};
+    const newPersonalDetailAccountIDs = new Set<number>();
+    for (const update of newPersonalDetailsOnyxData.optimisticData ?? []) {
+        if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST) {
+            continue;
+        }
+
+        for (const accountID of Object.keys(update.value ?? {})) {
+            newPersonalDetailAccountIDs.add(Number(accountID));
+        }
+    }
+
+    for (const accountID of accountIDs) {
+        doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
+    }
+
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, currentUser, reportActionsList, undefined, policyExpenseChatNotificationPreference);
+    const membersChats = createPolicyExpenseChats({
+        policyID,
+        invitedEmailsToAccountIDs,
+        currentUser,
+        reportActionsList,
+        notificationPreference: policyExpenseChatNotificationPreference,
+        doesPersonalDetailExistByAccountID,
+    });
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -933,15 +966,14 @@ function buildAddMembersToWorkspaceOnyxData(
  */
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     welcomeNote: string,
     policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUser: CurrentUser,
+    reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -951,14 +983,13 @@ function addMembersToWorkspace(
     // the effective role so the optimistic data and API params stay in sync.
     const {effectiveRole, optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
+        newPersonalDetailsOnyxData,
         policy,
         policyMemberAccountIDs,
         role,
-        formatPhoneNumber,
         currentUser,
-        approverEmail,
-        undefined,
         reportActionsList,
+        approverEmail,
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -987,7 +1018,7 @@ type PolicyMember = {
     overLimitForwardsTo?: string;
 };
 
-async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]): Promise<ImportFinalModal> {
+async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[], shouldShowMemberRolePermissionWarning = false): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
         return getImportFailedFinalModal();
@@ -1016,7 +1047,20 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         },
         {added: 0, updated: 0},
     );
-    const importFinalModal = getImportMembersFinalModal(added, updated);
+    const importFinalModal = getImportMembersFinalModal(added, updated, shouldShowMemberRolePermissionWarning);
+
+    const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) && isControlPolicy(policy);
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    if (shouldUpdateApprovalMode) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            },
+        });
+    }
 
     const parameters = {
         policyID: policy.id,
@@ -1038,7 +1082,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         // We need the server result immediately so the initiating page can show the final confirmation modal
         // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters);
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, {successData});
         return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
     } catch {
         return getImportFailedFinalModal();
@@ -1388,8 +1432,8 @@ function clearInviteDraft(policyID: string) {
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
-function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[]) {
-    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData);
+function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[], shouldShowMemberRolePermissionWarning = false) {
+    return Promise.all([Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData), Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {shouldShowMemberRolePermissionWarning})]);
 }
 
 function setImportedSpreadsheetMemberRole(role: ValueOf<typeof CONST.POLICY.ROLE>) {

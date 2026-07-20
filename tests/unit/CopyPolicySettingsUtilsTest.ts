@@ -1,20 +1,28 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
     arePoliciesAccountingCompatible,
     FEATURE_ROWS,
     getAccountingConnectionIdentity,
+    getCollectTargetsToUpgrade,
     getConnectionCompanyID,
+    getControlOnlySelectedParts,
+    getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
     isCopyPolicySettingsPartEnabledOnSource,
     isTargetCompatibleForAccountingPart,
+    shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
+
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
 import createRandomPolicy from '../utils/collections/policies';
+import {translateLocal} from '../utils/TestHelper';
 
 function makePolicyWithConnection(connectionName: ConnectionName, connectionPayload: Record<string, unknown>): Policy {
     const base = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
@@ -27,6 +35,8 @@ function makePolicyWithConnection(connectionName: ConnectionName, connectionPayl
 }
 
 describe('CopyPolicySettingsUtils', () => {
+    beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
     describe('getConnectionCompanyID', () => {
         it('returns realmId for QuickBooks Online', () => {
             const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, {config: {realmId: 'REALM-123'}});
@@ -188,6 +198,25 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
         });
 
+        it('shows receipt partners when the feature or Uber connection is enabled on the source', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', baseContext)).toBe(false);
+
+            const enabledOnlyPolicy = createRandomPolicy(9);
+            enabledOnlyPolicy.receiptPartners = {enabled: true};
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', {...baseContext, policy: enabledOnlyPolicy})).toBe(true);
+
+            const connectedUberPolicy = createRandomPolicy(10);
+            connectedUberPolicy.receiptPartners = {uber: {organizationID: 'org-123', organizationName: 'Acme Uber'}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', {...baseContext, policy: connectedUberPolicy})).toBe(true);
+        });
+
+        it('describes receipt partners with the connected Uber organization name', () => {
+            const policy = createRandomPolicy(11);
+            policy.receiptPartners = {enabled: true, uber: {organizationName: 'Acme Uber Org'}};
+
+            expect(getReceiptPartnersCopySettingsDescription(policy, translateLocal)).toBe('Acme Uber Org');
+        });
+
         it('shows time tracking only when the feature is enabled on the source', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', baseContext)).toBe(false);
 
@@ -201,27 +230,19 @@ describe('CopyPolicySettingsUtils', () => {
         });
 
         it('describes time tracking without currency when a default rate exists', () => {
-            const translate = ((key: string) => {
-                if (key === 'common.enabled') {
-                    return 'Enabled';
-                }
-                if (key === 'workspace.moreFeatures.timeTracking.defaultHourlyRate') {
-                    return 'Default hourly rate';
-                }
-                return key;
-            }) as LocalizedTranslate;
             const policy = createRandomPolicy(7);
             policy.units = {time: {enabled: true, rate: 75}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled, Default hourly rate: 75');
+            expect(getTimeTrackingCopySettingsDescription(policy, translateLocal)).toBe(
+                `${translateLocal('common.enabled')}, ${translateLocal('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: 75`,
+            );
         });
 
         it('describes time tracking as enabled when no default rate is set', () => {
-            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
             const policy = createRandomPolicy(8);
             policy.units = {time: {enabled: true}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled');
+            expect(getTimeTrackingCopySettingsDescription(policy, translateLocal)).toBe(translateLocal('common.enabled'));
         });
 
         it('hides distance rates when the feature flag is off even if rates exist', () => {
@@ -319,6 +340,60 @@ describe('CopyPolicySettingsUtils', () => {
             expect(parts).toContain('invoices');
             expect(parts).toContain('travel');
             expect(parts).toContain('timeTracking');
+            expect(parts).toContain('receiptPartners');
+        });
+    });
+
+    describe('copy-settings upgrade eligibility', () => {
+        const collectTarget = (id: number) => createRandomPolicy(id, CONST.POLICY.TYPE.TEAM);
+        const controlTarget = (id: number) => createRandomPolicy(id, CONST.POLICY.TYPE.CORPORATE);
+
+        describe('getControlOnlySelectedParts', () => {
+            it('returns the selected parts a Collect target cannot access', () => {
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['rules', 'perDiem', 'categories'] as Part[]);
+                expect(result).toEqual(expect.arrayContaining(['rules', 'perDiem']));
+                expect(result).not.toContain('categories');
+            });
+
+            it('returns nothing when no selected part is Control-only', () => {
+                expect(getControlOnlySelectedParts([collectTarget(1)], ['categories', 'tags'] as Part[])).toEqual([]);
+            });
+
+            it('returns nothing when there are no Collect targets', () => {
+                expect(getControlOnlySelectedParts([controlTarget(1)], ['rules'] as Part[])).toEqual([]);
+            });
+        });
+
+        describe('getCollectTargetsToUpgrade', () => {
+            it('returns every Collect target when a Control-only part is selected', () => {
+                const collectA = collectTarget(1);
+                const collectB = collectTarget(2);
+                const result = getCollectTargetsToUpgrade([collectA, collectB, controlTarget(3)], ['rules'] as Part[]);
+                expect(result).toHaveLength(2);
+                expect(result.map((policy) => policy.id)).toEqual(expect.arrayContaining([collectA.id, collectB.id]));
+            });
+
+            it('returns nothing when no Control-only part is selected', () => {
+                expect(getCollectTargetsToUpgrade([collectTarget(1)], ['categories'] as Part[])).toEqual([]);
+            });
+
+            it('ignores unresolved targets', () => {
+                expect(getCollectTargetsToUpgrade([undefined, controlTarget(1)], ['rules'] as Part[])).toEqual([]);
+            });
+        });
+
+        describe('shouldShowCopyPolicySettingsUpgradeStep', () => {
+            it('is true when a Control-only part targets a Collect workspace', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['rules'] as Part[])).toBe(true);
+            });
+
+            it('is false when every target is already Control', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([controlTarget(1)], ['rules'] as Part[])).toBe(false);
+            });
+
+            it('is false when no Control-only part is selected', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['categories'] as Part[])).toBe(false);
+            });
         });
     });
 });

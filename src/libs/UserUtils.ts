@@ -1,13 +1,18 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {LoginList, Logins, NewLogin, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
+import type {AvatarSource} from './UserAvatarUtils';
+
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-import type {AvatarSource} from './UserAvatarUtils';
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
@@ -54,6 +59,38 @@ function getLastLogin(login: NewLogin) {
     return login.lastLogin > login.created ? login.lastLogin : login.created;
 }
 
+/**
+ * Selector that filters the new `logins` Onyx key to only Expensify logins (partnerID === 1)
+ * and re-keys them by partnerUserID, returning a LoginList-compatible shape.
+ */
+function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefined {
+    if (!logins) {
+        return undefined;
+    }
+
+    const result: LoginList = {};
+    const policyDomainRegex = CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME;
+    for (const login of Object.values(logins)) {
+        if (login.partnerID !== CONST.PARTNER_ID.EXPENSIFY) {
+            continue;
+        }
+        // Exclude synthetic Expensify Card domain logins (e.g. ...@expensify-policy<policyID>.exfy) auto-created for workspaces.
+        // These are not real contact methods and should never surface in the contact methods list or participant selectors.
+        if (policyDomainRegex.test(login.partnerUserID)) {
+            continue;
+        }
+        result[login.partnerUserID] = {
+            partnerUserID: login.partnerUserID,
+            validatedDate: login.validatedDate ?? undefined,
+            validateCodeSent: login.validateCodeSent,
+            errorFields: login.errorFields,
+            pendingFields: login.pendingFields,
+            pendingAction: login.pendingAction,
+        };
+    }
+    return result;
+}
+
 const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT, CONST.PARTNER_ID.OAUTH]);
 
 function isDeviceLogin(login: NewLogin) {
@@ -61,7 +98,17 @@ function isDeviceLogin(login: NewLogin) {
 }
 
 function getDeviceLogins(logins: OnyxEntry<Logins>) {
-    return Object.values(logins ?? {})?.filter(isDeviceLogin);
+    return Object.values(logins ?? {})
+        ?.filter(isDeviceLogin)
+        .sort((a, b) => {
+            const aLastLogin = getLastLogin(a);
+            const bLastLogin = getLastLogin(b);
+            if (aLastLogin === bLastLogin) {
+                return 0;
+            }
+            // lastLogin/created are ISO datetime strings, so a lexicographic comparison sorts them chronologically. Descending puts the most recent device first.
+            return aLastLogin > bLastLogin ? -1 : 1;
+        });
 }
 
 function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
@@ -189,7 +236,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
     // The default contact method is determined by checking against the session email (the current login).
     const sortedLoginList = Object.entries(loginList).sort(([, loginData]) => (loginData.partnerUserID === defaultEmail ? -1 : 1));
 
-    return sortedLoginList.map(([loginName, login]) => {
+    return sortedLoginList.map(([, login]) => {
         const isDefaultContactMethod = defaultEmail === login?.partnerUserID;
         const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
         if (!login?.partnerUserID && !pendingAction) {
@@ -213,10 +260,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 
-        // Default to using login key if we deleted login.partnerUserID optimistically
-        // but still need to show the pending login being deleted while offline.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const partnerUserID = login?.partnerUserID || loginName;
+        const partnerUserID = login?.partnerUserID ? login.partnerUserID : '';
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
 
         return {
@@ -244,5 +288,6 @@ export {
     getDeviceLogins,
     getDeviceDisplayName,
     hasDeviceManagementError,
+    expensifyLoginsSelector,
 };
 export type {AvatarSource};

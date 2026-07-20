@@ -13,6 +13,9 @@ type TextInputLabelProps = {
     /** Whether the input is multiline */
     isMultiline?: boolean;
 
+    /** Force the floating label to render on a single line and ellipsize even when the input is multiline */
+    shouldLabelStayOnSingleLine?: boolean;
+
     /** For attribute for label */
     for?: string;
 };

@@ -21,7 +21,7 @@ This is the recommended approach when possible.
 
 Concierge can typically perform an automatic Domain Migration if:
 
-- The old domain or new domain is verified
+- The old domain is verified
 - Email addresses match a 1:1 format, such as `name@olddomain.com` to `name@newdomain.com`
 - Members have not already created separate accounts under the new email address
 
@@ -65,7 +65,8 @@ Yes. If done correctly, members keep their full expense history, reports, and ap
 
 ## Do I need to verify the new domain before migrating?
 
-Yes. You must claim and verify the new domain before transferring domain control or updating member login emails.
+- If you are migrating your domain automatically with assistance from Concierge, you will not need to verify the new domain. It is preferred that you do not add or verify the new domain in Expensify.
+- If you are migrating your domain manually, you will need to verify the new domain.
 
 ## What happens to the Expensify Card during Domain Migration?
 

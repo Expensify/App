@@ -1,7 +1,9 @@
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {ReportAction} from '@src/types/onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -250,6 +252,41 @@ describe('SpendRuleChangeLogUtils', () => {
             expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("changed max amount from $50.00 to $100.00 on 'My Visa'");
         });
 
+        it('returns remove currency limit message when currencies are cleared', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    action: CONST.SPEND_RULES.ACTION.ALLOW,
+                    oldCurrencies: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: [CONST.CURRENCY.USD]}],
+                    currencies: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: []}],
+                    oldCards: [{cardID: 1, displayName: 'My Visa'}],
+                    cards: [{cardID: 1, displayName: 'My Visa'}],
+                },
+            } as ReportAction;
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("removed the currency restriction from 'My Visa'");
+        });
+
+        it('returns removed-currency-restriction message with max amount when currencies are cleared', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    action: CONST.SPEND_RULES.ACTION.BLOCK,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrencies: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: ['AED', 'AFN', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', CONST.CURRENCY.USD]}],
+                    currencies: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: []}],
+                    oldAmounts: [],
+                    amounts: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, value: ['2.00']}],
+                    oldCards: [{cardID: 33, displayName: 'Card Number 33'}],
+                    cards: [{cardID: 33, displayName: 'Card Number 33'}],
+                },
+            } as ReportAction;
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("removed the currency restriction and set max amount to $2.00 on 'Card Number 33'");
+        });
+
         it('returns removed-max-amount message when amount is cleared', () => {
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
@@ -265,6 +302,58 @@ describe('SpendRuleChangeLogUtils', () => {
                 },
             } as ReportAction;
             expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("removed max amount from 'My Visa'");
+        });
+
+        it('does not repeat spend category noun when multiple categories are added', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    action: CONST.SPEND_RULES.ACTION.ALLOW,
+                    oldCategories: [CONST.SPEND_RULES.CATEGORIES.DINING],
+                    categories: [CONST.SPEND_RULES.CATEGORIES.DINING, CONST.SPEND_RULES.CATEGORIES.GROCERIES, CONST.SPEND_RULES.CATEGORIES.HOTELS],
+                    oldCards: [{cardID: 1, displayName: 'My Visa'}],
+                    cards: [{cardID: 1, displayName: 'My Visa'}],
+                },
+            } as ReportAction;
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("added allowed spend category 'Groceries' and 'Hotels' on 'My Visa'");
+        });
+
+        it('does not repeat merchant noun when multiple merchants are added', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    action: CONST.SPEND_RULES.ACTION.ALLOW,
+                    oldMerchants: ['Starbucks'],
+                    merchants: ['Starbucks', 'Amazon', 'Walmart'],
+                    oldCards: [{cardID: 1, displayName: 'My Visa'}],
+                    cards: [{cardID: 1, displayName: 'My Visa'}],
+                },
+            } as ReportAction;
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("added allowed merchant 'Amazon' and 'Walmart' on 'My Visa'");
+        });
+
+        it('does not repeat nouns when adding multiple merchants and removing multiple categories', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    action: CONST.SPEND_RULES.ACTION.ALLOW,
+                    oldMerchants: [],
+                    merchants: ['Amazon', 'Walmart'],
+                    oldCategories: [CONST.SPEND_RULES.CATEGORIES.DINING, CONST.SPEND_RULES.CATEGORIES.GROCERIES, CONST.SPEND_RULES.CATEGORIES.HOTELS],
+                    categories: [CONST.SPEND_RULES.CATEGORIES.DINING],
+                    oldCards: [{cardID: 1, displayName: 'My Visa'}],
+                    cards: [{cardID: 1, displayName: 'My Visa'}],
+                },
+            } as ReportAction;
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe(
+                "added allowed merchant 'Amazon', 'Walmart', removed allowed spend category 'Groceries', and 'Hotels' on 'My Visa'",
+            );
         });
     });
 
