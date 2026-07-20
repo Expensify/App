@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
 
@@ -39,6 +38,7 @@ import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -73,6 +73,13 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+
+type WriteMockCall = [string, Record<PropertyKey, unknown>, unknown?];
+
+const isWriteMockCallForCommand =
+    (command: string) =>
+    (call: unknown[]): call is WriteMockCall =>
+        call.at(0) === command && isObject(call.at(1));
 
 OnyxUpdateManager();
 describe('actions/Duplicate', () => {
@@ -423,8 +430,8 @@ describe('actions/Duplicate', () => {
             const duplicate1Violations = createMockViolations();
             const duplicate2Violations = createMockViolations();
 
-            let iouAction1 = createMockIouAction(duplicate1ID, iouAction1ID, '', reportID) as OnyxEntry<ReportAction>;
-            let iouAction2 = createMockIouAction(duplicate2ID, iouAction2ID, '', reportID) as OnyxEntry<ReportAction>;
+            let iouAction1: OnyxEntry<ReportAction> = createMockIouAction(duplicate1ID, iouAction1ID, '', reportID);
+            let iouAction2: OnyxEntry<ReportAction> = createMockIouAction(duplicate2ID, iouAction2ID, '', reportID);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
@@ -1346,6 +1353,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1413,6 +1421,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1472,6 +1481,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1524,6 +1534,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1576,6 +1587,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1631,6 +1643,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1696,6 +1709,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1746,6 +1760,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1789,6 +1804,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1835,6 +1851,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1887,6 +1904,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1902,10 +1920,10 @@ describe('actions/Duplicate', () => {
 
             expect(duplicatedTransaction).toBeDefined();
             expect(duplicatedTransaction?.modifiedCreated).not.toBe('');
-            const persisted = duplicatedTransaction as Record<string, unknown> | undefined;
-            expect(persisted?.distance).toBeUndefined();
-            expect(persisted?.validWaypoints).toBeUndefined();
-            expect(persisted?.customUnitRateID).toBeUndefined();
+            const persistedTransaction = duplicatedTransaction ?? {};
+            expect(Reflect.get(persistedTransaction, 'distance')).toBeUndefined();
+            expect(Reflect.get(persistedTransaction, 'validWaypoints')).toBeUndefined();
+            expect(Reflect.get(persistedTransaction, 'customUnitRateID')).toBeUndefined();
         });
 
         it('should call submitPerDiemExpense for per diem transactions', async () => {
@@ -1955,6 +1973,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2023,20 +2042,20 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
 
             // Then the API should have been called with REQUEST_MONEY
-            const requestMoneyCall = writeSpy.mock.calls.find((call: [string, Record<string, unknown>]) => call[0] === WRITE_COMMANDS.REQUEST_MONEY);
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
 
             // And the transactionThreadReportID in the API call should NOT be the childReportID
             // from the original transaction's linkedTrackedExpenseReportAction.
             // If it were, the backend would try to create a report with an ID that already exists,
             // causing a unique constraint violation.
-            const apiParams = requestMoneyCall?.[1] as Record<string, unknown>;
-            expect(apiParams?.transactionThreadReportID).not.toBe(existingLinkedReportActionChildReportID);
+            expect(requestMoneyCall?.[1].transactionThreadReportID).not.toBe(existingLinkedReportActionChildReportID);
         });
 
         it('should call trackExpense API when targetPolicy is not provided', async () => {
@@ -2075,13 +2094,14 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
 
             // Then the API should have been called with TRACK_EXPENSE instead of REQUEST_MONEY
-            const trackExpenseCall = writeSpy.mock.calls.find((call: [string, Record<string, unknown>]) => call[0] === WRITE_COMMANDS.TRACK_EXPENSE);
-            const requestMoneyCall = writeSpy.mock.calls.find((call: [string, Record<string, unknown>]) => call[0] === WRITE_COMMANDS.REQUEST_MONEY);
+            const trackExpenseCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
 
             expect(trackExpenseCall).toBeDefined();
             expect(requestMoneyCall).toBeUndefined();
@@ -2138,6 +2158,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2259,12 +2280,12 @@ describe('actions/Duplicate', () => {
             displayName: 'Rory',
         };
 
-        const mockTranslate = ((path: string, ...args: string[]) => {
+        const mockTranslate: DuplicateReportParams['translate'] = (path, ...args) => {
             if (path === 'common.copyOfReportName') {
-                return `Copy of ${args.at(0)}`;
+                return `Copy of ${String(args.at(0))}`;
             }
             return path;
-        }) as DuplicateReportParams['translate'];
+        };
 
         const createCashTransaction = (id: string, overrides: Partial<Transaction> = {}): Transaction => ({
             ...createRandomTransaction(Number(id)),
@@ -2310,6 +2331,7 @@ describe('actions/Duplicate', () => {
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
             chatReportActions: undefined,
+            isTrackIntentUser: false,
             delegateAccountID: undefined,
             ...overrides,
         });
@@ -2357,8 +2379,8 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
 
-            const createReportCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_APP_REPORT) as unknown[] | undefined;
-            expect(createReportCall?.at(1)).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
+            const createReportCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_APP_REPORT));
+            expect(createReportCall?.[1]).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
@@ -2513,11 +2535,11 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
 
             const today = new Date().toISOString().slice(0, 10);
-            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({created: today}));
+            expect(requestMoneyCall?.[1]).toEqual(expect.objectContaining({created: today}));
         });
 
         it('should clear receipt data from duplicated transactions', async () => {
@@ -2528,9 +2550,9 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([txWithReceipt]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
-            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({receipt: undefined}));
+            expect(requestMoneyCall?.[1]).toEqual(expect.objectContaining({receipt: undefined}));
         });
 
         it('should use modifiedMerchant when available', async () => {
@@ -2542,9 +2564,9 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
-            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({merchant: 'Modified Merchant'}));
+            expect(requestMoneyCall?.[1]).toEqual(expect.objectContaining({merchant: 'Modified Merchant'}));
         });
 
         it('should pass the same reportPreviewReportActionID to all expense calls', async () => {
@@ -2555,7 +2577,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx1, tx2, tx3]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
             const firstPreviewID = requestMoneyCalls.at(0)?.[1]?.reportPreviewReportActionID;
@@ -2572,7 +2594,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx1, tx2]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(2);
 
             const firstChatReportID = requestMoneyCalls.at(0)?.[1]?.chatReportID;
@@ -2630,9 +2652,9 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([splitDistanceTx]));
             await waitForBatchedUpdates();
 
-            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
             expect(distanceCall).toBeDefined();
-            expect(distanceCall?.at(1)).toEqual(expect.objectContaining({waypoints: 'null'}));
+            expect(distanceCall?.[1]).toEqual(expect.objectContaining({waypoints: 'null'}));
         });
 
         it('should preserve waypoints for non-split distance expenses', async () => {
@@ -2654,7 +2676,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([distanceTx]));
             await waitForBatchedUpdates();
 
-            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
             expect(distanceCall).toBeDefined();
 
             const waypoints = distanceCall?.[1]?.waypoints;
@@ -2710,9 +2732,9 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
-            expect(requestMoneyCall?.at(1)).toEqual(
+            expect(requestMoneyCall?.[1]).toEqual(
                 expect.objectContaining({
                     category: 'Travel',
                     tag: 'Business',
@@ -2741,13 +2763,17 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([splitDistanceTx]));
             await waitForBatchedUpdates();
 
-            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
             expect(distanceCall).toBeDefined();
 
-            const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
-            const duplicatedTransactions = (Object.values(allTransactions ?? {}) as Array<Transaction | null>).filter(
-                (tx): tx is Transaction => !!tx && tx.transactionID !== splitDistanceTx.transactionID,
-            );
+            let duplicatedTransactions: Transaction[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransactions = Object.values(allTransactions ?? {}).filter((tx): tx is Transaction => !!tx && tx.transactionID !== splitDistanceTx.transactionID);
+                },
+            });
             expect(duplicatedTransactions.length).toBeGreaterThan(0);
             for (const tx of duplicatedTransactions) {
                 expect(tx.comment?.originalTransactionID).toBeFalsy();
@@ -2763,7 +2789,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]?.modifiedAmount).toBeUndefined();
         });
@@ -2785,7 +2811,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx1, tx2]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(2);
 
             for (const call of requestMoneyCalls) {
@@ -2851,10 +2877,6 @@ describe('actions/Duplicate', () => {
                 amount: -200,
                 currency: 'USD',
             };
-            delete (tx1 as Partial<Transaction>).comment;
-            delete (tx2 as Partial<Transaction>).comment;
-            delete (tx3 as Partial<Transaction>).comment;
-
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_1`]: tx1,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_2`]: tx2,
@@ -2883,19 +2905,15 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 chatReportActions: undefined,
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY);
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
-            const iouReportIDs = new Set(
-                requestMoneyCalls.map((call: unknown[]) => {
-                    const params = call.at(1) as Record<string, unknown>;
-                    return params.iouReportID;
-                }),
-            );
+            const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
             expect(iouReportIDs.size).toBe(1);
         });
     });
@@ -2940,12 +2958,12 @@ describe('actions/Duplicate', () => {
             type: CONST.REPORT.TYPE.CHAT,
         };
 
-        const mockTranslate = ((path: string, ...args: string[]) => {
+        const mockTranslate: BulkDuplicateReportsParams['translate'] = (path, ...args) => {
             if (path === 'common.copyOfReportName') {
-                return `Copy of ${args.at(0)}`;
+                return `Copy of ${String(args.at(0))}`;
             }
             return path;
-        }) as BulkDuplicateReportsParams['translate'];
+        };
 
         const createCashTransaction = (id: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => ({
             ...createRandomTransaction(Number(id.replaceAll(/\D/g, '')) || 1),
@@ -3000,6 +3018,7 @@ describe('actions/Duplicate', () => {
             recentWaypoints: [],
             allReportActions: undefined,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
             ...overrides,
         });
 
@@ -3121,7 +3140,7 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
 
-            const createReportCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_APP_REPORT) as Array<[string, Record<string, unknown>]>;
+            const createReportCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_APP_REPORT));
             expect(createReportCalls).toHaveLength(2);
 
             const reportNames = createReportCalls.map((call) => call[1].reportName);
@@ -3181,7 +3200,7 @@ describe('actions/Duplicate', () => {
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
 
-            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]?.chatReportID).toBe(ACTIVE_PEC_REPORT_ID);
         });
@@ -3217,7 +3236,7 @@ describe('actions/Duplicate', () => {
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
 
-            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]?.chatReportID).toBe(ACTIVE_PEC_REPORT_ID);
         });
@@ -3399,7 +3418,7 @@ describe('actions/Duplicate', () => {
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
 
-            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]?.chatReportID).toBe('parentChat');
         });

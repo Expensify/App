@@ -3,6 +3,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -92,11 +93,13 @@ type UpdateMultipleMoneyRequestsParams = {
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
     personalPolicyOutputCurrency?: string;
+    personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 function updateMultipleMoneyRequests({
@@ -109,11 +112,13 @@ function updateMultipleMoneyRequests({
     policyCategories,
     policyTags,
     violations,
+    reportNameValuePairs,
     hash,
     allPolicies,
     currentUserAccountID,
     delegateAccountID,
     personalPolicyOutputCurrency,
+    personalDetailsList,
 }: UpdateMultipleMoneyRequestsParams) {
     // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -191,7 +196,7 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy});
+            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, reportNameValuePairs});
         };
 
         let transactionChanges: TransactionChanges = {};
@@ -392,6 +397,7 @@ function updateMultipleMoneyRequests({
                 isInvoiceTransaction: isInvoiceReportReportUtils(iouReport),
                 isSelfDM: isSelfDM(iouReport),
                 iouReport,
+                ownerLogin: getLoginByAccountID(iouReport?.ownerAccountID, personalDetailsList),
                 isFromExpenseReport,
                 distanceOriginalPolicy,
             });
