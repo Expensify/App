@@ -20,7 +20,7 @@ After your Workspace Admin issues you a physical GBP or EUR Expensify Card, you'
 3. Follow the prompts to enter your personal details and shipping address.
 4. On the **Set the PIN for your card** step, enter a 4-digit PIN.
 5. Confirm your PIN.
-6. Review the confirmation page. If you need to make changes, select the masked PIN.
+6. Review the confirmation page. If you need to make changes, select the relevant field.
 7. Click **Confirm** and verify your identity using biometrics (on mobile) or a passkey (on web or desktop).
 
 Your PIN becomes active after you activate your physical Expensify Card.
