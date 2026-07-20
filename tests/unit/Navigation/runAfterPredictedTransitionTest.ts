@@ -228,6 +228,26 @@ describe('runAfterPredictedTransition', () => {
         expect(callback).toHaveBeenCalledTimes(1);
     });
 
+    it('runs the callback after the fallback timeout when a confirmed focus move never gets a real transitionStart', async () => {
+        emitState('route-a');
+        emitAction('NAVIGATE');
+        emitState('route-b');
+
+        const callback = jest.fn();
+        runAfterPredictedTransition(callback);
+        flushPredictionTick();
+
+        expect(runAfterTransitionsSpy).toHaveBeenCalledWith(expect.objectContaining({callback, waitForUpcomingTransition: true}));
+        expect(callback).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(CONST.MAX_TRANSITION_START_WAIT_MS);
+        // Two ticks: one for the race against promiseForNextTransitionStart, one for the wrapper.
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(callback).toHaveBeenCalledTimes(1);
+    });
+
     it('cancel before the prediction tick prevents the callback from running', () => {
         emitAction('NAVIGATE');
         emitState('route-b');

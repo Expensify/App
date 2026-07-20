@@ -248,4 +248,52 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
     });
+
+    describe('onTransitionStart', () => {
+        it('notifies subscribers synchronously when a new transition starts', () => {
+            const listener = jest.fn();
+            const unsubscribe = TransitionTracker.onTransitionStart(listener);
+
+            const handle = TransitionTracker.startTransition();
+
+            expect(listener).toHaveBeenCalledTimes(1);
+
+            unsubscribe();
+            TransitionTracker.endTransition(handle);
+            drainTransitions();
+        });
+
+        it('stops notifying a listener after it unsubscribes', () => {
+            const listener = jest.fn();
+            const unsubscribe = TransitionTracker.onTransitionStart(listener);
+            unsubscribe();
+
+            const handle = TransitionTracker.startTransition();
+
+            expect(listener).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(handle);
+            drainTransitions();
+        });
+
+        it('isolates a throwing listener from other subscribers', () => {
+            const error = new Error('listener boom');
+            const throwingListener = jest.fn(() => {
+                throw error;
+            });
+            const otherListener = jest.fn();
+            const unsubscribeThrowing = TransitionTracker.onTransitionStart(throwingListener);
+            const unsubscribeOther = TransitionTracker.onTransitionStart(otherListener);
+
+            const handle = TransitionTracker.startTransition();
+
+            expect(throwingListener).toHaveBeenCalledTimes(1);
+            expect(otherListener).toHaveBeenCalledTimes(1);
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A callback/listener threw an error', {error});
+
+            unsubscribeThrowing();
+            unsubscribeOther();
+            TransitionTracker.endTransition(handle);
+            drainTransitions();
+        });
+    });
 });

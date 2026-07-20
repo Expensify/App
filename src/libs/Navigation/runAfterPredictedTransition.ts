@@ -29,6 +29,28 @@ let pendingClearTimeout: ReturnType<typeof setTimeout> | null = null;
 let lastFocusedRouteKey: string | undefined;
 
 /**
+ * True once the first hydrated focused-route key has been observed. Until then, `lastFocusedRouteKey`
+ * being `undefined` is just "no baseline yet", not a real key to diff against - without this flag, the
+ * very first `state`/ref read on a cold start would look like a focus change (`undefined !== 'route-a'`)
+ * even though no navigation actually moved focus.
+ */
+let hasCapturedBaselineFocus = false;
+
+/**
+ * Compares a freshly read focused-route key against the last known one, treating the first-ever
+ * observation as a baseline capture rather than a change. Callers are still responsible for
+ * updating {@link lastFocusedRouteKey} when this returns `false` for a non-baseline comparison.
+ */
+function didFocusMoveFrom(focusedRouteKey: string): boolean {
+    if (!hasCapturedBaselineFocus) {
+        hasCapturedBaselineFocus = true;
+        lastFocusedRouteKey = focusedRouteKey;
+        return false;
+    }
+    return focusedRouteKey !== lastFocusedRouteKey;
+}
+
+/**
  * True once a pending action was followed by a focused-route key change. Callers should wait for
  * the upcoming transition (`waitForUpcomingTransition: true`).
  */
@@ -101,7 +123,7 @@ function onPredictionWindowExpired(): void {
     }
 
     const focusedRouteKey = getHydratedFocusedRouteKey();
-    if (focusedRouteKey !== undefined && focusedRouteKey !== lastFocusedRouteKey) {
+    if (focusedRouteKey !== undefined && didFocusMoveFrom(focusedRouteKey)) {
         confirmFocusMove(focusedRouteKey);
         return;
     }
@@ -155,7 +177,7 @@ navigationRef.addListener('state', () => {
         return;
     }
 
-    const didFocusedRouteChange = focusedRouteKey !== lastFocusedRouteKey;
+    const didFocusedRouteChange = didFocusMoveFrom(focusedRouteKey);
     lastFocusedRouteKey = focusedRouteKey;
 
     if (!isTransitionPending || hasConfirmedFocusMove) {
@@ -187,7 +209,7 @@ export default function runAfterPredictedTransition(callback: () => void | Promi
     let innerHandle: CancelHandle | null = null;
 
     // Yield one macrotask so a navigation dispatch in the same press handler can register first.
-    setTimeout(() => {
+    const outerTimeout = setTimeout(() => {
         whenPredictionSettled((shouldWait) => {
             if (cancelled) {
                 return;
@@ -202,6 +224,7 @@ export default function runAfterPredictedTransition(callback: () => void | Promi
     return {
         cancel: () => {
             cancelled = true;
+            clearTimeout(outerTimeout);
             innerHandle?.cancel();
         },
     };
