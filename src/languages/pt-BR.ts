@@ -1189,6 +1189,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Confirme os detalhes abaixo para os ${count} novos membros do workspace que serão adicionados como parte deste upload. Membros existentes não receberão nenhuma atualização de função nem mensagens de convite.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Novos cartões e transações podem levar algum tempo para aparecer, aguarde um momento.',
+        importMembersRolePermissionWarning: 'Você não tem permissão para atribuir alguns cargos de membro. Quaisquer novos membros afetados foram convidados como membros.',
     },
     receipt: {
         upload: 'Carregar recibo',

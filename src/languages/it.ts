@@ -1190,6 +1190,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Conferma i dettagli riportati di seguito per i ${count} nuovi membri dello spazio di lavoro che verranno aggiunti come parte di questo caricamento. I membri già esistenti non riceveranno aggiornamenti di ruolo o messaggi di invito.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Le nuove carte e transazioni potrebbero impiegare un po’ di tempo per apparire, attendi per favore.',
+        importMembersRolePermissionWarning: "Non hai l'autorizzazione per assegnare alcuni ruoli ai membri. I nuovi membri interessati sono stati invitati come membri.",
     },
     receipt: {
         upload: 'Carica ricevuta',

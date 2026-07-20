@@ -1150,6 +1150,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Por favor confirma los detalles a continuación para los ${count} nuevos miembros del espacio de trabajo que se agregarán como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
         }),
+        importMembersRolePermissionWarning: 'No tienes permiso para asignar algunos roles de miembro. Los nuevos miembros afectados se han invitado como miembros.',
     },
     receipt: {
         upload: 'Subir recibo',

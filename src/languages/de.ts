@@ -1190,6 +1190,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Neue Karten und Transaktionen können etwas Zeit benötigen, bis sie erscheinen. Bitte haben Sie etwas Geduld.',
+        importMembersRolePermissionWarning: 'Sie haben keine Berechtigung, einige Mitgliederrollen zuzuweisen. Alle betroffenen neuen Mitglieder wurden als Mitglieder eingeladen.',
     },
     receipt: {
         upload: 'Beleg hochladen',
