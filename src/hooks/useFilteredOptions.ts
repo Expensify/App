@@ -4,7 +4,7 @@ import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -40,6 +40,8 @@ type UseFilteredOptionsResult = {
     isLoading: boolean;
     /** Function to load the next batch of reports */
     loadMore: () => void;
+    /** Function to expand the window to every available report in a single step */
+    loadAll: () => void;
     /** Whether there are more reports available to load */
     hasMore: boolean;
     /** Whether currently loading the next batch */
@@ -144,10 +146,17 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         setReportsLimit((prev) => prev + batchSize);
     };
 
+    // Expand the window to cover every report in a single step. Used when the visible list is empty so the
+    // option list is rebuilt once to surface any surviving row, instead of paginating batch-by-batch.
+    const loadAll = useCallback(() => {
+        setReportsLimit((prev) => (prev < totalReports ? totalReports : prev));
+    }, [totalReports]);
+
     return {
         options,
         isLoading: !options,
         loadMore,
+        loadAll,
         hasMore,
         // Options are derived synchronously from reportsLimit, so there is no
         // intermediate "loading" state between calling loadMore and the recomputed options.

@@ -11,6 +11,7 @@ import {
     updateMoneyRequestTag,
 } from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {editTransactionMerchantInline} from '@libs/actions/TransactionInlineEdit';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -166,6 +167,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                reportPolicyTags: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -249,6 +252,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
+                    iouReportOwnerLogin: undefined,
+                    reportPolicyTags: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -298,6 +303,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
+                    iouReportOwnerLogin: undefined,
+                    reportPolicyTags: undefined,
                     category,
                     policy: fakePolicy,
                     policyTagList: undefined,
@@ -358,6 +365,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                reportPolicyTags: undefined,
                 category,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -415,6 +424,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                reportPolicyTags: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -487,6 +498,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                reportPolicyTags: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -642,6 +655,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
+                iouReportOwnerLogin: undefined,
+                reportPolicyTags: undefined,
                 amount: 20000,
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
@@ -677,8 +692,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the transaction attendees
             updateMoneyRequestAttendees({
                 transactionID: transaction.transactionID,
+                reportPolicyTags: undefined,
                 transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
                 attendees: [
                     {avatarUrl: '', displayName: 'user 1', email: 'user1@gmail.com'},
                     {avatarUrl: '', displayName: 'user 2', email: 'user2@gmail.com'},
@@ -720,8 +737,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestAttendees({
                 transactionID: transaction.transactionID,
+                reportPolicyTags: undefined,
                 transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
                 attendees: [{avatarUrl: '', displayName: 'Display Name Only'}],
                 policy: undefined,
                 policyTagList: undefined,
@@ -785,9 +804,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID: '1',
                 transactionThreadReport,
                 parentReport: iouReport,
+                iouReportOwnerLogin: undefined,
                 tag: newTag,
                 policy,
                 policyTagList: policyTags,
+                reportPolicyTags: policyTags,
                 policyRecentlyUsedTags,
                 policyCategories: undefined,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -845,9 +866,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
                 tag: '',
                 policy: fakePolicy,
                 policyTagList: undefined,
+                reportPolicyTags: undefined,
                 policyRecentlyUsedTags: undefined,
                 policyCategories: undefined,
                 currentUserAccountIDParam: 123,
@@ -915,9 +938,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the date
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: fakeTransaction},
                 transactionViolations: {},
                 value: newDate,
@@ -978,8 +1003,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating billable to true
             updateMoneyRequestBillable({
                 transactionID,
+                reportPolicyTags: undefined,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 value: true,
                 policy: fakePolicy,
                 policyTagList: {},
@@ -1013,8 +1040,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updateMoneyRequestBillable is called with an undefined transactionID
             updateMoneyRequestBillable({
                 transactionID: undefined,
+                reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
                 value: true,
                 policy: undefined,
                 policyTagList: {},
@@ -1098,9 +1127,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 waypoints: fakeWaypoints,
                 recentWaypoints,
                 distance: 5000,
@@ -1192,9 +1223,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 waypoints: {
                     waypoint0: {
                         lat: 40.7128,
@@ -1310,9 +1343,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 waypoints: updatedWaypoints,
                 recentWaypoints: [],
                 distance: 350000, // 350 miles in meters
@@ -1386,9 +1421,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 waypoints: emptyWaypoints,
                 recentWaypoints: [],
                 distance: undefined, // No distance change
@@ -1433,9 +1470,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDistance({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transaction: fakeTransaction2,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 waypoints: {
                     waypoint0: {
                         keyForList: 'start',
@@ -1508,8 +1547,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updating reimbursable to the new value
             updateMoneyRequestReimbursable({
                 transactionID,
+                reportPolicyTags: undefined,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 value: newValue,
                 policy: fakePolicy,
                 policyTagList: {},
@@ -1543,8 +1584,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When updateMoneyRequestReimbursable is called with an undefined transactionID
             updateMoneyRequestReimbursable({
                 transactionID: undefined,
+                reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
                 parentReport: undefined,
+                iouReportOwnerLogin: undefined,
                 value: true,
                 policy: undefined,
                 policyTagList: {},
@@ -1607,7 +1650,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 value: newMerchant,
+                reportPolicyTags: undefined,
                 policy: fakePolicy,
                 policyTagList: {},
                 policyCategories: {},
@@ -1662,7 +1707,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin: undefined,
                 value: 'Track Merchant',
+                reportPolicyTags: undefined,
                 policy: undefined,
                 policyTagList: {},
                 policyCategories: {},
@@ -1768,7 +1815,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionID,
                     transactionThreadReport,
                     parentReport,
+                    iouReportOwnerLogin: undefined,
                     value: `Updated_${String(isOffline)}`,
+                    reportPolicyTags: undefined,
                     policy: fakePolicy,
                     policyTagList: {},
                     policyCategories: {},
@@ -2021,9 +2070,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
+                iouReportOwnerLogin: undefined,
                 transactions: {},
                 transactionViolations: {},
                 value: '2026-06-15',
@@ -2149,9 +2200,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
+                iouReportOwnerLogin: undefined,
                 transactions: {},
                 transactionViolations: {},
                 value: '2025-06-15',
@@ -2246,9 +2299,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
+                iouReportOwnerLogin: undefined,
                 transactions: {},
                 transactionViolations: {},
                 value: newDate,
@@ -2364,9 +2419,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
+                iouReportOwnerLogin: undefined,
                 transactions: {},
                 transactionViolations: {},
                 value: '2027-06-15',
@@ -2483,9 +2540,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             updateMoneyRequestDate({
                 personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: selfDMReport,
+                iouReportOwnerLogin: undefined,
                 transactions: {},
                 transactionViolations: {},
                 value: '2026-06-15',
@@ -2515,6 +2574,76 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             expect(writeSpy).toHaveBeenCalledTimes(1);
 
             writeSpy.mockRestore();
+        });
+    });
+
+    describe('editTransactionMerchantInline delegateAccountID forwarding', () => {
+        const DELEGATE_ACCOUNT_ID = 999;
+
+        it('sets delegateAccountID when delegateAccountID is provided', async () => {
+            const transactionID = 'txnMerchantDelegate1';
+            const transactionThreadReportID = 'threadMerchantDelegate1';
+            const parentReportID = 'parentMerchantDelegate1';
+            const policyID = '40';
+            const newMerchant = 'New Merchant';
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: parentReportID,
+                merchant: 'Old Merchant',
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            editTransactionMerchantInline(
+                {
+                    hash: undefined,
+                    transactionID,
+                    parentReport,
+                    parentReportAction: undefined,
+                    transactionThreadReport,
+                    policy: fakePolicy,
+                    policyCategories: {},
+                    policyTags: {},
+                    reportPolicyTags: undefined,
+                    policyRecentlyUsedCategories: [],
+                    policyRecentlyUsedTags: undefined,
+                    parentReportNextStep: undefined,
+                    isOffline: false,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: false,
+                    distanceOriginalPolicy: undefined,
+                    policyForTrackExpense: undefined,
+                    delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    isTrackIntentUser: false,
+                    personalDetailsList: undefined,
+                },
+                newMerchant,
+            );
+
+            await waitForBatchedUpdates();
+
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const modifiedExpenseAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE));
+            expect(modifiedExpenseAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
     });
 });
