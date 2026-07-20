@@ -137,6 +137,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -221,6 +222,8 @@ function MoneyRequestView({
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const parentReportAction = transactionThreadReport?.parentReportActionID ? parentReportActions?.[transactionThreadReport.parentReportActionID] : undefined;
@@ -664,6 +667,7 @@ function MoneyRequestView({
             transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
+            iouReportOwnerLogin,
             value: newBillable,
             policy,
             policyTagList,
@@ -674,6 +678,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
         });
     };
@@ -687,6 +692,7 @@ function MoneyRequestView({
             transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
+            iouReportOwnerLogin,
             value: newReimbursable,
             policy,
             policyTagList,
@@ -697,6 +703,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
         });
     };
@@ -826,6 +833,7 @@ function MoneyRequestView({
                 transactionID: transaction?.transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 taxCode: '',
                 taxValue: '',
                 taxAmount: 0,
@@ -861,6 +869,7 @@ function MoneyRequestView({
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 category: '',
                 policy,
                 policyTagList,
@@ -871,6 +880,7 @@ function MoneyRequestView({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
                 delegateAccountID,
+                reportPolicyTags,
                 isTrackIntentUser,
             });
         });
@@ -897,6 +907,7 @@ function MoneyRequestView({
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 tag: updatedTag,
                 policy,
                 policyTagList,
@@ -908,6 +919,7 @@ function MoneyRequestView({
                 parentReportNextStep,
                 isOffline,
                 delegateAccountID,
+                reportPolicyTags,
                 isTrackIntentUser,
             });
         });
