@@ -145,7 +145,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const {currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
-    const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const {defaultFilters, allFilters} = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
