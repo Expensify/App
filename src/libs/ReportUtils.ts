@@ -162,6 +162,7 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isExpensifyTeam,
+    isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
@@ -1728,16 +1729,6 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAcco
 }
 
 /**
- * Whether the report belongs to a group policy (Collect, Control, or Submit). Report-based counterpart
- * of `PolicyUtils.isGroupPolicy`. Prefer this over `isPaidGroupPolicy(report)` for feature gating
- * (violations, report fields, etc.) so free group plans like Submit are not excluded.
- */
-// TODO: Remove this function and use isGroupPolicy directly after https://github.com/Expensify/App/issues/66415 is done
-function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
-    return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
-}
-
-/**
  * Whether the report belongs to a paid policy (Collect/Control) only. Report-based counterpart of
  * `PolicyUtils.isPaidGroupPolicy`. For group-feature gating use `isReportInGroupPolicy` instead,
  * otherwise Submit workspaces are wrongly excluded.
@@ -1752,8 +1743,8 @@ function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
  * Use for report-field-style features that Submit workspaces also support, so the free Submit plan isn't
  * incorrectly excluded.
  */
-function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && isReportInGroupPolicy(report);
+function isGroupPolicyExpenseReport(report: OnyxEntry<Report>, policyType: string | undefined): boolean {
+    return isExpenseReport(report) && isGroupPolicyByType(policyType);
 }
 
 /**
@@ -1925,18 +1916,17 @@ function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefine
  * Checks if the supplied report is from a policy or is an invoice report from a policy
  */
 function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
+    if (!policyID || policyID === CONST.POLICY.ID_FAKE) {
+        return false;
+    }
     return report?.policyID === policyID || !!(report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID);
 }
 
 /**
- * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
- * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
+ * Checks if the supplied report is from the given workspace or is the concierge chat.
  */
-function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAccountIDs: number[], policyID: string | undefined, conciergeReportID: string) {
-    return (
-        isConciergeChatReport(report, conciergeReportID) ||
-        (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : isPolicyRelatedReport(report, policyID))
-    );
+function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyID: string | undefined, conciergeReportID: string | undefined) {
+    return isConciergeChatReport(report, conciergeReportID) || isPolicyRelatedReport(report, policyID);
 }
 
 /**
@@ -2329,6 +2319,7 @@ function pushTransactionViolationsOnyxData(
                 policyCategories: optimisticCategories,
                 hasDependentTags: hasDependentTagsValue,
                 isInvoiceTransaction: false,
+                ownerLogin: undefined,
             });
 
             // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
@@ -2419,7 +2410,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVisitTimes: Record<string, string>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        if (!report?.isPinned && isHiddenForCurrentUser(report)) {
+        if (!report?.isPinned && isHiddenForCurrentUser(report) && !(isPublicRoom(report) && isAnonymousUserSession())) {
             return false;
         }
         return !!report?.reportID && !!(lastVisitTimes?.[report.reportID] ?? report?.lastReadTime);
@@ -2482,7 +2473,7 @@ function findLastAccessedReport(
     // Return the most recently visited report. Get the last read report from the last-visit-times map.
     // If we have no visit data we'll return most recent report owned by user.
     if (isEmptyObject(allReportLastVisitTimes)) {
-        const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report));
+        const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession()));
         const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === deprecatedCurrentUserAccountID);
         if (ownedReports.length > 0) {
             return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
@@ -3052,7 +3043,7 @@ function canSubmitAndIsAwaitingForCurrentUser(
 
 function hasOutstandingChildRequest(
     chatReport: Report,
-    iouReportOrID: OnyxEntry<Report> | string,
+    iouReportOrIDorArray: OnyxEntry<Report> | string | Array<OnyxEntry<Report>>,
     currentUserEmailParam: string,
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
@@ -3061,18 +3052,29 @@ function hasOutstandingChildRequest(
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(chatReport.policyID);
+
+    const excludedReportIDSet = new Set<string>();
+    if (typeof iouReportOrIDorArray === 'string') {
+        excludedReportIDSet.add(iouReportOrIDorArray);
+    } else if (Array.isArray(iouReportOrIDorArray)) {
+        for (const iouReport of iouReportOrIDorArray) {
+            if (!iouReport?.reportID) {
+                continue;
+            }
+            excludedReportIDSet.add(iouReport.reportID);
+        }
+    }
+
     return Object.values(reportActions).some((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
-        if (
-            !iouReportID ||
-            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-            isDeletedAction(action) ||
-            (typeof iouReportOrID === 'string' && iouReportID === iouReportOrID)
-        ) {
+        if (!iouReportID || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isDeletedAction(action) || excludedReportIDSet.has(iouReportID)) {
             return false;
         }
 
-        const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
+        const iouReport =
+            typeof iouReportOrIDorArray !== 'string' && !Array.isArray(iouReportOrIDorArray) && iouReportOrIDorArray?.reportID === iouReportID
+                ? iouReportOrIDorArray
+                : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`];
         const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -5003,6 +5005,18 @@ function canEditMoneyRequest(
         return true;
     }
 
+    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, allPersonalDetails);
+    const isWorkflowApproverEditing =
+        !!ownerLogin &&
+        isExpenseReport(moneyRequestReport) &&
+        isOpenReport(moneyRequestReport) &&
+        !isSubmitAndClose(reportPolicy) &&
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin);
+    if (isWorkflowApproverEditing) {
+        return true;
+    }
+
     // On policies with Dynamic External Workflow, non-admin/managers should only be able to submit their expenses on open reports
     if (!isOpenReport(moneyRequestReport) && hasDynamicExternalWorkflow(reportPolicy)) {
         return false;
@@ -5243,13 +5257,21 @@ function canEditFieldOfMoneyRequest({
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, allPersonalDetails);
+    const isApprover =
+        !!ownerLogin &&
+        isExpenseReport(moneyRequestReport) &&
+        isOpenReport(moneyRequestReport) &&
+        !isSubmitAndClose(reportPolicy) &&
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
-        return isAdmin || isManager || isRequestor;
+        return isAdmin || isManager || isRequestor || isApprover;
     }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
-        return isAdmin || isManager || isRequestor;
+        return isAdmin || isManager || isRequestor || isApprover;
     }
 
     if (
@@ -5266,7 +5288,7 @@ function canEditFieldOfMoneyRequest({
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
-            (isAdmin || isManager || isRequestor) &&
+            (isAdmin || isManager || isRequestor || isApprover) &&
             (isDeleteAction ? isRequestor : true)
         );
     }
@@ -5445,6 +5467,7 @@ const changeMoneyRequestHoldStatus = (
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
 ): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
@@ -5468,7 +5491,7 @@ const changeMoneyRequestHoldStatus = (
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID, transactionViolations);
+            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
@@ -5642,21 +5665,37 @@ type GetReportPreviewMessageBaseParams = {
 };
 
 /**
- * Get expense message for an IOU report.
+ * Get the report preview message to copy to the clipboard.
+ *
+ * This returns the report name (or the report action's child report name as a fallback), which is
+ * derived from report action content. Report action text is in English only, so this never needs
+ * `translateLocal`.
  */
-function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction?: false}): string;
-function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction: true; reportAttributes?: ReportAttributesDerivedValue['reports']}): string;
-function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction?: boolean; reportAttributes?: ReportAttributesDerivedValue['reports']}): string {
+function getReportPreviewMessageForCopy(
+    params: Pick<GetReportPreviewMessageBaseParams, 'reportOrID' | 'iouReportAction' | 'originalReportAction'> & {reportAttributes?: ReportAttributesDerivedValue['reports']},
+): string {
+    const {reportOrID, iouReportAction = null, reportAttributes} = params;
+    const originalReportAction = params.originalReportAction ?? iouReportAction;
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
+    if (report) {
+        return getReportName(report, reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
+    }
+    return originalReportAction?.childReportName ?? '';
+}
+
+/**
+ * Get the expense message for an IOU report.
+ *
+ * Like the other report-action message getters (e.g. `getMovedTransactionMessage`), this takes
+ * `translate` as a parameter rather than reaching for `translateLocal`. To build the English-only
+ * text that gets stored on a report action, use {@link getReportPreviewReportActionMessage}. To copy the
+ * (English-only) report action content, use {@link getReportPreviewMessageForCopy}.
+ */
+function getReportPreviewMessage(translate: LocalizedTranslate, params: GetReportPreviewMessageBaseParams): string {
     const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
-    if (params.isCopyAction) {
-        if (report) {
-            return getReportName(report, params.reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
-        }
-        return originalReportAction?.childReportName ?? '';
-    }
 
     if (isEmptyObject(report) || !report?.reportID) {
         // This iouReport may be unavailable for one of the following reasons:
@@ -5680,16 +5719,16 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
         if (!isEmptyObject(linkedTransaction)) {
             if (isScanning(linkedTransaction)) {
-                return translateLocal('iou.receiptScanning', {count: 1});
+                return translate('iou.receiptScanning', {count: 1});
             }
 
             if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
-                return translateLocal('iou.receiptMissingDetails');
+                return translate('iou.receiptMissingDetails');
             }
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-            return translateLocal('iou.didSplitAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
+            return translate('iou.didSplitAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
         }
     }
 
@@ -5704,7 +5743,7 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
             if (amount && currency) {
                 const formattedAmount = convertToDisplayString(amount, currency);
-                return translateLocal('iou.trackedAmount', formattedAmount, comment);
+                return translate('iou.trackedAmount', formattedAmount, comment);
             }
 
             return reportActionMessage;
@@ -5712,11 +5751,11 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
         if (!isEmptyObject(linkedTransaction)) {
             if (isScanning(linkedTransaction)) {
-                return translateLocal('iou.receiptScanning', {count: 1});
+                return translate('iou.receiptScanning', {count: 1});
             }
 
             if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
-                return translateLocal('iou.receiptMissingDetails');
+                return translate('iou.receiptMissingDetails');
             }
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
@@ -5724,7 +5763,7 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
             const merchantOrComment = getMerchantOrDescription(linkedTransaction);
 
-            return translateLocal('iou.trackedAmount', formattedAmount, merchantOrComment);
+            return translate('iou.trackedAmount', formattedAmount, merchantOrComment);
         }
     }
 
@@ -5739,11 +5778,11 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved({report}) && isReportInGroupPolicy(report)) {
-        return translateLocal('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
-    }
-
     const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type ?? reportPolicy?.type)) {
+        return translate('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
+    }
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
@@ -5751,11 +5790,11 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
     }
 
     if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
-        return translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
+        return translate('iou.receiptScanning', {count: numberOfScanningReceipts});
     }
 
     if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
-        return translateLocal('iou.fieldPending');
+        return translate('iou.fieldPending');
     }
 
     const originalMessage = !isEmptyObject(iouReportAction) && isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction) : undefined;
@@ -5784,7 +5823,7 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
             if (isFromInvoice) {
                 translatePhraseKey = originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal';
                 const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
-                return translateLocal(translatePhraseKey, formattedAmount, currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '');
+                return translate(translatePhraseKey, formattedAmount, currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '');
             }
         }
 
@@ -5797,22 +5836,22 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            return translateLocal(translatePhraseKey, '', originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
+            return translate(translatePhraseKey, '', originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
         }
         if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify') {
-            return translateLocal(translatePhraseKey, payerDisplayName ?? '');
+            return translate(translatePhraseKey, payerDisplayName ?? '');
         }
         if (translatePhraseKey === 'iou.paidElsewhere') {
-            return getElsewherePaymentReportActionMessage(translateLocal, originalMessage, payerDisplayName ?? undefined);
+            return getElsewherePaymentReportActionMessage(translate, originalMessage, payerDisplayName ?? undefined);
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
-            return translateLocal(translatePhraseKey, formattedAmount, payerDisplayName ?? '');
+            return translate(translatePhraseKey, formattedAmount, payerDisplayName ?? '');
         }
     }
 
     if (report.isWaitingOnBankAccount) {
         const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
-        return translateLocal('iou.waitingOnBankAccount', submitterDisplayName);
+        return translate('iou.waitingOnBankAccount', submitterDisplayName);
     }
 
     const lastActorID = iouReportAction?.actorAccountID;
@@ -5842,17 +5881,230 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
             lastActorID && lastActorID !== deprecatedCurrentUserAccountID
                 ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
                 : '';
-        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', amountToDisplay, comment)}`;
+        return `${requestorName ? `${requestorName}: ` : ''}${translate('iou.expenseAmount', amountToDisplay, comment)}`;
     }
 
     if (containsNonReimbursable) {
-        return translateLocal(
-            'iou.payerSpentAmount',
-            formattedAmount,
-            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '',
-        );
+        return translate('iou.payerSpentAmount', formattedAmount, getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
     }
-    return translateLocal('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);
+    return translate('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);
+}
+
+/**
+ * Build the English-only report preview message that gets stored on a report action.
+ *
+ * Report action text is English only. This mirrors {@link getReportPreviewMessage} but hardcodes the
+ * English strings (the same approach as {@link buildOptimisticTransactionAction}) instead of routing through
+ * `translate`/`translateLocal`. That keeps the stored text in English regardless of the viewer's locale and
+ * avoids depending on the async-loaded locale bundles. For a localized preview shown in the UI, call
+ * {@link getReportPreviewMessage} with the caller's `translate`.
+ *
+ * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
+ * in {@link getReportPreviewMessage}.
+ */
+function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBaseParams): string {
+    const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
+    const originalReportAction = params.originalReportAction ?? iouReportAction;
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
+    const reportActionMessage = getReportActionHtml(iouReportAction);
+
+    if (isEmptyObject(report) || !report?.reportID) {
+        // If the report is empty, we display the report name to avoid showing "payer owes 0"
+        return !!originalReportAction?.childReportName && originalReportAction?.childMoneyRequestCount === 0 ? originalReportAction?.childReportName : reportActionMessage;
+    }
+
+    const allReportTransactions = getReportTransactions(report.reportID);
+    const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
+    const numberOfScanningReceipts = transactionsWithReceipts.filter(isScanning).length;
+
+    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
+        // This covers group chats where the last action is a split expense action
+        const linkedTransaction = getLinkedTransaction(iouReportAction);
+        if (isEmptyObject(linkedTransaction)) {
+            return reportActionMessage;
+        }
+
+        if (!isEmptyObject(linkedTransaction)) {
+            if (isScanning(linkedTransaction)) {
+                return 'Receipt scanning...';
+            }
+
+            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
+                return 'Receipt missing details';
+            }
+
+            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+            const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
+            const comment = getMerchantOrDescription(linkedTransaction);
+            return `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
+        }
+    }
+
+    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
+        // This covers group chats where the last action is a track expense action
+        const linkedTransaction = getLinkedTransaction(iouReportAction);
+        if (isEmptyObject(linkedTransaction)) {
+            const originalMessage = getOriginalMessage(iouReportAction);
+            const amount = originalMessage?.amount;
+            const currency = originalMessage?.currency;
+            const comment = originalMessage?.comment;
+
+            if (amount && currency) {
+                const formattedAmount = convertToDisplayString(amount, currency);
+                return `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
+            }
+
+            return reportActionMessage;
+        }
+
+        if (!isEmptyObject(linkedTransaction)) {
+            if (isScanning(linkedTransaction)) {
+                return 'Receipt scanning...';
+            }
+
+            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
+                return 'Receipt missing details';
+            }
+
+            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+            const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
+
+            const merchantOrComment = getMerchantOrDescription(linkedTransaction);
+
+            return `tracking ${formattedAmount}${merchantOrComment ? ` for ${merchantOrComment}` : ''}`;
+        }
+    }
+
+    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
+    const {totalDisplaySpend: totalAmount} = getMoneyRequestSpendBreakdown(report);
+
+    const parentReport = getParentReport(report);
+    const policyName = getPolicyName({report: parentReport ?? report, policy});
+    const payerName = isExpenseReport(report)
+        ? policyName
+        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+
+    const formattedAmount = convertToDisplayString(totalAmount, report.currency);
+
+    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type ?? reportPolicy?.type)) {
+        return `${payerName ?? ''} approved ${formattedAmount}`;
+    }
+
+    let linkedTransaction;
+    if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
+        linkedTransaction = getLinkedTransaction(iouReportAction);
+    }
+
+    if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
+        return numberOfScanningReceipts === 1 ? 'Receipt scanning...' : 'Receipts scanning...';
+    }
+
+    if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
+        return 'Pending...';
+    }
+
+    const originalMessage = !isEmptyObject(iouReportAction) && isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction) : undefined;
+
+    // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
+    if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
+        // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
+        let translatePhraseKey: TranslationPaths = 'iou.paidElsewhere';
+        if (isPreviewMessageForParentChatReport) {
+            translatePhraseKey = 'iou.payerPaidAmount';
+        } else if (
+            [CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY].some((paymentType) => paymentType === originalMessage?.paymentType) ||
+            !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
+            report.isWaitingOnBankAccount
+        ) {
+            translatePhraseKey = 'iou.paidWithExpensify';
+            const isFromInvoice = !!originalMessage?.bankAccountID;
+            if (originalMessage?.automaticAction) {
+                translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
+            }
+
+            if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                translatePhraseKey = 'iou.businessBankAccount';
+            }
+
+            if (isFromInvoice) {
+                const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
+                const last4Digits = currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '';
+                return originalMessage?.payAsBusiness ? `paid ${formattedAmount} with business account ${last4Digits}` : `paid ${formattedAmount} with personal account ${last4Digits}`;
+            }
+        }
+
+        const payerAccountID = iouReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? iouReportAction?.actorAccountID : report.managerID;
+        let actualPayerName =
+            report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
+                ? ''
+                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+
+        actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
+        const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
+        if (translatePhraseKey === 'iou.businessBankAccount') {
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+            return `paid with bank account ${last4Digits}`;
+        }
+        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify') {
+            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid with Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`;
+        }
+        if (translatePhraseKey === 'iou.paidWithExpensify') {
+            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid with wallet`;
+        }
+        if (translatePhraseKey === 'iou.paidElsewhere') {
+            if (originalMessage?.isSubmitterMarkedPaymentReceived) {
+                return `${payerDisplayName ? `${payerDisplayName} ` : ''}received payment`;
+            }
+            const trimmedComment = originalMessage?.comment?.trim();
+            return `${payerDisplayName ? `${payerDisplayName} ` : ''}marked as paid${trimmedComment ? `, saying "${trimmedComment}"` : ''}`;
+        }
+        if (translatePhraseKey === 'iou.payerPaidAmount') {
+            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid ${formattedAmount}`;
+        }
+    }
+
+    if (report.isWaitingOnBankAccount) {
+        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        return `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`;
+    }
+
+    const lastActorID = iouReportAction?.actorAccountID;
+    let amount = originalMessage?.amount;
+    let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
+
+    if (!isEmptyObject(linkedTransaction)) {
+        amount = getTransactionAmount(linkedTransaction, isExpenseReport(report));
+        currency = getCurrency(linkedTransaction);
+    }
+
+    if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
+        linkedTransaction = getLinkedTransaction(iouReportAction);
+    }
+
+    let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
+    if (!isEmptyObject(originalReportAction) && isReportPreviewAction(originalReportAction) && getNumberOfMoneyRequests(originalReportAction) !== 1) {
+        comment = undefined;
+    }
+
+    // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
+    if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
+        const amountToDisplay = convertToDisplayString(Math.abs(amount), currency);
+
+        // We only want to show the actor name in the preview if it's not the current user who took the action
+        const requestorName =
+            lastActorID && lastActorID !== deprecatedCurrentUserAccountID
+                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                : '';
+        return `${requestorName ? `${requestorName}: ` : ''}${amountToDisplay}${comment ? ` for ${comment}` : ''}`;
+    }
+
+    if (containsNonReimbursable) {
+        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        return `${ownerName} spent ${formattedAmount}`;
+    }
+    return `${payerName ?? ''} owes ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
 }
 
 /**
@@ -6255,18 +6507,18 @@ function getParsedComment(
     currentUserEmailParam?: string,
 ): string {
     let isGroupPolicyReport = false;
+    const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    const policy = getPolicy(parsingDetails?.policyID ?? currentReport?.policyID);
     if (parsingDetails?.reportID) {
         if (isGroupPolicyReportParam !== undefined) {
             isGroupPolicyReport = isGroupPolicyReportParam;
         } else {
-            const currentReport = getReportOrDraftReport(parsingDetails.reportID);
-            isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+            isGroupPolicyReport = isGroupPolicyByType(policy?.type);
         }
     }
 
     if (parsingDetails?.policyID) {
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        const policy = getPolicy(parsingDetails?.policyID);
         if (policy?.type) {
             isGroupPolicyReport = isGroupPolicyPolicyUtils(policy);
         }
@@ -7566,7 +7818,7 @@ function buildOptimisticReportPreview(
     delegateAccountIDParam: number | undefined = undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewMessage({reportOrID: iouReport});
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport});
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
@@ -7757,7 +8009,7 @@ function updateReportPreview(
         }
     }
 
-    const message = getReportPreviewMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction});
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction});
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -9183,6 +9435,8 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     true,
                     transactions,
                     potentialReport,
+                    // This path only runs for reports the current user submitted, so the report owner is the current user.
+                    currentUserLogin,
                     policy,
                 ) ||
                     hasWarningTypeViolations(
@@ -9193,6 +9447,8 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                         true,
                         transactions,
                         potentialReport,
+                        // This path only runs for reports the current user submitted, so the report owner is the current user.
+                        currentUserLogin,
                         policy,
                     ) ||
                     hasNoticeTypeViolationsForRBRInLHN(
@@ -9224,7 +9480,8 @@ function hasNoticeTypeViolationsForRBRInLHN(
             return false;
         }
         const filteredViolations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
-        return hasNoticeTypeViolation(transaction, filteredViolations, currentUserEmailParam, currentUserAccountIDParam, report, policy, true);
+        // This path only runs for reports the current user submitted, so the report owner is the current user.
+        return hasNoticeTypeViolation(transaction, filteredViolations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true);
     });
 }
 
@@ -9239,10 +9496,13 @@ function hasViolations(
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
     report?: OnyxEntry<Report>,
+    reportOwnerLogin?: string,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview));
+    return transactions.some((transaction) =>
+        hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, reportOwnerLogin, policy, shouldShowInReview),
+    );
 }
 
 function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
@@ -9292,11 +9552,12 @@ function hasWarningTypeViolations(
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
     report?: OnyxEntry<Report>,
+    reportOwnerLogin?: string,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) =>
-        hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview),
+        hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, reportOwnerLogin, policy, shouldShowInReview),
     );
 }
 
@@ -9320,14 +9581,12 @@ function hasNoticeTypeViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
-    shouldShowInReview?: boolean,
-    reportTransactions?: Transaction[],
-    report?: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
+    shouldShowInReview: boolean,
+    reportTransactions: Transaction[] | undefined,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) =>
-        hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview),
+        hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, undefined, undefined, undefined, shouldShowInReview),
     );
 }
 
@@ -9340,13 +9599,11 @@ function hasAnyViolations(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     reportTransactions?: Transaction[],
-    report?: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
 ) {
     return (
-        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions, report, policy) ||
-        hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions, report, policy) ||
-        hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions, report, policy)
+        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions) ||
+        hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions) ||
+        hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions)
     );
 }
 
@@ -13644,6 +13901,8 @@ export {
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
     getReportPreviewMessage,
+    getReportPreviewMessageForCopy,
+    getReportPreviewReportActionMessage,
     getReportRecipientAccountIDs,
     shouldCurrentUserSubmitReport,
     canSubmitAndIsAwaitingForCurrentUser,
@@ -13745,7 +14004,6 @@ export {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
-    isReportInGroupPolicy,
     isReportManager,
     isReportOwner,
     isReportParticipant,

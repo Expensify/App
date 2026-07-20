@@ -7,6 +7,7 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -67,7 +68,16 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     const closedCardsSectionData = buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, value, illustrations, companyCardFeedIcons, true, customCardNames);
 
-    const shouldShowSearchInput = individualCardsSectionData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchInput = individualCardsSectionData.length + closedCardsSectionData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    // Snapshot the cards selected when the filter first opened so they stay floated in the top section on first render
+    // without repinning rows that are toggled afterwards. Section membership keys on this snapshot while each row's
+    // checkbox still reflects the live selection, so selecting/deselecting a card no longer makes it jump between sections.
+    // Only float the initial selection when the list is long enough to warrant it (>= STANDARD_LIST_ITEM_LIMIT), mirroring
+    // the shared moveInitialSelectionToTop gate; for short lists items stay in their natural order so nothing is pinned.
+    const initialSelectedValues = useInitialValue(() => value);
+    const wasInitiallySelected = (item: CardFilterItem) => !!item.keyForList && initialSelectedValues.includes(item.keyForList);
+    const shouldPinInitialSelection = shouldShowSearchInput;
 
     const searchFunction = (item: CardFilterItem) =>
         !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
@@ -75,9 +85,9 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
         !!item.cardName?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         (item.isVirtual && translate('workspace.expensifyCard.virtual').toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()));
 
-    const selectedData = [...individualCardsSectionData, ...closedCardsSectionData].filter((item) => item.isSelected && searchFunction(item));
-    const unselectedIndividualCardsData = individualCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
-    const unselectedClosedCardsData = closedCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
+    const selectedData = shouldPinInitialSelection ? [...individualCardsSectionData, ...closedCardsSectionData].filter((item) => wasInitiallySelected(item) && searchFunction(item)) : [];
+    const unselectedIndividualCardsData = individualCardsSectionData.filter((item) => (!shouldPinInitialSelection || !wasInitiallySelected(item)) && searchFunction(item));
+    const unselectedClosedCardsData = closedCardsSectionData.filter((item) => (!shouldPinInitialSelection || !wasInitiallySelected(item)) && searchFunction(item));
 
     const itemCount = selectedData.length + unselectedIndividualCardsData.length + unselectedClosedCardsData.length;
     const sectionHeaderCount = unselectedClosedCardsData.length > 0 ? 1 : 0;
@@ -155,6 +165,9 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                     textInputOptions={textInputOptions}
                     shouldStopPropagation
                     canSelectMultiple
+                    shouldClearInputOnSelect={false}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
                 />
