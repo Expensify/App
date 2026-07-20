@@ -15,7 +15,7 @@ import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, isConciergeChatReport} from '@libs/ReportUtils';
-import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 import {generateAccountID} from '@libs/UserUtils';
@@ -165,6 +165,7 @@ function useComposerSubmit(reportID: string) {
         const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         if (isScrolledToBottom) {
             const spanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`;
+            const {reportActionCount, moneyRequestPreviewCount} = getSendMessageListWeight(getAllReportActions(reportID), reportID, canUserPerformWriteAction(report, isReportArchived));
             startSpan(spanID, {
                 name: 'send-message',
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
@@ -172,13 +173,9 @@ function useComposerSubmit(reportID: string) {
                     [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                     [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
                     [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
+                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
+                    [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
                 },
-            });
-
-            const {reportActionCount, moneyRequestPreviewCount} = getSendMessageListWeight(getAllReportActions(reportID), canUserPerformWriteAction(report, isReportArchived));
-            getSpan(spanID)?.setAttributes({
-                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
-                [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
             });
         }
         addComment({

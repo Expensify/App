@@ -28,7 +28,7 @@ describe('getSendMessageListWeight', () => {
             makeAction({reportActionID: '4', actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, created: '2024-01-01 00:00:03.000'}),
         ]);
 
-        const result = getSendMessageListWeight(actions, true);
+        const result = getSendMessageListWeight(actions, REPORT_ID, true);
 
         expect(result.reportActionCount).toBe(4);
         expect(result.moneyRequestPreviewCount).toBe(2);
@@ -43,14 +43,26 @@ describe('getSendMessageListWeight', () => {
             makeAction({reportActionID: '4', actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, created: '2024-01-01 00:00:03.000', shouldShow: false, pendingAction: undefined}),
         ]);
 
-        const result = getSendMessageListWeight(actions, true);
+        const result = getSendMessageListWeight(actions, REPORT_ID, true);
 
         expect(result.reportActionCount).toBe(3);
         expect(result.moneyRequestPreviewCount).toBe(1);
     });
 
+    it('falls back to the passed reportID for actions whose own reportID is undefined, so they are not dropped', () => {
+        const actions = toCollection([
+            makeAction({reportActionID: '1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2024-01-01 00:00:00.000', reportID: undefined}),
+            makeAction({reportActionID: '2', actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, created: '2024-01-01 00:00:01.000', reportID: undefined}),
+        ]);
+
+        // Without the reportID fallback these actions have no reportID and getSortedReportActionsForDisplay drops them.
+        expect(getSendMessageListWeight(actions, undefined, true).reportActionCount).toBe(0);
+        expect(getSendMessageListWeight(actions, REPORT_ID, true).reportActionCount).toBe(2);
+        expect(getSendMessageListWeight(actions, REPORT_ID, true).moneyRequestPreviewCount).toBe(1);
+    });
+
     it('returns zero counts for an empty action list', () => {
-        const result = getSendMessageListWeight({}, true);
+        const result = getSendMessageListWeight({}, REPORT_ID, true);
 
         expect(result.reportActionCount).toBe(0);
         expect(result.moneyRequestPreviewCount).toBe(0);
