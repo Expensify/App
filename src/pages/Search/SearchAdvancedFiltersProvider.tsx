@@ -9,7 +9,6 @@ import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useState} from 'react';
 
@@ -41,7 +40,7 @@ type SearchAdvancedFiltersProviderProps = {
 
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON, currentSimilarSearchHash, currentDefaultSimilarSearchHash} = useSearchQueryContext();
     const {getUpdatedFilterFormValues, setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
@@ -70,7 +69,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
 
     const searchAdvancedFiltersValue: SearchAdvancedFiltersValue = {
         currentDraftFilters: values,
-        shouldShowResetFilters: !isEmptyObject(advancedFiltersToReset),
+        shouldShowResetFilters: currentSimilarSearchHash !== currentDefaultSimilarSearchHash,
     };
 
     const searchAdvancedFiltersActionValue: SearchAdvancedFiltersActionValue = {

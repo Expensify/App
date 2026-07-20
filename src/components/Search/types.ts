@@ -185,6 +185,7 @@ type SearchQueryContextValue = {
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
+    currentDefaultSimilarSearchHash: number;
     currentDefaultSearchQueryFilterKeys: Set<QueryFilters[number]['key']>;
     suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     shouldResetSearchQuery: boolean;

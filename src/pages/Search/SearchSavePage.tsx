@@ -169,7 +169,7 @@ function SearchSavePage() {
         Navigation.goBack();
     };
 
-    const {allFilters} = mapFiltersFormToLabelValueList(
+    const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
         undefined,
@@ -207,8 +207,8 @@ function SearchSavePage() {
                     role={CONST.ROLE.PRESENTATION}
                 />
                 <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>
-                {allFilters.length > 0 ? (
-                    allFilters.map((filter) => (
+                {filters.length > 0 ? (
+                    filters.map((filter) => (
                         <View
                             style={[styles.flexRow]}
                             key={filter.key}
