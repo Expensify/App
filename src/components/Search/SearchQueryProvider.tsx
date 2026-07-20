@@ -61,11 +61,11 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
-    const getInitialCurrentSearchKey = () => {
+    const getInitialCurrentSearchKey = (queryJSON = currentSearchQueryJSON) => {
         const suggestedSearchKey = Object.values(suggestedSearches).find((search) => {
             const savedSearchFilterQuery = searchFilters?.[search.key];
             const savedSearchFilter = savedSearchFilterQuery ? buildSearchQueryJSON(savedSearchFilterQuery) : undefined;
-            return (savedSearchFilter ?? search).similarSearchHash === currentSimilarSearchHash;
+            return (savedSearchFilter ?? search).similarSearchHash === queryJSON?.similarSearchHash;
         })?.key;
         if (suggestedSearchKey) {
             return suggestedSearchKey;
@@ -73,7 +73,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
         const savedSearchID = Object.keys(savedSearches ?? {}).find((id) => {
             const query = searchFilters?.[savedSearchIDToSearchKey(id)] ?? savedSearches?.[id].query;
-            return query ? buildSearchQueryJSON(query)?.similarSearchHash === currentSimilarSearchHash : false;
+            return query ? buildSearchQueryJSON(query)?.similarSearchHash === queryJSON?.similarSearchHash : false;
         });
 
         if (savedSearchID) {
@@ -84,20 +84,16 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
             [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
         };
-        return currentSearchQueryJSON?.type ? typeToGenericKey[currentSearchQueryJSON.type] : undefined;
+        return queryJSON?.type ? typeToGenericKey[queryJSON.type] : undefined;
     };
 
     const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
 
-    const setInitialCurrentSearchKey = useEffectEvent(() => setCurrentSearchKey(getInitialCurrentSearchKey()));
+    const resetSearchKey = (queryJSON = currentSearchQueryJSON) => {
+        setCurrentSearchKey(getInitialCurrentSearchKey(queryJSON));
+    };
 
-    useEffect(() => {
-        // currentSearchKey can be invalidated, so we need to set it back with the correct value.
-        if (currentSearchKey) {
-            return;
-        }
-        setInitialCurrentSearchKey();
-    }, [currentSearchKey]);
+    const setInitialCurrentSearchKey = useEffectEvent(() => setCurrentSearchKey(getInitialCurrentSearchKey()));
 
     const currentQueryFilterKeys = new Set(currentSearchQueryJSON?.flatFilters.map((filter) => filter.key));
     const currentDefaultSearchQueryString = currentSearchKey
@@ -135,6 +131,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const queryActionsValue: SearchQueryActionsValue = {
         setShouldResetSearchQuery,
         setCurrentSearchKey,
+        resetSearchKey,
     };
 
     return (
