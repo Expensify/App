@@ -31,6 +31,7 @@ const defaultSearchQueryContext: SearchQueryContextValue = {
 
 const defaultSearchQueryActions: SearchQueryActionsValue = {
     setShouldResetSearchQuery: () => {},
+    setCurrentSearchKey: () => {},
 };
 
 const defaultSearchResultsContext: SearchResultsContextValue = {
