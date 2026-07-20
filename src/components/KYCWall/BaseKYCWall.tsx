@@ -35,7 +35,7 @@ import viewRef from '@src/types/utils/viewRef';
 import type {EmitterSubscription, View} from 'react-native';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo} from 'react';
 import {Dimensions} from 'react-native';
 
 import type {AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod} from './types';
@@ -76,8 +76,10 @@ function KYCWall({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const ownerAccountID = iouReport?.ownerAccountID;
-    const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(ownerAccountID)});
-    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(ownerAccountID)});
+    const employeeLoginSelector = useMemo(() => personalDetailsLoginSelector(ownerAccountID), [ownerAccountID]);
+    const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: employeeLoginSelector});
+    const doesSubmitterPersonalDetailExistSelector = useMemo(() => doesPersonalDetailExistSelector(ownerAccountID), [ownerAccountID]);
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesSubmitterPersonalDetailExistSelector});
 
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
