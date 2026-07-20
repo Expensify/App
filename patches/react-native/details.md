@@ -291,3 +291,45 @@
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/56680 / https://github.com/facebook/react-native/commit/aadbe965792bd900ca70412d6704b76e339d1aca
 - E/App issue: https://github.com/Expensify/App/issues/92412
 - PR introducing patch: 🛑
+
+### [react-native+0.85.3+038+nested-text-border-width.patch](react-native+0.85.3+038+nested-text-border-width.patch)
+
+- Reason:
+
+    ```
+    Adds borderWidth / per-side border width and per-side border color support for nested <Text>
+    backgrounds on iOS and Android. On the C++ side, borderColor, borderTopColor, borderRightColor,
+    borderBottomColor, borderLeftColor, borderWidth, borderTopWidth, borderRightWidth,
+    borderBottomWidth, and borderLeftWidth fields are added to TextAttributes and wired through
+    BaseTextProps and conversions. borderWidth acts as a fallback for unset individual widths;
+    borderColor acts as a fallback for unset individual colors. On Android,
+    ReactBackgroundDrawSpan is extended to draw per-side stroked borders (with corner arcs matching
+    the border radius) using separate Paint strokes for each side. On iOS,
+    RCTTextLayoutManagerWithBorderRadius draws per-side stroked borders using CGContext stroke
+    paths, with corner arcs on first/last lines matching the fill's rounded-rect shape.
+    ```
+
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/57556
+- PR introducing patch: https://github.com/Expensify/App/pull/94332
+
+### [react-native+0.85.3+039+nested-text-padding.patch](react-native+0.85.3+039+nested-text-padding.patch)
+
+- Reason:
+
+    ```
+    Adds horizontal padding (paddingLeft / paddingRight / paddingHorizontal) support for nested
+    <Text> spans that have a border, so the border does not touch the text. On the C++ side,
+    paddingLeft and paddingRight fields are added to TextAttributes, resolved from paddingLeft /
+    paddingRight / paddingHorizontal props in BaseTextProps; TextInput explicitly clears them to
+    avoid leaking view-level padding into text fragments. On Android, zero-width spacer spans
+    (ReactInlinePaddingSpan) are inserted before/after bordered fragments to reserve horizontal
+    advance, and ReactBackgroundDrawSpan extends its fill/border box by the padding amount. On
+    iOS, NSKern attributes and firstLineHeadIndent reserve advance around bordered spans, an
+    NSLayoutManager delegate indents soft-wrapped lines that begin with a bordered span, and
+    RCTTextLayoutManager inflates the measured size to account for the reserved space.
+    ```
+
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/57556
+- PR introducing patch: https://github.com/Expensify/App/pull/94332

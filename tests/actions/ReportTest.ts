@@ -4587,6 +4587,7 @@ describe('actions/Report', () => {
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isTrackIntentUser: false,
             });
         });
 
@@ -9309,6 +9310,7 @@ describe('actions/Report', () => {
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -9375,6 +9377,7 @@ describe('actions/Report', () => {
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -9431,6 +9434,7 @@ describe('actions/Report', () => {
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
             });
             await waitForBatchedUpdates();
 

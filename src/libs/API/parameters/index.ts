@@ -428,6 +428,7 @@ export type {default as RemovePolicyCategoryItemizedReceiptsRequiredParams} from
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
+export type {default as ImportMerchantRulesSpreadsheetParams} from './ImportMerchantRulesSpreadsheet';
 export type {default as ExportMembersSpreadsheetParams} from './ExportMembersSpreadsheetParams';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
@@ -575,7 +576,9 @@ export type {default as UpdateAgentNameParams} from './UpdateAgentNameParams';
 export type {default as UpdateAgentPromptParams} from './UpdateAgentPromptParams';
 export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams';
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
+export type {default as ResendValidateCodeParams} from './ResendValidateCodeParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
+export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';

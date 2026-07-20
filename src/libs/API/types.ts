@@ -656,6 +656,7 @@ const WRITE_COMMANDS = {
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
     UPGRADE_SUBMIT: 'UpgradeSubmit',
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
+    JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -762,7 +763,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO]: Parameters.UpdatePersonalBankAccountInfoParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
     [WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK]: Parameters.InitiateBankAccountUnlockParams;
-    [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: null;
+    [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: Parameters.ResendValidateCodeParams | null;
     [WRITE_COMMANDS.READ_NEWEST_ACTION]: Parameters.ReadNewestActionParams;
     [WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ]: Parameters.MarkAllMessagesAsReadParams;
     [WRITE_COMMANDS.MARK_AS_UNREAD]: Parameters.MarkAsUnreadParams;
@@ -1085,6 +1086,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
     [WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS]: Parameters.UploadUserKYBDocsParams;
+    [WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK]: Parameters.JoinReportViaSecureLinkParams;
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
@@ -1547,6 +1549,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
     IMPORT_CATEGORIES_SPREADSHEET: 'ImportCategoriesSpreadsheet',
     IMPORT_MEMBERS_SPREADSHEET: 'ImportMembersSpreadsheet',
+    IMPORT_MERCHANT_RULES_SPREADSHEET: 'ImportMerchantRulesSpreadsheet',
     IMPORT_PER_DIEM_RATES: 'ImportPerDiemRates',
     IMPORT_TAGS_SPREADSHEET: 'ImportTagsSpreadsheet',
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
@@ -1592,6 +1595,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET]: Parameters.ImportMembersSpreadsheetParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MERCHANT_RULES_SPREADSHEET]: Parameters.ImportMerchantRulesSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_PER_DIEM_RATES]: Parameters.ImportPerDiemRatesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_TAGS_SPREADSHEET]: Parameters.ImportTagsSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
