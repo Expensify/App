@@ -28,12 +28,13 @@ jobs:
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+        # EXPERIMENT: sticky-disk variant for A/B comparison, revert to ./setupNode after measuring
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Cache Jest cache
         id: cache-jest-cache
-        # v5.0.2
-        uses: useblacksmith/cache@71c7c918062ba3861252d84b07fe5ab2a6b467a6
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
           # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single

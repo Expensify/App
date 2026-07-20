@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-// no-op: trigger CI paths filter to validate blacksmith cache change — run 2, warm cache (safe to revert)
+// no-op: trigger CI paths filter — stickydisk experiment, run 1 (creates fresh disk, safe to revert)
 
 type EmptyObject = Record<string, never>;
 
