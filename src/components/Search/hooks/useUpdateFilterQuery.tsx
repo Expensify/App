@@ -27,7 +27,6 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             updatedFilterFormValues.columns = [];
             updatedFilterFormValues.status = undefined;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
-            setCurrentSearchKey(undefined);
         }
 
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
@@ -52,6 +51,9 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     }
 
     function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
+        if (searchAdvancedFiltersForm.type !== values.type) {
+            setCurrentSearchKey(undefined);
+        }
         setFilterQueryParams(getUpdatedFilterFormValues(searchAdvancedFiltersForm, values));
     }
 

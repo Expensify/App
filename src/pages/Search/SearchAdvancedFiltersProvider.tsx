@@ -51,6 +51,9 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm, currentDefaultSearchQueryFilterKeys) : undefined;
 
     const applyFilters = () => {
+        if (values.type !== searchAdvancedFiltersForm?.type) {
+            setCurrentSearchKey(undefined);
+        }
         Navigation.dismissModal({afterTransition: () => setFilterQueryParams(values)});
     };
 
