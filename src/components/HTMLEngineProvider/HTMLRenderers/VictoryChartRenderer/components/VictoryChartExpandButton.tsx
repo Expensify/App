@@ -32,6 +32,8 @@ function VictoryChartExpandButton({onPress, shouldShow}: VictoryChartExpandButto
             <View
                 style={[styles.pAbsolute, styles.t0, styles.r0, styles.m3, !shouldShow && styles.opacity0]}
                 pointerEvents={shouldShow ? 'auto' : 'none'}
+                accessibilityElementsHidden={!shouldShow}
+                importantForAccessibility={shouldShow ? 'auto' : 'no-hide-descendants'}
             >
                 <Button
                     size={CONST.BUTTON_SIZE.SMALL}

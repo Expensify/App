@@ -5,6 +5,7 @@ import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLR
 import Modal from '@components/Modal';
 
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,10 +46,14 @@ function VictoryChartExpandModal({isVisible, onClose, onModalHide}: VictoryChart
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {chartContentStyles, chartContainerStyles, type} = useVictoryChartContext();
     const [availableSize, setAvailableSize] = useState({width: 0, height: 0});
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
+        if (!isVisible) {
+            return;
+        }
         const {width, height} = event.nativeEvent.layout;
         // Avoid re-render churn when the layout callback fires without an actual size change.
         setAvailableSize((prev) => (prev.width === width && prev.height === height ? prev : {width, height}));
@@ -81,10 +86,14 @@ function VictoryChartExpandModal({isVisible, onClose, onModalHide}: VictoryChart
             onModalHide={onModalHide}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
+            {/* Header matches the attachment modal: back button on narrow layouts, close button on the right otherwise. */}
             <HeaderWithBackButton
                 title={translate('common.details')}
+                shouldShowBorderBottom
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldShowCloseButton={!shouldUseNarrowLayout}
                 onBackButtonPress={onClose}
-                shouldShowBackButton
+                onCloseButtonPress={onClose}
             />
             {/* Padding lives on the outer view; the inner view is measured so the scale never
                 exceeds the actual content area and the side gutters are preserved. */}
