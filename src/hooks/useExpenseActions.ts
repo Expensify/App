@@ -12,6 +12,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
@@ -252,11 +253,12 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         const optimisticIOUReportID = generateReportID();
         const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
+        let lastDuplicate: {iouReportID?: string; transactionID?: string} | undefined;
         for (const item of transactionList) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-            duplicateTransactionAction({
+            const result = duplicateTransactionAction({
                 transaction: item,
                 optimisticChatReportID,
                 optimisticIOUReportID,
@@ -280,6 +282,13 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 delegateAccountID,
                 policyTagList,
             });
+            if (result?.transactionID) {
+                lastDuplicate = {iouReportID: result.iouReport?.reportID, transactionID: result.transactionID};
+            }
+        }
+
+        if (lastDuplicate?.transactionID) {
+            surfaceExpenseCreatedFeedback(lastDuplicate);
         }
     };
 

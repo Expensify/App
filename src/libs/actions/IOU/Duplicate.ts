@@ -7,6 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
@@ -1144,6 +1145,8 @@ function bulkDuplicateExpenses({
     let currentTargetReport = targetReport;
     let optimisticIOUReport: OnyxEntry<OnyxTypes.Report>;
 
+    let lastDuplicate: {iouReportID?: string; transactionID?: string} | undefined;
+
     // When instant-submit + submit-and-close is active AND the duplicated
     // expenses are all non-reimbursable (or the policy disables reimbursement
     // entirely), canAddTransaction will reject the optimistic report after
@@ -1223,12 +1226,20 @@ function bulkDuplicateExpenses({
             optimisticIOUReport = result.iouReport;
         }
 
+        if (result?.transactionID) {
+            lastDuplicate = {iouReportID: result.iouReport?.reportID, transactionID: result.transactionID};
+        }
+
         if (currentTargetReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
         }
     }
 
     playSound(SOUNDS.DONE);
+
+    if (lastDuplicate?.transactionID) {
+        surfaceExpenseCreatedFeedback(lastDuplicate);
+    }
 }
 
 type BulkDuplicateReportsParams = {

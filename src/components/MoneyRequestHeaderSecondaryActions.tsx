@@ -33,6 +33,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -243,11 +244,12 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         const optimisticIOUReportID = generateReportID();
         const activePolicyCategoriesMap = defaultPolicyCategories ?? {};
 
+        let lastDuplicate: {iouReportID?: string; transactionID?: string} | undefined;
         for (const item of transactions) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-            duplicateTransactionAction({
+            const result = duplicateTransactionAction({
                 transaction: item,
                 optimisticChatReportID,
                 optimisticIOUReportID,
@@ -271,6 +273,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 delegateAccountID,
                 policyTagList,
             });
+            if (result?.transactionID) {
+                lastDuplicate = {iouReportID: result.iouReport?.reportID, transactionID: result.transactionID};
+            }
+        }
+
+        if (lastDuplicate?.transactionID) {
+            surfaceExpenseCreatedFeedback(lastDuplicate);
         }
     };
 

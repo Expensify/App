@@ -26,6 +26,7 @@ import Onyx from 'react-native-onyx';
 
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
 import getTopmostFullScreenRoute from './getTopmostFullScreenRoute';
+import isReportOpenInRHP from './isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
@@ -117,19 +118,23 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
     const backTo = Navigation.getActiveRoute();
     const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
 
+    // When a report/expense is already open in the RHP the app's convention is to replace it rather than stack a second
+    // report RHP on top of it.
+    const forceReplace = isReportOpenInRHP(navigationRef.getRootState());
+
     if (!openOnInbox) {
         setActiveTransactionIDs([transactionID]).then(() => {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}), {forceReplace});
         });
         return;
     }
 
     if (getIsNarrowLayout()) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo), {forceReplace});
         return;
     }
     if (iouReportID) {
-        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}), {forceReplace});
 
         // A multi-transaction report opens super wide (see SearchMoneyRequestReportPage's `shouldShowSuperWideRHP`),
         // so stack the specific thread RHP on top of it. A single-transaction report collapses to the thread
@@ -137,7 +142,8 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
         const hasMultipleReportTransactions =
             getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
         if (hasMultipleReportTransactions) {
-            // Defer so the thread RHP stacks on top of the expense report navigation above.
+            // Defer so the thread RHP stacks on top of the expense report navigation above. This is always a
+            // push (never a replace) — it stacks on the report we just opened, not on the previously-open one.
             setNavigationActionToMicrotaskQueue(() => {
                 setActiveTransactionIDs([transactionID]).then(() => {
                     Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: Navigation.getActiveRoute()}));
@@ -149,7 +155,7 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
 
     // Tracked/unreported expense: there's no expense report to open, so go straight to the transaction thread.
     setActiveTransactionIDs([transactionID]).then(() => {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}), {forceReplace});
     });
 }
 
