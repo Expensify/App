@@ -86,7 +86,9 @@ function AgentsPage() {
             return [];
         }
         const pendingAction = agentPrompt?.pendingAction;
+        const isPendingAdd = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
         const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const isPendingAddOrDelete = isPendingAdd || isPendingDeletion;
 
         if (!isOffline && isPendingDeletion) {
             return [];
@@ -108,8 +110,8 @@ function AgentsPage() {
                 login: details.login ?? '',
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
-                disabled: isPendingDeletion,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
+                disabled: isPendingAddOrDelete,
+                action: isPendingAdd ? undefined : () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
                 onChatPress: () => chatWithAgent(accountID),
                 onCopilotPress: () => switchToDelegator(details.login ?? ''),
                 dismissError: () => handleErrorClose(pendingAction, accountID),

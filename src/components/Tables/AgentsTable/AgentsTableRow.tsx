@@ -40,7 +40,8 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const isPendingDeletion = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const isPendingAddOrDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
+    const isPendingAdd = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const isPendingAddOrDelete = isPendingAdd || isPendingDeletion;
     const areActionsDisabled = isPendingAddOrDelete || item.accountID <= 0 || !item.login;
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
     const selectedButtonInnerStyle = item.selected ? styles.buttonDefaultHovered : undefined;
@@ -79,12 +80,18 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={item.displayName}
-                                style={[styles.optionDisplayName, styles.pre, isPendingDeletion && styles.offlineFeedbackDeleted]}
+                                style={[styles.optionDisplayName, styles.pre, isPendingDeletion && styles.offlineFeedbackDeleted, isPendingAdd && styles.offlineFeedbackPending]}
                             />
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={item.login}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre, isPendingDeletion && styles.offlineFeedbackDeleted]}
+                                style={[
+                                    styles.textLabelSupporting,
+                                    styles.lh16,
+                                    styles.pre,
+                                    isPendingDeletion && styles.offlineFeedbackDeleted,
+                                    isPendingAdd && styles.offlineFeedbackPending,
+                                ]}
                             />
                         </View>
                     </View>
@@ -115,7 +122,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                 <Button
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.action}
-                                    isDisabled={isPendingDeletion}
+                                    isDisabled={isPendingAddOrDelete || !item.action}
                                     innerStyles={selectedButtonInnerStyle}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.EDIT}
                                 >
