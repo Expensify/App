@@ -3333,15 +3333,15 @@ describe('PolicyUtils', () => {
             contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}},
             {isConfigured = true}: {isConfigured?: boolean} = {},
         ): Policy =>
-            ({
+            createMock<Policy>({
                 ...createRandomPolicy(0),
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                         config: {isConfigured},
                         data: contacts === XERO_CONTACTS_UNSYNCED ? {} : {contacts},
                     },
-                } as unknown as Connections,
-            }) as Policy;
+                },
+            });
 
         describe('hasVendorFeature', () => {
             it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
@@ -3643,7 +3643,7 @@ describe('PolicyUtils', () => {
                 // contacts. The Xero default-supplier picker must list Xero suppliers, not QBO
                 // vendors, even though `getMatchingVendors` would return QBO here.
                 const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = {
+                const policy = createMock<Policy>({
                     ...xeroPolicy,
                     connections: {
                         ...xeroPolicy.connections,
@@ -3652,7 +3652,7 @@ describe('PolicyUtils', () => {
                             data: {vendors: [{id: 'qbo-active', name: 'Acme QBO', currency: 'USD'}]},
                         },
                     },
-                } as Policy;
+                });
                 expect(getXeroSuppliers(policy)).toEqual([{id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@example.com'}]);
             });
 
@@ -3661,7 +3661,7 @@ describe('PolicyUtils', () => {
             });
 
             it('returns an empty array when Xero is not connected', () => {
-                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                const policy = {...createRandomPolicy(0), connections: {}};
                 expect(getXeroSuppliers(policy)).toEqual([]);
             });
         });
@@ -3680,7 +3680,7 @@ describe('PolicyUtils', () => {
                 // connected with a vendor coincidentally named `shared`. The Xero export config
                 // display row must show the Xero supplier name, not the QBO vendor's.
                 const xeroPolicy = buildXeroPolicy({shared: {id: 'shared', name: 'Xero Supplier', email: 'xero@example.com'}});
-                const policy = {
+                const policy = createMock<Policy>({
                     ...xeroPolicy,
                     connections: {
                         ...xeroPolicy.connections,
@@ -3689,7 +3689,7 @@ describe('PolicyUtils', () => {
                             data: {vendors: [{id: 'shared', name: 'QBO Vendor', currency: 'USD'}]},
                         },
                     },
-                } as Policy;
+                });
                 expect(getXeroSupplierByID(policy, 'shared')).toEqual({id: 'shared', name: 'Xero Supplier', currency: '', email: 'xero@example.com'});
             });
 
@@ -3717,7 +3717,7 @@ describe('PolicyUtils', () => {
                 // label flip / picker copy must stay on "Vendor" because the user is actually
                 // seeing QBO vendors via getMatchingVendors' precedence rule.
                 const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = {
+                const policy = createMock<Policy>({
                     ...xeroPolicy,
                     connections: {
                         ...xeroPolicy.connections,
@@ -3726,13 +3726,13 @@ describe('PolicyUtils', () => {
                             data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
                         },
                     },
-                } as Policy;
+                });
                 expect(isXeroActiveMatchingSource(policy)).toBe(false);
             });
 
             it('returns false when Intacct is the active matching source even if Xero is also connected', () => {
                 const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = {
+                const policy = createMock<Policy>({
                     ...xeroPolicy,
                     connections: {
                         ...xeroPolicy.connections,
@@ -3741,7 +3741,7 @@ describe('PolicyUtils', () => {
                             data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
                         },
                     },
-                } as Policy;
+                });
                 expect(isXeroActiveMatchingSource(policy)).toBe(false);
             });
 
@@ -3750,7 +3750,7 @@ describe('PolicyUtils', () => {
                 // Xero is connected, so it takes over as the active source via getMatchingVendors'
                 // fall-through.
                 const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = {
+                const policy = createMock<Policy>({
                     ...xeroPolicy,
                     connections: {
                         ...xeroPolicy.connections,
@@ -3759,12 +3759,12 @@ describe('PolicyUtils', () => {
                             data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
                         },
                     },
-                } as Policy;
+                });
                 expect(isXeroActiveMatchingSource(policy)).toBe(true);
             });
 
             it('returns false when Xero is not connected', () => {
-                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                const policy = {...createRandomPolicy(0), connections: {}};
                 expect(isXeroActiveMatchingSource(policy)).toBe(false);
             });
 
@@ -3792,7 +3792,7 @@ describe('PolicyUtils', () => {
                 // vendor matching for the workspace's transactions. The admin needs to manage the
                 // Xero default supplier independently of which integration is "active" right now.
                 const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = {
+                const policy = createMock<Policy>({
                     ...xeroPolicy,
                     connections: {
                         ...xeroPolicy.connections,
@@ -3801,7 +3801,7 @@ describe('PolicyUtils', () => {
                             data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
                         },
                     },
-                } as Policy;
+                });
                 expect(isXeroVendorMatchingActive(policy)).toBe(true);
             });
 
@@ -3811,7 +3811,7 @@ describe('PolicyUtils', () => {
                 // all integrations. The Xero-scoped gate must return false here so the supplier
                 // picker stays hidden and unreachable until the Xero tenant switch completes.
                 const xeroPolicy = buildXeroPolicy(undefined, {isConfigured: false});
-                const policy = {
+                const policy = createMock<Policy>({
                     ...xeroPolicy,
                     connections: {
                         ...xeroPolicy.connections,
@@ -3820,12 +3820,12 @@ describe('PolicyUtils', () => {
                             data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
                         },
                     },
-                } as Policy;
+                });
                 expect(isXeroVendorMatchingActive(policy)).toBe(false);
             });
 
             it('returns false when Xero is not connected', () => {
-                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                const policy = {...createRandomPolicy(0), connections: {}};
                 expect(isXeroVendorMatchingActive(policy)).toBe(false);
             });
 

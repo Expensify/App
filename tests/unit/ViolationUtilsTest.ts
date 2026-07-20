@@ -13,6 +13,7 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -2947,7 +2948,7 @@ describe('getViolationsOnyxData', () => {
                     xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'},
                 },
             ) =>
-                ({
+                createMock<Policy>({
                     requiresTag: false,
                     requiresCategory: false,
                     connections: {
@@ -2956,7 +2957,7 @@ describe('getViolationsOnyxData', () => {
                             data: contacts === XERO_CONTACTS_UNSYNCED ? {} : {contacts},
                         },
                     },
-                }) as unknown as Policy;
+                });
 
             it('adds the violation with isSupplierViolation flag when the Xero supplier ID is not in the synced contacts list', () => {
                 // Xero is the active matching source — the violation must carry the isSupplierViolation
@@ -2965,6 +2966,7 @@ describe('getViolationsOnyxData', () => {
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2985,6 +2987,7 @@ describe('getViolationsOnyxData', () => {
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations: [inactiveVendorViolation],
                     policy,
@@ -3004,7 +3007,7 @@ describe('getViolationsOnyxData', () => {
                 // strip the stale flag so the render layer renders "Vendor" copy that matches the
                 // QBO picker, not the stale "Supplier" wording.
                 const xeroPolicyContacts = {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}};
-                policy = {
+                policy = createMock<Policy>({
                     requiresTag: false,
                     requiresCategory: false,
                     connections: {
@@ -3017,9 +3020,10 @@ describe('getViolationsOnyxData', () => {
                             data: {contacts: xeroPolicyContacts},
                         },
                     },
-                } as unknown as Policy;
+                });
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations: [inactiveSupplierViolation],
                     policy,
@@ -3036,6 +3040,7 @@ describe('getViolationsOnyxData', () => {
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations: [inactiveVendorViolation],
                     policy,
@@ -3055,6 +3060,7 @@ describe('getViolationsOnyxData', () => {
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -3073,6 +3079,7 @@ describe('getViolationsOnyxData', () => {
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations: [inactiveVendorViolation],
                     policy,
@@ -3089,6 +3096,7 @@ describe('getViolationsOnyxData', () => {
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -3106,7 +3114,7 @@ describe('getViolationsOnyxData', () => {
                 // contacts yet. The guardrail must only fire when Xero is the active source; here
                 // QBO owns the vendor list, so a QBO vendor ID that isn't in the QBO vendor list
                 // must still flag inactive.
-                policy = {
+                policy = createMock<Policy>({
                     requiresTag: false,
                     requiresCategory: false,
                     connections: {
@@ -3119,9 +3127,10 @@ describe('getViolationsOnyxData', () => {
                             data: {},
                         },
                     },
-                } as unknown as Policy;
+                });
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
