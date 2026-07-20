@@ -1,16 +1,19 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
+import {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletSubsidiary} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -18,9 +21,14 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {RilletSubsidiary} from '@src/types/onyx/Policy';
 
 import React from 'react';
 import {View} from 'react-native';
+
+type SubsidiaryListItem = ListItem & {
+    value: RilletSubsidiary['id'];
+};
 
 function RilletSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -32,14 +40,22 @@ function RilletSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
 
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const subsidiaryListSections = subsidiaryList
-        ? subsidiaryList.map((subsidiary) => ({
-              text: subsidiary.tradeName,
-              keyForList: subsidiary.id,
-              isSelected: subsidiary.id === currentSubsidiaryID,
-              value: subsidiary.id,
+    const data: SubsidiaryListItem[] = subsidiaryList
+        ? subsidiaryList.map((subsidiaryItem) => ({
+              text: subsidiaryItem.tradeName,
+              keyForList: subsidiaryItem.id,
+              isSelected: subsidiaryItem.id === currentSubsidiaryID,
+              value: subsidiaryItem.id,
           }))
         : [];
+    const filterData = (subsidiaryItem: SubsidiaryListItem, searchInput: string) =>
+        tokenizedSearch([subsidiaryItem], searchInput, () => [subsidiaryItem.text ?? '', subsidiaryItem.value]).length > 0;
+    const [searchValue, setSearchValue, filteredData] = useSearchResults(data, filterData);
+    const textInputOptions = {
+        label: data.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     const updateSubsidiary = ({keyForList, value}: SelectorType) => {
         if (!keyForList || keyForList === currentSubsidiaryID) {
@@ -73,10 +89,11 @@ function RilletSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletSubsidiarySelector"
-            data={subsidiaryListSections}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             onSelectRow={updateSubsidiary}
-            initiallyFocusedOptionKey={rilletConfig?.subsidiaryID ?? subsidiaryListSections?.at(0)?.keyForList}
+            initiallyFocusedOptionKey={rilletConfig?.subsidiaryID}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
             title="workspace.rillet.subsidiary"
