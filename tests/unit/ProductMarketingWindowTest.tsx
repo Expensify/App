@@ -550,8 +550,8 @@ describe('ProductMarketingWindowManager', () => {
     });
 
     it.each([
-        [CONST.THEME.LIGHT, colors.productDark100, colors.productDark900, colors.productDark800],
-        [CONST.THEME.LIGHT_CONTRAST, colors.productDark100, colors.productDark900, colors.productDark800],
+        [CONST.THEME.LIGHT, colors.green800, colors.productDark900, colors.productDark800],
+        [CONST.THEME.LIGHT_CONTRAST, colors.green800, colors.productDark900, colors.productDark800],
         [CONST.THEME.DARK, colors.productLight100, colors.productLight900, colors.productLight800],
         [CONST.THEME.DARK_CONTRAST, colors.productLight100, colors.productLight900, colors.productLight800],
     ] as const)('uses the opposite product palette for the %s app theme', async (themePreference, backgroundColor, headingColor, bodyColor) => {

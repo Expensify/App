@@ -1185,7 +1185,7 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: theme.shadow,
         },
         productMarketingWindowContainerDark: {
-            backgroundColor: colors.productDark100,
+            backgroundColor: colors.green800,
         },
         productMarketingWindowContainerLight: {
             backgroundColor: colors.productLight100,
