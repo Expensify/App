@@ -65,8 +65,6 @@ type AddNewCompanyCardFlowData = {
 
 type ImportCSVCompanyCardsData = {
     policyID: string;
-
-    /** Account that owns the feed: the +@domain account for domain feeds surfaced via a preferred/linked workspace, otherwise the workspace account */
     domainAccountID: number;
     layoutName: string;
     layoutType: string;

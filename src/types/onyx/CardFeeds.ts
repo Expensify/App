@@ -309,7 +309,7 @@ type AddNewCardFeedData = {
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
 
-    /** Account that owns the CSV feed being edited: the +@domain account for a domain feed surfaced via a preferred/linked workspace, otherwise the workspace account */
+    /** Account that owns the CSV feed being edited */
     domainAccountID?: number;
 
     /** Plaid accounts */
