@@ -1,10 +1,14 @@
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
+
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+
 import CONST from '@src/CONST';
+
+import type {FocusComposerWithDelay, InputType} from './types';
+
 import requestKeyboardForFocusedComposer from './requestKeyboardForFocusedComposer';
 import setTextInputSelection from './setTextInputSelection';
-import type {FocusComposerWithDelay, InputType} from './types';
 
 /**
  * Create a function that focuses the composer.

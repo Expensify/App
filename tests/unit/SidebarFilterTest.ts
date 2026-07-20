@@ -1,10 +1,14 @@
 import {screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {getNavigateToChatHintRegex, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -17,6 +21,7 @@ jest.mock('@libs/Permissions');
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
     IS_LOADING_APP: 'isLoadingApp',
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -959,6 +964,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                                 ...reportCollectionDataSet,
                             }),
                         )

@@ -1,36 +1,49 @@
+import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {enablePolicyCategories} from '@libs/actions/Policy/Category';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    arePolicyRulesEnabled,
     getValidConnectedIntegration,
     hasAccountingFeatureConnection,
     hasConfiguredRules,
+    hasCustomApprovalWorkflow,
     hasCustomCategories,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
-import {enableCompanyCards, enablePolicyConnections} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
 type GettingStartedItem = {
     key: string;
     label: string;
+    subText: string;
     isComplete: boolean;
-    route: Route;
+    route?: Route;
     isFeatureEnabled?: boolean;
-    enableFeature?: () => void;
+    onPress?: () => void;
 };
 
 type UseGettingStartedItemsResult = {
@@ -56,23 +69,58 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
     const [allCardFeeds] = useCardFeeds(activePolicyID);
+    const workspaceAccountID = useWorkspaceAccountID(activePolicyID);
+
+    // Subscribe to this workspace's Expensify Card list by its exact key rather than the whole cards collection. This scopes the
+    // re-render to this workspace's issued-card state and prevents a workspaceAccountID that is a substring of another
+    // workspace's ID from marking this step complete. Mirrors the pattern used in WorkspaceMoreFeaturesPage.
+    const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+        selector: hasIssuedExpensifyCardSelector,
+    });
+    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => Object.values(transactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)),
+    });
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
 
-    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        return emptyResult;
-    }
+    // Hide the whole section as soon as every onboarding to-do is complete, instead of keeping it
+    // around for the full Getting Started window.
+    const buildResult = (builtItems: GettingStartedItem[]): UseGettingStartedItemsResult => {
+        if (builtItems.every((item) => item.isComplete)) {
+            return emptyResult;
+        }
+        return {shouldShowSection: true, items: builtItems};
+    };
 
-    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)) {
-        return emptyResult;
-    }
-
-    if (!isPolicyAdmin(policy)) {
+    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && intent !== CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
         return emptyResult;
     }
 
     if (!isWithinGettingStartedPeriod(firstDayFreeTrial)) {
+        return emptyResult;
+    }
+
+    // When there is no active paid workspace to run onboarding against (e.g. the user just deleted their only
+    // workspace), keep the section visible with a single actionable step to create one instead of hiding it.
+    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)) {
+        return {
+            shouldShowSection: true,
+            items: [
+                {
+                    key: 'createWorkspace',
+                    label: translate('homePage.gettingStartedSection.createWorkspace'),
+                    subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
+                    isComplete: false,
+                    onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)),
+                },
+            ],
+        };
+    }
+
+    if (!isPolicyAdmin(policy)) {
         return emptyResult;
     }
 
@@ -81,75 +129,146 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     items.push({
         key: 'createWorkspace',
         label: translate('homePage.gettingStartedSection.createWorkspace'),
+        subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
         isComplete: true,
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
-    if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+    if (intent === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+        // Only surface the categories step while the Categories feature is enabled. Disabling it from the
+        // More features menu hides this step, and re-enabling it brings the step back.
+        if (policy.areCategoriesEnabled) {
+            items.push({
+                key: 'customizeSpendCategories',
+                label: translate('homePage.gettingStartedSection.customizeSpendCategories'),
+                subText: translate('homePage.gettingStartedSection.customizeSpendCategoriesSubText'),
+                isComplete: hasCustomCategories(policyCategories),
+                route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+                isFeatureEnabled: true,
+            });
+        }
+
         items.push({
-            key: 'customizeCategories',
-            label: translate('homePage.gettingStartedSection.customizeCategories'),
-            isComplete: hasCustomCategories(policyCategories),
-            route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCategoriesEnabled,
-            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
+            key: 'createExpense',
+            label: translate('homePage.gettingStartedSection.createExpense'),
+            subText: translate('homePage.gettingStartedSection.createExpenseSubText'),
+            isComplete: hasCreatedExpense,
+            onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
         });
+
+        items.push({
+            key: 'linkPersonalCard',
+            label: translate('homePage.gettingStartedSection.linkPersonalCard'),
+            subText: translate('homePage.gettingStartedSection.linkPersonalCardSubText'),
+            isComplete: Object.keys(personalCards).length > 0,
+            route: ROUTES.SETTINGS_WALLET,
+        });
+
+        return buildResult(items);
+    }
+
+    if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+        if (policy.areCategoriesEnabled) {
+            items.push({
+                key: 'customizeCategories',
+                label: translate('homePage.gettingStartedSection.customizeCategories'),
+                subText: translate('homePage.gettingStartedSection.customizeCategoriesSubText'),
+                isComplete: hasCustomCategories(policyCategories),
+                route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+            });
+        }
+
+        if (policy.areCompanyCardsEnabled) {
+            items.push({
+                key: 'linkCompanyCards',
+                label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+                subText: translate('homePage.gettingStartedSection.linkCompanyCardsSubText'),
+                isComplete: hasCompanyCardFeeds(allCardFeeds),
+                route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
+            });
+        }
 
         const activeMemberCount = Object.values(policy.employeeList ?? {}).filter((member) => member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         items.push({
             key: 'inviteAccountant',
             label: translate('homePage.gettingStartedSection.inviteAccountant'),
+            subText: translate('homePage.gettingStartedSection.inviteAccountantSubText'),
             isComplete: activeMemberCount >= MIN_MEMBERS_FOR_ACCOUNTANT_INVITED,
             route: ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID),
         });
 
-        return {shouldShowSection: true, items};
+        return buildResult(items);
     }
 
     const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
+    // Only route to the Connections page when the user picked a directly supported integration or the workspace already has a
+    // real accounting connection. Otherwise (e.g. the "Other" onboarding choice merely enables the connections feature) we send
+    // the user to customize categories instead of back to the integration list they already opted out of.
+    const shouldShowConnectAccounting = isAccountingEnabled && (isDirectConnect || hasAccountingFeatureConnection(policy));
 
-    if (isAccountingEnabled) {
+    if (shouldShowConnectAccounting) {
         const integrationName = isDirectConnect
             ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
             : undefined;
         items.push({
             key: 'connectAccounting',
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
+            subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areConnectionsEnabled,
-            enableFeature: () => enablePolicyConnections(activePolicyID, true, false),
         });
-    } else {
+    } else if (policy.areCategoriesEnabled) {
         items.push({
             key: 'customizeCategories',
             label: translate('homePage.gettingStartedSection.customizeCategories'),
+            subText: translate('homePage.gettingStartedSection.customizeCategoriesSubText'),
             isComplete: hasCustomCategories(policyCategories),
             route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCategoriesEnabled,
-            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
         });
     }
 
-    items.push({
-        key: 'linkCompanyCards',
-        label: translate('homePage.gettingStartedSection.linkCompanyCards'),
-        isComplete: hasCompanyCardFeeds(allCardFeeds),
-        route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
-        isFeatureEnabled: policy.areCompanyCardsEnabled,
-        enableFeature: () => enableCompanyCards(activePolicyID, true, false),
-    });
+    // The two card features are independent: each shows its own getting-started step only when that feature was enabled during onboarding
+    if (policy.areCompanyCardsEnabled) {
+        items.push({
+            key: 'linkCompanyCards',
+            label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+            subText: translate('homePage.gettingStartedSection.linkCompanyCardsSubText'),
+            isComplete: hasCompanyCardFeeds(allCardFeeds),
+            route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
+        });
+    }
 
-    if (policy.areRulesEnabled) {
+    if (policy.areExpensifyCardsEnabled) {
+        items.push({
+            key: 'issueExpensifyCards',
+            label: translate('homePage.gettingStartedSection.issueExpensifyCards'),
+            subText: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
+            isComplete: hasIssuedExpensifyCard,
+            route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
+        });
+    }
+
+    if (policy.areWorkflowsEnabled) {
+        items.push({
+            key: 'configureApprovals',
+            label: translate('homePage.gettingStartedSection.configureApprovals'),
+            subText: translate('homePage.gettingStartedSection.configureApprovalsSubText'),
+            isComplete: hasCustomApprovalWorkflow(policy),
+            route: ROUTES.WORKSPACE_WORKFLOWS.getRoute(activePolicyID),
+        });
+    }
+
+    if (arePolicyRulesEnabled(policy, policyCategories)) {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
-            isComplete: hasConfiguredRules(policy),
+            subText: translate('homePage.gettingStartedSection.setupRulesSubText'),
+            isComplete: hasConfiguredRules(policy, policyCategories),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });
     }
 
-    return {shouldShowSection: true, items};
+    return buildResult(items);
 }
 
 export default useGettingStartedItems;

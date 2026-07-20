@@ -1,17 +1,21 @@
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useState} from 'react';
 import Banner from '@components/Banner';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import React, {useState} from 'react';
 
 type AccountManagerBannerProps = {
     reportID: string | undefined;
@@ -39,7 +43,7 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
     if (!accountManagerReportID || !isConciergeChatReport(report, conciergeReportID) || !isBannerVisible) {
         return null;
     }
-    const displayName = getDisplayNameOrDefault(participantPersonalDetail);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: participantPersonalDetail, translate});
     const login = participantPersonalDetail?.login;
     const chatWithAccountManagerText = displayName && login ? translate('common.chatWithAccountManager', `${displayName} (${login})`) : '';
 

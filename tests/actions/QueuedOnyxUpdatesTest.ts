@@ -1,8 +1,12 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {flushQueue, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const queuedOnyxUpdates: Array<
@@ -59,6 +63,10 @@ const queuedOnyxUpdates: Array<
 jest.mock('@src/CONFIG', () => ({
     IS_TEST_ENV: false,
 }));
+
+// QueuedOnyxUpdates now imports Log, which transitively pulls in the network stack that reads
+// the (mocked, partial) CONFIG at load time. Mock Log so that chain never loads.
+jest.mock('@libs/Log');
 
 function getOnyxUpdateValue<T>(key: string): T | undefined {
     return queuedOnyxUpdates.find((item) => item.key === key)?.value as T | undefined;

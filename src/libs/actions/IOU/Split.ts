@@ -1,8 +1,5 @@
-import {fastMerge} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -12,7 +9,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -31,9 +27,12 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
+    getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
+    getReportTransactions,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -53,10 +52,12 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {removeDraftTransaction} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -65,6 +66,17 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {fastMerge} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
+import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
+import type BasePolicyParams from './types/BasePolicyParams';
+import type BaseTransactionParams from './types/BaseTransactionParams';
+
 import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
 import {
     buildMinimalTransactionForFormula,
@@ -75,10 +87,8 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
-import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import type BasePolicyParams from './types/BasePolicyParams';
-import type BaseTransactionParams from './types/BaseTransactionParams';
+import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -119,23 +129,20 @@ type CreateDistanceRequestInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
-    backToReport?: string;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
-    shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
     shouldPlaySound?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -159,8 +166,8 @@ type CreateSplitsAndOnyxDataParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
-    // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type StartSplitBilActionParams = {
@@ -186,6 +193,22 @@ type StartSplitBilActionParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    delegateAccountID: number | undefined;
+};
+
+type CompleteSplitBillActionParams = {
+    chatReportID: string;
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    sessionAccountID: number;
+    isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
+    sessionEmail?: string;
 };
 
 type SplitBillActionsParams = {
@@ -218,8 +241,8 @@ type SplitBillActionsParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldHandleNavigation?: boolean;
     shouldDeferForSearch?: boolean;
-    // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 /**
@@ -256,6 +279,7 @@ function splitBill({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    isTrackIntentUser,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -290,6 +314,7 @@ function splitBill({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     const parameters: SplitBillParams = {
@@ -368,6 +393,7 @@ function splitBillAndOpenReport({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    isTrackIntentUser,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -402,6 +428,7 @@ function splitBillAndOpenReport({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     const parameters: SplitBillParams = {
@@ -474,6 +501,7 @@ function startSplitBill({
     participantsPolicyTags,
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
+    delegateAccountID,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -514,8 +542,8 @@ function startSplitBill({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
-        // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-        delegateAccountIDParam: undefined,
+        iouReportID: splitChatReport.reportID,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -664,6 +692,7 @@ function startSplitBill({
         policyRecentlyUsedCurrencies,
         policyRecentlyUsedTags,
         participantsPolicyTags,
+        delegateAccountID,
     };
 
     if (existingSplitChatReport) {
@@ -851,18 +880,20 @@ function startSplitBill({
  * @param sessionAccountID - accountID of the current user
  * @param sessionEmail - email of the current user
  */
-function completeSplitBill(
-    chatReportID: string,
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    sessionAccountID: number,
-    isASAPSubmitBetaEnabled: boolean,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    sessionEmail?: string,
-) {
+function completeSplitBill({
+    chatReportID,
+    reportAction,
+    updatedTransaction,
+    sessionAccountID,
+    isASAPSubmitBetaEnabled,
+    quickAction,
+    transactionViolations,
+    betas,
+    personalDetails,
+    delegateAccountID,
+    isTrackIntentUser,
+    sessionEmail,
+}: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
     }
@@ -1011,9 +1042,20 @@ function completeSplitBill(
                   })
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
-            if (typeof oneOnOneIOUReport?.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                oneOnOneIOUReport.total -= splitAmount;
+            if (oneOnOneIOUReport) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
+                if (typeof oneOnOneIOUReport.total === 'number') {
+                    // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+                    oneOnOneIOUReport.total -= splitAmount;
+                }
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+                if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
+                    oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
@@ -1054,16 +1096,14 @@ function completeSplitBill(
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
                 currentUserAccountID: sessionAccountID,
-                // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-                delegateAccountIDParam: undefined,
+                delegateAccountIDParam: delegateAccountID,
             });
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            // delegateAccountID: will be threaded in PR 11; buildOptimisticReportPreview falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, undefined);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1099,8 +1139,8 @@ function completeSplitBill(
             },
             quickAction,
             personalDetails,
-            // delegateAccountID: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            delegateAccountID: undefined,
+            delegateAccountID,
+            isTrackIntentUser,
         });
 
         splits.push({
@@ -1224,6 +1264,7 @@ function setDraftSplitTransaction(
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
+    personalPolicyOutputCurrency?: string,
 ) {
     if (!transactionID) {
         return undefined;
@@ -1242,6 +1283,7 @@ function setDraftSplitTransaction(
               shouldUpdateReceiptState: false,
               policy,
               isSplitTransaction: true,
+              personalPolicyOutputCurrency,
           })
         : null;
 
@@ -1381,6 +1423,7 @@ function createSplitsAndOnyxData({
     personalDetails,
     participantsPolicyTags,
     delegateAccountID,
+    isTrackIntentUser,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1431,6 +1474,7 @@ function createSplitsAndOnyxData({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
     });
 
@@ -1690,13 +1734,21 @@ function createSplitsAndOnyxData({
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (oneOnOneIOUReport?.currency === currency) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
                 if (typeof oneOnOneIOUReport.total === 'number') {
                     oneOnOneIOUReport.total -= splitAmount;
                 }
 
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+
                 if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
                     oneOnOneIOUReport.unheldTotal -= splitAmount;
                 }
+
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
@@ -1825,6 +1877,7 @@ function createSplitsAndOnyxData({
             quickAction,
             personalDetails,
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         const individualSplit = {
@@ -1891,15 +1944,12 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         existingTransaction,
         transactionParams,
         policyParams = {},
-        backToReport,
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
         recentWaypoints = [],
         customUnitPolicyID,
-        shouldHandleNavigation = true,
-        shouldDeferForSearch = false,
         shouldPlaySound: shouldPlaySoundParam = true,
         personalDetails,
         betas,
@@ -1907,6 +1957,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         shouldDeferAutoSubmit,
         previousOdometerDraft,
         delegateAccountID,
+        isTrackIntentUser,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -1998,6 +2049,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             participantsPolicyTags: buildParticipantsPolicyTags(participants),
             delegateAccountID,
+            isTrackIntentUser,
         });
         onyxData = splitOnyxData;
 
@@ -2040,6 +2092,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reportPreviewAction,
             transactionThreadReportID,
             createdReportActionIDForThread,
+            payerAccountID,
             payerEmail,
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
@@ -2089,6 +2142,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             betas,
             optimisticReportPreviewActionID,
             delegateAccountID,
+            isTrackIntentUser,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -2136,6 +2190,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reimbursable,
             transactionThreadReportID,
             createdReportActionIDForThread,
+            payerAccountID,
             payerEmail,
             customUnitRateID,
             customUnitPolicyID,
@@ -2175,33 +2230,25 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     };
 
+    const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
+
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
+        addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
+    }
+
     deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+        shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-
-    if (shouldHandleNavigation) {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-        const navigationActiveReportID = backToReport ?? activeReportID;
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({
-            activeReportID: navigationActiveReportID,
-            isFromGlobalCreate,
-            transactionID: parameters.transactionID,
-            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
-        });
-    } else {
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    }
+    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);
     }
 
-    return {iouReport: distanceIouReport};
+    return {iouReport: distanceIouReport, chatReportID: parameters.chatReportID, transactionID: parameters.transactionID};
 }
 
 export {

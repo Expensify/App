@@ -1,6 +1,8 @@
+import toggleTestToolsModal from '@userActions/TestTool';
+
 import {useEffect} from 'react';
 import {DevSettings} from 'react-native';
-import toggleTestToolsModal from '@userActions/TestTool';
+
 import type CustomDevMenuElement from './types';
 
 const CustomDevMenu: CustomDevMenuElement = Object.assign(

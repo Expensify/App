@@ -1,7 +1,10 @@
-import React from 'react';
 import CONST from '@src/CONST';
-import SelectionButton from './SelectionButton';
+
+import React from 'react';
+
 import type {CheckboxProps} from './SelectionButton';
+
+import SelectionButton from './SelectionButton';
 
 /**
  * A square checkbox that supports checked, unchecked, and indeterminate states.
@@ -20,6 +23,7 @@ function Checkbox({
     containerBorderRadius,
     caretSize,
     accessibilityLabel,
+    accessibilityHint,
     shouldStopMouseDownPropagation,
     shouldSelectOnPressEnter,
     wrapperStyle,
@@ -44,6 +48,7 @@ function Checkbox({
             containerBorderRadius={containerBorderRadius}
             caretSize={caretSize}
             accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
             shouldStopMouseDownPropagation={shouldStopMouseDownPropagation}
             shouldSelectOnPressEnter={shouldSelectOnPressEnter}
             wrapperStyle={wrapperStyle}

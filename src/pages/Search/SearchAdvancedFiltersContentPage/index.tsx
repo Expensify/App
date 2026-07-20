@@ -1,6 +1,9 @@
-import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import Navigation from '@libs/Navigation/Navigation';
+
+import React from 'react';
+
 import SearchAdvancedFiltersContentBase from './SearchAdvancedFiltersContentBase';
 
 function SearchAdvancedFiltersContentPage() {

@@ -1,4 +1,5 @@
 import {processFrequentlyUsedEmojis} from '@libs/EmojiUtils';
+
 import type {FrequentlyUsedEmoji} from '@src/types/onyx';
 
 // Mock the Emojis module

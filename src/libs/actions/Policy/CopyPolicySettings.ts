@@ -1,14 +1,17 @@
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
-import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {CustomUnit, PolicyFeatureName} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 type Part =
     | 'overview'
@@ -57,23 +60,52 @@ const PARTS_TO_POLICY_FIELDS = {
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'invoice'],
-    travel: ['isTravelEnabled', 'travelSettings'],
+    // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
+    // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
+    // and must not be copied — each target is re-provisioned with its own entity by the backend.
+    travel: ['isTravelEnabled'],
     timeTracking: [],
     receiptPartners: [],
 } as const satisfies Record<Part, ReadonlyArray<keyof Policy>>;
 
 type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
 
-function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): void {
-    Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
+/**
+ * Maps each copy-settings part to the policy feature it enables. This carries no plan judgment - it
+ * only relates a part to its feature name so `canPolicyAccessFeature` can decide which features a
+ * given target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
+ *
+ * This is intentionally separate from `PARTS_TO_POLICY_FIELDS`: that map lists every Onyx field a
+ * part copies, where the feature toggle isn't reliably identifiable (e.g. `codingRules` copies the
+ * `rules` field, not the `areRulesEnabled` feature; `timeTracking`/`receiptPartners` copy no fields).
+ */
+const PART_TO_POLICY_FEATURE: Partial<Record<Part, PolicyFeatureName>> = {
+    reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
+    accounting: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+    categories: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+    tags: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
+    taxes: CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
+    workflows: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+    rules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+    codingRules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+    distanceRates: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+    perDiem: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+    invoices: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
+    travel: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+    timeTracking: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
+    receiptPartners: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+};
+
+function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): Promise<void> {
+    return Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
 }
 
 function clearCopyPolicySettings(): void {
     Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {});
 }
 
-function requestCopyPolicySettingsNotification(): void {
-    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {});
+function requestCopyPolicySettingsNotification(shouldOnlyNotifyOnFailure = false): void {
+    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {shouldOnlyNotifyOnFailure});
 }
 
 function findCustomUnitByName(policy: Policy | undefined, unitName: string): CustomUnit | undefined {
@@ -156,6 +188,27 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
 }
 
 /**
+ * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
+ * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
+ * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
+ * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
+ * target's existing travelSettings (like setWorkspaceTravelSettings) means a target that is not yet
+ * provisioned gets only {autoAddTripName} with no fabricated identity fields, so it is not treated
+ * as provisioned.
+ */
+function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
+    const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
+    if (sourceAutoAddTripName === undefined) {
+        return undefined;
+    }
+
+    // A target that is not yet provisioned has no travelSettings, so the spread yields just
+    // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
+    // provision time), so leaving them out here keeps the target from looking provisioned.
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
+}
+
+/**
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
  * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
@@ -229,6 +282,7 @@ function buildCopyPolicySettingsData(
     const isTimeTrackingSelected = parts.includes('timeTracking');
     const isReceiptPartnersSelected = parts.includes('receiptPartners');
     const isCodingRulesSelected = parts.includes('codingRules');
+    const isTravelSelected = parts.includes('travel');
     const timeTrackingPendingFields = isTimeTrackingSelected
         ? {
               isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -265,6 +319,7 @@ function buildCopyPolicySettingsData(
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
+        const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
         const codingRulesPatch = isCodingRulesSelected
             ? {
@@ -293,6 +348,7 @@ function buildCopyPolicySettingsData(
                           },
                       }
                     : {}),
+                ...(travelSettingsPatch ?? {}),
                 ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
                 ...codingRulesPatch,
                 pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
@@ -413,5 +469,5 @@ function copyPolicySettings(
     write(WRITE_COMMANDS.COPY_POLICY_SETTINGS, params, {optimisticData, successData, failureData});
 }
 
-export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings};
+export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings, PART_TO_POLICY_FEATURE};
 export type {Part};

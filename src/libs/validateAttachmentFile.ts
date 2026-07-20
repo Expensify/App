@@ -1,6 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ValueOf} from 'type-fest';
+
 import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
 
 type ValidateAttachmentValidResult = {
@@ -68,7 +70,16 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         if (updatedFile.name !== cleanName) {
             updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
         }
+        // Read the superseded URI from normalizedFile: when the name needed cleaning, updatedFile was
+        // reassigned to a fresh File that doesn't carry the custom .uri property, so reading it there
+        // would skip the revoke exactly for cleaned filenames (e.g. default macOS screenshot names).
+        const previousUri = normalizedFile.uri;
         const inputSource = URL.createObjectURL(updatedFile);
+        if (previousUri && previousUri !== inputSource && previousUri.startsWith('blob:')) {
+            // Release the superseded object URL (e.g. the one AttachmentPicker assigned) so its Blob can be
+            // garbage-collected; orphaned blob: URLs keep the full-size file resident until the document dies.
+            URL.revokeObjectURL(previousUri);
+        }
         updatedFile.uri = inputSource;
 
         return {isValid: true, file: updatedFile};

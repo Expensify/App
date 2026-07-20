@@ -2,7 +2,7 @@
 title: How to Write Agent Rules
 description: Learn how to write effective Agent Rules using natural-language instructions and examples.
 keywords: [agent rules, RuleBot, prompt writing, ai rules, agent rule examples, agent rule best practices]
-internalScope: Audience is Workspace Admins. Covers best practices for writing Agent Rules and examples of effective instructions. Does not cover creating Agent Rules or managing Custom Agents.
+internalScope: Audience is Workspace Admins. Covers best practices for writing Agent Rules and examples of effective instructions. Does not cover creating Agent Rules or managing Agents.
 ---
 
 # How to Write Agent Rules
@@ -49,6 +49,8 @@ More specific approval rules generally produce more predictable results than bro
 
 > Approve reports that seem reasonable.
 
+---
+
 ## How to write Agent Rules for routing
 
 Routing rules can be used to send reports to different approvers based on report details.
@@ -64,6 +66,8 @@ Agent Rules can ask submitters for additional information when specific conditio
 Example:
 
 > Ask the submitter to justify any meal expense over $75.
+
+---
 
 ## How to write Agent Rules that modify expenses
 

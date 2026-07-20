@@ -1,8 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React, {createRef} from 'react';
+
+import {DialogLabelProvider, useDialogLabelActions, useDialogLabelData} from '@components/DialogLabelContext';
+
 import type {PropsWithChildren} from 'react';
 import type {View} from 'react-native';
-import {DialogLabelProvider, useDialogLabelActions, useDialogLabelData} from '@components/DialogLabelContext';
+
+import React, {createRef} from 'react';
 
 const testContainerRef = createRef<View>();
 

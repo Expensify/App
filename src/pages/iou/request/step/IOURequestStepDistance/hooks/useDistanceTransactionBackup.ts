@@ -1,9 +1,12 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {openReport} from '@libs/actions/Report';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import {hasRoute} from '@libs/TransactionUtils';
+
 import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type UseDistanceTransactionBackupParams = {
     /** The transaction the editor is operating on. */

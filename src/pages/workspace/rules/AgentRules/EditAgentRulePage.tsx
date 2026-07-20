@@ -1,6 +1,3 @@
-import React, {useRef} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,21 +7,32 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
+
+import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
 type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
@@ -36,12 +44,16 @@ function EditAgentRulePage({
 }: EditAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const shouldUseScrollableLayout = useIsInLandscapeMode();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
+    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
     const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in e)) {
@@ -94,6 +106,10 @@ function EditAgentRulePage({
         return <NotFoundPage />;
     }
 
+    const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
+        ? [styles.flex1, styles.mnh0, styles.agentRulePromptInput]
+        : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -105,6 +121,7 @@ function EditAgentRulePage({
                 testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight={shouldUseScrollableLayout || shouldUseExpandedRevampFormLayout}
             >
                 <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
                 <FormProvider
@@ -114,8 +131,8 @@ function EditAgentRulePage({
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={false}
-                    submitFlexEnabled={false}
+                    shouldUseScrollView={shouldUseScrollableLayout}
+                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
@@ -133,24 +150,23 @@ function EditAgentRulePage({
                     }
                 >
                     <View style={styles.flex1}>
-                        <View style={[styles.gap2, styles.mv4]}>
-                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.agentRules.describeRuleTitle')}</Text>
-                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.agentRules.describeRuleSubtitle')}</Text>
+                        <View style={inputWrapperStyles}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PROMPT}
+                                label={describeRuleLabel}
+                                accessibilityLabel={describeRuleLabel}
+                                role={CONST.ROLE.PRESENTATION}
+                                onKeyPress={handleKeyPress}
+                                defaultValue={agentRule.prompt}
+                                multiline
+                                shouldLabelStayOnSingleLine
+                                containerStyles={[styles.flex1]}
+                                touchableInputWrapperStyle={[styles.flex1]}
+                                textInputContainerStyles={[styles.flex1]}
+                                inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            />
                         </View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={translate('workspace.rules.agentRules.describeRuleTitle')}
-                            accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
-                            role={CONST.ROLE.PRESENTATION}
-                            onKeyPress={handleKeyPress}
-                            defaultValue={agentRule.prompt}
-                            multiline
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        />
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                     </View>
                 </FormProvider>

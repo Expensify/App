@@ -1,5 +1,7 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
+
 import CONST from '@src/CONST';
 
 describe('shouldPopoverUseScrollView', () => {

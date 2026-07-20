@@ -1,8 +1,11 @@
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import React, {useCallback, useContext, useEffect} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {usePlaybackStateContext} from './PlaybackContext';
+
 import type {VolumeActionsContextType, VolumeStateContextType} from './types';
+
+import {usePlaybackStateContext} from './PlaybackContext';
 
 const VolumeStateContext = React.createContext<VolumeStateContextType | null>(null);
 const VolumeActionsContext = React.createContext<VolumeActionsContextType | null>(null);

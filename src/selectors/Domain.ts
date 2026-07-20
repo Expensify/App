@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import isObject from 'lodash/isObject';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
@@ -8,6 +5,11 @@ import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {DomainSecurityGroupPendingActions} from '@src/types/onyx/DomainPendingActions';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import isObject from 'lodash/isObject';
 
 type DomainSecurityGroupWithID = {
     id: string;

@@ -1,27 +1,44 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
 import {useShowContextMenuState} from '@components/ShowContextMenuContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest, isFetchingWaypointsFromServer, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {
+    hasEReceipt,
+    hasPendingDistanceReceiptRegeneration,
+    hasReceiptSource,
+    isDistanceRequest,
+    isManualDistanceRequest,
+    isMapBasedDistanceRequest,
+    isPerDiemRequest,
+} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import ReceiptPDFOverlay from './ReceiptPDFOverlay';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
@@ -77,6 +94,9 @@ type ReportActionItemImageProps = {
     /** Whether to use the thumbnail image instead of the full image */
     shouldUseThumbnailImage?: boolean;
 
+    /** Whether the receipt can be hover-zoomed. When true, remote PDFs render the actual PDF on top of the thumbnail so magnification stays sharp (web only). */
+    canZoomReceipt?: boolean;
+
     /** Callback to be called when the image loads */
     onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 
@@ -108,6 +128,7 @@ function ReportActionItemImage({
     shouldUseFullHeight,
     report: reportProp,
     shouldUseThumbnailImage,
+    canZoomReceipt = false,
     onLoad,
     onLoadFailure,
 }: ReportActionItemImageProps) {
@@ -116,15 +137,10 @@ function ReportActionItemImage({
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
-    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    // After a distance/rate edit the BE regenerates the receipt and invalidates the prior URL, but
-    // the local `receipt.source` only refreshes when the Pusher push arrives. Render `ConfirmedRoute`
-    // (which draws the map from `routes.coordinates`, independent of the URL) while any of these
-    // edits are pending so the thumbnail doesn't briefly try to load the now-404'd URL.
-    const pf = transaction?.pendingFields as Record<string, unknown> | undefined;
-    const hasPendingReceiptRegeneration = !!pf && (!!pf.distance || !!pf.merchant || !!pf.customUnitRateID);
-    const showMapAsImage = isMapDistanceRequest && (hasErrors || !!hasPendingWaypoints || hasPendingReceiptRegeneration);
+    // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
+    // (via `ConfirmedRoute`) instead of loading the now-404'd image.
+    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
 
     if (showMapAsImage) {
         return (
@@ -135,6 +151,7 @@ function ReportActionItemImage({
                     shouldHaveBorderRadius={shouldMapHaveBorderRadius}
                     interactive={false}
                     requireRouteToDisplayMap
+                    shouldDisplayCompass={false}
                 />
             </View>
         );
@@ -188,6 +205,33 @@ function ReportActionItemImage({
 
     propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
 
+    // A remote PDF is shown as the server's low-resolution JPG thumbnail, which blurs when hover-zoomed.
+    // Where zooming is available (web only), render the actual PDF on top of the thumbnail so the magnified
+    // view stays sharp. The thumbnail stays underneath as an instant preview and as a fallback if the PDF fails.
+    // Map/route distance requests are excluded: their hover overlay is a DistanceEReceipt card, not the PDF.
+    // isMapBasedDistanceRequest covers map, GPS, and manual-typed transactions that still carry waypoints.
+    const pdfSourceURL = typeof originalImageSource === 'string' && !!originalImageSource ? originalImageSource : undefined;
+    const isRemotePDF = !!isPDF && !effectiveIsLocalFile && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!pdfSourceURL;
+    const shouldOverlayHighResPDF = canZoomReceipt && isRemotePDF && hasHoverSupport();
+
+    const renderReceiptContent = (receiptImage: React.ReactNode) =>
+        shouldOverlayHighResPDF ? (
+            <View style={[styles.w100, styles.h100]}>
+                {receiptImage}
+                <View
+                    style={StyleSheet.absoluteFill}
+                    pointerEvents="none"
+                >
+                    <ReceiptPDFOverlay
+                        sourceURL={pdfSourceURL}
+                        onLoadFailure={onLoadFailure}
+                    />
+                </View>
+            </View>
+        ) : (
+            receiptImage
+        );
+
     if (enablePreviewModal) {
         return (
             <PressableWithoutFocus
@@ -206,18 +250,20 @@ function ReportActionItemImage({
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}
             >
-                <ReceiptImage
-                    {...propsObj}
-                    onLoad={onLoad}
-                    shouldUseFullHeight={shouldUseFullHeight}
-                    onLoadFailure={onLoadFailure}
-                    previewUri={previewUriSource}
-                />
+                {renderReceiptContent(
+                    <ReceiptImage
+                        {...propsObj}
+                        onLoad={onLoad}
+                        shouldUseFullHeight={shouldUseFullHeight}
+                        onLoadFailure={onLoadFailure}
+                        previewUri={previewUriSource}
+                    />,
+                )}
             </PressableWithoutFocus>
         );
     }
 
-    return (
+    return renderReceiptContent(
         <ReceiptImage
             {...propsObj}
             shouldUseFullHeight={shouldUseFullHeight}
@@ -225,7 +271,7 @@ function ReportActionItemImage({
             onLoad={onLoad}
             onLoadFailure={onLoadFailure}
             previewUri={previewUriSource}
-        />
+        />,
     );
 }
 

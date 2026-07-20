@@ -1,8 +1,11 @@
-import {createNavigatorFactory} from '@react-navigation/native';
 import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+
+import {createNavigatorFactory} from '@react-navigation/native';
+
+import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from './types';
+
 import createPlatformStackNavigatorComponent from './createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from './defaultPlatformStackScreenOptions';
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from './types';
 
 const PlatformStackNavigatorComponent = createPlatformStackNavigatorComponent('PlatformStackNavigator', {defaultScreenOptions: defaultPlatformStackScreenOptions});
 

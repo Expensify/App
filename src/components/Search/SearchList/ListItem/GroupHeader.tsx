@@ -1,10 +1,3 @@
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {NativeSyntheticEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,6 +6,7 @@ import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
@@ -23,15 +17,29 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {NativeSyntheticEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
+
+import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
+
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -40,7 +48,6 @@ import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
-import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -162,10 +169,10 @@ function GroupHeader({
         return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
     }, [groupItem.transactions]);
 
-    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded);
+    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
 
     const hasSnapshotTransactions = !isExpenseReportType && !!snapshotData && Object.keys(snapshotData).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
-    const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions;
+    const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions && !groupItem.transactionsQueryJSON;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
@@ -199,13 +206,18 @@ function GroupHeader({
         const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
         const filteredTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const selectedCount = filteredTransactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
-        const isEmptyReportSelected = isEmpty && originalKey && selectedTransactions[originalKey]?.isSelected;
+        const isEmptyReportSelected = effectiveTransactions.length === 0 && originalKey && selectedTransactions[originalKey]?.isSelected;
         const allChecked = !!isEmptyReportSelected || (selectedCount === filteredTransactions.length && filteredTransactions.length > 0);
         const indeterminate = selectedCount > 0 && selectedCount !== filteredTransactions.length;
         return {isSelectAllChecked: allChecked, isIndeterminate: indeterminate};
-    }, [selectedTransactions, effectiveTransactions, isEmpty, originalKey]);
+    }, [selectedTransactions, effectiveTransactions, originalKey]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
+
+    const withOriginalKey = <T extends SearchListItem>(rowItem: T): T => ({
+        ...rowItem,
+        keyForList: originalKey,
+    });
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -215,7 +227,7 @@ function GroupHeader({
     });
 
     const handleSelectionButtonPress = () => {
-        onCheckboxPress(item, isExpenseReportType ? undefined : effectiveTransactions);
+        onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
     };
 
     const pendingAction =
@@ -225,7 +237,7 @@ function GroupHeader({
             : undefined);
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
-        onSelectRow(rowItem, transactionPreviewData, event);
+        onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
     };
 
     const renderHeader = (hovered: boolean) => {
@@ -363,7 +375,7 @@ function GroupHeader({
 
     const handlePress = (event?: ModifiedMouseEvent) => {
         if (isExpenseReportType) {
-            onSelectRow(item, transactionPreviewData, event);
+            onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
             onToggle();
@@ -371,7 +383,7 @@ function GroupHeader({
     };
 
     const handleLongPress = () => {
-        onLongPressRow?.(item, isExpenseReportType ? undefined : effectiveTransactions);
+        onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
     };
 
     return (
@@ -442,10 +454,7 @@ function GroupHeader({
                                         style={styles.stickToTop}
                                         onLayout={onSubHeaderLayout}
                                     >
-                                        <View style={[styles.ph3, styles.pb1]}>
-                                            <View style={[styles.borderBottom, styles.borderNone]} />
-                                        </View>
-                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
+                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
                                             <SearchTableHeader
                                                 canSelectMultiple
                                                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -462,9 +471,7 @@ function GroupHeader({
                                                 isActionColumnWide={isSubHeaderActionColumnWide}
                                             />
                                         </View>
-                                        <View style={[styles.ph3, styles.groupSubHeaderBorderOverlap]}>
-                                            <View style={StyleUtils.getSelectedBorderBottomStyle(isItemSelected)} />
-                                        </View>
+                                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3]} />
                                     </View>
                                 )}
                             </Animated.View>

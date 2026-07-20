@@ -1,4 +1,5 @@
 import type {TranslationPaths} from '@src/languages/types';
+
 import useDocumentTitle from './useDocumentTitle';
 import useLocalize from './useLocalize';
 
