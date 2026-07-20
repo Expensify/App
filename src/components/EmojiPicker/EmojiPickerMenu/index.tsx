@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -38,6 +39,7 @@ const throttleTime = isMobile() ? 200 : 50;
 
 function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -401,6 +403,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             <View style={[styles.p4, styles.pb3]}>
                 <TextInput
                     placeholder={translate('common.search')}
+                    placeholderTextColor={theme.textSupporting}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
                     touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}

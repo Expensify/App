@@ -7,6 +7,7 @@ import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibil
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
@@ -73,6 +74,7 @@ function TextInput({
     focusTextInput,
 }: TextInputProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {
@@ -164,6 +166,7 @@ function TextInput({
                     role={CONST.ROLE.PRESENTATION}
                     value={value}
                     placeholder={placeholder ?? label}
+                    placeholderTextColor={theme.textSupporting}
                     maxLength={maxLength}
                     onChangeText={handleTextInputChange}
                     inputMode={inputMode}
