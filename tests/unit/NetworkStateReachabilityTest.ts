@@ -113,15 +113,45 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
         expect(reconnectListener).toHaveBeenCalledTimes(1);
     });
 
-    test('null→true fires reconnect listener', () => {
+    test('null→true does NOT fire reconnect listener when the app was never offline (fake recovery)', () => {
+        // This is the boot / post-configure / refresh() re-emit shape: NetInfo emits null while
+        // a Ping is in flight, then true when it succeeds. No hard stop was ever active, so
+        // there is nothing to reconnect from. Treating this as a recovery caused serial
+        // Ping+ReconnectApp storms in production (issue #2738).
         const reconnectListener = jest.fn();
         onReachabilityConfirmed(reconnectListener);
 
-        // Simulate losing reachability tracking (null) then recovering
+        fireNetInfoState({isInternetReachable: null});
+        fireNetInfoState({isInternetReachable: true});
+
+        expect(reconnectListener).not.toHaveBeenCalled();
+    });
+
+    test('false→null→true fires reconnect listener once (real outage with lost tracking)', () => {
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        // Confirmed unreachable — the internetUnreachable hard stop is active
+        fireNetInfoState({isInternetReachable: false});
+        // Tracking lost mid-outage, then recovery confirmed
         fireNetInfoState({isInternetReachable: null});
         fireNetInfoState({isInternetReachable: true});
 
         expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
+
+    test('repeated re-confirmations after a fake-recovery shape never fire reconnect', () => {
+        // The production storm: something keeps re-emitting null/true pairs with no real
+        // network change. None of them may fire a reconnect.
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        for (let i = 0; i < 5; i++) {
+            fireNetInfoState({isInternetReachable: null});
+            fireNetInfoState({isInternetReachable: true});
+        }
+
+        expect(reconnectListener).not.toHaveBeenCalled();
     });
 
     test('undefined→true does NOT fire reconnect listener (boot event)', () => {

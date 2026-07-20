@@ -572,6 +572,17 @@ describe('NetworkState', () => {
             expect(configureMock.mock.calls.length).toBeGreaterThan(callsBefore);
         });
 
+        test('SHOULD_USE_STAGING_SERVER same-value rewrite does NOT reconfigure', async () => {
+            await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, true);
+            await waitForBatchedUpdates();
+            const callsAfterFlip = configureMock.mock.calls.length;
+
+            await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, true);
+            await waitForBatchedUpdates();
+
+            expect(configureMock.mock.calls.length).toBe(callsAfterFlip);
+        });
+
         test('reachability URL falls back to accountID=unknown when SESSION has no accountID', async () => {
             await waitForBatchedUpdates();
 

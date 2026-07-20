@@ -24,7 +24,12 @@ let unsubscribeNetInfo: (() => void) | null = null;
 let prevIsInternetReachable: boolean | null | undefined;
 let isPoorConnectionSimulated: boolean | undefined;
 let networkTimeSkew = 0;
-let suppressNextReachabilityRestored = false;
+// Armed by the debug/simulation paths that clear an artificial hard stop and want the next
+// Ping-verified reachability confirmation to trigger a reconnect even though the app is
+// already back online by then. Without this token, a reachability re-confirmation that
+// arrives while the app was never offline is ignored (it's a re-read, not a recovery).
+let pendingReachabilityRecovery = false;
+let shouldUseStagingServer: boolean | undefined;
 
 // Subscriber sets
 const listeners = new Set<() => void>();
@@ -159,11 +164,13 @@ function setForceOffline(force: boolean) {
     updateState();
 
     if (!force) {
-        // Reset so the NetInfo listener sees a genuine transition (e.g. null→true)
-        // and fires onReachabilityRestored(). Without this, prevIsInternetReachable
-        // is already true (we track real state during force-offline) so the listener
-        // sees true→true and skips reconnect.
+        // Reset so the NetInfo listener sees a transition (e.g. null→true) — prevIsInternetReachable
+        // is already true (we track real state during force-offline) so the listener would see
+        // true→true and skip the recovery branch. The pending token authorizes the reconnect:
+        // by the time the refreshed Ping confirms reachability the app is already back online,
+        // and an unauthorized re-confirmation is otherwise ignored.
         prevIsInternetReachable = null;
+        pendingReachabilityRecovery = true;
         NetInfo.refresh();
     }
 }
@@ -187,6 +194,7 @@ function setFailAllRequests(failAll: boolean) {
         updateState();
 
         prevIsInternetReachable = null;
+        pendingReachabilityRecovery = true;
         NetInfo.refresh();
     }
 }
@@ -249,6 +257,7 @@ function simulatePoorConnection(shouldSimulate: boolean) {
 
         // Reset so NetInfo listener sees a transition and fires onReachabilityRestored().
         prevIsInternetReachable = null;
+        pendingReachabilityRecovery = true;
         NetInfo.refresh();
     }
 }
@@ -275,22 +284,9 @@ function setRandomNetworkStatus(initialCall = false) {
  * Must unsubscribe before calling configure() — configure tears down NetInfo internal state.
  */
 function configureAndSubscribe() {
-    // Treat this as a reconfigure (not an initial subscription) when there's already a listener.
-    // Reconfigure tears down NetInfo internal state, so the new subscription emits a synthetic
-    // null→true transition that would look like a recovery — suppress the next would-be recovery
-    // until reachability settles. Initial subscription is left untouched so boot behavior is
-    // unchanged (prev=undefined boot guard already covers it).
-    // Skip suppression when prev was already false: the app was genuinely offline before
-    // reconfigure, so the next true is a real recovery we must not drop (otherwise
-    // internetUnreachable stays set and the app is stuck offline until a new outage cycle).
-    const isReconfigure = unsubscribeNetInfo !== null;
     if (unsubscribeNetInfo) {
         unsubscribeNetInfo();
         unsubscribeNetInfo = null;
-    }
-
-    if (isReconfigure && prevIsInternetReachable !== false) {
-        suppressNextReachabilityRestored = true;
     }
 
     if (!CONFIG.IS_USING_LOCAL_WEB) {
@@ -329,23 +325,19 @@ function configureAndSubscribe() {
             setInternetUnreachable(true);
         }
 
-        // Treat false→true and null→true as genuine recovery. Both mean NetInfo previously
-        // lost reachability (false = confirmed unreachable, null = lost track during outage)
-        // and has now confirmed it's back. Only block undefined→true — that's the initial
-        // NetInfo event on subscribe which delivers current state, not a recovery. Firing
-        // onReachabilityRestored() on boot would duplicate openApp()/reconnectApp().
-        if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable !== true && prevIsInternetReachable !== undefined) {
-            if (suppressNextReachabilityRestored) {
-                Log.info(`[NetworkState] Suppressing recovery on first stable state after reconfigure (${prevIsInternetReachable}→true)`);
-            } else {
+        // A confirmed-reachable event is only a recovery when the app was actually offline
+        // (a hard stop is active), or when a debug path explicitly requested one (the pending
+        // token). Anything else — boot's undefined→null→true sequence, a re-subscription after
+        // NetInfo.configure(), or NetInfo re-emitting its cached state on refresh() — is a
+        // re-read of an unchanged network, not a recovery, and must not fire reconnectApp.
+        if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable !== true) {
+            if (getIsOffline() || pendingReachabilityRecovery) {
+                pendingReachabilityRecovery = false;
                 Log.info(`[NetworkState] Internet reachability restored (${prevIsInternetReachable}→true)`);
                 onReachabilityRestored();
+            } else {
+                Log.info(`[NetworkState] Ignoring reachability re-confirmation (${prevIsInternetReachable}→true) — app was never offline`);
             }
-        }
-        // End the post-reconfigure suppression window once reachability settles into a definitive
-        // state. Null/undefined are transient and should not end the window.
-        if (state.isInternetReachable === true || state.isInternetReachable === false) {
-            suppressNextReachabilityRestored = false;
         }
         prevIsInternetReachable = state.isInternetReachable;
     });
@@ -381,7 +373,14 @@ Onyx.connectWithoutView({
 // configureAndSubscribe to read the previous toggle state and invert the URL on every flip.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
-    callback: () => {
+    callback: (value) => {
+        // Rebuild only on an actual toggle flip. Rebuilding tears down NetInfo state and fires
+        // extra reachability Pings, so a same-value rewrite must not re-run it.
+        const next = !!value;
+        if (next === shouldUseStagingServer) {
+            return;
+        }
+        shouldUseStagingServer = next;
         queueMicrotask(configureAndSubscribe);
     },
 });
