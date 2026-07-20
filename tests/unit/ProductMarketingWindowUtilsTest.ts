@@ -7,18 +7,22 @@ const activeAnnouncement: ProductMarketingAnnouncement = {
     updateKey: 'productUpdateJuly2026',
     admin: {
         visual: {type: 'illustration', name: 'Rules'},
-        heading: 'productMarketingWindow.expensePolicyPdf.admin.heading',
-        body: 'productMarketingWindow.expensePolicyPdf.admin.body',
-        ctaLabel: 'productMarketingWindow.expensePolicyPdf.admin.cta',
+        heading: 'productMarketingWindow.roleTypes.admin.heading',
+        body: 'productMarketingWindow.roleTypes.admin.body',
+        ctaLabel: 'productMarketingWindow.roleTypes.admin.cta',
         getCtaRoute: () => ROUTES.WORKSPACES_LIST.getRoute(),
     },
     member: {
         visual: {type: 'illustration', name: 'MultiScan'},
-        heading: 'productMarketingWindow.expensePolicyPdf.member.heading',
-        body: 'productMarketingWindow.expensePolicyPdf.member.body',
-        ctaLabel: 'productMarketingWindow.expensePolicyPdf.member.cta',
+        heading: 'productMarketingWindow.roleTypes.admin.heading',
+        body: 'productMarketingWindow.roleTypes.admin.body',
+        ctaLabel: 'productMarketingWindow.roleTypes.admin.cta',
         getCtaRoute: () => ROUTES.HOME,
     },
+};
+const adminOnlyAnnouncement: ProductMarketingAnnouncement = {
+    updateKey: activeAnnouncement.updateKey,
+    admin: activeAnnouncement.admin,
 };
 
 const OLDER_UPDATE_KEY = 'productUpdateJune2026';
@@ -51,6 +55,10 @@ describe('ProductMarketingWindowUtils', () => {
 
         it('returns the member variant for users without an active admin workspace', () => {
             expect(getProductMarketingAnnouncementVariant(activeAnnouncement, false, undefined)).toBe(activeAnnouncement.member);
+        });
+
+        it('returns undefined for users without an active admin workspace when the announcement has no member variant', () => {
+            expect(getProductMarketingAnnouncementVariant(adminOnlyAnnouncement, false, undefined)).toBeUndefined();
         });
 
         it('returns the admin variant for users with an active admin workspace, so admin prevails for users who are both member and admin', () => {

@@ -10276,18 +10276,6 @@ const translations = {
                 cta: 'Try it out',
             },
         },
-        expensePolicyPdf: {
-            admin: {
-                heading: 'Upload your expense policy PDF',
-                body: 'Admins can now upload a PDF of their expense policy directly to their workspace, making it visible to all employees in one place.',
-                cta: 'Try it out',
-            },
-            member: {
-                heading: 'Attach multiple receipts to one expense',
-                body: 'You can now attach multiple receipts to a single expense directly from the receipt preview.',
-                cta: 'Try it out',
-            },
-        },
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

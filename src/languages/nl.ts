@@ -10101,18 +10101,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 cta: 'Probeer het uit',
             },
         },
-        expensePolicyPdf: {
-            admin: {
-                heading: 'Upload de PDF van je declaratiebeleid',
-                body: 'Beheerders kunnen nu een PDF van hun declaratiebeleid rechtstreeks naar hun werkruimte uploaden, zodat deze voor alle medewerkers op één plek zichtbaar is.',
-                cta: 'Probeer het uit',
-            },
-            member: {
-                heading: 'Voeg meerdere bonnetjes toe aan één uitgave',
-                body: 'Je kunt nu meerdere bonnetjes rechtstreeks vanuit de bonvoorbeeld aan één uitgave toevoegen.',
-                cta: 'Probeer het uit',
-            },
-        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',

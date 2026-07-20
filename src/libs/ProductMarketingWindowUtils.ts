@@ -2,15 +2,12 @@ import July26PromoImage from '@assets/images/july26-promo.png';
 
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 
-import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-
-import {buildCannedSearchQuery} from './SearchQueryUtils';
 
 type ProductMarketingAnnouncementVisual =
     | {
@@ -36,8 +33,8 @@ type ProductMarketingAnnouncementVariant = {
     /** Label of the primary CTA button. */
     ctaLabel: TranslationPaths;
 
-    /** Builds the route the primary CTA navigates to. */
-    getCtaRoute: () => Route;
+    /** Builds the route the primary CTA navigates to. Admin announcements receive the target workspace ID. */
+    getCtaRoute: (adminPolicyID?: string) => Route;
 };
 
 /** A single product marketing announcement with audience-targeted content variants. */
@@ -48,8 +45,8 @@ type ProductMarketingAnnouncement = {
     /** Variant shown to users who are an admin on at least one active workspace. Admin prevails when a user is both member and admin. */
     admin: ProductMarketingAnnouncementVariant;
 
-    /** Variant shown to users without an admin role on any active workspace. */
-    member: ProductMarketingAnnouncementVariant;
+    /** Optional variant shown to users without an admin role on any active workspace. */
+    member?: ProductMarketingAnnouncementVariant;
 };
 
 /**
@@ -64,14 +61,7 @@ const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null
         heading: 'productMarketingWindow.roleTypes.admin.heading',
         body: 'productMarketingWindow.roleTypes.admin.body',
         ctaLabel: 'productMarketingWindow.roleTypes.admin.cta',
-        getCtaRoute: () => ROUTES.WORKSPACES_LIST.getRoute(),
-    },
-    member: {
-        visual: {type: 'illustration', name: 'MultiScan'},
-        heading: 'productMarketingWindow.expensePolicyPdf.member.heading',
-        body: 'productMarketingWindow.expensePolicyPdf.member.body',
-        ctaLabel: 'productMarketingWindow.expensePolicyPdf.member.cta',
-        getCtaRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}),
+        getCtaRoute: (adminPolicyID) => ROUTES.WORKSPACE_MEMBERS.getRoute(adminPolicyID),
     },
 };
 

@@ -9,10 +9,12 @@ import Text from '@components/Text';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT} from '@libs/ProductMarketingWindowUtils';
 
+import CONST from '@src/CONST';
 import en from '@src/languages/en';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -23,6 +25,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const USER_EMAIL = 'user@example.com';
 const USER_ACCOUNT_ID = 7;
+const POLICY_ID = 'product-marketing-policy';
 const FIRST_SCREEN_TEXT = 'First screen content';
 const SECOND_SCREEN_TEXT = 'Second screen content';
 const MODAL_SCREEN_TEXT = 'Centered modal screen content';
@@ -31,7 +34,25 @@ const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
 if (!announcement) {
     throw new Error('These tests require an active product marketing announcement; update them if the active announcement is removed.');
 }
-const memberHeading = en.productMarketingWindow.expensePolicyPdf.member.heading;
+const adminHeading = en.productMarketingWindow.roleTypes.admin.heading;
+
+function buildAdminPolicy(): Policy {
+    return {
+        id: POLICY_ID,
+        name: 'Test Workspace',
+        type: CONST.POLICY.TYPE.CORPORATE,
+        role: CONST.POLICY.ROLE.ADMIN,
+        owner: USER_EMAIL,
+        outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: true,
+        employeeList: {
+            [USER_EMAIL]: {
+                email: USER_EMAIL,
+                role: CONST.POLICY.ROLE.ADMIN,
+            },
+        },
+    } as Policy;
+}
 
 type TestRootParamList = {
     [SCREENS.CONCIERGE]: undefined;
@@ -97,6 +118,8 @@ describe('ProductMarketingWindow across navigation', () => {
                 [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
             });
             await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -105,7 +128,7 @@ describe('ProductMarketingWindow across navigation', () => {
 
         // The window is visible alongside the first screen.
         expect(screen.getByText(FIRST_SCREEN_TEXT)).toBeTruthy();
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
 
         await act(async () => {
             testNavigationRef.current?.navigate(SCREENS.NOT_FOUND);
@@ -114,7 +137,7 @@ describe('ProductMarketingWindow across navigation', () => {
 
         // The second screen is now shown and the window is still visible because it never unmounted.
         expect(screen.getByText(SECOND_SCREEN_TEXT)).toBeTruthy();
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
 
         await act(async () => {
             testNavigationRef.current?.navigate(NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR);
@@ -123,7 +146,7 @@ describe('ProductMarketingWindow across navigation', () => {
 
         // A screen-based centered modal takes precedence: the window is hidden while it is on top…
         expect(screen.getByText(MODAL_SCREEN_TEXT)).toBeTruthy();
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
             testNavigationRef.current?.goBack();
@@ -131,6 +154,6 @@ describe('ProductMarketingWindow across navigation', () => {
         });
 
         // …and shows again once the modal screen is closed.
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 });

@@ -10133,18 +10133,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 cta: 'Prova ora',
             },
         },
-        expensePolicyPdf: {
-            admin: {
-                heading: 'Carica il PDF della tua politica spese',
-                body: 'Gli amministratori ora possono caricare un PDF della loro politica spese direttamente nel loro spazio di lavoro, rendendolo visibile a tutti i dipendenti in un unico posto.',
-                cta: 'Prova ora',
-            },
-            member: {
-                heading: 'Allega più ricevute a una sola spesa',
-                body: 'Ora puoi allegare più ricevute a una singola spesa direttamente dall’anteprima della ricevuta.',
-                cta: 'Prova ora',
-            },
-        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',

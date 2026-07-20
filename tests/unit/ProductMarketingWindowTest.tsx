@@ -34,6 +34,7 @@ import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'product-marketing-policy';
+const SECOND_POLICY_ID = 'second-product-marketing-policy';
 const USER_EMAIL = 'user@example.com';
 const USER_ACCOUNT_ID = 7;
 const OLDER_UPDATE_KEY = 'productUpdateJune2026';
@@ -65,13 +66,13 @@ const mockSetNameValuePair = jest.mocked(setNameValuePair);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
-const memberHeading = en.productMarketingWindow.expensePolicyPdf.member.heading;
 const adminHeading = en.productMarketingWindow.roleTypes.admin.heading;
-const memberCtaLabel = en.productMarketingWindow.expensePolicyPdf.member.cta;
+const adminBody = en.productMarketingWindow.roleTypes.admin.body;
+const adminCtaLabel = en.productMarketingWindow.roleTypes.admin.cta;
 
-function buildAdminPolicy(): Policy {
+function buildAdminPolicy(policyID = POLICY_ID): Policy {
     return {
-        id: POLICY_ID,
+        id: policyID,
         name: 'Test Workspace',
         type: CONST.POLICY.TYPE.CORPORATE,
         role: CONST.POLICY.ROLE.ADMIN,
@@ -98,7 +99,7 @@ const renderManager = (topmostRouteName?: string, theme: ThemePreferenceWithoutS
         </ThemeProvider>,
     );
 
-async function setupOnyxBaseline({isAdmin}: {isAdmin: boolean}) {
+async function setupOnyxBaseline({isAdmin, activePolicyID = POLICY_ID}: {isAdmin: boolean; activePolicyID?: string}) {
     await Onyx.clear();
     await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
     await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -107,6 +108,7 @@ async function setupOnyxBaseline({isAdmin}: {isAdmin: boolean}) {
     await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
     if (isAdmin) {
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
+        await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicyID);
     }
 }
 
@@ -127,7 +129,7 @@ describe('ProductMarketingWindowManager', () => {
         });
     });
 
-    it('shows the member variant for a user without an admin role on any workspace', async () => {
+    it('renders nothing for a user without an admin role on any workspace', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: false});
             await waitForBatchedUpdatesWithAct();
@@ -136,9 +138,7 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(memberHeading)).toBeTruthy();
-        expect(screen.getByText(en.productMarketingWindow.expensePolicyPdf.member.body)).toBeTruthy();
-        expect(screen.queryByText(adminHeading)).toBeNull();
+        expect(screen.queryByTestId('ProductMarketingWindow')).toBeNull();
     });
 
     it('shows the admin variant when the user administers at least one active workspace', async () => {
@@ -151,14 +151,13 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText(adminHeading)).toBeTruthy();
-        expect(screen.getByText(en.productMarketingWindow.roleTypes.admin.body)).toBeTruthy();
+        expect(screen.getByText(adminBody)).toBeTruthy();
         expect(screen.getByTestId('ProductMarketingWindowImage').props.source).toBe(July26PromoImage);
-        expect(screen.queryByText(memberHeading)).toBeNull();
     });
 
     it('renders nothing on startup when the active update key was already dismissed', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey);
             await waitForBatchedUpdatesWithAct();
         });
@@ -166,12 +165,12 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
     });
 
     it('still shows the window on startup when the last dismissed key belongs to an older update', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, OLDER_UPDATE_KEY);
             await waitForBatchedUpdatesWithAct();
         });
@@ -179,12 +178,12 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('renders nothing while the initial app data is still loading', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
             await waitForBatchedUpdatesWithAct();
         });
@@ -192,7 +191,7 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
     });
 
     it('renders nothing when the initial app load state was never written, as on a fresh sign-in', async () => {
@@ -203,18 +202,20 @@ describe('ProductMarketingWindowManager', () => {
                 [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
             });
             await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             await waitForBatchedUpdatesWithAct();
         });
 
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
     });
 
     it('renders nothing for anonymous (public room) sessions', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
             await waitForBatchedUpdatesWithAct();
         });
@@ -222,12 +223,12 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
     });
 
     it('renders nothing while acting as a copilot, so a delegate cannot dismiss the owner’s announcement', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@example.com'}});
             await waitForBatchedUpdatesWithAct();
         });
@@ -235,18 +236,18 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
     });
 
     it('hides the window for a centered covering modal through closing and shows it again after final hide', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
         });
 
         renderManager();
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -256,7 +257,7 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -265,7 +266,7 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -275,7 +276,7 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -285,12 +286,12 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('does not hide the window for ordinary popover modals', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.merge(ONYXKEYS.MODAL, {
                 willAlertModalBecomeVisible: true,
                 isPopover: true,
@@ -302,7 +303,7 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -311,7 +312,7 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -321,12 +322,12 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('does not hide the window for a responsive bottom-docked popover during pre-show, visible, or closing states', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.merge(ONYXKEYS.MODAL, {
                 willAlertModalBecomeVisible: true,
                 isVisible: false,
@@ -339,13 +340,13 @@ describe('ProductMarketingWindowManager', () => {
 
         renderManager();
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {isVisible: true});
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -355,18 +356,18 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('hides the window for an opted-in bottom-docked confirmation through closing and restores it after final hide', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
         });
 
         renderManager();
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -377,7 +378,7 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -386,7 +387,7 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -396,7 +397,7 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
@@ -406,12 +407,12 @@ describe('ProductMarketingWindowManager', () => {
             });
             await waitForBatchedUpdatesWithAct();
         });
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('does not hide the window for route-backed right-docked navigation state', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.merge(ONYXKEYS.MODAL, {
                 isVisible: true,
                 type: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
@@ -422,36 +423,36 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('hides the window while a screen-based centered modal navigator is on top of the root stack', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
         });
 
         renderManager(NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
     });
 
     it('shows the window for regular topmost routes', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
         });
 
         renderManager(SCREENS.CONCIERGE);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('stores the current update key and stays hidden across a remount after Dismiss is pressed', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -465,17 +466,17 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockSetNameValuePair).toHaveBeenCalledWith(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, '');
         expect(mockNavigate).not.toHaveBeenCalled();
         // The optimistic NVP write hides the window immediately.
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
 
         unmount();
         renderManager();
         await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
     });
 
     it('stores the current update key before navigating after the CTA is pressed', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, OLDER_UPDATE_KEY);
             await waitForBatchedUpdatesWithAct();
         });
@@ -483,24 +484,55 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(screen.getByText(memberCtaLabel));
+        fireEvent.press(screen.getByText(adminCtaLabel));
         await waitForBatchedUpdatesWithAct();
 
         expect(mockSetNameValuePair).toHaveBeenCalledTimes(1);
         expect(mockSetNameValuePair).toHaveBeenCalledWith(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, OLDER_UPDATE_KEY);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(announcement.member.getCtaRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(announcement.admin.getCtaRoute(POLICY_ID));
 
         const dismissCallOrder = mockSetNameValuePair.mock.invocationCallOrder.at(0) ?? Number.NaN;
         const navigateCallOrder = mockNavigate.mock.invocationCallOrder.at(0) ?? Number.NaN;
         expect(dismissCallOrder).toBeLessThan(navigateCallOrder);
 
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
+    });
+
+    it('routes the CTA to the active admin workspace when the user administers multiple workspaces', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true, activePolicyID: SECOND_POLICY_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, buildAdminPolicy(SECOND_POLICY_ID));
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(adminCtaLabel));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).toHaveBeenCalledWith(announcement.admin.getCtaRoute(SECOND_POLICY_ID));
+    });
+
+    it('falls back to the first eligible admin workspace when the active workspace is not administered by the user', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true, activePolicyID: 'non-admin-policy'});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(adminCtaLabel));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).toHaveBeenCalledWith(announcement.admin.getCtaRoute(POLICY_ID));
     });
 
     it('shows the window again when a failed persistence request rolls the NVP back to its previous update key', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, OLDER_UPDATE_KEY);
             await waitForBatchedUpdatesWithAct();
         });
@@ -510,7 +542,7 @@ describe('ProductMarketingWindowManager', () => {
 
         fireEvent.press(screen.getByText(en.common.dismiss));
         await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(memberHeading)).toBeNull();
+        expect(screen.queryByText(adminHeading)).toBeNull();
         expect(mockSetNameValuePair).toHaveBeenCalledWith(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, OLDER_UPDATE_KEY);
 
         await act(async () => {
@@ -519,13 +551,13 @@ describe('ProductMarketingWindowManager', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        expect(screen.getByText(memberHeading)).toBeTruthy();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('uses the fixed-width bottom-right card on wide layouts', async () => {
         mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false, isSmallScreenWidth: false});
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -539,7 +571,12 @@ describe('ProductMarketingWindowManager', () => {
             right: variables.productMarketingWindowOffset,
             padding: 20,
         });
-        expect(screen.getByTestId('ProductMarketingWindowVisual')).toHaveStyle({aspectRatio: variables.productMarketingWindowVisualAspectRatio});
+        expect(screen.getByTestId('ProductMarketingWindowVisual')).toHaveStyle({
+            aspectRatio: variables.productMarketingWindowVisualAspectRatio,
+            marginBottom: 16,
+        });
+        expect(screen.getByText(adminBody)).toHaveStyle({marginTop: 2});
+        expect(screen.getByTestId('ProductMarketingWindowActions')).toHaveStyle({marginTop: 16});
         expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeSmall});
         expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeSmall});
 
@@ -556,7 +593,7 @@ describe('ProductMarketingWindowManager', () => {
         [CONST.THEME.DARK_CONTRAST, colors.productLight100, colors.productLight900, colors.productLight800],
     ] as const)('uses the opposite product palette for the %s app theme', async (themePreference, backgroundColor, headingColor, bodyColor) => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -564,14 +601,14 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({backgroundColor});
-        expect(screen.getByText(memberHeading)).toHaveStyle({color: headingColor});
-        expect(screen.getByText(en.productMarketingWindow.expensePolicyPdf.member.body)).toHaveStyle({color: bodyColor});
+        expect(screen.getByText(adminHeading)).toHaveStyle({color: headingColor});
+        expect(screen.getByText(adminBody)).toHaveStyle({color: bodyColor});
         expect(screen.getByText(en.common.dismiss)).toHaveStyle({color: headingColor});
     });
 
     it('uses the near-full-width bottom card on narrow layouts', async () => {
         await act(async () => {
-            await setupOnyxBaseline({isAdmin: false});
+            await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
         });
 

@@ -11,7 +11,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isProductMarketingWindowCoveredSelector} from '@src/selectors/Modal';
-import {hasActiveAdminPoliciesSelector} from '@src/selectors/Policy';
+import {activeAdminPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy, Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -47,11 +47,12 @@ type ProductMarketingWindowManagerProps = {
  */
 function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindowManagerProps) {
     const login = useCurrentUserPersonalDetails().login ?? '';
-    // Same audience resolution as useHasActiveAdminPolicies, subscribed directly so the loading state is
-    // available: without it, admins would briefly see the member variant while policies are still loading.
-    const [hasActiveAdminPolicies, hasActiveAdminPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<Policy>) => hasActiveAdminPoliciesSelector(policies, login),
+    // Subscribe directly so both the eligible workspaces and their loading state are available. The CTA uses
+    // the active/default admin workspace when possible and otherwise falls back to the first eligible workspace.
+    const [activeAdminPolicies, activeAdminPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login),
     });
+    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // Semantically covering overlays take precedence over the marketing window from pre-show through final hide.
     // Responsive popover sheets and route-backed right-docked navigation remain exempt.
     const [isModalCovering = false] = useOnyx(ONYXKEYS.MODAL, {
@@ -70,13 +71,14 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
     // Every illustration-backed variant is resolved up front because useMemoizedLazyIllustrations doesn't reload
     // assets when the requested names change after mount (e.g. when the audience flips after policies arrive).
-    const illustrationNames = announcement ? [announcement.admin.visual, announcement.member.visual].flatMap((visual) => (visual.type === 'illustration' ? [visual.name] : [])) : [];
+    const illustrationNames = announcement ? [announcement.admin.visual, announcement.member?.visual].flatMap((visual) => (visual?.type === 'illustration' ? [visual.name] : [])) : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
-    const variant = getProductMarketingAnnouncementVariant(announcement, !!hasActiveAdminPolicies, lastDismissedMarketingWindow);
+    const targetAdminPolicyID = activeAdminPolicies?.find((policy) => policy.id === activePolicyID)?.id ?? activeAdminPolicies?.at(0)?.id;
+    const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
-    // Wait for the dismissal NVP and the policy collection to load before showing anything, otherwise a
-    // dismissed window would flash on cold start and admins would flash the member variant.
-    const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, hasActiveAdminPoliciesMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
+    // Wait for the dismissal NVP and workspace targeting data to load before showing anything, otherwise a
+    // dismissed window could flash on cold start or the CTA could briefly target the wrong workspace.
+    const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
 
     if (!announcement || !variant || isLoading || isModalCovering || isAnonymousSession || isActingAsDelegate || isCoveredByCenteredModalScreen) {
         return null;
@@ -93,7 +95,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const completeCta = () => {
         // Record the dismissal before navigating so the window doesn't flash again during navigation.
         persistDismissal();
-        Navigation.navigate(variant.getCtaRoute());
+        Navigation.navigate(variant.getCtaRoute(targetAdminPolicyID));
     };
 
     return (

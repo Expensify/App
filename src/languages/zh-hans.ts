@@ -9790,18 +9790,6 @@ ${reportName}`,
                 cta: '试用一下',
             },
         },
-        expensePolicyPdf: {
-            admin: {
-                heading: '上传您的报销政策 PDF',
-                body: '管理员现在可以将报销政策 PDF 直接上传到工作区，让所有员工在同一个地方查看。',
-                cta: '试用一下',
-            },
-            member: {
-                heading: '将多张收据附加到同一笔费用',
-                body: '现在您可以直接在收据预览中将多张收据附加到同一笔费用。',
-                cta: '试用一下',
-            },
-        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',

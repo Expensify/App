@@ -57,7 +57,7 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                 style={[
                     styles.productMarketingWindowIllustrationContainer,
                     shouldUseLightMarketingWindow ? styles.productMarketingWindowIllustrationContainerLight : styles.productMarketingWindowIllustrationContainerDark,
-                    styles.mb5,
+                    styles.mb4,
                 ]}
                 testID="ProductMarketingWindowVisual"
             >
@@ -81,10 +81,13 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
             <Text style={[styles.textStrong, shouldUseLightMarketingWindow ? styles.productMarketingWindowHeadingLight : styles.productMarketingWindowHeadingDark]}>
                 {translate(variant.heading)}
             </Text>
-            <Text style={[styles.textLabel, shouldUseLightMarketingWindow ? styles.productMarketingWindowBodyLight : styles.productMarketingWindowBodyDark, styles.mt1]}>
+            <Text style={[styles.textLabel, shouldUseLightMarketingWindow ? styles.productMarketingWindowBodyLight : styles.productMarketingWindowBodyDark, styles.mt0Half]}>
                 {translate(variant.body)}
             </Text>
-            <View style={[styles.flexRow, styles.gap3, styles.mt5]}>
+            <View
+                style={[styles.flexRow, styles.gap3, styles.mt4]}
+                testID="ProductMarketingWindowActions"
+            >
                 <Button
                     size={buttonSize}
                     style={styles.flex1}

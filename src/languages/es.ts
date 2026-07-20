@@ -10299,18 +10299,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 cta: 'Pruébalo',
             },
         },
-        expensePolicyPdf: {
-            admin: {
-                heading: 'Sube el PDF de tu política de gastos',
-                body: 'Los administradores ahora pueden subir un PDF de su política de gastos directamente a su espacio de trabajo, haciéndolo visible para todos los empleados en un solo lugar.',
-                cta: 'Pruébalo',
-            },
-            member: {
-                heading: 'Adjunta varios recibos a un solo gasto',
-                body: 'Ahora puedes adjuntar varios recibos a un solo gasto directamente desde la vista previa del recibo.',
-                cta: 'Pruébalo',
-            },
-        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
