@@ -229,7 +229,7 @@ function SearchPageNarrow({
 
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
     // Show the loading bar while data is missing or a request is genuinely pending. Read the pending state
-    // from the request lifecycle (`state`) rather than the legacy `isLoading` flag so a dataless resolve or a
+    // from the request lifecycle (`state`) rather than the legacy `isLoading` flag so a resolve with no data or a
     // stranded flag cannot keep it up.
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;

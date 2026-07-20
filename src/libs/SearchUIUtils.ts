@@ -4817,7 +4817,7 @@ function isSearchPending(searchResults: SearchResults | undefined) {
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const state = searchResults?.search?.state;
     // A terminal `state` (loaded/error) means the request for this snapshot resolved, even when it wrote no data
-    // (a dataless 200 that used to pin the skeleton forever). It counts as loaded alongside the original
+    // (a 200 with no data that used to pin the skeleton forever). It counts as loaded alongside the original
     // data/errors shape check, still guarded by the type/hash match that rejects a stale snapshot Onyx can
     // transiently return for the previous query.
     const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;

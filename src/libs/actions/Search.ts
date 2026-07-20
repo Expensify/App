@@ -720,7 +720,7 @@ function getOnyxLoadingData(
 
     // successData writes the terminal `loaded` state on any jsonCode 200 resolve, stamping `type` and `hash` so
     // the terminal state satisfies the anti-stale isSearchDataLoaded check (which matches type/hash) even on a
-    // dataless response that carries none of its own. isSearchDataLoaded now treats a terminal state as resolved,
+    // response that carries no data of its own. isSearchDataLoaded now treats a terminal state as resolved,
     // so such a response resolves to Search's empty view instead of pinning the skeleton on the data-shape check.
     // `isLoading` isn't set here because finallyData always runs right after and already clears it for isSearchAPI.
     // Empty for the non-search callers of this helper so they don't pay for a meaningless `{search: {}}` merge.
@@ -1004,7 +1004,7 @@ function search({
 
                 // Observability for the failure mode this read side converts from an infinite skeleton into an empty
                 // view: a jsonCode 200 that wrote no snapshot data. It used to be invisible (the skeleton just hung),
-                // so log it to keep the dataless-resolve case queryable now that it silently resolves.
+                // so log it to keep the no-data resolve case queryable now that it silently resolves.
                 if (result?.jsonCode === 200 && response?.data === undefined) {
                     Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
                 }

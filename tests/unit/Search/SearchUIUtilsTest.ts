@@ -8350,7 +8350,7 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
 
-        it('should return true on a dataless response that reached a terminal loaded state (type and hash match)', () => {
+        it('should return true on a response with no data that reached a terminal loaded state (type and hash match)', () => {
             const results = makeSearchResults({
                 data: undefined,
                 errors: undefined,

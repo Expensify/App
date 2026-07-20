@@ -128,7 +128,7 @@ describe('search snapshot terminal state', () => {
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
         // The terminal state carries the query hash so the read side can treat it as resolved even though the
-        // dataless response wrote neither data nor its own search metadata.
+        // response wrote neither data nor its own search metadata.
         expect(snapshot?.search?.hash).toBe(queryJSON.hash);
     });
 

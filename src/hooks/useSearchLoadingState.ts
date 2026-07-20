@@ -30,7 +30,7 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchRes
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0;
     // A resolved request stamps `state: loaded` even when it wrote no data. That terminal state hands off to
-    // Search's own empty view, so a dataless 200 no longer pins the page skeleton on the `data === undefined` check.
+    // Search's own empty view, so a 200 with no data no longer pins the page skeleton on the `data === undefined` check.
     const isLoaded = searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED;
 
     // Show page-level skeleton when no data has ever arrived for this query and the request has not resolved,
