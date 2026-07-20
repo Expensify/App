@@ -80,13 +80,17 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const {translate, localeCompare} = useLocalize();
-    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
-        hash: queryJSON?.hash,
-        similarSearchHash: queryJSON?.similarSearchHash,
-        sortBy: queryJSON?.sortBy,
-        sortOrder: queryJSON?.sortOrder,
-        type: queryJSON?.type,
-    });
+    const isFocused = useIsFocused();
+    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections(
+        {
+            hash: queryJSON?.hash,
+            similarSearchHash: queryJSON?.similarSearchHash,
+            sortBy: queryJSON?.sortBy,
+            sortOrder: queryJSON?.sortOrder,
+            type: queryJSON?.type,
+        },
+        isFocused,
+    );
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -98,7 +102,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const isFocused = useIsFocused();
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();

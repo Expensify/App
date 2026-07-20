@@ -67,6 +67,9 @@ type MoneyRequestReportTransactionItemProps = {
     /** The size of the date column */
     dateColumnSize: TableColumnSize;
 
+    /** The size of the posted column */
+    postedColumnSize: TableColumnSize;
+
     /** The size of the amount column */
     amountColumnSize: TableColumnSize;
 
@@ -123,6 +126,7 @@ function MoneyRequestReportTransactionItemBody({
     handleLongPress,
     columns,
     dateColumnSize,
+    postedColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
     onArrowRightPress,
@@ -222,6 +226,7 @@ function MoneyRequestReportTransactionItemBody({
                         policyTagLists={policyTagLists}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
+                        postedColumnSize={postedColumnSize}
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowTooltip
