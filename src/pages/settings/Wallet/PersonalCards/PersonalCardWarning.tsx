@@ -80,8 +80,8 @@ function PersonalCardWarning() {
                         style={styles.mt3}
                         onPress={onPrimaryActionPress}
                     >
-                        <Button.Text>{translate(isAdmin ? 'personalCard.thisIsCompanyCard' : 'personalCard.askAdmin')}</Button.Text>
                         <Button.KeyboardShortcut />
+                        <Button.Text>{translate(isAdmin ? 'personalCard.thisIsCompanyCard' : 'personalCard.askAdmin')}</Button.Text>
                     </Button>
                 </>
             }

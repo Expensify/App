@@ -95,8 +95,8 @@ function WorkspaceCreateTaxValuePage({
                         onPress={save}
                         style={styles.mh5}
                     >
-                        <Button.Text>{translate('common.save')}</Button.Text>
                         <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.save')}</Button.Text>
                     </Button>
                 </View>
             </ScrollView>

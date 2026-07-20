@@ -80,8 +80,8 @@ function DynamicWorkspaceOwnerChangeErrorPage({route}: DynamicWorkspaceOwnerChan
                         style={styles.mt6}
                         onPress={closePage}
                     >
-                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
                         <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
                     </Button>
                 </FixedFooter>
             </ScreenWrapper>
