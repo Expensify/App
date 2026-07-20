@@ -4,7 +4,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
-import {formatCurrentUserToAttendee, getExistingTransactionID} from '@libs/IOUUtils';
+import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -55,7 +55,6 @@ import type {
 } from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -271,7 +270,6 @@ type InitMoneyRequestParams = {
     parentReport: OnyxEntry<Report>;
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
     isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
     draftTransactionIDs?: string[];
@@ -302,7 +300,6 @@ function initMoneyRequest({
     parentReport,
     currentDate,
     lastSelectedDistanceRates,
-    currentUserPersonalDetails,
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
     defaultParticipants,
@@ -331,9 +328,7 @@ function initMoneyRequest({
         return;
     }
 
-    const comment: Comment = {
-        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails),
-    };
+    const comment: Comment = {};
     let requestCategory: string | null = null;
 
     // Set up initial distance expense state

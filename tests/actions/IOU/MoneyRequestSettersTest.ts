@@ -562,7 +562,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -585,7 +584,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -609,7 +607,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -643,7 +640,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [otherDraftTransactionID],
                     });
@@ -682,7 +678,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [otherDraftTransactionID, CONST.IOU.OPTIMISTIC_TRANSACTION_ID],
                     });
@@ -722,7 +717,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [draftTransactionID1, draftTransactionID2],
                     });

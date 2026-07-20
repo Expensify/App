@@ -173,7 +173,6 @@ function SubmitDetailsPage({
             report,
             parentReport,
             currentDate,
-            currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });

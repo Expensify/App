@@ -11,6 +11,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
+import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
@@ -43,6 +44,8 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({mergeTransaction});
+    const targetReportOwnerAsAttendee = useReportOwnerAsAttendee(targetTransaction);
+    const sourceReportOwnerAsAttendee = useReportOwnerAsAttendee(sourceTransaction);
 
     const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
 
@@ -63,6 +66,8 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
             [],
             targetTransactionPolicy,
             sourceTransactionPolicy,
+            targetReportOwnerAsAttendee,
+            sourceReportOwnerAsAttendee,
         );
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page

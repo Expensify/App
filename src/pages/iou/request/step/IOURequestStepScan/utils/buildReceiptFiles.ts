@@ -67,7 +67,6 @@ function buildReceiptFiles({
             ? initialTransaction
             : buildOptimisticTransactionAndCreateDraft({
                   initialTransaction: initialTransaction as Partial<Transaction>,
-                  currentUserPersonalDetails,
                   reportID,
               });
 
