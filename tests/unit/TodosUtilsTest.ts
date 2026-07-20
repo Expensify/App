@@ -48,8 +48,7 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
 });
 
 // Admin policy with a QBO connection whose auto-sync is disabled, so a report on it is manually exportable.
-// `Policy['connections']` is typed as the full integration map, so the single-integration literal goes through
-// `createMock`, which type-checks the partial and isolates the one unavoidable assertion in that helper.
+// The literal sets only the QBO config fields this test needs; `createMock` deep-partials the rest.
 const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connectionExporter}: {policyExporter: string; connectionExporter: string}): Policy =>
     createMock<Policy>({
         ...createMockPolicy(policyID, {role: CONST.POLICY.ROLE.ADMIN, exporter: policyExporter}),

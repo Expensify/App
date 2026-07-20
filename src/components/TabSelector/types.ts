@@ -25,9 +25,9 @@ type TabSelectorProps = MaterialTopTabBarProps & {
     equalWidth?: boolean;
 };
 
-type TabSelectorBaseItem = WithSentryLabel & {
+type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     /** Stable key for the tab. */
-    key: string;
+    key: K;
 
     /** Icon to display on the tab. */
     icon?: IconAsset;
@@ -54,21 +54,21 @@ type TabSelectorBaseItem = WithSentryLabel & {
     pendingAction?: PendingAction;
 };
 
-type TabSelectorBaseProps = {
+type TabSelectorBaseProps<K extends string = string> = {
     /** Tabs to render. */
-    tabs: TabSelectorBaseItem[];
+    tabs: Array<TabSelectorBaseItem<K>>;
 
     /** Key of the currently active tab. */
-    activeTabKey: string;
+    activeTabKey: K | undefined;
 
     /** Called when a tab is pressed with its key. */
-    onTabPress?: (key: string) => void;
+    onTabPress?: (key: K) => void;
 
     /* Callback fired when tab is long pressed */
-    onLongTabPress?: (key: string) => void;
+    onLongTabPress?: (key: K) => void;
 
     /* Callback fired when active tab is pressed */
-    onActiveTabPress?: (key: string) => void;
+    onActiveTabPress?: (key: K) => void;
 
     /** Animated position from a navigator (optional). */
     position?: Animated.AnimatedInterpolation<number>;

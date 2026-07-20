@@ -15,7 +15,7 @@ const RECEIPT_LOG_PREFIX = '[Receipt]';
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
 /** How a receipt entered the app. */
-type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace';
+type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share';
 
 /**
  * Maps the picker capture path to a source. On native the picker is the OS gallery. On web the same callback fires
@@ -34,22 +34,21 @@ type ReceiptEnqueuedParams = {
 };
 
 /**
- * Write commands whose params can carry a captured receipt. A pending request with one of these commands is a receipt
- * that has not reached the server yet. Keep this in sync with the durability slice so the two features agree on which
- * queued requests own a local receipt file.
+ * Write commands whose params carry a captured receipt at data.receipt. A pending request with one of these commands
+ * owns a local receipt file that has not reached the server yet. This is the single source of truth shared by the
+ * receipt observability logs and the sign-out gallery save, so both features agree on which queued requests own a
+ * receipt
  */
 const RECEIPT_BEARING_COMMANDS = new Set<string>([
     WRITE_COMMANDS.REQUEST_MONEY,
     WRITE_COMMANDS.TRACK_EXPENSE,
-    WRITE_COMMANDS.SPLIT_BILL,
-    WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
     WRITE_COMMANDS.START_SPLIT_BILL,
-    WRITE_COMMANDS.COMPLETE_SPLIT_BILL,
     WRITE_COMMANDS.REPLACE_RECEIPT,
     WRITE_COMMANDS.SEND_MONEY_ELSEWHERE,
     WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
     WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
     WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
+    WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY,
 ]);
 
 /** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has waited. */
@@ -151,6 +150,35 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
 }
 
 /**
+ * Records the dropped milestone: the receipt file was gone when we built the upload payload, so the request goes out
+ * without it. Logged at alert level on the [Receipt] spine so it reaches Sentry and joins the capture, submit, and
+ * enqueue lines by receiptTraceId. source and fileName are for the raw device log only; they are not whitelisted, so
+ * they never reach Sentry.
+ */
+function logReceiptDropped({
+    receiptTraceId,
+    transactionID,
+    command,
+    source,
+    fileName,
+}: {
+    receiptTraceId: string | undefined;
+    transactionID: string | undefined;
+    command: string;
+    source: string | undefined;
+    fileName: string | undefined;
+}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} dropped`, {
+        event: 'dropped',
+        receiptTraceId,
+        transactionID,
+        command,
+        source,
+        fileName,
+    });
+}
+
+/**
  * Logs one line per receipt still pending in the write queue, tagged with what triggered the snapshot. Stays quiet
  * when nothing is pending, so the normal case makes no noise. Sent right away so it survives a hard app kill from the
  * background.
@@ -204,5 +232,14 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
     }
 }
 
-export {mintAndStampReceiptTraceId, logReceiptCaptured, logReceiptSubmitted, logReceiptEnqueued, logReceiptQueueSnapshot, getPickerCaptureSource, RECEIPT_BEARING_COMMANDS};
+export {
+    mintAndStampReceiptTraceId,
+    logReceiptCaptured,
+    logReceiptSubmitted,
+    logReceiptEnqueued,
+    logReceiptDropped,
+    logReceiptQueueSnapshot,
+    getPickerCaptureSource,
+    RECEIPT_BEARING_COMMANDS,
+};
 export type {ReceiptCaptureSource};

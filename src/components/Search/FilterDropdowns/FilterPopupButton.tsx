@@ -71,6 +71,10 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    // Defer mounting the (potentially heavy) popover content until the dropdown is first opened, then keep it
+    // mounted so the close animation and reopening stay instant. The content is otherwise mounted eagerly on
+    // screen focus even while hidden, which runs each filter selector's expensive option-building on page load.
+    const [hasEverExpanded, setHasEverExpanded] = useState(false);
     const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -101,6 +105,11 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const calculatePopoverPositionAndToggleOverlay = () => {
         calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
             setPopoverTriggerPosition({...position, vertical: position.vertical});
+            // Latch in the same batch as the open (and only when it will actually open, mirroring toggleOverlay's
+            // alert-modal guard) so the deferred subtree mounts together with the popover becoming visible.
+            if (!isOverlayVisible && !willAlertModalBecomeVisible) {
+                setHasEverExpanded(true);
+            }
             toggleOverlay();
         });
     };
@@ -118,9 +127,11 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             {/* Dropdown Trigger */}
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
-            {/* Dropdown overlay — keep mounted while the user has it open (isOverlayVisible), not while the
-                screen is focused, so opening the year-selector RHP (which blurs the screen) doesn't unmount it */}
-            {(isFocused || isOverlayVisible) && (
+            {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted
+                until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden.
+                Kept mounted while the user has it open (isOverlayVisible), not only while the screen is focused, so
+                opening the year-selector RHP (which blurs the screen) doesn't unmount it mid round-trip. */}
+            {(isFocused || isOverlayVisible) && hasEverExpanded && (
                 <PopoverWithMeasuredContent
                     anchorRef={triggerRef}
                     avoidKeyboard

@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -67,7 +68,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 <FilterList
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
-                    policyID={searchAdvancedFiltersForm?.policyID}
+                    policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
                     selectedFilter={effectiveFilter}
                     onHoverIn={handleSelectFilter}
                     onFocus={handleSelectFilter}
@@ -79,7 +80,6 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     <SearchAdvancedFiltersContent
                         values={searchAdvancedFiltersForm}
                         filterKey={effectiveFilter}
-                        policyIDQuery={queryJSON.policyID}
                         components={{
                             Common: CommonFilterContentPopupWrapper,
                             Text: TextInputFilterContentPopupWrapper,
