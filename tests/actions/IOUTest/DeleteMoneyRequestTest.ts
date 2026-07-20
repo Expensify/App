@@ -193,6 +193,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -449,6 +450,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -686,7 +688,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     transactionThreadReport: thread,
                     parentReport: iouReport,
+                    iouReportOwnerLogin: undefined,
                     transactionViolations: {},
+                    reportPolicyTags: undefined,
                     amount: 20000,
                     currency: CONST.CURRENCY.USD,
                     taxAmount: 0,
@@ -709,6 +713,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
                     parentReportNextStep: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -1150,6 +1155,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
 
@@ -1232,6 +1238,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1405,6 +1412,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 });
             }
 

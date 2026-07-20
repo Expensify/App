@@ -42,6 +42,7 @@ import type {
     WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
@@ -422,6 +423,7 @@ export type {
     DomainHighlightItems,
     DomainPendingActions,
     DomainSecurityGroup,
+    ChronosTimeTracking,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,

@@ -225,6 +225,7 @@ type HandleActionButtonPressParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function handleActionButtonPress({
@@ -261,6 +262,7 @@ function handleActionButtonPress({
     searchData,
     chatReportActions,
     delegateEmail,
+    isTrackIntentUser,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -311,6 +313,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
+                isTrackIntentUser,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -341,6 +344,7 @@ function handleActionButtonPress({
                 amountOwed,
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
+                isTrackIntentUser,
                 ownerLogin: submitterLogin,
             });
             return;
@@ -515,6 +519,7 @@ type GetPayActionCallbackParams = {
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function getPayActionCallback({
@@ -541,6 +546,7 @@ function getPayActionCallback({
     policy,
     searchData,
     chatReportActions,
+    isTrackIntentUser,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -588,6 +594,7 @@ function getPayActionCallback({
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
+        isTrackIntentUser,
     });
 }
 
@@ -606,6 +613,7 @@ type GetApproveActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
+    isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
 };
 
@@ -624,6 +632,7 @@ function getApproveActionCallback({
     amountOwed,
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
+    isTrackIntentUser,
     ownerLogin,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
@@ -651,6 +660,7 @@ function getApproveActionCallback({
         delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
+        isTrackIntentUser,
     });
 }
 
@@ -663,6 +673,14 @@ function getOnyxLoadingData(
     shouldCalculateTotals?: boolean,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
     const shouldClearTotals = isSearchAPI && shouldCalculateTotals === false && offset === 0;
+
+    // `search.state` tracks the lifecycle of a real search request (identified by its queryJSON): it starts as
+    // `loading` optimistically and is resolved to `loaded`/`error` by successData/failureData. handlePreventSearchAPI
+    // reuses this helper as a UI-only loading toggle with no query and no success/failure step, so it must stay out of
+    // the state machine — otherwise it would strand `state: loading` with no terminal write to clear it.
+    const isSearchRequest = isSearchAPI && !!queryJSON;
+    const type = queryJSON?.type;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -670,6 +688,7 @@ function getOnyxLoadingData(
             value: {
                 search: {
                     ...(isSearchAPI && {isLoading: true}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, total: null, currency: null} : {}),
                 },
@@ -684,6 +703,26 @@ function getOnyxLoadingData(
         },
     ];
 
+    // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so
+    // responses that do carry data stay consistent with the anti-stale isSearchDataLoaded check (which compares
+    // type/hash). On a success response without data, isSearchDataLoaded still resolves to false via its own data/errors gate;
+    // `state` is what marks that case as done once a future PR wires the read side to it. `isLoading` isn't set here
+    // because finallyData always runs right after and already clears it for isSearchAPI. Empty for the non-search
+    // callers of this helper so they don't pay for a meaningless `{search: {}}` merge on the SNAPSHOT key.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = isSearchRequest
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                  value: {
+                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type},
+                  },
+              },
+          ]
+        : [];
+
+    // finallyData runs after successData/failureData regardless of jsonCode, so it deliberately does NOT write `state`:
+    // doing so would clobber the `error` terminal set by failureData. The terminal state is owned by success/failure.
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -703,15 +742,16 @@ function getOnyxLoadingData(
             value: {
                 ...(isOffline ? {} : {data: null}),
                 search: {
-                    type: queryJSON?.type,
+                    type,
                     ...(isSearchAPI && {isLoading: false}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
 
-    return {optimisticData, finallyData, failureData};
+    return {optimisticData, successData, finallyData, failureData};
 }
 
 function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
@@ -908,7 +948,7 @@ function search({
     }
     inFlightSearchRequests.add(dedupeKey);
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
@@ -940,7 +980,7 @@ function search({
     }
 
     const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
                 if (shouldUpdateLastSearchParams) {
                     const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
@@ -972,6 +1012,14 @@ function search({
                 }
 
                 return result?.jsonCode;
+            })
+            .catch((error) => {
+                // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
+                // SaveResponseInOnyx, so nothing else applies failureData for it. Apply it here so the snapshot
+                // still reaches a terminal `error` state instead of being stranded in `loading`, then re-throw so
+                // this still rejects for any caller relying on that.
+                Onyx.update(failureData ?? []);
+                throw error;
             })
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);

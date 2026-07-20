@@ -15,7 +15,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExpenseRuleFormFieldID} from '@src/types/form/ExpenseRuleForm';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -1201,6 +1201,20 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_DEFAULT_COMPANY_CARD_VENDOR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_PROGRAM_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_ADVANCED]: {
         policyID: string;
     };
@@ -1540,6 +1554,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORTED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
@@ -2679,6 +2699,10 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
         reportID: string;
         reportActionID?: string;
+        // Set by the transaction carousel when navigating into a multi-tx parent that lacks an
+        // existing thread. Tells MoneyReportHeader which of the parent's transactions to anchor
+        // the transaction carousel on, so the user can keep paging through the broader carousel.
+        anchorTransactionID?: string;
         shouldReplaceWithExpenseReportRHP?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -2755,6 +2779,8 @@ type ReportsSplitNavigatorParamList = {
         reportActionID?: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
+        /** Submit-via-PDF secure access link key. When present, the viewer is validated and joined to the report. */
+        secureKey?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -3006,6 +3032,10 @@ type MigratedUserModalNavigatorParamList = {
     [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT]: undefined;
 };
 
+type SubmitPlanModalNavigatorParamList = {
+    [SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT]: undefined;
+};
+
 type AIFeaturesPromoModalNavigatorParamList = {
     [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: undefined;
 };
@@ -3180,6 +3210,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
+        [NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]: NavigatorScreenParams<SubmitPlanModalNavigatorParamList>;
         [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: NavigatorScreenParams<AIFeaturesPromoModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
@@ -3250,12 +3281,12 @@ type RestrictedActionParamList = {
 };
 
 type MissingPersonalDetailsParamList = {
-    [SCREENS.MISSING_PERSONAL_DETAILS]: {
+    [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS]: {
         cardID: string;
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
+    [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
         cardID: string;
     };
 };
@@ -3451,6 +3482,7 @@ export type {
     WorkspaceSplitNavigatorParamList,
     WorkspaceNavigatorParamList,
     MigratedUserModalNavigatorParamList,
+    SubmitPlanModalNavigatorParamList,
     AIFeaturesPromoModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,

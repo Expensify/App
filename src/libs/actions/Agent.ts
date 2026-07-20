@@ -302,7 +302,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
             value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -334,6 +334,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
+
     // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
     // don't want the extra navigation, since the delegate transition resets navigation on its own.
     if (shouldNavigateBack) {
