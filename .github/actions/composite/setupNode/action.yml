@@ -24,8 +24,6 @@ runs:
       uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
       with:
         node-version-file: '.nvmrc'
-        cache: 'npm'
-        cache-dependency-path: normalized-package-lock.json
 
     - id: cache-node-modules
       # v5.0.1
@@ -41,6 +39,17 @@ runs:
       with:
         path: Mobile-Expensify/node_modules
         key: ${{ runner.os }}-node-modules-${{ hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**') }}
+
+    # Restore npm's download cache ONLY when node_modules missed (i.e. npm ci will actually run).
+    # On a node_modules cache hit, npm ci is skipped, so restoring ~/.npm (~1GB) would be wasted bandwidth.
+    - id: cache-npm
+      if: steps.cache-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true')
+      # v5.0.1
+      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles('normalized-package-lock.json') }}
+        restore-keys: ${{ runner.os }}-npm-
 
     - name: Remove ND node_modules if needed for hybrid app build
       if: inputs.IS_HYBRID_BUILD == 'true' && steps.cache-node-modules.outputs.cache-hit == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true'
