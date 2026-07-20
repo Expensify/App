@@ -78,7 +78,7 @@ function DynamicSageIntacctDefaultVendorPage() {
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
     );
 
-    // Blank vendor only has a defined meaning for the non-reimbursable credit-card-charge path. The bill and reimbursable paths handle blank differently and re-tapping to clear them is out of scope here.
+    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing when that setting is active.
     const canClearByReSelecting = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
 
     const updateDefaultVendor = useCallback(

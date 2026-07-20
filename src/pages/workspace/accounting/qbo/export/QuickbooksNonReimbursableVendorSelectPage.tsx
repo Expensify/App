@@ -58,7 +58,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             isSelected: vendor.id === currentVendor,
         })) ?? [];
 
-    // Blank vendor only has a defined meaning for the CC/DC export path (falls back to "Credit Card Misc"). For Vendor Bill export, blank falls back to the report submitter — but the user can already leave that setting disabled from the parent page, so re-tapping to clear is out of scope here.
+    // Only the CC/DC export path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing on that configKey.
     const canClearByReSelecting = configKey === CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR;
 
     const selectVendor = (row: CardListItem) => {
