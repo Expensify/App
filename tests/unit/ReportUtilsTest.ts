@@ -3671,7 +3671,7 @@ describe('ReportUtils', () => {
 
             // Seeds an all-held expense report awaiting the current user, plus the money-request action and the thread's
             // HOLD action (whose actor is the holder), so the derivation can resolve who placed the hold.
-            const seedHeldChildExpense = async (holderAccountID: number) => {
+            const seedHeldChildExpense = async (holderAccountID: number, expenseReportOverrides: Partial<Report> = {}) => {
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     reportID: expenseReportID,
@@ -3681,6 +3681,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    ...expenseReportOverrides,
                 };
 
                 const policyExpenseChat = {
@@ -3742,6 +3743,19 @@ describe('ReportUtils', () => {
 
                 // Only the person who placed the hold can remove it, so the report stays in their to-do queue.
                 expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            });
+
+            it('does not require attention for an open report the current user owns and placed the hold on', async () => {
+                const policyExpenseChat = await seedHeldChildExpense(currentUserAccountID, {
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+
+                // Only the owner can hold on an open report, and that owner is the one who submits, so the hold placer
+                // exception never applies there. This holds on the fallback path too, where the chat carries an
+                // outstanding-child flag but no report preview action is loaded yet, so there is no action badge.
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
             });
         });
 
