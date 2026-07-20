@@ -2203,10 +2203,11 @@ describe('OptionsListUtils', () => {
 
         it('should return false when report is a DM but lastActorDetails is not the current user', () => {
             // Given a DM report where last actor is not current user
-            const report = {
-                ...REPORTS['2'],
-                type: CONST.REPORT.TYPE.CHAT,
-            } as Report;
+            const report = REPORTS['2'];
+            expect(report).toBeDefined();
+            if (!report) {
+                throw new Error('Expected the DM report fixture to be defined');
+            }
             const lastActorDetails = PERSONAL_DETAILS['3'];
             const lastAction = createRandomReportAction(1);
 
@@ -3529,7 +3530,9 @@ describe('OptionsListUtils', () => {
                 searchValue: VALID_EMAIL,
                 currentUserOption: {
                     login: currentUserEmail,
-                } as OptionData,
+                    reportID: currentUserEmail,
+                    keyForList: currentUserEmail,
+                },
                 // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
                 // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
                 // This is a performance optimization.
@@ -3549,7 +3552,9 @@ describe('OptionsListUtils', () => {
                 personalDetailsOptions: [],
                 currentUserOption: {
                     login: currentUserEmail,
-                } as OptionData,
+                    reportID: currentUserEmail,
+                    keyForList: currentUserEmail,
+                },
             });
 
             // Then the returned value should be false
@@ -3947,7 +3952,7 @@ describe('OptionsListUtils', () => {
         it('should match a user with an accented name when searching using non-accented characters', () => {
             // Given a report with accented characters in the text property
             // cspell:disable-next-line
-            const reports = [{text: "Álex Timón D'artagnan Zo-e"} as OptionData];
+            const reports: OptionData[] = [{text: "Álex Timón D'artagnan Zo-e", reportID: 'accented', keyForList: 'accented'}];
             // Given a search term with non-accented characters
             // cspell:disable-next-line
             const searchTerms = ['Alex Timon Dartagnan Zoe'];
@@ -3965,19 +3970,23 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
                 {
                     reportID: '3',
                     lastVisibleActionCreated: '2022-01-01T09:00:00Z',
-                } as OptionData,
+                    keyForList: '3',
+                },
                 {
                     reportID: '4',
                     lastVisibleActionCreated: '2022-01-01T13:00:00Z',
-                } as OptionData,
+                    keyForList: '4',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, 2).options;
@@ -3993,11 +4002,13 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, 5).options;
@@ -4019,17 +4030,20 @@ describe('OptionsListUtils', () => {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
                     isPinned: true,
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
                     isPinned: false,
-                } as OptionData,
+                    keyForList: '2',
+                },
                 {
                     reportID: '3',
                     lastVisibleActionCreated: '2022-01-01T09:00:00Z',
                     isPinned: true,
-                } as OptionData,
+                    keyForList: '3',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, 2, (option) => option.isPinned).options;
@@ -4045,15 +4059,18 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
                 {
                     reportID: '3',
                     lastVisibleActionCreated: '2022-01-01T09:00:00Z',
-                } as OptionData,
+                    keyForList: '3',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, -1).options;
@@ -4083,11 +4100,13 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, 0).options;
@@ -4099,19 +4118,23 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
                 {
                     reportID: '3',
                     lastVisibleActionCreated: '2022-01-01T09:00:00Z',
-                } as OptionData,
+                    keyForList: '3',
+                },
                 {
                     reportID: '4',
                     lastVisibleActionCreated: '2022-01-01T13:00:00Z',
-                } as OptionData,
+                    keyForList: '4',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             // We will pass reversed === true to sort the list in ascending order
@@ -4126,7 +4149,11 @@ describe('OptionsListUtils', () => {
 
     describe('sortAlphabetically', () => {
         it('should sort options alphabetically by text', () => {
-            const options: OptionData[] = [{text: 'Banana', reportID: '1'} as OptionData, {text: 'Apple', reportID: '2'} as OptionData, {text: 'Cherry', reportID: '3'} as OptionData];
+            const options: OptionData[] = [
+                {text: 'Banana', reportID: '1', keyForList: '1'},
+                {text: 'Apple', reportID: '2', keyForList: '2'},
+                {text: 'Cherry', reportID: '3', keyForList: '3'},
+            ];
             const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
             expect(sortedOptions.at(0)?.reportID).toBe('2');
             expect(sortedOptions.at(1)?.reportID).toBe('1');
@@ -4139,7 +4166,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should handle single option', () => {
-            const options: OptionData[] = [{text: 'Single', reportID: '1'} as OptionData];
+            const options: OptionData[] = [{text: 'Single', reportID: '1', keyForList: '1'}];
             const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
             expect(sortedOptions.length).toBe(1);
             expect(sortedOptions.at(0)?.text).toBe('Single');
@@ -4174,8 +4201,8 @@ describe('OptionsListUtils', () => {
 
     describe('createOption', () => {
         it('should return alternative text correctly when the last action is report preview action', async () => {
-            const report = {
-                chatType: '',
+            const report: Report = {
+                chatType: undefined,
                 currency: 'USD',
                 description: '',
                 errorFields: {},
@@ -4186,19 +4213,19 @@ describe('OptionsListUtils', () => {
                 lastMessageText: '',
                 participants: {
                     '1': {
-                        notificationPreference: 'always',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                     '2': {
-                        notificationPreference: 'always',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                 },
                 reportID: '123',
-                type: 'chat',
+                type: CONST.REPORT.TYPE.CHAT,
                 lastActorAccountID: 1,
-            } as unknown as Report;
+            };
 
-            const reportPreviewAction = {
-                actionName: 'REPORTPREVIEW',
+            const reportPreviewAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 actorAccountID: 1,
                 childManagerAccountID: 2,
                 childOwnerAccountID: 1,
@@ -4215,9 +4242,9 @@ describe('OptionsListUtils', () => {
                         whisperedTo: [],
                     },
                 ],
-            } as unknown as ReportAction;
+            };
 
-            const iouReport = {
+            const iouReport: Report = {
                 chatReportID: '123',
                 currency: 'VND',
                 managerID: 2,
@@ -4226,19 +4253,20 @@ describe('OptionsListUtils', () => {
                 parentReportID: '123',
                 participants: {
                     '19960856': {
-                        notificationPreference: '',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                     '20669492': {
-                        notificationPreference: '',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                 },
                 reportID: '456',
                 reportName: 'IOU',
                 total: 3400,
-            } as unknown as Report;
+            };
 
-            const iouAction = {
+            const iouAction: ReportAction = {
                 actorAccountID: 1,
+                created: '2025-10-02 06:50:36.302',
                 message: [
                     {
                         type: 'COMMENT',
@@ -4248,7 +4276,6 @@ describe('OptionsListUtils', () => {
                         whisperedTo: [],
                         isDeletedParentAction: false,
                         deleted: '',
-                        reactions: [],
                     },
                 ],
                 originalMessage: {
@@ -4258,12 +4285,12 @@ describe('OptionsListUtils', () => {
                     currency: 'VND',
                     participantAccountIDs: [1, 2],
                 },
-                actionName: 'IOU',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 reportActionID: '789',
                 reportID: '456',
-            } as unknown as ReportAction;
+            };
 
-            const transaction = {
+            const transaction: Transaction = {
                 transactionID: '123456',
                 amount: 3400,
                 currency: 'VND',
@@ -4276,7 +4303,7 @@ describe('OptionsListUtils', () => {
                 category: '',
                 taxAmount: 0,
                 reimbursable: true,
-            } as unknown as Transaction;
+            };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
@@ -5689,11 +5716,12 @@ describe('OptionsListUtils', () => {
                     policyID: 'dewPolicy1',
                 };
                 const policy: Policy = {
+                    ...POLICY,
                     id: 'dewPolicy1',
                     name: 'Test Policy',
                     type: CONST.POLICY.TYPE.CORPORATE,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-                } as Policy;
+                };
                 const submittedAction: ReportAction = {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -5797,10 +5825,11 @@ describe('OptionsListUtils', () => {
             it('should use the passed policy name for POLICY_DELETED archive reason', async () => {
                 const testPolicyID = 'archivePolicyTest';
                 const policy: Policy = {
+                    ...POLICY,
                     id: testPolicyID,
                     name: 'Test Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
-                } as Policy;
+                };
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     policyID: testPolicyID,
@@ -5839,10 +5868,11 @@ describe('OptionsListUtils', () => {
             it('should use the passed policy name for REMOVED_FROM_POLICY archive reason', async () => {
                 const testPolicyID = 'archivePolicyTest2';
                 const policy: Policy = {
+                    ...POLICY,
                     id: testPolicyID,
                     name: 'My Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
-                } as Policy;
+                };
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     policyID: testPolicyID,
@@ -6832,7 +6862,7 @@ describe('OptionsListUtils', () => {
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
             expect(option.private_isArchived).toBeDefined();
-            expect(option.private_isArchived).toBe(true);
+            expect(option?.private_isArchived).toBe(true);
             expect(option.isDisabled).toBe(true);
             expect(option.isSelected).toBe(false);
         });
@@ -7658,7 +7688,7 @@ describe('OptionsListUtils', () => {
             const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined);
 
             expect(option).toBeDefined();
-            expect(option.private_isArchived).toBeUndefined();
+            expect(option?.private_isArchived).toBeUndefined();
         });
     });
 
@@ -7741,15 +7771,16 @@ describe('OptionsListUtils', () => {
                     text: 'Format Test Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
             ];
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(1);
 
-            const option = result.section.data.at(0) as SearchOptionData;
-            expect(option.private_isArchived).toBe(true);
+            const option = result.section.data.at(0);
+            expect(option?.private_isArchived).toBe(true);
         });
 
         it('should not set private_isArchived when report is not in the archived map', () => {
@@ -7763,14 +7794,19 @@ describe('OptionsListUtils', () => {
                     text: 'Format Test Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID2,
+                },
             ];
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(1);
 
-            const option = result.section.data.at(0) as SearchOptionData;
+            const option = result.section.data.at(0);
+            expect(option).toBeDefined();
+            if (!option) {
+                throw new Error('Expected the active policy expense option to be defined');
+            }
             expect(option.private_isArchived).toBeUndefined();
         });
 
@@ -7787,7 +7823,8 @@ describe('OptionsListUtils', () => {
                     text: 'Archived Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
                 {
                     reportID: formatReportID2,
                     isPolicyExpenseChat: true,
@@ -7795,16 +7832,21 @@ describe('OptionsListUtils', () => {
                     text: 'Active Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID2,
+                },
             ];
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(2);
 
-            const archivedOption = result.section.data.at(0) as SearchOptionData;
-            const activeOption = result.section.data.at(1) as SearchOptionData;
-            expect(archivedOption.private_isArchived).toBe(true);
+            const archivedOption = result.section.data.at(0);
+            const activeOption = result.section.data.at(1);
+            expect(archivedOption?.private_isArchived).toBe(true);
+            expect(activeOption).toBeDefined();
+            if (!activeOption) {
+                throw new Error('Expected the active policy expense option to be defined');
+            }
             expect(activeOption.private_isArchived).toBeUndefined();
         });
 
@@ -7821,7 +7863,8 @@ describe('OptionsListUtils', () => {
                     text: 'Format Test Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
             ];
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, false);
@@ -7847,7 +7890,8 @@ describe('OptionsListUtils', () => {
                     isSelected: true,
                     login: 'formatowner@test.com',
                     displayName: 'Format Owner',
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
             ];
 
             // Pass empty filtered lists so the selected option is not deduplicated
@@ -7866,8 +7910,8 @@ describe('OptionsListUtils', () => {
 
             expect(result.section.data).toHaveLength(1);
 
-            const option = result.section.data.at(0) as SearchOptionData;
-            expect(option.private_isArchived).toBe(true);
+            const option = result.section.data.at(0);
+            expect(option?.private_isArchived).toBe(true);
         });
 
         it('should handle non-policy expense chat participants without privateIsArchived', () => {
@@ -7886,7 +7930,8 @@ describe('OptionsListUtils', () => {
                     isSelected: true,
                     login: 'formatowner@test.com',
                     displayName: 'Format Owner',
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
             ];
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
@@ -7897,7 +7942,7 @@ describe('OptionsListUtils', () => {
             // so private_isArchived is not set
             const option = result.section.data.at(0);
             expect(option).toBeDefined();
-            expect((option as SearchOptionData).private_isArchived).toBeUndefined();
+            expect(option?.private_isArchived).toBeUndefined();
         });
 
         it('should return empty section when no selectedOptions are provided', () => {
@@ -9084,11 +9129,11 @@ describe('OptionsListUtils', () => {
 
     describe('orderPersonalDetailsOptions()', () => {
         it('sorts options alphabetically using text values', () => {
-            const options = [
-                {accountID: 1, text: 'Charlie', login: 'c@example.com'},
-                {accountID: 2, text: 'aaron', login: 'a@example.com'},
-                {accountID: 3, text: 'Bob', login: 'b@example.com'},
-            ] as SearchOptionData[];
+            const options: SearchOptionData[] = [
+                {accountID: 1, reportID: '1', keyForList: '1', text: 'Charlie', login: 'c@example.com'},
+                {accountID: 2, reportID: '2', keyForList: '2', text: 'aaron', login: 'a@example.com'},
+                {accountID: 3, reportID: '3', keyForList: '3', text: 'Bob', login: 'b@example.com'},
+            ];
 
             const sorted = orderPersonalDetailsOptions(options);
 
@@ -9096,21 +9141,25 @@ describe('OptionsListUtils', () => {
         });
 
         it('falls back to alternateText and login when text is missing', () => {
-            const options = [
+            const options: SearchOptionData[] = [
                 {
                     accountID: 1,
+                    reportID: '1',
+                    keyForList: '1',
                     text: undefined,
                     alternateText: 'mango',
                     login: 'm@example.com',
                 },
-                {accountID: 2, text: 'apple', login: 'a@example.com'},
+                {accountID: 2, reportID: '2', keyForList: '2', text: 'apple', login: 'a@example.com'},
                 {
                     accountID: 3,
+                    reportID: '3',
+                    keyForList: '3',
                     text: undefined,
                     alternateText: undefined,
                     login: 'banana@example.com',
                 },
-            ] as SearchOptionData[];
+            ];
 
             const sorted = orderPersonalDetailsOptions(options);
 
