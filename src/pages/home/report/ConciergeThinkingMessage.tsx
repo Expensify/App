@@ -4,6 +4,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -161,9 +162,11 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
             >
                 <OfflineWithFeedback pendingAction={personalDetails?.[accountID]?.pendingFields?.avatar ?? undefined}>
                     {accountID === CONST.ACCOUNT_ID.CONCIERGE ? (
-                        <View style={[styles.actionAvatar]}>
-                            <ConciergeAnimatedAvatar />
-                        </View>
+                        <UserDetailsTooltip accountID={accountID}>
+                            <View style={[styles.actionAvatar]}>
+                                <ConciergeAnimatedAvatar />
+                            </View>
+                        </UserDetailsTooltip>
                     ) : (
                         <ReportActionAvatars
                             singleAvatarContainerStyle={[styles.actionAvatar]}
