@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import NetInfo from '@react-native-community/netinfo';
+import {toDate} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 
 import {getCommandURL} from './ApiUtils';
@@ -240,7 +241,7 @@ function getServerAnchoredDBTime(timestamp: string | number = '', notBeforeDBTim
     const datetime = timestamp ? new Date(timestamp) : new Date();
     let anchoredMs = datetime.valueOf() + networkTimeSkew;
     if (notBeforeDBTime) {
-        const floorMs = new Date(`${notBeforeDBTime.replace(' ', 'T')}Z`).valueOf();
+        const floorMs = toDate(notBeforeDBTime, {timeZone: 'UTC'}).valueOf();
         if (Number.isFinite(floorMs) && anchoredMs <= floorMs) {
             anchoredMs = floorMs + 1;
         }
