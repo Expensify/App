@@ -1,4 +1,5 @@
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -30,9 +31,7 @@ type PrefetchState = {
  */
 function usePolicyConnectionsPrefetch(policy: OnyxEntry<OnyxTypes.Policy>, enabled: boolean): PrefetchState {
     const {isOffline} = useNetwork();
-    // Subscribe under a stable placeholder when there is no policy yet, so we don't register
-    // a real subscriber against `..._undefined` while the parent hydrates.
-    const [hasBeenFetched, hasBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? ''}`);
+    const [hasBeenFetched, hasBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${getNonEmptyStringOnyxID(policy?.id)}`);
     const isLoadingFetchedFlag = !!policy?.id && isLoadingOnyxValue(hasBeenFetchedResult);
     const isFetchNeeded = enabled && !isLoadingFetchedFlag && !isOffline && !!policy && (!!policy.areConnectionsEnabled || !isEmptyObject(policy.connections)) && !hasBeenFetched;
 
