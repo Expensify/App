@@ -131,6 +131,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         selector: delegateEmailSelector,
     });
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
@@ -213,6 +215,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 methodID,
                 paymentMethod,
                 activePolicy,
+                conciergeChat,
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
@@ -361,7 +364,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onRejectModalOpen: openRejectModal,
     });
 
-    const {exportActionEntries, exportDownloadStatusModal} = useExportActions({
+    const {exportActionEntries} = useExportActions({
         reportID,
         policy,
         onPDFModalOpen: openPDFDownload,
@@ -455,24 +458,21 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     };
 
     if (!applicableSecondaryActions.length) {
-        return exportDownloadStatusModal;
+        return null;
     }
 
     return (
-        <>
-            {exportDownloadStatusModal}
-            <MoneyReportHeaderKYCDropdown
-                chatReportID={chatReport?.reportID}
-                iouReport={moneyRequestReport}
-                onPaymentSelect={onPaymentSelect}
-                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                primaryAction={primaryAction}
-                applicableSecondaryActions={applicableSecondaryActions}
-                dropdownMenuRef={dropdownMenuRef}
-                onOptionsMenuHide={handleOptionsMenuHide}
-                ref={kycWallRef}
-            />
-        </>
+        <MoneyReportHeaderKYCDropdown
+            chatReportID={chatReport?.reportID}
+            iouReport={moneyRequestReport}
+            onPaymentSelect={onPaymentSelect}
+            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+            primaryAction={primaryAction}
+            applicableSecondaryActions={applicableSecondaryActions}
+            dropdownMenuRef={dropdownMenuRef}
+            onOptionsMenuHide={handleOptionsMenuHide}
+            ref={kycWallRef}
+        />
     );
 }
 

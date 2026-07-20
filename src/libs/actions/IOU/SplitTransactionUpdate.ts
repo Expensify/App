@@ -13,6 +13,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
@@ -69,7 +70,7 @@ import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} fr
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports, getPolicyTagsData} from './index';
+import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
 import {addPendingNewTransactionIDs} from './PendingNewTransactions';
@@ -107,6 +108,7 @@ type UpdateSplitTransactionsParams = {
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -136,6 +138,7 @@ function updateSplitTransactions({
     transactionReport,
     expenseReport: expenseReportFromParams,
     isOffline,
+    delegateAccountID,
     isTrackIntentUser,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -592,8 +595,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            // TODO: delegateAccountID will be threaded in PR 11 (https://github.com/Expensify/App/issues/66425)
-            delegateAccountID: undefined,
+            delegateAccountID,
             isTrackIntentUser,
         } as MoneyRequestInformationParams;
 
@@ -707,8 +709,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            // TODO: delegateAccountID will be threaded in PR 11 (https://github.com/Expensify/App/issues/66425)
-            delegateAccountID: undefined,
+            delegateAccountID,
             isTrackIntentUser,
         });
 
@@ -789,11 +790,11 @@ function updateSplitTransactions({
                     transactionID: existingTransactionID,
                     transactionThreadReport,
                     iouReport: transactionIOUReport,
+                    iouReportOwnerLogin: getLoginByAccountID(transactionIOUReport?.ownerAccountID, personalDetails),
                     transactionChanges,
                     policy,
                     policyTagList: policyTags ?? null,
-                    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-                    reportPolicyTags: getPolicyTagsData(transactionIOUReport?.policyID),
+                    reportPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionIOUReport?.policyID}`],
                     policyCategories: policyCategories ?? null,
                     newTransactionReportID,
                     policyRecentlyUsedCategories,
@@ -804,8 +805,7 @@ function updateSplitTransactions({
                     isSplitTransaction: true,
                     isSelfDMSplit,
                     isOffline,
-                    // delegateAccountID: will be threaded in PR 11; buildOptimisticModifiedExpenseReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-                    delegateAccountID: undefined,
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
                 if (currentSplit) {
@@ -881,13 +881,12 @@ function updateSplitTransactions({
         const failureDataComments: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
         const addCommentToSplitTransactionThread = (commentAction: OnyxTypes.ReportAction) => {
             const newReportActionID = rand64();
-            // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             const reportComment = buildOptimisticAddCommentReportAction({
                 text: '',
                 actorAccountID: commentAction.actorAccountID,
                 reportID: transactionThreadReportID,
                 reportActionID: newReportActionID,
-                delegateAccountIDParam: undefined,
+                delegateAccountIDParam: delegateAccountID,
             });
             const reportActionComment = {
                 ...reportComment.reportAction,
