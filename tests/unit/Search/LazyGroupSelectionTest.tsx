@@ -10,13 +10,15 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as ReactNavigation from '@react-navigation/native';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native'),
+    ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
     useIsFocused: () => true,
     useRoute: jest.fn(() => ({key: 'search-test-route'})),
     useRootNavigationState: jest.fn(() => undefined),
@@ -33,6 +35,7 @@ const GROUP_KEY = 'Advertising';
  * A `group-by:category` group. Its children are fetched into a separate snapshot only once the row is expanded,
  * so `transactions` stays empty on the group itself for the whole lifetime of the list.
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
 const categoryGroup = {
     groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
     category: 'Advertising',
@@ -46,6 +49,7 @@ const categoryGroup = {
 } as unknown as TransactionCategoryGroupListItemType;
 
 /** The children as they look once the group has been expanded and its snapshot has loaded. */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
 const loadedChildren = [
     {transactionID: '1', keyForList: '1', currency: 'USD', amount: -642, report: {reportID: '11'}},
     {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
