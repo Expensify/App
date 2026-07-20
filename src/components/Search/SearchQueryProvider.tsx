@@ -18,7 +18,7 @@ import type {NavigationState} from '@react-navigation/routers';
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent, useState} from 'react';
 
-import type {QueryFilters, SearchQueryActionsValue, SearchQueryContextValue} from './types';
+import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
 import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
 
@@ -86,20 +86,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
 
-    const currentQueryFilterKeys = new Set(currentSearchQueryJSON?.flatFilters.map((filter) => filter.key));
-    const currentSearchKeyDefaultFilterKeys = new Set(currentSearchKey ? suggestedSearches[currentSearchKey]?.searchQueryJSON?.flatFilters.map((filter) => filter.key) : undefined);
-
-    useEffect(() => {
-        // Every time the query changes, we invalidate the currentSearchKey if the new query doesn't have the default filters
-        // from the currently selected search key query. For example, the "Card statements" suggested search default filters
-        // are Feed and Posted. When the query changes (by removing Posted), the search key becomes invalid, it's not a
-        // "Card statements" search anymore. This can happen when accessing the page through a link/deeplink.
-        if (currentQueryFilterKeys.isSupersetOf(currentSearchKeyDefaultFilterKeys)) {
-            return;
-        }
-        setCurrentSearchKey(undefined);
-    }, [currentSearchHash]);
-
     const setInitialCurrentSearchKey = useEffectEvent(() => setCurrentSearchKey(getInitialCurrentSearchKey()));
 
     useEffect(() => {
@@ -110,12 +96,28 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         setInitialCurrentSearchKey();
     }, [currentSearchKey]);
 
+    const currentQueryFilterKeys = new Set(currentSearchQueryJSON?.flatFilters.map((filter) => filter.key));
     const currentDefaultSearchQueryString = currentSearchKey
         ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
         : undefined;
-    const currentDefaultSearchQueryFilterKeys = new Set<QueryFilters[number]['key']>(
+    const currentDefaultSearchQueryFilterKeys = new Set(
         currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString)?.flatFilters.map((filter) => filter.key) : undefined,
     );
+
+    const resetCurrentSearchKeyIfInvalid = useEffectEvent(() => {
+        // Every time the query changes, we invalidate the currentSearchKey if the new query doesn't have the default filters
+        // from the currently selected search key query. For example, the "Card statements" suggested search default filters
+        // are Feed and Posted. When the query changes (by removing Posted), the search key becomes invalid, it's not a
+        // "Card statements" search anymore. This can happen when accessing the page through a link/deeplink.
+        if (currentQueryFilterKeys.isSupersetOf(currentDefaultSearchQueryFilterKeys)) {
+            return;
+        }
+        setInitialCurrentSearchKey();
+    });
+
+    useEffect(() => {
+        resetCurrentSearchKeyIfInvalid();
+    }, [currentSearchHash]);
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
