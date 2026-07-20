@@ -200,7 +200,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                 isParentOneTransactionReport &&
                 (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
             ) {
-                const hasReportActions = !!allReportActions?.[parentReportID];
+                const hasReportActions = !!allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
                 if (draftReportComment) {
                     // Draft must be saved first because the callback will clear the optimistic report and its associated draft
                     saveReportDraftComment(parentReportID, draftReportComment, () => {
