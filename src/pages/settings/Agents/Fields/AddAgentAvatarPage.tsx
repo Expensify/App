@@ -8,6 +8,7 @@ import {setNewAgentAvatarPreset, setNewAgentUploadedAvatar} from '@userActions/A
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 
 import type {OnSaveParams} from './EditAgentAvatarPage';
@@ -15,6 +16,7 @@ import type {OnSaveParams} from './EditAgentAvatarPage';
 import {EditAgentAvatarContent} from './EditAgentAvatarPage';
 
 function AddAgentAvatarPage() {
+    const navigation = useNavigation();
     const returnRoute = ROUTES.SETTINGS_AGENTS_ADD.getRoute();
     const [avatarDraft] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const initialPresetID = avatarDraft?.customExpensifyAvatarID;
@@ -28,6 +30,10 @@ function AddAgentAvatarPage() {
                 Log.warn('Failed to persist the new-agent avatar draft', {error});
             })
             .finally(() => {
+                // Do not navigate if user already left the screen while promise pending.
+                if (!navigation.isFocused()) {
+                    return;
+                }
                 Navigation.goBack(returnRoute);
             });
     };
@@ -41,7 +47,5 @@ function AddAgentAvatarPage() {
         />
     );
 }
-
-AddAgentAvatarPage.displayName = 'AddAgentAvatarPage';
 
 export default AddAgentAvatarPage;

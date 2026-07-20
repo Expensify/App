@@ -10,11 +10,19 @@ import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPa
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type * as ReactNavigationNative from '@react-navigation/native';
+
 import React from 'react';
 
 const mockSetNewAgentUploadedAvatar = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
 const mockSetNewAgentAvatarPreset = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
 const mockLogWarn = jest.fn<void, unknown[]>();
+const mockIsFocused = jest.fn<boolean, []>(() => true);
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
+    useNavigation: () => ({isFocused: mockIsFocused}),
+}));
 
 jest.mock('@userActions/Agent', () => ({
     setNewAgentUploadedAvatar: (...args: unknown[]) => mockSetNewAgentUploadedAvatar(...args),
@@ -54,6 +62,7 @@ describe('AddAgentAvatarPage', () => {
         mockEditAgentAvatarOnSave = undefined;
         mockSetNewAgentUploadedAvatar.mockResolvedValue();
         mockSetNewAgentAvatarPreset.mockResolvedValue();
+        mockIsFocused.mockReturnValue(true);
         mockUseOnyx.mockReturnValue([{customExpensifyAvatarID: 'bot-avatar--blue'}, {status: 'loaded'}]);
     });
 
@@ -119,5 +128,24 @@ describe('AddAgentAvatarPage', () => {
         await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute()));
         expect(mockLogWarn).toHaveBeenCalledTimes(1);
         expect(mockLogWarn.mock.calls.at(0)?.at(0)).toBe('Failed to persist the new-agent avatar draft');
+    });
+
+    it('skips navigation when the user already left the screen while the write was pending', async () => {
+        let resolveWrite: () => void = () => {};
+        mockSetNewAgentUploadedAvatar.mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                resolveWrite = resolve;
+            }),
+        );
+
+        render(<AddAgentAvatarPage />);
+        mockEditAgentAvatarOnSave?.({file: MOCK_FILE, uri: 'file://photo.jpg'});
+
+        // The user leaves the avatar picker before the draft write settles.
+        mockIsFocused.mockReturnValue(false);
+        resolveWrite();
+
+        await waitFor(() => expect(mockIsFocused).toHaveBeenCalled());
+        expect(mockGoBack).not.toHaveBeenCalled();
     });
 });
