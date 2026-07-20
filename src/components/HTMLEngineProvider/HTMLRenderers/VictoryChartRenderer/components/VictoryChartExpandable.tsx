@@ -25,8 +25,9 @@ type VictoryChartExpandableProps = {
  *
  * Hover/expand state lives here — below the chart renderer — so the chart subtree (passed as
  * `children` with a stable element identity) does not re-render on mouse enter/leave.
- * The modal is only mounted after the first expand (and unmounted after its closing animation)
- * because mounting a Modal per chart on the chat path would be needlessly expensive.
+ * The modal is only mounted after the first expand, because mounting a Modal per chart on the
+ * chat path would be needlessly expensive. It stays mounted after closing — unmounting at the end
+ * of the close animation can drop a frame and cause a visible flash, especially on dark themes.
  */
 function VictoryChartExpandable({children}: VictoryChartExpandableProps) {
     const styles = useThemeStyles();
@@ -70,7 +71,6 @@ function VictoryChartExpandable({children}: VictoryChartExpandableProps) {
                 <VictoryChartExpandModal
                     isVisible={isExpanded}
                     onClose={() => setIsExpanded(false)}
-                    onModalHide={() => setShouldRenderModal(false)}
                 />
             )}
         </>

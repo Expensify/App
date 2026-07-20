@@ -25,9 +25,6 @@ type VictoryChartExpandModalProps = {
 
     /** Called when the modal should close */
     onClose: () => void;
-
-    /** Called once the modal's closing animation has finished */
-    onModalHide?: () => void;
 };
 
 /**
@@ -41,7 +38,7 @@ type VictoryChartExpandModalProps = {
  * Rendering fluidly instead would resize only the canvas and leave labels at design coordinates,
  * misplacing them (and potentially overlaying the header, blocking the back button).
  */
-function VictoryChartExpandModal({isVisible, onClose, onModalHide}: VictoryChartExpandModalProps) {
+function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -83,66 +80,72 @@ function VictoryChartExpandModal({isVisible, onClose, onModalHide}: VictoryChart
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={onClose}
-            onModalHide={onModalHide}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            {/* Header matches the attachment modal: back button on narrow layouts, close button on the right otherwise. */}
-            <HeaderWithBackButton
-                title={translate('common.details')}
-                shouldShowBorderBottom
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldShowCloseButton={!shouldUseNarrowLayout}
-                onBackButtonPress={onClose}
-                onCloseButtonPress={onClose}
-            />
-            {/* Padding lives on the outer view; the inner view is measured so the scale never
+            {/* Explicitly paint the modal surface: during the close animation the unpainted modal base
+                can flash through as white, which is clearly visible on dark themes. */}
+            <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+                {/* Header matches the attachment modal: back button on narrow layouts, close button on the right otherwise. */}
+                <HeaderWithBackButton
+                    title={translate('common.details')}
+                    shouldShowBorderBottom
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldShowCloseButton={!shouldUseNarrowLayout}
+                    onBackButtonPress={onClose}
+                    onCloseButtonPress={onClose}
+                />
+                {/* Padding lives on the outer view; the inner view is measured so the scale never
                 exceeds the actual content area and the side gutters are preserved. */}
-            <View style={[styles.flex1, styles.ph5]}>
-                <View
-                    style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
-                    onLayout={onContainerLayout}
-                >
-                    {isMeasured &&
-                        (hasDesignDimensions && effectiveDesignHeight !== undefined ? (
-                            // Clip the container (not the content) so polar dead space is hidden while the chart renders at full fidelity.
-                            <View
-                                style={[
-                                    StyleUtils.getWidthAndHeightStyle(designWidth * scale, effectiveDesignHeight * scale),
-                                    typeof borderRadius === 'number' && isPolar && StyleUtils.getBorderRadiusStyle(borderRadius),
-                                    styles.overflowHidden,
-                                ]}
-                            >
-                                {/* Fixed design-size box so the fluid chart renders at design size, then scaled uniformly. */}
+                <View style={[styles.flex1, styles.ph5]}>
+                    <View
+                        style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                        onLayout={onContainerLayout}
+                    >
+                        {isMeasured &&
+                            (hasDesignDimensions && effectiveDesignHeight !== undefined ? (
+                                // Clip the container (not the content) so polar dead space is hidden while the chart renders at full fidelity.
                                 <View
                                     style={[
-                                        chartContentStyles,
-                                        StyleUtils.getWidthAndHeightStyle(designWidth, designHeight),
+                                        StyleUtils.getWidthAndHeightStyle(designWidth * scale, effectiveDesignHeight * scale),
+                                        typeof borderRadius === 'number' && isPolar && StyleUtils.getBorderRadiusStyle(borderRadius),
+                                        styles.overflowHidden,
+                                    ]}
+                                >
+                                    {/* Fixed design-size box so the fluid chart renders at design size, then scaled uniformly. */}
+                                    <View
+                                        style={[
+                                            chartContentStyles,
+                                            StyleUtils.getWidthAndHeightStyle(designWidth, designHeight),
+                                            backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
+                                            typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
+                                            styles.overflowHidden,
+                                            styles.chartExpandedContent,
+                                            StyleUtils.getTransformScaleStyle(scale),
+                                        ]}
+                                    >
+                                        {/* The Skia canvas is removed as soon as closing starts: WebGL canvases can
+                                        flash white when re-composited during the close animation (visible on dark
+                                        themes). The card box stays so the modal animates out looking intact. */}
+                                        {isVisible && <VictoryChartContent />}
+                                    </View>
+                                </View>
+                            ) : (
+                                // Charts without design dimensions have no design-based label coordinates, so fluid
+                                // rendering is safe. Background/rounding are still applied so the expanded chart
+                                // keeps the same themed container the inline fluid path renders with.
+                                <View
+                                    style={[
+                                        styles.w100,
+                                        styles.flex1,
                                         backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
                                         typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
                                         styles.overflowHidden,
-                                        styles.chartExpandedContent,
-                                        StyleUtils.getTransformScaleStyle(scale),
                                     ]}
                                 >
-                                    <VictoryChartContent />
+                                    {isVisible && <VictoryChartContent />}
                                 </View>
-                            </View>
-                        ) : (
-                            // Charts without design dimensions have no design-based label coordinates, so fluid
-                            // rendering is safe. Background/rounding are still applied so the expanded chart
-                            // keeps the same themed container the inline fluid path renders with.
-                            <View
-                                style={[
-                                    styles.w100,
-                                    styles.flex1,
-                                    backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
-                                    typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
-                                    styles.overflowHidden,
-                                ]}
-                            >
-                                <VictoryChartContent />
-                            </View>
-                        ))}
+                            ))}
+                    </View>
                 </View>
             </View>
         </Modal>
