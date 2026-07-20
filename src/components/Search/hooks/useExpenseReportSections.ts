@@ -18,16 +18,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
-import {useMemo} from 'react';
-
 import type {SearchShell} from './useSearchShell';
 
 import useSearchSectionColumns from './useSearchSectionColumns';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 /**
- * The section outputs every per-type Search leaf produces. The container hands these to the shared
- * results body; the shape matches the section half of the legacy `useSearchSnapshot` return.
+ * The section outputs every per-type Search leaf produces, handed to the shared results body.
  */
 type SearchSections = {
     /** Sorted and optimistic-stabilized row items for the current query. */
@@ -40,12 +37,12 @@ type SearchSections = {
     filteredDataLength: number;
     /** Total result count (drives the pagination guard). */
     allDataLength: number;
-    /** Whether any visible transaction is deleted (widens the action column). */
-    hasDeletedTransaction: boolean;
+    /** Whether any visible transaction is deleted (widens the action column). Omitted by non-transaction views (defaults false). */
+    hasDeletedTransaction?: boolean;
     /** Columns to render, derived from the snapshot. */
     columns: SearchColumnType[];
-    /** Whether every transaction has been loaded (always true for the non-grouped report view). */
-    hasLoadedAllTransactions: boolean;
+    /** Whether every transaction has been loaded. Omitted by non-paginated views (defaults true). */
+    hasLoadedAllTransactions?: boolean;
     /** True while the cached optimistic row is being re-injected across a snapshot-replacement gap. */
     hasCachedOptimisticItem: boolean;
 };
@@ -88,16 +85,11 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const {filteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo<{
-        filteredData: SearchData;
-        filteredDataLength: number;
-        allDataLength: number;
-        hasDeletedTransaction: boolean;
-    }>(() => {
-        if (!shouldComputeSections || !searchDataWithOptimisticTransaction) {
-            return {filteredData: EMPTY_FILTERED_DATA, filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
-        }
-
+    let filteredData: SearchData = EMPTY_FILTERED_DATA;
+    let filteredDataLength = 0;
+    let allDataLength = 0;
+    let hasDeletedTransaction = false;
+    if (shouldComputeSections && searchDataWithOptimisticTransaction) {
         const [filtered, allLength, hasDeletedTransactionFromSections] = getReportSections({
             data: searchDataWithOptimisticTransaction,
             currentSearch: currentSearchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -113,39 +105,17 @@ function useExpenseReportSections({shell, queryJSON, searchResults, newSearchRes
             onyxPersonalDetailsList,
             convertToDisplayString,
         });
+        filteredData = filtered as SearchData;
+        filteredDataLength = filtered.length;
+        allDataLength = allLength;
+        hasDeletedTransaction = hasDeletedTransactionFromSections;
+    }
 
-        return {
-            filteredData: filtered as SearchData,
-            filteredDataLength: filtered.length,
-            allDataLength: allLength,
-            hasDeletedTransaction: hasDeletedTransactionFromSections,
-        };
-    }, [
-        shouldComputeSections,
-        searchDataWithOptimisticTransaction,
-        currentSearchKey,
-        accountID,
-        email,
-        translate,
-        isOffline,
-        formatPhoneNumber,
-        isActionLoadingSet,
-        bankAccountList,
-        exportReportActions,
-        queryJSON,
-        onyxPersonalDetailsList,
-        convertToDisplayString,
-    ]);
-
-    const chartData = useMemo<SearchListItem[]>(() => {
-        if (!shouldComputeSections) {
-            return EMPTY_DATA;
-        }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
-        return stampSearchHighlights(getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder), hash, (item) =>
-            getTransactionRowShouldAnimate(item, newSearchResultKeys),
-        );
-    }, [shouldComputeSections, filteredData, type, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
+    const chartData: SearchListItem[] = !shouldComputeSections
+        ? EMPTY_DATA
+        : stampSearchHighlights(getSortedSections(type, filteredData as Parameters<typeof getSortedSections>[1], localeCompare, translate, sortBy, sortOrder), hash, (item) =>
+              getTransactionRowShouldAnimate(item, newSearchResultKeys),
+          );
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 

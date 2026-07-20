@@ -9,8 +9,6 @@ import {getReportActionsSections, getSortedSections} from '@libs/SearchUIUtils';
 
 import type SearchResults from '@src/types/onyx/SearchResults';
 
-import {useMemo} from 'react';
-
 import type {SearchSections} from './useExpenseReportSections';
 import type {SearchShell} from './useSearchShell';
 
@@ -31,12 +29,8 @@ const EMPTY_DATA: SearchListItem[] = [];
 const EMPTY_FILTERED_DATA: SearchData = [];
 
 /**
- * Section builder for the chat search view (`type === CHAT`).
- *
- * The chat builder reads only report actions from the snapshot plus the report-attributes derived value (for
- * report names); it needs none of the transaction/card/policy slices. So this hook subscribes to almost
- * nothing — only the report attributes — and reads locale from context directly. Because it mounts only
- * inside `ChatSectionsContainer`, every other search type never opens even these.
+ * Section builder for the chat search view (`type === CHAT`). Subscribes only to report attributes (for
+ * report names) and reads locale from context — none of the transaction/card/policy slices.
  */
 function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}: UseChatSectionsParams): SearchSections {
     const {type, sortBy, sortOrder, hash} = queryJSON;
@@ -45,34 +39,21 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
     const {translate, localeCompare} = useLocalize();
     const reportAttributesDerivedValue = useReportAttributes();
 
-    const {filteredData, filteredDataLength, allDataLength} = useMemo<{
-        filteredData: SearchData;
-        filteredDataLength: number;
-        allDataLength: number;
-    }>(() => {
-        if (!shouldComputeSections || !searchDataWithOptimisticTransaction) {
-            return {filteredData: EMPTY_FILTERED_DATA, filteredDataLength: 0, allDataLength: 0};
-        }
-
-        // The monolith never wired `visibleReportActionsData`, so it stays undefined here to preserve behavior.
+    let filteredData: SearchData = EMPTY_FILTERED_DATA;
+    let filteredDataLength = 0;
+    let allDataLength = 0;
+    if (shouldComputeSections && searchDataWithOptimisticTransaction) {
         const [filtered, allLength] = getReportActionsSections(searchDataWithOptimisticTransaction, reportAttributesDerivedValue, undefined);
+        filteredData = filtered as SearchData;
+        filteredDataLength = filtered.length;
+        allDataLength = allLength;
+    }
 
-        return {
-            filteredData: filtered as SearchData,
-            filteredDataLength: filtered.length,
-            allDataLength: allLength,
-        };
-    }, [shouldComputeSections, searchDataWithOptimisticTransaction, reportAttributesDerivedValue]);
-
-    const chartData = useMemo<SearchListItem[]>(() => {
-        if (!shouldComputeSections) {
-            return EMPTY_DATA;
-        }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
-        return stampSearchHighlights(getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder), hash, (item) =>
-            getReportActionRowShouldAnimate(item, newSearchResultKeys),
-        );
-    }, [shouldComputeSections, filteredData, type, localeCompare, translate, sortBy, sortOrder, newSearchResultKeys, hash]);
+    const chartData: SearchListItem[] = !shouldComputeSections
+        ? EMPTY_DATA
+        : stampSearchHighlights(getSortedSections(type, filteredData as Parameters<typeof getSortedSections>[1], localeCompare, translate, sortBy, sortOrder), hash, (item) =>
+              getReportActionRowShouldAnimate(item, newSearchResultKeys),
+          );
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
@@ -84,11 +65,7 @@ function useChatSections({shell, queryJSON, searchResults, newSearchResultKeys}:
         filteredData,
         filteredDataLength,
         allDataLength,
-        // Chat rows are never transactions, so nothing here can be a deleted transaction.
-        hasDeletedTransaction: false,
         columns,
-        // The chat view is never grouped, so it is always fully loaded.
-        hasLoadedAllTransactions: true,
         hasCachedOptimisticItem,
     };
 }

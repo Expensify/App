@@ -22,8 +22,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
-import {useMemo} from 'react';
-
 import type {SearchSections} from './useExpenseReportSections';
 import type {SearchShell} from './useSearchShell';
 
@@ -84,16 +82,11 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo<{
-        baseFilteredData: TransactionGroupListItemType[];
-        filteredDataLength: number;
-        allDataLength: number;
-        hasDeletedTransaction: boolean;
-    }>(() => {
-        if (!shouldComputeSections || !searchDataWithOptimisticTransaction) {
-            return {baseFilteredData: EMPTY_GROUP_ITEMS, filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
-        }
-
+    let baseFilteredData: TransactionGroupListItemType[] = EMPTY_GROUP_ITEMS;
+    let filteredDataLength = 0;
+    let allDataLength = 0;
+    let hasDeletedTransaction = false;
+    if (shouldComputeSections && searchDataWithOptimisticTransaction) {
         const [filtered, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
             data: searchDataWithOptimisticTransaction,
@@ -120,117 +113,57 @@ function useGroupedTransactionSections({shell, queryJSON, searchResults, newSear
             reportAttributesDerivedValue,
             optimisticTransactionID,
         });
-        return {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- grouped views yield group containers
-            baseFilteredData: filtered as TransactionGroupListItemType[],
-            filteredDataLength: filtered.length,
-            allDataLength: allLength,
-            hasDeletedTransaction: hasDeletedTransactionFromSections,
-        };
-    }, [
-        shouldComputeSections,
-        searchDataWithOptimisticTransaction,
-        type,
-        accountID,
-        email,
-        translate,
-        formatPhoneNumber,
-        bankAccountList,
-        validGroupBy,
-        exportReportActions,
-        currentSearchKey,
-        reportNameValuePairs,
-        queryJSON,
-        isActionLoadingSet,
-        cardFeeds,
-        personalAndWorkspaceCards,
-        nonPersonalAndWorkspaceCards,
-        isOffline,
-        customCardNames,
-        conciergeReportID,
-        onyxPersonalDetailsList,
-        isAttendeesEnabledForMovingPolicy,
-        convertToDisplayString,
-        reportAttributesDerivedValue,
-        optimisticTransactionID,
-    ]);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- grouped views yield group containers
+        baseFilteredData = filtered as TransactionGroupListItemType[];
+        filteredDataLength = filtered.length;
+        allDataLength = allLength;
+        hasDeletedTransaction = hasDeletedTransactionFromSections;
+    }
 
-    const groupByTransactionHashes = useMemo(
-        () => (validGroupBy ? baseFilteredData.map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue) : EMPTY_HASHES),
-        [validGroupBy, baseFilteredData],
-    );
+    const groupByTransactionHashes = validGroupBy
+        ? baseFilteredData.map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue)
+        : EMPTY_HASHES;
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
 
-    const filteredData = useMemo<SearchData>(() => {
-        if (!validGroupBy) {
-            return baseFilteredData as SearchData;
-        }
-        return baseFilteredData.map((item) => {
-            const subSnapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
-            if (!subSnapshot?.data) {
-                return item;
-            }
-            const [groupTransactions] = getSections({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                data: subSnapshot.data,
-                currentAccountID: accountID,
-                currentUserEmail: email ?? '',
-                bankAccountList,
-                translate,
-                formatPhoneNumber,
-                isActionLoadingSet,
-                cardFeeds,
-                conciergeReportID,
-                convertToDisplayString,
-                reportAttributesDerivedValue: undefined,
-            });
-            return {
-                ...item,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-                transactions: groupTransactions as TransactionListItemType[],
-            };
-        });
-    }, [
-        validGroupBy,
-        baseFilteredData,
-        groupByTransactionSnapshots,
-        accountID,
-        email,
-        bankAccountList,
-        translate,
-        formatPhoneNumber,
-        isActionLoadingSet,
-        cardFeeds,
-        conciergeReportID,
-        convertToDisplayString,
-    ]);
+    const filteredData: SearchData = !validGroupBy
+        ? (baseFilteredData as SearchData)
+        : baseFilteredData.map((item) => {
+              const subSnapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
+              if (!subSnapshot?.data) {
+                  return item;
+              }
+              const [groupTransactions] = getSections({
+                  type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                  data: subSnapshot.data,
+                  currentAccountID: accountID,
+                  currentUserEmail: email ?? '',
+                  bankAccountList,
+                  translate,
+                  formatPhoneNumber,
+                  isActionLoadingSet,
+                  cardFeeds,
+                  conciergeReportID,
+                  convertToDisplayString,
+                  reportAttributesDerivedValue: undefined,
+              });
+              return {
+                  ...item,
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
+                  transactions: groupTransactions as TransactionListItemType[],
+              };
+          });
 
-    const chartData = useMemo<SearchListItem[]>(() => {
-        if (!shouldComputeSections) {
-            return EMPTY_DATA;
-        }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
-        const sorted = getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
-            policyCategories,
-            policyTags,
-            fallbackPolicyID: policyForMovingExpensesID,
-        });
-        return stampSearchHighlights(sorted, hash, (item) => getTransactionRowShouldAnimate(item, newSearchResultKeys));
-    }, [
-        shouldComputeSections,
-        filteredData,
-        type,
-        localeCompare,
-        translate,
-        sortBy,
-        sortOrder,
-        validGroupBy,
-        policyCategories,
-        policyTags,
-        policyForMovingExpensesID,
-        newSearchResultKeys,
-        hash,
-    ]);
+    const chartData: SearchListItem[] = !shouldComputeSections
+        ? EMPTY_DATA
+        : stampSearchHighlights(
+              getSortedSections(type, filteredData as Parameters<typeof getSortedSections>[1], localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+                  policyCategories,
+                  policyTags,
+                  fallbackPolicyID: policyForMovingExpensesID,
+              }),
+              hash,
+              (item) => getTransactionRowShouldAnimate(item, newSearchResultKeys),
+          );
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 

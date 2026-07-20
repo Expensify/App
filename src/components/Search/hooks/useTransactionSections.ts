@@ -18,8 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
-import {useMemo} from 'react';
-
 import type {SearchSections} from './useExpenseReportSections';
 import type {SearchShell} from './useSearchShell';
 
@@ -61,16 +59,11 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    const {filteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo<{
-        filteredData: SearchData;
-        filteredDataLength: number;
-        allDataLength: number;
-        hasDeletedTransaction: boolean;
-    }>(() => {
-        if (!shouldComputeSections || !searchDataWithOptimisticTransaction) {
-            return {filteredData: EMPTY_FILTERED_DATA, filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
-        }
-
+    let filteredData: SearchData = EMPTY_FILTERED_DATA;
+    let filteredDataLength = 0;
+    let allDataLength = 0;
+    let hasDeletedTransaction = false;
+    if (shouldComputeSections && searchDataWithOptimisticTransaction) {
         const [filtered, allLength, hasDeletedTransactionFromSections] = getTransactionsSections({
             data: searchDataWithOptimisticTransaction,
             currentSearch: currentSearchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -85,41 +78,23 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
             isAttendeesEnabledForMovingPolicy,
             optimisticTransactionID,
         });
+        filteredData = filtered as SearchData;
+        filteredDataLength = filtered.length;
+        allDataLength = allLength;
+        hasDeletedTransaction = hasDeletedTransactionFromSections;
+    }
 
-        return {
-            filteredData: filtered as SearchData,
-            filteredDataLength: filtered.length,
-            allDataLength: allLength,
-            hasDeletedTransaction: hasDeletedTransactionFromSections,
-        };
-    }, [
-        shouldComputeSections,
-        searchDataWithOptimisticTransaction,
-        currentSearchKey,
-        accountID,
-        email,
-        translate,
-        formatPhoneNumber,
-        isActionLoadingSet,
-        bankAccountList,
-        exportReportActions,
-        queryJSON,
-        isAttendeesEnabledForMovingPolicy,
-        optimisticTransactionID,
-    ]);
-
-    const chartData = useMemo<SearchListItem[]>(() => {
-        if (!shouldComputeSections) {
-            return EMPTY_DATA;
-        }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
-        const sorted = getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, undefined, {
-            policyCategories,
-            policyTags,
-            fallbackPolicyID: policyForMovingExpensesID,
-        });
-        return stampSearchHighlights(sorted, hash, (item) => getTransactionRowShouldAnimate(item, newSearchResultKeys));
-    }, [shouldComputeSections, filteredData, type, localeCompare, translate, sortBy, sortOrder, policyCategories, policyTags, policyForMovingExpensesID, newSearchResultKeys, hash]);
+    const chartData: SearchListItem[] = !shouldComputeSections
+        ? EMPTY_DATA
+        : stampSearchHighlights(
+              getSortedSections(type, filteredData as Parameters<typeof getSortedSections>[1], localeCompare, translate, sortBy, sortOrder, undefined, {
+                  policyCategories,
+                  policyTags,
+                  fallbackPolicyID: policyForMovingExpensesID,
+              }),
+              hash,
+              (item) => getTransactionRowShouldAnimate(item, newSearchResultKeys),
+          );
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
@@ -133,7 +108,6 @@ function useTransactionSections({shell, queryJSON, searchResults, newSearchResul
         allDataLength,
         hasDeletedTransaction,
         columns,
-        hasLoadedAllTransactions: true,
         hasCachedOptimisticItem,
     };
 }

@@ -11,8 +11,6 @@ import {getSortedSections, getTaskSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
-import {useMemo} from 'react';
-
 import type {SearchSections} from './useExpenseReportSections';
 import type {SearchShell} from './useSearchShell';
 
@@ -25,8 +23,7 @@ type UseTaskSectionsParams = {
     queryJSON: Readonly<SearchQueryJSON>;
     /** The current search snapshot, owned by the ancestor and passed in. */
     searchResults: SearchResults | undefined;
-    /** Keys flagged for the post-create highlight animation. Unused for tasks (task rows carry no
-     *  transaction/report-action key), kept for provider symmetry. */
+    /** Keys flagged for the post-create highlight animation. Unused for tasks. */
     newSearchResultKeys: Set<string> | null | undefined;
 };
 
@@ -46,15 +43,10 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    const {filteredData, filteredDataLength, allDataLength} = useMemo<{
-        filteredData: SearchData;
-        filteredDataLength: number;
-        allDataLength: number;
-    }>(() => {
-        if (!shouldComputeSections || !searchDataWithOptimisticTransaction) {
-            return {filteredData: EMPTY_FILTERED_DATA, filteredDataLength: 0, allDataLength: 0};
-        }
-
+    let filteredData: SearchData = EMPTY_FILTERED_DATA;
+    let filteredDataLength = 0;
+    let allDataLength = 0;
+    if (shouldComputeSections && searchDataWithOptimisticTransaction) {
         const [filtered, allLength] = getTaskSections(
             searchDataWithOptimisticTransaction,
             formatPhoneNumber,
@@ -63,23 +55,15 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
             reportNameValuePairs,
             reportAttributesDerivedValue,
         );
+        filteredData = filtered as SearchData;
+        filteredDataLength = filtered.length;
+        allDataLength = allLength;
+    }
 
-        return {
-            filteredData: filtered as SearchData,
-            filteredDataLength: filtered.length,
-            allDataLength: allLength,
-        };
-    }, [shouldComputeSections, searchDataWithOptimisticTransaction, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue]);
+    const chartData: SearchListItem[] = !shouldComputeSections
+        ? EMPTY_DATA
+        : stampSearchHighlights(getSortedSections(type, filteredData as Parameters<typeof getSortedSections>[1], localeCompare, translate, sortBy, sortOrder), hash, () => false);
 
-    const chartData = useMemo<SearchListItem[]>(() => {
-        if (!shouldComputeSections) {
-            return EMPTY_DATA;
-        }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
-        return stampSearchHighlights(getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder), hash, () => false);
-    }, [shouldComputeSections, filteredData, type, localeCompare, translate, sortBy, sortOrder, hash]);
-
-    // Keep the optimistic row visible across a snapshot-replacement gap.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
     const columns = useSearchSectionColumns(queryJSON, searchResults);
@@ -90,9 +74,7 @@ function useTaskSections({shell, queryJSON, searchResults}: UseTaskSectionsParam
         filteredData,
         filteredDataLength,
         allDataLength,
-        hasDeletedTransaction: false,
         columns,
-        hasLoadedAllTransactions: true,
         hasCachedOptimisticItem,
     };
 }
