@@ -1,3 +1,4 @@
+import {useSearchQueryActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -10,8 +11,6 @@ import {filterValidHasValues} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-
-import {useSearchQueryActions} from '../SearchContext';
 
 function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     const {translate} = useLocalize();

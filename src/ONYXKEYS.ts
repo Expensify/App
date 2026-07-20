@@ -1,5 +1,3 @@
-import type {SearchKey} from '@libs/SearchUIUtils';
-
 import type {ValueOf} from 'type-fest';
 
 import type CONST from './CONST';

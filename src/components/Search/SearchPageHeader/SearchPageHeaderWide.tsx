@@ -1,4 +1,5 @@
 import TopBar from '@components/Navigation/TopBar';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -7,8 +8,6 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import CONST from '@src/CONST';
 
 import React from 'react';
-
-import {useSearchQueryContext} from '../SearchContext';
 
 type SearchPageHeaderWideProps = {
     queryJSON: SearchQueryJSON;
