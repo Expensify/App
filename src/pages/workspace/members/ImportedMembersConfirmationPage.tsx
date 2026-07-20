@@ -173,8 +173,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={styles.mb3}
                 >
-                    <Button.Text>{translate('common.import')}</Button.Text>
                     <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.import')}</Button.Text>
                 </Button>
                 <PressableWithoutFeedback
                     onPress={openPrivacyURL}

@@ -138,7 +138,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={isOffline}
                 isLoading={inactiveCard?.isLoading}
-                size={isExtraSmallScreenHeight ? undefined : CONST.BUTTON_SIZE.LARGE}
+                size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.p5, styles.mtAuto]}
                 onPress={submitAndNavigateToNextPage}
             >

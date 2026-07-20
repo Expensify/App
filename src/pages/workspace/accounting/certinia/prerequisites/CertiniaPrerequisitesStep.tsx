@@ -99,8 +99,8 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbo
                     onPress={isLastStep ? onConnect : onNext}
                     isDisabled={isLastStep && isOffline}
                 >
-                    <Button.Text>{translate(buttonKey)}</Button.Text>
                     <Button.KeyboardShortcut />
+                    <Button.Text>{translate(buttonKey)}</Button.Text>
                 </Button>
             </FixedFooter>
         </View>
