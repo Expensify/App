@@ -1,3 +1,5 @@
+import fileURIToPath from '@libs/fileURIToPath';
+
 import RNFS from 'react-native-fs';
 
 /**
@@ -12,17 +14,11 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
         return Promise.resolve(false);
     }
 
-    // RNFS.stat expects a POSIX path, not a file:// URI.
     const rawPath = path.startsWith('file://') ? path.slice(7) : path;
 
-    // The share extension gives a percent-encoded URI, but moveReceiptToDurableStorage builds a
-    // file:// path from the raw filename, so a literal "%23" is ambiguous. Try decoded, then raw.
-    let decodedPath: string;
-    try {
-        decodedPath = decodeURIComponent(rawPath);
-    } catch {
-        decodedPath = rawPath;
-    }
+    // Receipts queued before moveReceiptToDurableStorage sanitized its filenames can still carry
+    // a literal "%23", which is indistinguishable from an encoded "#". Try decoded, then raw.
+    const decodedPath = fileURIToPath(path);
 
     const statIsFile = (candidate: string) => RNFS.stat(candidate).then((fileStat) => fileStat.isFile());
 
