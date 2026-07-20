@@ -437,7 +437,9 @@ function hasPaymentMethodError(
     const policyList = Object.values(policies ?? {}).filter(Boolean);
     const hasRelevantCardError = cardsWithErrors.some((card) => {
         if (CardUtils.isPersonalCard(card)) {
-            return true;
+            // A broken personal-card connection is surfaced as a card error too, so once it is unresolved past the grace
+            // period we stop leading the user to it and it must no longer light the RBR (any other error still does).
+            return !CardUtils.isBrokenConnectionPastDismissThreshold(card);
         }
         const workspaceAccountID = Number(card?.fundID);
         const policy = policyList.find((p) => p?.policyAccountID === workspaceAccountID);

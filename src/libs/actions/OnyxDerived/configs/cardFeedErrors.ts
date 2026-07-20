@@ -54,14 +54,15 @@ export default createOnyxDerivedValueConfig({
 
         function addErrorsForPersonalCard(card: Card) {
             // Once the broken connection is unresolved past the grace period we stop leading the user to it: the
-            // time-sensitive task and the RBR are removed. The broken-connection error surfaces via
-            // `errorFields.lastScrape`, so drop only that field when deciding the RBR — any other actionable error on
-            // the card (a failed reimbursable/start-date update in another `errorFields` entry, a failed remove in
-            // `card.errors`, etc.) is kept so it still surfaces. The error itself stays on the card so it's fixable.
+            // time-sensitive task and the RBR are removed. A broken connection is surfaced both as `errorFields.lastScrape`
+            // and as a server-set `card.errors` entry (the latter is what lights the Account button via
+            // `hasPaymentMethodError`), so past the threshold neither should light the RBR. Any actionable error kept in a
+            // separate `errorFields` entry (a failed reimbursable/start-date update) still surfaces. The error itself stays
+            // on the card so it's fixable.
             const isPastDismissThreshold = isBrokenConnectionPastDismissThreshold(card);
             const errorFieldsForRBR =
                 isPastDismissThreshold && card.errorFields ? Object.fromEntries(Object.entries(card.errorFields).filter(([field]) => field !== 'lastScrape')) : card.errorFields;
-            const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(errorFieldsForRBR);
+            const hasCardErrors = (!isPastDismissThreshold && !isEmptyObject(card.errors)) || !isEmptyObject(errorFieldsForRBR);
             const cardErrors = {
                 ...(hasCardErrors
                     ? {
