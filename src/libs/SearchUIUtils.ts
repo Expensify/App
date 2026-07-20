@@ -218,6 +218,8 @@ import {
     shouldShowAttendees as shouldShowAttendeesUtils,
     shouldShowViolation,
 } from './TransactionUtils';
+import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
+import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
@@ -1222,8 +1224,7 @@ function getTransactionItemCommonFormattedProperties(
     const submitted = report?.submitted;
     const approved = report?.approved;
 
-    // Posted date is in the YYYYMMDD format, so we format it to YYYY-MM-DD here since JS's Date constructor interprets it as an invalid date.
-    const posted = !transactionItem?.posted ? '' : `${transactionItem?.posted.slice(0, 4)}-${transactionItem?.posted.slice(4, 6)}-${transactionItem?.posted.slice(6, 8)}`;
+    const posted = getFormattedPostedDate(transactionItem?.posted);
 
     return {
         formattedFrom,
@@ -1532,11 +1533,9 @@ function shouldShowYear(
                     result.shouldShowYearApproved = true;
                 }
 
-                // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
                 // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
-                if (!result.shouldShowYearPosted && item?.posted) {
-                    const postedYear = parseInt(item.posted.slice(0, 4), 10);
-                    result.shouldShowYearPosted = postedYear !== currentYear;
+                if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item)) {
+                    result.shouldShowYearPosted = true;
                 }
             }
 
@@ -1565,11 +1564,9 @@ function shouldShowYear(
                 result.shouldShowYearApproved = true;
             }
 
-            // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
             // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
-            if (!result.shouldShowYearPosted && item?.posted) {
-                const postedYear = parseInt(item.posted.slice(0, 4), 10);
-                result.shouldShowYearPosted = postedYear !== currentYear;
+            if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item)) {
+                result.shouldShowYearPosted = true;
             }
 
             const exportedAction = item.reportID ? lastExportedActionByReportID.get(item.reportID) : undefined;
@@ -1766,7 +1763,6 @@ type PreprocessingContext = {
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
     hasDeletedTransaction: boolean;
-    currentYear: number;
 };
 
 function createPreprocessingContext(): PreprocessingContext {
@@ -1793,7 +1789,6 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
         hasDeletedTransaction: false,
-        currentYear: new Date().getFullYear(),
     };
 }
 
@@ -1911,11 +1906,8 @@ function processTransactionEntry(ctx: PreprocessingContext, transaction: OnyxTyp
         ctx.shouldShowYearApproved = true;
     }
 
-    if (!ctx.shouldShowYearPosted && transaction?.posted) {
-        const postedYear = parseInt(transaction.posted.slice(0, 4), 10);
-        if (postedYear !== ctx.currentYear) {
-            ctx.shouldShowYearPosted = true;
-        }
+    if (!ctx.shouldShowYearPosted && shouldShowTransactionPostedYear(transaction)) {
+        ctx.shouldShowYearPosted = true;
     }
 
     // Optimistic: works when report-action keys precede transaction keys (common case).
@@ -1986,7 +1978,7 @@ function resolveExportedYearFlags(ctx: PreprocessingContext, data: OnyxTypes.Sea
  * (key classification, violations, export/action maps, year flags, column indicators)
  * needed by getTransactionsSections and getReportSections.
  */
-function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<PreprocessingContext, 'allHoldReportActions' | 'currentYear'> {
+function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<PreprocessingContext, 'allHoldReportActions'> {
     const ctx = createPreprocessingContext();
 
     for (const key of Object.keys(data)) {
