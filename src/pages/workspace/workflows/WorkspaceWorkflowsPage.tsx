@@ -58,6 +58,7 @@ import {
     hasDynamicExternalWorkflow,
     isControlPolicy,
     isGroupPolicy as isGroupPolicyUtil,
+    isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -224,6 +225,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         openPolicyWorkflowsPage(route.params.policyID, true);
         getPaymentMethods();
     }, [route.params.policyID]);
+
+    const showAddBankAccountPermissionModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
+            prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
@@ -761,6 +771,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                       return;
                                                   }
                                                   if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                                                      if (!isPolicyAdmin(policy, currentUserLogin)) {
+                                                          showAddBankAccountPermissionModal();
+                                                          return;
+                                                      }
                                                       showConfirmModal({
                                                           title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
                                                           prompt: updateWorkspaceCurrencyPrompt,
@@ -887,6 +901,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         isSelfTourViewed,
         hasValidExistingAccounts,
         shouldShowContinueModal,
+        showAddBankAccountPermissionModal,
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
         canAccessSubmit2026Features,
