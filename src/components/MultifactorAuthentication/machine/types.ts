@@ -32,10 +32,7 @@ type MfaContext = {
     /** Additional parameters for the current scenario */
     payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
 
-    /**
-     * Whether the user approved the soft prompt during this flow. The durable acceptance lives in
-     * Onyx under the device-biometrics key; this flag only tracks the current flow.
-     */
+    /** Whether the user approved the soft prompt during this flow. The durable acceptance lives in Onyx under the device-biometrics key. */
     softPromptApproved: boolean;
 
     /** Whether the cancel-confirmation modal triggered by a back press is currently visible */

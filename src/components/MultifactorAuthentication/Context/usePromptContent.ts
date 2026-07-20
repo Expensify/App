@@ -36,8 +36,7 @@ type PromptContent = {
  */
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
     const state = useMultifactorAuthenticationState();
-    // The soft-prompt approval was migrated to the state machine, so it is read from the
-    // machine-derived state while the remaining flow fields still live in the legacy reducer.
+    // The soft-prompt approval lives in the machine, while the remaining flow fields still come from the legacy reducer.
     const {state: machineState} = useMultifactorAuthenticationInternal();
     const {areLocalCredentialsKnownToServer} = useBiometrics();
     const {accountID} = useCurrentUserPersonalDetails();

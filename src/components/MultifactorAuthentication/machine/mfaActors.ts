@@ -16,9 +16,8 @@ import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from './types'
 const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => checkDeviceEligibility(input.allowedAuthenticationMethods));
 
 /**
- * Resolves with the current account's device-local soft-prompt flag. Onyx exposes this value through
- * its callback API, so the promise disconnects the temporary connection after the first value or
- * when XState stops the actor.
+ * Reads the account's device-local soft-prompt flag once. The temporary Onyx connection is
+ * disconnected after the first value or when XState stops the actor.
  */
 const readHasAcceptedSoftPrompt = fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(
     ({input, signal}) =>

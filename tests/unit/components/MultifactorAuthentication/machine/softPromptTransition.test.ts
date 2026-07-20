@@ -16,8 +16,8 @@ import {createActor, fromPromise} from 'xstate';
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 // The graph-traversal suites generate their expectations from the machine, so a transition pointed at
-// a wrong target adjusts those expectations and still passes. This suite pins the soft-prompt hops by
-// hand: eligible device -> soft prompt, and approval -> success outcome plus the persisted acceptance.
+// a wrong target adjusts those expectations and still passes. This suite pins the soft-prompt
+// transitions and the persisted acceptance by hand.
 
 describe('MFA soft prompt', () => {
     afterEach(async () => {

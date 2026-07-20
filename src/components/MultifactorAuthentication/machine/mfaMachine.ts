@@ -139,9 +139,7 @@ const MFAMachine = setup({
                                     }
                                     return {allowedAuthenticationMethods: context.scenario.allowedAuthenticationMethods};
                                 },
-                                // A refusal stores its blocking MFAError before resolving it. A stored
-                                // error still wins over a successful result, while a clean success moves
-                                // on to the soft-prompt acceptance check.
+                                // An error stored earlier in the flow wins even over a successful device check.
                                 onDone: [
                                     {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
                                     {guard: ({context}) => context.error !== undefined, target: OUTCOME_TARGET},
@@ -155,8 +153,6 @@ const MFAMachine = setup({
                                 },
                             },
                         },
-                        // Reads the per-account Onyx flag through a one-shot promise actor. Its done
-                        // event carries the first value and leaving this state cancels the read.
                         [MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE]: {
                             invoke: {
                                 id: 'readHasAcceptedSoftPrompt',
@@ -176,7 +172,7 @@ const MFAMachine = setup({
                         },
                     },
                 },
-                // Shows the soft prompt after device validation when the current account has not accepted it.
+                // This branch shows the soft prompt when the current account has not accepted it on this device.
                 [MFA_STATE.PROMPT]: {
                     id: MFA_STATE.PROMPT,
                     entry: ['navigateToPrompt'],

@@ -149,8 +149,7 @@ const testConfig = {
             expect(state.context.accountID).toBeDefined();
             expect(state.context.error).toBeUndefined();
         },
-        // The confirm button and the route are the screen's stable markers. The copy is not asserted
-        // because it depends on the platform the operations module resolves to under jest.
+        // The screen copy is not asserted because it depends on the platform the operations module resolves to under jest.
         [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);

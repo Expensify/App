@@ -21,7 +21,7 @@ type MultifactorAuthenticationInternalApi = {
     /** Notify the machine that the close animation has fully finished. Called by the modal navigator on teardown; the machine then moves from `closing` back to `closed`. */
     notifyModalClosed: () => void;
 
-    /** Approve the soft prompt. Called by the prompt screen's confirm button; the machine persists the acceptance and moves the flow on. */
+    /** Approve the soft prompt. The machine persists the acceptance and moves the flow to the outcome. */
     approveSoftPrompt: () => void;
 
     /** Centralized back-press / backdrop entry. */

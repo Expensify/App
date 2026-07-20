@@ -22,10 +22,8 @@ import React from 'react';
 type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationModalNavigatorParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
 
 /**
- * The soft-prompt screen. The machine routes here only when the user has never accepted the soft
- * prompt on this device, so the content is the static copy for the platform's prompt type and the
- * confirm button is always available. The registration and authorization prompt variants arrive with
- * their own slices.
+ * The machine routes here only when the account has not accepted the soft prompt on this device,
+ * so the copy is static and the confirm button is always available.
  */
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
