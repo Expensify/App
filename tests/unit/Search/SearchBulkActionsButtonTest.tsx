@@ -130,20 +130,20 @@ describe('SearchBulkActionsButton all-matching label', () => {
         mockSearchIsLoading = false;
     });
 
-    it('shows the all-matching label without loading while totals are requested', () => {
+    it('keeps the production loading state while totals are requested', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
+        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
     });
 
-    it('keeps the all-matching label when the server count arrives and there are no exclusions', () => {
+    it('shows the production numeric label when the server count arrives', () => {
         mockSearchCount = 172;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:172', isLoading: false});
     });
 
     it('shows the exact count after an item is excluded', () => {
@@ -155,7 +155,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:171', isLoading: false});
     });
 
-    it('loads only when an exclusion exists before the count arrives', () => {
+    it('keeps loading when an exclusion exists before the count arrives', () => {
         mockSearchIsLoading = true;
         mockExcludedTransactions = {tx2: makeTransaction()};
 

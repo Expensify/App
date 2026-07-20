@@ -132,20 +132,11 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
     const selectedAllMatchingItemsCount = typeof allMatchingItemsCount === 'number' ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : undefined;
-    const hasExcludedItems = isExpenseType && Object.keys(excludedTransactions).length > 0;
-    const isAllMatchingItemsCountLoading =
-        areAllMatchingItemsSelected && (!isExpenseType || hasExcludedItems) && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
-        if (!isExpenseType) {
-            selectionButtonText =
-                typeof allMatchingItemsCount !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
-        } else {
-            selectionButtonText =
-                !hasExcludedItems || selectedAllMatchingItemsCount === undefined
-                    ? translate('search.exportAll.allMatchingItemsSelected')
-                    : translate('workspace.common.selected', {count: selectedAllMatchingItemsCount});
-        }
+        const count = isExpenseType ? selectedAllMatchingItemsCount : allMatchingItemsCount;
+        selectionButtonText = typeof count !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count});
     } else {
         selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
     }
