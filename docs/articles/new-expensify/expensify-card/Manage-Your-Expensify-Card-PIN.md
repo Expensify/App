@@ -39,9 +39,7 @@ Your PIN will be displayed on the card details page until you navigate away.
 
 ## How to change your Expensify Card PIN
 
-You can change your PIN from the card details page. The process depends on your region.
-
-### How to change your PIN in online PIN countries (most of Europe)
+You can change your PIN from the card details page:
 
 1. Go to **Account > Wallet** and select your physical Expensify Card.
 2. Tap **Change PIN**.
@@ -50,11 +48,7 @@ You can change your PIN from the card details page. The process depends on your 
 
 You'll see a confirmation page once your PIN is changed.
 
-### How to change your PIN in offline PIN countries (UK, France, Ireland, Finland, Iceland, Israel)
-
-Cardholders in offline PIN countries cannot change their PIN in the app. When you tap **Change PIN**, you'll be directed to change your PIN at any ATM instead.
-
-Your region is determined by the billing address on your card.
+Note that if you are physically located in the UK, France, Ireland, Finland, Iceland, or Israel, you cannot change your PIN in-app. When you tap **Change PIN**, you'll be directed to change your PIN at any ATM instead.
 
 ---
 
