@@ -29,9 +29,10 @@ To create an Agent rule:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
 2. Click **Rules**.
-3. In the **Agent rules** section, click **Add AI rule**.
-4. Enter a natural-language description of the behavior you want.
-5. Click **Save**.
+3. Select the **Agents** tab.
+4. Click **Add AI rule**. If you already have agent rules, click **+ Rule**, then select **Agent rule**.
+5. Enter a natural-language description of the behavior you want.
+6. Click **Create rule**.
 
 ---
 
@@ -47,7 +48,7 @@ For guidance, examples, and prompt-writing best practices, [learn how to write A
 
 When you create your first Agent rule, Expensify automatically creates RuleBot and adds it to the workspace as a Workspace Admin.
 
-After RuleBot is created, the **Agent rules** section displays **Agent rules are enforced by** followed by **RuleBot**. This indicates which agent enforces all Agent rules in the workspace.
+After RuleBot is created, the **Agents** tab displays **Agent rules are enforced by** followed by **RuleBot**. This indicates which agent enforces all Agent rules in the workspace.
 
 RuleBot immediately begins monitoring report activity and evaluating reports against all configured Agent rules.
 
@@ -98,8 +99,9 @@ For example, RuleBot might:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
 2. Click **Rules**.
-3. In the **Agent Rules** section, select the AI rule you want to remove.
-4. Click **Delete**.
+3. Select the **Agents** tab.
+4. Select the rule you want to remove.
+5. Click **Delete**.
 
 Deleting an Agent rule stops RuleBot from enforcing that rule on future report activity.
 
