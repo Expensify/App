@@ -72,6 +72,7 @@ import type {
     RecentWaypoint,
     Report,
     ReportAction,
+    ReportActions,
     ReportNextStepDeprecated,
     ReviewDuplicates,
     Transaction,
@@ -849,6 +850,7 @@ type ChangeTransactionsReportProps = {
     skippedReportIDs?: string[];
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
+    selfDMReportActions: OnyxEntry<ReportActions>;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -867,6 +869,7 @@ function getChangeTransactionsReportOnyxData({
     skippedReportIDs,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
+    selfDMReportActions,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1356,6 +1359,7 @@ function getChangeTransactionsReportOnyxData({
                 hasDependentTags: policyHasDependentTags,
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
+                ownerLogin: undefined,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1481,7 +1485,7 @@ function getChangeTransactionsReportOnyxData({
         }
 
         // 4. Optimistically update the IOU action reportID
-        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
+        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID, selfDMReportActions) : undefined;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1855,6 +1859,7 @@ function getChangeTransactionsReportOnyxData({
             policyCategories: policyCategories ?? {},
             hasDependentTags: policyHasDependentTags,
             isInvoiceTransaction: false,
+            ownerLogin: undefined,
         });
         if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
