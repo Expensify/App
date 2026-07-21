@@ -1,5 +1,6 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -55,6 +56,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const parentReportAction = useParentReportAction(report);
     let linkedReportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
@@ -72,7 +74,12 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
         if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
             return;
         }
-        openReport({reportID: props.route.params.reportID, introSelected, betas});
+        openReport({
+            reportID: props.route.params.reportID,
+            introSelected,
+            betas,
+            currentUserAccountID,
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, props.route.params.reportID]);
 
