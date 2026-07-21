@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,13 +25,13 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionList from './SelectionList/SelectionListWithSections';
 
-/** Returns the row subtitle as the localized phone form for phone delegates, or `fallback`/login for emails. */
-function getDelegateAlternateText(login: string | undefined, fallback: string | undefined): string {
-    const formattedLogin = formatPhoneNumber(login ?? '');
-    if (formattedLogin) {
-        return formattedLogin;
+/** Returns the row title as the raw E.164 phone (e.g. `+9779806050938`) for phone delegates, or the existing text (name/email) otherwise. */
+function getDelegateText(login: string | undefined, text: string | undefined): string {
+    const sanitizedLogin = Str.removeSMSDomain(login ?? '');
+    if (sanitizedLogin && parsePhoneNumber(sanitizedLogin).valid) {
+        return sanitizedLogin;
     }
-    return fallback ?? '';
+    return text ?? '';
 }
 
 type BaseVacationDelegateSelectionComponentProps = {
@@ -94,7 +95,9 @@ function BaseVacationDelegateSelectionComponent({
     }, [debouncedSearchTerm]);
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const pinnedVacationDelegate = searchValue ? currentVacationDelegate : (initialVacationDelegate ?? currentVacationDelegate);
+    // When a selection is pending confirmation, pin the newly selected delegate so it stays visible.
+    const hasPendingDelegateChange = !!vacationDelegate?.previousDelegate;
+    const pinnedVacationDelegate = searchValue || hasPendingDelegateChange ? currentVacationDelegate : (initialVacationDelegate ?? currentVacationDelegate);
     const pinnedDelegatePersonalDetails = getPersonalDetailByEmail(pinnedVacationDelegate);
     const pinnedDelegateLogin = pinnedDelegatePersonalDetails?.login ?? pinnedVacationDelegate;
 
@@ -182,8 +185,9 @@ function BaseVacationDelegateSelectionComponent({
         ...section,
         data: (section.data ?? []).map((option) => ({
             ...option,
-            text: option.text ?? '',
-            alternateText: getDelegateAlternateText(option.login, option.alternateText),
+            text: getDelegateText(option.login, option.text),
+            // Show the subtitle as the localized international phone form (e.g. `+977 980-6050938`), falling back to the raw alternateText/login for emails.
+            alternateText: formatPhoneNumber(Str.removeSMSDomain(option.login ?? '')) || option.alternateText || undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
             isSelected: option.login === currentVacationDelegate,
