@@ -58,6 +58,7 @@ import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTran
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import shouldShowTransactionPostedYear from '@libs/TransactionUtils/shouldShowTransactionPostedYear';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
@@ -137,6 +138,9 @@ type MoneyRequestReportTransactionListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
+    /** Whether the report table is visible — gates the new-row highlight (background on wide, on-close on narrow) */
+    isReportVisible?: boolean;
+
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
 
@@ -167,6 +171,7 @@ function MoneyRequestReportTransactionList({
     report,
     transactions,
     newTransactions,
+    isReportVisible = true,
     reportActions,
     hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
@@ -372,12 +377,12 @@ function MoneyRequestReportTransactionList({
         const ids = new Set<string>();
         for (const transaction of transactions) {
             const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-            if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap, actionErrors)) {
+            if (transactionHasRBR(transaction, violations, login, accountID, report, ownerLogin, policy, reportActionsMap, actionErrors)) {
                 ids.add(transaction.transactionID);
             }
         }
         return ids;
-    }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, policy, reportActionsMap]);
+    }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, ownerLogin, policy, reportActionsMap]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions].sort((a, b) => {
@@ -567,14 +572,16 @@ function MoneyRequestReportTransactionList({
         [navigateToTransactionThread, reportActions, sortedTransactions, report, visualOrderTransactionIDs],
     );
 
-    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, postedColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
         const isTaxAmountColumnWide = transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
         const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        const shouldShowPostedYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionPostedYear(transaction));
         return {
             amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            postedColumnSize: shouldShowPostedYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
     }, [transactions]);
 
@@ -706,7 +713,7 @@ function MoneyRequestReportTransactionList({
             key={transaction.transactionID}
             transaction={transaction}
             violations={violationsByTransactionID.get(transaction.transactionID) ?? EMPTY_VIOLATIONS}
-            shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
+            shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
             columns={columnsToShow}
             report={report}
             policy={policy}
@@ -718,6 +725,7 @@ function MoneyRequestReportTransactionList({
             handleOnPress={handleOnPress}
             handleLongPress={handleLongPress}
             dateColumnSize={dateColumnSize}
+            postedColumnSize={postedColumnSize}
             amountColumnSize={amountColumnSize}
             taxAmountColumnSize={taxAmountColumnSize}
             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
@@ -827,6 +835,7 @@ function MoneyRequestReportTransactionList({
                         shouldRemoveTotalColumnFlex={hasFlexColumn(columnsToShow)}
                         columns={columnsToShow}
                         dateColumnSize={dateColumnSize}
+                        postedColumnSize={postedColumnSize}
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         onSortPress={(selectedSortBy, selectedSortOrder) => {
@@ -926,8 +935,7 @@ function MoneyRequestReportTransactionList({
                             customText={translate('iou.addExpense')}
                             options={addExpenseDropdownOptions}
                             isSplitButton={false}
-                            buttonSize={CONST.BUTTON_SIZE.SMALL}
-                            success={false}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,

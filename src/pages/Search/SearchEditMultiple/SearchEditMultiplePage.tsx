@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
 import type {ValueOf} from 'type-fest';
@@ -57,19 +58,28 @@ function SearchEditMultiplePage() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
+    const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsListSelector(
+            selectedTransactionIDs.map((transactionID) => {
+                const iouReportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
+                return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]?.ownerAccountID;
+            }),
+        ),
+    });
+
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
     const mergedReportActions = withSnapshotReportActions(allReportActions, snapshotData);
     const mergedReports = withSnapshotReports(allReports, snapshotData);
-
-    const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
 
     const selectedTransactionContexts = selectedTransactionIDs.flatMap((transactionID) => {
         const context = getTransactionEditContext(transactionID, mergedTransactions, mergedReports, mergedReportActions, policies);
@@ -88,7 +98,7 @@ function SearchEditMultiplePage() {
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return false;
             }
-            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy});
+            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy, reportNameValuePairs});
         });
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -190,11 +200,13 @@ function SearchEditMultiplePage() {
                 policyCategories: allPolicyCategories,
                 policyTags: allPolicyTags,
                 violations: allTransactionViolations,
+                reportNameValuePairs,
                 hash: currentSearchHash,
                 allPolicies: policies,
                 currentUserAccountID,
                 delegateAccountID,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                personalDetailsList,
             });
             // Bulk edit can start from report (ID-based selection) or search (map-based selection),
             // so clear both stores to keep deselection behavior consistent.
