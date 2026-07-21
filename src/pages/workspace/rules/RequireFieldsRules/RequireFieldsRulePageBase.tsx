@@ -75,6 +75,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const [touchedFields, setTouchedFields] = useState<Set<RequireFieldsRuleSettingFieldKey>>(() => new Set());
     // Edit-only: fields the user deselected that still have an active category override to remove on save.
     const [clearedFields, setClearedFields] = useState<Set<RequireFieldsRuleSettingFieldKey>>(() => new Set());
+    // Fields the user toggled directly — category reassignment marks touchedFields for save/display
+    // without meaning the user caused coupling, so tooltips key off this set instead.
+    const [couplingInteractionFields, setCouplingInteractionFields] = useState<Set<RequireFieldsRuleSettingFieldKey>>(() => new Set());
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
@@ -90,6 +93,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         setSelectionStateForRuleKey(activeRuleKey);
         setTouchedFields(new Set());
         setClearedFields(new Set());
+        setCouplingInteractionFields(new Set());
         setSelectionCategoryName(selectedCategoryName);
     } else if (selectionCategoryName !== selectedCategoryName) {
         const previousCategoryName = selectionCategoryName;
@@ -126,6 +130,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
 
             setClearedFields(new Set());
             setTouchedFields(nextTouchedFields);
+            // Preserved fields are not a user-caused coupling — drop any educational tooltip source.
+            setCouplingInteractionFields(new Set());
 
             // Replace the draft with only preserved settings so unset fields stay unset.
             if (selectedCategoryName) {
@@ -177,6 +183,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed local selection state when opening an edit rule.
         setTouchedFields(new Set());
         setClearedFields(new Set());
+        setCouplingInteractionFields(new Set());
         setDraftRequireFieldsRule({
             [INPUT_IDS.CATEGORY]: categoryName,
             ...getRequireFieldsFormFromCategory(category),
@@ -254,6 +261,13 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                 }
                 return nextTouchedFields;
             });
+            setCouplingInteractionFields((previousCouplingInteractionFields) => {
+                const nextCouplingInteractionFields = new Set(previousCouplingInteractionFields);
+                for (const keyToClear of keysToClear) {
+                    nextCouplingInteractionFields.delete(keyToClear);
+                }
+                return nextCouplingInteractionFields;
+            });
 
             if (isEditing) {
                 setClearedFields((previousClearedFields) => {
@@ -304,6 +318,13 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                 nextTouchedFields.add(touchedFieldKey);
             }
             return nextTouchedFields;
+        });
+        setCouplingInteractionFields((previousCouplingInteractionFields) => {
+            const nextCouplingInteractionFields = new Set(previousCouplingInteractionFields);
+            for (const touchedFieldKey of touchedFieldKeys) {
+                nextCouplingInteractionFields.add(touchedFieldKey);
+            }
+            return nextCouplingInteractionFields;
         });
         updateDraftRequireFieldsRule(formUpdate);
         setShouldShowError(false);
@@ -426,6 +447,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                                 category={selectedCategory}
                                 touchedFields={touchedFields}
                                 clearedFields={clearedFields}
+                                couplingInteractionFields={couplingInteractionFields}
                                 isEditing={isEditing}
                                 canWriteRules={canWriteRules}
                                 onSelectSetting={handleSelectFieldSetting}

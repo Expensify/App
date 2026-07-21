@@ -914,18 +914,22 @@ function getRequireFieldsFieldCouplingTooltipKey(
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     isEditing = false,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    // Fields the user toggled directly — not ones marked touched only to preserve a draft
+    // after a category change (those would otherwise flash the educational tooltip).
+    couplingInteractionFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ): RequireFieldsFieldCouplingTooltipKey | undefined {
     if (!isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields)) {
         return undefined;
     }
 
     // Keep the control locked from existing category state, but only teach after the user
-    // causes the coupling — otherwise edit opens with a tooltip immediately.
-    if (fieldKey === INPUT_IDS.RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING)) {
+    // causes the coupling — otherwise edit opens (or a category reassignment remounts) with
+    // a tooltip immediately.
+    if (fieldKey === INPUT_IDS.RECEIPT_SETTING && couplingInteractionFields?.has(INPUT_IDS.ITEMIZED_RECEIPT_SETTING)) {
         return 'receiptDisabledWhenItemizedRequired';
     }
 
-    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && touchedFields?.has(INPUT_IDS.RECEIPT_SETTING)) {
+    if (fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING && couplingInteractionFields?.has(INPUT_IDS.RECEIPT_SETTING)) {
         return 'itemizedDisabledWhenReceiptWaived';
     }
 

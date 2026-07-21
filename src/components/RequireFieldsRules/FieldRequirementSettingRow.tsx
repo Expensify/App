@@ -30,6 +30,8 @@ type FieldRequirementSettingRowProps = {
     category: PolicyCategory | undefined;
     touchedFields: Set<RequireFieldsRuleSettingFieldKey>;
     clearedFields: Set<RequireFieldsRuleSettingFieldKey>;
+    /** Fields the user toggled directly; used only for educational coupling tooltips. */
+    couplingInteractionFields: Set<RequireFieldsRuleSettingFieldKey>;
     isEditing: boolean;
     canWriteRules: boolean;
     onSelectSetting: (fieldKey: RequireFieldsRuleSettingFieldKey, setting: FieldRequirementsDirection | undefined) => void;
@@ -43,6 +45,7 @@ function FieldRequirementSettingRow({
     category,
     touchedFields,
     clearedFields,
+    couplingInteractionFields,
     isEditing,
     canWriteRules,
     onSelectSetting,
@@ -54,7 +57,7 @@ function FieldRequirementSettingRow({
     const [dismissedCouplingTooltipKey, setDismissedCouplingTooltipKey] = useState<string | undefined>();
 
     const isCouplingDisabled = isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields);
-    const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields);
+    const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields, couplingInteractionFields);
     const couplingTooltip = couplingTooltipKey ? translate(`workspace.rules.requireFieldsRule.${couplingTooltipKey}`) : undefined;
     const shouldDisplayCouplingTooltip = !!couplingTooltip && dismissedCouplingTooltipKey !== couplingTooltipKey;
 
