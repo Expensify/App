@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 
+// eer
 type EmptyObject = Record<string, never>;
 
 type EmptyValue = EmptyObject | null | undefined;
