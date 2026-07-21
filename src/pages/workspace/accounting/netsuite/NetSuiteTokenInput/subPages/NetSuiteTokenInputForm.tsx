@@ -125,7 +125,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                     </View>
                 ))}
             </FormProvider>
-            {isOAuthFlow && (
+            {isOAuthFlow && !is2FAEnabled && (
                 <RequireTwoFactorAuthenticationModal
                     onSubmit={() => {
                         setIsRequire2FAModalOpen(false);
