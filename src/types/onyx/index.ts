@@ -176,6 +176,7 @@ import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -430,4 +431,5 @@ export type {
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
     AgentPrompt,
+    SuggestedAgentRule,
 };

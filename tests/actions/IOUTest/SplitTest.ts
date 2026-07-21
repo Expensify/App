@@ -2181,7 +2181,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -2415,7 +2415,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             betas: [],
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3013,7 +3013,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -3196,7 +3196,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -3382,7 +3382,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3579,7 +3579,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3850,7 +3850,7 @@ describe('updateSplitTransactions', () => {
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3987,7 +3987,7 @@ describe('updateSplitTransactions', () => {
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -4126,7 +4126,7 @@ describe('updateSplitTransactions', () => {
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -4275,7 +4275,7 @@ describe('updateSplitTransactions', () => {
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -7682,6 +7682,22 @@ describe('createDistanceRequest', () => {
         expect(result.chatReportID).toBeTruthy();
         expect(result.iouReport?.chatReportID).toBe(result.chatReportID);
         expect(result.transactionID).toBeTruthy();
+    });
+
+    it('builds the optimistic chat report at the provided optimisticChatReportID for a brand-new P2P recipient — so it matches the id the confirmation screen already subscribed to', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        // The confirmation screen commits the draft transaction to this generated id before submit. The action must
+        // create the optimistic chat at the same id, otherwise the screen hangs waiting on a report that never exists.
+        const optimisticChatReportID = '987654321';
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams(undefined, {amount: 1000}, recentWaypoints),
+            participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+            optimisticChatReportID,
+        });
+
+        expect(result.chatReportID).toBe(optimisticChatReportID);
     });
 
     it('returns chatReportID with a null iouReport for a split distance request — the UI can only navigate via chatReportID', async () => {
