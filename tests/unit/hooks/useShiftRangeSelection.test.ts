@@ -299,17 +299,43 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c', 'd', 'e'], toDeselect: []});
         });
 
-        it('deselects the prior side when a shift+click reverses direction across the anchor', () => {
+        it('keeps the other side painted when a shift+click reverses direction across the anchor', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
             act(() => result.current.notifyAnchor(ROW_C));
             act(() => {
                 result.current.applyShiftClick(ROW_E, true);
             });
+            // Crossing the anchor paints a..c without undoing d,e (Gmail/production behavior).
             act(() => {
                 result.current.applyShiftClick(ROW_A, true);
             });
-            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+        });
+
+        it('still collapses the endpoint side after a reversal painted both sides', () => {
+            const onApplyRange = makeApplyMock();
+            const selected = new Set(['c']);
+            const isItemSelected = (row: Row) => selected.has(row.keyForList);
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
+            // The reviewer's Case 3: click c, shift+click a (paints a,b), shift+click e — both sides stay selected.
+            act(() => result.current.notifyAnchor(ROW_C));
+            act(() => {
+                result.current.applyShiftClick(ROW_A, true);
+            });
+            selected.add('a');
+            selected.add('b');
+            act(() => {
+                result.current.applyShiftClick(ROW_E, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['c', 'd', 'e'], toDeselect: []});
+            selected.add('d');
+            selected.add('e');
+            // A same-side shrink still collapses only its own side: e goes, a and b stay.
+            act(() => {
+                result.current.applyShiftClick(ROW_D, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 2)).toEqual({toSelect: ['c', 'd'], toDeselect: ['e']});
         });
 
         it('ends the session when notifyAnchor fires mid-session', () => {

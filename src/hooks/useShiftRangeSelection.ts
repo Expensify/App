@@ -173,17 +173,27 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     }
 
     // Painted rows that leave the range collapse back to deselected, matched by key so re-sorts and removals can't hide them.
+    const targetSide = Math.sign(targetIdx - anchorIdx);
     const collapseRows: TItem[] = [];
-    const hiddenPainted: string[] = [];
+    const carriedPainted: string[] = [];
     for (const key of prevPainted) {
         if (newRangeKeys.has(key)) {
             continue;
         }
         const idx = keyToIndex.get(key);
-        const row = idx !== undefined ? params.items.at(idx) : undefined;
-        if (row == null) {
+        if (idx === undefined) {
             // A hidden row can't go in the batch — it stays painted so the collapse lands once it's back.
-            hiddenPainted.push(key);
+            carriedPainted.push(key);
+            continue;
+        }
+        // Crossing the anchor paints the other side without undoing this one (Gmail/production behavior); only same-side rows collapse as the endpoint moves.
+        if (targetSide !== 0 && Math.sign(idx - anchorIdx) === -targetSide) {
+            carriedPainted.push(key);
+            continue;
+        }
+        const row = params.items.at(idx);
+        if (row == null) {
+            carriedPainted.push(key);
         } else {
             // Present rows always collapse, even ones disabled mid-session — a disabled checkbox can't be unchecked any other way.
             collapseRows.push(row);
@@ -196,7 +206,7 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
             painted.add(key);
         }
     }
-    for (const key of hiddenPainted) {
+    for (const key of carriedPainted) {
         painted.add(key);
     }
 
