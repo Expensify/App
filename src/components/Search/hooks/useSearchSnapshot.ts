@@ -95,7 +95,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
  */
 function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -273,6 +273,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 cardFeeds,
                 conciergeReportID,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             return {
                 ...item,
@@ -303,8 +304,8 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+        return getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
@@ -337,7 +338,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     }, [
         shouldComputeSections,
         type,
-        status,
         filteredData,
         localeCompare,
         translate,

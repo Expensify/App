@@ -233,6 +233,112 @@ describe('ForYouSection', () => {
         });
     });
 
+    describe('new-vs-old user visibility', () => {
+        // The cutoff splits "new" (on/after) from "old" (before) users.
+        const NEW_USER_TRIAL_START = '2099-01-01';
+        const OLD_USER_TRIAL_START = '2000-01-01';
+
+        it('renders nothing for a new user with no todos', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
+        });
+
+        it('renders the empty state for an old user with no todos', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, OLD_USER_TRIAL_START);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+        });
+
+        it('renders to-do items for a new user who has todos', async () => {
+            await act(async () => {
+                setTodoCounts({
+                    ...BASE_TODOS,
+                    reportsToSubmit: [{reportID: '1'}],
+                });
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('Begin')).toBeOnTheScreen();
+        });
+
+        it('keeps the section visible for a new user after to-dos clear once a to-do has been seen', async () => {
+            await act(async () => {
+                setTodoCounts({
+                    ...BASE_TODOS,
+                    reportsToSubmit: [{reportID: '1'}],
+                });
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const {rerender} = renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // The section renders to-dos and persists the "has seen a to-do" flag.
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+
+            // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
+            setTodoCounts(BASE_TODOS);
+            rerender(<ForYouSection />);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
+        });
+
+        it('renders nothing for a user still going through onboarding before the trial date arrives', async () => {
+            await act(async () => {
+                // No NVP_FIRST_DAY_FREE_TRIAL yet (the NVP arrives later during onboarding).
+                setTodoCounts(BASE_TODOS);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
+        });
+
+        it('still shows the skeleton during the initial load for a new user', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                // The onboarding status must be known, otherwise the skeleton stays hidden to avoid flashing for onboarding users.
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // The section wrapper (and its title) remain rendered while the skeleton is shown.
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+        });
+    });
+
     describe('review row', () => {
         it('is not rendered when there are no flagged expenses', async () => {
             await act(async () => {

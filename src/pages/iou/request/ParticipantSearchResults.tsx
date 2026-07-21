@@ -19,6 +19,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
+import useSelectedExpenseReports from '@hooks/useSelectedExpenseReports';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -172,6 +173,7 @@ function ParticipantSearchResults({
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -299,22 +301,26 @@ function ParticipantSearchResults({
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            translate,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
+            getReportByID,
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
-        if ((availableOptions.workspaceChats ?? []).length > 0) {
+        const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
+        if (workspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),
-                data: (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option))),
+                data: workspaceChats,
                 sectionIndex: 1,
             });
         }
 
-        if (availableOptions.selfDMChat) {
+        // The self-DM is never a valid destination for the workspaces-only picker (e.g. "Submit to my employer"), so keep it out.
+        if (!isWorkspacesOnly && availableOptions.selfDMChat) {
             sections.push({
                 title: translate('workspace.invoices.paymentMethods.personal'),
                 data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],
@@ -364,7 +370,7 @@ function ParticipantSearchResults({
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
                         ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
-                        : getParticipantsOption(participant, personalDetails);
+                        : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,
             });
