@@ -22,7 +22,7 @@ Premium features are not included in a Submit workspace. To use approvals, payme
 
 ## How to create a Submit workspace
 
-You can create a Submit workspace when creating your Expensify account or from the Expensify pricing and plans page.
+You can create a Submit workspace when you create your Expensify account or on the Expensify pricing and plans page.
 
 When creating your Expensify account:
 
@@ -60,7 +60,7 @@ Editors can't:
 
 If someone on your email domain already owns a Submit workspace, you can join it when creating your Expensify account: 
 
-1.  Create an Expensify account.
+1. Create an Expensify account.
 2. Complete the prompts to set up your account.
 3. On the step **See if your team's in Expensify**, enter the validation code sent to your email address.
 4. If there are existing workspaces associated with your email domain, you'll be prompted to join one. Select the Submit workspace.``
@@ -82,8 +82,7 @@ To submit expenses to an approver:
 1. Open the report you want to submit.
 2. Click **Submit**.
 3. Select an existing workspace member, or enter the email address of your approver.
-4. Confirm to submit the report.
-5. Your approver receives an email asking them to approve your expenses and a PDF copy of the report. They don't need an Expensify account to receive it.
+4. Click **Confirm** to submit the report.
 
 ---
 
@@ -98,13 +97,19 @@ Marking a report as paid lets you track which of your submitted reports are stil
 
 ---
 
-## What happens when your approver approves a report
+## What happens when my approver clicks Approve?
 
-When your approver clicks **Approve**, they're prompted to upgrade the workspace to a paid plan to complete the approval. If they upgrade:
+If your approver clicks **Approve**, they're prompted to upgrade the workspace to a paid plan before they can complete the approval.
 
-- The workspace upgrades to the Collect plan and the approver becomes the workspace owner and admin.
-- All other members, including you, are set to the **Member** role.
+If they upgrade:
+
+- The workspace is upgraded to the Collect plan.
+- The approver becomes the workspace owner and admin.
+- All existing members, including you, are assigned the **Member** role.
 - You'll receive a message from Concierge letting you know the workspace was upgraded.
+
+If they don't upgrade:  
+ - They still receive the report by email and can view the attached PDF, but they can't change the report status to **Approved**.
 
 ---
 
@@ -116,7 +121,7 @@ No. Once a workspace is upgraded to Collect or Control, it can't be downgraded b
 
 ## Why can't I see other members' expenses in my Submit workspace?
 
-Editors can configure the workspace but can't see other members' submitted reports. This keeps everyone's expense data private while still allowing the group to share categories, tags, and other configuration.
+Editors can configure the workspace, but can't see other members' submitted reports. This keeps everyone's expense data private while still allowing the group to share categories, tags, and other configurations.
 
 ## Do I have to pay to submit expenses?
 
