@@ -259,6 +259,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 }
                 return;
             }
+
             // Selected whole groups: one grouped request (derived from the query's groupBy) returns every group's
             // converted total, so no ID list is sent.
             if (selectedGroupKeys.some((key) => !isGroupFresh(key, selectedCurrency))) {
@@ -268,6 +269,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                     sources: {groups: Object.fromEntries(selectedGroupKeys.map((key) => [key, {[selectedCurrency]: groupSourceByKey[key]}]))},
                 });
             }
+
             // Individually-selected transactions convert by transaction ID (the loose rows in a grouped view, or the
             // whole selection on a flat search).
             if (selectedTransactionIDs.some((transactionID) => !isTransactionFresh(transactionID, selectedCurrency))) {
