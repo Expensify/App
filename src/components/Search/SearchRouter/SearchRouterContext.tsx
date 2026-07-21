@@ -33,6 +33,10 @@ type SearchRouterStateContextType = {
 
 type SearchRouterActionsContextType = {
     openSearchRouter: (query?: string, isFromSearchPage?: boolean) => void;
+    /**
+     * Closes the Search Router. On native, `afterTransition` runs after the modal transition. On web, callers that
+     * need this behavior must use the SearchRouterModal wrapper, which runs the callback from `onModalHide`.
+     */
     closeSearchRouter: (afterTransition?: () => void) => void;
     toggleSearch: () => void;
 };
