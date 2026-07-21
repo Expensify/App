@@ -18,12 +18,11 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
-import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 
-import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -90,18 +89,21 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const MOCK_TRANSACTION = {
+            const MOCK_TRANSACTION: Transaction = {
                 transactionID: '1',
                 amount: 10,
                 modifiedAmount: 10,
                 reportID: MOCK_REPORT.reportID,
+                created: '2024-08-08 18:20:44.171',
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
             };
 
-            const MOCK_TRANSACTIONS = {
+            const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-            } as OnyxCollection<Transaction>;
+            };
 
-            const MOCK_TRANSACTION_VIOLATIONS: TransactionViolationsCollectionDataSet = {
+            const MOCK_TRANSACTION_VIOLATIONS: NonNullable<OnyxCollection<TransactionViolations>> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -137,7 +139,7 @@ describe('SidebarUtils', () => {
                     {},
                     MOCK_TRANSACTIONS,
                     false,
-                    MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
+                    MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
 
@@ -572,18 +574,21 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const MOCK_TRANSACTION = {
+            const MOCK_TRANSACTION: Transaction = {
                 transactionID: '1',
                 amount: 10,
                 modifiedAmount: 10,
                 reportID: MOCK_REPORT.reportID,
+                created: '2024-08-08 18:20:44.171',
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
             };
 
-            const MOCK_TRANSACTIONS = {
+            const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-            } as OnyxCollection<Transaction>;
+            };
 
-            const MOCK_TRANSACTION_VIOLATIONS: TransactionViolationsCollectionDataSet = {
+            const MOCK_TRANSACTION_VIOLATIONS: NonNullable<OnyxCollection<TransactionViolations>> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
                     {
                         type: CONST.VIOLATION_TYPES.NOTICE,
@@ -614,7 +619,7 @@ describe('SidebarUtils', () => {
                 {},
                 MOCK_TRANSACTIONS,
                 false,
-                MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
+                MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
 
@@ -667,26 +672,23 @@ describe('SidebarUtils', () => {
 
             const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
             const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
-            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
-                [transactionViolationsKey]: [
-                    {
-                        name: CONST.VIOLATIONS.HOLD,
-                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                        showInReview: true,
-                    },
-                ],
+            const transactionViolationList: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.HOLD,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            const transactionViolations: NonNullable<OnyxCollection<TransactionViolation[]>> = {
+                [transactionViolationsKey]: transactionViolationList,
             };
 
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        accountID: 12345,
-                    },
-                    [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
-                    [transactionKey]: transaction,
-                    [transactionViolationsKey]: transactionViolations[transactionViolationsKey],
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: 12345});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await Onyx.set(transactionKey, transaction);
+                await Onyx.set(transactionViolationsKey, transactionViolationList);
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -735,7 +737,7 @@ describe('SidebarUtils', () => {
                         amount: 10,
                         currency: CONST.CURRENCY.USD,
                     },
-                } as ReportAction,
+                } satisfies ReportAction,
 
                 '2': {
                     reportActionID: '2',
@@ -751,20 +753,28 @@ describe('SidebarUtils', () => {
                         amount: 20,
                         currency: CONST.CURRENCY.USD,
                     },
-                } as ReportAction,
+                } satisfies ReportAction,
             };
             const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
                     transactionID: liveTransactionID,
                     amount: 10,
+                    created: '2024-08-08 18:20:44.171',
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'merchant',
+                    reportID: MOCK_REPORT.reportID,
                     errors: {
-                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR, source: '', filename: 'download.jpeg'},
                     },
-                } as unknown as Transaction,
+                },
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
                     transactionID: deletedTransactionID,
                     amount: 20,
-                } as unknown as Transaction,
+                    created: '2024-08-08 18:20:44.171',
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'merchant',
+                    reportID: MOCK_REPORT.reportID,
+                },
             };
 
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
@@ -798,7 +808,7 @@ describe('SidebarUtils', () => {
                         amount: 10,
                         currency: CONST.CURRENCY.USD,
                     },
-                } as ReportAction,
+                } satisfies ReportAction,
 
                 '2': {
                     reportActionID: '2',
@@ -813,20 +823,28 @@ describe('SidebarUtils', () => {
                         amount: 20,
                         currency: CONST.CURRENCY.USD,
                     },
-                } as ReportAction,
+                } satisfies ReportAction,
             };
             const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
                     transactionID: liveTransactionID,
                     amount: 10,
+                    created: '2024-08-08 18:20:44.171',
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'merchant',
+                    reportID: MOCK_REPORT.reportID,
                     errors: {
-                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR, source: '', filename: 'download.jpeg'},
                     },
-                } as unknown as Transaction,
+                },
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
                     transactionID: deletedTransactionID,
                     amount: 20,
-                } as unknown as Transaction,
+                    created: '2024-08-08 18:20:44.171',
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'merchant',
+                    reportID: MOCK_REPORT.reportID,
+                },
             };
 
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
@@ -849,9 +867,9 @@ describe('SidebarUtils', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            const MOCK_REPORTS: ReportCollectionDataSet = {
+            const MOCK_REPORTS = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
-            };
+            } satisfies ReportCollectionDataSet;
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
                 '1': {
@@ -886,21 +904,19 @@ describe('SidebarUtils', () => {
                 merchant: 'merchant',
             };
 
-            const MOCK_TRANSACTIONS = {
+            const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-            } as OnyxCollection<Transaction>;
+            };
 
             await act(async () => {
-                await Onyx.multiSet({
-                    ...MOCK_REPORTS,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}`, MOCK_REPORT_ACTIONS);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}`, MOCK_TRANSACTION);
             });
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report: MOCK_REPORT,
-                reports: MOCK_REPORTS as OnyxCollection<Report>,
+                reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
                 betas: undefined,
@@ -937,10 +953,10 @@ describe('SidebarUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            const MOCK_REPORTS: ReportCollectionDataSet = {
+            const MOCK_REPORTS = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
                 [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_TRANSACTION_THREAD_REPORT.reportID}` as const]: MOCK_TRANSACTION_THREAD_REPORT,
-            };
+            } satisfies ReportCollectionDataSet;
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
                 '1': {
@@ -996,23 +1012,22 @@ describe('SidebarUtils', () => {
                 merchant: 'merchant',
             };
 
-            const MOCK_TRANSACTIONS = {
+            const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION2.transactionID}` as const]: MOCK_TRANSACTION2,
-            } as OnyxCollection<Transaction>;
+            };
 
             await act(async () => {
-                await Onyx.multiSet({
-                    ...MOCK_REPORTS,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION2.transactionID}` as const]: MOCK_TRANSACTION2,
-                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_TRANSACTION_THREAD_REPORT.reportID}`, MOCK_TRANSACTION_THREAD_REPORT);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}`, MOCK_REPORT_ACTIONS);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}`, MOCK_TRANSACTION);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION2.transactionID}`, MOCK_TRANSACTION2);
             });
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report: MOCK_TRANSACTION_THREAD_REPORT,
-                reports: MOCK_REPORTS as OnyxCollection<Report>,
+                reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
                 betas: undefined,
@@ -1030,7 +1045,8 @@ describe('SidebarUtils', () => {
 
         it('returns shouldDisplay as false when report is falsy', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
-                report: undefined as unknown as Report,
+                // @ts-expect-error Intentionally exercise the runtime guard with invalid input.
+                report: undefined,
                 reports: {},
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1360,8 +1376,8 @@ describe('SidebarUtils', () => {
                 type: 'chat',
             };
             const participantPersonalDetailList: PersonalDetails[] = [
-                {accountID: 1, avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'email1@test.com'} as unknown as PersonalDetails,
-                {accountID: 2, avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'} as unknown as PersonalDetails,
+                {accountID: 1, avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'email1@test.com'},
+                {accountID: 2, avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'},
             ];
 
             return (
@@ -1398,9 +1414,7 @@ describe('SidebarUtils', () => {
                 chatType: undefined,
                 type: 'chat',
             };
-            const participantPersonalDetailList: PersonalDetails[] = [
-                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
-            ];
+            const participantPersonalDetailList: PersonalDetails[] = [{accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'}];
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -1429,8 +1443,8 @@ describe('SidebarUtils', () => {
                 type: 'chat',
             };
             const participantPersonalDetailList: PersonalDetails[] = [
-                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
-                {accountID: 2, displayName: 'Email Two', avatar: 'https://example.com/two.png', login: 'email2@test.com'} as unknown as PersonalDetails,
+                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'},
+                {accountID: 2, displayName: 'Email Two', avatar: 'https://example.com/two.png', login: 'email2@test.com'},
             ];
 
             await waitForBatchedUpdates();
@@ -1461,9 +1475,9 @@ describe('SidebarUtils', () => {
                 type: 'chat',
             };
             const participantPersonalDetailList: PersonalDetails[] = [
-                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
-                {accountID: 2, displayName: 'Email Two', avatar: 'https://example.com/two.png', login: 'email2@test.com'} as unknown as PersonalDetails,
-                {accountID: 3, displayName: 'Email Three', avatar: 'https://example.com/three.png', login: 'email3@test.com'} as unknown as PersonalDetails,
+                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'},
+                {accountID: 2, displayName: 'Email Two', avatar: 'https://example.com/two.png', login: 'email2@test.com'},
+                {accountID: 3, displayName: 'Email Three', avatar: 'https://example.com/three.png', login: 'email3@test.com'},
             ];
 
             await waitForBatchedUpdates();
@@ -1493,8 +1507,8 @@ describe('SidebarUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const participantPersonalDetailList: PersonalDetails[] = [
-                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'One'} as unknown as PersonalDetails,
-                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'Two'} as unknown as PersonalDetails,
+                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'One'},
+                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'Two'},
             ];
             return (
                 waitForBatchedUpdates()
@@ -1516,9 +1530,15 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        const reportAttributes = {
-                            [MOCK_REPORT.reportID]: {reportName: 'Report (archived)'},
-                        } as ReportAttributesDerivedValue['reports'];
+                        const reportAttributes: Record<string, ReportAttributes> = {
+                            [MOCK_REPORT.reportID]: {
+                                reportName: 'Report (archived)',
+                                isEmpty: false,
+                                brickRoadStatus: undefined,
+                                requiresAttention: false,
+                                reportErrors: {},
+                            },
+                        };
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1543,8 +1563,8 @@ describe('SidebarUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const participantPersonalDetailList: PersonalDetails[] = [
-                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'one@example.com'} as unknown as PersonalDetails,
-                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'} as unknown as PersonalDetails,
+                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'one@example.com'},
+                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'},
             ];
             return (
                 waitForBatchedUpdates()
@@ -1714,9 +1734,15 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const reportAttributes = {
-                [archivedInvoiceRoom.reportID]: {reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`},
-            } as ReportAttributesDerivedValue['reports'];
+            const reportAttributes: Record<string, ReportAttributes> = {
+                [archivedInvoiceRoom.reportID]: {
+                    reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
+            };
 
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
@@ -1779,7 +1805,7 @@ describe('SidebarUtils', () => {
                 type: 'chat',
             };
             const participantPersonalDetailList: PersonalDetails[] = [
-                {accountID: 1, displayName: 'Concierge', avatar: 'https://example.com/concierge.png', login: 'concierge@expensify.com'} as unknown as PersonalDetails,
+                {accountID: 1, displayName: 'Concierge', avatar: 'https://example.com/concierge.png', login: 'concierge@expensify.com'},
             ];
 
             await waitForBatchedUpdates();
@@ -1809,9 +1835,7 @@ describe('SidebarUtils', () => {
                 chatType: undefined,
                 type: 'chat',
             };
-            const participantPersonalDetailList: PersonalDetails[] = [
-                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
-            ];
+            const participantPersonalDetailList: PersonalDetails[] = [{accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'}];
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -1886,10 +1910,11 @@ describe('SidebarUtils', () => {
                 policyID: 'testPolicy',
             };
             const MOCK_POLICY: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 id: 'testPolicy',
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
-            } as Policy;
+            };
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -1924,10 +1949,11 @@ describe('SidebarUtils', () => {
                 policyID: 'testPolicy',
             };
             const MOCK_POLICY: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 id: 'testPolicy',
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
-            } as Policy;
+            };
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -1969,10 +1995,11 @@ describe('SidebarUtils', () => {
                 policyID: 'testPolicy',
             };
             const MOCK_POLICY: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 id: 'testPolicy',
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
-            } as Policy;
+            };
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -2006,11 +2033,12 @@ describe('SidebarUtils', () => {
                 policyID: 'testPolicy',
             };
             const MOCK_POLICY: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 id: 'testPolicy',
                 name: 'Test Workspace',
                 description: 'Custom workspace description',
                 type: CONST.POLICY.TYPE.TEAM,
-            } as Policy;
+            };
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -3297,8 +3325,10 @@ describe('SidebarUtils', () => {
                     lastActorAccountID: undefined,
                 };
 
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
+                const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction);
+                if (!originalMessage) {
+                    throw new Error('Expected IOU original message');
+                }
                 const linkedCreateAction: ReportAction = {
                     ...mockIOUAction,
                     originalMessage: {...originalMessage, IOUTransactionID},
@@ -4386,7 +4416,7 @@ describe('SidebarUtils', () => {
             it('should return an empty object when reports is undefined', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
-                    reports: undefined as unknown as OnyxCollection<Report>,
+                    reports: undefined,
                     betas: [],
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
@@ -4824,21 +4854,20 @@ describe('SidebarUtils', () => {
                 lastVisibleActionCreated: '2025-01-20 12:30:03.784',
                 participants: {'18921695': {notificationPreference: 'always'}},
             };
-            // Use `as ReportAction` instead of `: ReportAction` annotation to avoid
-            // discriminated union narrowing issues with originalMessage fields.
-            const lastAction = {
-                ...createRandomReportAction(2),
+            const lastAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE> = {
+                reportActionID: '2',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE,
                 actorAccountID: 18921695,
+                created: '2025-01-20 12:30:03.784',
                 person: [{type: 'TEXT', style: 'strong', text: 'AdminUser'}],
                 originalMessage: {
                     name: 'Travel',
-                    approverAccountID: 12345,
+                    approverAccountID: '12345',
                     approverEmail: 'jane@example.com',
                     field: 'category',
                     approverName: 'Jane Smith',
                 },
-            } as ReportAction;
+            };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
