@@ -22,8 +22,6 @@ jobs:
           git fetch origin "$BASELINE_BRANCH" --no-tags
           git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
 
-      # NOT setupNodeStickyDisk: this job force-checks-out origin/main above, discarding the PR's
-      # working tree — a local action added only on this branch (not yet on main) wouldn't exist.
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNodeStickyDisk
 

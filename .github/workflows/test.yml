@@ -40,7 +40,7 @@ jobs:
         uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-${{ matrix.chunk }}
+          key: ${{ github.repository }}-${{ runner.os }}-${{ runner.arch }}-jest-${{ matrix.chunk }}
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
