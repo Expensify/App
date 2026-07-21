@@ -1137,7 +1137,14 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+            // A non-money-request action and an IOU action with no IOUTransactionID should both be filtered out without matching.
+            const commentAction = createMock<ReportAction>({reportActionID: 'commentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+            const iouActionWithoutTransactionID = createMock<ReportAction>({
+                reportActionID: 'iouActionWithoutTransactionID',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: createMock<OriginalMessageIOU>({type: CONST.IOU.REPORT_ACTION_TYPE.CREATE}),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {commentAction, iouActionWithoutTransactionID});
             await waitForBatchedUpdates();
 
             const resolveParams = {
@@ -1157,14 +1164,14 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {},
             };
 
-            // When: Call resolveDuplicates without IOU actions
+            // When: Call resolveDuplicates without matching IOU actions
             resolveDuplicates({
                 ...resolveParams,
                 allTransactionViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
                 },
-                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {commentAction, iouActionWithoutTransactionID}},
             });
             await waitForBatchedUpdates();
 
