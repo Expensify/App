@@ -33,7 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {TextInputKeyPressEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
