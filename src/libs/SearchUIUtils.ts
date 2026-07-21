@@ -1193,7 +1193,7 @@ function getTransactionItemCommonFormattedProperties(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
     translate: LocalizedTranslate,
-): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: from, translate});
@@ -1212,8 +1212,6 @@ function getTransactionItemCommonFormattedProperties(
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
-    const submitted = report?.submitted;
-    const approved = report?.approved;
 
     const posted = getFormattedPostedDate(transactionItem?.posted);
 
@@ -1221,8 +1219,6 @@ function getTransactionItemCommonFormattedProperties(
         formattedFrom,
         formattedTo,
         date,
-        submitted,
-        approved,
         posted,
         formattedTotal,
         formattedMerchant,
