@@ -50,7 +50,9 @@ import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
 
-type ReportScreenProps = ReportScreenNavigationProps;
+type ReportScreenProps = ReportScreenNavigationProps & {
+    shouldDeferReportActions?: boolean;
+};
 
 type ReportScreenEditMessageProviderProps = {
     /** The report ID */
@@ -72,10 +74,9 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
     return <ReportScreenEditMessageProviderWithTransactionThread reportID={reportID}>{children}</ReportScreenEditMessageProviderWithTransactionThread>;
 }
 
-function ReportScreen({route, navigation}: ReportScreenProps) {
+function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const shouldDeferReportActions = route.name === SCREENS.REPORT && route.params.shouldDeferReportActions === true;
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
@@ -175,3 +176,4 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 }
 
 export default ReportScreen;
+export type {ReportScreenProps};

@@ -148,12 +148,12 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     navigationRef.dispatch({
                         ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
                             screen: SCREENS.REPORT,
+                            ...(shouldDeferReportActions ? {shouldDeferInitialReportActions: true} : {}),
                             params: {
                                 reportID,
                                 reportActionID: doesLastReportActionExist ? reportActionID : undefined,
                                 referrer,
                                 backTo,
-                                ...(shouldDeferReportActions ? {shouldDeferReportActions: true} : {}),
                             },
                         }),
                         target: reportsTabStateKey,
@@ -163,6 +163,17 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 Navigation.navigate(reportRoute);
                 return;
             }
+        }
+
+        const reportsTabStateKey = getReportsTabStateKey(navigationRef.getRootState());
+        if (reportsTabStateKey) {
+            navigationRef.dispatch({
+                ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
+                    shouldDeferInitialReportActions: true,
+                }),
+                target: reportsTabStateKey,
+            });
+            return;
         }
 
         Navigation.navigate(ROUTES.INBOX);

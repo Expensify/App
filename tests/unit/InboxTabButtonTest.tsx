@@ -151,9 +151,9 @@ describe('InboxTabButton', () => {
                 target: 'tab-state',
                 payload: expect.objectContaining({
                     params: expect.objectContaining({
+                        shouldDeferInitialReportActions: true,
                         params: expect.objectContaining({
                             reportID: '123',
-                            shouldDeferReportActions: true,
                         }),
                         screen: SCREENS.REPORT,
                     }),
@@ -196,8 +196,37 @@ describe('InboxTabButton', () => {
         );
     });
 
-    it('navigates to Inbox when no previous report exists', () => {
+    it('requests initial report actions defer when no previous report route exists', () => {
         mockOnyxEntry = undefined;
+        mockLastRoute = undefined;
+
+        render(
+            <InboxTabButton
+                selectedTab={NAVIGATION_TABS.HOME}
+                isWideLayout
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('inbox-tab-button'));
+
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                target: 'tab-state',
+                payload: expect.objectContaining({
+                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                    params: {
+                        shouldDeferInitialReportActions: true,
+                    },
+                }),
+            }),
+        );
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockStartOpenReportSpan).not.toHaveBeenCalled();
+    });
+
+    it('navigates to Inbox when the tab navigator is not ready', () => {
+        mockOnyxEntry = undefined;
+        mockRootState = undefined;
         mockLastRoute = undefined;
 
         render(
