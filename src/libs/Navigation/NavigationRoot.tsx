@@ -233,7 +233,13 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // After logout, reset the nav state so a logged-out user can't stay on a protected or
         // consumed route.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
-        if (!hasUserLoggedOut || !navigationRef.isReady()) {
+        if (!hasUserLoggedOut) {
+            return;
+        }
+
+        previousFullstoryPath = undefined;
+
+        if (!navigationRef.isReady()) {
             return;
         }
 
