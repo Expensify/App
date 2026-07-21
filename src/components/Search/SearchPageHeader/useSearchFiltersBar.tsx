@@ -144,7 +144,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {currentDefaultSearchQueryString, currentDefaultSearchQueryFilterKeys, currentSimilarSearchHash, currentDefaultSimilarSearchHash} = useSearchQueryContext();
+    const {currentDefaultSearchQueryString, currentDefaultSearchQueryFilterKeys, currentSearchHash, currentDefaultSearchHash} = useSearchQueryContext();
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
@@ -215,7 +215,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
-        shouldShowResetFilters: currentDefaultSimilarSearchHash ? currentDefaultSimilarSearchHash !== currentSimilarSearchHash : filters.length > 0,
+        shouldShowResetFilters: currentDefaultSearchHash ? currentDefaultSearchHash !== currentSearchHash : filters.length > 0,
         resetFilters,
     };
 }

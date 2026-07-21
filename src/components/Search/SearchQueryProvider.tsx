@@ -100,7 +100,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
         : undefined;
     const currentDefaultSearchQueryJSON = currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString) : undefined;
-    const currentDefaultSimilarSearchHash = currentDefaultSearchQueryJSON?.similarSearchHash;
+    const currentDefaultSearchHash = currentDefaultSearchQueryJSON?.hash;
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
     const resetCurrentSearchKeyIfInvalid = useEffectEvent(() => {
@@ -123,7 +123,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         currentSimilarSearchHash,
         currentSearchKey,
         currentSearchQueryJSON,
-        currentDefaultSimilarSearchHash,
+        currentDefaultSearchHash,
         currentDefaultSearchQueryString,
         currentDefaultSearchQueryFilterKeys,
         suggestedSearches,

@@ -36,7 +36,7 @@ function splitState(value: SearchStateContextValue): {
             currentSimilarSearchHash: value.currentSimilarSearchHash,
             currentSearchKey: value.currentSearchKey,
             currentSearchQueryJSON: value.currentSearchQueryJSON,
-            currentDefaultSimilarSearchHash: value.currentDefaultSimilarSearchHash,
+            currentDefaultSearchHash: value.currentDefaultSearchHash,
             currentDefaultSearchQueryString: value.currentDefaultSearchQueryString,
             currentDefaultSearchQueryFilterKeys: value.currentDefaultSearchQueryFilterKeys,
             suggestedSearches: value.suggestedSearches,

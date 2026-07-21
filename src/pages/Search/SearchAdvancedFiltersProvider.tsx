@@ -40,7 +40,7 @@ type SearchAdvancedFiltersProviderProps = {
 
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {currentDefaultSearchQueryString, currentSearchQueryJSON, currentSimilarSearchHash, currentDefaultSimilarSearchHash} = useSearchQueryContext();
+    const {currentDefaultSearchQueryString, currentSearchQueryJSON, currentSearchHash, currentDefaultSearchHash} = useSearchQueryContext();
     const {getUpdatedFilterFormValues, setFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
@@ -68,8 +68,8 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
 
     const searchAdvancedFiltersValue: SearchAdvancedFiltersValue = {
         currentDraftFilters: values,
-        shouldShowResetFilters: currentDefaultSimilarSearchHash
-            ? currentSimilarSearchHash !== currentDefaultSimilarSearchHash
+        shouldShowResetFilters: currentDefaultSearchHash
+            ? currentSearchHash !== currentDefaultSearchHash
             : // Show the reset button only if a non-"type" filter is applied.
               Object.values(searchAdvancedFiltersForm ?? {}).length > 1,
     };
