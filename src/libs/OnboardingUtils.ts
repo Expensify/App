@@ -48,5 +48,4 @@ function isSupportedPendingInviteOnboarding(introSelected: OnyxEntry<IntroSelect
 
     return isSupportedInviteOnboardingChoice(introSelected.choice) && !isInviteIOUorInvoice;
 }
-export default isTrackOnboardingChoice;
-export {getVisibleJoinablePoliciesCount, isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding};
+export {getVisibleJoinablePoliciesCount, isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding, isTrackOnboardingChoice};

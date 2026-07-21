@@ -39,7 +39,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {ImageStyle, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import {Linking, View} from 'react-native';
@@ -154,6 +154,7 @@ function EmptySearchViewContent({
     const [hasExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: hasExpenseReportsSelector,
     });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
 
@@ -176,6 +177,7 @@ function EmptySearchViewContent({
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
             betas,
+            isTrackIntentUser,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
