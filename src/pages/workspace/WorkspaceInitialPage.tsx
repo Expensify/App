@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -40,7 +41,9 @@ import {
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
+    hasVendorFeature,
     isGroupPolicy,
+    isMatchingVendorListLoaded,
     isPendingDeletePolicy,
     isPerDiemEnabled,
     isPolicyAdmin,
@@ -142,6 +145,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Hashtag',
         'InvoiceGeneric',
         'Receipt',
+        'Suitcase',
         'Sync',
         'Tag',
         'Users',
@@ -256,6 +260,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         goBackFromInvalidPolicy();
     }, [isFocused, isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
 
+    // The Vendors row gate below reads policy.connections (via hasVendorFeature and
+    // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page
+    // requiring connections is opened. Prefetch it here, gated on read-access + beta so this
+    // doesn't fire an accounting-page read on every workspace visit.
+    const canReadVendors = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS);
+    usePolicyConnectionsPrefetch(policy, canReadVendors && isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+
     const workspaceMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.profile',
@@ -273,17 +284,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             screenName: SCREENS.WORKSPACE.MEMBERS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
         },
-    ];
-
-    if (isBetaEnabled(CONST.BETAS.WORKSPACE_ROOMS_PAGE)) {
-        workspaceMenuItems.push({
+        {
             translationKey: 'workspace.common.rooms',
             icon: expensifyIcons.Hashtag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ROOMS.getRoute(policyID)))),
             screenName: SCREENS.WORKSPACE.ROOMS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
-        });
-    }
+        },
+    ];
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {
@@ -341,6 +349,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 screenName: SCREENS.WORKSPACE.CATEGORIES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.CATEGORIES,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+            });
+        }
+
+        if (canReadVendors && hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && isMatchingVendorListLoaded(policy)) {
+            workspaceMenuItems.push({
+                translationKey: 'workspace.common.vendors',
+                icon: expensifyIcons.Suitcase,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_VENDORS.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.VENDORS,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS,
             });
         }
 

@@ -36,6 +36,7 @@ import {buildSearchQueryJSON, getDateRangeForPreset, getUserFriendlyValue} from 
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -2796,6 +2797,34 @@ describe('SearchUIUtils', () => {
             )[0];
 
             expect(result.find((item) => item.reportID === reportID2)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        });
+
+        it('should decode HTML entities in the expense report name', () => {
+            const localSearchResults: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    reportName: 'A &amp; B &#39;C&#39;',
+                },
+            };
+
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data: localSearchResults,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionReportGroupListItemType,
+            )[0];
+
+            expect(result.find((item) => item.reportID === reportID2)?.reportName).toBe("A & B 'C'");
         });
 
         it('should use custom avatar from onyxPersonalDetailsList when search API personalDetailsList is absent', () => {
@@ -8942,6 +8971,48 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.topSpenders).toBe(true);
         });
 
+        test('Should collect Top Spenders-eligible policy IDs and scope the suggested search query to them', () => {
+            const eligiblePolicyID = 'GROUP_POLICY_01';
+            const ineligiblePolicyID = 'PERSONAL_POLICY_02';
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${eligiblePolicyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: eligiblePolicyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                },
+                // Personal (non-group) policy is not eligible for Top Spenders and must not be scoped in.
+                [`policy_${ineligiblePolicyID}`]: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL),
+                    id: ineligiblePolicyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                },
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(true);
+            expect(response.topSpendersPolicyIDs).toEqual([eligiblePolicyID]);
+
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, response.topSpendersPolicyIDs);
+            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
+            expect(topSpendersQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${eligiblePolicyID}`);
+            expect(topSpendersQuery).not.toContain(ineligiblePolicyID);
+        });
+
+        test('Should not add a policyID filter to the Top Spenders query when there are no eligible workspaces', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, []);
+            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
+            expect(topSpendersQuery).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:`);
+        });
+
         test('Should show Spend Over Time for workflow approver (forwardsTo) in paid policy', () => {
             const workflowApproverEmail = 'workflow-approver@policy.com';
             const policyKey = `policy_${policyID}`;
@@ -11232,6 +11303,21 @@ describe('getCardDescriptionForSearchTable', () => {
 
     it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
         expect(getCardDescriptionForSearchTable(baseCompanyCard, translateLocal)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
+    });
+});
+
+describe('getMultiSelectFilterOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns only the selectable receipt types, excluding hotel', () => {
+        const options = SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.RECEIPT_TYPE, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
+        expect(options).toEqual([
+            {value: CONST.SEARCH.RECEIPT_TYPE.ERECEIPT, text: 'eReceipt'},
+            {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
+        ]);
+        expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
     });
 });
 
