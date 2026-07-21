@@ -27,11 +27,10 @@ describe('useShortMentionsList', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@acme.com', accountID: ACCOUNT_ID_CURRENT_USER});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
     });
 
     it('returns usernames sharing the current user private domain', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-
         const {result} = renderHook(() => useShortMentionsList());
 
         await waitFor(() => {
@@ -39,19 +38,21 @@ describe('useShortMentionsList', () => {
         });
     });
 
-    it('returns an empty list when the current user is on a public domain', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@gmail.com'});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-
+    it('returns an empty list when the current user switches to a public domain', async () => {
         const {result} = renderHook(() => useShortMentionsList());
-        await waitForBatchedUpdates();
 
-        expect(result.current.availableLoginsList).toEqual([]);
+        await waitFor(() => {
+            expect(result.current.availableLoginsList).toEqual(['user', 'coworker']);
+        });
+
+        await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@gmail.com'});
+
+        await waitFor(() => {
+            expect(result.current.availableLoginsList).toEqual([]);
+        });
     });
 
     it('shares one computed list across instances and does not re-render on unrelated personal details writes', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-
         let renderCount = 0;
         const first = renderHook(() => {
             renderCount++;
@@ -78,8 +79,6 @@ describe('useShortMentionsList', () => {
     });
 
     it('updates when someone joins the domain', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-
         const {result} = renderHook(() => useShortMentionsList());
 
         await waitFor(() => {
