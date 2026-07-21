@@ -4829,6 +4829,42 @@ describe('ReportActionsUtils', () => {
                 })}`,
             );
         });
+
+        it('shows "your" wording for Fast_ACH when the current user is the report owner', () => {
+            const action = buildReimbursedAction({
+                paymentMethod: 'Fast_ACH',
+                creditBankAccountLast4: '1111',
+                expectedDate: '2025-03-15',
+            });
+
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@example.com';
+
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, ownerAccountID);
+            expect(resultCurrentUser).toContain('your');
+            expect(resultCurrentUser).not.toContain(submitterLogin);
+
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, 999);
+            expect(resultOtherUser).toContain(submitterLogin);
+            expect(resultOtherUser).not.toContain('your');
+        });
+
+        it('shows "your" wording for StripeConnect when the current user is the report owner', () => {
+            const action = buildReimbursedAction({
+                paymentMethod: 'StripeConnect',
+                creditBankAccountLast4: '2222',
+                stripePaymentType: 'bank_transfer',
+            });
+
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@example.com';
+
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, ownerAccountID);
+            expect(resultCurrentUser).toContain('your');
+
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, 999);
+            expect(resultOtherUser).toContain(submitterLogin);
+        });
     });
 
     describe('getAutoReimbursementMessage', () => {

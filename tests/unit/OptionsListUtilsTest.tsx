@@ -7629,6 +7629,45 @@ describe('OptionsListUtils', () => {
             expect(optionNotSelected.isSelected).toBe(false);
             expect(optionNotSelected.selected).toBe(false);
         });
+
+        it('should return a valid option when called with different currentUserAccountID values', async () => {
+            const reportID = '210';
+            const testPolicyID = 'policy210';
+            const ownerAccountID = 1001;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Thread Test',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const testPersonalDetails = {
+                [ownerAccountID]: {
+                    accountID: ownerAccountID,
+                    displayName: 'Policy Owner',
+                    login: 'owner@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: true};
+
+            const optionWithCurrentUser = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, CURRENT_USER_ACCOUNT_ID);
+            const optionWithDifferentUser = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, 9999);
+
+            expect(optionWithCurrentUser).toBeDefined();
+            expect(optionWithDifferentUser).toBeDefined();
+            expect(optionWithCurrentUser.reportID).toBe(reportID);
+            expect(optionWithDifferentUser.reportID).toBe(reportID);
+        });
     });
 
     describe('getPolicyExpenseReportOption with privateIsArchived', () => {
