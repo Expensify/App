@@ -225,7 +225,6 @@
 "../../src/components/ImportSpreadsheet.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/ImportSpreadsheet.tsx"	"react-hooks/refs"	1
 "../../src/components/InitialURLContextProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/InteractiveStepSubPageHeader.tsx"	"no-restricted-syntax"	1
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
