@@ -459,6 +459,7 @@ function openReportFromDeepLink(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    currentUserAccountID: number,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -470,8 +471,7 @@ function openReportFromDeepLink(
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
         });
 
-        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas, hasReportActions: false});
+        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas, hasReportActions: false, currentUserAccountID});
 
         // Show the sign-in page if the app is offline
         if (getIsOffline()) {
