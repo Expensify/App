@@ -72,6 +72,7 @@ export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMess
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
 export type {default as GetPolicyCategoriesParams} from './GetPolicyCategories';
+export type {default as GetAgentRuleSuggestionsParams} from './GetAgentRuleSuggestionsParams';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
 export type {default as GetRouteParams} from './GetRouteParams';
 export type {default as CreateAppReportParams} from './CreateAppReportParams';
@@ -577,6 +578,7 @@ export type {default as UpdateAgentNameParams} from './UpdateAgentNameParams';
 export type {default as UpdateAgentPromptParams} from './UpdateAgentPromptParams';
 export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams';
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
+export type {default as ResendValidateCodeParams} from './ResendValidateCodeParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
