@@ -1347,7 +1347,7 @@ function getReportDisplayOption(
         },
         reportAttributesDerived,
         policyTags,
-        visibleReportActionsData: visibleReportActionsData ?? {},
+        visibleReportActionsData,
         currentUserAccountID,
     });
 
