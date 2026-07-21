@@ -7,6 +7,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -52,6 +53,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {convertToDisplayString} = useCurrencyListActions();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
@@ -121,6 +123,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             isFromGlobalCreate,
             senderPolicyTags: policyTags ?? {},
             formatPhoneNumber,
+            delegateAccountID,
         });
         cleanupAndNavigateAfterExpenseCreate({
             report: undefined,

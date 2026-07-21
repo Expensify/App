@@ -87,8 +87,7 @@ type SendInvoiceOptions = {
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type BuildOnyxDataForInvoiceParams = {
