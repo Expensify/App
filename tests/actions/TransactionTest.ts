@@ -19,7 +19,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -39,16 +39,20 @@ import getOnyxValue from '../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency'> & {
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions'
+> & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
     personalPolicyOutputCurrency?: string;
+    selfDMReportActions?: OnyxEntry<ReportActions>;
     isTrackIntentUser: boolean | undefined;
 };
 
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, ...rest});
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest});
 }
 
 const topMostReportID = '23423423';
@@ -261,11 +265,13 @@ describe('actions/Transaction', () => {
 
             let iouReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
             let trackExpenseActionableWhisper: OnyxEntry<ReportAction>;
+            let selfDMReportActions: OnyxEntry<ReportActions>;
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 waitForCollectionCallback: true,
                 callback: (allReportActions) => {
+                    selfDMReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`];
                     iouReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
                         (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
                     );
@@ -304,6 +310,7 @@ describe('actions/Transaction', () => {
                 policyTagList,
                 transactionViolations: {},
                 allReports: undefined,
+                selfDMReportActions,
                 isTrackIntentUser: false,
             });
 
@@ -582,7 +589,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -730,6 +737,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
@@ -764,7 +772,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -912,6 +920,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
@@ -949,7 +958,7 @@ describe('actions/Transaction', () => {
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -1108,6 +1117,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
@@ -1145,7 +1155,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -1327,6 +1337,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
 

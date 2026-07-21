@@ -57,6 +57,7 @@ import type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     UpdateRoleParams,
+    ViolationsInactiveVendorParams,
     ViolationsIncreasedDistanceParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
@@ -323,6 +324,7 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Wijzigen',
         category: 'Categorie',
         vendor: 'Leverancier',
+        supplier: 'Leverancier',
         report: 'Rapport',
         billable: 'Factureerbaar',
         nonBillable: 'Niet-factureerbaar',
@@ -433,6 +435,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Valideren',
         downloadAsPDF: 'Downloaden als PDF',
         downloadAsCSV: 'Downloaden als CSV',
+        submitViaPDF: 'Indienen via pdf',
         print: 'Afdrukken',
         help: 'Help',
         collapsed: 'Ingeklapt',
@@ -515,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} van ${total}`,
         editor: 'Editor',
         restrictions: 'Beperkingen',
         tryAgain: 'Probeer het opnieuw',
@@ -1077,6 +1081,13 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Pas controles aan en stroomlijn uitgaven',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+            customizeSpendCategories: 'Uitgaven­categorieën aanpassen',
+            customizeSpendCategoriesSubText: 'Orden en classificeer uitgaven',
+            createExpense: 'Maak een uitgave',
+            createExpenseSubText: 'Scan, sleep neer en zet neer, of voer handmatig een uitgave in met de +-knop',
+            linkPersonalCard: 'Koppel persoonlijke kaart',
+            linkPersonalCardSubText: 'Importeer uitgaven automatisch',
+            configureApprovals: 'Goedkeuringsworkflow instellen',
             begin: 'Begin',
             done: 'Klaar',
             createWorkspaceSubText: 'Werkruimte klaar voor configuratie',
@@ -1089,6 +1100,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Praat met Concierge',
             talkToAccountExecutive: 'Praat met je accountmanager',
             forGuidedSetup: 'voor begeleide installatie.',
+            configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
         },
         yourSpend: {
             title: 'Je uitgaven',
@@ -1160,6 +1172,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags zijn toegevoegd.` : '1 tag is toegevoegd.'),
         importMultiLevelTagsSuccessfulDescription: 'Tags met meerdere niveaus zijn toegevoegd.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem-tarieven zijn toegevoegd.` : '1 dagvergoeding is toegevoegd.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return 'Er zijn geen handelaarregels toegevoegd, omdat ze allemaal al bestaan.';
+            }
+            return rules > 1 ? `${rules} handelaarregels zijn toegevoegd.` : '1 handelaarregel is toegevoegd.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Oeps! Je moet ten minste één kolom "Handelaar is" of "Handelaar bevat" toewijzen, plus ten minste één veld om bij te werken. Controleer het en probeer het opnieuw.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
         importFailedTitle: 'Import mislukt',
@@ -1177,6 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Bevestig hieronder de gegevens voor de ${count} nieuwe werkruimteleden die als onderdeel van deze upload worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Nieuwe kaarten en transacties kunnen even duren voordat ze verschijnen, even geduld.',
+        importMembersRolePermissionWarning: 'Je hebt geen toestemming om sommige ledensrollen toe te wijzen. Alle betrokken nieuwe leden zijn uitgenodigd als lid.',
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -2888,6 +2909,14 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Agenten',
         subtitle: `<muted-text>Agents verwerken je workflows voor je, zodat je uren per dag terugkrijgt. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
         findAgent: 'Agent zoeken',
+        deleteAgentsTitle: () => ({
+            one: 'Agent verwijderen',
+            other: 'Agents verwijderen',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Weet je zeker dat je deze agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+            other: 'Weet je zeker dat je deze agents wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+        }),
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {
             title: 'Geen agents aangemaakt',
@@ -4423,6 +4452,7 @@ ${amount} voor ${merchant} - ${date}`,
             delete: 'Werkruimte verwijderen',
             settings: 'Instellingen',
             categories: 'Categorieën',
+            vendors: 'Leveranciers',
             tags: 'Tags',
             customField1: 'Aangepast veld 1',
             customField2: 'Aangepast veld 2',
@@ -4458,6 +4488,7 @@ ${amount} voor ${merchant} - ${date}`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
             deleteOpenExpensifyCardsError: 'Je bedrijf heeft nog Expensify Kaarten. <concierge-link>Neem contact op met Concierge</concierge-link> om ze te verwijderen.',
+            deleteTravelInvoicingError: 'Je bedrijf heeft nog steeds Geconsolideerde Reisfacturering ingeschakeld.',
             outstandingBalanceWarning:
                 'Je hebt een openstaand saldo dat moet worden vereffend voordat je je laatste werkruimte kunt verwijderen. Ga naar je abonnementsinstellingen om de betaling af te ronden.',
             settleBalance: 'Ga naar abonnement',
@@ -4935,6 +4966,10 @@ ${amount} voor ${merchant} - ${date}`,
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg het account toe in Xero en synchroniseer de verbinding opnieuw',
+            defaultSupplier: 'Standaardleverancier',
+            defaultSupplierDescription: 'Stel een standaardsupplier in die wordt toegepast op alle creditcardtransacties bij het exporteren.',
+            noSuppliersFound: 'Geen leveranciers gevonden',
+            noSuppliersFoundDescription: 'Voeg de leverancier toe in Xero en synchroniseer de koppeling opnieuw.',
             accountingMethods: {
                 label: 'Wanneer exporteren',
                 description: 'Kies wanneer de onkosten moeten worden geëxporteerd:',
@@ -5582,6 +5617,35 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Rekening voor verrekening van reiskostenfacturen',
                 description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.',
             },
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: "Overschrijf de werkruimte-account voor deze kaartprogramma's.",
+                descriptionLevel2: 'Overschrijf het werkruimteaccount voor dit kaartprogramma.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} programma's met aangepaste rekeningen`;
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Stel een andere programmarekening in voor deze kaarten.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} kaart met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} kaarten met aangepaste rekeningen`;
+                },
+            },
         },
         type: {
             free: 'Gratis',
@@ -6213,6 +6277,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formuleveld ${value} niet herkend`,
             reportFieldInitialValueRequiredError: 'Kies een beginwaarde voor een rapportveld',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
+        },
+        vendors: {
+            emptyTitle: 'Nog geen leveranciers',
+            emptySubtitle: 'Leveranciers verschijnen hier zodra je boekhoudkundige synchronisatie is voltooid.',
+            findVendor: 'Leverancier zoeken',
+            managedInAccountingSoftware: 'Leveranciers worden beheerd in je',
         },
         tags: {
             tagName: 'Tagnaam',
@@ -7002,8 +7072,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             updateToUSD: 'Bijwerken naar USD',
             updateWorkspaceCurrency: 'Werkruimtevaluta bijwerken',
             workspaceCurrencyNotSupported: 'Werkruimtevaluta wordt niet ondersteund',
+            notAllowedToAddBankAccount: 'Je werkruimte is ingesteld op een niet-ondersteunde valuta. Neem contact op met een werkruimtebeheerder die toestemming heeft om deze te wijzigen.',
             yourWorkspace: `Je werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lijst met ondersteunde valuta's</a>.`,
             chooseAnExisting: 'Kies een bestaande bankrekening om onkosten te betalen of voeg een nieuwe toe.',
+            changeBankAccount: 'Bankrekening wijzigen',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Eigenaar overdragen',
@@ -7428,6 +7500,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 addRule: 'Merchantregel toevoegen',
                 addRuleTitle: 'Regel toevoegen',
                 editRuleTitle: 'Regel bewerken',
+                importRulesTitle: 'Handelaarregels importeren',
+                importRulesSupportingText: 'Koppel elke kolom in je spreadsheet aan een veld van een handelaarregel. Als alles er goed uitziet, klik hieronder om je regels te importeren.',
+                importColumnMerchantIs: 'Handelaar is',
+                importColumnMerchantContains: 'Handelaar bevat',
+                importColumnUpdatedMerchant: 'Bijgewerkte handelaar',
+                importColumnUpdatedCategory: 'Bijgewerkte categorie',
+                importColumnUpdatedTag: 'Bijgewerkte tag',
+                importColumnUpdatedDescription: 'Bijgewerkte omschrijving',
                 expensesWith: 'Voor declaraties met:',
                 expensesExactlyMatching: 'Voor onkosten die exact overeenkomen met:',
                 applyUpdates: 'Pas deze updates toe:',
@@ -7602,7 +7682,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
-                defaultRuleSummary: 'Categorieën zoals erotische diensten, geldautomaten, gokken en...',
+                defaultRuleSummary: 'Categorieën zoals diensten voor volwassenen, geldautomaten, gokken en geldoverdrachten',
                 findRule: 'Regel zoeken',
                 defaultSection: 'Standaard',
                 customRulesSection: 'Aangepaste regels',
@@ -7652,14 +7732,25 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 addRule: 'Agentregel toevoegen',
                 findRule: 'Agentregel zoeken',
                 addRuleTitle: 'Regel toevoegen',
+                newRuleTitle: 'Nieuwe regel',
                 editRuleTitle: 'Regel bewerken',
                 deleteRule: 'Regel verwijderen',
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
                 describeRuleTitle: 'Beschrijf de regel die je AI-agent moet volgen',
+                describeRuleHeadline: 'Beschrijf je regel',
                 disclaimer: 'AI-agents kunnen fouten maken.',
                 agentCreatedTitle: 'RuleBot is toegevoegd aan je werkruimte!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.<br><br>Bewerk de gegevens van je agent in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
+                suggestionsTab: 'Suggesties',
+                writeTab: 'Bewerken',
+                findSuggestion: 'Zoek een regel',
+                emptySuggestionsTitle: 'Geen suggesties beschikbaar',
+                emptySuggestionsSubtitle: 'Probeer je eigen regel te schrijven.',
+                revampSubtitle: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
+                describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
+                gotIt: 'Begrepen',
+                createRule: 'Regel maken',
             },
             tabs: {
                 general: 'Algemeen',
@@ -7667,6 +7758,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 expenseDefaults: 'Standaardinstellingen voor uitgaven',
                 requireFields: 'Maak velden verplicht',
                 flagForReview: 'Markeren voor controle',
+                agents: 'Agenten',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7725,9 +7817,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyExpenseDefaults: 'Standaardinstellingen voor uitgaven toepassen',
                 applyExpenseDefaultsDescription: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
                 flagForReview: 'Markeren voor controle',
-                flagForReviewDescription: 'Goedkeurders informeren wanneer onkosten de categorielimieten overschrijden',
+                flagForReviewDescription: 'Stel een melding in wanneer aan je voorwaarden is voldaan.',
                 requireFields: 'Maak velden verplicht',
-                requireFieldsDescription: 'Zorg dat belangrijke velden zijn ingevuld voordat onkosten worden ingediend',
+                requireFieldsDescription: 'Bonnetjes, categorieën, enz. bij het indienen.',
+                createAgentRule: 'Agentregel',
+                createAgentRuleDescription: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -7791,6 +7885,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 confirmErrorAmount: 'Voer een bedrag in.',
                 thenFlagForReview: 'Vlag dan voor controle wanneer:',
             },
+            agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
         },
         planTypePage: {
             planTypes: {
@@ -9387,7 +9482,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         duplicatedTransaction: 'Mogelijke duplicaat',
         fieldRequired: 'Rapportvelden zijn verplicht',
         futureDate: 'Toekomstige datum niet toegestaan',
-        inactiveVendor: 'Leverancier niet meer geldig',
+        inactiveVendor: ({isSupplier = false}: ViolationsInactiveVendorParams = {}) => (isSupplier ? 'Leverancier niet meer geldig' : 'Leverancier niet meer geldig'),
         invoiceMarkup: (invoiceMarkup: number) => `Met ${invoiceMarkup}% verhoogd`,
         maxAge: (maxAge: number) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Ontbrekende categorie',
