@@ -70,7 +70,7 @@ function getGoToText(translate: LocaleContextProps['translate'], destination: st
 function buildNavigationSuggestions(query: string, sources: NavigationSuggestionSourceItem[][], localeCompare: LocaleContextProps['localeCompare']): SearchQueryItem[] {
     const trimmedQuery = query.trim();
     const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
-    const matchQuery = stripNavigationIntentPrefix(trimmedQuery) || trimmedQuery;
+    const matchQuery = stripNavigationIntentPrefix(trimmedQuery);
     if (!matchQuery && !isNavigationIntentOnly) {
         return [];
     }
