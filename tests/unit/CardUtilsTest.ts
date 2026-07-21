@@ -4417,9 +4417,53 @@ describe('getEligibleBankAccountsForUkEuCard', () => {
                 bankCountry: 'GB',
             },
         };
-        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, 'GBP');
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, {GBP: ['GB', 'GI']}, 'GBP');
         expect(result).toHaveLength(1);
         expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+    });
+
+    it('uses only the supported countries for the workspace settlement currency', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'EUR',
+                bankCountry: 'BE',
+            },
+            '2': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'EUR',
+                bankCountry: 'GB',
+            },
+        };
+        const supportedCountriesByCurrency = {GBP: ['GB', 'GI'], EUR: ['BE', 'DK']};
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, supportedCountriesByCurrency, 'EUR');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.bankCountry).toBe('BE');
+    });
+
+    it('returns no accounts when the settlement currency has no supported-country entry', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+        };
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, {EUR: ['BE', 'DK']}, 'GBP');
+        expect(result).toHaveLength(0);
+    });
+
+    it('falls back to the hard-coded supported countries when the backend list is unavailable', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+        };
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, undefined, 'GBP');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.bankCountry).toBe('GB');
     });
 });
 
