@@ -11,6 +11,6 @@
     databases created by older app versions out of Documents on first launch.
     ```
 
-- Upstream PR/issue: 🛑 TODO
-- E/App issue: 🛑 TODO
+- Upstream PR/issue: https://github.com/margelo/react-native-nitro-sqlite/issues/289
+- E/App issue: https://github.com/Expensify/App/issues/96649
 - PR introducing patch: https://github.com/Expensify/App/pull/96531
