@@ -476,7 +476,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         });
     });
 
-    describe('failure rollback for a brand-new chat', () => {
+    describe('failure handling for a brand-new chat', () => {
         function buildNewChatParams(overrides?: Partial<BuildOnyxDataParams>): BuildOnyxDataParams {
             return {
                 isNewChatReport: true,
@@ -499,48 +499,60 @@ describe('buildOnyxDataForMoneyRequest', () => {
             return failureData?.find((entry) => entry.key === key);
         }
 
-        it('rolls back the new chat report, IOU report, their metadata, actions, the transaction and the transaction thread by SETting them to null', () => {
-            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
-
-            const keysExpectedNull = [
-                `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`,
-                `${ONYXKEYS.COLLECTION.REPORT_METADATA}${CHAT_REPORT_ID}`,
-                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`,
-                `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`,
-                `${ONYXKEYS.COLLECTION.REPORT_METADATA}${IOU_REPORT_ID}`,
-                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
-                `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
-                `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`,
-                `${ONYXKEYS.COLLECTION.REPORT_METADATA}${THREAD_REPORT_ID}`,
-                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`,
-            ];
-
-            for (const key of keysExpectedNull) {
-                const entry = findFailureEntry(failureData, key);
-                expect(entry).toBeDefined();
-                expect(entry?.onyxMethod).toBe(Onyx.METHOD.SET);
-                expect(entry?.value).toBeNull();
-            }
-        });
-
-        it('does not leave any createChat error banner on the rolled-back reports', () => {
+        it('keeps the failed expense visible by MERGE-ing createChat errors onto the new chat and IOU reports instead of deleting them', () => {
             const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
 
             const chatReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
             const iouReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`);
 
-            expect(chatReportEntry?.value).toBeNull();
-            expect(iouReportEntry?.value).toBeNull();
+            expect(chatReportEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((chatReportEntry?.value as Partial<Report>)?.errorFields?.createChat).toBeDefined();
+            expect(iouReportEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((iouReportEntry?.value as Partial<Report>)?.errorFields?.createChat).toBeDefined();
         });
 
-        it('does not re-create the transaction thread report actions shell via a later MERGE', () => {
+        it('resets the new chat and IOU report metadata to non-optimistic so the chat is not stuck on an infinite loading skeleton', () => {
             const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
-            const threadActionEntries = failureData?.filter((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`);
 
-            // Only the SET-null rollback entry should exist — no MERGE that would resurrect the shell.
-            expect(threadActionEntries).toHaveLength(1);
-            expect(threadActionEntries?.at(0)?.onyxMethod).toBe(Onyx.METHOD.SET);
-            expect(threadActionEntries?.at(0)?.value).toBeNull();
+            const chatMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${CHAT_REPORT_ID}`);
+            const iouMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${IOU_REPORT_ID}`);
+
+            expect(chatMetadataEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((chatMetadataEntry?.value as {isOptimisticReport?: boolean})?.isOptimisticReport).toBe(false);
+            expect(iouMetadataEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((iouMetadataEntry?.value as {isOptimisticReport?: boolean})?.isOptimisticReport).toBe(false);
+        });
+
+        it('does not SET any of the new-chat entities to null on failure (rollback happens on dismiss, not on failure)', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
+
+            const keys = [
+                `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`,
+            ];
+
+            for (const key of keys) {
+                const entry = findFailureEntry(failureData, key);
+                expect(entry).toBeDefined();
+                expect(entry?.value).not.toBeNull();
+            }
+        });
+
+        it('does not reset report metadata when the expense is added to an existing chat and IOU report', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(
+                buildNewChatParams({
+                    isNewChatReport: false,
+                    shouldCreateNewMoneyRequestReport: false,
+                }),
+            );
+
+            const chatMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${CHAT_REPORT_ID}`);
+            const iouMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${IOU_REPORT_ID}`);
+
+            expect(chatMetadataEntry).toBeUndefined();
+            expect(iouMetadataEntry).toBeUndefined();
         });
 
         it('keeps the standard error-merge behavior when the expense is added to an existing chat and IOU report (retryable)', () => {

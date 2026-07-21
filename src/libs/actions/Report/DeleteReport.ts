@@ -36,6 +36,8 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
+        // Also clear the report metadata (e.g. isOptimisticReport) so a deleted report leaves nothing orphaned behind.
+        [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`]: null,
     };
 
     // Delete linked transactions
