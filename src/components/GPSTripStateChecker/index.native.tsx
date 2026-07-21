@@ -4,6 +4,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
+import {resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
+import getArrayDepth from '@libs/getArrayDepth';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
@@ -15,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import type {GpsDraftDetails} from '@src/types/onyx';
 
 import {hasStartedLocationUpdatesAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 import React, {useEffect, useState} from 'react';
@@ -22,6 +25,16 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
+
+// Replaces Onyx migration removed in PR #95505 - now we just clear the data if it's in the old format
+function isGpsDraftDetailsInOldFormat(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
+    const gpsPoints = gpsDraftDetails?.gpsPoints;
+    if (gpsPoints && getArrayDepth(gpsPoints) === 1) {
+        return true;
+    }
+
+    return false;
+}
 
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
@@ -40,6 +53,11 @@ function GPSTripStateChecker() {
         async function handleGpsTripInProgressOnAppRestart() {
             await checkAndCleanGpsNotification();
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+
+            if (isGpsDraftDetailsInOldFormat(gpsTrip)) {
+                resetGPSDraftDetails();
+                return;
+            }
 
             if (!gpsTrip?.isTracking) {
                 const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
