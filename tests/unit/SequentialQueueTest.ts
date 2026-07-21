@@ -770,6 +770,29 @@ describe('SequentialQueue - offline read reconciliation', () => {
         }
     });
 
+    it('keeps the recorded comment time after a read consumes it, so a retried/subsequent read in the same drain can still be bumped', async () => {
+        // The bump runs BEFORE the read is sent; a transient failure rolls the request back and replays its
+        // persisted (pre-bump) payload, so the map entry must survive consumption for the retry to re-derive
+        // the bump. Two same-report reads in one drain prove the entry isn't deleted per-consume.
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(buildRead(staleReadTime));
+            await SequentialQueue.push(buildRead(staleReadTime));
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            // capture records the LAST read sent — it must also carry the bumped time, proving the entry survived.
+            expect(capture.readLastReadTime).toBe(commentServerTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
     it('records the bumped window in report metadata so unread logic can verify it against actual report actions', async () => {
         const staleReadTime = '2026-01-01 09:00:00.000';
         const commentServerTime = '2026-01-01 10:00:00.000';

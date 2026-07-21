@@ -262,7 +262,10 @@ function process(): Promise<void> {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: {from: currentLastReadTime, to: recordedTime}});
                 }
             }
-            reportsWithProcessedOfflineComments.delete(reportID);
+            // Deliberately NOT deleting the map entry here: this code runs BEFORE the request is sent, and a
+            // transient failure rolls the request back for retry with its persisted (pre-bump) payload — the
+            // retried read must be able to re-derive the bump from this map, which is safe because the bump is
+            // forward-only and idempotent. Entries are cleared when the queue fully drains (see flush()).
         }
     }
 

@@ -13,4 +13,13 @@ const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): 
 
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
 
-export {isActionLoadingSelector, hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector, pendingChatMembersSelector};
+const unconfirmedReadWindowSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.unconfirmedReadWindow;
+
+export {
+    isActionLoadingSelector,
+    hasOnceLoadedReportActionsSelector,
+    isLoadingInitialReportActionsSelector,
+    pendingNewTransactionIDsSelector,
+    pendingChatMembersSelector,
+    unconfirmedReadWindowSelector,
+};

@@ -168,6 +168,57 @@ describe('ReportUtils.isUnread - unconfirmedReadWindow reconciliation', () => {
         expect(isUnread(report, undefined, false)).toBe(true);
     });
 
+    it('ignores a window superseded by a newer read (lastReadTime advanced past the upper bound, e.g. mark-all-as-read or another device)', async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const bumpedReadTime = '2026-01-01 12:00:00.000';
+        const otherUserMessageTime = '2026-01-01 10:30:00.000';
+        // A later read advanced lastReadTime beyond the window without clearing the metadata.
+        const newerReadTime = '2026-01-01 13:00:00.000';
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: {from: staleReadTime, to: bumpedReadTime}});
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            buildActionsMap(buildCommentAction({reportActionID: '100', created: otherUserMessageTime, actorAccountID: otherUserAccountID})),
+        );
+        await waitForBatchedUpdates();
+
+        const report = buildReport({
+            lastReadTime: newerReadTime,
+            lastVisibleActionCreated: bumpedReadTime,
+            lastActorAccountID: currentUserAccountID,
+        });
+
+        expect(isUnread(report, undefined, false)).toBe(false);
+    });
+
+    it("returns true (unread) when the window belongs to the one-transaction thread and another user's message landed inside it", async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const bumpedReadTime = '2026-01-01 12:00:00.000';
+        const otherUserMessageTime = '2026-01-01 10:30:00.000';
+        const threadReportID = `${reportID}-thread`;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${threadReportID}`, {unconfirmedReadWindow: {from: staleReadTime, to: bumpedReadTime}});
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`,
+            buildActionsMap(buildCommentAction({reportActionID: '200', created: otherUserMessageTime, actorAccountID: otherUserAccountID})),
+        );
+        await waitForBatchedUpdates();
+
+        const report = buildReport({
+            lastReadTime: bumpedReadTime,
+            lastVisibleActionCreated: staleReadTime,
+            lastActorAccountID: currentUserAccountID,
+        });
+        const threadReport = buildReport({
+            reportID: threadReportID,
+            lastReadTime: bumpedReadTime,
+            lastVisibleActionCreated: bumpedReadTime,
+            lastActorAccountID: currentUserAccountID,
+        });
+
+        expect(isUnread(report, threadReport, false)).toBe(true);
+    });
+
     it('ignores the window once it has been cleared (e.g. after a genuine online read)', async () => {
         const staleReadTime = '2026-01-01 09:00:00.000';
         const bumpedReadTime = '2026-01-01 12:00:00.000';
