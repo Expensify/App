@@ -96,7 +96,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const hasCommuterExclusionDistanceRequest = reportTransactions.some((transaction) => hasAppliedCommuterExclusion(transaction));
     const hasManualDistanceRequest = reportTransactions.some((transaction) => isManualDistanceRequest(transaction));
     const hasOdometerDistanceRequest = reportTransactions.some((transaction) => isOdometerDistanceRequest(transaction));
-    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         isManualDistanceRequest: hasManualDistanceRequest,
         isOdometerDistanceRequest: hasOdometerDistanceRequest,
     });
@@ -107,7 +107,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         if (!policyID || !policy) {
             return;
         }
-        if (shouldBlockManualOrOdometerDistanceRequest(policyID)) {
+        if (blockManualOrOdometerDistanceRequestIfNeeded(policyID)) {
             return;
         }
         if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)) {

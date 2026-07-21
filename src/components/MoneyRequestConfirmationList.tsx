@@ -255,7 +255,7 @@ function MoneyRequestConfirmationList({
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
-    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         policyID: policy?.id,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -507,7 +507,7 @@ function MoneyRequestConfirmationList({
         setDidConfirmSplit,
         showDelegateNoAccessModal,
         onConfirm: () => {
-            if (shouldBlockManualOrOdometerDistanceRequest()) {
+            if (blockManualOrOdometerDistanceRequestIfNeeded()) {
                 return;
             }
             onConfirm?.();

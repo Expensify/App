@@ -81,7 +81,7 @@ function IOURequestStepParticipants({
         isMovingTransactionFromTrackExpense,
         isFocused,
     });
-    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
     });
@@ -168,7 +168,7 @@ function IOURequestStepParticipants({
                 shouldExcludeP2P={(initialTransaction?.amount ?? 0) < 0}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop
-                shouldBlockParticipantSelection={shouldBlockManualOrOdometerDistanceRequest}
+                shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
             />
         </StepScreenWrapper>
     );

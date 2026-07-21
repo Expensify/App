@@ -129,7 +129,7 @@ function IOURequestStepDistanceOdometer({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         policyID: policy?.id ?? defaultExpensePolicy?.id,
         isOdometerDistanceRequest: true,
     });
@@ -473,7 +473,7 @@ function IOURequestStepDistanceOdometer({
 
     // Handle form submission with validation
     const handleNext = () => {
-        if (shouldBlockManualOrOdometerDistanceRequest()) {
+        if (blockManualOrOdometerDistanceRequestIfNeeded()) {
             return;
         }
 

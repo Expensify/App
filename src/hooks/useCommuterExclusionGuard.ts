@@ -3,6 +3,8 @@ import type Policy from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {useCallback} from 'react';
+
 import useConfirmModal from './useConfirmModal';
 import {useMemoizedLazyIllustrations} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -46,30 +48,33 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
     const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
     const [policiesWithCommuterExclusions] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesWithCommuterExclusionsSelector});
 
-    return (policyIDToCheck = policyID) => {
-        if (!isManualDistanceRequest && !isOdometerDistanceRequest) {
-            return false;
-        }
+    return useCallback(
+        (policyIDToCheck = policyID) => {
+            if (!isManualDistanceRequest && !isOdometerDistanceRequest) {
+                return false;
+            }
 
-        if (!policyIDToCheck || !policiesWithCommuterExclusions?.[policyIDToCheck]) {
-            return false;
-        }
+            if (!policyIDToCheck || !policiesWithCommuterExclusions?.[policyIDToCheck]) {
+                return false;
+            }
 
-        showConfirmModal({
-            title: translate('distance.error.mapOrGpsDistanceRequired.title'),
-            titleStyles: styles.textHeadline,
-            prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
-            promptStyles: styles.textSupporting,
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            image: illustrations.HouseWithMap,
-            shouldUseSuccessStyleForConfirm: true,
-            shouldFitImageToContainer: true,
-            imageStyles: styles.commuterExclusionStaticIllustration,
-        });
+            showConfirmModal({
+                title: translate('distance.error.mapOrGpsDistanceRequired.title'),
+                titleStyles: styles.textHeadline,
+                prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
+                promptStyles: styles.textSupporting,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                image: illustrations.HouseWithMap,
+                shouldUseSuccessStyleForConfirm: true,
+                shouldFitImageToContainer: true,
+                imageStyles: styles.commuterExclusionStaticIllustration,
+            });
 
-        return true;
-    };
+            return true;
+        },
+        [policyID, isManualDistanceRequest, isOdometerDistanceRequest, policiesWithCommuterExclusions, showConfirmModal, translate, styles, illustrations],
+    );
 }
 
 export default useCommuterExclusionGuard;

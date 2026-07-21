@@ -91,7 +91,7 @@ function IOURequestStepDistanceManual({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const reportAttributesDerived = useReportAttributes();
 
-    const shouldBlockManualOrOdometerDistanceRequest = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         policyID: policy?.id ?? defaultExpensePolicy?.id,
         isManualDistanceRequest: true,
     });
@@ -306,7 +306,7 @@ function IOURequestStepDistanceManual({
     };
 
     const submitAndNavigateToNextPage = () => {
-        if (shouldBlockManualOrOdometerDistanceRequest()) {
+        if (blockManualOrOdometerDistanceRequestIfNeeded()) {
             return;
         }
 

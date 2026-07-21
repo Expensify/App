@@ -1572,7 +1572,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // For selfDM split: use TRACK type, split amount, and isPersonalTrackingExpense to match BE response
     // (linkedTrackedExpenseReportAction is undefined for new splits - we search by new transaction ID which doesn't exist yet)
     const iouActionType = isSelfDMSplit ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
-    const iouActionAmount = Math.abs(reportAmount);
+    const iouActionAmount = isSplitExpense && modifiedAmount !== undefined ? Math.abs(modifiedAmount) : Math.abs(reportAmount);
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
             iouReport,
