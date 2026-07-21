@@ -38,6 +38,7 @@ describe('useDeferVisibleUntilFocusTransitionEnd', () => {
         const {result} = renderHook(() => useDeferVisibleUntilFocusTransitionEnd(true));
 
         expect(result.current).toBe(true);
+        expect(mockedRunAfterTransitions).not.toHaveBeenCalled();
     });
 
     it('returns false when mounted inactive', () => {
@@ -48,7 +49,9 @@ describe('useDeferVisibleUntilFocusTransitionEnd', () => {
     });
 
     it('waits for the upcoming transition when scheduling', () => {
-        renderHook(() => useDeferVisibleUntilFocusTransitionEnd(true));
+        const {rerender} = renderHook(({isActive}) => useDeferVisibleUntilFocusTransitionEnd(isActive), {initialProps: {isActive: false}});
+
+        rerender({isActive: true});
 
         expect(mockedRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
         expect(pendingCallbacks).toHaveLength(1);
@@ -64,8 +67,9 @@ describe('useDeferVisibleUntilFocusTransitionEnd', () => {
     });
 
     it('cancels the pending handle when isActive flips to false', () => {
-        const {rerender} = renderHook(({isActive}) => useDeferVisibleUntilFocusTransitionEnd(isActive), {initialProps: {isActive: true}});
+        const {rerender} = renderHook(({isActive}) => useDeferVisibleUntilFocusTransitionEnd(isActive), {initialProps: {isActive: false}});
 
+        rerender({isActive: true});
         rerender({isActive: false});
 
         expect(cancel).toHaveBeenCalledTimes(1);
@@ -124,7 +128,9 @@ describe('useDeferVisibleUntilFocusTransitionEnd', () => {
     });
 
     it('cancels the handle on unmount', () => {
-        const {unmount} = renderHook(() => useDeferVisibleUntilFocusTransitionEnd(true));
+        const {rerender, unmount} = renderHook(({isActive}) => useDeferVisibleUntilFocusTransitionEnd(isActive), {initialProps: {isActive: false}});
+
+        rerender({isActive: true});
         expect(mockedRunAfterTransitions).toHaveBeenCalledTimes(1);
 
         unmount();
