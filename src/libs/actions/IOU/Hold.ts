@@ -55,6 +55,7 @@ function putOnHold(
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const allTransactions = getAllTransactions();
@@ -286,6 +287,7 @@ function putOnHold(
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -293,6 +295,7 @@ function putOnHold(
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -364,12 +367,13 @@ function putTransactionsOnHold(
     currentUserLogin: string,
     currentUserAccountID: number,
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
     ancestors: Ancestor[] = [],
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, ancestors);
     }
 }
 
@@ -384,6 +388,7 @@ function unholdRequest(
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -519,6 +524,7 @@ function unholdRequest(
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -527,6 +533,7 @@ function unholdRequest(
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
 
         optimisticData.push({

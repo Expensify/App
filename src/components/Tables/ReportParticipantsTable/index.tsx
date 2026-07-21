@@ -122,6 +122,7 @@ export default function ReportParticipantsTable({ref, members, isGroupChat, sele
             onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('selectionList.findMember')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

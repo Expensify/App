@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ReactionListEvent} from '@pages/inbox/ReportScreenContext';
+import type {ReactionListEvent} from '@pages/inbox/ReactionListContext';
 
 import CONST from '@src/CONST';
 

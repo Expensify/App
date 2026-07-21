@@ -93,16 +93,38 @@ After it’s unapproved:
 
 ## How to view and use the expense table
 
-Each report includes a table showing all attached expenses.
+Each report includes an expense table showing the following default columns:
 
-Each report includes an expense table showing:
+  - Receipt
   - Date
   - Merchant
-  - Category
+  - Reimbursable
+  - Card
+  - Description
+  - Total
   - Amount
-  - Workspace violations (if applicable)
+  - Category
+  - Workspace violations, if applicable
 
-Additional columns such as **Attendees** and **Per attendee** can be enabled via the **Columns** picker when attendee tracking is available.
+Additional columns can be enabled from the **Columns** picker:
+
+  - Attendees
+  - Billable
+  - Category GL code
+  - Custom field 1
+  - Custom field 2
+  - Exchange rate
+  - International reimbursement IDs
+  - MCC
+  - Per attendee
+  - Posted
+  - Purchase amount
+  - Tag
+  - Tag GL code
+  - Tax
+  - Tax code
+  - Tax rate
+  - Withdrawal ID
 
 Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
 
