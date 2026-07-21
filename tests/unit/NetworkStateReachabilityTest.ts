@@ -114,7 +114,7 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
     });
 
     test('null→true does NOT fire reconnect listener when the app was never offline (fake recovery)', () => {
-        // Boot, post-configure, and refresh() all look like this: 
+        // Boot, post-configure, and refresh() all look like this:
         // NetInfo emits null while a Ping is in flight, then true when it succeeds.
         // No hard stop was active, so there is nothing to recover from.
         const reconnectListener = jest.fn();
