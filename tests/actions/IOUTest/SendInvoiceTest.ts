@@ -307,6 +307,7 @@ describe('actions/SendInvoice', () => {
                     companyWebsite: 'https://testcompany.com',
                     policyRecentlyUsedCategories: [],
                     senderPolicyTags: baseSenderPolicyTags,
+                    formatPhoneNumber,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                 });
 
