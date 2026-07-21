@@ -94,6 +94,26 @@ describe('useConciergeSidePanelReportActions (clock-skew reply visibility)', () 
         expect(visibleIDs).not.toContain('12');
     });
 
+    it("keeps Concierge's reply visible when the question's `created` was clamped forward onto an ahead client clock", () => {
+        // Given the boundary is server-anchored, but the question's `created` was clamped forward past a prior
+        // action that sat on the ahead client clock (the monotonic clamp), landing it in the future.
+        const sessionStartTime = getServerAnchoredDBTime(CLIENT_OPEN_MS);
+        const question = buildAction('20', {created: toDBTime(CLIENT_OPEN_MS + 1)});
+        // The reply carries a real server timestamp that lands after the boundary but below the clamped question.
+        const reply = buildAction('21', {actorAccountID: CONCIERGE_ACCOUNT_ID, created: toDBTime(CLIENT_OPEN_MS - 1000)});
+
+        // When the side panel filters the session's actions
+        const {result} = renderSidePanel(sessionStartTime, question, reply);
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then the reply stays visible because it is bounded by the server-anchored sessionStartTime, not the
+        // clamped question timestamp; prior history stays hidden.
+        expect(visibleIDs).toContain('20');
+        expect(visibleIDs).toContain('21');
+        expect(visibleIDs).not.toContain('11');
+        expect(visibleIDs).not.toContain('12');
+    });
+
     it('drops the reply when the boundary and question stay on the ahead client clock (pre-fix regression guard)', () => {
         // Given the boundary and question stay on the raw client clock (what getDBTimeWithSkew returns under negative skew).
         const sessionStartTime = getDBTimeWithSkew(CLIENT_OPEN_MS);

@@ -149,8 +149,15 @@ function useConciergeSidePanelReportActions({
             if (!firstUserMessageCreated) {
                 return false;
             }
+            // The firstUserMessageCreated floor only trims the user's OWN pre-question messages, so apply it to
+            // current-user actions alone. Concierge replies are server-stamped and already bounded by the
+            // server-anchored sessionStartTime; gating them on the question's `created` would hide a reply whenever
+            // that `created` was clamped forward onto an ahead client clock to stay monotonic across sends.
+            const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
             return (
-                isCreatedAction(action) || isCurrentUserPendingAddAction(action, currentUserAccountID) || (action.created >= sessionStartTime && action.created >= firstUserMessageCreated)
+                isCreatedAction(action) ||
+                isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+                (action.created >= sessionStartTime && (!isFromCurrentUser || action.created >= firstUserMessageCreated))
             );
         },
         [sessionStartTime, isConciergeMainDM, firstUserMessageCreated, currentUserAccountID],
