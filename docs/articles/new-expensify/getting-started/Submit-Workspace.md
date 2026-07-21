@@ -22,19 +22,19 @@ Premium features are not included in a Submit workspace. To use approvals, payme
 
 ## How to create a Submit workspace
 
-You can create a Submit workspace during onboarding or from the pricing page.
+You can create a Submit workspace when creating your Expensify account or from the Expensify pricing and plans page.
 
-During onboarding:
+When creating your Expensify account:
 
 1. Sign up for New Expensify.
-2. When asked what you want to do, select **Submit expenses to my employer**.
+2. When asked **What do you want to do today?**, select **Submit expenses to my employer**.
 3. If no one on your email domain already has a workspace you can join, a Submit workspace is created for you automatically.
 
-From the pricing page:
+If you already have an Expensify account:
 
-1. Go to the Expensify pricing page.
+1. Go to the [Expensify pricing and plans page](www.expensify.com/pricing).
 2. Find the Submit plan.
-3. Click **Get Started**.
+3. Click **Get started**.
 
 
 ## What happens after you create a Submit workspace
@@ -58,14 +58,16 @@ Editors can't:
 
 ## How to join an existing Submit workspace
 
-If someone on your email domain already owns a Submit workspace, you can join it when you sign up:
+If someone on your email domain already owns a Submit workspace, you can join it when creating your Expensify account: 
 
-1. Sign up for New Expensify.
-2. Enter your name and validate your login.
-3. Select the Submit workspace from the list of available workspaces to join it.
+1.  Create an Expensify account.
+2. Complete the prompts to set up your account.
+3. On the step **See if your team's in Expensify**, enter the validation code sent to your email address.
+4. If there are existing workspaces associated with your email domain, you'll be prompted to join one. Select the Submit workspace.``
 
 When you join, you're added as an **Editor**. You can collaborate on the workspace configuration, but you can't see or take action on other members' expenses or reports.
 
+If you weren't automatically added to the workspace when you created your account, ask a current Editor of the Submit workspace to invite you to join. Learn how to [invite members to a workspace](/articles/new-expensify/workspaces/Managing-Workspace-Members#invite-members-to-a-workspace).
 ---
 
 ## How to submit an expense to an approver
