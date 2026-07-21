@@ -45,5 +45,4 @@ function useHomeInsightConfigs(): SearchTypeMenuItem[] {
     }).map((key) => suggestedSearches[key]);
 }
 
-export {HOME_INSIGHT_KEYS};
 export default useHomeInsightConfigs;
