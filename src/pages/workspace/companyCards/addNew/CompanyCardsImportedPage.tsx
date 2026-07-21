@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
-import {applyCompanyCardSavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
+import {applyCompanyCardColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -85,28 +85,31 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     })();
 
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
-    const hasAppliedSavedMappings = useRef(false);
+    const hasAppliedColumnMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
     const lastAdvancedFieldsRef = useRef(shouldUseAdvancedFields);
 
     useEffect(() => {
         // Reset the flag when new spreadsheet data is loaded, or when the set of selectable roles changes.
         if (spreadsheet?.data !== lastProcessedDataRef.current || shouldUseAdvancedFields !== lastAdvancedFieldsRef.current) {
-            hasAppliedSavedMappings.current = false;
+            hasAppliedColumnMappings.current = false;
             lastProcessedDataRef.current = spreadsheet?.data;
             lastAdvancedFieldsRef.current = shouldUseAdvancedFields;
         }
 
-        if (hasAppliedSavedMappings.current) {
+        if (hasAppliedColumnMappings.current) {
             return;
         }
 
-        if (!spreadsheet?.data || isEmptyObject(savedColumnMappings)) {
+        if (!spreadsheet?.data) {
             return;
         }
 
-        hasAppliedSavedMappings.current = true;
-        applyCompanyCardSavedColumnMappings(
+        // Compute the whole mapping here (and disable each column's own header auto-detect) so a property is never
+        // pre-selected on more than one column. This runs even without a saved layout so a brand-new feed still gets
+        // header-based auto-detection.
+        hasAppliedColumnMappings.current = true;
+        applyCompanyCardColumnMappings(
             spreadsheet.data,
             savedColumnMappings,
             columnRoles.map((role) => role.value),
@@ -240,6 +243,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                     columnRoles={columnRoles}
                     learnMoreLink={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                     isButtonLoading={isImportingTransactions}
+                    shouldAutoDetectColumns={false}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
