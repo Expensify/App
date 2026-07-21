@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, paid status column]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -74,6 +74,7 @@ You can choose from a wide range of columns, including:
 - **MCC** – The Merchant Category Code from the transaction
 - **Tax code** – The tax code applied to the expense
 - **Category GL code** – The general ledger (GL) code from the expense's category
+- **Tag GL code** – The general ledger (GL) code from the expense's tag
 - **Custom field 1** – The Custom field 1 value set for the report submitter
 - **Custom field 2** – The Custom field 2 value set for the report submitter
 - **International reimbursement IDs** – The reference IDs for international reimbursements on the report

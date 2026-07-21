@@ -72,9 +72,6 @@ type UseFormErrorManagementParams = {
     /** Whether splits are rendered read-only (suppresses some field errors) */
     shouldShowReadOnlySplits: boolean;
 
-    /** Whether the new manual expense flow is enabled (amount/date errors surface inline) */
-    isNewManualExpenseFlowEnabled: boolean;
-
     /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
     isDistanceRequest: boolean;
 };
@@ -141,7 +138,6 @@ function useFormErrorManagement({
     routeError,
     isTypeSplit,
     shouldShowReadOnlySplits,
-    isNewManualExpenseFlowEnabled,
     isDistanceRequest,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
@@ -246,15 +242,15 @@ function useFormErrorManagement({
         if (formError === 'iou.error.invalidTaxAmount') {
             return undefined;
         }
-        // In the new manual expense flow the amount/date/merchant fields surface these required/invalid errors inline, so
+        // The amount/date/merchant fields surface these required/invalid errors inline, so
         // don't repeat them at the bottom of the form (which would show "This field is required" twice).
-        if (isNewManualExpenseFlowEnabled && (formError === 'common.error.fieldRequired' || formError === 'iou.error.invalidMerchant')) {
+        if (formError === 'common.error.fieldRequired' || formError === 'iou.error.invalidMerchant') {
             return undefined;
         }
         // `common.error.invalidAmount` is only surfaced inline when the editable amount input is rendered. Distance requests
         // disable that input (the amount falls back to a read-only menu row that doesn't show this error), so keep the
         // distance-amount validation error in the footer — otherwise an invalid distance expense would fail silently.
-        if (isNewManualExpenseFlowEnabled && !isDistanceRequest && formError === 'common.error.invalidAmount') {
+        if (!isDistanceRequest && formError === 'common.error.invalidAmount') {
             return undefined;
         }
         return formError ? translate(formError) : undefined;

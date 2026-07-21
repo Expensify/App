@@ -2,7 +2,6 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableDat
 import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -51,7 +50,6 @@ type RoomMembersTableProps = {
 };
 
 export default function RoomMembersTable({ref, members, selectionEnabled, selectedKeys, onRowSelectionChange, onSearchStringChange}: RoomMembersTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
     const columns: Array<TableColumn<RoomMembersTableColumnKey>> = [
@@ -100,8 +98,9 @@ export default function RoomMembersTable({ref, members, selectionEnabled, select
             onSearchStringChange={onSearchStringChange}
         >
             <Table.FilterBar label={translate('selectionList.findMember')} />
+            <Table.NoResultsState />
             <Table.Header />
-            <Table.Body contentContainerStyle={styles.flexGrow1} />
+            <Table.Body />
         </Table>
     );
 }

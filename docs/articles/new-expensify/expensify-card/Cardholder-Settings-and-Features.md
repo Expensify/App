@@ -1,10 +1,22 @@
 ---
 title: Using Your Expensify Card in New Expensify
 description: Learn how to activate, use, and manage your physical and virtual Expensify Card, including Smart Limits, notifications, and troubleshooting.
-keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined, eReceipts, freeze card, unfreeze card]
+keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined, eReceipts, freeze card, unfreeze card, order card, PIN, GBP, EUR]
 ---
 
 Once you receive your Expensify Visa® Commercial Card, you can activate it and start using it immediately. When you use your Expensify Card, expenses are automatically created, and SmartScanned receipts are matched to the corresponding transactions. For most purchases, excluding lodging, Expensify also generates IRS-compliant eReceipts. If your organization doesn't require itemized receipts, you can rely on eReceipts to meet documentation requirements.
+
+---
+
+## How to order your physical Expensify Card
+
+To order a physical Expensify Card, go to **Account > Wallet > Expensify Card** and follow the prompts. 
+
+**Setting and managing a PIN (UK and Europe only):**
+
+If you're on a GBP or EUR card program, you'll be asked to set a 4-digit PIN during the ordering process. You'll need to verify your identity via biometrics or passkey to complete the order.
+
+Once your card arrives, you can manage your PIN — including revealing, changing, or unlocking it — from the card details page. For details, see [Manage Your Expensify Card PIN](/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
 
 ---
 
@@ -91,6 +103,8 @@ A virtual card is a secure, flexible way to manage online spending:
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet**.
 2. Click your Expensify Card.
 3. Click **Reveal** to view the card number, expiration date, CVV, and billing address.
+
+If any of your personal details are missing, you'll be prompted to add them before your card details can be revealed. Click **Add details**, then enter your legal name, date of birth, address, and phone number. After you confirm these details, authenticate to reveal your card. US cardholders confirm with a magic code sent to their email, while UK and EU cardholders confirm with biometrics or a passkey.
 
 ---
 
