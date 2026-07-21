@@ -629,13 +629,15 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('formatInTimeZoneTo* (date-only inputs throw)', () => {
+    describe('formatInTimeZoneTo* (date-only inputs degrade to "")', () => {
         it.each([
             ['formatInTimeZoneToLong' as const, '2025-08-19'],
             ['formatInTimeZoneToShortTime' as const, '2025-08-19'],
             ['formatInTimeZoneToWeekday' as const, '2025-08-19'],
-        ])('%s throws on date-only input', (fnName, dateStr) => {
-            expect(() => DateUtils[fnName](dateStr, 'America/New_York', 'en')).toThrow(RangeError);
+        ])('%s returns "" instead of throwing on unzoned input', (fnName, dateStr) => {
+            const run = () => DateUtils[fnName](dateStr, 'America/New_York', 'en');
+            expect(run).not.toThrow();
+            expect(run()).toBe('');
         });
     });
 

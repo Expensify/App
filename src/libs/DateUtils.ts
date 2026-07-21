@@ -1162,17 +1162,14 @@ function formatTransactionListDate(date: string, locale: Locale): string {
     return doesDateBelongToAPastYear(date) ? formatInUTCToMedium(date, locale) : formatInUTCToShort(date, locale);
 }
 
-/**
- * Input must be a full ISO timestamp. For `'yyyy-MM-dd'` use `formatToReadableString` or `formatInUTCToLong` —
- * applying a timeZone shift on top of local-midnight parse silently shifts the calendar day. Throws on date-only
- * input to fail fast.
- */
+/** Full ISO timestamp only. Date-only `'yyyy-MM-dd'` would silently day-shift on timezone application — use `formatToReadableString` or `formatInUTCToLong` instead. */
 function formatInTimeZoneToLong(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
     if (!date) {
         return '';
     }
     if (isUnzonedString(date)) {
-        throw new RangeError(`formatInTimeZoneToLong: unzoned string '${date}' would parse as runtime-local wall-clock. Use formatToReadableString or formatInUTCToLong.`);
+        Log.warn('[DateUtils] formatInTimeZoneToLong: unzoned string would parse as runtime-local wall-clock; use formatToReadableString or formatInUTCToLong', {date});
+        return '';
     }
     return formatIntl(locale, 'LONG_DATE', toLocalDate(date), timeZone);
 }
@@ -1183,7 +1180,8 @@ function formatInTimeZoneToShortTime(date: Date | string, timeZone: SelectedTime
         return '';
     }
     if (isUnzonedString(date)) {
-        throw new RangeError(`formatInTimeZoneToShortTime: unzoned string '${date}' would parse as runtime-local wall-clock; pass a zoned Date or full ISO with offset.`);
+        Log.warn('[DateUtils] formatInTimeZoneToShortTime: unzoned string would parse as runtime-local wall-clock; pass a zoned Date or full ISO with offset', {date});
+        return '';
     }
     return formatIntl(locale, 'SHORT_TIME', toLocalDate(date), timeZone);
 }
@@ -1194,7 +1192,8 @@ function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezo
         return '';
     }
     if (isUnzonedString(date)) {
-        throw new RangeError(`formatInTimeZoneToWeekday: unzoned string '${date}' would parse as runtime-local wall-clock. Use formatToReadableString.`);
+        Log.warn('[DateUtils] formatInTimeZoneToWeekday: unzoned string would parse as runtime-local wall-clock; use formatToReadableString', {date});
+        return '';
     }
     return formatIntl(locale, 'LONG_WEEKDAY', toLocalDate(date), timeZone);
 }
