@@ -89,8 +89,11 @@ const getIntlDateTimeFormat = memoize(
     {maxSize: 256},
 );
 
-/** Formats `date` via the cached Intl formatter and strips the narrow no-break space ICU 72+ inserts before AM/PM. Retries in UTC on double-rejection so render-path callers without error boundaries can't unmount. */
+/** Cached Intl formatter with ICU 72+ NNBSP stripped before AM/PM. Degrades on Invalid Date (→ '') and bad-timezone (→ UTC retry) since render-path callers have no error boundary. */
 function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZone?: string): string {
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
     try {
         return getIntlDateTimeFormat(locale, formatKey, timeZone).format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
     } catch (error) {

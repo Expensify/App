@@ -917,6 +917,21 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('render-path formatters degrade to "" on Invalid Date', () => {
+        it.each([
+            ['formatToReadableString', () => DateUtils.formatToReadableString('not-a-date', CONST.LOCALES.EN)],
+            ['formatToMediumDate', () => DateUtils.formatToMediumDate('not-a-date', CONST.LOCALES.EN)],
+            ['formatToLocalizedShortDate', () => DateUtils.formatToLocalizedShortDate('not-a-date', CONST.LOCALES.EN)],
+            ['formatInUTCToMedium', () => DateUtils.formatInUTCToMedium('not-a-date', CONST.LOCALES.EN)],
+            ['formatInUTCToShort', () => DateUtils.formatInUTCToShort('not-a-date', CONST.LOCALES.EN)],
+            ['formatInUTCToLong', () => DateUtils.formatInUTCToLong('not-a-date', CONST.LOCALES.EN)],
+            ['formatTransactionListDate', () => DateUtils.formatTransactionListDate('not-a-date', CONST.LOCALES.EN)],
+        ] as const)('%s returns "" instead of throwing', (_, run) => {
+            expect(run).not.toThrow();
+            expect(run()).toBe('');
+        });
+    });
+
     describe('getRemainingSecondsInWindow', () => {
         const windowMs = 30 * 1000;
 
