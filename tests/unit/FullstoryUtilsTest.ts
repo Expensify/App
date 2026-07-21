@@ -59,6 +59,7 @@ describe('FullstoryUtils', () => {
             paid_member: true,
         });
         expect(userVars.days_till_trial_end).toBeGreaterThan(0);
+        expect(userVars.free_trial_end_date?.toISOString()).toBe('2099-05-31T23:59:59.000Z');
     });
 
     it('builds page viewed event metadata', () => {

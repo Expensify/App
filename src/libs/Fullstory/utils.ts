@@ -8,6 +8,8 @@ import type {Account, IntroSelected, Onboarding, Policy, Session, UserMetadata} 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {fromZonedTime} from 'date-fns-tz';
+
 import type {FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars} from './types';
 
 import FS from '.';
@@ -91,7 +93,7 @@ function getFreeTrialEndDate(dateString: string | undefined): Date | undefined {
         return;
     }
 
-    const endDate = new Date(`${dateString}Z`);
+    const endDate = fromZonedTime(dateString, 'UTC');
     if (Number.isNaN(endDate.getTime())) {
         return;
     }
