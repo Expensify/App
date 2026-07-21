@@ -301,13 +301,17 @@ function MoneyRequestReportPreview({
                 return;
             }
 
-            // The thread could not be resolved. If the IOU report's action for this expense isn't loaded yet
-            // (e.g. right after a cache clear), fetch the report's actions and open the expense once they arrive
-            // (see the effect below) instead of falling back to the parent report and losing the pressed expense.
-            // Skip this while offline: openReport can't fetch, so the deferred press would never fire (dead tap) —
-            // fall through to opening the cached parent report instead, matching the "View" button.
+            // The thread could not be resolved. If the IOU report's actions haven't loaded at all yet (e.g. right
+            // after a cache clear), fetch them and open the expense once they arrive (see the effect below) instead
+            // of falling back to the parent report and losing the pressed expense. Only defer in that nothing-loaded
+            // state: the fetch is then guaranteed to change the action count (every report has at least its CREATED
+            // action), so the deferred press always drains. If the actions are already loaded and this expense still
+            // has no resolvable thread (legacy expense predating transaction threads), re-fetching wouldn't surface
+            // anything new and the deferred press would never fire (dead tap). Same while offline, where openReport
+            // can't fetch. In both cases fall through to opening the cached parent report, matching the "View"
+            // button — its expense rows resolve threads through the report screen's own machinery.
             const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-            if (!isIOUActionLoaded && iouReportID && !isOffline) {
+            if (!isIOUActionLoaded && !iouReportActionCount && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = transaction;
                 openReport({reportID: iouReportID, introSelected, betas});
                 return;
@@ -315,7 +319,7 @@ function MoneyRequestReportPreview({
 
             openReportFromPreview();
         },
-        [betas, introSelected, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
+        [betas, introSelected, iouReportActionCount, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
     );
 
     // Completes a deferred expense press once the IOU report's actions have loaded.
