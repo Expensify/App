@@ -702,15 +702,15 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Reconnaissance faciale/empreinte digitale et passkeys',
             explanation:
-                'La vérification par reconnaissance faciale/empreinte digitale ou par clé d’accès est activée sur un ou plusieurs appareils. Révoquer l’accès nécessitera un code de sécurité pour la prochaine vérification sur cet appareil.',
-            confirmationPrompt: 'Voulez-vous vraiment continuer ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur cet appareil.',
+                'La vérification par reconnaissance faciale/empreinte digitale ou par clé d’accès est activée sur un ou plusieurs appareils. La révocation de l’accès exigera un code de sécurité pour la prochaine vérification sur cet appareil.',
+            confirmationPrompt: 'Êtes-vous sûr·e ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur cet appareil.',
             cta: 'Révoquer l’accès',
             noDevices:
                 'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou par passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
             revoke: 'Révoquer',
-            confirmationPromptAll: 'Êtes-vous sûr(e) ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur n’importe quel appareil.',
+            confirmationPromptAll: 'Êtes-vous sûr·e ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur n’importe quel appareil.',
             ctaAll: 'Tout révoquer',
             thisDevice: 'Cet appareil',
             otherDevices: (otherDeviceCount?: number) => {
@@ -718,8 +718,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} autre(s) ${otherDeviceCount === 1 ? 'appareil' : 'appareils'}`;
             },
-            confirmationPromptThisDevice: 'Vous êtes sûr ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur cet appareil.',
-            confirmationPromptMultiple: 'Êtes-vous sûr(e) ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur ces appareils.',
+            confirmationPromptThisDevice: 'Êtes-vous sûr ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur cet appareil.',
+            confirmationPromptMultiple: 'Vous êtes sûr(e) ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur ces appareils.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Appareil non pris en charge',
@@ -792,7 +792,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Vos paiements vous parviennent aussi vite que vous faites passer votre message.',
         enterPassword: 'Veuillez saisir votre mot de passe',
         welcomeNewFace: (login: string) => `${login}, c’est toujours un plaisir de voir un nouveau visage par ici !`,
-        welcomeEnterSecurityCode: (login: string) => `Veuillez saisir le code de sécurité envoyé à ${login}. Il devrait arriver d’ici une à deux minutes.`,
+        welcomeEnterSecurityCode: (login: string) => `Veuillez saisir le code de sécurité envoyé à ${login}. Il devrait arriver d'ici une à deux minutes.`,
     },
     login: {
         hero: {
@@ -2132,7 +2132,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedNewContact: 'Échec de l’ajout de ce moyen de contact.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Échec de l’envoi d’un nouveau code de sécurité. Veuillez patienter un peu et réessayer.',
-            validateSecondaryLogin: 'Code de sécurité incorrect ou invalide. Veuillez réessayer ou demander un nouveau code.',
+            validateSecondaryLogin: 'Code de sécurité incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
             deleteContactMethod: "Échec de la suppression du moyen de contact. Veuillez contacter Concierge pour obtenir de l'aide.",
             setDefaultContactMethod: 'Échec de la définition d’une nouvelle méthode de contact par défaut. Veuillez contacter Concierge pour obtenir de l’aide.',
             addContactMethod: 'Échec de l’ajout de ce moyen de contact. Veuillez contacter Concierge pour obtenir de l’aide.',
@@ -2298,7 +2298,7 @@ const translations: TranslationDeepObject<typeof en> = {
             lossOfUnsubmittedData: (login: string) => `La fusion de vos comptes est irréversible et entraînera la perte de toutes les dépenses non soumises pour <strong>${login}</strong>.`,
             enterSecurityCode: (login: string) => `Pour continuer, veuillez saisir le code de sécurité envoyé à <strong>${login}</strong>.`,
             errors: {
-                incorrectSecurityCode: 'Code de sécurité incorrect ou invalide. Veuillez réessayer ou demander un nouveau code.',
+                incorrectSecurityCode: 'Code de sécurité incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
                 fallback: 'Un problème est survenu. Veuillez réessayer plus tard.',
             },
         },
@@ -3101,7 +3101,7 @@ ${amount} pour ${merchant} - ${date}`,
         timeExpiredAnnouncement: 'Le temps est écoulé',
         error: {
             pleaseFillSecurityCode: 'Veuillez saisir votre code de sécurité',
-            incorrectSecurityCode: 'Code de sécurité incorrect ou invalide. Veuillez réessayer ou demander un nouveau code.',
+            incorrectSecurityCode: 'Code de sécurité incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
             pleaseFillTwoFactorAuth: 'Veuillez saisir votre code d’authentification à deux facteurs',
         },
     },
@@ -3204,7 +3204,7 @@ ${amount} pour ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Vérifiez votre adresse e-mail professionnelle',
-            securityCodeSent: (workEmail: string | undefined) => `Veuillez saisir le code de sécurité envoyé à ${workEmail}. Il devrait arriver d’ici une minute ou deux.`,
+            securityCodeSent: (workEmail: string | undefined) => `Veuillez saisir le code de sécurité envoyé à ${workEmail}. Il devrait arriver d’ici une à deux minutes.`,
         },
         workEmailValidationError: {
             publicEmail: 'Veuillez saisir une adresse e-mail professionnelle valide provenant d’un domaine privé, par ex. mitch@company.com',
@@ -3537,7 +3537,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     unlinkLoginForm: {
         toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
-            `Pour valider ${secondaryLogin}, veuillez renvoyer le code de sécurité à partir des Paramètres du compte de ${primaryLogin}.`,
+            `Pour valider ${secondaryLogin}, veuillez renvoyer le code de sécurité depuis les paramètres de compte de ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `Si vous n'avez plus accès à ${primaryLogin}, veuillez dissocier vos comptes.`,
         unlink: 'Dissocier',
         linkSent: 'Lien envoyé !',
@@ -3558,7 +3558,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `Nous n’avons pas pu envoyer de SMS à ${login}, nous l’avons donc suspendu temporairement. Veuillez essayer de valider votre numéro :`,
-        validationSuccess: 'Votre numéro a été vérifié ! Cliquez ci-dessous pour envoyer un nouveau code de connexion sécurisé.',
+        validationSuccess: 'Votre numéro a été validé ! Cliquez ci-dessous pour envoyer un nouveau code de sécurité de connexion.',
         validationFailed: ({
             timeData,
         }: {
@@ -10072,7 +10072,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         removeCopilotConfirmation: 'Voulez-vous vraiment supprimer ce copilote ?',
         changeAccessLevel: 'Modifier le niveau d’accès',
         makeSureItIsYou: 'Vérifions que c’est bien vous',
-        enterSecurityCode: (contactMethod: string) => `Veuillez saisir le code de sécurité envoyé à ${contactMethod} pour ajouter un copilote. Il devrait arriver d'ici une à deux minutes.`,
+        enterSecurityCode: (contactMethod: string) => `Veuillez saisir le code de sécurité envoyé à ${contactMethod} pour ajouter un copilote. Il devrait arriver dans une minute ou deux.`,
         enterSecurityCodeUpdate: (contactMethod: string) => `Veuillez saisir le code de sécurité envoyé à ${contactMethod} pour mettre à jour votre copilote.`,
         notAllowed: 'Pas si vite…',
         noAccessMessage: Str.dedent(`

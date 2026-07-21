@@ -658,11 +658,11 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Revocar',
             title: 'Reconocimiento facial/huella digital y claves de acceso',
             explanation:
-                'La verificación por reconocimiento facial/huella dactilar o clave de acceso está habilitada en uno o varios dispositivos. Revocar el acceso requerirá un código de seguridad para la próxima verificación en ese dispositivo.',
+                'La verificación mediante rostro/huella dactilar o passkey está activada en uno o más dispositivos. Revocar el acceso requerirá un código de seguridad para la próxima verificación en ese dispositivo.',
             confirmationPrompt: '¿Estás seguro? Necesitarás un código de seguridad para la próxima verificación en ese dispositivo.',
-            confirmationPromptThisDevice: '¿Seguro que quieres continuar? Necesitarás un código de seguridad para la próxima verificación en este dispositivo.',
-            confirmationPromptMultiple: '¿Estás seguro? Necesitarás un código de seguridad para la próxima verificación en esos dispositivos.',
-            confirmationPromptAll: '¿Seguro? Necesitarás un código de seguridad para la próxima verificación en cualquier dispositivo.',
+            confirmationPromptThisDevice: '¿Estás seguro? Necesitarás un código de seguridad para la próxima verificación en este dispositivo.',
+            confirmationPromptMultiple: '¿Seguro? Necesitarás un código de seguridad para la próxima verificación en esos dispositivos.',
+            confirmationPromptAll: '¿Estás seguro? Necesitarás un código de seguridad para la próxima verificación en cualquier dispositivo.',
             cta: 'Revocar acceso',
             ctaAll: 'Revocar todo',
             noDevices:
@@ -1994,7 +1994,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Agrega más formas de iniciar sesión y enviar recibos a Expensify.<br/><br/>Agrega una dirección de correo electrónico para reenviar recibos a <a href="mailto:${email}">${email}</a> o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).`,
         pleaseVerify: 'Por favor, verifica este método de contacto.',
         getInTouch: 'Usaremos este método para comunicarnos contigo.',
-        enterSecurityCode: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod}. Debería llegar en uno o dos minutos.`,
+        enterSecurityCode: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod}. Debería llegar en uno o dos minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
@@ -2003,7 +2003,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
         failedNewContact: 'Se ha producido un error al añadir este método de contacto.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'No se pudo enviar un nuevo código de seguridad. Por favor, espera un momento e inténtalo de nuevo.',
+            requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código de seguridad. Por favor, espera un momento y vuelve a intentarlo.',
             validateSecondaryLogin: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
@@ -2525,8 +2525,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}) => `Añadida a ${platform} Wallet`,
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
-        enterSecurityCode: (contactMethod: string) =>
-            `Por favor, introduce el código de seguridad enviado a ${contactMethod} para ver los detalles de tu tarjeta. Debería llegar en uno o dos minutos.`,
+        enterSecurityCode: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod} para ver los datos de tu tarjeta. Debería llegar en uno o dos minutos.`,
         unexpectedError: 'Se produjo un error al intentar obtener los detalles de tu tarjeta Expensify. Vuelve a intentarlo.',
         cardFraudAlert: {
             confirmButtonText: 'Sí, lo hago',
@@ -3393,7 +3392,8 @@ ${amount} para ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouSecuritySignInLink: (login: string, loginType: string) => `He enviado un enlace de acceso seguro a ${login}. Por favor, revisa tu ${loginType} para iniciar sesión.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) =>
+            `He enviado un enlace de inicio de sesión seguro a ${login}. Por favor, revisa tu ${loginType} para iniciar sesión.`,
         resendLink: 'Reenviar enlace',
     },
     unlinkLoginForm: {
@@ -3414,7 +3414,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login) => `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
-        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código de seguridad de inicio de sesión.',
+        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código de seguridad para iniciar sesión.',
         validationFailed: ({timeData}) => {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
@@ -10195,8 +10195,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         removeCopilotAccessConfirm: 'Eliminar acceso',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
-        enterSecurityCode: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod} para añadir un copiloto. Debería llegar en uno o dos minutos.`,
-        enterSecurityCodeUpdate: (contactMethod: string) => `Por favor, introduce el código de seguridad enviado a ${contactMethod} para actualizar tu copiloto.`,
+        enterSecurityCode: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod} para añadir un copiloto. Debería llegar en uno o dos minutos.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod} para actualizar tu copiloto.`,
         notAllowed: 'No tan rápido...',
         noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
         notAllowedMessage: (accountOwnerEmail) =>

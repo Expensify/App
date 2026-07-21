@@ -699,7 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Reconhecimento facial/digital e passkeys',
             explanation:
-                'Verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso vai exigir um código de segurança na próxima verificação nesse dispositivo.',
+                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso vai exigir um código de segurança na próxima verificação nesse dispositivo.',
             confirmationPrompt: 'Tem certeza? Você vai precisar de um código de segurança para a próxima verificação nesse dispositivo.',
             cta: 'Revogar acesso',
             noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se registrar algum, você poderá revogar esse acesso aqui.',
@@ -714,8 +714,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} outro(a) ${otherDeviceCount === 1 ? 'dispositivo' : 'dispositivos'}`;
             },
-            confirmationPromptThisDevice: 'Tem certeza? Você vai precisar de um código de segurança na próxima verificação neste dispositivo.',
-            confirmationPromptMultiple: 'Tem certeza? Você vai precisar de um código de segurança para a próxima verificação nesses dispositivos.',
+            confirmationPromptThisDevice: 'Tem certeza? Você vai precisar de um código de segurança para a próxima verificação neste dispositivo.',
+            confirmationPromptMultiple: 'Tem certeza? Você vai precisar de um código de segurança na próxima verificação nesses dispositivos.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
@@ -734,7 +734,7 @@ const translations: TranslationDeepObject<typeof en> = {
             você entrou!
         `),
         successfulSignInDescription: 'Volte para a sua aba original para continuar.',
-        title: 'Aqui está seu código de segurança',
+        title: 'Aqui está o seu código de segurança',
         description: Str.dedent(`
             Insira o código no dispositivo
             onde ele foi solicitado originalmente
@@ -789,7 +789,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Seus pagamentos chegam tão rápido quanto você consegue transmitir seu ponto.',
         enterPassword: 'Insira sua senha',
         welcomeNewFace: (login: string) => `${login}, é sempre ótimo ver um novo rosto por aqui!`,
-        welcomeEnterSecurityCode: (login: string) => `Digite o código de segurança enviado para ${login}. Ele deve chegar em um ou dois minutos.`,
+        welcomeEnterSecurityCode: (login: string) => `Insira o código de segurança enviado para ${login}. Ele deve chegar em um ou dois minutos.`,
     },
     login: {
         hero: {
@@ -2104,7 +2104,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Adicione mais formas de entrar e enviar recibos para o Expensify.<br/><br/>Adicione um endereço de e-mail para encaminhar recibos para <a href="mailto:${email}">${email}</a> ou adicione um número de telefone para enviar recibos por SMS para 47777 (apenas números dos EUA).`,
         pleaseVerify: 'Verifique este método de contato.',
         getInTouch: 'Usaremos este método para entrar em contato com você.',
-        enterSecurityCode: (contactMethod: string) => `Digite o código de segurança enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
+        enterSecurityCode: (contactMethod: string) => `Insira o código de segurança enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
         setAsDefault: 'Definir como padrão',
         yourDefaultContactMethod: 'Este é seu método de contato padrão atual. Antes de poder excluí-lo, você precisa escolher outro método de contato e clicar em “Definir como padrão”.',
         removeContactMethod: 'Remover método de contato',
@@ -2276,7 +2276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: 'Tem certeza de que deseja mesclar as contas?',
             lossOfUnsubmittedData: (login: string) => `A fusão das suas contas é irreversível e resultará na perda de quaisquer despesas não enviadas para <strong>${login}</strong>.`,
-            enterSecurityCode: (login: string) => `Para continuar, insira o código de segurança enviado para <strong>${login}</strong>.`,
+            enterSecurityCode: (login: string) => `Para continuar, digite o código de segurança enviado para <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Código de segurança incorreto ou inválido. Tente novamente ou solicite um novo código.',
                 fallback: 'Algo deu errado. Tente novamente mais tarde.',
@@ -3075,7 +3075,7 @@ ${amount} para ${merchant} - ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `Tempo restante: ${timeRemaining} ${timeRemaining === 1 ? 'segundo' : 'segundos'}`,
         timeExpiredAnnouncement: 'O tempo expirou',
         error: {
-            pleaseFillSecurityCode: 'Digite seu código de segurança',
+            pleaseFillSecurityCode: 'Insira seu código de segurança',
             incorrectSecurityCode: 'Código de segurança incorreto ou inválido. Tente novamente ou solicite um novo código.',
             pleaseFillTwoFactorAuth: 'Insira seu código de autenticação de dois fatores',
         },
@@ -3503,11 +3503,11 @@ ${amount} para ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link foi reenviado',
-        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Enviei um link seguro de acesso para ${login}. Confira seu ${loginType} para entrar.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Enviei um link de segurança para login para ${login}. Verifique seu ${loginType} para entrar.`,
         resendLink: 'Reenviar link',
     },
     unlinkLoginForm: {
-        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `Para validar ${secondaryLogin}, reenvie o código de segurança nas Configurações da Conta de ${primaryLogin}.`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `Para validar ${secondaryLogin}, reenvie o código de segurança nas Configurações da conta de ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `Se você não tiver mais acesso a ${primaryLogin}, desvincule suas contas.`,
         unlink: 'Desvincular',
         linkSent: 'Link enviado!',
@@ -3528,7 +3528,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `Não foi possível entregar mensagens SMS para ${login}, então ele foi suspenso temporariamente. Tente validar seu número:`,
-        validationSuccess: 'Seu número foi validado! Clique abaixo para enviar um novo código de segurança para entrar.',
+        validationSuccess: 'Seu número foi validado! Clique abaixo para enviar um novo código de segurança de acesso.',
         validationFailed: ({
             timeData,
         }: {
@@ -9974,7 +9974,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         removeCopilotConfirmation: 'Tem certeza de que deseja remover este copiloto?',
         changeAccessLevel: 'Alterar nível de acesso',
         makeSureItIsYou: 'Vamos garantir que é você',
-        enterSecurityCode: (contactMethod: string) => `Insira o código de segurança enviado para ${contactMethod} para adicionar um copiloto. Ele deve chegar em um ou dois minutos.`,
+        enterSecurityCode: (contactMethod: string) => `Digite o código de segurança enviado para ${contactMethod} para adicionar um copiloto. Ele deve chegar em um ou dois minutos.`,
         enterSecurityCodeUpdate: (contactMethod: string) => `Insira o código de segurança enviado para ${contactMethod} para atualizar seu copiloto.`,
         notAllowed: 'Não tão rápido...',
         noAccessMessage: Str.dedent(`

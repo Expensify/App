@@ -700,7 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Face/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja za pomocą twarzy/odcisku palca lub klucza dostępu jest włączona na jednym lub więcej urządzeniach. Odwołanie dostępu spowoduje, że przy następnej weryfikacji na tym urządzeniu będzie wymagany kod zabezpieczający.',
+                'Na jednym lub więcej urządzeń włączono weryfikację twarzą/odciskiem palca lub kluczem dostępu. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na tym urządzeniu będzie wymagany kod zabezpieczający.',
             confirmationPrompt: 'Na pewno? Będziesz potrzebować kodu zabezpieczającego przy następnej weryfikacji na tym urządzeniu.',
             cta: 'Cofnij dostęp',
             noDevices:
@@ -708,7 +708,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dismiss: 'Jasne',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
             revoke: 'Unieważnij',
-            confirmationPromptAll: 'Na pewno? Będziesz potrzebować kodu zabezpieczającego przy następnym potwierdzeniu na dowolnym urządzeniu.',
+            confirmationPromptAll: 'Na pewno? Będziesz potrzebować kodu bezpieczeństwa przy kolejnej weryfikacji na dowolnym urządzeniu.',
             ctaAll: 'Cofnij wszystkie',
             thisDevice: 'To urządzenie',
             otherDevices: (otherDeviceCount?: number) => {
@@ -736,7 +736,7 @@ const translations: TranslationDeepObject<typeof en> = {
             jesteś zalogowany!
         `),
         successfulSignInDescription: 'Wróć do swojej pierwotnej karty, aby kontynuować.',
-        title: 'Oto twój kod zabezpieczający',
+        title: 'Oto Twój kod bezpieczeństwa',
         description: Str.dedent(`
             Wprowadź kod z urządzenia,
             na którym został pierwotnie wygenerowany
@@ -790,7 +790,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Twoje płatności docierają do Ciebie tak szybko, jak szybko potrafisz przekazać swoją myśl.',
         enterPassword: 'Wprowadź swoje hasło',
         welcomeNewFace: (login: string) => `${login}, zawsze miło zobaczyć tu nową twarz!`,
-        welcomeEnterSecurityCode: (login: string) => `Wpisz kod bezpieczeństwa wysłany na ${login}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+        welcomeEnterSecurityCode: (login: string) => `Wpisz kod zabezpieczający wysłany na ${login}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
     },
     login: {
         hero: {
@@ -800,7 +800,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Kontynuuj logowanie za pomocą logowania jednokrotnego (SSO):',
-        orContinueWithSecurityCode: 'Możesz też zalogować się za pomocą kodu bezpieczeństwa',
+        orContinueWithSecurityCode: 'Możesz też zalogować się za pomocą kodu zabezpieczającego',
         useSingleSignOn: 'Użyj logowania jednokrotnego',
         useSecurityCode: 'Użyj kodu zabezpieczającego',
         launching: 'Uruchamianie...',
@@ -2114,8 +2114,8 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: 'Czy na pewno chcesz usunąć tę metodę kontaktu? Tej akcji nie można cofnąć.',
         failedNewContact: 'Nie udało się dodać tej metody kontaktu.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Nie udało się wysłać nowego kodu bezpieczeństwa. Poczekaj chwilę i spróbuj ponownie.',
-            validateSecondaryLogin: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie lub poproś o nowy kod.',
+            requestContactMethodValidateCode: 'Nie udało się wysłać nowego kodu zabezpieczającego. Poczekaj chwilę i spróbuj ponownie.',
+            validateSecondaryLogin: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie albo poproś o nowy kod.',
             deleteContactMethod: 'Nie udało się usunąć metody kontaktu. Skontaktuj się z Concierge, aby uzyskać pomoc.',
             setDefaultContactMethod: 'Nie udało się ustawić nowej domyślnej metody kontaktu. Skontaktuj się z Concierge, aby uzyskać pomoc.',
             addContactMethod: 'Nie udało się dodać tej metody kontaktu. Skontaktuj się z Concierge, aby uzyskać pomoc.',
@@ -2280,9 +2280,9 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmMerge: 'Czy na pewno chcesz scalić konta?',
             lossOfUnsubmittedData: (login: string) =>
                 `Połączenie Twoich kont jest nieodwracalne i spowoduje utratę wszystkich niewysłanych wydatków dla użytkownika <strong>${login}</strong>.`,
-            enterSecurityCode: (login: string) => `Aby kontynuować, wpisz kod zabezpieczający wysłany na <strong>${login}</strong>.`,
+            enterSecurityCode: (login: string) => `Aby kontynuować, wpisz kod bezpieczeństwa wysłany na <strong>${login}</strong>.`,
             errors: {
-                incorrectSecurityCode: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie lub poproś o nowy kod.',
+                incorrectSecurityCode: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie albo poproś o nowy kod.',
                 fallback: 'Coś poszło nie tak. Spróbuj ponownie później.',
             },
         },
@@ -2633,7 +2633,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Dodano do portfela ${platform}`,
         cardDetailsLoadingFailure: 'Wystąpił błąd podczas wczytywania szczegółów karty. Sprawdź swoje połączenie internetowe i spróbuj ponownie.',
         validateCardTitle: 'Upewnijmy się, że to Ty',
-        enterSecurityCode: (contactMethod: string) => `Wpisz kod bezpieczeństwa wysłany na ${contactMethod}, aby zobaczyć szczegóły swojej karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+        enterSecurityCode: (contactMethod: string) => `Wpisz kod zabezpieczający wysłany na ${contactMethod}, aby wyświetlić szczegóły karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         unexpectedError: 'Wystąpił błąd podczas pobierania szczegółów Twojej karty Expensify. Spróbuj ponownie.',
         cardFraudAlert: {
             confirmButtonText: 'Tak, robię',
@@ -3072,8 +3072,8 @@ ${amount} dla ${merchant} - ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `Pozostały czas: ${timeRemaining} ${timeRemaining === 1 ? 'sekunda' : 'sekund'}`,
         timeExpiredAnnouncement: 'Czas minął',
         error: {
-            pleaseFillSecurityCode: 'Podaj swój kod zabezpieczający',
-            incorrectSecurityCode: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie lub poproś o nowy kod.',
+            pleaseFillSecurityCode: 'Wpisz swój kod bezpieczeństwa',
+            incorrectSecurityCode: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie albo poproś o nowy kod.',
             pleaseFillTwoFactorAuth: 'Wprowadź swój kod uwierzytelniania dwuskładnikowego',
         },
     },
@@ -3499,11 +3499,11 @@ ${amount} dla ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link został wysłany ponownie',
-        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Wysłałem link zabezpieczający do logowania na adres ${login}. Sprawdź swój ${loginType}, żeby się zalogować.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Wysłałem bezpieczny link do logowania na adres ${login}. Sprawdź swój ${loginType}, aby się zalogować.`,
         resendLink: 'Wyślij ponownie link',
     },
     unlinkLoginForm: {
-        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `Aby zweryfikować ${secondaryLogin}, wyślij ponownie kod zabezpieczający z Ustawień konta ${primaryLogin}.`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `Aby zweryfikować ${secondaryLogin}, wyślij ponownie kod zabezpieczający z ustawień konta ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `Jeśli nie masz już dostępu do ${primaryLogin}, odłącz swoje konta.`,
         unlink: 'Odłącz',
         linkSent: 'Link wysłany!',
@@ -3524,7 +3524,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `Nie mogliśmy dostarczyć wiadomości SMS na numer ${login}, więc tymczasowo go zawiesiliśmy. Spróbuj zweryfikować swój numer:`,
-        validationSuccess: 'Twój numer został zweryfikowany! Kliknij poniżej, aby wysłać nowy kod logowania zabezpieczającego.',
+        validationSuccess: 'Twój numer został zweryfikowany! Kliknij poniżej, aby wysłać nowy kod zabezpieczający do logowania.',
         validationFailed: ({
             timeData,
         }: {
@@ -9962,8 +9962,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         removeCopilotConfirmation: 'Czy na pewno chcesz usunąć tego pilota współpracującego?',
         changeAccessLevel: 'Zmień poziom dostępu',
         makeSureItIsYou: 'Upewnijmy się, że to Ty',
-        enterSecurityCode: (contactMethod: string) => `Wpisz kod zabezpieczający wysłany na ${contactMethod}, aby dodać kopilota. Powinien dotrzeć w ciągu minuty lub dwóch.`,
-        enterSecurityCodeUpdate: (contactMethod: string) => `Wpisz kod zabezpieczający wysłany na ${contactMethod}, aby zaktualizować swojego kopilota.`,
+        enterSecurityCode: (contactMethod: string) => `Wpisz kod bezpieczeństwa wysłany na ${contactMethod}, aby dodać copilota. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Wpisz kod bezpieczeństwa wysłany na ${contactMethod}, aby zaktualizować swojego copilota.`,
         notAllowed: 'Nie tak szybko...',
         noAccessMessage: Str.dedent(`
             Jako kopilot nie masz dostępu do tej strony. Przepraszamy!

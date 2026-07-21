@@ -701,14 +701,14 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Gesicht/Fingerabdruck & Zugangsschlüssel',
             explanation:
-                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Beim Entzug des Zugriffs ist für die nächste Verifizierung auf diesem Gerät ein Sicherheitscode erforderlich.',
+                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Entziehen des Zugriffs erfordert für die nächste Verifizierung auf diesem Gerät einen Sicherheitscode.',
             confirmationPrompt: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf diesem Gerät.',
             cta: 'Zugriff entziehen',
             noDevices: 'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie deren Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
             revoke: 'Widerrufen',
-            confirmationPromptAll: 'Sind Sie sicher? Sie benötigen für die nächste Verifizierung auf jedem Gerät einen Sicherheitscode.',
+            confirmationPromptAll: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf jedem Gerät.',
             ctaAll: 'Alle widerrufen',
             thisDevice: 'Dieses Gerät',
             otherDevices: (otherDeviceCount?: number) => {
@@ -790,7 +790,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Deine Zahlungen kommen so schnell bei dir an, wie du deinen Standpunkt klarmachen kannst.',
         enterPassword: 'Bitte geben Sie Ihr Passwort ein',
         welcomeNewFace: (login: string) => `${login}, es ist immer schön, ein neues Gesicht hier zu sehen!`,
-        welcomeEnterSecurityCode: (login: string) => `Bitte geben Sie den Sicherheitscode ein, der an ${login} gesendet wurde. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
+        welcomeEnterSecurityCode: (login: string) => `Bitte geben Sie den an ${login} gesendeten Sicherheitscode ein. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
     },
     login: {
         hero: {
@@ -2126,7 +2126,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: 'Sind Sie sicher, dass Sie diese Kontaktmethode entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
         failedNewContact: 'Das Hinzufügen dieser Kontaktmethode ist fehlgeschlagen.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Senden eines neuen Sicherheitscodes fehlgeschlagen. Bitte warten Sie einen Moment und versuchen Sie es erneut.',
+            requestContactMethodValidateCode: 'Neuer Sicherheitscode konnte nicht gesendet werden. Bitte warten Sie einen Moment und versuchen Sie es erneut.',
             validateSecondaryLogin: 'Falscher oder ungültiger Sicherheitscode. Bitte versuchen Sie es erneut oder fordern Sie einen neuen Code an.',
             deleteContactMethod: 'Kontaktmethode konnte nicht gelöscht werden. Bitte wende dich für Hilfe an Concierge.',
             setDefaultContactMethod: 'Fehler beim Festlegen einer neuen Standardkontaktmethode. Bitte wende dich für Hilfe an Concierge.',
@@ -2650,7 +2650,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'Beim Laden der Kartendetails ist ein Fehler aufgetreten. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
         validateCardTitle: 'Stellen wir sicher, dass du es bist',
         enterSecurityCode: (contactMethod: string) =>
-            `Bitte geben Sie den Sicherheitscode ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendaten anzuzeigen. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
+            `Bitte geben Sie den Sicherheitscode ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte innerhalb einer oder zwei Minuten ankommen.`,
         unexpectedError: 'Beim Abrufen deiner Expensify-Kartendaten ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, das tue ich',
@@ -3526,12 +3526,12 @@ ${amount} für ${merchant} – ${date}`,
     resendValidationForm: {
         linkHasBeenResent: 'Link wurde erneut gesendet',
         weSentYouSecuritySignInLink: (login: string, loginType: string) =>
-            `Ich habe einen sicheren Anmeldelink an ${login} gesendet. Bitte überprüfen Sie Ihre(n) ${loginType}, um sich anzumelden.`,
+            `Ich habe einen sicheren Anmeldelink an ${login} gesendet. Bitte überprüfen Sie Ihr ${loginType}, um sich anzumelden.`,
         resendLink: 'Link erneut senden',
     },
     unlinkLoginForm: {
         toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
-            `Um ${secondaryLogin} zu bestätigen, senden Sie den Sicherheitscode bitte erneut aus den Kontoeinstellungen von ${primaryLogin}.`,
+            `Um ${secondaryLogin} zu bestätigen, senden Sie bitte den Sicherheitscode aus den Kontoeinstellungen von ${primaryLogin} erneut.`,
         noLongerHaveAccess: (primaryLogin: string) => `Wenn du keinen Zugriff mehr auf ${primaryLogin} hast, trenne bitte die Verknüpfung deiner Konten.`,
         unlink: 'Verknüpfung aufheben',
         linkSent: 'Link gesendet!',
@@ -3553,7 +3553,7 @@ ${amount} für ${merchant} – ${date}`,
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) =>
             `Wir konnten SMS-Nachrichten nicht an ${login} zustellen und haben es daher vorübergehend deaktiviert. Bitte versuche, deine Nummer zu bestätigen:`,
-        validationSuccess: 'Ihre Nummer wurde bestätigt! Klicken Sie unten, um einen neuen Sicherheits‑Anmeldecode zu senden.',
+        validationSuccess: 'Ihre Nummer wurde bestätigt! Klicken Sie unten, um einen neuen Sicherheits-Anmeldecode zu senden.',
         validationFailed: ({
             timeData,
         }: {
@@ -10039,7 +10039,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         changeAccessLevel: 'Zugriffsebene ändern',
         makeSureItIsYou: 'Stellen wir sicher, dass du es bist',
         enterSecurityCode: (contactMethod: string) =>
-            `Bitte geben Sie den Sicherheitscode ein, der an ${contactMethod} gesendet wurde, um einen Copilot hinzuzufügen. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
+            `Bitte geben Sie den Sicherheitscode ein, der an ${contactMethod} gesendet wurde, um eine:n Copilot:in hinzuzufügen. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
         enterSecurityCodeUpdate: (contactMethod: string) => `Bitte geben Sie den an ${contactMethod} gesendeten Sicherheitscode ein, um Ihre Copilot-Einstellungen zu aktualisieren.`,
         notAllowed: 'Nicht so schnell ...',
         noAccessMessage: Str.dedent(`

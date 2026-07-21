@@ -701,7 +701,7 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Volto/impronta digitale e passkey',
             explanation:
-                'La verifica con volto/impronta digitale o passkey è attiva su uno o più dispositivi. Revocare l’accesso richiederà un codice di sicurezza per la prossima verifica su quel dispositivo.',
+                'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. Revocare l’accesso richiederà un codice di sicurezza per la prossima verifica su quel dispositivo.',
             confirmationPrompt: 'Sei sicuro? Avrai bisogno di un codice di sicurezza per la prossima verifica su quel dispositivo.',
             cta: 'Revoca accesso',
             noDevices:
@@ -717,7 +717,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} altro ${otherDeviceCount === 1 ? 'dispositivo' : 'dispositivi'}`;
             },
-            confirmationPromptThisDevice: 'Sei sicuro? Ti servirà un codice di sicurezza per la prossima verifica su questo dispositivo.',
+            confirmationPromptThisDevice: 'Sei sicuro? Avrai bisogno di un codice di sicurezza per la prossima verifica su questo dispositivo.',
             confirmationPromptMultiple: 'Sei sicuro? Ti servirà un codice di sicurezza per la prossima verifica su quei dispositivi.',
         },
         unsupportedDevice: {
@@ -2122,7 +2122,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: 'Sei sicuro di voler rimuovere questo metodo di contatto? Questa azione non può essere annullata.',
         failedNewContact: 'Impossibile aggiungere questo metodo di contatto.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Impossibile inviare un nuovo codice di sicurezza. Attendi un momento e riprova.',
+            requestContactMethodValidateCode: 'Invio di un nuovo codice di sicurezza non riuscito. Attendi un momento e riprova.',
             validateSecondaryLogin: 'Codice di sicurezza errato o non valido. Riprova oppure richiedi un nuovo codice.',
             deleteContactMethod: 'Impossibile eliminare il metodo di contatto. Contatta Concierge per ricevere aiuto.',
             setDefaultContactMethod: 'Impossibile impostare un nuovo metodo di contatto predefinito. Contatta Concierge per ricevere assistenza.',
@@ -3185,7 +3185,7 @@ ${amount} per ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Verifica la tua email di lavoro',
-            securityCodeSent: (workEmail: string | undefined) => `Inserisci il codice di sicurezza inviato a ${workEmail}. Dovrebbe arrivare entro uno o due minuti.`,
+            securityCodeSent: (workEmail: string | undefined) => `Inserisci il codice di sicurezza inviato a ${workEmail}. Dovrebbe arrivare tra uno o due minuti.`,
         },
         workEmailValidationError: {
             publicEmail: 'Inserisci un’email di lavoro valida con dominio privato, ad es. mitch@company.com',
@@ -3512,11 +3512,12 @@ ${amount} per ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Il link è stato reinviato',
-        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Ho inviato un link di accesso sicuro a ${login}. Controlla il tuo/la tua ${loginType} per accedere.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Ho inviato un link di accesso sicuro a ${login}. Controlla il tuo ${loginType} per accedere.`,
         resendLink: 'Invia di nuovo il link',
     },
     unlinkLoginForm: {
-        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `Per convalidare ${secondaryLogin}, reinvia il codice di sicurezza dalle Impostazioni account di ${primaryLogin}.`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
+            `Per convalidare ${secondaryLogin}, per favore reinvia il codice di sicurezza dalle Impostazioni account di ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `Se non hai più accesso a ${primaryLogin}, scollega i tuoi account.`,
         unlink: 'Scollega',
         linkSent: 'Link inviato!',
@@ -3538,7 +3539,7 @@ ${amount} per ${merchant} - ${date}`,
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) =>
             `Non siamo riusciti a recapitare i messaggi SMS a ${login}, quindi lo abbiamo sospeso temporaneamente. Prova a convalidare il tuo numero:`,
-        validationSuccess: 'Il tuo numero è stato verificato! Clicca qui sotto per inviare un nuovo codice di sicurezza per l’accesso.',
+        validationSuccess: 'Il tuo numero è stato convalidato! Clicca qui sotto per inviare un nuovo codice di sicurezza per l’accesso.',
         validationFailed: ({
             timeData,
         }: {

@@ -700,7 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Gezicht/vingerafdruk & passkeys',
             explanation:
-                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op een of meer apparaten. Toegang intrekken betekent dat er bij de volgende verificatie op dat apparaat een beveiligingscode nodig is.',
+                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken betekent dat er bij de volgende verificatie op dat apparaat een beveiligingscode nodig is.',
             confirmationPrompt: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op dat apparaat.',
             cta: 'Toegang intrekken',
             noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkeys-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
@@ -789,7 +789,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Je betalingen komen net zo snel bij je aan als jij je punt kunt maken.',
         enterPassword: 'Voer uw wachtwoord in',
         welcomeNewFace: (login: string) => `${login}, het is altijd leuk om een nieuw gezicht hier te zien!`,
-        welcomeEnterSecurityCode: (login: string) => `Voer de beveiligingscode in die naar ${login} is gestuurd. Deze zou binnen een of twee minuten moeten aankomen.`,
+        welcomeEnterSecurityCode: (login: string) => `Voer de beveiligingscode in die naar ${login} is gestuurd. Deze zou binnen een minuut of twee moeten aankomen.`,
     },
     login: {
         hero: {
@@ -2110,7 +2110,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms'en naar 47777 (alleen voor Amerikaanse nummers).`,
         pleaseVerify: 'Verifieer deze contactmethode.',
         getInTouch: 'We gebruiken deze methode om contact met je op te nemen.',
-        enterSecurityCode: (contactMethod: string) => `Voer de beveiligingscode in die is verzonden naar ${contactMethod}. Die zou binnen een of twee minuten moeten aankomen.`,
+        enterSecurityCode: (contactMethod: string) => `Voer de beveiligingscode in die is verstuurd naar ${contactMethod}. Die zou binnen één à twee minuten moeten aankomen.`,
         setAsDefault: 'Instellen als standaard',
         yourDefaultContactMethod:
             'Dit is je huidige standaardcontactmethode. Voordat je deze kunt verwijderen, moet je een andere contactmethode kiezen en op ‘Instellen als standaard’ klikken.',
@@ -2118,7 +2118,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: 'Weet je zeker dat je deze contactmethode wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
         failedNewContact: 'Het toevoegen van deze contactmethode is mislukt.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Het verzenden van een nieuwe beveiligingscode is mislukt. Wacht even en probeer het opnieuw.',
+            requestContactMethodValidateCode: 'Versturen van een nieuwe beveiligingscode is mislukt. Wacht even en probeer het opnieuw.',
             validateSecondaryLogin: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
             deleteContactMethod: 'Verwijderen van contactmethode mislukt. Neem contact op met Concierge voor hulp.',
             setDefaultContactMethod: 'Het instellen van een nieuwe standaardcontactmethode is mislukt. Neem contact op met Concierge voor hulp.',
@@ -2643,7 +2643,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'Er is een fout opgetreden bij het laden van de kaartgegevens. Controleer je internetverbinding en probeer het opnieuw.',
         validateCardTitle: 'We willen zeker weten dat jij het bent',
         enterSecurityCode: (contactMethod: string) =>
-            `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je kaartgegevens te bekijken. Deze zou binnen een minuut of twee moeten arriveren.`,
+            `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je kaartgegevens te bekijken. Deze zou binnen één à twee minuten moeten aankomen.`,
         unexpectedError: 'Er is een fout opgetreden bij het ophalen van de gegevens van je Expensify-kaart. Probeer het opnieuw.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, dat doe ik',
@@ -3187,7 +3187,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Verifieer je werk-e-mailadres',
-            securityCodeSent: (workEmail: string | undefined) => `Voer de beveiligingscode in die naar ${workEmail} is gestuurd. Die zou binnen een minuut of twee moeten aankomen.`,
+            securityCodeSent: (workEmail: string | undefined) => `Voer de beveiligingscode in die is verzonden naar ${workEmail}. Die zou binnen een of twee minuten moeten aankomen.`,
         },
         workEmailValidationError: {
             publicEmail: 'Voer een geldig zakelijk e-mailadres in van een privédomein, bijv. mitch@company.com',
@@ -3518,7 +3518,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     unlinkLoginForm: {
         toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
-            `Om ${secondaryLogin} te valideren, stuur de beveiligingscode dan opnieuw vanuit de Accountinstellingen van ${primaryLogin}.`,
+            `Om ${secondaryLogin} te bevestigen, stuur de beveiligingscode dan opnieuw vanuit de Accountinstellingen van ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `Als je geen toegang meer hebt tot ${primaryLogin}, koppel dan je accounts los.`,
         unlink: 'Koppeling verbreken',
         linkSent: 'Link verzonden!',
@@ -9988,8 +9988,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         changeAccessLevel: 'Toegangsniveau wijzigen',
         makeSureItIsYou: 'We willen zeker weten dat jij het bent',
         enterSecurityCode: (contactMethod: string) =>
-            `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om een copiloot toe te voegen. Die zou binnen één à twee minuten moeten aankomen.`,
-        enterSecurityCodeUpdate: (contactMethod: string) => `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je copiloot bij te werken.`,
+            `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om een copiloot toe te voegen. Deze zou binnen een of twee minuten moeten aankomen.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je copilot bij te werken.`,
         notAllowed: 'Niet zo snel...',
         noAccessMessage: Str.dedent(`
             Als copiloot heb je geen toegang tot

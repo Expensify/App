@@ -693,15 +693,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             title: '顔／指紋 & パスキー',
-            explanation:
-                '1 台以上のデバイスで、顔/指紋またはパスキーによる認証が有効になっています。アクセスを取り消すと、そのデバイスで次回確認を行う際にセキュリティコードが必要になります。',
+            explanation: '1 台以上の端末で顔認証／指紋認証またはパスキー認証が有効になっています。アクセスを取り消すと、その端末で次回認証を行う際にセキュリティコードが必要になります。',
             confirmationPrompt: 'よろしいですか？そのデバイスで次回の認証を行うには、セキュリティコードが必要になります。',
             cta: 'アクセスを取り消す',
             noDevices: '顔認証・指紋認証またはパスキー認証に登録されているデバイスがありません。デバイスを登録すると、そのアクセス権をここで取り消すことができるようになります。',
             dismiss: '了解しました',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
             revoke: '取り消す',
-            confirmationPromptAll: 'よろしいですか？今後どのデバイスで認証する場合も、セキュリティコードが必要になります。',
+            confirmationPromptAll: 'よろしいですか？今後どのデバイスでも次回の認証にはセキュリティコードが必要になります。',
             ctaAll: 'すべて取り消す',
             thisDevice: 'このデバイス',
             otherDevices: (otherDeviceCount?: number) => {
@@ -709,8 +708,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `その他${displayCount}件の${otherDeviceCount === 1 ? 'デバイス' : 'デバイス'}`;
             },
-            confirmationPromptThisDevice: 'よろしいですか？このデバイスで次回の認証を行うには、セキュリティコードが必要になります。',
-            confirmationPromptMultiple: 'よろしいですか？次回それらのデバイスで認証を行う際には、セキュリティコードが必要になります。',
+            confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、セキュリティコードが必要になります。',
+            confirmationPromptMultiple: 'よろしいですか？その端末で次回の認証を行うには、セキュリティコードが必要になります。',
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
@@ -729,7 +728,7 @@ const translations: TranslationDeepObject<typeof en> = {
             サインインしました！
         `),
         successfulSignInDescription: '続行するには、元のタブに戻ってください。',
-        title: 'セキュリティコードをお知らせします',
+        title: 'セキュリティコードをお送りします',
         description: Str.dedent(`
             最初にコードを要求したデバイスに表示されているコードを入力してください
         `),
@@ -791,7 +790,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'シングルサインオンでのログインを続行:',
-        orContinueWithSecurityCode: 'セキュリティコードを使ってサインインすることもできます',
+        orContinueWithSecurityCode: 'セキュリティコードでサインインすることもできます',
         useSingleSignOn: 'シングルサインオンを使用',
         useSecurityCode: 'セキュリティコードを使用',
         launching: '起動中…',
@@ -2618,7 +2617,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `${platform}ウォレットに追加しました`,
         cardDetailsLoadingFailure: 'カード詳細の読み込み中にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'ご本人確認を行います',
-        enterSecurityCode: (contactMethod: string) => `カード情報を表示するには、${contactMethod} に送信されたセキュリティコードを入力してください。1〜2分以内に届きます。`,
+        enterSecurityCode: (contactMethod: string) => `カード情報を表示するために、${contactMethod} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
         unexpectedError: 'Expensifyカードの詳細を取得中にエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです',
@@ -3159,7 +3158,7 @@ ${date} の ${merchant} への ${amount}`,
         },
         workEmailValidation: {
             title: '勤務先メールを確認してください',
-            securityCodeSent: (workEmail: string | undefined) => `${workEmail} に送信されたセキュリティコードを入力してください。1〜2分ほどで届きます。`,
+            securityCodeSent: (workEmail: string | undefined) => `${workEmail} に送信されたセキュリティコードを入力してください。1～2分ほどで届きます。`,
         },
         workEmailValidationError: {
             publicEmail: 'プライベートドメインの有効な勤務先メールアドレスを入力してください（例：mitch@company.com）',
