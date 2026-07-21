@@ -72,9 +72,10 @@ import {
     isPerDiemEnabled,
     isPolicyAccessible,
     isTaxTrackingEnabled,
+    isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -137,6 +138,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -221,6 +223,7 @@ function MoneyRequestView({
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
@@ -532,6 +535,7 @@ function MoneyRequestView({
         transactionVendorName = transactionVendor.externalID;
     }
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
+    const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
@@ -552,7 +556,7 @@ function MoneyRequestView({
         }
         return {
             reportID: match.reportID,
-            name: getReportName(match, reportAttributes) || match.reportName,
+            name: deprecatedGetReportName(match, reportAttributes) || match.reportName,
         };
     };
     const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
@@ -670,6 +674,7 @@ function MoneyRequestView({
             transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
+            iouReportOwnerLogin,
             value: newBillable,
             policy,
             policyTagList,
@@ -680,6 +685,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
         });
     };
@@ -693,6 +699,7 @@ function MoneyRequestView({
             transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
+            iouReportOwnerLogin,
             value: newReimbursable,
             policy,
             policyTagList,
@@ -703,6 +710,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
         });
     };
@@ -832,6 +840,7 @@ function MoneyRequestView({
                 transactionID: transaction?.transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 taxCode: '',
                 taxValue: '',
                 taxAmount: 0,
@@ -867,6 +876,7 @@ function MoneyRequestView({
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 category: '',
                 policy,
                 policyTagList,
@@ -904,6 +914,7 @@ function MoneyRequestView({
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 tag: updatedTag,
                 policy,
                 policyTagList,
@@ -1136,7 +1147,7 @@ function MoneyRequestView({
 
     const reportNameToDisplay = isFromMergeTransaction
         ? (updatedTransaction?.reportName ?? translate('common.none'))
-        : getReportName(parentReport, reportAttributes) || parentReport?.reportName;
+        : deprecatedGetReportName(parentReport, reportAttributes) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
@@ -1370,7 +1381,7 @@ function MoneyRequestView({
                 {shouldShowVendor && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
                         <MenuItemWithTopDescription
-                            description={translate('common.vendor')}
+                            description={vendorFieldLabel}
                             title={transactionVendorName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
@@ -1380,7 +1391,15 @@ function MoneyRequestView({
                                 if (!transactionThreadReport?.reportID) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction.transactionID,
+                                        transactionThreadReport.reportID,
+                                        getReportRHPActiveRoute(),
+                                    ),
+                                );
                             }}
                             brickRoadIndicator={getErrorForField('vendor') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('vendor')}

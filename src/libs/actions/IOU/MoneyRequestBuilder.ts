@@ -1128,6 +1128,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policyCategories: policyCategories ?? {},
         hasDependentTags: hasDependentTags(policy, policyTagList ?? {}),
         isInvoiceTransaction: false,
+        ownerLogin: undefined,
     });
 
     if (violationsOnyxData) {
@@ -1162,6 +1163,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                isTrackIntentUser,
             }),
         });
         onyxData.optimisticData?.push({
@@ -1641,6 +1643,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({

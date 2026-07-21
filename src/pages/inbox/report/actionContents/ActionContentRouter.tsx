@@ -452,6 +452,7 @@ function ActionContentRouter({
             <IntegrationSyncFailedMessage
                 action={action}
                 policyID={policyID}
+                originalReport={originalReport}
             />
         );
     }

@@ -14,7 +14,6 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
@@ -1669,7 +1668,7 @@ function getTransactionViolations(
 
     const violations =
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
-            (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin),
+            (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
         ) ?? [];
 
     return violations;
@@ -1792,7 +1791,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy, reportOwnerLogin)) {
+            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy)) {
                 return false;
             }
 
@@ -1843,7 +1842,7 @@ function getVisibleTransactionViolations(
     return mergeProhibitedViolations(
         transactionViolations.filter(
             (violation) =>
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy) &&
                 shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
         ),
     );
@@ -2061,8 +2060,8 @@ function isDuplicate(
         currentUserEmail,
         currentUserAccountID,
         iouReport,
-        policy,
         iouReportOwnerLogin,
+        policy,
     );
 
     return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
@@ -2088,8 +2087,8 @@ function isViolationDismissed(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
-    iouReportOwnerLogin?: string,
 ): boolean {
     if (!transaction || !violation) {
         return false;
@@ -2120,11 +2119,8 @@ function isViolationDismissed(
     const isSubmitter = iouReport.ownerAccountID === currentUserAccountID;
     const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
 
-    if (shouldViewAsSubmitter && iouReport.ownerAccountID) {
-        const reportOwnerEmail = iouReportOwnerLogin ?? getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
-        if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
-            return true;
-        }
+    if (shouldViewAsSubmitter && iouReportOwnerLogin && dismissedByEmails.includes(iouReportOwnerLogin)) {
+        return true;
     }
 
     return false;
@@ -2149,6 +2145,7 @@ function hasViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2161,7 +2158,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
 
@@ -2201,6 +2198,7 @@ function hasNoticeTypeViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2213,7 +2211,7 @@ function hasNoticeTypeViolation(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
 
@@ -2226,6 +2224,7 @@ function hasWarningTypeViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2239,7 +2238,7 @@ function hasWarningTypeViolation(
             (violation: TransactionViolation) =>
                 violation.type === CONST.VIOLATION_TYPES.WARNING &&
                 (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
         ) ?? [];
 
     return warningTypeViolations.length > 0;

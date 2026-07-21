@@ -67,7 +67,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const reportTransactions = useReportTransactions(reportID);
 
     const reportPreviewAction = useParentReportAction(report);
@@ -120,7 +120,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             const invite = moveIOUReportToPolicyAndInviteSubmitter(
                 report,
                 policy,
-                formatPhoneNumber,
                 filteredReportActions,
                 reportPreviewAction,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -141,7 +140,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 report,
                 parentReport,
                 policy,
-                personalDetails: {[report.ownerAccountID]: {accountID: report.ownerAccountID}},
                 currentUser: {
                     accountID: currentUserPersonalDetails.accountID,
                     displayName: currentUserPersonalDetails.displayName,
@@ -154,7 +152,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isChangePolicyTrainingModalDismissed,
                 isASAPSubmitBetaEnabled,
                 employeeList,
-                formatPhoneNumber,
                 isReportLastVisibleArchived,
                 reportNextStep,
                 reportActionsList: filteredReportActions,

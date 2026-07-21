@@ -19,7 +19,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
-    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     VisibleReportActionsDerivedValue,
@@ -51,7 +50,6 @@ import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
-import type {getReportName} from './ReportNameUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
@@ -111,15 +109,6 @@ Onyx.connect({
             return;
         }
         allReportActions = actions;
-    },
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
     },
 });
 
@@ -667,11 +656,13 @@ function isWhisperAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 /**
  * Checks whether the report action is a whisper targeting someone other than the current user.
  */
-function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+// TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     if (!isWhisperAction(reportAction)) {
         return false;
     }
-    return !getWhisperedTo(reportAction).includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    return !getWhisperedTo(reportAction).includes(effectiveCurrentUserAccountID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
@@ -1236,7 +1227,8 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
+// TODO: Remove optional (?) on currentUserAccountID once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66408
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, currentUserAccountID?: number): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1276,7 +1268,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         }
     }
 
-    if (isWhisperActionTargetedToOthers(reportAction)) {
+    if (isWhisperActionTargetedToOthers(reportAction, currentUserAccountID)) {
         return false;
     }
 
@@ -1338,6 +1330,8 @@ function isReportActionVisible(
     reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number,
 ): boolean {
     if (!reportAction?.reportActionID) {
         return false;
@@ -1347,18 +1341,18 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
         }
         if (!staticVisibility) {
             return false;
@@ -1368,7 +1362,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
 }
 
 /**
@@ -1380,6 +1374,8 @@ function isReportActionVisibleAsLastAction(
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
     reportID?: string,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1397,7 +1393,7 @@ function isReportActionVisibleAsLastAction(
     return (
         (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction) && !isModifiedExpenseAction(reportAction)) ||
             isActionableMentionWhisper(reportAction)) &&
-        isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActions) &&
+        isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActions, currentUserAccountID) &&
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
@@ -1435,6 +1431,8 @@ function getLastVisibleAction(
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number,
 ): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
@@ -1448,7 +1446,7 @@ function getLastVisibleAction(
     // O(n) scan to find the newest visible action, avoiding O(n log n) sort
     let newest: ReportAction | undefined;
     for (const action of reportActions) {
-        if (!action || !isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID)) {
+        if (!action || !isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID, currentUserAccountID)) {
             continue;
         }
         if (!newest || isNewerReportAction(action, newest)) {
@@ -1468,14 +1466,16 @@ function getLastVisibleActionIncludingTransactionThread(
     reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     transactionThreadReportID?: string,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number,
 ): OnyxEntry<ReportAction> {
-    const parentLastAction = getLastVisibleAction(reportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData);
+    const parentLastAction = getLastVisibleAction(reportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData, currentUserAccountID);
 
     if (!transactionThreadReportID) {
         return parentLastAction;
     }
 
-    const childLastAction = getLastVisibleAction(transactionThreadReportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData);
+    const childLastAction = getLastVisibleAction(transactionThreadReportID, canUserPerformWriteAction, {}, reportActionsParam, visibleReportActionsData, currentUserAccountID);
 
     if (
         childLastAction &&
@@ -1511,8 +1511,10 @@ function getLastVisibleMessage(
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number,
 ): LastVisibleMessage {
-    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, undefined, visibleReportActionsData);
+    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, undefined, visibleReportActionsData, currentUserAccountID);
     const message = getReportActionMessage(lastVisibleAction);
 
     if (message && isReportMessageAttachment(message)) {
@@ -2008,14 +2010,12 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
     return false;
 }
 
-// We pass getReportName as a param to avoid cyclic dependency.
 function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
-    getReportNameCallback: typeof getReportName,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    memberChangeLogRoomReportName: string | undefined,
 ): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
@@ -2049,8 +2049,7 @@ function getMemberChangeMessageElements(
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`], reportAttributes) || originalMessage?.roomName;
-        if (roomName && originalMessage) {
+        if (memberChangeLogRoomReportName && originalMessage) {
             const preposition = isInviteAction ? ` ${translate('workspace.invite.to')} ` : ` ${translate('workspace.invite.from')} `;
 
             if (originalMessage.reportID) {
@@ -2061,9 +2060,9 @@ function getMemberChangeMessageElements(
                     },
                     {
                         kind: 'roomReference',
-                        roomName,
+                        roomName: memberChangeLogRoomReportName,
                         roomID: originalMessage.reportID,
-                        content: roomName,
+                        content: memberChangeLogRoomReportName,
                     },
                 ];
             }
@@ -2359,16 +2358,14 @@ function getMemberChangeMessageFragment(
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
-    getReportNameCallback: typeof getReportName,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    memberChangeLogRoomReportName: string | undefined,
 ): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(
         translate,
         reportAction,
         actorDetails,
         targetAccountDetailsList,
-        getReportNameCallback,
-        reportAttributes,
+        memberChangeLogRoomReportName,
     );
     const html = messageElements
         .map((messageElement) => {
@@ -2617,8 +2614,9 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
 /**
  * Check if the current user is the requestor of the action
  */
-function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+// TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
+    return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
 }
 
 /**
@@ -2646,13 +2644,12 @@ function getIOUActionForTransactionID(reportActions: ReportAction[], transaction
 /**
  * Get the track expense actionable whisper of the corresponding track expense
  */
-function getTrackExpenseActionableWhisper(transactionID: string | undefined, chatReportID: string | undefined) {
+function getTrackExpenseActionableWhisper(transactionID: string | undefined, chatReportID: string | undefined, reportActionsParam: OnyxEntry<ReportActions>) {
     if (!transactionID || !chatReportID) {
         return undefined;
     }
 
-    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
-    return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
+    return Object.values(reportActionsParam ?? {}).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }
 
 /**
@@ -4650,8 +4647,9 @@ function wasMessageReceivedWhileOffline(
     lastOfflineAt: Date | undefined,
     lastOnlineAt: Date | undefined,
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+    currentUserAccountID: number,
 ) {
-    const wasByCurrentUser = wasActionTakenByCurrentUser(action);
+    const wasByCurrentUser = wasActionTakenByCurrentUser(action, currentUserAccountID);
     const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, getLocalDateFromDatetime);
 
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
