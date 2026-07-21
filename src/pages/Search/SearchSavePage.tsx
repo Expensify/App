@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -165,7 +166,7 @@ function SearchSavePage() {
         }
 
         const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
-        saveSearch({queryJSON: currentSearchQueryJSON, newName});
+        saveSearch({id: rand64(), queryJSON: currentSearchQueryJSON, newName});
         Navigation.goBack();
     };
 
