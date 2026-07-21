@@ -1,13 +1,13 @@
 name: Set up Node (StickyDisk)
 description: |
   Set up Node, mounting node_modules/~/.npm via Blacksmith Sticky Disks instead of actions/cache.
-  Blacksmith-runner-only (Ubuntu); not used on macOS jobs pending confirmation of sticky disk
-  support there — those still use ./setupNode.
+  Blacksmith-runner-only (Ubuntu), not used on macOS jobs pending confirmation of sticky disk
+  support there - those still use ./setupNode.
 
   Sticky disks have no cache-hit output (unlike actions/cache), so "was this disk freshly
   created" is inferred from a marker file (.stickydisk-installed) written after a successful
   npm ci. The disk key includes the lockfile hash, so a dependency change mounts a brand new
-  (empty) disk automatically — mirroring actions/cache's key-based invalidation.
+  (empty) disk automatically - mirroring actions/cache's key-based invalidation.
 
 inputs:
   IS_HYBRID_BUILD:
@@ -33,25 +33,19 @@ runs:
       with:
         node-version-file: '.nvmrc'
 
-    # Mounts a persistent NVMe-backed disk at node_modules. Key hashes normalized-package-lock.json
-    # (app version stripped by the jq step above), not the raw lockfile, so routine version bumps —
-    # which change package-lock.json on every deploy/main-merge but not the actual dependency tree —
-    # do NOT invalidate the disk. Only a real dependency or patch change mounts a fresh (empty) disk.
     - id: stickydisk-node-modules
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
-        key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', github.repository, hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', github.repository, hashFiles('normalized-package-lock.json', 'patches/**')) }}
+        key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**'))}}
         path: node_modules
 
     - id: stickydisk-old-dot-node-modules
       if: inputs.IS_HYBRID_BUILD == 'true'
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
-        key: ${{ format('{0}-node-modules-{1}', github.repository, hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**')) }}
+        key: ${{ format('{0}-{1}-{2}-old-dot-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**')) }}
         path: Mobile-Expensify/node_modules
 
-    # No cache-hit output from stickydisk, so infer it from a marker written after a successful
-    # npm ci. A freshly-created (empty) disk mounted under a new key has no marker -> miss.
     - id: check-node-modules
       shell: bash
       run: |
@@ -71,12 +65,10 @@ runs:
           echo "cache-hit=false" >> "$GITHUB_OUTPUT"
         fi
 
-    # Mounted once, unconditionally: sticky disks are near-instant to mount (no download), so
-    # there's no equivalent of the "skip on hit" bandwidth-saving trick used for actions/cache.
     - id: stickydisk-npm
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
-        key: ${{ format('{0}-npm', github.repository) }}
+        key: ${{ format('{0}-{1}-{2}-npm', github.repository, runner.os, runner.arch) }}
         path: ~/.npm
 
     - name: Remove ND node_modules if needed for hybrid app build
@@ -92,8 +84,6 @@ runs:
         max_attempts: 3
         command: npm ci
 
-    # Mark this disk as installed so the next job that mounts the same key (same lockfile hash)
-    # skips npm ci. Runs even when Install step was skipped (already marked) — cheap no-op then.
     - name: Mark node_modules disk as installed
       shell: bash
       run: touch node_modules/.stickydisk-installed
