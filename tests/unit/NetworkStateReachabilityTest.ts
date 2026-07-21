@@ -140,8 +140,7 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
     });
 
     test('repeated re-confirmations after a fake-recovery shape never fire reconnect', () => {
-        // The production storm: something keeps re-emitting null/true pairs with no real
-        // network change. None of them may fire a reconnect.
+        // Re-emitting null/true pairs should not result in a reconnect
         const reconnectListener = jest.fn();
         onReachabilityConfirmed(reconnectListener);
 
