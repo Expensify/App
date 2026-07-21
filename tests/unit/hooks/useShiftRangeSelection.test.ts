@@ -152,7 +152,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
         });
 
-        it('the first-selectable-row fallback skips header rows', () => {
+        it('skips header rows when falling back to the first selectable row', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
@@ -312,7 +312,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
         });
 
-        it('notifyAnchor mid-session ends the session', () => {
+        it('ends the session when notifyAnchor fires mid-session', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
             act(() => result.current.notifyAnchor(ROW_A));
@@ -341,7 +341,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c', 'd'], toDeselect: []});
         });
 
-        it('clearAnchor mid-session lets the next shift+click start fresh', () => {
+        it('starts fresh on the next shift+click after clearAnchor mid-session', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
             act(() => result.current.notifyAnchor(ROW_A));
@@ -462,7 +462,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d', 'e']});
         });
 
-        it('a cold shift+click selects even when every row is already selected', () => {
+        it('selects on a cold shift+click even when every row is already selected', () => {
             const onApplyRange = makeApplyMock();
             const {isItemSelected} = makeSelection('a', 'b', 'c', 'd', 'e');
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
@@ -472,7 +472,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
         });
 
-        it('a collapse never deselects rows that were selected before the session started', () => {
+        it('never deselects rows that were selected before the session started', () => {
             const onApplyRange = makeApplyMock();
             const {selected, isItemSelected} = makeSelection('c', 'd');
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
@@ -514,7 +514,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 2)).toEqual({toSelect: ['c'], toDeselect: ['a', 'b']});
         });
 
-        it('a seeded session owns its whole span, so Select All then shift+click still collapses hand-picked rows', () => {
+        it('collapses hand-picked rows after Select All (a seeded session owns its whole span)', () => {
             const onApplyRange = makeApplyMock();
             const {isItemSelected} = makeSelection('a', 'b', 'c', 'd', 'e');
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({isItemSelected, onApplyRange})));
@@ -752,7 +752,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['', 'a', 'b'], toDeselect: []});
         });
 
-        it('clearAnchor on an idle hook does not emit a batch', () => {
+        it('does not emit a batch when clearAnchor fires on an idle hook', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: [], onApplyRange})));
             act(() => result.current.clearAnchor());
@@ -777,7 +777,7 @@ describe('getShiftKeyFromEvent', () => {
         expect(getShiftKeyFromEvent({nativeEvent: {shiftKey: false}})).toBe(false);
     });
 
-    it('outer shiftKey false takes precedence over nativeEvent shiftKey true', () => {
+    it('prefers an explicit outer shiftKey false over nativeEvent shiftKey true', () => {
         expect(getShiftKeyFromEvent({shiftKey: false, nativeEvent: {shiftKey: true}})).toBe(false);
     });
 

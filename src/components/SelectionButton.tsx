@@ -171,6 +171,7 @@ function SelectionButton({
                 }
                 onMouseDown?.(e);
                 // Stop Shift+mousedown from extending the text selection and swallowing the click, restoring the focus preventDefault cancels only when no other element holds it.
+                // Deliberately covers radios too — suppressing text selection is desirable for every selection control.
                 if (e.shiftKey && !disabled) {
                     const activeElement = document.activeElement;
                     const isFocusUnclaimed = !activeElement || activeElement === document.body;
