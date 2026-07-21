@@ -19,6 +19,7 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type RulesAgentsTabProps = {
     policyID: string;
@@ -85,24 +86,26 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     return (
         <ScrollView
             style={[styles.flex1, styles.mnh0]}
-            contentContainerStyle={styles.flexGrow1}
+            contentContainerStyle={[styles.flexGrow1, styles.w100]}
             addBottomSafeAreaPadding
         >
-            <Section
-                isCentralPane
-                renderTitle={renderTitle}
-                renderSubtitle={renderSubtitle}
-                containerStyles={styles.mh5}
-            >
-                <AgentRulesList
-                    policyID={policyID}
-                    rules={visibleRules}
-                    canWriteRules={canWriteRules}
-                    showReadOnlyModal={showReadOnlyModal}
-                    listContainerStyle={[styles.mt6, styles.gap2]}
-                    menuItemWrapperStyle={styles.justifyContentCenter}
-                />
-            </Section>
+            <View style={[styles.w100, styles.alignSelfCenter, styles.workspaceSection]}>
+                <Section
+                    isCentralPane
+                    renderTitle={renderTitle}
+                    renderSubtitle={renderSubtitle}
+                    containerStyles={styles.mh5}
+                >
+                    <AgentRulesList
+                        policyID={policyID}
+                        rules={visibleRules}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                        listContainerStyle={[styles.mt6, styles.gap2]}
+                        menuItemWrapperStyle={styles.justifyContentCenter}
+                    />
+                </Section>
+            </View>
         </ScrollView>
     );
 }
