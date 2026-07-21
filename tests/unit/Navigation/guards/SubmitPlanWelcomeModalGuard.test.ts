@@ -148,6 +148,23 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
+    it("should allow when the user's domain restricts workspace creation via a migrated security group", async () => {
+        await setUpEligibleUser();
+        // Same case as the previous test, but the membership is the migrated object form and the group lives under the
+        // sharedNVP collection instead of the legacy SECURITY_GROUP collection.
+        const restrictedDomain = 'restricted.example.com';
+        const securityGroupID = 'group1';
+        const ownerAccountID = 456;
+        await Onyx.merge(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[restrictedDomain]: {securityGroupID, ownerAccountID}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`, {enableRestrictedPolicyCreation: true});
+        await waitForBatchedUpdates();
+        // The guard reads the email from its cached session, populated via its SESSION subscription.
+        await markSessionReady({authToken: 'test-token', accountID: 123, email: `employee@${restrictedDomain}`});
+
+        const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should allow while the app is still loading this session (HAS_LOADED_APP not yet set)', async () => {
         await setUpEligibleUser();
         // Simulate the sign-in window where the eligibility NVPs are present but OpenApp has not yet delivered
