@@ -108,39 +108,6 @@ function HeaderWithBackButton({
         isRotating,
     };
 
-    const middleContent = (() => {
-        if (progressBarPercentage) {
-            return (
-                <HeaderProgressBar
-                    percentageProgress={progressBarPercentage}
-                    stepCounter={stepCounter}
-                />
-            );
-        }
-        if (shouldShowReportAvatarWithDisplay) {
-            return (
-                <HeaderReportAvatar
-                    report={report}
-                    shouldDisplayStatus={shouldDisplayStatus}
-                    shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    openParentReportInCurrentTab={openParentReportInCurrentTab}
-                />
-            );
-        }
-
-        return (
-            <HeaderTitle
-                subtitle={subtitle}
-                stepCounter={stepCounter}
-                titleColor={titleColor}
-                subTitleLink={subTitleLink}
-                shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-                shouldUseHeadlineHeader={shouldUseHeadlineHeader}
-            >
-                {title}
-            </HeaderTitle>
-        );
-    })();
     const ThreeDotMenuButton = (() => {
         if (shouldShowThreeDotsButton) {
             return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
@@ -238,7 +205,32 @@ function HeaderWithBackButton({
                         type={policyAvatar?.type}
                     />
                 )}
-                {middleContent}
+                {!!progressBarPercentage && (
+                    <HeaderProgressBar
+                        percentageProgress={progressBarPercentage}
+                        stepCounter={stepCounter}
+                    />
+                )}
+                {shouldShowReportAvatarWithDisplay && !progressBarPercentage && (
+                    <HeaderReportAvatar
+                        report={report}
+                        shouldDisplayStatus={shouldDisplayStatus}
+                        shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                        openParentReportInCurrentTab={openParentReportInCurrentTab}
+                    />
+                )}
+                {!shouldShowReportAvatarWithDisplay && !progressBarPercentage && (
+                    <HeaderTitle
+                        subtitle={subtitle}
+                        stepCounter={stepCounter}
+                        titleColor={titleColor}
+                        subTitleLink={subTitleLink}
+                        shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
+                        shouldUseHeadlineHeader={shouldUseHeadlineHeader}
+                    >
+                        {title}
+                    </HeaderTitle>
+                )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                     <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}
