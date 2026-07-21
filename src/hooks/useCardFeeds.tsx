@@ -39,6 +39,7 @@ const useCardFeeds = (
     // This handles domain-based card accounts where no workspace account exists yet.
     let effectiveWorkspaceAccountID = workspaceAccountID;
     if (workspaceAccountID === CONST.DEFAULT_NUMBER_ID && policyID && allFeeds) {
+        const upperPolicyID = policyID.toUpperCase();
         const linkedDomainEntry = Object.entries(allFeeds).find(([onyxKey, feeds]) => {
             const domainID = Number(onyxKey.split('_').at(-1));
             if (!domainID) {
@@ -48,7 +49,10 @@ const useCardFeeds = (
             if (!companyCards) {
                 return false;
             }
-            return Object.values(companyCards).some((feedSettings) => feedSettings?.preferredPolicy === policyID || (feedSettings?.linkedPolicyIDs ?? []).includes(policyID));
+            return Object.values(companyCards).some(
+                (feedSettings) =>
+                    feedSettings?.preferredPolicy === policyID || (feedSettings?.linkedPolicyIDs ?? []).some((linkedPolicyID) => linkedPolicyID?.toUpperCase() === upperPolicyID),
+            );
         });
         if (linkedDomainEntry) {
             effectiveWorkspaceAccountID = Number(linkedDomainEntry[0].split('_').at(-1));
