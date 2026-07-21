@@ -1,11 +1,13 @@
 ---
-title: Set Up and Manage Expensify Cards
-description: Learn how Workspace Admins can enable, issue, and manage Expensify Cards for employees, including spending limits, bank connections, and virtual card setup.
+title: Set Up and Manage the Expensify Card in the US
+description: Learn how to set up and manage the Expensify Card for US businesses, including enabling the card, issuing cards, and managing card settings.
 keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin, Card Admin]
 internalScope: Applies to Workspace Admins and Card Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
 ---
 
 Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manage company spending with real-time controls and flexibility across employees and subscriptions.
+
+**Note:** This guide covers the Expensify Card for companies with a U.S. business bank account. If your company is based in the UK or EU, see [Set Up and Manage the Expensify Card in the UK and EU](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-UK-EU) instead. Cash back and other perks described below apply to the U.S. Expensify Card only.
 
 **Card Admins** can also issue and manage Expensify Cards — including setting limits, freezing or unfreezing cards, and adjusting card settings — once the Expensify Card is enabled on the workspace.
 
