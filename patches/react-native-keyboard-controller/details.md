@@ -1,6 +1,6 @@
 # `react-native-keyboard-controller` patches
 
-### [react-native-keyboard-controller+1.21.0-beta.1+001+fix-insets-in-landscape.patch](react-native-keyboard-controller+1.21.0-beta.1+001+fix-insets-in-landscape.patch)
+### [react-native-keyboard-controller+1.22.1+001+fix-insets-in-landscape.patch](react-native-keyboard-controller+1.22.1+001+fix-insets-in-landscape.patch)
 
 - Reason:
   

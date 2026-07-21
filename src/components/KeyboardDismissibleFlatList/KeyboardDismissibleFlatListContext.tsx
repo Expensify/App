@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import createDummySharedValue from '@src/utils/createDummySharedValue';
 
 import type {PropsWithChildren} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 
 import React, {createContext, useContext, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
@@ -13,6 +14,7 @@ import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated'
 import type {KeyboardDismissibleFlatListActionsContextValue, KeyboardDismissibleFlatListStateContextValue, ListBehavior} from './types';
 
 const defaultStateValue: KeyboardDismissibleFlatListStateContextValue = {
+    composerHeight: 0,
     keyboardHeight: createDummySharedValue(0),
     keyboardOffset: createDummySharedValue(0),
     scrollY: createDummySharedValue(0),
@@ -23,6 +25,7 @@ const defaultStateValue: KeyboardDismissibleFlatListStateContextValue = {
 const defaultActionsValue: KeyboardDismissibleFlatListActionsContextValue = {
     onScroll: () => {},
     setListBehavior: () => {},
+    onComposerLayout: () => {},
 };
 
 const KeyboardDismissibleFlatListStateContext = createContext<KeyboardDismissibleFlatListStateContextValue>(defaultStateValue);
@@ -34,6 +37,10 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     const isModalVisible = !!modal?.isPopover;
 
     const [listBehavior, setListBehavior] = useState<ListBehavior>(CONST.LIST_BEHAVIOR.INVERTED);
+
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+
+    const onComposerLayout = (e: LayoutChangeEvent) => setComposerHeight(e.nativeEvent.layout.height);
 
     const height = useSharedValue(0);
     const offset = useSharedValue(0);
@@ -125,6 +132,7 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateValue: KeyboardDismissibleFlatListStateContextValue = {
+        composerHeight,
         keyboardHeight: height,
         keyboardOffset: offset,
         scrollY,
@@ -134,7 +142,7 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const actionsValue: KeyboardDismissibleFlatListActionsContextValue = {onScroll, setListBehavior};
+    const actionsValue: KeyboardDismissibleFlatListActionsContextValue = {onScroll, setListBehavior, onComposerLayout};
 
     return (
         <KeyboardDismissibleFlatListActionsContext.Provider value={actionsValue}>

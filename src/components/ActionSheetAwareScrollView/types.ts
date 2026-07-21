@@ -33,11 +33,14 @@ type ActionSheetAwareScrollViewProps = ScrollViewProps & {
     ref?: Ref<ActionSheetAwareScrollViewHandle>;
 };
 
-type RenderActionSheetAwareScrollViewComponent = (props: ActionSheetAwareScrollViewProps) => React.ReactElement<ScrollViewProps>;
+type ActionSheetAwareScrollViewElement = React.ReactElement<ScrollViewProps>;
+
+type RenderActionSheetAwareScrollViewComponent = (props: ActionSheetAwareScrollViewProps) => ActionSheetAwareScrollViewElement;
 
 export type {
     ActionSheetAwareScrollViewProps,
     ActionSheetAwareScrollViewHandle,
+    ActionSheetAwareScrollViewElement,
     RenderActionSheetAwareScrollViewComponent,
     ActionSheetAwareScrollViewContextValue,
     ActionSheetAwareScrollViewStateContextValue,

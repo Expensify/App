@@ -1,4 +1,4 @@
-import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
+import {renderInvertedScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
@@ -15,6 +15,7 @@ import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -62,13 +63,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import ReportActionsListPaddingView from './ReportActionsListPaddingView';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
@@ -130,6 +131,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const {sessionStartTime} = useConciergeSessionState();
+    const reportActionsListFSClass = FS.getChatFSClass(report);
 
     const didLayout = useRef(false);
 
@@ -446,9 +448,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 onActionBadgePress={scrollToActionBadgeTarget}
                 isMarkAsDone={shouldUseMarkAsDoneCopy}
             />
-            <ReportActionsListPaddingView
-                report={report}
-                isReportArchived={isReportArchived}
+            <View
+                style={styles.flex1}
+                fsClass={reportActionsListFSClass}
             >
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -490,7 +492,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                         trackVerticalScrolling(undefined);
                     }}
                 />
-            </ReportActionsListPaddingView>
+            </View>
         </>
     );
 }
