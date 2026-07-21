@@ -40,6 +40,8 @@ const mockSearchStateContext = {
     shouldTurnOffSelectionMode: false,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentDefaultSimilarSearchHash: undefined,
+    currentDefaultSearchQueryString: undefined,
     currentDefaultSearchQueryFilterKeys: new Set(),
     currentSearchResults: undefined,
     currentSelectedTransactionReportID: undefined,

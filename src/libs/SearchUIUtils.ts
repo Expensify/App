@@ -3026,7 +3026,7 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
-function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: SearchFilterKey; value: string | number} | undefined {
+function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: QueryFilters[number]['key']; value: string | number} | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
@@ -3051,7 +3051,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
     }
 }
 
-function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
+function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilters[number]['key'], filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
