@@ -1,6 +1,7 @@
+import {openReportFromDeepLink} from '@libs/actions/Link';
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink} from '@libs/PendingConciergeDeepLink';
+import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink, setPendingHomeDeepLinkIfNoPendingConcierge} from '@libs/PendingConciergeDeepLink';
 import type * as PendingConciergeDeepLink from '@libs/PendingConciergeDeepLink';
 import type * as ReportUtils from '@libs/ReportUtils';
 
@@ -24,6 +25,41 @@ const USER_ID = '4';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn();
 const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
+
+function mockBrowserReloadNavigation(useLegacyFallback = false) {
+    const originalGetEntriesByType = Object.getOwnPropertyDescriptor(window.performance, 'getEntriesByType');
+    const originalNavigation = Object.getOwnPropertyDescriptor(window.performance, 'navigation');
+    Object.defineProperty(window.performance, 'getEntriesByType', {
+        configurable: true,
+        value: jest.fn((type: string) => {
+            if (type !== 'navigation') {
+                return [];
+            }
+            return useLegacyFallback ? [] : [{type: 'reload'} as unknown as PerformanceNavigationTiming];
+        }),
+    });
+
+    if (useLegacyFallback) {
+        Object.defineProperty(window.performance, 'navigation', {
+            configurable: true,
+            value: {type: 1},
+        });
+    }
+
+    return () => {
+        if (originalGetEntriesByType) {
+            Object.defineProperty(window.performance, 'getEntriesByType', originalGetEntriesByType);
+        } else {
+            Reflect.deleteProperty(window.performance, 'getEntriesByType');
+        }
+
+        if (originalNavigation) {
+            Object.defineProperty(window.performance, 'navigation', originalNavigation);
+        } else {
+            Reflect.deleteProperty(window.performance, 'navigation');
+        }
+    };
+}
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
@@ -56,6 +92,8 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@libs/ReportUtils', () => ({
     findLastAccessedReport: (...args: Parameters<typeof mockFindLastAccessedReport>) => mockFindLastAccessedReport(...args),
+    getReportIDFromLink: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getReportIDFromLink,
+    getRouteFromLink: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getRouteFromLink,
     parseReportRouteParams: jest.fn(() => ({})),
     isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
     isArchivedReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isArchivedReport,
@@ -236,5 +274,86 @@ describe('navigateAfterOnboarding', () => {
 
         expect(window.sessionStorage.getItem('PENDING_CONCIERGE_DEEP_LINK')).toBeNull();
         clearPendingConciergeDeepLink();
+    });
+
+    it('should preserve a pending Concierge deep link when a generated home route is processed during reload', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        setPendingConciergeDeepLink();
+
+        openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/${ROUTES.HOME}`, {}, false, REPORT_ID, undefined, undefined, undefined);
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('should not let an ambiguous home fallback override a pending Concierge deep link', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        setPendingConciergeDeepLink();
+
+        setPendingHomeDeepLinkIfNoPendingConcierge();
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('should clear a stale pending Concierge deep link when opening root before onboarding finishes', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        setPendingConciergeDeepLink();
+
+        openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/`, {}, false, REPORT_ID, undefined, undefined, undefined);
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+    });
+
+    it('should preserve a pending Concierge deep link when root is replayed during a browser reload', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        const restoreBrowserNavigation = mockBrowserReloadNavigation();
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        setPendingConciergeDeepLink();
+
+        try {
+            openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/`, {}, false, REPORT_ID, undefined, undefined, undefined);
+            navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
+
+            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+            expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+        } finally {
+            restoreBrowserNavigation();
+        }
+    });
+
+    it('should preserve a pending Concierge deep link when browser reload is only available from the legacy navigation API', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        const restoreBrowserNavigation = mockBrowserReloadNavigation(true);
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        setPendingConciergeDeepLink();
+
+        try {
+            openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/`, {}, false, REPORT_ID, undefined, undefined, undefined);
+            navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
+
+            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+            expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+        } finally {
+            restoreBrowserNavigation();
+        }
+    });
+
+    it('should let the normal onboarding destination win after root clears a stale pending Concierge deep link', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        setPendingConciergeDeepLink();
+
+        openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/`, {}, false, REPORT_ID, undefined, undefined, undefined);
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 });

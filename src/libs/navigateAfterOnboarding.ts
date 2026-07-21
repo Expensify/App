@@ -17,7 +17,7 @@ import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostS
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {consumePendingConciergeDeepLink} from './PendingConciergeDeepLink';
+import {consumePendingConciergeDeepLink, consumePendingHomeDeepLink} from './PendingConciergeDeepLink';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
@@ -82,11 +82,13 @@ function navigateAfterOnboarding(
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
+        consumePendingHomeDeepLink();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         return;
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
+        consumePendingHomeDeepLink();
         handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
         return;
     }
@@ -101,7 +103,10 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
+        consumePendingHomeDeepLink();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    } else if (consumePendingHomeDeepLink()) {
+        Navigation.navigate(ROUTES.HOME);
     } else if (consumePendingConciergeDeepLink()) {
         Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
     } else if (!isReportTopmostSplitNavigator()) {
