@@ -1,4 +1,4 @@
-import CustomViewWrapper from '@components/CustomViewWrapper';
+import DisplayContentsView from '@components/DisplayContentsView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
@@ -105,7 +105,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <Activity mode={isActivityVisible ? 'visible' : 'hidden'}>
-            <CustomViewWrapper style={styles.flex1}>
+            <DisplayContentsView style={styles.flex1}>
                 <ParticipantSearchResults
                     iouType={iouType}
                     action={action}
@@ -126,7 +126,7 @@ function MoneyRequestParticipantsSelector({
                     onRestrictedParticipantSelected={onRestrictedParticipantSelected}
                     onCloseParticipantPicker={onCloseParticipantPicker}
                 />
-            </CustomViewWrapper>
+            </DisplayContentsView>
         </Activity>
     );
 }

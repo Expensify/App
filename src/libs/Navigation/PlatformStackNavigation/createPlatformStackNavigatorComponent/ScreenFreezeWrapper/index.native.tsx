@@ -1,4 +1,4 @@
-import CustomViewWrapper from '@components/CustomViewWrapper';
+import DisplayContentsView from '@components/DisplayContentsView';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -43,7 +43,7 @@ function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperPro
 
     return (
         <Freeze freeze={frozen}>
-            <CustomViewWrapper style={styles.flex1}>{children}</CustomViewWrapper>
+            <DisplayContentsView style={styles.flex1}>{children}</DisplayContentsView>
         </Freeze>
     );
 }

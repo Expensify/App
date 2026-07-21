@@ -1,3 +1,7 @@
+/**
+ * On native, renders with display: 'contents' so wrapper nodes don't hide the navigation underlay during
+ * swipe-back or Activity visibility toggles. Web uses a plain View.
+ */
 import type {PropsWithChildren} from 'react';
 import type {ViewStyle} from 'react-native';
 
@@ -21,18 +25,17 @@ const VIEW_CONFIG = {
 } as ReturnType<ViewConfigProvider>;
 
 /**
- * Keeps the underlay visible during swipe-back gestures on mobile, preventing a blank screen flash
- * while navigating between screens. Uses internal RN APIs (NativeComponentRegistry,
- * ReactNativeStyleAttributes) — validated with RN 0.83.1. Re-verify after upgrades.
+ * Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) — validated with RN 0.83.1.
+ * Re-verify after upgrades.
  */
-const CustomViewWrapper = NativeComponentRegistry.get<PropsWithChildren<{style: ViewStyle}>>('CustomViewWrapper', () => VIEW_CONFIG);
+const NativeDisplayContentsView = NativeComponentRegistry.get<PropsWithChildren<{style: ViewStyle}>>('DisplayContentsView', () => VIEW_CONFIG);
 
-type CustomViewWrapperProps = PropsWithChildren<{
+type DisplayContentsViewProps = PropsWithChildren<{
     style?: ViewStyle;
 }>;
 
-function CustomViewWrapperComponent({children, style}: CustomViewWrapperProps) {
-    return <CustomViewWrapper style={style ?? {}}>{children}</CustomViewWrapper>;
+function DisplayContentsView({children, style}: DisplayContentsViewProps) {
+    return <NativeDisplayContentsView style={style ?? {}}>{children}</NativeDisplayContentsView>;
 }
 
-export default CustomViewWrapperComponent;
+export default DisplayContentsView;
