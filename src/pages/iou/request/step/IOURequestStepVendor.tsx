@@ -153,7 +153,6 @@ function IOURequestStepVendor({
                 }}
                 initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
                 ListItem={SingleSelectListItem}
-                shouldShowLoadingPlaceholder={!policy}
                 listEmptyContent={listEmptyContent}
                 shouldSingleExecuteRowSelect
             />
