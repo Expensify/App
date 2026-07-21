@@ -64,6 +64,7 @@ const mockSearchActionsContext = {
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
     setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createMonthListItem = (year: number, month: number, options: Partial<TransactionMonthGroupListItemType> = {}): TransactionMonthGroupListItemType => ({

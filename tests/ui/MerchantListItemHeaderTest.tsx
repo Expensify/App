@@ -64,6 +64,7 @@ const mockSearchActionsContext = {
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
     setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createMerchantListItem = (merchant: string, options: Partial<TransactionMerchantGroupListItemType> = {}): TransactionMerchantGroupListItemType => ({

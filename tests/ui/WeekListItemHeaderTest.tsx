@@ -63,6 +63,7 @@ const mockSearchActionsContext = {
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
     setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createWeekListItem = (week: string, options: Partial<TransactionWeekGroupListItemType> = {}): TransactionWeekGroupListItemType => ({

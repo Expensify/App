@@ -64,6 +64,7 @@ const mockSearchActionsContext = {
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
     setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createCategoryListItem = (category: string, options: Partial<TransactionCategoryGroupListItemType> = {}): TransactionCategoryGroupListItemType => ({

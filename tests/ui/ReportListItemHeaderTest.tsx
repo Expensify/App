@@ -69,6 +69,7 @@ const mockSearchActionsContext = {
     removeTransaction: jest.fn(),
     setSortedReportIDs: jest.fn(),
     setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const mockPersonalDetails: Record<string, PersonalDetails> = {
