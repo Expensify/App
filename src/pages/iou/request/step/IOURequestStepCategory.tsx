@@ -264,8 +264,8 @@ function IOURequestStepCategory({
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_CATEGORIES_BUTTON}
                             >
-                                <Button.Text>{translate('workspace.categories.editCategories')}</Button.Text>
                                 <Button.KeyboardShortcut />
+                                <Button.Text>{translate('workspace.categories.editCategories')}</Button.Text>
                             </Button>
                         </FixedFooter>
                     )}

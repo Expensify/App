@@ -121,8 +121,8 @@ function DistanceMapTabContent({
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MAP_NEXT_BUTTON}
                     >
-                        <Button.Text>{buttonText}</Button.Text>
                         <Button.KeyboardShortcut allowBubble />
+                        <Button.Text>{buttonText}</Button.Text>
                     </Button>
                 </View>
             </View>

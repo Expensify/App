@@ -136,8 +136,8 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         style={[styles.flex1]}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
                     >
-                        <Button.Text>{translate('gps.resume')}</Button.Text>
                         <Button.KeyboardShortcut allowBubble />
+                        <Button.Text>{translate('gps.resume')}</Button.Text>
                     </Button>
                     <Button
                         onPress={saveGpsTrip}
@@ -146,8 +146,8 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         style={[styles.flex1]}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
                     >
-                        <Button.Text>{translate('gps.save')}</Button.Text>
                         <Button.KeyboardShortcut allowBubble />
+                        <Button.Text>{translate('gps.save')}</Button.Text>
                     </Button>
                 </View>
             ) : (
@@ -160,8 +160,8 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                             style={[styles.w100, styles.flexShrink0]}
                             sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
                         >
-                            <Button.Text>{gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}</Button.Text>
                             <Button.KeyboardShortcut allowBubble />
+                            <Button.Text>{gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}</Button.Text>
                         </Button>
                     </View>
                 </GPSTooltip>

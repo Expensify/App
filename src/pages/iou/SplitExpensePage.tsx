@@ -479,8 +479,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onPress={onSaveSplitExpense}
                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
             >
-                <Button.Text>{translate('common.save')}</Button.Text>
                 <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('common.save')}</Button.Text>
             </Button>
         </View>
     );

@@ -449,8 +449,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REMOVE_SPLIT_BUTTON}
                             >
-                                <Button.Text>{translate('iou.removeSplit')}</Button.Text>
                                 <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                                <Button.Text>{translate('iou.removeSplit')}</Button.Text>
                             </Button>
                         )}
                         <Button
@@ -471,8 +471,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             }}
                             sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_SAVE_BUTTON}
                         >
-                            <Button.Text>{translate('common.save')}</Button.Text>
                             <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                            <Button.Text>{translate('common.save')}</Button.Text>
                         </Button>
                     </FixedFooter>
                 </View>

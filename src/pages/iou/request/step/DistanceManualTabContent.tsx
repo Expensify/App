@@ -68,8 +68,8 @@ function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manu
                     testID="next-button"
                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MANUAL_NEXT_BUTTON}
                 >
-                    <Button.Text>{translate('common.save')}</Button.Text>
                     <Button.KeyboardShortcut allowBubble={false} />
+                    <Button.Text>{translate('common.save')}</Button.Text>
                 </Button>
             }
         />

@@ -249,8 +249,8 @@ function IOURequestStepDestination({
                                     }}
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_PER_DIEM_RATES_BUTTON}
                                 >
-                                    <Button.Text>{translate('workspace.perDiem.editPerDiemRates')}</Button.Text>
                                     <Button.KeyboardShortcut />
+                                    <Button.Text>{translate('workspace.perDiem.editPerDiemRates')}</Button.Text>
                                 </Button>
                             </FixedFooter>
                         )}

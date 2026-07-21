@@ -219,8 +219,8 @@ function IOURequestStepTag({
                                 }
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_TAGS_BUTTON}
                             >
-                                <Button.Text>{translate('workspace.tags.editTags')}</Button.Text>
                                 <Button.KeyboardShortcut />
+                                <Button.Text>{translate('workspace.tags.editTags')}</Button.Text>
                             </Button>
                         </FixedFooter>
                     )}

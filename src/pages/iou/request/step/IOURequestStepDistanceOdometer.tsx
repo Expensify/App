@@ -734,8 +734,8 @@ function IOURequestStepDistanceOdometer({
                         testID="next-save-button"
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
                     >
-                        <Button.Text>{buttonText}</Button.Text>
                         <Button.KeyboardShortcut allowBubble={!isEditing} />
+                        <Button.Text>{buttonText}</Button.Text>
                     </Button>
                 </View>
             </View>

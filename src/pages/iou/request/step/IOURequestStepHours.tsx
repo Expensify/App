@@ -197,8 +197,8 @@ function IOURequestStepHours({
                         }}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.HOURS_NEXT_BUTTON}
                     >
-                        <Button.Text>{translate(isEditingConfirmation ? 'common.save' : 'common.next')}</Button.Text>
                         <Button.KeyboardShortcut />
+                        <Button.Text>{translate(isEditingConfirmation ? 'common.save' : 'common.next')}</Button.Text>
                     </Button>
                 }
             />
