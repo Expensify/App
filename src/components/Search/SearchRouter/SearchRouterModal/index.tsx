@@ -38,6 +38,11 @@ function SearchRouterModal() {
 
     const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : CONST.MODAL.MODAL_TYPE.POPOVER;
     const closeSearchRouterAfterModalHide = (afterClose?: () => void) => {
+        if (!isSearchRouterDisplayed) {
+            afterClose?.();
+            return;
+        }
+
         actionAfterModalHideRef.current = afterClose;
         closeSearchRouter();
     };
