@@ -25,7 +25,7 @@ import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
-import SpendOverTimeSection from './SpendOverTimeSection';
+import InsightsSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
@@ -75,7 +75,7 @@ function HomePage() {
                                     <UpcomingTravelSection />
                                     <RecentlyAddedSection />
                                     <YourSpendSection />
-                                    <SpendOverTimeSection />
+                                    <InsightsSection />
                                     <DiscoverSection />
                                     <AnnouncementSection />
                                 </>
@@ -89,7 +89,7 @@ function HomePage() {
                                         <GettingStartedSection />
                                         <ForYouSection />
                                         <RecentlyAddedSection />
-                                        <SpendOverTimeSection />
+                                        <InsightsSection />
                                     </View>
                                     <View
                                         testID="homePageRightColumn"

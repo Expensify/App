@@ -236,6 +236,9 @@ const ONYXKEYS = {
     /** Whether the "For You" section has ever shown an actionable to-do (keeps the section visible once seen) */
     NVP_HAS_SEEN_FOR_YOU_TODO: 'nvp_hasSeenForYouTodo',
 
+    /** The insight the user last selected in the Home page insights card (defaults to Spend over time) */
+    NVP_HOME_SELECTED_INSIGHT: 'nvp_homeSelectedInsight',
+
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
 
@@ -1627,6 +1630,11 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: Record<string, boolean>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
+    [ONYXKEYS.NVP_HOME_SELECTED_INSIGHT]:
+        | typeof CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME
+        | typeof CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS
+        | typeof CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES
+        | typeof CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.IS_BETA]: boolean;
