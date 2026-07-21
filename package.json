@@ -158,7 +158,7 @@
     "group-ib-fp": "file:modules/group-ib-fp",
     "heic-to": "^1.1.14",
     "howler": "^2.2.4",
-    "html-entities": "2.5.2",
+    "html-entities": "2.5.3",
     "htmlparser2": "10.0.0",
     "idb-keyval": "^6.2.1",
     "json5": "2.2.2",
