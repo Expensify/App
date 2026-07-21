@@ -49,7 +49,7 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -314,6 +314,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =
@@ -329,6 +330,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         return report;
     }, [caseID, parentReport, report]);
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
 
     const shouldShowTaskDeleteButton =
         isTaskReport &&
@@ -406,7 +408,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
-    const rawReportName = getReportNameFromReportNameUtils(reportForHeader, reportAttributes);
+    const rawReportName = deprecatedGetReportName(reportForHeader, reportAttributes);
     const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName) : rawReportName;
     const additionalRoomDetails = isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
@@ -504,7 +506,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
             const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
-            const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
+            const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID, moneyRequestReportActions);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
             items.push({
@@ -711,6 +713,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         reportActionsForOriginalReportID,
         iouTransactionID,
         moneyRequestReport?.reportID,
+        moneyRequestReportActions,
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
         currentUserPersonalDetails.localCurrencyCode,
@@ -941,6 +944,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 parentReportAction,
                 conciergeReportID,
                 delegateEmail,
+                reportActionsForOriginalReportID,
                 ancestors,
             );
             return;
@@ -957,6 +961,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             deleteTrackExpense({
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
+                chatReportActions: moneyRequestReportActions,
                 transactionID: iouTransactionID,
                 reportAction: requestParentReportAction,
                 iouReport,
@@ -969,6 +974,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
+                policy: iouPolicy,
             });
         } else if (iouTransactionID) {
             const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -993,7 +999,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
+        reportActionsForOriginalReportID,
         moneyRequestReport,
+        moneyRequestReportActions,
         iouReport,
         chatIOUReport,
         duplicateTransactions,
@@ -1004,6 +1012,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         allTransactionViolations,
         deleteTransactions,
         removeTransaction,
+        iouPolicy,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.

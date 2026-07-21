@@ -343,14 +343,14 @@ function getInvoicesChatName({
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdmin(receiverPolicy));
 
     if (isCurrentUserReceiver) {
-        return getPolicyName({report, policy});
+        return getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     }
 
     if (isIndividual) {
         return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: (personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID], translate}));
     }
 
-    return getPolicyName({report, policy: receiverPolicy});
+    return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
 }
 
 function getInvoiceReportName(report: OnyxEntry<Report>, translate: LocalizedTranslate, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
@@ -378,7 +378,7 @@ function getInvoicePayerName(
         return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail ?? undefined, translate}));
     }
 
-    return getPolicyName({report, policy: invoiceReceiverPolicy});
+    return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
 }
 
 /**
@@ -417,7 +417,7 @@ function getMoneyRequestReportName({
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPolicy);
     } else {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
     }
     const payerPaidAmountMessage = translate('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
 
@@ -430,7 +430,7 @@ function getMoneyRequestReportName({
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
         return translate('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
@@ -1078,6 +1078,7 @@ function computeReportName({
             shouldAddCurrentUserPostfix: true,
             personalDetailsData: personalDetailsList,
             formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            translate,
         });
     }
 
@@ -1102,20 +1103,37 @@ function computeReportName({
 /**
  * Returns the report name from OnyxDerived `reportAttributes` when available, falling back to the raw report object.
  *
- * **Always prefer passing `reportAttributesDerivedValue` from the derived Onyx key** (`ONYXKEYS.DERIVED.REPORT_ATTRIBUTES`).
+ * **Always prefer passing `derivedReportName`**, sourced from the derived Onyx key (`ONYXKEYS.DERIVED.REPORT_ATTRIBUTES`)
+ * i.e. `reportAttributes?.[reportID]?.reportName`. Prefer the O(1) selectors (`useDerivedReportNameByReportID`) over
+ * subscribing to the whole attributes Record just to read one name.
  * The fallback to `report.reportName` exists only for edge-cases where the derived value is not yet populated.
  * Do NOT compute any part of the name here. Adjust `computeReportName` (internal) function if any change to report name are required.
+ *
+ * @param derivedReportName the cached name for this report from `ONYXKEYS.DERIVED.REPORT_ATTRIBUTES`.
  */
-function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
+function getReportName(report?: Report, derivedReportName?: string): string {
     if (!report?.reportID) {
         return '';
     }
-    return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';
+    return derivedReportName ?? report.reportName ?? '';
+}
+
+/**
+ * Transitional wrapper for call sites that still hold the whole attributes `Record`. Passing the Record forces a
+ * caller to subscribe to *every* report's attributes and re-render when any of them change, when all it needs is one
+ * name. Each call site is migrated to `getReportName` incrementally; this wrapper is removed once none remain.
+ * See https://github.com/Expensify/App/issues/66427.
+ *
+ * @deprecated Use `getReportName(report, derivedReportName)`, sourcing the name via `useDerivedReportNameByReportID`.
+ */
+function deprecatedGetReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
+    return getReportName(report, report?.reportID ? reportAttributesDerivedValue?.[report.reportID]?.reportName : undefined);
 }
 
 export {
     computeReportName,
     getReportName,
+    deprecatedGetReportName,
     getInvoiceReportName,
     getMoneyRequestReportName,
     buildReportNameFromParticipantNames,

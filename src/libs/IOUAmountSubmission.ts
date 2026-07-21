@@ -44,6 +44,7 @@ import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
 import Permissions from './Permissions';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
@@ -54,6 +55,7 @@ type SubmitAmountArgs = {
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isDraftChatReport: boolean | undefined;
     selectedCurrency: string;
     decimals: number;
@@ -89,6 +91,7 @@ type SubmitAmountArgs = {
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
@@ -225,14 +228,14 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
+            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft, currentUserPersonalDetails.accountID);
     });
 }
 
 type ParticipantOption = ReturnType<typeof buildReportParticipants>[number];
 
 function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmountContext, participants: ParticipantOption[]): void {
-    const {report, selectedCurrency, paymentMethod, quickAction} = args;
+    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID} = args;
     const {currentUserAccountID, newAmount: backendAmount} = ctx;
     const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const sendMoneyParams = {
@@ -245,6 +248,7 @@ function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmount
         recipient: participants.at(0) ?? {},
         optimisticChatReportID,
         shouldStartTracking: false,
+        delegateAccountID,
     };
 
     const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
@@ -292,6 +296,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         allPersonalDetails,
         action,
         currentUserPersonalDetails,
+        isTrackIntentUser,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
 
@@ -372,6 +377,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 optimisticChatReportID,
                 optimisticTransactionID,
                 delegateAccountID,
+                isTrackIntentUser,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -532,7 +538,10 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         delegateAccountID,
         policyRecentlyUsedCurrencies,
         allReports,
+        allPersonalDetails,
         navigateBack,
+        isTrackIntentUser,
+        reportPolicyTags,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -567,6 +576,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         transactionID,
         transactionThreadReport: report,
         parentReport,
+        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
         parentReportNextStep,
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,
@@ -582,6 +592,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         isASAPSubmitBetaEnabled,
         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         delegateAccountID,
+        reportPolicyTags,
+        isTrackIntentUser,
     });
     navigateBack();
 }

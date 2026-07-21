@@ -193,7 +193,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             isInvoice: true,
             hasMultipleTransactions: false,
-            shouldAddPendingNewTransactionIDs: true,
+            shouldAddPendingNewTransactionIDs: false,
         });
     });
 
@@ -223,7 +223,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
         });
 
-        it('should be true for CREATE when backToReport is the receiving chat (report-preview "Add expense" returns to the chat whose preview card shows the new expense)', () => {
+        it('should be true for CREATE when backToReport is the receiving chat', () => {
             jest.mocked(isMoneyRequestReport).mockReturnValue(false);
 
             cleanupAndNavigateAfterExpenseCreate({
@@ -238,7 +238,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
         });
 
-        it('should be false for CREATE when backToReport points to a money-request (expense) report that highlights via its own live diff', () => {
+        it('should be false for CREATE when backToReport points to a money-request (expense) report', () => {
             jest.mocked(getReportOrDraftReport).mockReturnValue(expenseReport);
             jest.mocked(isMoneyRequestReport).mockReturnValue(true);
 
@@ -266,6 +266,22 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             });
 
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
+        });
+
+        it('should be false for an invoice without looking up the report (invoice rooms are never money-request reports)', () => {
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CREATE,
+                report: undefined,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: true,
+                optimisticChatReportID: 'invoice-room-1',
+                isInvoice: true,
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false, hasMultipleTransactions: false}));
+            expect(getReportOrDraftReport).not.toHaveBeenCalled();
+            expect(isMoneyRequestReport).not.toHaveBeenCalled();
         });
     });
 });
