@@ -2732,8 +2732,11 @@ const staticStyles = (theme: ThemeColors) =>
         htmlTableCell: {
             flex: 1,
             minWidth: variables.htmlTableColumnMinWidth,
-            maxWidth: variables.htmlTableColumnMaxWidth,
             paddingEnd: 8,
+        },
+
+        htmlTableCellMaxWidth: {
+            maxWidth: variables.htmlTableColumnMaxWidth,
         },
 
         htmlTableCellText: {

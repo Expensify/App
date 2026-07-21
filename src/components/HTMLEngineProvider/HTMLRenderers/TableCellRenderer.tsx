@@ -37,6 +37,7 @@ function TableCellRenderer({tnode}: CustomRendererProps<TBlock>) {
     const columnIndex = getElementChildren(tnode.parent).indexOf(tnode);
     const columnAlignment = columnIndex >= 0 ? columnAlignments.at(columnIndex) : undefined;
     const alignment = getExplicitCellAlignment(tnode.attributes.style) ?? columnAlignment ?? 'left';
+    const isRightAligned = alignment === 'right';
 
     // Map the cell alignment to the shared named styles instead of building inline style objects.
     const cellAlignmentStyle = {
@@ -51,10 +52,10 @@ function TableCellRenderer({tnode}: CustomRendererProps<TBlock>) {
     }[alignment];
 
     return (
-        <View style={[styles.htmlTableCell, cellAlignmentStyle]}>
+        <View style={[styles.htmlTableCell, !isRightAligned && styles.htmlTableCellMaxWidth, cellAlignmentStyle]}>
             <Text
                 numberOfLines={1}
-                style={[isHeaderCell ? styles.htmlTableHeaderCellText : styles.htmlTableCellText, textAlignmentStyle]}
+                style={[isHeaderCell ? styles.htmlTableHeaderCellText : styles.htmlTableCellText, styles.w100, textAlignmentStyle]}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
