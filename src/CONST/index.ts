@@ -990,9 +990,9 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
+        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
-        WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
@@ -6693,6 +6693,8 @@ const CONST = {
             ITEMIZED: 'itemized',
             HOTEL: 'hotel',
         },
+        // Hotel needs historical receipts backfilled with isHotelReservation before it can return results
+        SELECTABLE_RECEIPT_TYPES: ['ereceipt', 'itemized'],
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
@@ -7295,6 +7297,7 @@ const CONST = {
             SEARCH: 'searchItem',
             FIND_ITEM: 'findItem',
             ASK_CONCIERGE: 'askConcierge',
+            NAVIGATE: 'navigate',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',

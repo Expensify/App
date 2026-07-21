@@ -519,7 +519,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -8975,6 +8974,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         serverResults: 'Suchergebnisse',
         searchIn: 'Suchen in',
         askConcierge: (message: string) => `Frage Concierge „${message}“`,
+        goTo: ({destination}: {destination: string}) => `Gehe zu ${destination}`,
         searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (

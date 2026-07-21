@@ -7662,6 +7662,33 @@ describe('createDistanceRequest', () => {
         expect(result.transactionID).toBeTruthy();
     });
 
+    it('does not optimistically create a transaction thread — only the chat and iou reports are written to Onyx', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1000}, recentWaypoints),
+            participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+        });
+        await waitForBatchedUpdates();
+
+        // Onyx is cleared before each test, so the only reports that should exist are the chat and the iou report.
+        // A proactively-created transaction thread would show up as an extra report — the backend owns thread creation now.
+        const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    Onyx.disconnect(connection);
+                    resolve(reports);
+                },
+            });
+        });
+
+        const allowedReportIDs = new Set([result.chatReportID, result.iouReport?.reportID]);
+        const unexpectedReports = Object.values(allReports ?? {}).filter((report) => !!report?.reportID && !allowedReportIDs.has(report.reportID));
+        expect(unexpectedReports).toHaveLength(0);
+    });
+
     it('builds the optimistic chat report at the provided optimisticChatReportID for a brand-new P2P recipient — so it matches the id the confirmation screen already subscribed to', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
