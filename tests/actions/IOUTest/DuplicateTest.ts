@@ -37,7 +37,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1353,6 +1353,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1420,6 +1421,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1479,6 +1481,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1531,6 +1534,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1583,6 +1587,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1638,6 +1643,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1703,6 +1709,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1753,6 +1760,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1796,6 +1804,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1842,6 +1851,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1894,6 +1904,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1962,6 +1973,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2030,6 +2042,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2081,6 +2094,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2144,6 +2158,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2317,6 +2332,7 @@ describe('actions/Duplicate', () => {
             recentWaypoints: [],
             isTrackIntentUser: false,
             delegateAccountID: undefined,
+            formatPhoneNumber,
             ...overrides,
         });
 
@@ -2889,6 +2905,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -3001,6 +3018,7 @@ describe('actions/Duplicate', () => {
             recentWaypoints: [],
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
             ...overrides,
         });
 

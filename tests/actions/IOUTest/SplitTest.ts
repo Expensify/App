@@ -56,7 +56,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -414,6 +414,7 @@ describe('split expense', () => {
                         personalDetails: mockPersonalDetails,
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     },
                 );
                 return waitForBatchedUpdates();
@@ -751,6 +752,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -802,6 +804,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -827,6 +830,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -859,6 +863,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -896,6 +901,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -919,6 +925,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -986,6 +993,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1038,6 +1046,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1101,6 +1110,7 @@ describe('split expense', () => {
             personalDetails: mockPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         waitForBatchedUpdates();
@@ -1152,6 +1162,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
             delegateAccountID: undefined,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1187,6 +1198,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             sessionEmail: RORY_EMAIL,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1400,6 +1412,7 @@ describe('split expense', () => {
             personalDetails: testPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1463,6 +1476,7 @@ describe('split expense', () => {
             personalDetails: participantPersonalDetails,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1533,6 +1547,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             participantsPolicyTags,
             delegateAccountID: undefined,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1604,6 +1619,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             sessionEmail: RORY_EMAIL,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1650,6 +1666,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedCurrencies: [],
             participantsPolicyTags,
             delegateAccountID: undefined,
+            formatPhoneNumber,
         });
 
         waitForBatchedUpdates();
@@ -1695,6 +1712,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
             delegateAccountID: undefined,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1743,6 +1761,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
             delegateAccountID: undefined,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -7619,6 +7638,7 @@ describe('createDistanceRequest', () => {
             betas: [CONST.BETAS.ALL],
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         };
     }
 
@@ -8199,6 +8219,7 @@ describe('startSplitBill delegateAccountID forwarding', () => {
             policyRecentlyUsedTags: undefined,
             participantsPolicyTags,
             delegateAccountID: DELEGATE_ACCOUNT_ID,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
