@@ -143,6 +143,9 @@ type CreateDistanceRequestInformation = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+
+    /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
+    optimisticChatReportID?: string;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -1958,6 +1961,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         previousOdometerDraft,
         delegateAccountID,
         isTrackIntentUser,
+        optimisticChatReportID,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2144,6 +2148,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             optimisticReportPreviewActionID,
             delegateAccountID,
             isTrackIntentUser,
+            optimisticChatReportID,
         });
 
         onyxData = moneyRequestOnyxData;
