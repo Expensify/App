@@ -1,0 +1,23 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import type {UseAnchoredPositionInput, UseAnchoredPositionOutput} from './shared';
+
+import useAnchoredPositionShared from './shared';
+
+function useAnchoredPosition(input: UseAnchoredPositionInput): UseAnchoredPositionOutput {
+    const styles = useThemeStyles();
+    const {edgeStyle, available, isPositioned, onContentLayout} = useAnchoredPositionShared(input);
+    const isCenter = input.alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER;
+    // Pre-measure transform is harmless; flipping isPositioned would trick FloatingHost's maxHeight gate.
+    const centerOverride = isCenter && input.anchorRect && !isPositioned ? styles.overlayCenteringTransform : {};
+    return {
+        style: {...styles.pFixed, ...edgeStyle, ...centerOverride},
+        available,
+        isPositioned,
+        onContentLayout,
+    };
+}
+
+export default useAnchoredPosition;
