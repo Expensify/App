@@ -622,11 +622,11 @@ describe('MoneyRequestReportPreview', () => {
             expect(openExpenseOverParentReportSpy).toHaveBeenCalledWith(mockIOUReport.reportID, `thread_${mockSecondTransactionID}`, '');
         });
 
-        it('opens the parent report instead of leaving the tap dead when the actions are loaded but the expense has no IOU action', async () => {
+        it('falls back to the parent report once the re-fetch settles when the expense has no IOU action at all', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
             // A legacy expense: the IOU report's actions are loaded, but none of them is this expense's IOU
-            // action, so the thread can never be resolved by re-fetching.
+            // action, and re-fetching surfaces nothing new.
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
 
             await renderAndPopulateCarousel();
@@ -636,11 +636,54 @@ describe('MoneyRequestReportPreview', () => {
             });
             await pressSecondTransaction();
 
-            // Regression: this used to defer the press and re-fetch the already-loaded actions — nothing changed,
-            // so the deferred press never fired and the tap was permanently dead. Open the parent report instead,
-            // matching the "View" button.
-            expect(openReportSpy).not.toHaveBeenCalled();
+            // The press defers and re-fetches the report's actions (the missing action may simply not be cached).
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // The fetch settles without changing the cached actions. The loading flip alone must drain the press to
+            // the parent report — regression: it used to wait for an action-count change that never came, leaving
+            // the tap permanently dead.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('opens the pressed expense after re-fetching when only part of the report actions were cached', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            // Partially seeded cache: some of the report's actions are present (e.g. from the app-wide bootstrap),
+            // but not the pressed expense's IOU action.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[mockAction.reportActionID]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await pressSecondTransaction();
+
+            // Regression: the press used to give up immediately (parent report) because some actions were cached;
+            // it must re-fetch instead — the missing IOU action may just not have been seeded.
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
+            expect(openExpenseOverParentReportSpy).not.toHaveBeenCalled();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // The fetch lands the missing IOU action — the pressed expense opens (report beneath), not the parent report.
+            getIOUActionSpy.mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(openExpenseOverParentReportSpy).toHaveBeenCalledWith(mockIOUReport.reportID, `thread_${mockSecondTransactionID}`, '');
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
         });
 
         it('falls back to opening the parent report when the pressed expense has no thread', async () => {

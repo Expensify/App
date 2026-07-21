@@ -88,6 +88,12 @@ function MoneyRequestReportPreview({
     const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: (reportActions) => Object.keys(reportActions ?? {}).length,
     });
+    // Whether the deferred press's openReport fetch is still in flight. Its true -> false flip re-runs the drain
+    // effect below even when the fetched actions match the cache (no count change), so a deferred press always
+    // settles — without this, a press deferred while some actions were already cached could hang forever.
+    const [isLoadingInitialIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: (loadingState) => !!loadingState?.isLoadingInitialReportActions,
+    });
     // Holds a pressed transaction whose thread report could not be resolved yet, so the expense can be
     // opened once the IOU report's actions have loaded instead of falling back to the parent report.
     const pendingExpenseTransactionRef = useRef<Transaction | null>(null);
@@ -301,17 +307,14 @@ function MoneyRequestReportPreview({
                 return;
             }
 
-            // The thread could not be resolved. If the IOU report's actions haven't loaded at all yet (e.g. right
-            // after a cache clear), fetch them and open the expense once they arrive (see the effect below) instead
-            // of falling back to the parent report and losing the pressed expense. Only defer in that nothing-loaded
-            // state: the fetch is then guaranteed to change the action count (every report has at least its CREATED
-            // action), so the deferred press always drains. If the actions are already loaded and this expense still
-            // has no resolvable thread (legacy expense predating transaction threads), re-fetching wouldn't surface
-            // anything new and the deferred press would never fire (dead tap). Same while offline, where openReport
-            // can't fetch. In both cases fall through to opening the cached parent report, matching the "View"
-            // button — its expense rows resolve threads through the report screen's own machinery.
+            // The thread could not be resolved because this expense's IOU action isn't cached (e.g. right after a
+            // cache clear, or when only part of the report's actions were seeded). Fetch the report's actions and
+            // open the expense once the fetch settles (see the effect below) instead of falling back to the parent
+            // report and losing the pressed expense. Skip this while offline: openReport can't fetch, so the
+            // deferred press would never fire (dead tap) — fall through to opening the cached parent report
+            // instead, matching the "View" button.
             const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-            if (!isIOUActionLoaded && !iouReportActionCount && iouReportID && !isOffline) {
+            if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = transaction;
                 openReport({reportID: iouReportID, introSelected, betas});
                 return;
@@ -319,13 +322,15 @@ function MoneyRequestReportPreview({
 
             openReportFromPreview();
         },
-        [betas, introSelected, iouReportActionCount, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
+        [betas, introSelected, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
     );
 
     // Completes a deferred expense press once the IOU report's actions have loaded.
     useEffect(() => {
         const pendingTransaction = pendingExpenseTransactionRef.current;
-        if (!pendingTransaction) {
+        // Hold the press while the fetch is in flight — the loading flip back to false re-runs this effect, so the
+        // press settles even when the fetched actions match the cache and the action count never changes.
+        if (!pendingTransaction || isLoadingInitialIOUReportActions) {
             return;
         }
         const childReportID = resolveChildReportID(pendingTransaction);
@@ -339,7 +344,7 @@ function MoneyRequestReportPreview({
             pendingExpenseTransactionRef.current = null;
             openReportFromPreview();
         }
-    }, [iouReportActionCount, navigateToExpense, openReportFromPreview, resolveChildReportID]);
+    }, [iouReportActionCount, isLoadingInitialIOUReportActions, navigateToExpense, openReportFromPreview, resolveChildReportID]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => {
         const transactionIOUAction = getIOUActionForReportID(item.reportID, item.transactionID);
