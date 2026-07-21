@@ -1,6 +1,6 @@
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 /**
  * Controls Activity visibility for a focus-driven subtree: hides immediately when `isActive` becomes false,
@@ -8,36 +8,26 @@ import {useEffect, useRef, useState} from 'react';
  * When the component first mounts already active, shows immediately without waiting.
  */
 function useDeferVisibleUntilFocusTransitionEnd(isActive: boolean): boolean {
-    const [isDeferredVisible, setIsDeferredVisible] = useState(isActive);
-    const isFirstRenderRef = useRef(true);
+    const [visible, setVisible] = useState(isActive);
+    const [wasActive, setWasActive] = useState(isActive);
 
-    // Hide immediately when becoming inactive (adjust state during render).
-    const [prevIsActive, setPrevIsActive] = useState(isActive);
-    if (isActive !== prevIsActive) {
-        setPrevIsActive(isActive);
+    if (isActive !== wasActive) {
+        setWasActive(isActive);
         if (!isActive) {
-            setIsDeferredVisible(false);
+            setVisible(false);
         }
     }
-
     useEffect(() => {
         if (!isActive) {
             return;
         }
-
-        if (isFirstRenderRef.current) {
-            isFirstRenderRef.current = false;
-            return;
-        }
-
         const handle = TransitionTracker.runAfterTransitions({
-            callback: () => setIsDeferredVisible(true),
+            callback: () => setVisible(true),
             waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
     }, [isActive]);
-
-    return isActive ? isDeferredVisible : false;
+    return isActive && visible;
 }
 
 export default useDeferVisibleUntilFocusTransitionEnd;
