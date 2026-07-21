@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -12,6 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -19,6 +21,8 @@ function RequireQuickBooksDesktopModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenX']);
+
+    const confirm = () => Navigation.goBack();
 
     return (
         <ScreenWrapper
@@ -44,12 +48,13 @@ function RequireQuickBooksDesktopModal() {
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
-                        success
-                        text={translate('common.buttonConfirm')}
-                        onPress={() => Navigation.goBack()}
-                        pressOnEnter
-                        large
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={confirm}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </View>
         </ScreenWrapper>
