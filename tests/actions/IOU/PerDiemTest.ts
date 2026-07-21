@@ -736,6 +736,7 @@ describe('PerDiem', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 personalDetails: {123: {accountID: 123, login: 'existing@example.com'}},
                 chatReportActions,
+                isTrackIntentUser: false,
             });
 
             expect(result.reportPreviewAction.reportActionID).toBe(existingPreviewActionID);

@@ -652,7 +652,6 @@ function createExpenseByType({
     personalDetails,
     recentWaypoints,
     chatReportActions,
-    policyTagList,
     isTrackIntentUser,
 }: {
     transactionType: string;
@@ -667,7 +666,6 @@ function createExpenseByType({
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-    policyTagList: OnyxTypes.PolicyTagLists;
     isTrackIntentUser: boolean | undefined;
 }) {
     switch (transactionType) {
@@ -900,7 +898,6 @@ function duplicateExpenseTransaction({
         personalDetails,
         recentWaypoints,
         chatReportActions,
-        policyTagList,
         isTrackIntentUser,
     });
 }
@@ -1072,7 +1069,6 @@ function duplicateReport({
             personalDetails,
             recentWaypoints,
             chatReportActions,
-            policyTagList,
             isTrackIntentUser,
         });
 
