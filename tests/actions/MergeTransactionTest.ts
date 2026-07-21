@@ -917,7 +917,7 @@ describe('mergeTransactionRequest', () => {
         expect(updatedTargetTransactionThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
     });
 
-    it('should reparent a passed transaction thread when the original IOU action has no child report ID', async () => {
+    it('should move a passed transaction thread when the original IOU action has no child report ID', async () => {
         const fixtures = await setupCrossReportMergeToSourceReportFixtures();
         const {targetTransaction, sourceExpenseReport, targetReport, targetIOUActionID, targetIOUAction, targetTransactionThreadID, targetTransactionThread} = fixtures;
 
