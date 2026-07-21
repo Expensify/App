@@ -4255,10 +4255,17 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         departs: '出发时间',
         errorMessage: '出现问题。请稍后再试。',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>请<a href="${phoneErrorMethodsRoute}">添加一个工作邮箱作为您的主要登录方式</a>以预订差旅。</rbr>`,
+        verifyAccount: {
+            headline: '验证您的账户',
+        },
         domainSelector: {
+            headline: '选择域名',
             title: '域名',
             subtitle: '为 Expensify Travel 设置选择一个域名。',
             recommended: '推荐',
+        },
+        workspaceAddress: {
+            headline: '输入公司地址',
         },
         domainPermissionInfo: {
             title: '域名',
@@ -4310,7 +4317,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         carRental: '租车',
         nightIn: '夜宿',
         nightsIn: '入住晚数',
-        taxID: {title: '税号', subtitle: '请输入您法人的税号，以便我们以本地货币为您设置差旅结算。', inputLabel: '法人税号', error: {required: '请输入您的法人税号。'}},
+        taxID: {headline: '输入税号', title: '税号', subtitle: '请输入您法人的税号，以便我们以本地货币为您设置差旅结算。', inputLabel: '法人税号', error: {required: '请输入您的法人税号。'}},
     },
     workspace: {
         common: {

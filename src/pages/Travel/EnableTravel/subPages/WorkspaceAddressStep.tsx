@@ -1,8 +1,10 @@
 import AddressForm from '@components/AddressForm';
 import type {FormOnyxValues} from '@components/Form/types';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCountryCode} from '@libs/CountryUtils';
 
@@ -16,6 +18,7 @@ import INPUT_IDS from '@src/types/form/HomeAddressForm';
 
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 /** Coerces an unknown form field value to a string. */
 function toStringValue(value: unknown): string {
@@ -23,6 +26,7 @@ function toStringValue(value: unknown): string {
 }
 
 function WorkspaceAddressStep({policy, policyID, onNext, resetToPage}: EnableTravelSubPageProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const address = policy?.address;
@@ -85,18 +89,23 @@ function WorkspaceAddressStep({policy, policyID, onNext, resetToPage}: EnableTra
     };
 
     return (
-        <AddressForm
-            formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-            onSubmit={handleSubmit}
-            submitButtonText={translate('common.save')}
-            city={city}
-            country={getCountryCode(currentCountry)}
-            onAddressChanged={handleAddressChange}
-            state={state}
-            street1={address?.addressStreet}
-            street2={address?.addressStreet2}
-            zip={zipcode}
-        />
+        <>
+            <View style={[styles.ph5, styles.mb3]}>
+                <Text style={styles.textHeadlineLineHeightXXL}>{translate('travel.workspaceAddress.headline')}</Text>
+            </View>
+            <AddressForm
+                formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                onSubmit={handleSubmit}
+                submitButtonText={translate('common.save')}
+                city={city}
+                country={getCountryCode(currentCountry)}
+                onAddressChanged={handleAddressChange}
+                state={state}
+                street1={address?.addressStreet}
+                street2={address?.addressStreet2}
+                zip={zipcode}
+            />
+        </>
     );
 }
 

@@ -4374,10 +4374,17 @@ ${amount} per ${merchant} - ${date}`,
         departs: 'Partenza',
         errorMessage: 'Si è verificato un errore. Riprova più tardi.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Per prenotare viaggi, <a href="${phoneErrorMethodsRoute}">aggiungi un’email di lavoro come login principale</a>.</rbr>`,
+        verifyAccount: {
+            headline: 'Verifica il tuo account',
+        },
         domainSelector: {
+            headline: 'Scegli un dominio',
             title: 'Dominio',
             subtitle: 'Scegli un dominio per la configurazione di Expensify Travel.',
             recommended: 'Consigliato',
+        },
+        workspaceAddress: {
+            headline: 'Inserisci l’indirizzo dell’azienda',
         },
         domainPermissionInfo: {
             title: 'Dominio',
@@ -4433,6 +4440,7 @@ ${amount} per ${merchant} - ${date}`,
         nightIn: 'notte in',
         nightsIn: 'notti a',
         taxID: {
+            headline: 'Inserisci il codice fiscale',
             title: 'Codice fiscale',
             subtitle: 'Inserisci il codice fiscale della tua entità legale così possiamo configurare la fatturazione dei viaggi nella tua valuta locale.',
             inputLabel: 'Partita IVA dell’entità legale',

@@ -4339,10 +4339,17 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         departs: '出発日時',
         errorMessage: '問題が発生しました。後でもう一度お試しください。',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>出張を予約するには、<a href="${phoneErrorMethodsRoute}">勤務先メールアドレスを主なログインとして追加</a>してください。</rbr>`,
+        verifyAccount: {
+            headline: 'アカウントを認証する',
+        },
         domainSelector: {
+            headline: 'ドメインを選択',
             title: 'ドメイン',
             subtitle: 'Expensify Travel のセットアップ用ドメインを選択してください。',
             recommended: 'おすすめ',
+        },
+        workspaceAddress: {
+            headline: '会社住所を入力',
         },
         domainPermissionInfo: {
             title: 'ドメイン',
@@ -4398,6 +4405,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         nightIn: '宿泊数',
         nightsIn: '泊（滞在先）',
         taxID: {
+            headline: '納税者番号を入力',
             title: '納税者番号',
             subtitle: '現地通貨での出張費の請求を設定できるように、法人の納税者番号を入力してください。',
             inputLabel: '法人納税者番号',

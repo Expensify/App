@@ -62,7 +62,8 @@ function DomainSelectorStep({policy, onNext, resetToPage}: EnableTravelSubPagePr
 
     return (
         <>
-            <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3, styles.mr5, styles.ml5, styles.mb3]}>{translate('travel.domainSelector.headline')}</Text>
+            <Text style={[styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
             <View style={[styles.optionsListSectionHeader]}>
                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('travel.domainSelector.title')}</Text>
             </View>

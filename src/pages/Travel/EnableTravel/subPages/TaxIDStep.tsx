@@ -45,6 +45,7 @@ function TaxIDStep({onNext}: EnableTravelSubPageProps) {
             submitButtonText={translate('common.continue')}
             enabledWhenOffline
         >
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('travel.taxID.headline')}</Text>
             <Text style={[styles.mb5, styles.textSupporting]}>{translate('travel.taxID.subtitle')}</Text>
             <InputWrapper
                 InputComponent={TextInput}

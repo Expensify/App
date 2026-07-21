@@ -4400,10 +4400,17 @@ ${amount} pour ${merchant} - ${date}`,
         errorMessage: 'Un problème est survenu. Veuillez réessayer plus tard.',
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Veuillez <a href="${phoneErrorMethodsRoute}">ajouter un e-mail professionnel comme identifiant principal</a> pour réserver un voyage.</rbr>`,
+        verifyAccount: {
+            headline: 'Validez votre compte',
+        },
         domainSelector: {
+            headline: 'Choisir un domaine',
             title: 'Domaine',
             subtitle: 'Choisissez un domaine pour la configuration d’Expensify Travel.',
             recommended: 'Recommandé',
+        },
+        workspaceAddress: {
+            headline: 'Indiquer l’adresse de l’entreprise',
         },
         domainPermissionInfo: {
             title: 'Domaine',
@@ -4459,6 +4466,7 @@ ${amount} pour ${merchant} - ${date}`,
         nightIn: 'nuit dans',
         nightsIn: 'nuits à',
         taxID: {
+            headline: 'Saisir l’identifiant fiscal',
             title: 'Identifiant fiscal',
             subtitle: 'Saisissez l’identifiant fiscal de votre entité légale afin que nous puissions configurer la facturation des déplacements dans votre devise locale.',
             inputLabel: 'Identifiant fiscal de l’entité juridique',
