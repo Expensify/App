@@ -68,6 +68,7 @@ describe('getPrimaryAction', () => {
         jest.clearAllMocks();
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
@@ -233,6 +234,173 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
+    it('should return SUBMIT for workflow approver on OPEN expense report with stale managerID', async () => {
+        const SUBMITTER_ACCOUNT_ID = 2;
+        const SUBMITTER_EMAIL = 'submitter@mail.com';
+        const OWNER_ACCOUNT_ID = 3;
+        const OWNER_EMAIL = 'owner@mail.com';
+        // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
+        await Onyx.clear();
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: SUBMITTER_ACCOUNT_ID,
+            managerID: OWNER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            name: 'Test Workspace',
+            owner: OWNER_EMAIL,
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: OWNER_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: CURRENT_USER_EMAIL},
+            },
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        });
+
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: SUBMITTER_EMAIL,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
+    it('should not return SUBMIT for workflow approver on Submit & Close policy', async () => {
+        const SUBMITTER_ACCOUNT_ID = 2;
+        const SUBMITTER_EMAIL = 'submitter@mail.com';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: SUBMITTER_ACCOUNT_ID,
+            managerID: SUBMITTER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            name: 'Test Workspace',
+            owner: CURRENT_USER_EMAIL,
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, // Submit&Close
+            approver: CURRENT_USER_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: CURRENT_USER_EMAIL},
+            },
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        });
+
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: SUBMITTER_EMAIL,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
+    it('should not return SUBMIT for rule-only approver', async () => {
+        const SUBMITTER_ACCOUNT_ID = 2;
+        const SUBMITTER_EMAIL = 'submitter@mail.com';
+        const OTHER_WORKFLOW_APPROVER_EMAIL = 'other-approver@mail.com';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: SUBMITTER_ACCOUNT_ID,
+            managerID: SUBMITTER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            name: 'Test Workspace',
+            owner: OTHER_WORKFLOW_APPROVER_EMAIL,
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: OTHER_WORKFLOW_APPROVER_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: OTHER_WORKFLOW_APPROVER_EMAIL},
+            },
+            rules: {
+                approvalRules: [
+                    {
+                        approver: CURRENT_USER_EMAIL,
+                        applyWhen: [{condition: 'matches', field: 'category', value: 'Travel'}],
+                        id: 'rule-1',
+                    },
+                ],
+            },
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        });
+
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            category: 'Travel',
+        });
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: SUBMITTER_EMAIL,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
     it('should return SUBMIT option for zero amount transaction', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
@@ -635,6 +803,55 @@ describe('getPrimaryAction', () => {
                 violations: {},
                 bankAccountList: {},
                 policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should return PAY for non-reimburser payments admin in manual reimbursement mode when owner is payer', async () => {
+        const ownerEmail = 'owner@manual-test.com';
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID + 10,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: -300,
+            isWaitingOnBankAccount: false,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            owner: ownerEmail,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            reimburser: ownerEmail,
+            employeeList: {
+                [CURRENT_USER_EMAIL]: {
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                },
+                [ownerEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            },
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: ownerEmail,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
@@ -1365,6 +1582,54 @@ describe('getPrimaryAction', () => {
         ).toBe('');
     });
 
+    it('should return SUBMIT for a multi-expense draft when at least one expense is valid and another has a smartscan failed violation', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const VALID_TRANSACTION_ID = 'VALID_TRANSACTION_ID';
+        const FAILED_TRANSACTION_ID = 'FAILED_TRANSACTION_ID';
+        const validTransaction = {
+            transactionID: VALID_TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+        const scanFailedTransaction = {
+            transactionID: FAILED_TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            merchant: '',
+        } as unknown as Transaction;
+
+        const violation = {
+            name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+            type: CONST.VIOLATION_TYPES.WARNING,
+            showInReview: true,
+        } as unknown as TransactionViolation;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                ownerLogin: '',
+                reportTransactions: [validTransaction, scanFailedTransaction],
+                violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${FAILED_TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
     it('should return an empty string for invoice report when the chat report is archived', async () => {
         // Given the invoice data
         const {policy, convertedInvoiceChat: invoiceChatReport}: InvoiceTestData = InvoiceData;
@@ -1418,6 +1683,7 @@ describe('isReviewDuplicatesAction', () => {
         jest.clearAllMocks();
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
@@ -1445,7 +1711,7 @@ describe('isReviewDuplicatesAction', () => {
             ],
         };
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, violation)).toBe(true);
+        expect(isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, violation)).toBe(true);
     });
 
     it('should return false when report approver has no duplicated transactions', async () => {
@@ -1465,7 +1731,7 @@ describe('isReviewDuplicatesAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, undefined)).toBe(false);
+        expect(isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, undefined)).toBe(false);
     });
 
     it('should return false when current user is neither the report submitter nor approver', async () => {
@@ -1486,7 +1752,7 @@ describe('isReviewDuplicatesAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
         expect(
-            isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, {
+            isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
                     createMock<TransactionViolation>({
                         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -1508,6 +1774,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         jest.clearAllMocks();
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
@@ -1536,7 +1803,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, createMock<Report>({}), transaction, [], policy as Policy, false)).toBe(
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, createMock<Report>({}), undefined, transaction, [], policy as Policy, false)).toBe(
             CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD,
         );
     });
@@ -1564,9 +1831,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         });
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, transaction, [violation], policy as Policy, false)).toBe(
-            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
-        );
+        expect(
+            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
+        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES);
     });
 
     it('should return MARK AS CASH if has all RTER violations', async () => {
@@ -1593,9 +1860,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         });
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, transaction, [violation], policy as Policy, false)).toBe(
-            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
-        );
+        expect(
+            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
+        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 
     it('should return MARK AS CASH for broken connection', async () => {
@@ -1621,9 +1888,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         });
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, transaction, [violation], policy as Policy, false)).toBe(
-            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
-        );
+        expect(
+            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
+        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 
     it('Should return empty string when we are waiting for user to add a bank account', async () => {
@@ -1893,7 +2160,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 }),
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, submitterEmail, reportTransactions, violations, policy);
             expect(result).toBe(true);
         });
 
@@ -1926,7 +2193,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 }),
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, submitterEmail, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -1956,7 +2223,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 }),
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, undefined, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -1986,7 +2253,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 }),
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, submitterEmail, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
     });

@@ -20,7 +20,7 @@ runtime.__moduleDefCount = 0;
 
 const originalDefine = runtime.__d;
 if (typeof originalDefine === 'function') {
-    runtime.__d = function (factory, moduleId, deps, moduleName) {
+    runtime.__d = function (factory, moduleId, deps, moduleName, inverseDependencies) {
         runtime.__moduleDefCount = (runtime.__moduleDefCount ?? 0) + 1;
         if (typeof moduleName === 'string') {
             runtime.__moduleNames[moduleId] = moduleName;
@@ -34,6 +34,6 @@ if (typeof originalDefine === 'function') {
             runtime.__moduleInitTimes[moduleId] = now() - start;
         }
 
-        return originalDefine(timedFactory, moduleId, deps, moduleName);
+        return originalDefine(timedFactory, moduleId, deps, moduleName, inverseDependencies);
     };
 }

@@ -150,6 +150,7 @@ describe('getViolationsOnyxData', () => {
 
     it('should return an object with correct shape and with empty transactionViolations array', () => {
         const result = ViolationsUtils.getViolationsOnyxData({
+            ownerLogin: undefined,
             updatedTransaction: transaction,
             transactionViolations,
             policy,
@@ -175,6 +176,7 @@ describe('getViolationsOnyxData', () => {
             {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
         const result = ViolationsUtils.getViolationsOnyxData({
+            ownerLogin: undefined,
             updatedTransaction: transaction,
             transactionViolations,
             policy,
@@ -220,6 +222,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should remove the customUnitOutOfPolicy violation if the modified one belongs to the policy', () => {
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -253,6 +256,7 @@ describe('getViolationsOnyxData', () => {
                 },
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -306,6 +310,7 @@ describe('getViolationsOnyxData', () => {
             transaction.created = '2026-06-15';
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -342,6 +347,7 @@ describe('getViolationsOnyxData', () => {
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -380,6 +386,7 @@ describe('getViolationsOnyxData', () => {
             transaction.created = '2026-06-15';
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -431,6 +438,7 @@ describe('getViolationsOnyxData', () => {
             transaction.created = '2026-06-15';
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -452,6 +460,7 @@ describe('getViolationsOnyxData', () => {
             transaction.created = '2026-06-15';
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -476,6 +485,7 @@ describe('getViolationsOnyxData', () => {
             const wrongPolicy = {...policy, customUnits: {}};
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy: wrongPolicy,
@@ -502,6 +512,7 @@ describe('getViolationsOnyxData', () => {
             const wrongPolicy = {...policy, customUnits: {}};
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy: wrongPolicy,
@@ -527,6 +538,7 @@ describe('getViolationsOnyxData', () => {
             transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -736,6 +748,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should remove the customUnitOutOfPolicy violation if the per diem rate is valid for the policy', () => {
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -759,6 +772,7 @@ describe('getViolationsOnyxData', () => {
             transaction.created = '9999-12-31T23:59:59Z';
             policy.type = 'personal';
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -773,6 +787,7 @@ describe('getViolationsOnyxData', () => {
         it('should add futureDate violation if the transaction has a future date and policy is corporate', () => {
             transaction.created = '9999-12-31T23:59:59Z';
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -789,6 +804,7 @@ describe('getViolationsOnyxData', () => {
             policy.type = 'personal';
             transactionViolations = [futureDateViolation];
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -804,6 +820,7 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -1000000;
             policy.maxExpenseAmountNoReceipt = 2500;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -820,6 +837,7 @@ describe('getViolationsOnyxData', () => {
             transaction.modifiedCurrency = CONST.CURRENCY.CAD;
             policy.maxExpenseAmountNoReceipt = 2500;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -835,6 +853,7 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -1000000;
             policy.maxExpenseAmount = 200000;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -851,6 +870,7 @@ describe('getViolationsOnyxData', () => {
             transaction.modifiedCurrency = CONST.CURRENCY.NZD;
             policy.maxExpenseAmount = 200000;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -868,6 +888,7 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -10000;
             policy.maxExpenseAmountNoItemizedReceipt = 7500;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -889,6 +910,7 @@ describe('getViolationsOnyxData', () => {
             transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
             policy.maxExpenseAmountNoReceipt = 2500;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -909,6 +931,7 @@ describe('getViolationsOnyxData', () => {
             policy.maxExpenseAmountNoReceipt = 2500; // Regular receipt required over $25
             policy.maxExpenseAmountNoItemizedReceipt = 7500; // Itemized receipt required over $75
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -932,6 +955,7 @@ describe('getViolationsOnyxData', () => {
             transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
             policy.maxExpenseAmountNoItemizedReceipt = 7500;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -952,6 +976,7 @@ describe('getViolationsOnyxData', () => {
             transaction.modifiedCurrency = CONST.CURRENCY.CAD;
             policy.maxExpenseAmountNoItemizedReceipt = 7500;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -987,6 +1012,7 @@ describe('getViolationsOnyxData', () => {
         it('should add category specific violations', () => {
             policy.areRulesEnabled = true;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1002,6 +1028,7 @@ describe('getViolationsOnyxData', () => {
             policyCategories.Food.maxAmountNoItemizedReceipt = 0; // Category set to "Always"
             transaction.amount = -10000;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1021,6 +1048,7 @@ describe('getViolationsOnyxData', () => {
             policyCategories.Food.maxAmountNoItemizedReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE; // Category set to "Never"
             transaction.amount = -10000; // $100 expense - would trigger policy-level but category overrides
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1039,6 +1067,7 @@ describe('getViolationsOnyxData', () => {
             // policyCategories.Food.maxAmountNoItemizedReceipt is undefined (Default - follow policy)
             transaction.amount = -10000; // $100 expense - exceeds policy threshold
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1063,6 +1092,7 @@ describe('getViolationsOnyxData', () => {
 
             // When the category is changed to "never require itemized receipt"
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: existingViolations,
                 policy,
@@ -1090,6 +1120,7 @@ describe('getViolationsOnyxData', () => {
 
             // When violations are recalculated after the policy threshold changed
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: existingViolations,
                 policy,
@@ -1118,6 +1149,7 @@ describe('getViolationsOnyxData', () => {
 
             // When the category is changed to "always require itemized receipts"
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: existingViolations,
                 policy,
@@ -1146,6 +1178,7 @@ describe('getViolationsOnyxData', () => {
 
             // When the category is set to "never" for both receipt types
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: existingViolations,
                 policy,
@@ -1175,6 +1208,7 @@ describe('getViolationsOnyxData', () => {
         it('should add missingCategory violation if no category is included', () => {
             transaction.category = undefined;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1189,6 +1223,7 @@ describe('getViolationsOnyxData', () => {
         it('should add categoryOutOfPolicy violation when category is not in policy', () => {
             transaction.category = 'Bananas';
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1202,6 +1237,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1222,6 +1258,7 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: partialTransaction,
                 transactionViolations,
                 policy,
@@ -1236,6 +1273,7 @@ describe('getViolationsOnyxData', () => {
         it('should not add categoryOutOfPolicy violation when category is Uncategorized', () => {
             transaction.category = 'Uncategorized';
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1247,9 +1285,25 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
+        it('should add missingCategory violation when category is the Uncategorized sentinel and categories are required', () => {
+            transaction.category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                ownerLogin: undefined,
+            });
+            expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
+        });
+
         it('should not add categoryOutOfPolicy violation when category is none', () => {
             transaction.category = 'none';
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1267,6 +1321,7 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1285,6 +1340,7 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1308,6 +1364,7 @@ describe('getViolationsOnyxData', () => {
             };
             const iouReport = {reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE} as Report;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: partialTransaction,
                 transactionViolations,
                 policy,
@@ -1332,6 +1389,7 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transactionWithEnteredDetails,
                 transactionViolations,
                 policy,
@@ -1354,6 +1412,7 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transactionWithModifiedDetails as unknown as Transaction,
                 transactionViolations,
                 policy,
@@ -1373,6 +1432,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should not add any violations when categories are not required', () => {
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1391,6 +1451,7 @@ describe('getViolationsOnyxData', () => {
             policyCategories = {Food: {name: 'Food', enabled: true}};
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1406,6 +1467,7 @@ describe('getViolationsOnyxData', () => {
         it('should remove a stale missingCategory violation when categories are not required', () => {
             // e.g. after the workspace disables categories: a leftover missingCategory must clear optimistically.
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: [missingCategoryViolation],
                 policy,
@@ -1438,6 +1500,7 @@ describe('getViolationsOnyxData', () => {
 
         it("shouldn't update the transactionViolations if the policy requires tags and the transaction has a tag from the policy", () => {
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1454,6 +1517,7 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = undefined;
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1471,6 +1535,7 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = undefined;
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1489,6 +1554,7 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [missingTagViolation, {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1506,6 +1572,7 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1526,6 +1593,7 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1547,6 +1615,7 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: partialTransaction,
                 transactionViolations,
                 policy,
@@ -1563,6 +1632,7 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1580,6 +1650,7 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1600,6 +1671,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should not add any violations when tags are not required', () => {
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1628,6 +1700,7 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = 'Lunch';
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1656,6 +1729,7 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1721,6 +1795,7 @@ describe('getViolationsOnyxData', () => {
 
             // Test case where transaction has no tags
             let result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1735,6 +1810,7 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = 'Africa';
             someTagLevelsRequiredViolation.data = {errorIndexes: [1, 2]};
             result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1749,6 +1825,7 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = 'Africa::Project1';
             someTagLevelsRequiredViolation.data = {errorIndexes: [1]};
             result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1762,6 +1839,7 @@ describe('getViolationsOnyxData', () => {
             // Test case where transaction has all tags
             transaction.tag = 'Africa:Accounting:Project1';
             result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1772,11 +1850,12 @@ describe('getViolationsOnyxData', () => {
             });
             expect(result.value).toEqual([]);
         });
-        it('should not return tagOutOfPolicy when the selected tag level has no enabled tags', () => {
+        it('should return tagOutOfPolicy when the selected tag is disabled and its level has no enabled tags left', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1786,7 +1865,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toEqual([]);
+            expect(result.value).toEqual([{...tagOutOfPolicyViolation, data: {tagName: 'Department'}}]);
         });
 
         it('should return tagOutOfPolicy when selected tag is disabled and another tag in that level is enabled', () => {
@@ -1798,6 +1877,7 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = 'Africa:Accounting:Project1';
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1810,13 +1890,16 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).toEqual([violation]);
         });
-        it('should not return tagOutOfPolicy when no tags are enabled in the policy', () => {
+        it('should return a single tagOutOfPolicy for the first stale level when the Tags feature is disabled and no tags are enabled', () => {
+            // The backend emits one tagOutOfPolicy for the whole multi-level tag (the first out-of-policy level by
+            // orderWeight), so the optimistic recompute must match it instead of flagging every level.
             policyTags.Department.tags.Accounting.enabled = false;
             policyTags.Region.tags.Africa.enabled = false;
             policyTags.Project.tags.Project1.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1826,7 +1909,8 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toEqual([]);
+            // Region has the lowest orderWeight (1), so it is the level the violation is reported on.
+            expect(result.value).toEqual([{...tagOutOfPolicyViolation, data: {tagName: 'Region'}}]);
         });
         it('should not return allTagLevelsRequired when only non-required dependent tag levels are empty', () => {
             // Make Department non-required
@@ -1836,6 +1920,7 @@ describe('getViolationsOnyxData', () => {
 
             // hasDependentTags = true to exercise getTagViolationsForDependentTags
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1856,6 +1941,7 @@ describe('getViolationsOnyxData', () => {
 
             // hasDependentTags = true to exercise getTagViolationsForDependentTags
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1874,6 +1960,7 @@ describe('getViolationsOnyxData', () => {
             const missingProjectTag = {...missingTagViolation, data: {tagName: 'Project'}};
             transaction.tag = undefined;
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1894,7 +1981,6 @@ describe('getViolationsOnyxData', () => {
         };
 
         const ownerAccountID = 123;
-        const otherAccountID = 456;
 
         let iouReport: Report;
 
@@ -1918,6 +2004,7 @@ describe('getViolationsOnyxData', () => {
         it('should add missingAttendees violation when no attendees are present', () => {
             transaction.comment = {attendees: []};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1933,9 +2020,10 @@ describe('getViolationsOnyxData', () => {
 
         it('should add missingAttendees violation when only owner is an attendee', () => {
             transaction.comment = {
-                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
+                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''}],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1952,11 +2040,12 @@ describe('getViolationsOnyxData', () => {
         it('should not add missingAttendees violation when there is at least one non-owner attendee', () => {
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1974,11 +2063,12 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [missingAttendeesViolation];
             transaction.comment = {
                 attendees: [
-                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
-                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: ''},
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -1996,6 +2086,7 @@ describe('getViolationsOnyxData', () => {
             policy.isAttendeeTrackingEnabled = false;
             transaction.comment = {attendees: []};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -2013,6 +2104,7 @@ describe('getViolationsOnyxData', () => {
             policyCategories.Meals.areAttendeesRequired = false;
             transaction.comment = {attendees: []};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -2026,6 +2118,59 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
+        describe('owner identified via report ownerAccountID', () => {
+            const ownerLogin = 'owner@example.com';
+
+            beforeEach(async () => {
+                // Seed personal details so the report owner's accountID resolves to a login via getLoginByAccountID.
+                // This populates the allPersonalDetails cache that PersonalDetailsUtils reads from.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {accountID: ownerAccountID, login: ownerLogin}});
+                await waitForBatchedUpdates();
+            });
+
+            it('should not add missingAttendees violation for a single non-owner attendee when the owner is resolved from ownerAccountID', () => {
+                // The report owner (owner@example.com) is NOT in the attendee list, so the single attendee is a genuine
+                // non-owner. Without owner-aware identification, the count-based fallback would wrongly flag this as missing.
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: 'other@example.com', displayName: 'Other', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should add missingAttendees violation when the only attendee is the report owner resolved from ownerAccountID', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: ownerLogin, displayName: 'Owner', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                    iouReport,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+        });
+
         describe('optimistic / offline scenarios (iouReport is undefined)', () => {
             // In offline scenarios, iouReport is undefined so we can't get ownerAccountID.
             // The code falls back to using getCurrentUserEmail() to identify the owner by login/email.
@@ -2037,6 +2182,7 @@ describe('getViolationsOnyxData', () => {
                     attendees: [{email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''}],
                 };
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2060,6 +2206,7 @@ describe('getViolationsOnyxData', () => {
                     ],
                 };
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2083,6 +2230,7 @@ describe('getViolationsOnyxData', () => {
                     ],
                 };
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2103,6 +2251,7 @@ describe('getViolationsOnyxData', () => {
                     attendees: [{email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''}],
                 };
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2137,6 +2286,7 @@ describe('getViolationsOnyxData', () => {
                 transactionViolations = [];
                 transaction.comment = {attendees: []};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2156,6 +2306,7 @@ describe('getViolationsOnyxData', () => {
                     attendees: [{email: 'anyone@example.com', displayName: 'Someone', avatarUrl: ''}],
                 };
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2178,6 +2329,7 @@ describe('getViolationsOnyxData', () => {
                     ],
                 };
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2200,6 +2352,7 @@ describe('getViolationsOnyxData', () => {
                     ],
                 };
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2231,6 +2384,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxCode = 'UNKNOWN_TAX';
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2246,6 +2400,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxCode = 'TAX_10';
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2262,6 +2417,7 @@ describe('getViolationsOnyxData', () => {
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 transactionViolations = [taxOutOfPolicyViolation];
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2278,6 +2434,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxCode = '';
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2294,6 +2451,7 @@ describe('getViolationsOnyxData', () => {
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 transactionViolations = [taxOutOfPolicyViolation];
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2303,6 +2461,31 @@ describe('getViolationsOnyxData', () => {
                     isInvoiceTransaction: false,
                 });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should keep taxOutOfPolicy violation when the tax rate is disabled but still present in the policy', () => {
+                // Disabling a tax rate keeps its key in the policy with `isDisabled: true` - it is no longer valid,
+                // so an unrelated client-side recompute (e.g. deleting a tag offline) must not drop the violation.
+                transaction.taxCode = 'TAX_10';
+                policy.taxRates = {
+                    name: 'Taxes',
+                    defaultExternalID: 'TAX_10',
+                    defaultValue: '10%',
+                    foreignTaxDefault: 'TAX_10',
+                    taxes: {TAX_10: {name: '10%', value: '10%', isDisabled: true}},
+                };
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    ownerLogin: undefined,
+                });
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
             });
         });
 
@@ -2314,6 +2497,7 @@ describe('getViolationsOnyxData', () => {
             it('should add taxOutOfPolicy violation when transaction has taxCode', () => {
                 transaction.taxCode = 'SOME_TAX';
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2328,6 +2512,7 @@ describe('getViolationsOnyxData', () => {
             it('should add taxOutOfPolicy violation when transaction has taxAmount', () => {
                 transaction.taxAmount = 500;
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2342,6 +2527,7 @@ describe('getViolationsOnyxData', () => {
             it('should add taxOutOfPolicy violation when transaction has taxValue', () => {
                 transaction.taxValue = '10%';
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2358,6 +2544,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxAmount = undefined;
                 transaction.taxValue = undefined;
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2374,6 +2561,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxAmount = 0;
                 transaction.taxValue = '';
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2391,6 +2579,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxValue = undefined;
                 transactionViolations = [taxOutOfPolicyViolation];
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2410,6 +2599,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.TIME;
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2427,6 +2617,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2445,6 +2636,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
                     updatedTransaction: transaction,
                     transactionViolations,
                     policy,
@@ -2473,6 +2665,7 @@ describe('getViolationsOnyxData', () => {
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -2500,6 +2693,7 @@ describe('getViolationsOnyxData', () => {
                 ],
             };
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -2526,6 +2720,7 @@ describe('getViolationsOnyxData', () => {
             };
             const modifiedTransactionViolations = [overTripLimitViolation, ...transactionViolations];
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: modifiedTransactionViolations,
                 policy,
@@ -2577,6 +2772,7 @@ describe('getViolationsOnyxData', () => {
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -2592,6 +2788,7 @@ describe('getViolationsOnyxData', () => {
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: [inactiveVendorViolation],
                 policy,
@@ -2607,6 +2804,7 @@ describe('getViolationsOnyxData', () => {
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: [inactiveVendorViolation],
                 policy,
@@ -2622,6 +2820,7 @@ describe('getViolationsOnyxData', () => {
             policy = policyWithQBOVendorFeature();
             // transaction.comment has no vendor key — represents a cleared selection
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: [inactiveVendorViolation],
                 policy,
@@ -2646,6 +2845,7 @@ describe('getViolationsOnyxData', () => {
             } as unknown as Policy;
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: [inactiveVendorViolation],
                 policy,
@@ -2660,6 +2860,7 @@ describe('getViolationsOnyxData', () => {
         it('does not add the violation when the feature is inactive (no QBO connection)', () => {
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -2676,6 +2877,7 @@ describe('getViolationsOnyxData', () => {
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -2694,6 +2896,7 @@ describe('getViolationsOnyxData', () => {
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
                 policy,
@@ -2714,6 +2917,7 @@ describe('getViolationsOnyxData', () => {
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: [inactiveVendorViolation],
                 policy,
@@ -2736,6 +2940,7 @@ describe('getViolationsOnyxData', () => {
 
         it('removes AUTO_REPORTED_REJECTED_EXPENSE from output when shouldRemoveRejectedExpenseViolation is true', () => {
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: [autoRejectedViolation],
                 policy,
@@ -2751,6 +2956,7 @@ describe('getViolationsOnyxData', () => {
 
         it('keeps AUTO_REPORTED_REJECTED_EXPENSE when the 11th param is omitted and submitter-edit branch does not apply', () => {
             const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations: [autoRejectedViolation],
                 policy,
@@ -2805,8 +3011,8 @@ describe('getViolations', () => {
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined, undefined);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined, undefined);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();
@@ -2844,8 +3050,8 @@ describe('getViolations', () => {
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, undefined, policy);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, undefined, policy);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();
@@ -2867,7 +3073,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined, undefined);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -2908,7 +3114,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, CARLOS_EMAIL, policy);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -2926,7 +3132,7 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined);
         expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 
@@ -2966,7 +3172,7 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, CARLOS_EMAIL, policy);
         expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 });
@@ -3521,6 +3727,15 @@ describe('getIsViolationFixed', () => {
                 taxCode: 'CUSTOM_TAX',
                 taxValue: '15',
                 policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the taxCode exists but its rate is disabled', () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'TAX_10',
+                policyTaxRates: {TAX_10: {name: '10%', value: '10', isDisabled: true}},
             });
             expect(result).toBe(false);
         });

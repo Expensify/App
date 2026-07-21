@@ -6,6 +6,11 @@ const isActionLoadingSelector = (loadingState: OnyxEntry<ReportLoadingState>) =>
 
 const hasOnceLoadedReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.hasOnceLoadedReportActions;
 
+// Preserves the distinction between a missing loading-state entry (undefined) and an entry whose
+// `hasOnceLoadedReportActions` is not yet true, unlike the plain field selector above.
+const reportActionsLoadingStateSelector = (loadingState: OnyxEntry<ReportLoadingState>): Pick<ReportLoadingState, 'hasOnceLoadedReportActions'> | undefined =>
+    loadingState ? {hasOnceLoadedReportActions: loadingState.hasOnceLoadedReportActions} : undefined;
+
 const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingInitialReportActions;
 
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
@@ -13,12 +18,16 @@ const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): 
 
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
 
+const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;
+
 const unconfirmedReadWindowSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.unconfirmedReadWindow;
 
 export {
     isActionLoadingSelector,
     hasOnceLoadedReportActionsSelector,
+    reportActionsLoadingStateSelector,
     isLoadingInitialReportActionsSelector,
+    isOptimisticReportSelector,
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
     unconfirmedReadWindowSelector,

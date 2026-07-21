@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import {isAuthenticationError} from '@libs/actions/connections';
+import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 
@@ -21,7 +22,7 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {CombinedCardFeeds, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -51,6 +52,7 @@ import {
 } from './netsuite/utils';
 import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
@@ -62,6 +64,8 @@ function getAccountingIntegrationData(
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
     expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare', IconAsset>,
+    cardFeeds?: CombinedCardFeeds,
+    cardList?: Record<string, WorkspaceCardsList | undefined>,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -122,6 +126,7 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS,
                 ],
                 onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, basePath)),
                 subscribedExportSettings: [
@@ -413,9 +418,9 @@ function getAccountingIntegrationData(
                 subscribedImportSettings: [
                     CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.RILLET_CONFIG.SYNC_TAX_RATES,
-                    ...(policy?.connections?.rillet?.data?.fields.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
+                    ...(policy?.connections?.rillet?.data?.fields?.map((field) => `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.RILLET_CONFIG.EXPORTER,
                     CONST.RILLET_CONFIG.EXPORT_DATE,
@@ -424,10 +429,19 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.DEFAULT_VENDORID,
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
-                    CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS,
+                    ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
                 ],
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
-                onAdvancedPagePress: () => null,
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportPendingAction(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                ),
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportInErrorFields(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                ),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
                     CONST.RILLET_CONFIG.AUTO_SYNC,

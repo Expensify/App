@@ -31,6 +31,7 @@ import {Str} from 'expensify-common';
 
 import type {OptionData} from './ReportUtils';
 
+import {isAnonymousUser} from './actions/Session';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
 import {
@@ -196,6 +197,7 @@ import {
     isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
+    isPublicRoom,
     isSelfDM,
     isSystemChat as isSystemChatUtil,
     isTaskReport,
@@ -291,7 +293,7 @@ type ShouldDisplayReportInLHNParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     currentUserLogin: string;
     currentUserAccountID: number;
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
 };
 
 function shouldDisplayReportInLHN({
@@ -343,6 +345,10 @@ function shouldDisplayReportInLHN({
         !!draftComment ||
         hasErrorsOtherThanFailedReceipt ||
         isFocused ||
+        // An anonymous user can only access public rooms, and such a room's notification preference
+        // defaults to `hidden`. Without this, opening a thread inside the room (which steals focus)
+        // drops the room from the LHN, leaving the anon user unable to return to it. See #92672.
+        (isPublicRoom(report) && isAnonymousUser()) ||
         isSystemChat ||
         !!report.isPinned ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -401,7 +407,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID: number;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
@@ -458,7 +464,7 @@ type UpdateReportsToDisplayInLHNProps = {
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
 };
 
 function updateReportsToDisplayInLHN({
@@ -989,7 +995,7 @@ function getOptionData({
             : null;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
@@ -1046,7 +1052,7 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
@@ -1294,6 +1300,7 @@ function getOptionData({
                         currentUserAccountID,
                         personalDetails,
                         !!reportNameValuePairs?.private_isArchived,
+                        translate,
                         visibleReportActionsData,
                         lastAction,
                     )) ||
@@ -1341,7 +1348,7 @@ function getOptionData({
                 }).messageText || translate('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate) && !isReportArchived) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
                     getLastActorDisplayNameFromLastVisibleActions(
@@ -1350,6 +1357,7 @@ function getOptionData({
                         currentUserAccountID,
                         personalDetails,
                         !!reportNameValuePairs?.private_isArchived,
+                        translate,
                         visibleReportActionsData,
                         lastAction,
                     )) ||
@@ -1381,6 +1389,7 @@ function getOptionData({
     const reportIcons = getIcons(
         report,
         formatPhoneNumberPhoneUtils,
+        translate,
         personalDetails,
         personalDetail?.avatar,
         personalDetail?.login,
@@ -1448,7 +1457,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
                 getPolicyName({report, policy}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1521,7 +1530,7 @@ function getRoomWelcomeMessage(
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
                 : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);

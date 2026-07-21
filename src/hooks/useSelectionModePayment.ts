@@ -12,6 +12,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
@@ -27,11 +28,13 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -89,6 +92,7 @@ function useSelectionModePayment({
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -104,9 +108,11 @@ function useSelectionModePayment({
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const email = session?.email;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -188,6 +194,8 @@ function useSelectionModePayment({
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                delegateAccountID,
+                isTrackIntentUser,
             });
         } else {
             payMoneyRequest({
@@ -209,6 +217,8 @@ function useSelectionModePayment({
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onPaid,
                 chatReportActions: getChatReportActions(false),
+                delegateAccountID,
+                isTrackIntentUser,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -302,6 +312,8 @@ function useSelectionModePayment({
             ownerBillingGracePeriodEnd,
             delegateEmail,
             expenseReportPolicy: policy,
+            isTrackIntentUser,
+            ownerLogin,
         });
     };
 
