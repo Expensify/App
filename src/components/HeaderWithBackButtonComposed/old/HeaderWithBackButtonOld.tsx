@@ -1,9 +1,9 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
-import Header from '@components/Header';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
 import HeaderReportAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderReportAvatar';
+import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/HeaderTitle';
 import Icon from '@components/Icon';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -129,15 +129,16 @@ function HeaderWithBackButton({
         }
 
         return (
-            <Header
-                title={title}
-                subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
+            <HeaderTitle
+                subtitle={subtitle}
+                stepCounter={stepCounter}
+                titleColor={titleColor}
                 subTitleLink={subTitleLink}
-                numberOfTitleLines={1}
-                isScreenHeader
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-            />
+                shouldUseHeadlineHeader={shouldUseHeadlineHeader}
+            >
+                {title}
+            </HeaderTitle>
         );
     })();
     const ThreeDotMenuButton = (() => {
