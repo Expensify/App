@@ -112,9 +112,6 @@ type UseConfirmationValidationParams = {
     /** Truthy when the route to the confirmation page has a known error */
     routeError: string | null | undefined;
 
-    /** Whether the new manual expense flow is enabled */
-    isNewManualExpenseFlowEnabled: boolean;
-
     /** Whether the confirmation fields are read-only (date is not inline-editable) */
     isReadOnly: boolean;
 
@@ -163,7 +160,6 @@ function useConfirmationValidation({
     isPerDiemRequest,
     isTimeRequest,
     routeError,
-    isNewManualExpenseFlowEnabled,
     isReadOnly,
     shouldShowDate,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
@@ -186,11 +182,10 @@ function useConfirmationValidation({
             return {errorKey: 'common.error.invalidAmount'};
         }
         // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.
-        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
+        if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (
-            isNewManualExpenseFlowEnabled &&
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
             transaction?.isAmountSet &&
             !isScanRequestUtil(transaction) &&
@@ -205,7 +200,7 @@ function useConfirmationValidation({
         // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it. Gating on the same
         // `shouldShowDate && !isReadOnly` condition that renders the inline picker keeps validation and UI in sync,
         // and skips read-only/scan flows where the date is populated server-side.
-        if (isNewManualExpenseFlowEnabled && shouldShowDate && !isReadOnly && isCreatedMissing(transaction)) {
+        if (shouldShowDate && !isReadOnly && isCreatedMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
@@ -268,7 +263,7 @@ function useConfirmationValidation({
         // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
         // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
         // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
-        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest) {
+        if (shouldShowTax && !isDistanceRequest) {
             const decimals = getCurrencyDecimals(iouCurrencyCode);
             const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, iouCurrencyCode, decimals);
             const currentTaxAmount = convertToFrontendAmountAsString(Math.abs(getTaxAmount(transaction, false)), decimals);
