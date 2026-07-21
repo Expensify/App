@@ -1836,7 +1836,6 @@
 "../../tests/actions/ReportTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/SessionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	12
 "../../tests/actions/SubscriptionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/actions/TaskTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	42
 "../../tests/actions/TaskTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/UserTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	43
@@ -1961,7 +1960,6 @@
 "../../tests/ui/hooks/useHtmlPasteTest/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/APITest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	61
 "../../tests/unit/AddExistingExpenseSearchTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../tests/unit/AgentActionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	50
 "../../tests/unit/AgentZeroStatusContextTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/AvatarButtonWithIconTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/AvatarUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -2031,7 +2029,6 @@
 "../../tests/unit/Navigation/createRootStackNavigator/handleReplaceFullscreenUnderRHP.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/Navigation/getReportRouteForCurrentContextTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Navigation/guards/OnboardingGuard.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
-"../../tests/unit/Navigation/routerExtensions/addPushParamsRouterExtension.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	130
 "../../tests/unit/Navigation/routerExtensions/addRootHistoryRouterExtension.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	37
 "../../tests/unit/NavigationFocusReturnTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/NetworkStateReachabilityTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
