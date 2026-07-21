@@ -162,7 +162,7 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number): ImportFinalModal {
+function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number, shouldShowMemberRolePermissionWarning = false): ImportFinalModal {
     return {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMembersSuccessfulDescription',
@@ -170,6 +170,7 @@ function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLe
             added: addedMembersLength,
             updated: updatedMembersLength,
         },
+        ...(shouldShowMemberRolePermissionWarning && {pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning'}),
     };
 }
 
@@ -1017,7 +1018,7 @@ type PolicyMember = {
     overLimitForwardsTo?: string;
 };
 
-async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]): Promise<ImportFinalModal> {
+async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[], shouldShowMemberRolePermissionWarning = false): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
         return getImportFailedFinalModal();
@@ -1046,7 +1047,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         },
         {added: 0, updated: 0},
     );
-    const importFinalModal = getImportMembersFinalModal(added, updated);
+    const importFinalModal = getImportMembersFinalModal(added, updated, shouldShowMemberRolePermissionWarning);
 
     const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) && isControlPolicy(policy);
 
@@ -1431,8 +1432,8 @@ function clearInviteDraft(policyID: string) {
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
-function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[]) {
-    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData);
+function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[], shouldShowMemberRolePermissionWarning = false) {
+    return Promise.all([Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData), Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {shouldShowMemberRolePermissionWarning})]);
 }
 
 function setImportedSpreadsheetMemberRole(role: ValueOf<typeof CONST.POLICY.ROLE>) {
