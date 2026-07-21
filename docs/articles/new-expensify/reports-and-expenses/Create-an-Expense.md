@@ -52,10 +52,10 @@ You can create an expense by scanning a receipt, entering details manually, or t
 ## How to manually create a cash expense
 
 1. Click the **➕ Create** button.
-2. Select **Create Expense** then **Manual**.
-3. Enter the amount and currency, then click **Next**.
-4. Choose a workspace or an individual.
-5. Add details like description, category, tags, tax, and set whether the expense is reimbursable or billable.
+2. Select **Create expense**.
+3. On the **Manual** tab, enter the amount and select the currency.
+4. Add a merchant and any other details like description, category, tags, tax, and date, then set whether the expense is reimbursable or billable.
+5. Select the workspace or individual to submit to.
 6. Click **Create expense**.
 
 ---
