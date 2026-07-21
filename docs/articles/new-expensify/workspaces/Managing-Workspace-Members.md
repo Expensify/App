@@ -132,6 +132,8 @@ When mapping columns, you can assign each one to any of the following member fie
 
 Mapping the **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields sets up each member's approval workflow, which you can review under **Workflows** after the import completes.
 
+**Note:** You can only assign roles you have permission to grant. If your file requests a role you can't assign — for example, a **People admin** importing a new member as **Workspace admin** — that new member is invited as a **Member** instead. When this happens, the import success message confirms that any affected new members were invited as members.
+
 **Note:** Use this **[spreadsheet import template](https://docs.google.com/spreadsheets/d/19fjknN-KOS74RjXDccXZGUNTm-utdV7Gvveo5EyrJLE/edit?gid=0#gid=0)** to ensure proper formatting.
 
 **Control plan required:** The **Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, and **Custom field 2** fields — along with specialized roles like **Auditor** and **Card admin** — are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
@@ -151,4 +153,8 @@ Yes. Use the search tool during invite or import members using a spreadsheet (se
 ## Why am I prompted to upgrade when importing members from a spreadsheet?
 
 Your file maps an advanced field (**Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, or **Custom field 2**) or assigns a specialized role like **Auditor** or **Card admin**. These are only available on the Control plan, so you'll need to upgrade your workspace to the Control plan before the import can finish.
+
+## What happens if my spreadsheet requests a role I can't assign?
+
+The import still completes. Any new member whose requested role is one you don't have permission to assign — for example, a **People admin** importing someone as **Workspace admin** — is invited as a **Member** instead, while the roles you can assign are kept. The import success message confirms that any affected new members were invited as members. See the **Change a User's Role** section above for which roles **People admins** can assign.
 
