@@ -72,9 +72,10 @@ import {
     isPerDiemEnabled,
     isPolicyAccessible,
     isTaxTrackingEnabled,
+    isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -87,7 +88,6 @@ import {
     isInvoiceReport,
     isOpenReport,
     isReportApproved,
-    isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
     isTrackExpenseReportNew,
     shouldEnableNegative,
@@ -138,6 +138,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -222,6 +223,8 @@ function MoneyRequestView({
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const parentReportAction = transactionThreadReport?.parentReportActionID ? parentReportActions?.[transactionThreadReport.parentReportActionID] : undefined;
@@ -384,6 +387,7 @@ function MoneyRequestView({
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {selector: policyTypeSelector});
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
@@ -473,10 +477,7 @@ function MoneyRequestView({
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const [moneyRequestReportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {
-        selector: policyTypeSelector,
-    });
-    const isPolicyExpenseChat = isGroupPolicyByType(moneyRequestReportPolicyType);
+    const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
@@ -534,6 +535,7 @@ function MoneyRequestView({
         transactionVendorName = transactionVendor.externalID;
     }
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
+    const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
@@ -554,7 +556,7 @@ function MoneyRequestView({
         }
         return {
             reportID: match.reportID,
-            name: getReportName(match, reportAttributes) || match.reportName,
+            name: deprecatedGetReportName(match, reportAttributes) || match.reportName,
         };
     };
     const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
@@ -563,7 +565,7 @@ function MoneyRequestView({
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isReportInGroupPolicy(transactionThreadReport));
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isGroupPolicyByType(reportPolicyType));
     const hasViolations = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
         getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0;
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
@@ -667,6 +669,7 @@ function MoneyRequestView({
             transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
+            iouReportOwnerLogin,
             value: newBillable,
             policy,
             policyTagList,
@@ -677,6 +680,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
         });
     };
@@ -690,6 +694,7 @@ function MoneyRequestView({
             transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
+            iouReportOwnerLogin,
             value: newReimbursable,
             policy,
             policyTagList,
@@ -700,6 +705,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            reportPolicyTags,
             isTrackIntentUser,
         });
     };
@@ -829,6 +835,7 @@ function MoneyRequestView({
                 transactionID: transaction?.transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 taxCode: '',
                 taxValue: '',
                 taxAmount: 0,
@@ -864,6 +871,7 @@ function MoneyRequestView({
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 category: '',
                 policy,
                 policyTagList,
@@ -874,6 +882,7 @@ function MoneyRequestView({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
                 delegateAccountID,
+                reportPolicyTags,
                 isTrackIntentUser,
             });
         });
@@ -900,6 +909,7 @@ function MoneyRequestView({
                 transactionID,
                 transactionThreadReport,
                 parentReport,
+                iouReportOwnerLogin,
                 tag: updatedTag,
                 policy,
                 policyTagList,
@@ -911,6 +921,7 @@ function MoneyRequestView({
                 parentReportNextStep,
                 isOffline,
                 delegateAccountID,
+                reportPolicyTags,
                 isTrackIntentUser,
             });
         });
@@ -1130,7 +1141,7 @@ function MoneyRequestView({
 
     const reportNameToDisplay = isFromMergeTransaction
         ? (updatedTransaction?.reportName ?? translate('common.none'))
-        : getReportName(parentReport, reportAttributes) || parentReport?.reportName;
+        : deprecatedGetReportName(parentReport, reportAttributes) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
@@ -1364,7 +1375,7 @@ function MoneyRequestView({
                 {shouldShowVendor && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
                         <MenuItemWithTopDescription
-                            description={translate('common.vendor')}
+                            description={vendorFieldLabel}
                             title={transactionVendorName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
@@ -1374,7 +1385,15 @@ function MoneyRequestView({
                                 if (!transactionThreadReport?.reportID) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction.transactionID,
+                                        transactionThreadReport.reportID,
+                                        getReportRHPActiveRoute(),
+                                    ),
+                                );
                             }}
                             brickRoadIndicator={getErrorForField('vendor') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('vendor')}

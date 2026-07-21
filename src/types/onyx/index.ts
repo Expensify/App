@@ -41,6 +41,7 @@ import type {
     WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
@@ -175,6 +176,7 @@ import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -421,10 +423,12 @@ export type {
     DomainHighlightItems,
     DomainPendingActions,
     DomainSecurityGroup,
+    ChronosTimeTracking,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
     AgentPrompt,
+    SuggestedAgentRule,
 };
