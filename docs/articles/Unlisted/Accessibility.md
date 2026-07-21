@@ -19,7 +19,7 @@ We design and evaluate Expensify against the following accessibility standards:
 
 An Accessibility Conformance Report (ACR), based on the Voluntary Product Accessibility Template (VPAT), documents how Expensify conforms to the standards above, criterion by criterion.
 
-Our report was produced from an evaluation of Expensify's core flows — including sign-in, chat, expense creation, reports, workspaces, travel, and wallet — using:
+Our report was produced from an evaluation of Expensify using:
 
 - Screen readers: JAWS, NVDA, and VoiceOver
 - Keyboard-only navigation
