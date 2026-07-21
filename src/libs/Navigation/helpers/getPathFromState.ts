@@ -169,17 +169,25 @@ function getPathFromStateWithDynamicRoute(state: State): string {
 /** An unresolved NavigatorScreenParams route that React Navigation stored verbatim instead of resolving to a path. */
 type UnresolvedNavigatorScreenParams = {screen: string; path: string};
 
-/** Detects unresolved NavigatorScreenParams, whose real target lives in `params.path` (RN would otherwise emit `/?params=[object Object]`). */
+/** Detects RN's deep-link hint chain (`{screen, params/initial, path}`) stored verbatim on a route that is not hydrated yet; its real target lives in `params.path`. */
 function hasUnresolvedNavigatorScreenParams(params: unknown): params is UnresolvedNavigatorScreenParams {
     return (
-        typeof params === 'object' && params !== null && 'screen' in params && typeof params.screen === 'string' && 'path' in params && typeof params.path === 'string' && params.path !== ''
+        typeof params === 'object' &&
+        params !== null &&
+        'screen' in params &&
+        typeof params.screen === 'string' &&
+        'path' in params &&
+        typeof params.path === 'string' &&
+        params.path.startsWith('/') &&
+        ('params' in params || 'initial' in params)
     );
 }
 
 function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
-    if (hasUnresolvedNavigatorScreenParams(focusedRoute?.params)) {
+    // Return the embedded path of an unresolved hint chain before RN serializes it to `/?params=[object Object]`; once `state` exists, the hydrated state is the source of truth.
+    if (focusedRoute && !focusedRoute.state && hasUnresolvedNavigatorScreenParams(focusedRoute.params)) {
         return focusedRoute.params.path;
     }
 

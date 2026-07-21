@@ -125,6 +125,39 @@ describe('getPathFromState', () => {
         expect(mockRNGetPathFromState).not.toHaveBeenCalled();
     });
 
+    it('should not treat params as unresolved NavigatorScreenParams without a params/initial hint key', () => {
+        const expectedPath = '/standard/path';
+        mockRNGetPathFromState.mockReturnValue(expectedPath);
+
+        const state = buildState([
+            {
+                name: 'ReportsSplitNavigator',
+                params: {screen: 'SomeScreen', path: '/some/path'},
+            },
+        ]);
+
+        const result = getPathFromState(state as PartialState<NavigationState>);
+
+        expect(result).toBe(expectedPath);
+        expect(mockRNGetPathFromState).toHaveBeenCalled();
+    });
+
+    it('should ignore stale NavigatorScreenParams hint keys on a hydrated tab-host route', () => {
+        const state = buildState([
+            {name: 'WalletScreen'},
+            {
+                name: 'SplitExpenseScreen',
+                params: {reportID: '123', initial: 'true', screen: 'SomeScreen', params: '[object Object]', path: '/stale/path'},
+                state: buildState([{name: 'AmountTab'}, {name: 'ScanTab'}], 0),
+            },
+        ]);
+        mockRNGetPathFromState.mockImplementation(staticBasePaths.WalletScreen);
+
+        const result = getPathFromState(state as PartialState<NavigationState>);
+
+        expect(result).toBe('/settings/wallet/split-expense/123/amount');
+    });
+
     it('should handle state where no route is focused', () => {
         mockRNGetPathFromState.mockReturnValue('/fallback');
 
