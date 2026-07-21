@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 
 import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
@@ -213,5 +214,33 @@ describe('SubmitDetailsPage', () => {
         });
 
         logInfoSpy.mockRestore();
+    });
+
+    it('uploads the converted JPEG (not the raw HEIC) when the shared file needed validation', async () => {
+        // A HEIC share: SHARE_TEMP_FILE holds the raw .heic file, VALIDATED_FILE_OBJECT holds the converted JPEG.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.heic', mimeType: CONST.SHARE_FILE_MIMETYPE.HEIC});
+            await Onyx.merge(ONYXKEYS.VALIDATED_FILE_OBJECT, {uri: 'file://converted.jpg', type: CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG});
+        });
+
+        await renderAndConfirm();
+
+        // The upload must read the converted JPEG, never the raw .heic the backend rejects.
+        const readFileArg = jest.mocked(readFileAsync).mock.calls.at(0);
+        expect(readFileArg?.[0]).toBe('file://converted.jpg');
+        expect(readFileArg?.[4]).toBe(CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG);
+    });
+
+    it('does not upload while a share that needs validation is still awaiting its converted file', async () => {
+        // A HEIC share whose conversion has not landed yet: VALIDATED_FILE_OBJECT is empty.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.heic', mimeType: CONST.SHARE_FILE_MIMETYPE.HEIC});
+            await Onyx.set(ONYXKEYS.VALIDATED_FILE_OBJECT, undefined);
+        });
+
+        await renderAndConfirm();
+
+        // Confirm must bail out (no raw HEIC uploaded) until the converted file is ready.
+        expect(jest.mocked(readFileAsync)).not.toHaveBeenCalled();
     });
 });

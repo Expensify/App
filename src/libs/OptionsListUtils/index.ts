@@ -111,7 +111,7 @@ import {
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -464,6 +464,8 @@ type GetAlternateTextConfig = {
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number;
 };
 
 /**
@@ -484,6 +486,7 @@ function getAlternateText(
         conciergeReportID,
         sortedActions,
         isTrackIntentUser,
+        currentUserAccountID,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
@@ -507,6 +510,7 @@ function getAlternateText(
             conciergeReportID,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -650,6 +654,7 @@ function getLastMessageTextForReport({
     isTrackIntentUser = false,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
+    currentUserAccountID,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -671,6 +676,8 @@ function getLastMessageTextForReport({
     isTrackIntentUser?: boolean;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -783,6 +790,7 @@ function getLastMessageTextForReport({
             report?.ownerAccountID,
             getLoginByAccountID(report?.ownerAccountID, personalDetails),
             getLoginByAccountID(lastReportAction.actorAccountID, personalDetails),
+            currentUserAccountID,
         );
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translate('common.attachment')}]`;
@@ -1073,6 +1081,8 @@ type CreateOptionParams = {
     conciergeReportID?: string;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number;
 };
 
 /**
@@ -1092,6 +1102,7 @@ function createOption({
     isTrackIntentUser,
     conciergeReportID,
     sortedActions,
+    currentUserAccountID,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -1178,6 +1189,7 @@ function createOption({
             conciergeReportID,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1195,10 +1207,11 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          currentUserAccountID,
                       },
                   );
 
-        const computedReportName = getReportName(report, reportAttributesDerived);
+        const computedReportName = deprecatedGetReportName(report, reportAttributesDerived);
 
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
@@ -1254,6 +1267,7 @@ function getReportOption(
     conciergeReportID: string | undefined,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report>,
+    currentUserAccountID: number,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): OptionData {
@@ -1275,13 +1289,14 @@ function getReportOption(
         policyTags: reportPolicyTags,
         visibleReportActionsData,
         conciergeReportID,
+        currentUserAccountID,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report, reportAttributesDerived);
+        option.text = deprecatedGetReportName(report, reportAttributesDerived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report, policy});
@@ -1338,7 +1353,7 @@ function getReportDisplayOption(
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report, reportAttributesDerived);
+        option.text = deprecatedGetReportName(report, reportAttributesDerived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;

@@ -26,6 +26,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -225,6 +226,7 @@ type HandleActionButtonPressParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -262,6 +264,7 @@ function handleActionButtonPress({
     searchData,
     chatReportActions,
     delegateEmail,
+    delegateAccountID,
     isTrackIntentUser,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
@@ -313,6 +316,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             return;
@@ -519,6 +523,7 @@ type GetPayActionCallbackParams = {
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -546,6 +551,7 @@ function getPayActionCallback({
     policy,
     searchData,
     chatReportActions,
+    delegateAccountID,
     isTrackIntentUser,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
@@ -594,6 +600,7 @@ function getPayActionCallback({
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
+        delegateAccountID,
         isTrackIntentUser,
     });
 }
@@ -1036,11 +1043,21 @@ function search({
                 inFlightSearchRequests.delete(dedupeKey);
             });
 
+    // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
+    // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure state is already
+    // applied via failureData, so this only prevents the rejection from floating into the browser's
+    // onunhandledrejection (APP-5J) while still logging it for diagnosis. Resolves to undefined so
+    // callers' .then still runs and reads a real (falsy) jsonCode.
+    const handleSearchError = (error: unknown) => {
+        Log.hmmm('[Search] search() request failed', {error: String(error)});
+        return undefined;
+    };
+
     if (skipWaitForWrites) {
-        return startRequest();
+        return startRequest().catch(handleSearchError);
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
+    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError);
 }
 
 function submitMoneyRequestOnSearch(
