@@ -182,9 +182,13 @@ function SubmitDetailsPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
-    const sharedFileSource = currentAttachment?.content ?? fileUri;
-    const sharedFileName = getFileName(currentAttachment?.content ?? '') || fileName;
-    const sharedFileType = currentAttachment?.mimeType ?? fileType;
+    // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
+    // converted JPEG from VALIDATED_FILE_OBJECT; otherwise they fall back to the raw attachment. Re-deriving from
+    // currentAttachment here would discard the converted file (its content/mimeType are always set), uploading raw
+    // image/heic which the backend rejects. This mirrors ShareDetailsPage.
+    const sharedFileSource = fileUri;
+    const sharedFileName = fileName;
+    const sharedFileType = fileType;
 
     // Seed the draft so isScanRequest() returns true (enables compact mode + receipt rendering).
     useEffect(() => {
@@ -208,7 +212,7 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID);
     });
 
     const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
@@ -409,7 +413,9 @@ function SubmitDetailsPage({
 
     // Separate helper so the permission-modal callbacks don't re-enter onConfirm (deadlocked when OS permission was pre-granted).
     const performUpload = (locationPermissionGranted: boolean) => {
-        if (formHasBeenSubmitted.current || !currentAttachment) {
+        // Block confirm until the async HEIC→JPEG conversion has landed in VALIDATED_FILE_OBJECT, so a fast tap can't
+        // submit the raw file. Clearing isConfirming keeps the button from getting stuck, so a retry succeeds once ready.
+        if (formHasBeenSubmitted.current || !currentAttachment || (shouldUsePreValidatedFile && !validFilesToUpload)) {
             setIsConfirming(false);
             return;
         }
