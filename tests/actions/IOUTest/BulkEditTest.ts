@@ -4,10 +4,9 @@ import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions} from '@src/types/onyx';
-import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
 
-import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -16,27 +15,65 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const RORY_ACCOUNT_ID = 3;
 
 function isPartialReport(value: unknown): value is Partial<Report> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
+    return isObject(value) && !Array.isArray(value);
 }
 
-function isOnyxData(value: unknown): value is OnyxData<OnyxKey> {
-    return typeof value === 'object' && value !== null && 'optimisticData' in value;
+type BulkEditWriteParams = {updates: string};
+type OptimisticDataEntry = {key: string; onyxMethod: string; value?: unknown};
+type APIWriteSpy = jest.SpiedFunction<typeof API.write>;
+type BulkEditOnyxData = {optimisticData: unknown[]};
+type BulkEditWriteData = {params?: BulkEditWriteParams; onyxData?: BulkEditOnyxData};
+
+function isBulkEditWriteParams(value: unknown): value is BulkEditWriteParams {
+    return isObject(value) && typeof value.updates === 'string';
 }
 
-function getOptimisticReportNamesFromWriteSpy(writeSpy: jest.SpyInstance, reportID: string): Array<string | undefined> {
+function isBulkEditOnyxData(value: unknown): value is BulkEditOnyxData {
+    return isObject(value) && Array.isArray(value.optimisticData);
+}
+
+function getBulkEditWriteData(writeSpy: APIWriteSpy, callIndex = 0): BulkEditWriteData {
+    const call = writeSpy.mock.calls.at(callIndex);
+    const params = call?.[1];
+    const onyxData = call?.[2];
+    return {
+        params: isBulkEditWriteParams(params) ? params : undefined,
+        onyxData: isBulkEditOnyxData(onyxData) ? onyxData : undefined,
+    };
+}
+
+function getBulkEditUpdates(writeSpy: APIWriteSpy, callIndex = 0): Record<PropertyKey, unknown> | undefined {
+    const {params} = getBulkEditWriteData(writeSpy, callIndex);
+    if (!params) {
+        return undefined;
+    }
+
+    const updates: unknown = JSON.parse(params.updates);
+    return isObject(updates) ? updates : undefined;
+}
+
+function isOptimisticDataEntry(value: unknown): value is OptimisticDataEntry {
+    return isObject(value) && typeof value.key === 'string' && typeof value.onyxMethod === 'string';
+}
+
+function getOptimisticDataFromWriteSpy(writeSpy: APIWriteSpy, callIndex = 0): OptimisticDataEntry[] {
+    const {onyxData} = getBulkEditWriteData(writeSpy, callIndex);
+    return onyxData?.optimisticData.filter(isOptimisticDataEntry) ?? [];
+}
+
+function getOptimisticReportNamesFromWriteSpy(writeSpy: APIWriteSpy, reportID: string): Array<string | undefined> {
     const targetKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    return (writeSpy.mock.calls as ReadonlyArray<readonly unknown[]>).flatMap((call) => {
-        const onyxData = call.at(2);
-        if (!isOnyxData(onyxData)) {
-            return [];
-        }
-        return (onyxData.optimisticData ?? []).filter((update) => update.key === targetKey).map((update) => (isPartialReport(update.value) ? update.value.reportName : undefined));
-    });
+    return writeSpy.mock.calls.flatMap((_, callIndex) =>
+        getOptimisticDataFromWriteSpy(writeSpy, callIndex)
+            .filter((update) => update.key === targetKey)
+            .map((update) => (isPartialReport(update.value) ? update.value.reportName : undefined)),
+    );
 }
 
 describe('actions/IOU/BulkEdit', () => {
@@ -98,9 +135,8 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
-            expect(updates.amount).toBe(1000);
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.amount).toBe(1000);
             expect(buildOptimisticSpy).toHaveBeenCalledWith(
                 transactionThread,
                 transaction,
@@ -235,9 +271,8 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             const getOptimisticTotal = (callIndex: number) => {
-                const onyxData = writeSpy.mock.calls.at(callIndex)?.[2] as {optimisticData: Array<{key: string; value?: {total?: number}}>};
-                const reportUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-                return reportUpdate?.value?.total;
+                const reportUpdate = getOptimisticDataFromWriteSpy(writeSpy, callIndex).find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+                return isPartialReport(reportUpdate?.value) ? reportUpdate.value.total : undefined;
             };
 
             expect(getOptimisticTotal(0)).toBe(-2300);
@@ -305,9 +340,8 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
-            expect(updates.amount).toBe(-1000);
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.amount).toBe(-1000);
             expect(buildOptimisticSpy).toHaveBeenCalledWith(
                 transactionThread,
                 transaction,
@@ -381,10 +415,9 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {billable: boolean; reimbursable: boolean};
-            expect(updates.billable).toBe(true);
-            expect(updates.reimbursable).toBe(false);
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.billable).toBe(true);
+            expect(updates?.reimbursable).toBe(false);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -447,9 +480,8 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
-            expect(updates.amount).toBe(1000);
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.amount).toBe(1000);
             expect(buildOptimisticSpy).toHaveBeenCalledWith(
                 transactionThread,
                 transaction,
@@ -513,9 +545,8 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {merchant: string};
-            expect(updates.merchant).toBe('New merchant');
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.merchant).toBe('New merchant');
 
             writeSpy.mockRestore();
         });
@@ -1182,14 +1213,13 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as Record<string, unknown>;
-            expect(updates.category).toBe('Food');
-            expect(updates.amount).toBeUndefined();
-            expect(updates.currency).toBeUndefined();
-            expect(updates.taxCode).toBeUndefined();
-            expect(updates.taxValue).toBeUndefined();
-            expect(updates.taxAmount).toBeUndefined();
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.category).toBe('Food');
+            expect(updates?.amount).toBeUndefined();
+            expect(updates?.currency).toBeUndefined();
+            expect(updates?.taxCode).toBeUndefined();
+            expect(updates?.taxValue).toBeUndefined();
+            expect(updates?.taxAmount).toBeUndefined();
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1275,14 +1305,13 @@ describe('actions/IOU/BulkEdit', () => {
             // Check the optimistic Onyx data passed to API.write (3rd argument) for the TRANSACTION merge.
             const writeCall = writeSpy.mock.calls.at(0);
             expect(writeCall).toBeDefined();
-
-            const onyxData = writeCall?.[2] as {optimisticData: Array<{key: string; value: Partial<Transaction>}>} | undefined;
-            const transactionOnyxUpdate = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transactionOnyxUpdate = getOptimisticDataFromWriteSpy(writeSpy).find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transactionOnyxUpdate).toBeDefined();
 
             // The tax code should resolve from the transaction's policy (which has the expense rule),
             // NOT from the shared bulk-edit policy (which has no expense rules)
-            expect(transactionOnyxUpdate?.value?.taxCode).toBe(expectedTaxCode);
+            const transactionOnyxValue = transactionOnyxUpdate && isObject(transactionOnyxUpdate.value) ? transactionOnyxUpdate.value : undefined;
+            expect(transactionOnyxValue?.taxCode).toBe(expectedTaxCode);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1434,15 +1463,14 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number; taxAmount?: number};
-            expect(updates.amount).toBe(-2000);
-            expect(updates.taxAmount).toBe(95);
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.amount).toBe(-2000);
+            expect(updates?.taxAmount).toBe(95);
 
             // Optimistic transaction merge should store the flipped sign for expense reports.
-            const onyxData = writeSpy.mock.calls.at(0)?.[2] as {optimisticData: Array<{key: string; value: Partial<Transaction>}>} | undefined;
-            const transactionOnyxUpdate = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-            expect(transactionOnyxUpdate?.value?.taxAmount).toBe(-95);
+            const transactionOnyxUpdate = getOptimisticDataFromWriteSpy(writeSpy).find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transactionOnyxValue = transactionOnyxUpdate && isObject(transactionOnyxUpdate.value) ? transactionOnyxUpdate.value : undefined;
+            expect(transactionOnyxValue?.taxAmount).toBe(-95);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1503,10 +1531,9 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number; taxAmount?: number};
-            expect(updates.amount).toBe(-2000);
-            expect(updates.taxAmount).toBeUndefined();
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.amount).toBe(-2000);
+            expect(updates?.taxAmount).toBeUndefined();
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1568,11 +1595,10 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number; taxAmount?: number};
-            expect(updates.amount).toBe(-2000);
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates?.amount).toBe(-2000);
             // No taxAmount should be queued — we couldn't resolve a rate to recompute from.
-            expect(updates.taxAmount).toBeUndefined();
+            expect(updates?.taxAmount).toBeUndefined();
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1602,7 +1628,7 @@ describe('actions/IOU/BulkEdit', () => {
                 amount: 500,
                 currency: CONST.CURRENCY.USD,
             };
-            delete (transaction as Partial<Transaction>).transactionThreadReportID;
+            delete transaction.transactionThreadReportID;
             const transactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
             };
@@ -1628,21 +1654,22 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-            const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
-            const optimisticData = onyxData?.optimisticData as any[];
+            const optimisticData = getOptimisticDataFromWriteSpy(writeSpy);
 
             // An optimistic thread report should be created via SET
             const optimisticReportSet = optimisticData.find(
-                (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+                (entry) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             );
             expect(optimisticReportSet).toBeDefined();
+            if (!optimisticReportSet) {
+                throw new Error('Expected an optimistic thread report SET update');
+            }
             const optimisticThreadReportID = String(optimisticReportSet.key).replace(ONYXKEYS.COLLECTION.REPORT, '');
 
             // The transaction optimistic data should link back to the new thread via transactionThreadReportID
-            const transactionMerge = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-            expect(transactionMerge?.value?.transactionThreadReportID).toBe(optimisticThreadReportID);
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const transactionMerge = optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transactionMergeValue = transactionMerge && isObject(transactionMerge.value) ? transactionMerge.value : undefined;
+            expect(transactionMergeValue?.transactionThreadReportID).toBe(optimisticThreadReportID);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1731,24 +1758,21 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-            const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
-            const optimisticData = onyxData?.optimisticData as any[];
+            const optimisticData = getOptimisticDataFromWriteSpy(writeSpy);
 
             // No optimistic thread report should be created — the existing thread from childReportID should be used
             const optimisticReportSet = optimisticData.find(
-                (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+                (entry) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             );
             expect(optimisticReportSet).toBeUndefined();
 
             // The MODIFIED_EXPENSE report action should be written to the childReportID thread, not the transactionThreadReportID thread
-            const reportActionMerge = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`);
+            const reportActionMerge = optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`);
             expect(reportActionMerge).toBeDefined();
 
             // No report action should be written to the transactionThreadReportID thread
-            const wrongThreadReportAction = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
+            const wrongThreadReportAction = optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
             expect(wrongThreadReportAction).toBeUndefined();
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -2257,7 +2281,7 @@ describe('actions/IOU/BulkEdit', () => {
     });
 
     describe('bulk edit draft transaction', () => {
-        const draftKey = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}` as OnyxKey;
+        const draftKey: `${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}` = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`;
 
         it('initializes the bulk edit draft transaction', async () => {
             await Onyx.set(draftKey, {amount: 1000});
