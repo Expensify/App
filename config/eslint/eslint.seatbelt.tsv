@@ -2043,7 +2043,6 @@
 "../../tests/unit/OnboardingSelectorsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/OnyxUpdateManagerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/OptionListContextProviderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
-"../../tests/unit/OptionsListUtilsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	49
 "../../tests/unit/PaymentCardFormTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/PaymentUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/PersistedRequests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
@@ -2065,7 +2064,6 @@
 "../../tests/unit/ReportLayoutUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
-"../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	40
 "../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	31
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"no-restricted-imports"	2
