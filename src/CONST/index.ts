@@ -9169,6 +9169,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'The Expensify Card: Now in the UK & EU',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
+                publishedDate: '2026-07-20',
+            },
+            {
                 title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
@@ -9179,12 +9185,6 @@ const CONST = {
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
                 publishedDate: '2026-06-30',
-            },
-            {
-                title: 'AI agents, Concierge upgrades, and smarter card controls',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
-                publishedDate: '2026-06-24',
             },
         ],
     },
