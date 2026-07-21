@@ -1,7 +1,7 @@
-import type {SecurityGroup} from '../../src/types/onyx';
+import getUserSecurityGroup from '@libs/getUserSecurityGroup';
 
-import getUserSecurityGroup from '../../src/libs/getUserSecurityGroup';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SecurityGroup} from '@src/types/onyx';
 
 const EMAIL = 'employee@example.com';
 const DOMAIN = 'example.com';
