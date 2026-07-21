@@ -196,9 +196,9 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     placeholderTextColor={theme.textSupporting}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
-                    touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
-                    textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
-                    inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
+                    touchableInputWrapperStyle={styles.listSearchInputNarrowWrapper}
+                    textInputContainerStyles={[styles.pb0, styles.ph3]}
+                    inputStyle={[styles.lineHeightUndefined]}
                     onChangeText={(text: string) => {
                         setSearchText(text);
                         filterEmojis(text);
