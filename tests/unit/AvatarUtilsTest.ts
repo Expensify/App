@@ -155,7 +155,7 @@ describe('AvatarUtils', () => {
             expect(result).toEqual({
                 isValid: false,
                 errorKey: 'avatarWithImagePicker.notAllowedExtension',
-                errorParams: {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS},
+                errorArgs: [CONST.AVATAR_ALLOWED_EXTENSIONS],
             });
         });
 
@@ -169,7 +169,7 @@ describe('AvatarUtils', () => {
             expect(result).toEqual({
                 isValid: false,
                 errorKey: 'avatarWithImagePicker.sizeExceeded',
-                errorParams: {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)},
+                errorArgs: [CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)],
             });
         });
 
@@ -185,7 +185,7 @@ describe('AvatarUtils', () => {
             expect(result).toEqual({
                 isValid: false,
                 errorKey: 'attachmentPicker.errorWhileSelectingCorruptedAttachment',
-                errorParams: {},
+                errorArgs: [],
             });
         });
 
@@ -204,12 +204,7 @@ describe('AvatarUtils', () => {
             expect(result).toEqual({
                 isValid: false,
                 errorKey: 'avatarWithImagePicker.resolutionConstraints',
-                errorParams: {
-                    minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                    minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                    maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                    maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                },
+                errorArgs: [CONST.AVATAR_MIN_HEIGHT_PX, CONST.AVATAR_MIN_WIDTH_PX, CONST.AVATAR_MAX_HEIGHT_PX, CONST.AVATAR_MAX_WIDTH_PX],
             });
         });
 
@@ -318,12 +313,7 @@ describe('AvatarUtils', () => {
             expect(result).toEqual({
                 isValid: false,
                 errorKey: 'avatarWithImagePicker.resolutionConstraints',
-                errorParams: {
-                    minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                    minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                    maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                    maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                },
+                errorArgs: [CONST.AVATAR_MIN_HEIGHT_PX, CONST.AVATAR_MIN_WIDTH_PX, CONST.AVATAR_MAX_HEIGHT_PX, CONST.AVATAR_MAX_WIDTH_PX],
             });
         });
 

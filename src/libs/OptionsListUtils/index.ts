@@ -731,7 +731,7 @@ function getLastMessageTextForReport({
                 lastMessageTextFromReport = translate(
                     'reportArchiveReasons.removedFromPolicy',
                     formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate})),
-                    getPolicyName({report, policy}),
+                    getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
                 );
                 break;
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {

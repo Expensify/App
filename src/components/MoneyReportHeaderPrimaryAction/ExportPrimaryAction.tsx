@@ -33,6 +33,8 @@ function ExportPrimaryAction({reportID, onExportModalOpen}: ExportPrimaryActionP
     return (
         <Button
             success
+            // connectedIntegration is guaranteed non-null when EXPORT_TO_ACCOUNTING is the primary action
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             text={translate('workspace.common.exportIntegrationSelected', connectedIntegration!)}
             onPress={() => {
                 if (!connectedIntegration || !moneyRequestReport) {

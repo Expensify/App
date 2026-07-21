@@ -291,7 +291,9 @@ function AvatarWithImagePicker({
             {!!errorData.validationError && (
                 <DotIndicatorMessage
                     style={styles.mt6}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    // `phraseArgs` is an open list but `translate` accepts only the params shape for the
+                    // given key; the cast is safe because callers always pass params matching `validationError`.
+                    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-type-assertion
                     messages={{0: (translate as (key: TranslationPaths, ...args: unknown[]) => string)(errorData.validationError, ...errorData.phraseArgs)}}
                     type="error"
                 />

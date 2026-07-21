@@ -2424,8 +2424,8 @@ describe('ReportActionsUtils', () => {
             const expectedRoleMessage = translateLocal(
                 'report.actions.type.updateRole',
                 formattedEmail,
-                translateLocal('workspace.common.roleName', newRole).toLowerCase(),
                 translateLocal('workspace.common.roleName', previousRole).toLowerCase(),
+                translateLocal('workspace.common.roleName', newRole).toLowerCase(),
             );
 
             const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);

@@ -193,7 +193,7 @@ describe('ModifiedExpenseMessage', () => {
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
                 // When a valid policy provides a name, the movedFromPersonalSpace message is returned
                 // even if the report has no reportName, because policyName is sufficient.
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policy.name);
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved from personal space to reportName" message when moving an expense to a 1:1 DM', async () => {

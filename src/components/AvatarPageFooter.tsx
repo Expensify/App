@@ -34,6 +34,7 @@ function AvatarPageFooter({validationError, phraseArgs = [], isDirty, onSave}: A
                     style={styles.mv5}
                     // `phraseArgs` is an open list but `translate` accepts only the params shape for the
                     // given key; the cast is safe because callers always pass params matching `validationError`.
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                     messages={{validationError: (translate as (key: TranslationPaths, ...args: unknown[]) => string)(validationError, ...phraseArgs)}}
                     type="error"
                 />
