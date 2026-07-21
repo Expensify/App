@@ -58,7 +58,7 @@ function ScanGlobalCreate({iouType, backToReport, ...innerProps}: ScanGlobalCrea
 
 type ScanGlobalCreateInnerProps = Omit<ScanGlobalCreateProps, 'iouType' | 'backToReport'>;
 
-function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUserPersonalDetails}: ScanGlobalCreateInnerProps) {
+function ScanGlobalCreateInner({reportID, transactionID, transaction}: ScanGlobalCreateInnerProps) {
     const navigateGlobalCreate = useNavigateGlobalCreate();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
@@ -76,7 +76,6 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUse
             getFileSource,
             initialTransaction: transaction,
             initialTransactionID: transactionID,
-            currentUserPersonalDetails,
             reportID,
             shouldAcceptMultipleFiles: true,
             isMultiScanEnabled,

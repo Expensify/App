@@ -29,7 +29,6 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
-import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
