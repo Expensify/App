@@ -929,6 +929,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Cuenta > Suscripción',
                 cta: 'Añadir',
             },
+            addBankAccount: {
+                title: 'Añade una cuenta bancaria para recibir tus reembolsos',
+            },
             activateCard: {
                 title: 'Activa tu Tarjeta Expensify',
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
