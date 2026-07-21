@@ -1,6 +1,7 @@
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
+import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -78,6 +79,8 @@ function AuthScreensInitHandler() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -88,6 +91,7 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
+    useAIFeaturesPromoModal(session);
 
     const topmostReportID = useRootNavigationState(Navigation.getTopmostReportId);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
@@ -166,7 +170,7 @@ function AuthScreensInitHandler() {
         } else if (SessionUtils.didUserLogInDuringSession()) {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
-                Report.openReport({reportID, introSelected, betas});
+                Report.openReport({reportID, introSelected, betas, hasReportActions: false});
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }
@@ -186,6 +190,7 @@ function AuthScreensInitHandler() {
             hasActiveAdminPolicies,
             lastWorkspaceNumber,
             translate,
+            conciergeChat,
         );
 
         Download.clearDownloads();

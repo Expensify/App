@@ -41,7 +41,9 @@ import type {
     WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
+import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
@@ -53,6 +55,7 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     CardFeedErrorsDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
@@ -67,6 +70,7 @@ import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
 import type DomainErrors from './DomainErrors';
+import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
@@ -172,6 +176,7 @@ import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -372,6 +377,7 @@ export type {
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
+    CompanyCardsLoadingState,
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
@@ -404,6 +410,7 @@ export type {
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
@@ -413,12 +420,15 @@ export type {
     AppReview,
     SamlMetadata,
     DomainErrors,
+    DomainHighlightItems,
     DomainPendingActions,
     DomainSecurityGroup,
+    ChronosTimeTracking,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
     AgentPrompt,
+    SuggestedAgentRule,
 };
