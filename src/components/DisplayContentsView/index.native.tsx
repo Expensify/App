@@ -2,14 +2,13 @@
  * On native, renders with display: 'contents' so wrapper nodes don't hide the navigation underlay during
  * swipe-back or Activity visibility toggles. Web uses a plain View.
  */
-import type {PropsWithChildren} from 'react';
-import type {ViewStyle} from 'react-native';
-
 import {NativeComponentRegistry} from 'react-native';
 // @ts-expect-error No declaration file for this internal React Native module
 import ReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
 
-type NativeComponentRegistryParams = Parameters<typeof NativeComponentRegistry.get<PropsWithChildren<{style: ViewStyle}>>>;
+import type DisplayContentsViewProps from './types';
+
+type NativeComponentRegistryParams = Parameters<typeof NativeComponentRegistry.get<DisplayContentsViewProps>>;
 type ViewConfigProvider = NativeComponentRegistryParams[1];
 
 const VIEW_CONFIG = {
@@ -28,11 +27,7 @@ const VIEW_CONFIG = {
  * Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) — validated with RN 0.83.1.
  * Re-verify after upgrades.
  */
-const NativeDisplayContentsView = NativeComponentRegistry.get<PropsWithChildren<{style: ViewStyle}>>('DisplayContentsView', () => VIEW_CONFIG);
-
-type DisplayContentsViewProps = PropsWithChildren<{
-    style?: ViewStyle;
-}>;
+const NativeDisplayContentsView = NativeComponentRegistry.get<DisplayContentsViewProps>('DisplayContentsView', () => VIEW_CONFIG);
 
 function DisplayContentsView({children, style}: DisplayContentsViewProps) {
     return <NativeDisplayContentsView style={style ?? {}}>{children}</NativeDisplayContentsView>;
