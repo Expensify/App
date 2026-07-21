@@ -863,6 +863,7 @@ describe('actions/IOU', () => {
             let iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let transactionID: string | undefined;
             let transactionThreadReport: OnyxEntry<Report>;
+            let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
                 report: {reportID: ''},
@@ -1015,11 +1016,11 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: false,
                                     callback: (reportActionsForIOUReport) => {
                                         Onyx.disconnect(connection);
-
-                                        // Because the expense created a brand-new chat AND a brand-new IOU report, a server
-                                        // failure rolls back every entity created solely for this request instead of leaving
-                                        // them behind with red-brick-road errors (see #93542). The IOU report's actions are gone.
-                                        expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(0);
+                                        expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
+                                        iouAction = Object.values(reportActionsForIOUReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                                            isMoneyRequestAction(reportAction),
+                                        );
+                                        expect(iouAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         resolve();
                                     },
                                 });
@@ -1033,9 +1034,11 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: true,
                                     callback: (reportActionsForTransactionThread) => {
                                         Onyx.disconnect(connection);
-
-                                        // The transaction thread was created solely for this request, so its actions are rolled back too.
-                                        expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(0);
+                                        expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(3);
+                                        transactionThreadAction = Object.values(
+                                            reportActionsForTransactionThread?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`] ?? {},
+                                        ).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+                                        expect(transactionThreadAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         resolve();
                                     },
                                 });
@@ -1049,9 +1052,9 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: false,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connection);
-
-                                        // The transaction is rolled back rather than surfaced with a red-brick-road error.
-                                        expect(transaction).toBeFalsy();
+                                        expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                                        expect(transaction?.errors).toBeTruthy();
+                                        expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
                                 });
@@ -1116,7 +1119,7 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: false,
                                     callback: (reportActionsForReport) => {
                                         Onyx.disconnect(connection);
-                                        expect(Object.values(reportActionsForReport ?? {}).length).toBe(0);
+                                        expect(reportActionsForReport).toMatchObject({});
                                         resolve();
                                     },
                                 });
