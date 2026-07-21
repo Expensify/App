@@ -54,14 +54,34 @@ function ArchivedReportFooter({reportID}: ArchivedReportFooterProps) {
         policyName = lodashEscape(policyName);
     }
 
-    const text = shouldRenderHTML
-        ? translate(`reportArchiveReasons.${archiveReason}`, {
-              displayName: `<strong>${displayName}</strong>`,
-              oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-              policyName: `<strong>${policyName}</strong>`,
-              shouldUseYou: actorPersonalDetails?.accountID === currentUserAccountID,
-          })
-        : translate(`reportArchiveReasons.${archiveReason}`);
+    let text: string;
+    if (shouldRenderHTML) {
+        const displayNameHtml = `<strong>${displayName}</strong>`;
+        const oldDisplayNameHtml = `<strong>${oldDisplayName}</strong>`;
+        const policyNameHtml = `<strong>${policyName}</strong>`;
+        const shouldUseYou = actorPersonalDetails?.accountID === currentUserAccountID;
+        switch (archiveReason) {
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+                text = translate('reportArchiveReasons.accountClosed', displayNameHtml);
+                break;
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED:
+                text = translate('reportArchiveReasons.accountMerged', displayNameHtml, oldDisplayNameHtml);
+                break;
+            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+                text = translate('reportArchiveReasons.removedFromPolicy', displayNameHtml, policyNameHtml, shouldUseYou);
+                break;
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED:
+                text = translate('reportArchiveReasons.policyDeleted', policyNameHtml);
+                break;
+            case CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED:
+                text = translate('reportArchiveReasons.invoiceReceiverPolicyDeleted', policyNameHtml);
+                break;
+            default:
+                text = translate('reportArchiveReasons.default');
+        }
+    } else {
+        text = translate(`reportArchiveReasons.${archiveReason}`);
+    }
 
     return (
         <Banner

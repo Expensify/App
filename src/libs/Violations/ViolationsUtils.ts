@@ -822,13 +822,13 @@ const ViolationsUtils = {
             case 'missingTag':
                 return translate('violations.missingTag', tagName);
             case 'modifiedAmount':
-                return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
+                return translate('violations.modifiedAmount', type, violation.data?.displayPercentVariance);
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
             case 'increasedDistance': {
                 const distance = routeDistanceMeters ?? 0;
                 const formattedRouteDistance = distance > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(distance, distanceUnit) : undefined;
-                return translate('violations.increasedDistance', {formattedRouteDistance});
+                return translate('violations.increasedDistance', formattedRouteDistance);
             }
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');

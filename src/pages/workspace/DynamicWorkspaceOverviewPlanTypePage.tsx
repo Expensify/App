@@ -144,10 +144,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                     <>
                         {isPlanTypeLocked ? (
                             <Text style={[styles.mh5, styles.mv3]}>
-                                {translate('workspace.planTypePage.lockedPlanDescription', {
-                                    count: privateSubscription?.userCount ?? 1,
-                                    annualSubscriptionEndDate: autoRenewalDate,
-                                })}{' '}
+                                {translate('workspace.planTypePage.lockedPlanDescription', privateSubscription?.userCount ?? 1, autoRenewalDate)}{' '}
                                 <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}>
                                     {translate('workspace.planTypePage.subscriptions')}
                                 </TextLink>

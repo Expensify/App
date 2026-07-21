@@ -411,7 +411,7 @@ function getSynchronizationErrorMessage(
         );
     }
 
-    const syncError = translate('workspace.accounting.syncError', {connectionName});
+    const syncError = translate('workspace.accounting.syncError', connectionName);
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {

@@ -24,7 +24,7 @@ import PopoverMenu from './PopoverMenu';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
-    phraseParam: Record<string, unknown>;
+    phraseArgs: unknown[];
 };
 
 type OpenPickerParams = {
@@ -107,7 +107,7 @@ function AvatarWithImagePicker({
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
-    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseArgs: []});
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
     const [imageData, setImageData] = useState({
         uri: '',
@@ -118,10 +118,10 @@ function AvatarWithImagePicker({
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    const setError = (error: TranslationPaths | null, phraseArgs: unknown[] = []) => {
         setErrorData({
             validationError: error,
-            phraseParam,
+            phraseArgs,
         });
     };
 
@@ -131,11 +131,11 @@ function AvatarWithImagePicker({
         }
 
         // Reset the error if the component is no longer focused.
-        setError(null, {});
+        setError(null, []);
     }, [isFocused]);
 
     useEffect(() => {
-        setError(null, {});
+        setError(null, []);
     }, [source, avatarID]);
 
     /**
@@ -145,12 +145,12 @@ function AvatarWithImagePicker({
         validateAvatarImage(image)
             .then((validationResult) => {
                 if (!validationResult.isValid) {
-                    setError(validationResult.errorKey ?? null, validationResult.errorParams ?? {});
+                    setError(validationResult.errorKey ?? null, validationResult.errorArgs ?? []);
                     return;
                 }
 
                 setIsAvatarCropModalOpen(true);
-                setError(null, {});
+                setError(null, []);
                 setIsMenuVisible(false);
                 setImageData({
                     uri: image.uri ?? '',
@@ -159,7 +159,7 @@ function AvatarWithImagePicker({
                 });
             })
             .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', []);
             });
     };
 
@@ -193,7 +193,7 @@ function AvatarWithImagePicker({
                 icon: icons.Trashcan,
                 text: translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
-                    setError(null, {});
+                    setError(null, []);
                     onImageRemoved();
                 },
             });
@@ -300,7 +300,7 @@ function AvatarWithImagePicker({
                 <DotIndicatorMessage
                     style={styles.mt6}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                    messages={{0: (translate as (key: TranslationPaths, ...args: unknown[]) => string)(errorData.validationError, ...errorData.phraseArgs)}}
                     type="error"
                 />
             )}

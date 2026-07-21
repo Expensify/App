@@ -17,7 +17,6 @@ import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import Debug from '@userActions/Debug';
 import type CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -106,7 +105,18 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                     validate(key, DebugUtils.onyxDataToString(value));
                 } catch (e) {
                     const {cause, message} = e as SyntaxError;
-                    newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
+                    if (message === 'debug.missingProperty') {
+                        newErrors[key] = translate('debug.missingProperty', (cause as {propertyName: string}).propertyName);
+                    } else if (message === 'debug.invalidProperty') {
+                        const {propertyName, expectedType} = cause as {propertyName: string; expectedType: string};
+                        newErrors[key] = translate('debug.invalidProperty', propertyName, expectedType);
+                    } else if (message === 'debug.invalidValue') {
+                        newErrors[key] = translate('debug.invalidValue', (cause as {expectedValues: string}).expectedValues);
+                    } else if (message === 'debug.missingValue') {
+                        newErrors[key] = translate('debug.missingValue');
+                    } else {
+                        newErrors[key] = message;
+                    }
                 }
             }
             return newErrors;

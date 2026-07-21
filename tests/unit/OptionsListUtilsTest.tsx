@@ -5444,9 +5444,9 @@ describe('OptionsListUtils', () => {
                 });
 
                 expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.policyDeleted', {
-                        policyName: policy.name,
-                    }),
+                    translateLocal('reportArchiveReasons.policyDeleted',
+                        policy.name,
+                    ),
                 );
             });
 
@@ -5486,10 +5486,10 @@ describe('OptionsListUtils', () => {
                 });
 
                 expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.removedFromPolicy', {
-                        displayName: 'Hidden',
-                        policyName: policy.name,
-                    }),
+                    translateLocal('reportArchiveReasons.removedFromPolicy',
+                        'Hidden',
+                        policy.name,
+                    ),
                 );
             });
         });

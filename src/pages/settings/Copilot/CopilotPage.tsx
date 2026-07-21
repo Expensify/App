@@ -89,7 +89,7 @@ function CopilotPage() {
 
         return showConfirmModal({
             title: translate('delegate.removeCopilotAccessTitle'),
-            prompt: translate('delegate.removeCopilotAccessConfirmation', {delegatorName}),
+            prompt: translate('delegate.removeCopilotAccessConfirmation', delegatorName),
             confirmText: translate('delegate.removeCopilotAccessConfirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
@@ -174,7 +174,7 @@ function CopilotPage() {
                     </Text>
                     {!!role && (
                         <Badge
-                            text={translate('delegate.role', {role})}
+                            text={translate('delegate.role', role)}
                             isCondensed
                             badgeStyles={[styles.copilotRoleBadge, styles.flexShrink0]}
                         />

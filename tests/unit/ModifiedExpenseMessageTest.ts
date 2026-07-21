@@ -132,7 +132,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
                 const policyExpenseReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, undefined);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: policyExpenseReport.reportName});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName);
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to policyName" message when moving an expense to policy expense chat with reportName and policyName', () => {
@@ -141,10 +141,10 @@ describe('ModifiedExpenseMessage', () => {
                     policyName: 'Policy',
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, undefined);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: policyExpenseReport.reportName,
-                    workspaceName: policyExpenseReport.policyName,
-                });
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace',
+                    policyExpenseReport.reportName,
+                    policyExpenseReport.policyName,
+                );
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to workspaceName" using policy name from policy object when moving to policy expense chat', () => {
@@ -162,10 +162,10 @@ describe('ModifiedExpenseMessage', () => {
                     isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: policyExpenseReport.reportName,
-                    workspaceName: policy.name,
-                });
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace',
+                    policyExpenseReport.reportName,
+                    policy.name,
+                );
                 expect(result).toEqual(expectedResult);
             });
             it('returns "changed the expense" message when moving an expense to policy expense chat without reportName', () => {
@@ -195,7 +195,7 @@ describe('ModifiedExpenseMessage', () => {
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
                 // When a valid policy provides a name, the movedFromPersonalSpace message is returned
                 // even if the report has no reportName, because policyName is sufficient.
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {workspaceName: policy.name});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policy.name);
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved from personal space to reportName" message when moving an expense to a 1:1 DM', async () => {
@@ -215,7 +215,7 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, dmReport, CURRENT_USER_LOGIN, undefined);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: dmReportName});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', dmReportName);
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -1931,10 +1931,10 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
                 });
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: movedToReport.reportName,
-                    workspaceName: policy.name,
-                });
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace',
+                    movedToReport.reportName,
+                    policy.name,
+                );
                 expect(result).toEqual(expectedResult);
             });
 
@@ -1957,10 +1957,9 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
                 });
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: movedToReport.reportName,
-                    workspaceName: movedToReport.policyName,
-                });
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName,
+                movedToReport.policyName,
+                );
                 expect(result).toEqual(expectedResult);
             });
         });

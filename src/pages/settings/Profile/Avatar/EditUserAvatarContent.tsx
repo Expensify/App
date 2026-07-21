@@ -25,7 +25,7 @@ import type {ErrorData, ImageData} from './types';
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
 function EditUserAvatarContent() {
-    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseArgs: []});
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
 
     const [selected, setSelected] = useState<string | undefined>();
@@ -46,10 +46,10 @@ function EditUserAvatarContent() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    const setError = (error: TranslationPaths | null, phraseArgs: unknown[] = []) => {
         setErrorData({
             validationError: error,
-            phraseParam,
+            phraseArgs,
         });
     };
 
@@ -177,7 +177,7 @@ function EditUserAvatarContent() {
                     <DotIndicatorMessage
                         style={styles.mv5}
                         // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-type-assertion
-                        messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                        messages={{0: (translate as (key: TranslationPaths, ...args: unknown[]) => string)(errorData.validationError, ...errorData.phraseArgs)}}
                         type="error"
                     />
                 )}

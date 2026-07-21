@@ -102,9 +102,7 @@ function WorkspaceCreateReportFieldsPage({
         if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
             const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
             if (unsupportedFormulaParts.length > 0) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', {
-                    value: unsupportedFormulaParts.join(', '),
-                });
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', unsupportedFormulaParts.join(', '));
             }
         }
 

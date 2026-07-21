@@ -73,11 +73,7 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, currentStepA
                             role={CONST.ROLE.GROUP}
                             aria-current={currentStepIndex === index ? 'step' : undefined}
                             accessibilityState={{selected: currentStepIndex === index}}
-                            accessibilityLabel={translate('stepCounter', {
-                                step: index + 1,
-                                total: stepNames.length,
-                                text: currentStepIndex === index ? currentStepAccessibilityDescription : undefined,
-                            })}
+                            accessibilityLabel={translate('stepCounter', index + 1, stepNames.length, currentStepIndex === index ? currentStepAccessibilityDescription : undefined)}
                         >
                             {isCompletedStep ? (
                                 <Icon

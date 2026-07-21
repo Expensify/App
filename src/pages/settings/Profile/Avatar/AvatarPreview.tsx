@@ -33,7 +33,7 @@ type AvatarPreviewProps = {
     /** The function to set the image data */
     setImageData: (imageData: ImageData) => void;
     /** The function to set the error */
-    setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
+    setError: (error: TranslationPaths | null, phraseArgs?: unknown[]) => void;
     /** The function to set the crop image data */
     setCropImageData: (cropImageData: ImageData) => void;
     /** Whether the avatar crop modal is open */
@@ -83,12 +83,12 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
         validateAvatarImage(image)
             .then((validationResult) => {
                 if (!validationResult.isValid) {
-                    setError(validationResult.errorKey ?? null, validationResult.errorParams ?? {});
+                    setError(validationResult.errorKey ?? null, validationResult.errorArgs ?? []);
                     return;
                 }
 
                 setIsAvatarCropModalOpen(true);
-                setError(null, {});
+                setError(null, []);
                 setCropImageData({
                     uri: image.uri ?? '',
                     name: image.name ?? '',
@@ -97,7 +97,7 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                 });
             })
             .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', []);
             });
     };
 
@@ -112,7 +112,7 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     };
 
     const clearError = () => {
-        setError(null, {});
+        setError(null, []);
     };
 
     const {createMenuItems} = useAvatarMenu({

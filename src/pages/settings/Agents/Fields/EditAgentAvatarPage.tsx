@@ -71,7 +71,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     const [imageData, setImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
     const [cropImageData, setCropImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
-    const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseParam: Record<string, unknown>}>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseArgs: unknown[]}>({validationError: null, phraseArgs: []});
 
     const isSavingRef = useRef(false);
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
@@ -91,11 +91,11 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         validateAvatarImage(image)
             .then((result) => {
                 if (!result.isValid) {
-                    setErrorData({validationError: result.errorKey ?? null, phraseParam: result.errorParams ?? {}});
+                    setErrorData({validationError: result.errorKey ?? null, phraseArgs: result.errorArgs ?? []});
                     return;
                 }
                 setIsAvatarCropModalOpen(true);
-                setErrorData({validationError: null, phraseParam: {}});
+                setErrorData({validationError: null, phraseArgs: []});
                 setCropImageData({
                     uri: image.uri ?? '',
                     name: image.name ?? '',
@@ -104,7 +104,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                 });
             })
             .catch(() => {
-                setErrorData({validationError: 'attachmentPicker.errorWhileSelectingCorruptedAttachment', phraseParam: {}});
+                setErrorData({validationError: 'attachmentPicker.errorWhileSelectingCorruptedAttachment', phraseArgs: []});
             });
     };
 
@@ -223,7 +223,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                 {!!errorData.validationError && (
                     <DotIndicatorMessage
                         style={styles.mv5}
-                        messages={{validationError: translate(errorData.validationError, errorData.phraseParam as never)}}
+                        messages={{validationError: (translate as (key: TranslationPaths, ...args: unknown[]) => string)(errorData.validationError, ...errorData.phraseArgs)}}
                         type="error"
                     />
                 )}

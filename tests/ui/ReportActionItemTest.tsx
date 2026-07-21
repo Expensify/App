@@ -770,7 +770,7 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the action message should be displayed
-            expect(screen.getByText(translateLocal('iou.paidElsewhere', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.paidElsewhere'))).toBeOnTheScreen();
         });
     });
 

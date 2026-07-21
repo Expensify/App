@@ -10,7 +10,7 @@ type ImageData = {
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
-    phraseParam: Record<string, unknown>;
+    phraseArgs: unknown[];
 };
 
 export type {ImageData, ErrorData};

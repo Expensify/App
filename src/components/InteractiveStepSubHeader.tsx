@@ -108,11 +108,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                             role={CONST.ROLE.GROUP}
                             aria-current={currentStep === index ? 'step' : undefined}
                             accessibilityState={{selected: currentStep === index}}
-                            accessibilityLabel={translate('stepCounter', {
-                                step: index + 1,
-                                total: stepNames.length,
-                                text: currentStep === index ? currentStepAccessibilityDescription : undefined,
-                            })}
+                            accessibilityLabel={translate('stepCounter', index + 1, stepNames.length, currentStep === index ? currentStepAccessibilityDescription : undefined)}
                             sentryLabel={CONST.SENTRY_LABEL.INTERACTIVE_STEP_SUB_HEADER.STEP_BUTTON}
                         >
                             {isCompletedStep ? (
