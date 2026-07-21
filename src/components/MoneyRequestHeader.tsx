@@ -195,15 +195,13 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 )}
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && (
-                <View style={styles.mtn1}>
-                    <MoneyRequestHeaderActions
-                        reportID={reportID}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                </View>
+                <MoneyRequestHeaderActions
+                    reportID={reportID}
+                    onBackButtonPress={onBackButtonPress}
+                />
             )}
             {!!statusBarProps && (
-                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3, styles.mtn1]}>
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}
