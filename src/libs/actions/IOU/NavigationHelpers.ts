@@ -1,5 +1,4 @@
 import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 
 import {mergeExpenseAddedGrowlTransactionIDs} from '@userActions/Transaction';
 
@@ -28,30 +27,4 @@ function signalExpenseAddedGrowl(transactionID: string | undefined, dataType: Se
     mergeExpenseAddedGrowlTransactionIDs({[transactionID]: dataType});
 }
 
-/**
- * Helper to navigate after an expense is created in order to standardize the post‑creation experience
- * when creating an expense from the global create button.
- * If the expense is created from the global create button then:
- * - If it is created on the inbox tab, it will open the chat report containing that expense.
- * - If it is created elsewhere, it will navigate to Reports > Expense and show the "Expense added" growl.
- */
-function handleNavigateAfterExpenseCreate({
-    activeReportID,
-    transactionID,
-    isFromGlobalCreate,
-    isInvoice,
-    shouldAddPendingNewTransactionIDs = false,
-    shouldNavigate = true,
-}: {
-    activeReportID?: string;
-    transactionID?: string;
-    isFromGlobalCreate?: boolean;
-    isInvoice?: boolean;
-    shouldAddPendingNewTransactionIDs?: boolean;
-    shouldNavigate?: boolean;
-}) {
-    const hasMultipleTransactions = Object.values(getAllTransactions()).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
-    navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions, shouldAddPendingNewTransactionIDs, shouldNavigate});
-}
-
-export {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, signalExpenseAddedGrowl};
+export {dismissModalAndOpenReportInInboxTab, signalExpenseAddedGrowl};
