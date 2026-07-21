@@ -140,7 +140,7 @@ import {
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
-import {getReportName} from './ReportNameUtils';
+import {deprecatedGetReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -218,6 +218,8 @@ import {
     shouldShowAttendees as shouldShowAttendeesUtils,
     shouldShowViolation,
 } from './TransactionUtils';
+import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
+import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
@@ -723,6 +725,7 @@ function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
+    topSpendersPolicyIDs: string[] = [],
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
@@ -969,6 +972,8 @@ function getSuggestedSearches(
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    // Scope Top Spenders to the eligible workspaces so individual-chat/personal expenses don't leak in.
+                    ...(topSpendersPolicyIDs.length > 0 ? {policyID: topSpendersPolicyIDs} : {}),
                     status: [
                         CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
                         CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
@@ -1069,7 +1074,7 @@ function getSuggestedSearchesVisibility(
     policies: OnyxCollection<OnyxTypes.Policy>,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     hasReportAwaitingApproval = false,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean} {
+): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = hasReportAwaitingApproval;
@@ -1084,12 +1089,13 @@ function getSuggestedSearchesVisibility(
     let shouldShowTopMerchantsSuggestion = false;
     let hasGroupPoliciesWithExpenseChat = false;
     let shouldShowSpendOverTimeSuggestion = false;
+    const topSpendersPolicyIDs: string[] = [];
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
 
-    Object.values(policies ?? {}).some((policy) => {
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
-            return false;
+            continue;
         }
 
         const isPaidPolicy = isPaidGroupPolicy(policy);
@@ -1137,6 +1143,9 @@ function getSuggestedSearchesVisibility(
         shouldShowExpensifyCardSuggestion ||= isEligibleForExpensifyCardSuggestion;
         shouldShowReimbursementsSuggestion ||= isEligibleForReimbursementsSuggestion;
         shouldShowTopSpendersSuggestion ||= isEligibleForTopSpendersSuggestion;
+        if (policy.id && isEligibleForTopSpendersSuggestion) {
+            topSpendersPolicyIDs.push(policy.id);
+        }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
         hasGroupPoliciesWithExpenseChat ||=
@@ -1146,24 +1155,7 @@ function getSuggestedSearchesVisibility(
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
         shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
-
-        // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
-        return (
-            shouldShowSubmitSuggestion &&
-            shouldShowPaySuggestion &&
-            shouldShowApproveSuggestion &&
-            shouldShowExportSuggestion &&
-            shouldShowStatementsSuggestion &&
-            shouldShowUnapprovedCashSuggestion &&
-            shouldShowUnapprovedCardSuggestion &&
-            shouldShowExpensifyCardSuggestion &&
-            shouldShowReimbursementsSuggestion &&
-            shouldShowTopSpendersSuggestion &&
-            shouldShowTopCategoriesSuggestion &&
-            shouldShowTopMerchantsSuggestion &&
-            hasGroupPoliciesWithExpenseChat
-        );
-    });
+    }
 
     return {
         visibility: {
@@ -1184,6 +1176,7 @@ function getSuggestedSearchesVisibility(
         },
         hasGroupPoliciesWithExpenseChat,
         shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
+        topSpendersPolicyIDs,
     };
 }
 
@@ -1222,8 +1215,7 @@ function getTransactionItemCommonFormattedProperties(
     const submitted = report?.submitted;
     const approved = report?.approved;
 
-    // Posted date is in the YYYYMMDD format, so we format it to YYYY-MM-DD here since JS's Date constructor interprets it as an invalid date.
-    const posted = !transactionItem?.posted ? '' : `${transactionItem?.posted.slice(0, 4)}-${transactionItem?.posted.slice(4, 6)}-${transactionItem?.posted.slice(6, 8)}`;
+    const posted = getFormattedPostedDate(transactionItem?.posted);
 
     return {
         formattedFrom,
@@ -1532,11 +1524,9 @@ function shouldShowYear(
                     result.shouldShowYearApproved = true;
                 }
 
-                // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
                 // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
-                if (!result.shouldShowYearPosted && item?.posted) {
-                    const postedYear = parseInt(item.posted.slice(0, 4), 10);
-                    result.shouldShowYearPosted = postedYear !== currentYear;
+                if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item)) {
+                    result.shouldShowYearPosted = true;
                 }
             }
 
@@ -1565,11 +1555,9 @@ function shouldShowYear(
                 result.shouldShowYearApproved = true;
             }
 
-            // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
             // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
-            if (!result.shouldShowYearPosted && item?.posted) {
-                const postedYear = parseInt(item.posted.slice(0, 4), 10);
-                result.shouldShowYearPosted = postedYear !== currentYear;
+            if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item)) {
+                result.shouldShowYearPosted = true;
             }
 
             const exportedAction = item.reportID ? lastExportedActionByReportID.get(item.reportID) : undefined;
@@ -1766,7 +1754,6 @@ type PreprocessingContext = {
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
     hasDeletedTransaction: boolean;
-    currentYear: number;
 };
 
 function createPreprocessingContext(): PreprocessingContext {
@@ -1793,7 +1780,6 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
         hasDeletedTransaction: false,
-        currentYear: new Date().getFullYear(),
     };
 }
 
@@ -1911,11 +1897,8 @@ function processTransactionEntry(ctx: PreprocessingContext, transaction: OnyxTyp
         ctx.shouldShowYearApproved = true;
     }
 
-    if (!ctx.shouldShowYearPosted && transaction?.posted) {
-        const postedYear = parseInt(transaction.posted.slice(0, 4), 10);
-        if (postedYear !== ctx.currentYear) {
-            ctx.shouldShowYearPosted = true;
-        }
+    if (!ctx.shouldShowYearPosted && shouldShowTransactionPostedYear(transaction)) {
+        ctx.shouldShowYearPosted = true;
     }
 
     // Optimistic: works when report-action keys precede transaction keys (common case).
@@ -1986,7 +1969,7 @@ function resolveExportedYearFlags(ctx: PreprocessingContext, data: OnyxTypes.Sea
  * (key classification, violations, export/action maps, year flags, column indicators)
  * needed by getTransactionsSections and getReportSections.
  */
-function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<PreprocessingContext, 'allHoldReportActions' | 'currentYear'> {
+function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<PreprocessingContext, 'allHoldReportActions'> {
     const ctx = createPreprocessingContext();
 
     for (const key of Object.keys(data)) {
@@ -2618,7 +2601,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
-                const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
+                const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
                 const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2790,7 +2773,7 @@ function getReportActionsSections(
                     ...reportAction,
                     reportID,
                     from,
-                    reportName: getReportName(report, reportAttributesDerivedValue),
+                    reportName: deprecatedGetReportName(report, reportAttributesDerivedValue),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -2959,6 +2942,8 @@ function getReportSections({
                 if (isIOUReport) {
                     reportIDToTransactions[reportKey].reportName = getIOUReportName(translate, convertToDisplayString, data, reportIDToTransactions[reportKey]);
                 }
+
+                reportIDToTransactions[reportKey].reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportIDToTransactions[reportKey].reportName ?? ''));
             }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
@@ -4619,8 +4604,9 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         visibility: suggestedSearchesVisibility,
         hasGroupPoliciesWithExpenseChat,
         shouldShowExpensifyCard,
+        topSpendersPolicyIDs,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval);
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
