@@ -12,6 +12,13 @@ import type {FSPageLike, Fullstory} from './types';
 
 import {getChatFSClass, shouldInitializeFullstory} from './common';
 
+// Use connectWithoutView because it is only for fullstory initialization
+let fullstorySession: Session = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => (fullstorySession = value ?? {}),
+});
+
 // Placeholder Browser API does not support Manual Page definition
 class FSPage implements FSPageLike {
     start() {}
@@ -137,14 +144,7 @@ const FS: Fullstory = {
         // It's a mobile-only feature
     },
 };
-
-// These use connectWithoutView() because they initialize the Fullstory library, which isn't attached to any view component, so useOnyx() can't be used here.
-let fullstorySession: Session = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => (fullstorySession = value ?? {}),
-});
-
+// Use connectWithoutView because it is only for fullstory initialization
 Onyx.connectWithoutView({
     key: ONYXKEYS.USER_METADATA,
     callback: (value) => FS.consentAndIdentify(value, fullstorySession),
