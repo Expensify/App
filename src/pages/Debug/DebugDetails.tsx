@@ -111,14 +111,26 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 try {
                     validate(key, DebugUtils.onyxDataToString(value));
                 } catch (e) {
-                    const {cause, message} = e as SyntaxError;
-                    if (message === 'debug.missingProperty') {
-                        newErrors[key] = translate('debug.missingProperty', (cause as {propertyName: string}).propertyName);
-                    } else if (message === 'debug.invalidProperty') {
-                        const {propertyName, expectedType} = cause as {propertyName: string; expectedType: string};
-                        newErrors[key] = translate('debug.invalidProperty', propertyName, expectedType);
-                    } else if (message === 'debug.invalidValue') {
-                        newErrors[key] = translate('debug.invalidValue', (cause as {expectedValues: string}).expectedValues);
+                    if (!(e instanceof Error)) {
+                        newErrors[key] = String(e);
+                        continue;
+                    }
+
+                    const {message, cause} = e;
+                    if (message === 'debug.missingProperty' && typeof cause === 'object' && cause !== null && 'propertyName' in cause && typeof cause.propertyName === 'string') {
+                        newErrors[key] = translate('debug.missingProperty', cause.propertyName);
+                    } else if (
+                        message === 'debug.invalidProperty' &&
+                        typeof cause === 'object' &&
+                        cause !== null &&
+                        'propertyName' in cause &&
+                        'expectedType' in cause &&
+                        typeof cause.propertyName === 'string' &&
+                        typeof cause.expectedType === 'string'
+                    ) {
+                        newErrors[key] = translate('debug.invalidProperty', cause.propertyName, cause.expectedType);
+                    } else if (message === 'debug.invalidValue' && typeof cause === 'object' && cause !== null && 'expectedValues' in cause && typeof cause.expectedValues === 'string') {
+                        newErrors[key] = translate('debug.invalidValue', cause.expectedValues);
                     } else if (message === 'debug.missingValue') {
                         newErrors[key] = translate('debug.missingValue');
                     } else {
