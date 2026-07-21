@@ -4402,6 +4402,24 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             inputLabel: '法人納税者番号',
             error: {required: '法的事業体の納税者番号を入力してください。'},
         },
+        nudge: {
+            airfareManual:
+                'こんにちは！Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで大丈夫です ✈️',
+            airfareCard:
+                'こんにちは！Expensify でフライトの予約と管理ができるのをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
+            hotelManual:
+                'こんにちは！Expensify でホテルの予約や宿泊の管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
+            hotelCard:
+                'こんにちは！Expensify でホテルの予約や宿泊管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> からかんたんに予約できます。',
+            carManual:
+                'こんにちは！Expensify でレンタカーの予約と管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚗',
+            carCard:
+                'こんにちは！Expensify でレンタカーの予約や管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約できます。',
+            railManual:
+                'Expensify で電車の予約や管理ができることをご存じでしたか？次回からは手動で経費を作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください。',
+            railCard:
+                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約しましょう。',
+        },
     },
     workspace: {
         common: {

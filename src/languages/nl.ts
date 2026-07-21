@@ -4433,6 +4433,24 @@ ${amount} voor ${merchant} - ${date}`,
             inputLabel: 'Belastingnummer rechtspersoon',
             error: {required: 'Vul het fiscale identificatienummer van je rechtspersoon in.'},
         },
+        nudge: {
+            airfareManual:
+                'Hoi! Wist je dat je vluchten direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van handmatig een uitgave aanmaken en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Hoi! Wist je dat je vluchten rechtstreeks in Expensify kunt boeken en beheren? En dat bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Hoi! Wist je dat je autoverhuur direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Hoi! Wist je dat je rechtstreeks in Expensify auto\'s kunt huren en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Hoi! Wist je dat je treinreizen gewoon in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van je uitgave handmatig aanmaken en boek simpelweg via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Hoi! Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat de bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     workspace: {
         common: {

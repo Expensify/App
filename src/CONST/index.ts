@@ -1658,6 +1658,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRAVEL_NUDGE: 'TRAVELNUDGE',
                 TRAVEL_UPDATE: 'TRAVEL_TRIP_ROOM_UPDATE',
                 TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
@@ -6565,6 +6566,13 @@ const CONST = {
         HOTEL: 'hotel',
         FLIGHT: 'flight',
         TRAIN: 'train',
+    },
+
+    TRAVEL_NUDGE: {
+        ORIGINATION: {
+            CARD: 'card',
+            MANUAL: 'manual',
+        },
     },
 
     PNR_STATUS: {
