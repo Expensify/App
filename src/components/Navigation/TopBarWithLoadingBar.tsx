@@ -1,4 +1,4 @@
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 
 import React from 'react';
 
