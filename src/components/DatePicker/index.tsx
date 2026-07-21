@@ -140,6 +140,11 @@ function DatePicker({
         openPicker();
     }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus]);
 
+    // Mirror the year-selector open state into a ref that closeDatePicker can read synchronously, and keep a short
+    // grace window open for a moment after it closes. This is needed because selecting a year does a goBack, whose
+    // popstate reaches the popover's close listener slightly AFTER isYearSelectorOpen has already flipped back to
+    // false — so gating on the live flag alone can't catch that trailing popstate. The grace window absorbs it,
+    // keeping the picker open long enough to apply the picked year instead of closing on the return navigation.
     useEffect(() => {
         isYearSelectorOpenRef.current = isYearSelectorOpen;
         if (isYearSelectorOpen) {

@@ -62,7 +62,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const isFocused = useIsFocused();
     // While the year-selector RHP is open the popover stays mounted across the blur (its render is gated on the
     // user-controlled isOverlayVisible, not navigation focus) so its state survives the round-trip. The
-    // CalendarPicker inside asks the popover's modal to hide in place via HiddenForOverlayContext — this host
+    // CalendarPicker inside asks the popover's modal to hide in place via OverlayHiddenContext — this host
     // only has to keep it mounted and ignore the selector's goBack (see toggleOverlay).
     const isYearSelectorOpen = useIsYearSelectorOpen();
     const styles = useThemeStyles();

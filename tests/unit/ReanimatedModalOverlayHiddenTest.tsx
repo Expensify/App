@@ -1,7 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ReanimatedModal from '@components/Modal/ReanimatedModal';
-import HiddenForOverlayContext from '@components/Modal/ReanimatedModal/HiddenForOverlayContext';
+import OverlayHiddenContext from '@components/Modal/ReanimatedModal/OverlayHiddenContext';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import type {ComponentType, ReactNode} from 'react';
@@ -15,7 +15,7 @@ type MockReactNativePrimitives = {View: ComponentType<MockViewProps>};
 type MockReactPrimitives = {useEffect: typeof useEffect};
 
 // The presentation-only subtrees are stubbed so the suite exercises ReanimatedModal's real logic: the
-// HiddenForOverlayContext provider, the hidden-for-overlay state, the container hide style, and the backdrop
+// OverlayHiddenContext provider, the overlay-hidden state, the container hide style, and the backdrop
 // gating. (The pointer-events effect on the RNW portal root is web-only DOM behavior and is exercised live.)
 jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
     function MockFocusTrapForModal({children}: {children: ReactNode}) {
@@ -65,34 +65,34 @@ function flattenStyle(style: unknown): Record<string, unknown> {
     return {...style};
 }
 
-// A modal child standing in for the CalendarPicker: it consumes HiddenForOverlayContext and asks the hosting
+// A modal child standing in for the CalendarPicker: it consumes OverlayHiddenContext and asks the hosting
 // modal to hide/show itself, exactly like the picker does when the year-selector route opens/closes.
 function HideRequester() {
-    const setHiddenForOverlay = useContext(HiddenForOverlayContext);
+    const setOverlayHidden = useContext(OverlayHiddenContext);
     return (
         <View>
-            <View testID={setHiddenForOverlay ? 'hasProvider-true' : 'hasProvider-false'} />
+            <View testID={setOverlayHidden ? 'hasProvider-true' : 'hasProvider-false'} />
             <PressableWithoutFeedback
                 accessibilityLabel="requestHide"
                 testID="requestHide"
-                onPress={() => setHiddenForOverlay?.(true)}
+                onPress={() => setOverlayHidden?.(true)}
             />
             <PressableWithoutFeedback
                 accessibilityLabel="requestShow"
                 testID="requestShow"
-                onPress={() => setHiddenForOverlay?.(false)}
+                onPress={() => setOverlayHidden?.(false)}
             />
         </View>
     );
 }
 
-// Mirrors the CalendarPicker unmount cleanup (setHiddenForOverlay(false) on effect teardown).
+// Mirrors the CalendarPicker unmount cleanup (setOverlayHidden(false) on effect teardown).
 function HideOnMount() {
-    const setHiddenForOverlay = useContext(HiddenForOverlayContext);
+    const setOverlayHidden = useContext(OverlayHiddenContext);
     useEffect(() => {
-        setHiddenForOverlay?.(true);
-        return () => setHiddenForOverlay?.(false);
-    }, [setHiddenForOverlay]);
+        setOverlayHidden?.(true);
+        return () => setOverlayHidden?.(false);
+    }, [setOverlayHidden]);
     return null;
 }
 
@@ -111,7 +111,7 @@ function renderModal(children: ReactNode) {
     );
 }
 
-describe('ReanimatedModal HiddenForOverlayContext', () => {
+describe('ReanimatedModal OverlayHiddenContext', () => {
     test('provides the context to its content', () => {
         renderModal(<HideRequester />);
         expect(screen.getByTestId('hasProvider-true')).toBeTruthy();

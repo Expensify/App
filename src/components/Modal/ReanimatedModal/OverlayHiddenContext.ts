@@ -9,6 +9,6 @@ import {createContext} from 'react';
  * ancestor (e.g. the content is hosted on a navigation card), in which case consumers fall back to hiding
  * themselves.
  */
-const HiddenForOverlayContext = createContext<((isHidden: boolean) => void) | undefined>(undefined);
+const OverlayHiddenContext = createContext<((isOverlayHidden: boolean) => void) | undefined>(undefined);
 
-export default HiddenForOverlayContext;
+export default OverlayHiddenContext;

@@ -7,19 +7,16 @@ import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {clearCalendarPickerSelectedDateModifier, setCalendarPickerSelectedDateModifier} from '@libs/actions/CalendarPicker';
 import getPlatform from '@libs/getPlatform';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -27,6 +24,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
+import useSearchYearSelector from './useSearchYearSelector';
 
 type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
@@ -64,31 +62,10 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
 
-    // Opening the year picker blurs the Search screen and unmounts this popover, resetting selectedDateModifier
-    // (the Custom date/range sub-view) back to the top menu on return. Persist it and restore it on return (a
-    // pending year write-back for a search calendar) so the calendar reopens with the picked year applied.
-    const [storedDateModifier] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_DATE_MODIFIER);
-    const [storedYearSelection] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR);
-    const hasRestoredDateModifierRef = useRef(false);
+    // The Search-filter layer of the year-selector coordination: persists the open Custom date/range sub-view and
+    // restores it after the year picker unmounts this popover, so the calendar reopens with the picked year applied.
+    const {clearBreadcrumb} = useSearchYearSelector({selectedDateModifier, onRestoreDateModifier: setSelectedDateModifier});
 
-    useEffect(() => {
-        if (!selectedDateModifier) {
-            return;
-        }
-        setCalendarPickerSelectedDateModifier(selectedDateModifier);
-    }, [selectedDateModifier]);
-
-    useEffect(() => {
-        if (hasRestoredDateModifierRef.current || selectedDateModifier || !storedDateModifier || !storedYearSelection?.contextID.startsWith('search')) {
-            return;
-        }
-        const dateModifierToRestore = Object.values(CONST.SEARCH.DATE_MODIFIERS).find((modifier) => modifier === storedDateModifier);
-        if (!dateModifierToRestore) {
-            return;
-        }
-        hasRestoredDateModifierRef.current = true;
-        requestAnimationFrame(() => setSelectedDateModifier(dateModifierToRestore));
-    }, [storedDateModifier, storedYearSelection, selectedDateModifier]);
     const [rangeText, setRangeText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
@@ -114,10 +91,10 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
 
     const clearSelection = useCallback(() => {
         // Leaving the sub-view (not via the year picker, which unmounts us instead) — drop the persisted breadcrumb.
-        clearCalendarPickerSelectedDateModifier();
+        clearBreadcrumb();
         setSelectedDateModifier(null);
         setShouldShowRangeError(false);
-    }, []);
+    }, [clearBreadcrumb]);
 
     const handleBackPress = useCallback(() => {
         if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {

@@ -1,30 +1,20 @@
-import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
-import HiddenForOverlayContext from '@components/Modal/ReanimatedModal/HiddenForOverlayContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
-import {closeTop} from '@libs/actions/Modal';
 import DateUtils from '@libs/DateUtils';
-import getPlatform from '@libs/getPlatform';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -32,6 +22,7 @@ import ArrowIcon from './ArrowIcon';
 import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
 import MonthPickerModal from './MonthPickerModal';
+import useYearSelector from './useYearSelector';
 
 type CalendarPickerProps = {
     /** An initial value of date string */
@@ -121,7 +112,6 @@ function CalendarPicker({
     const monthPressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
-    const [selectedYearResult] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR);
     const isFirstRender = useRef(true);
 
     const currentMonthView = currentDateView.getMonth();
@@ -133,52 +123,18 @@ function CalendarPicker({
     const minYear = CONST.CALENDAR_PICKER.MIN_YEAR;
     const maxYear = CONST.CALENDAR_PICKER.MAX_YEAR;
 
-    const isYearSelectorOpen = useIsYearSelectorOpen();
-    // On wide-screen web the host popover stays mounted while the @react-navigation year-selector RHP is open
-    // (so the picker context is preserved), but its modal — a z-index-9996 portal — would paint over the RHP and
-    // swallow its clicks. This CalendarPicker is the component that knows the year selector opened, so it asks
-    // the hosting ReanimatedModal to hide in place via context. When there is no modal ancestor (e.g. the picker
-    // is on a navigation card like ScheduleCall), it falls back to hiding itself. Narrow/native dismiss the host instead.
-    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
-    const shouldHideForYearSelector = isDesktopWeb && isYearSelectorOpen;
-    const setModalHiddenForOverlay = useContext(HiddenForOverlayContext);
-    const shouldSelfHideForYearSelector = shouldHideForYearSelector && !setModalHiddenForOverlay;
-
-    useEffect(() => {
-        if (!setModalHiddenForOverlay) {
-            return;
-        }
-        setModalHiddenForOverlay(shouldHideForYearSelector);
-        return () => setModalHiddenForOverlay(false);
-    }, [shouldHideForYearSelector, setModalHiddenForOverlay]);
-
-    // When the year picker screen writes back a selection for this CalendarPicker instance,
-    // apply it to the displayed date and clear the transient result so it isn't re-applied.
-    useEffect(() => {
-        if (!selectedYearResult || selectedYearResult.contextID !== pickerContextID) {
-            return;
-        }
-        const {year} = selectedYearResult;
-        clearCalendarPickerSelectedYear();
-        // Defer applying the year to the next frame: this effect reacts to an Onyx-delivered
-        // selection, and updating state synchronously inside the effect triggers a cascading
-        // render (react-hooks/set-state-in-effect).
+    // Apply a year written back from the year-selector screen to the displayed date. Deferred to the next frame
+    // because it reacts to an Onyx-delivered selection inside the hook's effect, and updating state synchronously
+    // there triggers a cascading render (react-hooks/set-state-in-effect).
+    const handleYearSelected = useCallback((year: number) => {
         requestAnimationFrame(() => setCurrentDateView((prev) => setYear(new Date(prev), year)));
-    }, [selectedYearResult, pickerContextID]);
+    }, []);
 
-    const openYearPicker = () => {
-        // Dismiss the popover/modal hosting this CalendarPicker (if any) so the year picker
-        // screen is not rendered behind it.
-        if (shouldCloseModalOnYearPickerOpen) {
-            closeTop();
-        } else if (isDesktopWeb) {
-            // Kept-mounted host: hide the hosting modal before the navigation commits so the year-selector
-            // RHP never renders under a still-visible popover frame for a frame. The effect above keeps the
-            // hidden state in sync afterwards (and restores it when the selector closes).
-            setModalHiddenForOverlay?.(true);
-        }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.YEAR_SELECTOR.getRoute({contextID: pickerContextID, currentYear: currentYearView, minYear, maxYear})));
-    };
+    const {openYearPicker, shouldSelfHideForYearSelector} = useYearSelector({
+        pickerContextID,
+        shouldCloseModalOnYearPickerOpen,
+        onYearSelected: handleYearSelected,
+    });
 
     const onMonthSelected = (month: number) => {
         setCurrentDateView((prev) => setMonth(new Date(prev), month));
@@ -359,7 +315,7 @@ function CalendarPicker({
                         <PressableWithFeedback
                             onPress={() => {
                                 pressableRef?.current?.blur();
-                                openYearPicker();
+                                openYearPicker(currentYearView, minYear, maxYear);
                             }}
                             ref={pressableRef}
                             style={[themeStyles.alignItemsCenter]}

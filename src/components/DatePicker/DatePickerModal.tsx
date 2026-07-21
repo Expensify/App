@@ -62,7 +62,7 @@ function DatePickerModal({
     const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
     // On desktop web the date popover stays mounted while the year-selector RHP is open (so the picked year is
     // applied on return). The CalendarPicker inside asks the hosting modal to hide in place via
-    // HiddenForOverlayContext — this host only has to keep the popover mounted and suppress the popstate close.
+    // OverlayHiddenContext — this host only has to keep the popover mounted and suppress the popstate close.
     const isYearSelectorOpen = useIsYearSelectorOpen();
 
     useEffect(() => {

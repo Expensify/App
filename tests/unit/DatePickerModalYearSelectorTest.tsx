@@ -141,9 +141,9 @@ const ActualDatePickerModal = jest.requireActual<{default: typeof DatePickerModa
 // These tests assert what the real DatePickerModal computes for its host popover. PopoverWithMeasuredContent's
 // real measurement/portal chain is too heavy to render reliably, so stub it with a component that surfaces the
 // relevant props onto queryable rendered nodes. Since the hide-in-place moved into ReanimatedModal (driven by
-// the CalendarPicker via HiddenForOverlayContext), the host passes NO hide wiring anymore — the mock renders
+// the CalendarPicker via OverlayHiddenContext), the host passes NO hide wiring anymore — the mock renders
 // 'unset' for the props the host no longer manages so the tests can assert exactly that. The mock also provides
-// no HiddenForOverlayContext, so the CalendarPicker inside exercises its no-modal-ancestor self-hide fallback.
+// no OverlayHiddenContext, so the CalendarPicker inside exercises its no-modal-ancestor self-hide fallback.
 jest.mock('@components/PopoverWithMeasuredContent', () => {
     const ReactNativeActual = jest.requireActual<MockReactNativePrimitives>('react-native');
     const {Text, View} = ReactNativeActual;
@@ -358,14 +358,14 @@ describe('DatePickerModal year-selector return path (DOB contextID)', () => {
     });
 });
 
-describe('DatePickerModal year-selector hide wiring (hide lives in the modal via HiddenForOverlayContext, not the host)', () => {
+describe('DatePickerModal year-selector hide wiring (hide lives in the modal via OverlayHiddenContext, not the host)', () => {
     const INPUT_ID = 'dob';
     const START_VALUE = '2023-06-15';
     const MIN_DATE = new Date('2000-01-01');
     const MAX_DATE = new Date('2030-12-31');
 
     // The CalendarPicker's fallback self-hide signature (opacity 0 + pointerEvents none) — exercised here
-    // because the mocked PopoverWithMeasuredContent provides no HiddenForOverlayContext. visibility: 'hidden'
+    // because the mocked PopoverWithMeasuredContent provides no OverlayHiddenContext. visibility: 'hidden'
     // is applied alongside via styles.visibilityHidden, a web-only platform-split utility that resolves to an
     // empty object under jest's native module resolution, so it is not asserted.
     const findSelfHiddenNodes = () => screen.UNSAFE_root.findAll((node) => node.props.pointerEvents === 'none' && flattenStyle(node.props.style).opacity === 0);
@@ -394,13 +394,13 @@ describe('DatePickerModal year-selector hide wiring (hide lives in the modal via
         );
 
         // The host no longer hides the frame or manages the backdrop — that moved into ReanimatedModal,
-        // driven by the CalendarPicker through HiddenForOverlayContext (see ReanimatedModalHiddenForOverlayTest).
+        // driven by the CalendarPicker through OverlayHiddenContext (see ReanimatedModalOverlayHiddenTest).
         const frame = screen.getByTestId('datePickerModalFrame');
         const style = flattenStyle(frame.props.style);
         expect(style.opacity).toBeUndefined();
         expect(screen.getByTestId('datePickerModalHasBackdrop')).toHaveTextContent('unset');
 
-        // The mocked popover provides no HiddenForOverlayContext, so the CalendarPicker falls back to
+        // The mocked popover provides no OverlayHiddenContext, so the CalendarPicker falls back to
         // hiding itself — the no-modal-ancestor path (same one navigation-card hosts rely on).
         expect(findSelfHiddenNodes().length).toBeGreaterThanOrEqual(1);
     });
