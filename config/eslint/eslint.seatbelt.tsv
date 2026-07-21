@@ -148,6 +148,7 @@
 "../../src/components/DatePicker/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/DelegateNoAccessModalProvider/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/DialogLabelContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/components/DisplayContentsView/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/DisplayNames/DisplayNamesWithTooltip.tsx"	"react-hooks/refs"	6
 "../../src/components/DistanceRequest/DistanceRequestFooter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DistanceRequest/DistanceRequestFooter.tsx"	"no-restricted-imports"	1
