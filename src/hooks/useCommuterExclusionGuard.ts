@@ -73,7 +73,7 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
 
             return true;
         },
-        [policyID, isManualDistanceRequest, isOdometerDistanceRequest, policiesWithCommuterExclusions, showConfirmModal, translate, styles, illustrations],
+        [policyID, isManualDistanceRequest, isOdometerDistanceRequest, policiesWithCommuterExclusions, showConfirmModal, translate, styles, illustrations.HouseWithMap],
     );
 }
 

@@ -9429,7 +9429,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             snapPhotoEnd: '<muted-text-label>Prenez une photo de votre compteur kilométrique à la <strong>fin</strong> de votre trajet.</muted-text-label>',
         },
         commuterExclusion: {
-            original: 'Original',
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original : ${formattedDistance}`,
             removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Supprimé ${formattedDistance}`,
             systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
                 `${formattedDistance} supprimé en fonction des <a href="${workspaceDistanceSettingsLink}">paramètres de distance de l'espace de travail</a>.`,

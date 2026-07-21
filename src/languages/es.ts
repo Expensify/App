@@ -9626,7 +9626,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             snapPhotoEnd: '<muted-text-label>Haz una foto de tu odómetro al <strong>final</strong> de tu viaje.</muted-text-label>',
         },
         commuterExclusion: {
-            original: 'Original',
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
             removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Eliminó ${formattedDistance}`,
             systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
                 `Se eliminaron ${formattedDistance} según la <a href="${workspaceDistanceSettingsLink}">configuración de distancia del espacio de trabajo</a>.`,

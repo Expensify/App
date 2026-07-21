@@ -9047,7 +9047,7 @@ ${reportName}`,
             snapPhotoEnd: '<muted-text-label>在行程<strong>结束</strong>时拍一张里程表的照片。</muted-text-label>',
         },
         commuterExclusion: {
-            original: '原始',
+            original: ({formattedDistance}: {formattedDistance: string}) => `原始：${formattedDistance}`,
             removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `已移除 ${formattedDistance}`,
             systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
                 `已根据<a href="${workspaceDistanceSettingsLink}">工作区距离设置</a>移除 ${formattedDistance}。`,

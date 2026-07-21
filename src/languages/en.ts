@@ -9478,7 +9478,7 @@ const translations = {
             },
         },
         commuterExclusion: {
-            original: 'Original',
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
             removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Removed ${formattedDistance}`,
             systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
                 `Removed ${formattedDistance} based on <a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>.`,

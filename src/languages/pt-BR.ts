@@ -9333,7 +9333,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             snapPhotoEnd: '<muted-text-label>Tire uma foto do odômetro no <strong>final</strong> da sua viagem.</muted-text-label>',
         },
         commuterExclusion: {
-            original: 'Original',
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
             removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Removeu ${formattedDistance}`,
             systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
                 `Removido ${formattedDistance} com base nas <a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>.`,

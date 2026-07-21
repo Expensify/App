@@ -9325,7 +9325,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             snapPhotoEnd: '<muted-text-label>Zrób zdjęcie licznika kilometrów na <strong>koniec</strong> swojej podróży.</muted-text-label>',
         },
         commuterExclusion: {
-            original: 'Oryginał',
+            original: ({formattedDistance}: {formattedDistance: string}) => `Oryginał: ${formattedDistance}`,
             removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Usunięto ${formattedDistance}`,
             systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
                 `Usunięto ${formattedDistance} na podstawie <a href="${workspaceDistanceSettingsLink}">ustawień odległości w przestrzeni roboczej</a>.`,

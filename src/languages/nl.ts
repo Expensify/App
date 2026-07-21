@@ -9345,7 +9345,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             snapPhotoEnd: '<muted-text-label>Maak een foto van je kilometerteller aan het <strong>einde</strong> van je rit.</muted-text-label>',
         },
         commuterExclusion: {
-            original: 'Origineel',
+            original: ({formattedDistance}: {formattedDistance: string}) => `Origineel: ${formattedDistance}`,
             removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `${formattedDistance} verwijderd`,
             systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
                 `${formattedDistance} verwijderd op basis van <a href="${workspaceDistanceSettingsLink}">werkruimte-instellingen voor afstand</a>.`,

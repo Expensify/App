@@ -9252,7 +9252,7 @@ ${reportName}`,
             snapPhotoEnd: '<muted-text-label>走行の<strong>終了時</strong>に、オドメーターの写真を撮影してください。</muted-text-label>',
         },
         commuterExclusion: {
-            original: 'オリジナル',
+            original: ({formattedDistance}: {formattedDistance: string}) => `元の値: ${formattedDistance}`,
             removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `${formattedDistance} を削除しました`,
             systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
                 `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>に基づき、${formattedDistance} を削除しました。`,

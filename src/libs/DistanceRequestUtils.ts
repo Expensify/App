@@ -459,7 +459,7 @@ function getDistanceDisplayDetailsWithCommuter(
     const formattedDistance = getFormattedDistanceInUnits(commuterExclusion, unitToUse, translate, false, true);
 
     return {
-        distanceToDisplayDescription: `${baseLabel} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`,
+        distanceToDisplayDescription: `${baseLabel} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original', {formattedDistance: originalDistanceFormatted})}`,
         distanceToDisplayHintText: translate('distance.commuterExclusion.removedCommuterDistance', {formattedDistance}),
     };
 }
