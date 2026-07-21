@@ -1,10 +1,18 @@
-import CONST from '@src/CONST';
+import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
-import {isSensorAvailable} from '@sbaiahmed1/react-native-biometrics';
+import {decodeLibraryError, getKeyAlias} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Base64URL from '@src/utils/Base64URL';
+
+import {getAllKeys, isSensorAvailable} from '@sbaiahmed1/react-native-biometrics';
+import {mfaCredentialIDsSelector} from '@selectors/Account';
 
 /**
- * Platform-resolved biometric operations for the device check. These functions read no Onyx and no
- * React state, so the MFA machine actors and other non-React callers can import them directly.
+ * Platform-resolved biometric operations for the MFA machine's pre-screen checks. These functions
+ * read no React state, so the machine actors and other non-React callers can import them directly.
  */
 
 /** The authentication method this platform verifies with. Native verifies with HSM-backed biometrics. */
@@ -19,4 +27,29 @@ async function doesDeviceSupportAuthenticationMethod(): Promise<boolean> {
     return sensorResult.isDeviceSecure;
 }
 
-export {deviceVerificationType, deviceCheckFailureReason, doesDeviceSupportAuthenticationMethod};
+/** Resolves to the account's HSM-backed credential ID, or undefined when no key exists or the keystore read fails. */
+async function getLocalCredentialID(accountID: number): Promise<string | undefined> {
+    try {
+        const {keys} = await getAllKeys(getKeyAlias(accountID));
+        const entry = keys.at(0);
+        if (!entry) {
+            return undefined;
+        }
+        return Base64URL.base64ToBase64url(entry.publicKey);
+    } catch (error) {
+        addMFABreadcrumb('Failed to get local credential ID', decodeLibraryError(error), 'error');
+        return undefined;
+    }
+}
+
+/** Resolves to whether the account has a local HSM key the server also knows, meaning it can skip registration. */
+async function areLocalCredentialsKnownToServer(accountID: number): Promise<boolean> {
+    const localCredentialID = await getLocalCredentialID(accountID);
+    if (!localCredentialID) {
+        return false;
+    }
+    const account = await readOnyxValueOnce(ONYXKEYS.ACCOUNT);
+    return (mfaCredentialIDsSelector(account) ?? []).includes(localCredentialID);
+}
+
+export {areLocalCredentialsKnownToServer, deviceVerificationType, deviceCheckFailureReason, doesDeviceSupportAuthenticationMethod};

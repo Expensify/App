@@ -1,6 +1,6 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
-import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
+import type {CheckLocalCredentialsInput, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -84,11 +84,13 @@ function createControlledActor<TOutput, TInput>(actorID: string) {
 
 const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInput>('validateDevice');
 const readHasAcceptedSoftPromptControl = createControlledActor<boolean, ReadHasAcceptedSoftPromptInput>('readHasAcceptedSoftPrompt');
+const checkLocalCredentialsControl = createControlledActor<boolean, CheckLocalCredentialsInput>('checkLocalCredentials');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
     validateDeviceControl.reset();
     readHasAcceptedSoftPromptControl.reset();
+    checkLocalCredentialsControl.reset();
 }
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
@@ -96,6 +98,7 @@ function mfaActorsMock() {
     const actors = {
         validateDevice: validateDeviceControl.actor,
         readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptControl.actor,
+        checkLocalCredentials: checkLocalCredentialsControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -108,6 +111,17 @@ function biometricsHookMock() {
     return {
         __esModule: true,
         default: () => biometricsMock,
+    };
+}
+
+/**
+ * Stubs only the magic-code email request. It is a backend call outside the modal lifecycle
+ * contract, and the machine fires it when the walk enters the magic-code screen.
+ */
+function userActionsMock() {
+    return {
+        ...jest.requireActual<Record<string, unknown>>('@libs/actions/User'),
+        requestValidateCodeAction: jest.fn(),
     };
 }
 
@@ -153,4 +167,16 @@ function navigationMock() {
     };
 }
 
-export {pendingModalClose, validateDeviceControl, readHasAcceptedSoftPromptControl, resetMfaUiMocks, mfaActorsMock, biometricsHookMock, renderHtmlMock, syncHistoryMock, navigationMock};
+export {
+    pendingModalClose,
+    validateDeviceControl,
+    readHasAcceptedSoftPromptControl,
+    checkLocalCredentialsControl,
+    resetMfaUiMocks,
+    mfaActorsMock,
+    userActionsMock,
+    biometricsHookMock,
+    renderHtmlMock,
+    syncHistoryMock,
+    navigationMock,
+};

@@ -1,5 +1,3 @@
-import CONST from '@src/CONST';
-
 import type {Action, MultifactorAuthenticationState} from './types';
 
 import {DEFAULT_STATE} from './state';
@@ -9,18 +7,6 @@ import {DEFAULT_STATE} from './state';
  */
 function stateReducer(state: MultifactorAuthenticationState, action: Action): MultifactorAuthenticationState {
     switch (action.type) {
-        case 'SET_ERROR': {
-            // Only a continuable error (an invalid validate code) belongs to the reducer; a fatal error
-            // stops the flow and is owned by the machine, so anything else just clears the continuable one.
-            if (action.payload?.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
-                return {...state, continuableError: action.payload};
-            }
-            return {...state, continuableError: undefined};
-        }
-        case 'CLEAR_CONTINUABLE_ERROR':
-            return {...state, continuableError: undefined};
-        case 'SET_VALIDATE_CODE':
-            return {...state, validateCode: action.payload};
         case 'SET_REGISTRATION_CHALLENGE':
             return {...state, registrationChallenge: action.payload};
         case 'SET_AUTHORIZATION_CHALLENGE':

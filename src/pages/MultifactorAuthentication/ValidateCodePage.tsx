@@ -2,7 +2,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
@@ -21,7 +20,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
-import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 
 import {clearAccountMessages} from '@userActions/Session';
@@ -55,11 +53,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {requestCancel, state} = useMultifactorAuthenticationInternal();
-
-    const {dispatch} = useMultifactorAuthenticationActions();
-    const {continuableError} = useMultifactorAuthenticationState();
-    const {isCancelConfirmVisible} = state;
+    const {requestCancel, submitValidateCode, clearContinuableError, state} = useMultifactorAuthenticationInternal();
+    const {continuableError, isCancelConfirmVisible} = state;
 
     // Refs
     const inputRef = useRef<ValidateCodeInputHandle>(null);
@@ -88,18 +83,6 @@ function MultifactorAuthenticationValidateCodePage() {
         // Generic account/session error (e.g. stale errors from a previous flow)
         return getLatestErrorMessage(account);
     }
-
-    // Check if this page can handle the continuable error, if not convert to regular error
-    useEffect(() => {
-        if (!continuableError) {
-            return;
-        }
-
-        if (continuableError.reason !== VALUES.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
-            // Cannot handle this error - convert to regular error which will stop the flow
-            dispatch({type: 'SET_ERROR', payload: continuableError});
-        }
-    }, [continuableError, dispatch]);
 
     // Auto-blur on error
     useEffect(() => {
@@ -151,7 +134,7 @@ function MultifactorAuthenticationValidateCodePage() {
 
         // Clear continuable error when user starts typing after an error
         if (continuableError) {
-            dispatch({type: 'CLEAR_CONTINUABLE_ERROR'});
+            clearContinuableError();
         }
     };
 
@@ -203,8 +186,7 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear errors before submit
         setFormError({});
 
-        // Set validate code in state context - the process function will handle the rest
-        dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
+        submitValidateCode(inputCode);
     };
 
     const interceptFocusTrapEscape = useMFACancelOnEscape();
@@ -231,6 +213,7 @@ function MultifactorAuthenticationValidateCodePage() {
                 <View style={[styles.mh5]}>
                     <ValidateCodeInput
                         autoComplete="one-time-code"
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_INPUT}
                         name="multifactorAuthenticationValidateCode"
                         value={inputCode}
                         onChangeText={onCodeInput}
@@ -258,6 +241,7 @@ function MultifactorAuthenticationValidateCodePage() {
                     <Button
                         success
                         large
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON}
                         style={[styles.w100, styles.ph5, styles.pb5, styles.mt4]}
                         onPress={validateAndSubmitForm}
                         text={translate('common.verify')}

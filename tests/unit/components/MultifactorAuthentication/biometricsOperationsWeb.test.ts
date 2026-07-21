@@ -6,12 +6,21 @@
  */
 import type * as WebBiometricsOperations from '@components/MultifactorAuthentication/biometrics/operations/index';
 
+import {getPasskeyOnyxKey} from '@userActions/Passkey';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 
 // jest-expo resolves the native variant by default, so load the web entry point explicitly.
-const {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} = jest.requireActual<typeof WebBiometricsOperations>(
+const {areLocalCredentialsKnownToServer, deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} = jest.requireActual<typeof WebBiometricsOperations>(
     '@components/MultifactorAuthentication/biometrics/operations/index.ts',
 );
+
+const ACCOUNT_ID = 12345;
+const LOCAL_PASSKEY_ID = 'local-passkey-credential-id';
 
 const originalPublicKeyCredentialDescriptor = Object.getOwnPropertyDescriptor(window, 'PublicKeyCredential');
 
@@ -47,5 +56,32 @@ describe('biometrics operations (web)', () => {
         setWebAuthnSupport(isSupported);
 
         await expect(doesDeviceSupportAuthenticationMethod()).resolves.toBe(expected);
+    });
+
+    describe('areLocalCredentialsKnownToServer', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('returns true when a local passkey is among the server-known credential IDs', async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: ['other-credential-id', LOCAL_PASSKEY_ID]});
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
+
+            await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(true);
+        });
+
+        it('returns false when the server does not know the local passkey', async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: ['other-credential-id']});
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
+
+            await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(false);
+        });
+
+        it('returns false when the account has no local passkeys', async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: [LOCAL_PASSKEY_ID]});
+
+            await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(false);
+        });
     });
 });

@@ -7,9 +7,10 @@ import type {OutputFrom, StateValue} from 'xstate';
 import {createActor} from 'xstate';
 
 import createInitEvent from './flowFixtures';
-import {VALIDATE_DEVICE_DONE_EVENT_TYPE} from './flowPaths';
+import {CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, VALIDATE_DEVICE_DONE_EVENT_TYPE} from './flowPaths';
 
 type ValidateDeviceOutput = OutputFrom<ReturnType<typeof createActors>['validateDevice']>;
+type CheckLocalCredentialsOutput = OutputFrom<ReturnType<typeof createActors>['checkLocalCredentials']>;
 
 /**
  * Builds the context a flow carries right after INIT seeds it. Overrides express a spec's starting
@@ -23,6 +24,8 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         scenarioName: initEvent.scenarioName,
         scenario: initEvent.scenario,
         payload: initEvent.payload,
+        validateCode: undefined,
+        continuableError: undefined,
         softPromptApproved: false,
         isCancelConfirmVisible: false,
         ...overrides,
@@ -47,4 +50,13 @@ function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, ou
     actor.send({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output} as unknown as MfaEvent);
 }
 
-export {createActorAtState, createFlowContext, sendValidateDeviceDone};
+/**
+ * Completes the invoked credentials-check actor by sending its done event carrying the given output.
+ */
+function sendCheckLocalCredentialsDone(actor: ReturnType<typeof createActorAtState>, output: CheckLocalCredentialsOutput) {
+    // Framework actor events are not part of the application's MfaEvent union.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    actor.send({type: CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output} as unknown as MfaEvent);
+}
+
+export {createActorAtState, createFlowContext, sendCheckLocalCredentialsDone, sendValidateDeviceDone};

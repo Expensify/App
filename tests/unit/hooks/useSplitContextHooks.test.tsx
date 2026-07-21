@@ -229,8 +229,7 @@ describe('Split context hooks', () => {
             const {result} = renderHook(() => useMultifactorAuthenticationState(), {wrapper});
 
             expect(result.current).toEqual(DEFAULT_STATE);
-            expect(result.current.continuableError).toBeUndefined();
-            expect(result.current.validateCode).toBeUndefined();
+            expect(result.current.registrationChallenge).toBeUndefined();
             expect(result.current.isFlowComplete).toBe(false);
         });
 
@@ -259,10 +258,10 @@ describe('Split context hooks', () => {
             );
 
             act(() => {
-                result.current.actions.dispatch({type: 'SET_VALIDATE_CODE', payload: '123456'});
+                result.current.actions.dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: true});
             });
 
-            expect(result.current.state.validateCode).toBe('123456');
+            expect(result.current.state.isRegistrationComplete).toBe(true);
         });
 
         it('dispatch handles SET_FLOW_COMPLETE', () => {
@@ -299,11 +298,11 @@ describe('Split context hooks', () => {
             );
 
             act(() => {
-                result.current.actions.dispatch({type: 'SET_VALIDATE_CODE', payload: '999'});
+                result.current.actions.dispatch({type: 'SET_AUTHORIZATION_COMPLETE', payload: true});
                 result.current.actions.dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: true});
             });
 
-            expect(result.current.state.validateCode).toBe('999');
+            expect(result.current.state.isAuthorizationComplete).toBe(true);
             expect(result.current.state.isRegistrationComplete).toBe(true);
 
             act(() => {

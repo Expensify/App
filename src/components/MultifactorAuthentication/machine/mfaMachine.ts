@@ -5,6 +5,7 @@ import {createUnhandledExceptionMFAError, getMFAFailureError} from '@libs/Multif
 import Navigation from '@libs/Navigation/Navigation';
 
 import {markHasAcceptedSoftPrompt} from '@userActions/MultifactorAuthentication';
+import {requestValidateCodeAction} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -21,6 +22,8 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 // sibling branch needs an id target rather than a relative one.
 const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
+const SOFT_PROMPT_CHECK_TARGET = `#${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}` as const;
+const MAGIC_CODE_TARGET = `#${MFA_STATE.REQUESTING_VALIDATE_CODE}` as const;
 
 // Which prompt variant the screen renders is a device property, resolved once per platform.
 const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
@@ -31,6 +34,8 @@ const DEFAULT_CONTEXT: MfaContext = {
     scenarioName: undefined,
     scenario: undefined,
     payload: undefined,
+    validateCode: undefined,
+    continuableError: undefined,
     softPromptApproved: false,
     isCancelConfirmVisible: false,
 };
@@ -82,6 +87,21 @@ const MFAMachine = setup({
         navigateToPrompt: () => {
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType: PROMPT_TYPE}));
         },
+        navigateToMagicCode: () => {
+            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE));
+        },
+        // Emails the user a magic code. Runs only on the decision transition into the magic-code
+        // screen, never on (re)entry, so the invalid-code retry loop cannot resend the email.
+        requestValidateCode: () => requestValidateCodeAction(),
+        // Stores the submitted code. Same narrowing pattern as initFlow: only VALIDATE_CODE_ENTERED
+        // is wired here, so the early return just satisfies the type checker.
+        submitValidateCode: assign(({event}) => {
+            if (event.type !== 'VALIDATE_CODE_ENTERED') {
+                return {};
+            }
+            return {validateCode: event.validateCode};
+        }),
+        clearContinuableError: assign({continuableError: undefined}),
         approveSoftPrompt: assign({softPromptApproved: true}),
         persistSoftPromptAcceptance: ({context}) => {
             if (context.accountID === undefined) {
@@ -143,7 +163,7 @@ const MFAMachine = setup({
                                 onDone: [
                                     {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
                                     {guard: ({context}) => context.error !== undefined, target: OUTCOME_TARGET},
-                                    {target: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE},
+                                    {target: MFA_STATE.DECIDING_REGISTRATION},
                                 ],
                                 // Expected refusals travel as failed results through onDone, so a
                                 // rejection means the platform check itself threw unexpectedly.
@@ -153,7 +173,31 @@ const MFAMachine = setup({
                                 },
                             },
                         },
+                        [MFA_STATE.DECIDING_REGISTRATION]: {
+                            invoke: {
+                                id: 'checkLocalCredentials',
+                                src: 'checkLocalCredentials',
+                                input: ({context}) => {
+                                    if (context.accountID === undefined) {
+                                        throw new Error('MFA account must be initialized before the registration decision');
+                                    }
+                                    return {accountID: context.accountID};
+                                },
+                                // A returning user's credentials are already registered, and a re-entered
+                                // flow already carries a code, so only a fresh registration asks for one.
+                                onDone: [
+                                    {guard: ({event}) => event.output, target: SOFT_PROMPT_CHECK_TARGET},
+                                    {guard: ({context}) => context.validateCode !== undefined, target: SOFT_PROMPT_CHECK_TARGET},
+                                    {target: MAGIC_CODE_TARGET, actions: ['requestValidateCode', 'navigateToMagicCode']},
+                                ],
+                                onError: {
+                                    target: OUTCOME_TARGET,
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Local credentials check', event.error)}),
+                                },
+                            },
+                        },
                         [MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE]: {
+                            id: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE,
                             invoke: {
                                 id: 'readHasAcceptedSoftPrompt',
                                 src: 'readHasAcceptedSoftPrompt',
@@ -170,6 +214,23 @@ const MFAMachine = setup({
                                 },
                             },
                         },
+                    },
+                },
+                // This branch shows the magic-code screen while a fresh registration waits for the
+                // emailed code. A rejected code either stays here as an inline, continuable error
+                // (invalid code, targetless so re-entry actions cannot run) or ends the flow.
+                [MFA_STATE.REQUESTING_VALIDATE_CODE]: {
+                    id: MFA_STATE.REQUESTING_VALIDATE_CODE,
+                    on: {
+                        VALIDATE_CODE_ENTERED: {target: SOFT_PROMPT_CHECK_TARGET, actions: 'submitValidateCode'},
+                        VALIDATE_CODE_REJECTED: [
+                            {
+                                guard: ({event}) => event.error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
+                                actions: assign({continuableError: ({event}) => event.error}),
+                            },
+                            {target: OUTCOME_TARGET, actions: assign({error: ({event}) => event.error})},
+                        ],
+                        CLEAR_CONTINUABLE_ERROR: {actions: 'clearContinuableError'},
                     },
                 },
                 // This branch shows the soft prompt when the current account has not accepted it on this device.

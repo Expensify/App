@@ -24,6 +24,12 @@ type MultifactorAuthenticationInternalApi = {
     /** Approve the soft prompt. The machine persists the acceptance and moves the flow to the outcome. */
     approveSoftPrompt: () => void;
 
+    /** Submit the magic code the user entered. The machine stores it and moves the flow forward. */
+    submitValidateCode: (validateCode: string) => void;
+
+    /** Clear the inline validate-code error, called when the user starts typing again. */
+    clearContinuableError: () => void;
+
     /** Centralized back-press / backdrop entry. */
     requestCancel: () => void;
 

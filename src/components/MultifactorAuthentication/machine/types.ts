@@ -32,6 +32,12 @@ type MfaContext = {
     /** Additional parameters for the current scenario */
     payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
 
+    /** Magic code the user entered on this flow's validate-code screen */
+    validateCode: string | undefined;
+
+    /** Error the validate-code screen shows inline while the flow stays on it, as opposed to `error`, which ends the flow */
+    continuableError: MFAError | undefined;
+
     /** Whether the user approved the soft prompt during this flow. The durable acceptance lives in Onyx under the device-biometrics key. */
     softPromptApproved: boolean;
 
@@ -58,7 +64,14 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
 };
 
 /** Events handled by the MFA state machine. */
-type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'} | {type: 'SOFT_PROMPT_APPROVED'};
+type MfaEvent =
+    | MultifactorAuthenticationInitEvent
+    | {type: 'CLOSE_MODAL'}
+    | {type: 'MODAL_CLOSED'}
+    | {type: 'SOFT_PROMPT_APPROVED'}
+    | {type: 'VALIDATE_CODE_ENTERED'; validateCode: string}
+    | {type: 'VALIDATE_CODE_REJECTED'; error: MFAError}
+    | {type: 'CLEAR_CONTINUABLE_ERROR'};
 
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
@@ -66,4 +79,7 @@ type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationM
 /** Identifies the per-account Onyx member read by the soft-prompt actor. */
 type ReadHasAcceptedSoftPromptInput = {accountID: number};
 
-export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput};
+/** Identifies the account whose local credentials the registration-decision actor checks. */
+type CheckLocalCredentialsInput = {accountID: number};
+
+export type {CheckLocalCredentialsInput, MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput};

@@ -87,6 +87,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const closeModal = () => send({type: 'CLOSE_MODAL'});
     const notifyModalClosed = () => send({type: 'MODAL_CLOSED'});
     const approveSoftPrompt = () => send({type: 'SOFT_PROMPT_APPROVED'});
+    const submitValidateCode = (validateCode: string) => send({type: 'VALIDATE_CODE_ENTERED', validateCode});
+    const clearContinuableError = () => send({type: 'CLEAR_CONTINUABLE_ERROR'});
 
     // There is no cancel-confirmation dialog yet, so every cancel path closes the modal directly.
     const requestCancel = () => send({type: 'CLOSE_MODAL'});
@@ -102,6 +104,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         closeModal,
         notifyModalClosed,
         approveSoftPrompt,
+        submitValidateCode,
+        clearContinuableError,
         requestCancel,
         hideCancelConfirm,
         confirmCancel,

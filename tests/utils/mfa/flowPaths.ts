@@ -2,7 +2,7 @@ import type createActors from '@components/MultifactorAuthentication/machine/mfa
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 
-import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 
@@ -11,7 +11,7 @@ import type {OutputFrom, SnapshotFrom} from 'xstate';
 import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
 
-import createInitEvent from './flowFixtures';
+import createInitEvent, {MFA_TEST_VALIDATE_CODE} from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -64,6 +64,20 @@ const MFA_GRAPH_EVENT_FIXTURES = {
     CLOSE_MODAL: [{type: 'CLOSE_MODAL'}],
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
     SOFT_PROMPT_APPROVED: [{type: 'SOFT_PROMPT_APPROVED'}],
+    VALIDATE_CODE_ENTERED: [{type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE}],
+    // The rejection routes on the error reason, so the traversal needs the continuable variant and a
+    // fatal one to reach both branches.
+    VALIDATE_CODE_REJECTED: [
+        {
+            type: 'VALIDATE_CODE_REJECTED',
+            error: createMFAErrorFromApiResponse(400, CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE, 'Graph-traversal invalid code'),
+        },
+        {
+            type: 'VALIDATE_CODE_REJECTED',
+            error: createMFAErrorFromApiResponse(400, CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED, 'Graph-traversal fatal code rejection'),
+        },
+    ],
+    CLEAR_CONTINUABLE_ERROR: [{type: 'CLEAR_CONTINUABLE_ERROR'}],
 } satisfies MfaEventFixtures;
 
 function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
@@ -95,6 +109,7 @@ const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
         },
     ],
     readHasAcceptedSoftPrompt: [false, true],
+    checkLocalCredentials: [false, true],
 } satisfies MfaActorDoneOutputFixtures;
 
 function hasActorDoneOutputFixtures(actorId: string): actorId is keyof typeof MFA_ACTOR_DONE_OUTPUT_FIXTURES {
@@ -108,6 +123,8 @@ const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevic
 const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice`;
 const READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
 const READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
+const CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}checkLocalCredentials`;
+const CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}checkLocalCredentials`;
 
 type PathSteps = ReadonlyArray<{event: {type: string}}>;
 
@@ -125,10 +142,12 @@ function isAutoDrivenEvent(eventType: string): boolean {
 /**
  * A path is UI-drivable when the walk can produce every step. A delayed transition would need real
  * timers, so a path containing one is not drivable. Actor completion events stay in the path so their
- * executors can settle the controlled actor mocks at the correct transition.
+ * executors can settle the controlled actor mocks at the correct transition. A code rejection has no
+ * UI affordance until the registration slice wires the backend call that produces it, so paths
+ * containing one are covered by the machine-only suites instead.
  */
 function isUiDrivablePath(path: {steps: PathSteps}): boolean {
-    return path.steps.every((step) => !step.event.type.startsWith(DELAYED_EVENT_PREFIX));
+    return path.steps.every((step) => !step.event.type.startsWith(DELAYED_EVENT_PREFIX) && step.event.type !== 'VALIDATE_CODE_REJECTED');
 }
 
 /**
@@ -202,6 +221,8 @@ function getWalkedPaths() {
 
 export default getWalkedPaths;
 export {
+    CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE,
+    CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE,
     getDrivingJourneyPaths,
     getMfaShortestPaths,
     isAutoDrivenEvent,
