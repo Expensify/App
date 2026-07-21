@@ -1,9 +1,9 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
-import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
+import HeaderReportAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderReportAvatar';
 import Icon from '@components/Icon';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -119,7 +119,7 @@ function HeaderWithBackButton({
         }
         if (shouldShowReportAvatarWithDisplay) {
             return (
-                <AvatarWithDisplayName
+                <HeaderReportAvatar
                     report={report}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
