@@ -120,8 +120,10 @@ describe('EnableTravelContent', () => {
         renderContent(PROVISIONED_POLICY, VALIDATED_ACCOUNT, COMPLETE_PERSONAL_DETAILS);
         await waitForBatchedUpdatesWithAct();
 
-        // A single-step flow is not meaningful, so no progress dots should render
-        expect(screen.queryAllByRole('group')).toHaveLength(0);
+        // A single-step flow is not meaningful, so no progress dots should render. Matched by their "Step X of Y"
+        // accessible name (from InteractiveStepButton) rather than by role — they're plain buttons, and the page
+        // has other buttons (Continue/Save/back) that a bare role query would also catch.
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(0);
         expect(screen.getByText(TestHelper.translateLocal('travel.termsAndConditions.title'))).toBeTruthy();
     });
 
@@ -129,14 +131,14 @@ describe('EnableTravelContent', () => {
         renderContent(PROVISIONED_POLICY, VALIDATED_ACCOUNT, {});
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryAllByRole('group')).toHaveLength(2);
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(2);
     });
 
     it('shows a 2-step progress bar when only account verification is needed', async () => {
         renderContent(PROVISIONED_POLICY, {validated: false, primaryLogin: 'admin@company.com'}, COMPLETE_PERSONAL_DETAILS);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryAllByRole('group')).toHaveLength(2);
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(2);
     });
 
     it('does not require a domain selector, address, or tax ID step for an already-provisioned workspace regardless of currency or domains', async () => {
@@ -152,7 +154,7 @@ describe('EnableTravelContent', () => {
         renderContent(policy, VALIDATED_ACCOUNT, COMPLETE_PERSONAL_DETAILS);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryAllByRole('group')).toHaveLength(0);
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(0);
     });
 
     it('shows a step for every applicable condition on a not-yet-provisioned, non-USD workspace with multiple admin domains and no address', async () => {
@@ -171,7 +173,7 @@ describe('EnableTravelContent', () => {
         await waitForBatchedUpdatesWithAct();
 
         // legal name, verify account, domain selector, workspace address, tax ID, terms
-        expect(screen.queryAllByRole('group')).toHaveLength(6);
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(6);
     });
 
     it('freezes the step count across remounts within the same flow session, even after an earlier step is completed', async () => {
@@ -196,7 +198,7 @@ describe('EnableTravelContent', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Should still reflect the original 2-step session, not shrink to 1 (hidden bar) now that legal name is set
-        expect(screen.queryAllByRole('group')).toHaveLength(2);
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(2);
     });
 
     it('recomputes and overwrites a stale persisted step list on the flow-entry mount', async () => {
