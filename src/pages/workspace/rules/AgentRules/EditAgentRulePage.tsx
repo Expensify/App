@@ -55,11 +55,11 @@ function EditAgentRulePage({
     const formRef = useRef<FormRef>(null);
     const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
             formRef.current?.submit();
         }
     };
@@ -157,7 +157,7 @@ function EditAgentRulePage({
                                 label={describeRuleLabel}
                                 accessibilityLabel={describeRuleLabel}
                                 role={CONST.ROLE.PRESENTATION}
-                                onKeyPress={handleKeyPress}
+                                onKeyPress={submitFormOnModEnter}
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine
