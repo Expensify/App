@@ -179,7 +179,7 @@ function SubmitDetailsPage({
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
+    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies]);
 
     const sharedFileSource = currentAttachment?.content ?? fileUri;
     const sharedFileName = getFileName(currentAttachment?.content ?? '') || fileName;
