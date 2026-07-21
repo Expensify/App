@@ -25,7 +25,7 @@ Our report was produced from an evaluation of Expensify's core flows — includi
 - Keyboard-only navigation
 - Browser zoom and text spacing checks
 - Colour contrast analysis
-- Automated tooling, including axe DevTools
+- Automated tooling
 - Chrome, Firefox, and Safari on desktop
 
 To download the latest report, go to the Expensify Trust Center resources page at [https://trust.expensify.com/resources](https://trust.expensify.com/resources).
