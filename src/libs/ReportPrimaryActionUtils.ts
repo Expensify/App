@@ -8,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canMemberWrite,
+    getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -17,6 +18,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
+    isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -149,7 +151,11 @@ function isSubmitAction(
         return false;
     }
 
-    return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0;
+    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const isWorkflowApprover =
+        !isReportSubmitter && currentUserAccountID !== undefined && !!ownerLogin && !isSubmitAndClose(policy) && currentUserAccountID === getManagerAccountID(policy, ownerLogin);
+    const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
+    return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
@@ -558,6 +564,18 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     return '';
 }
 
+/**
+ * Whether the "Submit via PDF" option should be offered alongside the Submit primary action.
+ *
+ * Offered for any draft report the current user submits on a Submit workspace. The "Submit via PDF" flow itself
+ * submits the report to the submitter (managerID = submitter), which is what makes the backend generate the PDF, so
+ * this does not require the report to already be configured to submit to self. The caller is responsible for
+ * additionally gating this on the SUBMIT_2026 beta and on Submit already being the primary action.
+ */
+function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, policy?: Policy): boolean {
+    return isSubmitPolicy(policy) && isCurrentUserSubmitter(report, currentUserAccountID);
+}
+
 function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport: Report, violations: TransactionViolation[], policy?: Policy): boolean {
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(violations);
 
@@ -629,4 +647,5 @@ export {
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
     isMarkAsCashActionForTransaction,
+    isSubmitViaPDFAction,
 };
