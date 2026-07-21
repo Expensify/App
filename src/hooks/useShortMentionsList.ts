@@ -65,7 +65,7 @@ export default function useShortMentionsList() {
 
     // useOnyx deep-compares the selector output, so consumers only re-render when the username list
     // actually changes (someone joins or leaves the domain) — not on every personal details write.
-    const [availableLoginsList = emptyLoginsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: availableLoginsListSelector, canBeMissing: true});
+    const [availableLoginsList = emptyLoginsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: availableLoginsListSelector});
 
     // We want to highlight both short and long version of current user login
     const currentUserMentions = useMemo(() => {

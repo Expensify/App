@@ -87,11 +87,11 @@ describe('useShortMentionsList', () => {
         });
 
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [ACCOUNT_ID_NEW_HIRE]: {accountID: ACCOUNT_ID_NEW_HIRE, login: 'newhire@acme.com'},
+            [ACCOUNT_ID_NEW_HIRE]: {accountID: ACCOUNT_ID_NEW_HIRE, login: 'newcomer@acme.com'},
         });
 
         await waitFor(() => {
-            expect(result.current.availableLoginsList).toEqual(['user', 'coworker', 'newhire']);
+            expect(result.current.availableLoginsList).toEqual(['user', 'coworker', 'newcomer']);
         });
     });
 });
