@@ -10,7 +10,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
@@ -97,17 +97,6 @@ Onyx.connectWithoutView({
     callback: (value) => {
         hasLoadedApp = value;
         resolveHasLoadedAppPromise?.();
-    },
-});
-
-// The server's cutoff for a full reconnect (see subscribeToFullReconnect). We read it only when
-// building reconnectApp's data, never in a component, so connectWithoutView is correct here. Do not
-// copy this into a component: use useOnyx there so the UI updates when the value changes.
-let serverReconnectCutoff = '';
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
-    callback: (value) => {
-        serverReconnectCutoff = value ?? '';
     },
 });
 
@@ -312,12 +301,7 @@ function getPolicyParamsForOpenOrReconnect(): PolicyParamsForOpenOrReconnect {
     return {policyIDList: getNonOptimisticPolicyIDs(allPolicies)};
 }
 
-type OnyxDataForOpenOrReconnectKeys =
-    | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
-    | typeof ONYXKEYS.HAS_LOADED_APP
-    | typeof ONYXKEYS.IS_LOADING_APP
-    | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
+type OnyxDataForOpenOrReconnectKeys = typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP;
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
@@ -339,13 +323,7 @@ function getOnyxDataForOpenOrReconnect(
     }
     Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
 
-    const result: OnyxData<
-        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
-        | typeof ONYXKEYS.HAS_LOADED_APP
-        | typeof ONYXKEYS.IS_LOADING_APP
-        | typeof ONYXKEYS.COLLECTION.REPORT
-        | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
-    > = {
+    const result: OnyxData<OnyxDataForOpenOrReconnectKeys> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -390,15 +368,6 @@ function getOnyxDataForOpenOrReconnect(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_APP,
             value: false,
-        });
-    }
-
-    if (isOpenApp || isFullReconnect) {
-        // Record this reconnect so subscribeToFullReconnect stops asking for another one.
-        result.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-            value: getLastFullReconnectTimeToRecord(serverReconnectCutoff),
         });
     }
 
@@ -609,6 +578,8 @@ type CreateWorkspaceWithPolicyDraftParams = {
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
@@ -635,6 +606,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         routeToNavigateAfterCreate,
         lastUsedPaymentMethod,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
@@ -673,6 +645,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             lastUsedPaymentMethod,
             introSelected,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam,
             currentUserEmailParam,
             allReportsParam: allReports,
@@ -715,6 +688,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         file,
         lastUsedPaymentMethod,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
@@ -743,6 +717,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         lastUsedPaymentMethod,
         introSelected,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam: allReports,
@@ -764,6 +739,8 @@ type SavePolicyDraftByNewWorkspaceParams = {
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
@@ -787,6 +764,7 @@ function savePolicyDraftByNewWorkspace({
     lastUsedPaymentMethod,
     introSelected,
     activePolicy,
+    conciergeChat,
     currentUserAccountIDParam,
     currentUserEmailParam,
     allReportsParam,
@@ -808,6 +786,7 @@ function savePolicyDraftByNewWorkspace({
         lastUsedPaymentMethod,
         introSelected,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
@@ -845,6 +824,8 @@ function setUpPoliciesAndNavigate(
     hasActiveAdminPolicies: boolean,
     lastWorkspaceNumber: number | undefined,
     translate: LocalizedTranslate,
+    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -874,6 +855,7 @@ function setUpPoliciesAndNavigate(
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,

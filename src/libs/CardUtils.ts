@@ -513,7 +513,7 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     );
 }
 
-function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Connections>, connectionName: PolicyConnectionName | undefined): Array<{id: string; name: string}> {
+function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Partial<Connections>>, connectionName: PolicyConnectionName | undefined): Array<{id: string; name: string}> {
     if (!connections || !connectionName) {
         return [];
     }
@@ -534,17 +534,27 @@ function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Conne
     }
 }
 
-function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
+/**
+ * Resolves the Expensify Card supported countries for a settlement currency, falling back to the hard-coded
+ * list until the backend supplies it via Onyx.
+ */
+function getSupportedCardCountriesForCurrency(supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>, currency?: string): readonly string[] {
+    const byCurrency: Record<string, readonly string[]> = supportedCountriesByCurrency ?? CONST.EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY;
+    return byCurrency[currency ?? ''] ?? [];
+}
+
+function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>, outputCurrency?: string) {
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
+    const supportedCountries = getSupportedCardCountriesForCurrency(supportedCountriesByCurrency, outputCurrency);
     return Object.values(bankAccountsList).filter(
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
             !isBankAccountPartiallySetup(bankAccount?.accountData?.state) &&
             bankAccount?.bankCurrency === outputCurrency &&
-            (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
+            supportedCountries.includes(bankAccount?.bankCountry),
     );
 }
 
@@ -2101,6 +2111,7 @@ export {
     getCardFeedWithDomainID,
     splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    getSupportedCardCountriesForCurrency,
     getConnectionBankAccountsForReconciliation,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,

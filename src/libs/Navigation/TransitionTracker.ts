@@ -17,6 +17,9 @@ type RunAfterTransitionsOptions = {
      *  Useful when a navigation action has just been dispatched but the transition has not yet been registered.
      * Defaults to false. */
     waitForUpcomingTransition?: boolean;
+
+    /** Maximum time to wait for the upcoming transition to start. Used only when waitForUpcomingTransition is true. */
+    maxWaitForUpcomingTransitionMs?: number;
 };
 
 const activeTransitions = new Map<TransitionHandle, ReturnType<typeof setTimeout>>();
@@ -116,9 +119,15 @@ function endTransition(handle: TransitionHandle): void {
  * @param options.callback - The function to invoke once transitions finish.
  * @param options.runImmediately - If true, the callback fires synchronously regardless of active transitions. Defaults to false.
  * @param options.waitForUpcomingTransition - If true, waits for the next transition to start before queuing the callback, so it runs after that transition ends. Use when navigation happens just before this call and the transition is not yet registered. Defaults to false.
+ * @param options.maxWaitForUpcomingTransitionMs - Maximum time to wait for the upcoming transition to start. Defaults to {@link CONST.MAX_TRANSITION_START_WAIT_MS}.
  * @returns A handle with a `cancel` method to prevent the callback from firing.
  */
-function runAfterTransitions({callback, runImmediately = false, waitForUpcomingTransition = false}: RunAfterTransitionsOptions): CancelHandle {
+function runAfterTransitions({
+    callback,
+    runImmediately = false,
+    waitForUpcomingTransition = false,
+    maxWaitForUpcomingTransitionMs = CONST.MAX_TRANSITION_START_WAIT_MS,
+}: RunAfterTransitionsOptions): CancelHandle {
     if (waitForUpcomingTransition) {
         let cancelled = false;
         let innerHandle: CancelHandle | null = null;
@@ -133,7 +142,7 @@ function runAfterTransitions({callback, runImmediately = false, waitForUpcomingT
             transitionStartTimeoutId = setTimeout(() => {
                 didTimeout = true;
                 resolve();
-            }, CONST.MAX_TRANSITION_START_WAIT_MS);
+            }, maxWaitForUpcomingTransitionMs);
         });
 
         (async () => {
@@ -141,7 +150,7 @@ function runAfterTransitions({callback, runImmediately = false, waitForUpcomingT
             clearTimeout(transitionStartTimeoutId);
 
             if (didTimeout && !cancelled) {
-                Log.info('[TransitionTracker] waitForUpcomingTransition timed out before a transition started', false, {timeoutMs: CONST.MAX_TRANSITION_START_WAIT_MS});
+                Log.info('[TransitionTracker] waitForUpcomingTransition timed out before a transition started', false, {timeoutMs: maxWaitForUpcomingTransitionMs});
             }
 
             if (!cancelled) {

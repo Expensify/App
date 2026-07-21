@@ -14,10 +14,11 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
@@ -31,7 +32,7 @@ import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyReque
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {SelectedTabRequest} from '@src/types/onyx';
+import type {Report, SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -39,6 +40,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
@@ -58,6 +60,8 @@ type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREEN
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 };
+
+const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 
 function IOURequestStepAmount({
     report,
@@ -88,6 +92,7 @@ function IOURequestStepAmount({
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
@@ -123,12 +128,16 @@ function IOURequestStepAmount({
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
-    const {notifySaving} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            const typedAmount = amountFormRef.current?.getNumber() ?? '';
-            const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
-            return typedAmountInBackendUnits !== transactionAmount || selectedCurrency !== originalCurrency;
-        },
+    const isAmountCreateEntry = !backTo && !isEditing;
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () =>
+            getAmountHasUnsavedChanges({
+                typedAmount: amountFormRef.current?.getNumber() ?? '',
+                committedAmount: transactionAmount,
+                isCreateEntry: isAmountCreateEntry,
+                selectedCurrency,
+                originalCurrency,
+            }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
@@ -186,7 +195,7 @@ function IOURequestStepAmount({
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID);
     });
     const participant = participants.at(0);
     const policyTags = useMoneyRequestPolicyTags({
@@ -194,6 +203,8 @@ function IOURequestStepAmount({
         parentChatReportPolicyID: isMovingTransactionFromTrackExpense(action) ? undefined : report?.policyID,
         participantReportID: participant?.reportID,
     });
+    const [parentReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: selectReportPolicyID});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReportPolicyID)}`);
 
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
         const submitData = submitDataRef.current;
@@ -201,7 +212,7 @@ function IOURequestStepAmount({
             Log.hmmm('[IOURequestStepAmount] Skipping amount submit: submit data not ready');
             return;
         }
-        notifySaving();
+        suppressDiscardPrompt();
         submitAmount({
             translate,
             report,
@@ -223,7 +234,9 @@ function IOURequestStepAmount({
             navigateBack,
             amount,
             paymentMethod,
+            isTrackIntentUser,
             policyTags,
+            reportPolicyTags,
             ...submitData,
         });
     };

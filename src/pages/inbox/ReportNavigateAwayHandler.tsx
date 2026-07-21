@@ -170,15 +170,11 @@ function ReportNavigateAwayHandler() {
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
+        const userLeavingTriggered = !prevUserLeavingStatus && !!userLeavingStatus;
+        const deletedParentTriggered = prevDeletedParentAction && !deletedParentAction;
+        const shouldTrigger = userLeavingTriggered || didReportClose || isRemovalExpectedForReportType || isClosedTopLevelPolicyRoom || deletedParentTriggered;
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
-        if (
-            // non-optimistic case
-            (!prevUserLeavingStatus && !!userLeavingStatus) ||
-            didReportClose ||
-            isRemovalExpectedForReportType ||
-            isClosedTopLevelPolicyRoom ||
-            (prevDeletedParentAction && !deletedParentAction)
-        ) {
+        if (shouldTrigger) {
             navigateAwayFromReport(prevOnyxReportID, prevReport?.parentReportID);
         }
     }, [
@@ -219,19 +215,24 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
-        // Try to navigate to parent report if available
-        if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
-            Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
-            });
-            return;
-        }
-
-        // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
+            // Drop the deleted report from the split navigator stack before navigating away. Otherwise, it stays
+            // mounted underneath the destination, and tapping back refocuses it and re-triggers this effect,
+            // trapping the user in a navigation loop
+            if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+                Navigation.popToSidebar();
+            }
+
+            // Try to navigate to parent report if available
+            if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
+                return;
+            }
+
+            // Fallback to Concierge
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 
     return null;
 }

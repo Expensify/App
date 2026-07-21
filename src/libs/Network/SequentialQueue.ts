@@ -202,7 +202,10 @@ function process(): Promise<void> {
             });
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
-            if (requestToProcess.queueFlushedData) {
+            // Only commit queueFlushedData (e.g. HAS_LOADED_APP: true) on success — HttpUtils resolves (not rejects) app-level
+            // failures, so committing on a failed-but-resolved OpenApp/ReconnectApp would wrongly mark the app as loaded and
+            // break self-healing on the next boot.
+            if (requestToProcess.queueFlushedData && response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
                 Log.info('[SequentialQueue] Will store queueFlushedData.', false, {
                     command: requestToProcess.command,
                     queueFlushedDataLength: requestToProcess.queueFlushedData.length,
@@ -561,8 +564,6 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
             transactionID?: string;
             receipt?: {receiptTraceId?: string};
         };
-        // Only log when there is a receipt at data.receipt. SplitBill nests it in the splits JSON, and SendMoney and
-        // friends can run without one. A row without a trace id cannot be joined to the capture log, so it is just noise.
         if (data.receipt) {
             logReceiptEnqueued({
                 receiptTraceId: data.receipt.receiptTraceId,
@@ -573,9 +574,6 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
         }
     }
 
-    // Save the request to the persisted queue. The in-memory update inside save()
-    // happens synchronously, so flush() below will see the new request immediately.
-    // The returned promise resolves when disk persistence completes.
     let persistencePromise: Promise<void>;
 
     if (newRequest.checkAndFixConflictingRequest) {
