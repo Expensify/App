@@ -8,7 +8,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {setDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {categoryHasAnyRequireFieldsRule, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
+import {categoryHasAnyRequireFieldsRule, getEffectiveRequireFieldsRuleForm, getRequireFieldsDisplayedSetting, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -42,6 +42,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
+    const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
     const selectedCategoryItem = selectedCategoryName
         ? {
               name: getDecodedCategoryName(selectedCategoryName),
@@ -55,12 +56,13 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
                 return false;
             }
 
-            // Create flow: only offer categories that do not already have field requirements.
-            if (!isEditing && categoryHasAnyRequireFieldsRule(category)) {
-                return false;
+            // Keep the currently selected / route category available, but don't offer other
+            // categories that already have field requirements (avoids silent overwrite).
+            if (category.name === categoryName || category.name === selectedCategoryName) {
+                return true;
             }
 
-            return true;
+            return !categoryHasAnyRequireFieldsRule(category);
         })
         .map((category) => {
             const decodedCategoryName = getDecodedCategoryName(category.name);
@@ -78,12 +80,29 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         const preservedSettings: Partial<RequireFieldsRuleForm> = {
             [INPUT_IDS.CATEGORY]: value,
         };
+        const effectiveForm = form && selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, form) : form;
 
         for (const fieldKey of SETTING_FIELD_KEYS) {
-            const formValue = form?.[fieldKey];
+            if (isEditing) {
+                // Edit drafts are seeded with DO_NOT_REQUIRE for inactive fields. Only carry over
+                // settings that are actually selected in the UI (active category overrides).
+                const displayedSetting = getRequireFieldsDisplayedSetting({
+                    fieldKey,
+                    category: selectedCategory,
+                    effectiveForm,
+                    rawForm: form,
+                    originalCategoryName: categoryName,
+                    isEditing: true,
+                });
 
-            // Keep only what's still in the draft. Cleared fields are removed from the form on
-            // edit, so restoring previous-category overrides here would resurrect them.
+                if (displayedSetting !== undefined) {
+                    preservedSettings[fieldKey] = displayedSetting;
+                }
+                continue;
+            }
+
+            // Create drafts only contain fields the user has set.
+            const formValue = form?.[fieldKey];
             if (formValue !== undefined) {
                 preservedSettings[fieldKey] = formValue;
             }

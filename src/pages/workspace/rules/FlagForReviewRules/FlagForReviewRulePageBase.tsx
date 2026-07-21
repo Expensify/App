@@ -194,10 +194,9 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules && !isEditing ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
-                        shouldShowRightIcon={canWriteRules && !isEditing}
-                        interactive={canWriteRules && !isEditing}
-                        disabled={isEditing}
+                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
+                        shouldShowRightIcon={canWriteRules}
+                        interactive={canWriteRules}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}

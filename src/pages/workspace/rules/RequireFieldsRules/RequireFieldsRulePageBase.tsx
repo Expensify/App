@@ -401,10 +401,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules && !isEditing ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, undefined)) : undefined}
-                        shouldShowRightIcon={canWriteRules && !isEditing}
-                        interactive={canWriteRules && !isEditing}
-                        disabled={isEditing}
+                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)) : undefined}
+                        shouldShowRightIcon={canWriteRules}
+                        interactive={canWriteRules}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
