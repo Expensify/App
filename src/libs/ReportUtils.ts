@@ -11138,6 +11138,22 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
 /**
  * What missing payment method does this report action indicate, if any?
  */
+function getMissingPaymentMethodForQueuedPayment(
+    userWalletTierName: string | undefined,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>,
+    bankAccountList: OnyxEntry<BankAccountList>,
+): MissingPaymentMethod | undefined {
+    const paymentType = getOriginalMessage(reportAction)?.paymentType;
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
+    }
+
+    return !hasCreditBankAccount(bankAccountList) ? 'bankAccount' : undefined;
+}
+
+/**
+ * What missing payment method does this action indicate for the current report submitter, if any?
+ */
 function getIndicatedMissingPaymentMethod(
     userWalletTierName: string | undefined,
     reportId: string | undefined,
@@ -11148,12 +11164,8 @@ function getIndicatedMissingPaymentMethod(
     if (!reportId || !isSubmitterOfUnsettledReport || !isReimbursementQueuedAction(reportAction)) {
         return undefined;
     }
-    const paymentType = getOriginalMessage(reportAction)?.paymentType;
-    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
-    }
 
-    return !hasCreditBankAccount(bankAccountList) ? 'bankAccount' : undefined;
+    return getMissingPaymentMethodForQueuedPayment(userWalletTierName, reportAction, bankAccountList);
 }
 
 /**
@@ -13608,6 +13620,7 @@ export {
     sortIconsByName,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
+    getMissingPaymentMethodForQueuedPayment,
     getLastVisibleMessage,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,

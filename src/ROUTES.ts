@@ -121,6 +121,7 @@ const DYNAMIC_ROUTES = {
         path: 'add-bank-account/verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.HOME,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.REPORT,
