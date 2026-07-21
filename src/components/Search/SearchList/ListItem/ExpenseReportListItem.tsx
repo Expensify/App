@@ -12,7 +12,6 @@ import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -351,7 +350,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth && styles.pv3,
             isLargeScreenWidth && styles.ph3,
-            // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+            // Background is applied on the parent wrapper, so keep this transparent
             styles.bgTransparent,
             isSelected && styles.activeComponentBG,
             styles.mh0,
@@ -371,14 +370,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         ],
         [styles, isLargeScreenWidth],
     );
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
-        shouldHighlight: false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: !isLargeScreenWidth,
-    });
 
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
 
@@ -479,7 +470,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
                 styles.mh5,
-                animatedHighlightStyle,
+                {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG, ...(!isLargeScreenWidth && {borderRadius: 0})},
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,

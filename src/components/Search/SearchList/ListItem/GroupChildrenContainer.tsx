@@ -1,6 +1,5 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,27 +42,13 @@ function GroupChildrenContainer({
 
     const isSelected = !!item.isSelected || (item.transactions.length > 0 && item.transactions.every((transaction) => selectedTransactions[transaction.transactionID]?.isSelected));
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: false,
-    });
-
     // Rendering null in FlashList can cause heavy first-render work; use an empty placeholder instead (LHN pattern).
     if (!isExpanded && !isRendered) {
         return <View />;
     }
 
     return (
-        <Animated.View
-            style={[
-                styles.mh5,
-                {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
-                animatedHighlightStyle,
-                isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-            ]}
-        >
+        <View style={[styles.mh5, {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG}, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View
@@ -90,7 +75,7 @@ function GroupChildrenContainer({
                     </Animated.View>
                 ) : null}
             </Animated.View>
-        </Animated.View>
+        </View>
     );
 }
 
