@@ -3,7 +3,7 @@ import {getSortedReportActionsForDisplay, isReportPreviewAction} from '@libs/Rep
 import type {ReportActions} from '@src/types/onyx';
 
 type SendMessageListWeight = {
-    /** Number of renderable actions in the report (display-filtered, matching what the report view shows). */
+    /** Number of renderable actions in the report (display-filtered). */
     reportActionCount: number;
 
     /** How many of those renderable actions are `REPORT_PREVIEW` (MoneyRequestReportPreview) items. */
