@@ -75,9 +75,8 @@ function ReportFooter() {
         selector: policyRoleSelector,
     });
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
-    // Whether the report's initial actions are still loading, derived from the request queue (an in-flight
-    // OpenReport for this report) rather than the stored report-metadata flag, so the queue stays the single
-    // source of truth for load state.
+    // The matching OpenReport request starts this lifecycle, and its terminal loading update ends it after
+    // deferred response data is applied.
     const isLoadingInitialReportActions = useIsReportLoadPending(reportIDFromRoute);
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;

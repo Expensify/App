@@ -1,10 +1,14 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {AnyRequest} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {useState} from 'react';
 
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -110,11 +114,30 @@ function useIsAppLoadPending(): boolean {
  * Accepts `undefined` so callers with an optional reportID don't have to default the ID to a sentinel
  * value: an undefined scope key never matches a real OpenReport request, so it reads as "not loading".
  *
- * Do not call this inside list-item render paths (e.g. per row in a list): every call opens two Onyx
+ * Do not call this inside list-item render paths (e.g. per row in a list): every call opens three Onyx
  * subscriptions. Lift it to the screen level and pass the result down instead.
  */
 function useIsReportLoadPending(reportID: string | undefined): boolean {
-    return useIsPendingInternal('reportLoad', reportID);
+    const hasPendingRequest = useIsPendingInternal('reportLoad', reportID);
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+
+    // The queue arms this lifecycle, so a loading flag stranded by a previous process cannot gate by itself.
+    // Once armed, the terminal flag keeps consumers gated until deferred response updates are flushed.
+    const [trackedReportID, setTrackedReportID] = useState(reportID);
+    const [hasObservedPendingRequest, setHasObservedPendingRequest] = useState(false);
+    const isTrackedReport = trackedReportID === reportID;
+    if (!isTrackedReport) {
+        setTrackedReportID(reportID);
+        setHasObservedPendingRequest(hasPendingRequest);
+    } else if (hasPendingRequest && !hasObservedPendingRequest) {
+        setHasObservedPendingRequest(true);
+    } else if (!hasPendingRequest && isLoadingInitialReportActions !== true && hasObservedPendingRequest) {
+        setHasObservedPendingRequest(false);
+    }
+
+    return hasPendingRequest || (isTrackedReport && hasObservedPendingRequest && isLoadingInitialReportActions === true);
 }
 
 /** Whether any request relevant to the top-of-screen loading bar is currently in the queue. */

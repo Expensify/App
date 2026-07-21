@@ -18,9 +18,8 @@ type MoneyReportHeaderNextStepProps = {
  */
 function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const {isOffline} = useNetwork();
-    // Whether the report's initial actions are still loading, derived from the request queue (an in-flight
-    // OpenReport for this report) rather than the stored report-metadata flag, so the queue stays the single
-    // source of truth for load state.
+    // The matching OpenReport request starts this lifecycle, and its terminal loading update ends it after
+    // deferred response data is applied.
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const optimisticNextStep = useOptimisticNextStep(reportID);
 
