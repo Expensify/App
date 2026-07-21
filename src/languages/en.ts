@@ -8073,7 +8073,7 @@ const translations = {
             },
             description: "Choose a plan that's right for you.",
             subscriptionLink: 'Learn more',
-            lockedPlanDescription: (count: number, annualSubscriptionEndDate: string) => ({
+            lockedPlanDescription: ({count}: {count: number}, annualSubscriptionEndDate: string) => ({
                 one: `You've committed to 1 active member on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
                 other: `You've committed to ${count} active members on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
             }),
@@ -9600,7 +9600,7 @@ const translations = {
         duplicatedTransaction: 'Potential duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
-        inactiveVendor: ({isSupplier = false}: ViolationsInactiveVendorParams = {}) => (isSupplier ? 'Supplier no longer valid' : 'Vendor no longer valid'),
+        inactiveVendor: (isSupplier = false) => (isSupplier ? 'Supplier no longer valid' : 'Vendor no longer valid'),
         invoiceMarkup: (invoiceMarkup: number) => `Marked up by ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',

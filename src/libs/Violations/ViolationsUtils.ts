@@ -997,7 +997,7 @@ const ViolationsUtils = {
             case 'futureDate':
                 return translate('violations.futureDate');
             case 'inactiveVendor':
-                return translate('violations.inactiveVendor', {isSupplier: isSupplierViolation});
+                return translate('violations.inactiveVendor', isSupplierViolation);
             case 'invoiceMarkup':
                 return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':

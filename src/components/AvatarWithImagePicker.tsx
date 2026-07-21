@@ -113,7 +113,7 @@ function AvatarWithImagePicker({
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
-    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseArgs: []});
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
@@ -150,7 +150,7 @@ function AvatarWithImagePicker({
                     return;
                 }
 
-                setError(null, {});
+                setError(null);
                 setIsMenuVisible(false);
                 openCropper(image);
             })
