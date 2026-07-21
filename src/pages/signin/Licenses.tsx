@@ -3,9 +3,14 @@ import LocalePicker from '@components/LocalePicker';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
-import useIsHighContrast from '@hooks/useIsHighContrast';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isHighContrastTheme} from '@styles/theme/utils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -15,9 +20,13 @@ const currentYear = new Date().getFullYear();
 function Licenses() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const [highContrastIntent] = useOnyx(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT);
 
     // Only underline the Licenses link in high-contrast themes, so it is distinguishable by more than color (WCAG 1.4.1).
-    const {isHighContrast} = useIsHighContrast();
+    // Detection mirrors the sibling HighContrastModeSwitcher, since the logged-out sign-in flow tracks contrast via SIGN_IN_HIGH_CONTRAST_INTENT.
+    const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
+    const isHighContrast = highContrastIntent ?? isHighContrastTheme(currentTheme);
     const licenseHTML = translate('termsOfUse.license', {licenseLink: translate('termsOfUse.licenseLink', {underline: isHighContrast})});
     return (
         <>
