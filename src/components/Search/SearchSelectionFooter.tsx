@@ -111,14 +111,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // selection (grouped views) and by transaction otherwise — so a grouped selection can mix whole groups and
     // individual transactions from other groups.
     const isReportsSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const isGroupedSearch = !isReportsSearch && !!currentSearchQueryJSON?.groupBy;
 
     const metadata = searchResults?.search;
     const metadataCount = metadata?.count;
     const metadataCurrency = metadata?.currency;
     const metadataTotal = metadata?.total;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-    const hasSelectedGroup = selectedTransactionsKeys.some(isGroupEntry);
     const selectedExpenseCount = useMemo(
         () =>
             selectedTransactionsKeys.reduce((count, key) => {
@@ -229,28 +227,13 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
               );
     }, [hasCustomFooterCurrency, isGroupFresh, isReportFresh, isReportsSearch, isTransactionFresh, selectedCurrency, selectedReportIDs, selectedTransactions]);
 
-    // While a custom currency is chosen but its converted figures haven't arrived (or have gone stale after an edit),
-    // the footer keeps showing the default-currency total behind a skeleton until the cache catches up — but only when
-    // there's something to convert, so a selection with nothing convertible stays on the default total rather than a
-    // skeleton that never resolves. Offline no conversion can complete, so keep the last-known/default total instead
-    // of a skeleton that would stay until connectivity returns; likewise drop the skeleton once this currency's
-    // conversion request has failed.
+    // Show the loading skeleton only while a conversion can still arrive — there is something to convert, the request
+    // can be made (online) and hasn't failed. Otherwise the footer stays on the default-currency total instead of a
+    // skeleton that would never resolve.
     const isFooterTotalConverting =
         !isOffline && !hasConversionFailed && hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
-
-    // A grouped search converts its group selections via the groups path, so it keeps the picker. A selected group
-    // anywhere else (e.g. a stray report-view group) can't be converted, so there the picker is disabled and any
-    // custom currency is dropped.
-    const hasUnconvertibleGroupSelection = hasSelectedGroup && !isGroupedSearch;
-    if (hasUnconvertibleGroupSelection && selectedCurrency) {
-        setFooterCurrencyState({
-            searchHash: currentSearchHash,
-            selectedCurrency: undefined,
-            defaultCurrency: effectiveDefaultCurrency,
-        });
-    }
 
     // Fetch converted figures whenever a custom currency is chosen and the cache does not yet hold a fresh conversion
     // for what the footer needs. Each request stamps the source figures it converts, so the freshness checks keep this
@@ -419,7 +402,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             defaultCurrency={effectiveDefaultCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
-            shouldAllowCurrencyChange={!hasUnconvertibleGroupSelection}
         />
     );
 }

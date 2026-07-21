@@ -41,12 +41,9 @@ type SearchPageFooterProps = {
 
     /** Function to call when the footer currency changes */
     onCurrencyChange: (currency: string | undefined) => void;
-
-    /** Whether the footer currency picker should be available */
-    shouldAllowCurrencyChange: boolean;
 };
 
-function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange, shouldAllowCurrencyChange}: SearchPageFooterProps) {
+function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -134,18 +131,14 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                 </View>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                    {shouldAllowCurrencyChange ? (
-                        <FilterPopupButton
-                            PopoverComponent={renderCurrencyPopup}
-                            renderButton={totalButton}
-                            popoverAnchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
-                        />
-                    ) : (
-                        <Text style={valueTextStyle}>{convertToDisplayString(total, currency)}</Text>
-                    )}
+                    <FilterPopupButton
+                        PopoverComponent={renderCurrencyPopup}
+                        renderButton={totalButton}
+                        popoverAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
+                    />
                 </View>
             </View>
             {isTotalLoading && (
