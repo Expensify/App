@@ -69,7 +69,7 @@ The Voluntary Product Accessibility Template (VPAT), also known as an accessibil
 
 To access the reports, go to the Expensify Trust Center resources page at [https://trust.expensify.com/resources](https://trust.expensify.com/resources) and download the accessibility conformance report you need.
 
-To learn more about Expensify's accessibility commitment, standards, and how to report accessibility issues, see [Accessibility at Expensify](https://help.expensify.com/articles/Unlisted/Accessibility).
+To learn more about Expensify's accessibility commitment, standards, and how to report accessibility issues, see [Accessibility at Expensify](/articles/Unlisted/Accessibility).
 
 ---
 
