@@ -291,7 +291,7 @@ export default {
     productMarketingWindowVisualAspectRatio: 7 / 4,
     productMarketingWindowIllustrationSize: 128,
     productMarketingWindowOffset: 20,
-    productMarketingWindowOffsetNarrow: 0,
+    productMarketingWindowOffsetNarrow: 12,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     wideConfirmModalWidth: 400,

@@ -619,6 +619,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(window).toHaveStyle({
             left: variables.productMarketingWindowOffsetNarrow,
             right: variables.productMarketingWindowOffsetNarrow,
+            bottom: variables.productMarketingWindowOffsetNarrow,
         });
         expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeNormal});
         expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeNormal});
