@@ -110,7 +110,8 @@ const CARLOS_ACCOUNT_ID = 1;
 type OnyxDataRecord = Record<PropertyKey, unknown>;
 type OnyxDataType = 'optimisticData' | 'successData' | 'failureData';
 type OnyxMethod = ValueOf<typeof Onyx.METHOD>;
-type RequiredOnyxUpdate<TValue = unknown> = {onyxMethod: OnyxMethod; key: string; value: TValue};
+type ReportWorkflowOnyxUpdate = {onyxMethod: OnyxMethod; key: string; value: unknown};
+type ReportWorkflowObjectOnyxUpdate = {onyxMethod: OnyxMethod; key: string; value: OnyxDataRecord};
 
 function getRequiredWriteCall(calls: unknown, callIndex = -1): [unknown, OnyxDataRecord, OnyxDataRecord] {
     if (!Array.isArray(calls)) {
@@ -139,9 +140,9 @@ function getRequiredOnyxUpdates(onyxData: OnyxDataRecord, dataType: OnyxDataType
     return updates;
 }
 
-function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue: true): RequiredOnyxUpdate<OnyxDataRecord>;
-function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue?: false): RequiredOnyxUpdate;
-function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue = false): RequiredOnyxUpdate {
+function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue: true): ReportWorkflowObjectOnyxUpdate;
+function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue?: false): ReportWorkflowOnyxUpdate;
+function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue = false): ReportWorkflowOnyxUpdate {
     const update = getRequiredOnyxUpdates(onyxData, dataType).find((candidate) => isObject(candidate) && candidate.key === key && candidate.onyxMethod === onyxMethod);
     if (!isObject(update)) {
         throw new Error(`Expected API.write ${dataType} to include a ${onyxMethod} update for ${key}.`);
@@ -155,7 +156,7 @@ function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType,
     return {onyxMethod, key, value};
 }
 
-function getRequiredReportAction(update: RequiredOnyxUpdate<OnyxDataRecord>): OnyxDataRecord {
+function getRequiredReportAction(update: ReportWorkflowObjectOnyxUpdate): OnyxDataRecord {
     const reportAction: unknown = Object.values(update.value).at(0);
     if (!isObject(reportAction)) {
         throw new Error(`Expected an optimistic report action in ${update.key}.`);
