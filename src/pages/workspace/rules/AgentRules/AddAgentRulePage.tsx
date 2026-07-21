@@ -129,11 +129,9 @@ function AddAgentRulePage({
         setActiveTab(key);
     };
 
+    // The header back button always closes the RHP. Switching between the Suggested and Edit tabs is handled
+    // by the TabSelector, so the back button must not be repurposed to step between tabs.
     const handleBackButtonPress = () => {
-        if (activeTab === CONST.TAB.AGENT_RULE.WRITE) {
-            setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
-            return;
-        }
         Navigation.goBack();
     };
 
