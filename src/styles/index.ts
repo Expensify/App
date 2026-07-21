@@ -1991,8 +1991,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         popoverMenuIconCompact: {
-            justifyContent: 'center',
-            alignItems: 'center',
+            width: variables.iconSizeNormal,
         },
 
         popoverIconCircle: {
