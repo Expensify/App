@@ -100,6 +100,16 @@ const defaultListOptions = {
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 
+// The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports, so building full option data for the
+// default 500-report list every time is unnecessary. Start from a smaller raw cap and only expand to the
+// full set if that batch filters down below the visible cap (see the loadAll effect below); typing a
+// query bypasses this cap entirely (isSearching drops the limit in createFilteredOptionList).
+// 100 leaves buffer for hidden/muted chats getting filtered out after the raw-recency slice.
+// The batch size stays at 500 (not smaller) because createFilteredOptionList rebuilds its whole
+// top-N slice from scratch each call, so a small batch would mean repeated rebuilds.
+const INITIAL_MAX_RECENT_REPORTS = 100;
+const RECENT_REPORTS_BATCH_SIZE = 500;
+
 // A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
 // row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
 // account-backed option though: task/expense reports also carry an accountID, and keying them by it would let them
@@ -201,7 +211,18 @@ function SearchAutocompleteList({
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
+    const {
+        options: listOptions,
+        isLoading: isLoadingOptions,
+        loadAll: loadAllRecentReports,
+        hasMore: hasMoreRecentReports,
+    } = useFilteredOptions({
+        enabled: true,
+        isSearching: !!autocompleteQueryValue.trim(),
+        betas: betas ?? [],
+        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
+        batchSize: RECENT_REPORTS_BATCH_SIZE,
+    });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -610,6 +631,19 @@ function SearchAutocompleteList({
     ]);
 
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
+
+    // The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports. If the initial raw cap filters down
+    // below that (e.g. many hidden/muted chats), expand to the full report set in one step so the remaining
+    // slots fill from less-recent reports. This replaces scroll-driven loading: the list never paginates past
+    // the visible cap, so there is nothing to load on scroll. Fires at most once: afterwards either the visible
+    // cap is reached or hasMoreRecentReports is false.
+    useEffect(() => {
+        if (trimmedAutocompleteQueryValue !== '' || isLoadingOptions || recentReportsOptions.length >= CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS || !hasMoreRecentReports) {
+            return;
+        }
+        loadAllRecentReports();
+    }, [trimmedAutocompleteQueryValue, isLoadingOptions, recentReportsOptions.length, hasMoreRecentReports, loadAllRecentReports]);
+
     const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
