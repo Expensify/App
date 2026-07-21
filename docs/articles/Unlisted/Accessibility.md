@@ -11,7 +11,7 @@ Expensify's mission is to make expense management effortless for everyone — an
 
 We design and evaluate Expensify against the following accessibility standards:
 
-- **Web Content Accessibility Guidelines (WCAG) 2.2, Levels A and AA** — our target standard, including the criteria carried over from WCAG 2.0 and 2.1
+- **Web Content Accessibility Guidelines (WCAG) 2.2, Levels A and AA**
 - **Revised Section 508** of the U.S. Rehabilitation Act
 - **EN 301 549** — the European accessibility standard for ICT products and services
 
