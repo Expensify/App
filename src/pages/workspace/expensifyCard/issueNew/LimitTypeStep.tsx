@@ -96,15 +96,14 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const data = useMemo(() => {
         const options = [];
 
-        if (areApprovalsConfigured) {
-            options.push({
-                value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-                label: translate('workspace.card.issueNewCard.smartLimit'),
-                description: translate('workspace.card.issueNewCard.smartLimitDescription'),
-                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-                isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-            });
-        }
+        options.push({
+            value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+            label: translate('workspace.card.issueNewCard.smartLimit'),
+            description: translate(areApprovalsConfigured ? 'workspace.card.issueNewCard.smartLimitDescription' : 'workspace.card.issueNewCard.smartLimitDisabledDescription'),
+            keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+            isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+            isDisabled: !areApprovalsConfigured,
+        });
 
         options.push(
             {

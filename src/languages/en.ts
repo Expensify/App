@@ -6707,6 +6707,7 @@ const translations = {
                 chooseLimitType: 'Choose a limit type',
                 smartLimit: 'Smart Limit',
                 smartLimitDescription: 'Spend up to a certain amount before requiring approval',
+                smartLimitDisabledDescription: 'Enable an approval workflow for this workspace to use Smart Limit',
                 monthly: 'Monthly',
                 monthlyDescription: 'Limit renews monthly',
                 fixedAmount: 'Fixed amount',
