@@ -38,6 +38,7 @@ on:
       - patches/react-native/react-native+*.patch
       - patches/react-native/@react-native+*.patch
       - Mobile-Expensify
+      - scripts/compute-patches-hash.sh
 
 jobs:
   verifyPatches:
