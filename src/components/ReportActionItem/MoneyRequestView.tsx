@@ -72,9 +72,10 @@ import {
     isPerDiemEnabled,
     isPolicyAccessible,
     isTaxTrackingEnabled,
+    isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -534,6 +535,7 @@ function MoneyRequestView({
         transactionVendorName = transactionVendor.externalID;
     }
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
+    const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
@@ -554,7 +556,7 @@ function MoneyRequestView({
         }
         return {
             reportID: match.reportID,
-            name: getReportName(match, reportAttributes) || match.reportName,
+            name: deprecatedGetReportName(match, reportAttributes) || match.reportName,
         };
     };
     const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
@@ -1139,7 +1141,7 @@ function MoneyRequestView({
 
     const reportNameToDisplay = isFromMergeTransaction
         ? (updatedTransaction?.reportName ?? translate('common.none'))
-        : getReportName(parentReport, reportAttributes) || parentReport?.reportName;
+        : deprecatedGetReportName(parentReport, reportAttributes) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
@@ -1373,7 +1375,7 @@ function MoneyRequestView({
                 {shouldShowVendor && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
                         <MenuItemWithTopDescription
-                            description={translate('common.vendor')}
+                            description={vendorFieldLabel}
                             title={transactionVendorName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
@@ -1383,7 +1385,15 @@ function MoneyRequestView({
                                 if (!transactionThreadReport?.reportID) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction.transactionID,
+                                        transactionThreadReport.reportID,
+                                        getReportRHPActiveRoute(),
+                                    ),
+                                );
                             }}
                             brickRoadIndicator={getErrorForField('vendor') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('vendor')}

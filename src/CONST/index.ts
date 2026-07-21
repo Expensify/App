@@ -732,6 +732,9 @@ const CONST = {
             PLAID: 'plaid',
             NONE: '',
         },
+        CONNECT_EXISTING_SOURCE: {
+            CHANGE_BANK_ACCOUNT: 'changeBankAccount',
+        },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
@@ -987,7 +990,6 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
-        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
@@ -2766,8 +2768,6 @@ const CONST = {
         ONBOARDING: 'o',
     },
 
-    IMAGE_HIGH_RESOLUTION_THRESHOLD: 7000,
-
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
         INITIAL: 'initial',
@@ -2956,6 +2956,7 @@ const CONST = {
         },
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        DEFAULT_VENDOR: 'defaultVendor',
     },
 
     SAGE_INTACCT_MAPPING_VALUE: {
@@ -3978,6 +3979,7 @@ const CONST = {
             EXPENSIFY_CARD: 'expensifyCard',
             COMPANY_CARDS: 'companyCards',
             CATEGORIES: 'categories',
+            VENDORS: 'vendors',
             TAGS: 'tags',
             TAXES: 'taxes',
             RULES: 'rules',
@@ -5707,7 +5709,11 @@ const CONST = {
         SE: 'Sweden',
     },
 
-    EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES: ['BE', 'DK', 'ES', 'FI', 'IE', 'LT', 'LU', 'LV', 'NL', 'PL', 'SE', 'GB', 'GI'],
+    // Hard-coded fallback for the Expensify Card supported countries keyed by settlement currency
+    EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY: {
+        GBP: ['GB', 'GI'],
+        EUR: ['BE', 'DK', 'ES', 'FI', 'IE', 'LT', 'LU', 'LV', 'NL', 'PL', 'SE'],
+    },
 
     EU_REGISTRATION_NUMBER_REGEX: {
         AT: /^FN\d{6}[a-z]?$/i,
@@ -6056,6 +6062,10 @@ const CONST = {
             REQUIRE_FIELDS: 'requireFields',
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
+        },
+        AGENT_RULE: {
+            SUGGESTIONS: 'suggestions',
+            WRITE: 'write',
         },
         SPLIT: {
             AMOUNT: 'amount',
@@ -8750,6 +8760,7 @@ const CONST = {
                 TIME_TRACKING: 'WorkspaceInitial-TimeTracking',
                 INVOICES: 'WorkspaceInitial-Invoices',
                 MORE_FEATURES: 'WorkspaceInitial-MoreFeatures',
+                VENDORS: 'WorkspaceInitial-Vendors',
             },
             OVERVIEW: {
                 AVATAR: 'WorkspaceOverview-Avatar',
@@ -8847,6 +8858,7 @@ const CONST = {
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
                 AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
+                SUGGESTED_AGENT_RULE: 'WorkspaceRules-SuggestedAgentRule',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
                 NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
                 NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND: 'WorkspaceRules-NewRuleMenuItem-RestrictCardSpend',

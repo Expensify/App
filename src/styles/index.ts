@@ -4612,7 +4612,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
         },
 
-        inboxTabBadge: {
+        tabSelectorBadge: {
             minWidth: 18,
             height: 16,
             marginLeft: 8,
