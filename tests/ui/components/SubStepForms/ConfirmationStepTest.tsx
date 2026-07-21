@@ -16,15 +16,15 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
     const reactNative = jest.requireActual<ReactNative>('react-native');
     const RNPressable = reactNative.Pressable;
     const RNView = reactNative.View;
-    function MockMenuItem({pressableTestID, title, description}: {pressableTestID?: string; title: string; description: string}) {
-        return (
+    return {
+        __esModule: true,
+        default: ({pressableTestID, title, description}: {pressableTestID?: string; title: string; description: string}) => (
             <RNPressable testID={pressableTestID}>
                 <RNView testID={`${pressableTestID}-title`}>{title}</RNView>
                 <RNView testID={`${pressableTestID}-description`}>{description}</RNView>
             </RNPressable>
-        );
-    }
-    return {__esModule: true, default: MockMenuItem};
+        ),
+    };
 });
 
 jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));

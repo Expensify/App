@@ -22,15 +22,15 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const reactNative = jest.requireActual<ReactNative>('react-native');
     const RNPressable = reactNative.Pressable;
-    function MockMenuItem({pressableTestID, title}: {pressableTestID?: string; title?: string}) {
-        const RNView = reactNative.View;
-        return (
+    const RNView = reactNative.View;
+    return {
+        __esModule: true,
+        default: ({pressableTestID, title}: {pressableTestID?: string; title?: string}) => (
             <RNPressable testID={pressableTestID}>
                 <RNView testID={`${pressableTestID}-title`}>{title}</RNView>
             </RNPressable>
-        );
-    }
-    return {__esModule: true, default: MockMenuItem};
+        ),
+    };
 });
 
 jest.mock('@components/MenuItem', () => ({__esModule: true, default: () => null}));
