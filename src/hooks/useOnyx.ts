@@ -1,3 +1,4 @@
+import OnyxFocusDefaultContext from '@components/OnyxFocusBoundary/OnyxFocusDefaultContext';
 import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
@@ -77,6 +78,8 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const isSnapshotCompatibleKey = !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
     const isOnSearch = useIsOnSearch();
 
+    const subscribedContextDefault = use(OnyxFocusDefaultContext);
+
     let currentSearchHash: number | undefined;
     let shouldUseLiveData = false;
     if (isOnSearch && isSnapshotCompatibleKey) {
@@ -95,7 +98,8 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     // Create selector function that handles both regular and snapshot data
     const selector = !selectorProp || !shouldUseSnapshot ? selectorProp : (data: OnyxValue<OnyxKey> | undefined) => selectorProp(getKeyData(data as SearchResults, key));
 
-    const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector};
+    const subscribed = useOnyxOptions?.subscribed ?? subscribedContextDefault ?? true;
+    const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector, subscribed};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey) : key;
 
     const originalResult = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
