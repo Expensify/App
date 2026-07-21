@@ -15,7 +15,10 @@ function getUserSecurityGroup(
     securityGroups: OnyxCollection<SecurityGroup>,
     legacySecurityGroups: OnyxCollection<SecurityGroup>,
 ): OnyxEntry<SecurityGroup> {
+    // Get the user's domain from their email
     const userDomain = email ? Str.extractEmailDomain(email) : undefined;
+
+    // Get the security group details for the user's domain
     const groupMembership = userDomain ? myDomainSecurityGroups?.[userDomain] : undefined;
 
     // The membership form determines which collection holds the group.
