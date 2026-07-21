@@ -1055,6 +1055,13 @@ const translations = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Wallet',
             },
+            addBankAccountAddress: {
+                workspaceTitle: 'Add your business bank account address',
+                personalTitle: 'Add your bank account address',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Wallet',
+                cta: 'Add address',
+            },
             enterSignerInfo: {
                 title: 'Signer info needed',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,

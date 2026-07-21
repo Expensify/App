@@ -999,6 +999,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Carta Expensify',
                 cta: 'Aggiungi dettagli',
             },
+            addBankAccountAddress: {
+                workspaceTitle: 'Add your business bank account address',
+                personalTitle: 'Add your bank account address',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Wallet',
+                cta: 'Add address',
+            },
             enterSignerInfo: {title: 'Informazioni del firmatario necessarie', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conto bancario ${bankAccountLastFour}`},
         },
         announcements: 'Annunci',

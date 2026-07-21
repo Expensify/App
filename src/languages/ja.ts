@@ -981,6 +981,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'ウォレット',
             },
             addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '詳細を追加'},
+            addBankAccountAddress: {
+                workspaceTitle: 'Add your business bank account address',
+                personalTitle: 'Add your bank account address',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Wallet',
+                cta: 'Add address',
+            },
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
         announcements: 'お知らせ',

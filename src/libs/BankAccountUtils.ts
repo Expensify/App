@@ -77,6 +77,23 @@ function hasOwnerAddress(additionalData: AdditionalData): boolean {
     return !!additionalData?.addressStreet && !!additionalData?.addressCity && !!additionalData?.addressState && !!additionalData?.addressZipCode;
 }
 
+/**
+ * Open US bank accounts missing addressState need a compliance prompt; reimbursements are blocked until it is filled.
+ * Defaults country to US when absent — legacy US accounts may omit country, matching BankAccount.getCountry().
+ */
+function isBankAccountMissingAddressState(accountData: AccountData | undefined): boolean {
+    if (!accountData || accountData.state !== CONST.BANK_ACCOUNT.STATE.OPEN) {
+        return false;
+    }
+
+    const country = accountData.additionalData?.country ?? CONST.COUNTRY.US;
+    if (country !== CONST.COUNTRY.US) {
+        return false;
+    }
+
+    return !accountData.additionalData?.addressState;
+}
+
 function hasOwnerPhone(additionalData: AdditionalData): boolean {
     return !!additionalData?.companyPhone;
 }
@@ -205,6 +222,7 @@ export {
     getLastFourDigits,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
+    isBankAccountMissingAddressState,
     isBankAccountPartiallySetup,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,

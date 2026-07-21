@@ -998,6 +998,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Expensify Karte',
                 cta: 'Details hinzufügen',
             },
+            addBankAccountAddress: {
+                workspaceTitle: 'Add your business bank account address',
+                personalTitle: 'Add your bank account address',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Wallet',
+                cta: 'Add address',
+            },
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
         },
         announcements: 'Ankündigungen',
