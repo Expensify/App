@@ -235,6 +235,34 @@ describe('TodosUtils', () => {
             });
         });
 
+        it('excludes a report the current user approves for but does not own from the submit bucket', async () => {
+            const OTHER_USER_EMAIL = 'owner@mail.com';
+            const personalDetailsList = {
+                [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL},
+                [OTHER_USER_ACCOUNT_ID]: {accountID: OTHER_USER_ACCOUNT_ID, login: OTHER_USER_EMAIL},
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await waitForBatchedUpdates();
+
+            const approverSubmitReport = createMockReport('approver_submit', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {approver: CURRENT_USER_EMAIL});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                personalDetailsList,
+                allReports: toReportsCollection([approverSubmitReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_approver_submit', 'approver_submit')]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
         it('excludes a report whose expenses are all on hold', () => {
             const heldOverride: Partial<Transaction> = {comment: {hold: 'HOLD_ACTION_ID'}};
             const submitReport = createMockReport('held_submit', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
