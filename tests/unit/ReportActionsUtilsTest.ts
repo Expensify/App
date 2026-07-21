@@ -8,11 +8,12 @@ import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
 
-import type {KeyValueMapping} from 'react-native-onyx';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -72,6 +73,39 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
+type TakeControlOriginalMessageFixture = {
+    lastModified: string;
+    mentionedAccountIDs: number[];
+    automaticAction?: boolean;
+};
+
+type CompanyAddressOriginalMessageFixture = {
+    newAddress: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string};
+    oldAddress?: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
+};
+
+type UpdateACHAccountOriginalMessageFixture = {
+    bankAccountName?: string;
+    maskedBankAccountNumber?: string;
+    oldBankAccountName?: string;
+    oldMaskedBankAccountNumber?: string;
+};
+
+type ReportActionFixtureOriginalMessageMap = {
+    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
+    [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: TakeControlOriginalMessageFixture;
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS]: CompanyAddressOriginalMessageFixture;
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT]: UpdateACHAccountOriginalMessageFixture;
+};
+
+function buildReportActionFixture<T extends keyof ReportActionFixtureOriginalMessageMap>(
+    action: Omit<ReportAction<T>, 'originalMessage'> & {actionName: T},
+    originalMessage: ReportActionFixtureOriginalMessageMap[T],
+): ReportAction<T> {
+    Object.defineProperty(action, 'originalMessage', {configurable: true, enumerable: true, value: originalMessage, writable: true});
+    return action;
+}
+
 describe('ReportActionsUtils', () => {
     beforeAll(() =>
         Onyx.init({
@@ -95,6 +129,20 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getSortedReportActions', () => {
+        const buildReportActionWithoutCreated = (): ReportAction => {
+            const action: ReportAction = {
+                created: '',
+                reportActionID: '2962390724708756',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            Reflect.deleteProperty(action, 'created');
+            return action;
+        };
+
         const cases: Array<[ReportAction[], ReportAction[]]> = [
             [
                 [
@@ -278,14 +326,7 @@ describe('ReportActionsUtils', () => {
                         },
                     },
                     // this item has no created field, so it should appear right after CONST.REPORT.ACTIONS.TYPE.CREATED
-                    {
-                        reportActionID: '2962390724708756',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        originalMessage: {
-                            html: 'Hello world',
-                            whisperedTo: [],
-                        },
-                    },
+                    buildReportActionWithoutCreated(),
                     {
                         created: '2022-11-09 22:26:48.889',
                         reportActionID: '1609646094152486',
@@ -315,14 +356,7 @@ describe('ReportActionsUtils', () => {
                             whisperedTo: [],
                         },
                     },
-                    {
-                        reportActionID: '2962390724708756',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        originalMessage: {
-                            html: 'Hello world',
-                            whisperedTo: [],
-                        },
-                    },
+                    buildReportActionWithoutCreated(),
                     {
                         created: '2022-11-09 22:26:48.889',
                         reportActionID: '1609646094152486',
@@ -1147,7 +1181,7 @@ describe('ReportActionsUtils', () => {
         };
 
         beforeEach(() => {
-            const updates: KeyValueMapping = {
+            const updates: OnyxMultiSetInput = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedIOUReportID}`]: {[deletedIOUReportAction.reportActionID]: deletedIOUReportAction},
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activeIOUReportID}`]: {[activeIOUReportAction.reportActionID]: activeIOUReportAction},
             };
@@ -1261,7 +1295,7 @@ describe('ReportActionsUtils', () => {
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
-                        const updates: KeyValueMapping = {
+                        const updates: OnyxMultiSetInput = {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action, [action2.reportActionID]: action2},
                         };
@@ -1287,18 +1321,20 @@ describe('ReportActionsUtils', () => {
 
     describe('getExportIntegrationActionFragments', () => {
         function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
-            return {
-                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
-                reportActionID: '1',
-                reportID: '123',
-                created: '2026-05-15 10:00:00.000',
-                message: [],
-                originalMessage: {
+            return buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                    reportActionID: '1',
+                    reportID: '123',
+                    created: '2026-05-15 10:00:00.000',
+                    message: [],
+                },
+                {
                     label,
                     lastModified: '2026-05-15 10:00:00.000',
                     nonReimbursableUrls,
                 },
-            } satisfies ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>;
+            );
         }
 
         it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
@@ -2271,16 +2307,18 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                reportActionID: '1',
-                created: '2025-09-29',
-                originalMessage: {
+            const reportAction = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                    reportActionID: '1',
+                    created: '2025-09-29',
+                },
+                {
                     lastModified: '2025-09-29',
-                    mentionedAccountIDs: [] as number[],
+                    mentionedAccountIDs: [],
                     automaticAction: true,
                 },
-            };
+            );
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(false);
@@ -2308,17 +2346,19 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
-                originalMessage: {
+            const reportAction = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                    reportActionID: '1',
+                    created: '2025-09-29',
+                    message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                },
+                {
                     lastModified: '2025-09-29',
                     mentionedAccountIDs: [123],
                     automaticAction: true,
                 },
-            };
+            );
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
@@ -2346,33 +2386,37 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
-                originalMessage: {
+            const reportAction = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                    reportActionID: '1',
+                    created: '2025-09-29',
+                    message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                },
+                {
                     lastModified: '2025-09-29',
-                    mentionedAccountIDs: [] as number[],
+                    mentionedAccountIDs: [],
                     automaticAction: false,
                 },
-            };
+            );
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is not set', () => {
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
-                originalMessage: {
+            const reportAction = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                    reportActionID: '1',
+                    created: '2025-09-29',
+                    message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                },
+                {
                     lastModified: '2025-09-29',
                     mentionedAccountIDs: [456],
                 },
-            };
+            );
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
@@ -3912,11 +3956,13 @@ describe('ReportActionsUtils', () => {
 
     describe('getCompanyAddressUpdateMessage', () => {
         it('should return "set" message when setting address for first time', () => {
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     newAddress: {
                         addressStreet: '123 Main St',
                         city: 'San Francisco',
@@ -3926,18 +3972,20 @@ describe('ReportActionsUtils', () => {
                     },
                     oldAddress: null,
                 },
-            };
+            );
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, San Francisco, CA 94102"');
         });
 
         it('should return "changed" message when updating existing address', () => {
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     newAddress: {
                         addressStreet: '456 New Ave',
                         city: 'Los Angeles',
@@ -3953,17 +4001,19 @@ describe('ReportActionsUtils', () => {
                         country: 'US',
                     },
                 },
-            };
+            );
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('changed the company address to "456 New Ave, Los Angeles, CA 90001" (previously "123 Old St, San Francisco, CA 94102")');
         });
         it('should handle address with street2 (newline separated)', () => {
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     newAddress: {
                         addressStreet: '123 Main St\nSuite 500',
                         city: 'New York',
@@ -3973,7 +4023,7 @@ describe('ReportActionsUtils', () => {
                     },
                     oldAddress: null,
                 },
-            };
+            );
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
 
@@ -3982,11 +4032,13 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should handle address with separate addressStreet2 field', () => {
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     newAddress: {
                         addressStreet: '123 Main St',
                         addressStreet2: 'Suite 500',
@@ -3997,18 +4049,20 @@ describe('ReportActionsUtils', () => {
                     },
                     oldAddress: null,
                 },
-            };
+            );
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
 
         it('should prefer addressStreet2 over newline-split second line when both are present', () => {
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     newAddress: {
                         addressStreet: '123 Main St\nOld Unit',
                         addressStreet2: 'Suite 500',
@@ -4019,18 +4073,20 @@ describe('ReportActionsUtils', () => {
                     },
                     oldAddress: null,
                 },
-            };
+            );
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
 
         it('should fallback to newline-split second line when addressStreet2 is empty', () => {
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     newAddress: {
                         addressStreet: '123 Main St\nSuite 500',
                         addressStreet2: '   ',
@@ -4041,7 +4097,7 @@ describe('ReportActionsUtils', () => {
                     },
                     oldAddress: null,
                 },
-            };
+            );
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
@@ -4051,15 +4107,17 @@ describe('ReportActionsUtils', () => {
     describe('getUpdateACHAccountMessage', () => {
         it('should return "set" message when setting the default bank account for the first time', () => {
             // Given an UPDATE_ACH_ACCOUNT action with only new bank account info
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     bankAccountName: 'Business Checking',
                     maskedBankAccountNumber: 'XXXX1234',
                 },
-            };
+            );
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4070,15 +4128,17 @@ describe('ReportActionsUtils', () => {
 
         it('should return "set" message without bank name when bankAccountName is empty', () => {
             // Given an UPDATE_ACH_ACCOUNT action with only new bank account maskedBankAccountNumber
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     bankAccountName: '',
                     maskedBankAccountNumber: 'XXXX1234',
                 },
-            };
+            );
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4089,15 +4149,17 @@ describe('ReportActionsUtils', () => {
 
         it('should return "removed" message when removing the default bank account', () => {
             // Given an UPDATE_ACH_ACCOUNT action with only old bank account info
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     oldBankAccountName: 'Business Checking',
                     oldMaskedBankAccountNumber: 'XXXX5678',
                 },
-            };
+            );
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4108,15 +4170,17 @@ describe('ReportActionsUtils', () => {
 
         it('should return "removed" message without bank name when oldBankAccountName is empty', () => {
             // Given an UPDATE_ACH_ACCOUNT action with only old bank account maskedBankAccountNumber
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     oldBankAccountName: '',
                     oldMaskedBankAccountNumber: 'XXXX5678',
                 },
-            };
+            );
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4127,17 +4191,19 @@ describe('ReportActionsUtils', () => {
 
         it('should return "changed" message when changing from one bank account to another', () => {
             // Given an UPDATE_ACH_ACCOUNT action with both new and old bank account info
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     bankAccountName: 'Savings Account',
                     maskedBankAccountNumber: 'XXXX5678',
                     oldBankAccountName: 'Business Checking',
                     oldMaskedBankAccountNumber: 'XXXX1234',
                 },
-            };
+            );
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4148,17 +4214,19 @@ describe('ReportActionsUtils', () => {
 
         it('should return "changed" message with partial bank names when some names are empty', () => {
             // Given an UPDATE_ACH_ACCOUNT action where new bank has a name but old bank does not
-            const action: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
+            const action = buildReportActionFixture(
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                    reportActionID: '1',
+                    created: '',
+                },
+                {
                     bankAccountName: 'Savings Account',
                     maskedBankAccountNumber: 'XXXX5678',
                     oldBankAccountName: '',
                     oldMaskedBankAccountNumber: 'XXXX1234',
                 },
-            };
+            );
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
