@@ -138,7 +138,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                title={translate('workspace.inviteMessage.confirmDetails')}
+                title={isWorkflowsImport ? translate('workspace.invite.members') : translate('workspace.inviteMessage.confirmDetails')}
                 subtitle={policy?.name}
                 shouldShowBackButton
                 onBackButtonPress={() => {
@@ -173,7 +173,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             </View>
             <FixedFooter style={[styles.flex1, styles.justifyContentEnd]}>
                 <Button
-                    text={translate('common.import')}
+                    text={isWorkflowsImport ? translate('common.invite') : translate('common.import')}
                     onPress={importMembers}
                     isLoading={isImporting}
                     isDisabled={isOffline}
