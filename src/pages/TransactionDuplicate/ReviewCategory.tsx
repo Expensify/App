@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
@@ -15,6 +16,7 @@ import {compareDuplicateTransactionFields, getTransactionID} from '@libs/Transac
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -25,9 +27,10 @@ import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewCategory() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.CATEGORY>>();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY>>();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.path);
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -44,12 +47,7 @@ function ReviewCategory() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
-        Object.keys(compareResult.change ?? {}),
-        'category',
-        route.params.threadReportID,
-        route.params.backTo,
-    );
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', backPath);
     const options = useMemo(
         () =>
             compareResult.change.category?.map((category) =>

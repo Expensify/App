@@ -1,14 +1,28 @@
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {useEffect, useMemo, useState} from 'react';
 
 type StepName = 'description' | 'merchant' | 'category' | 'billable' | 'tag' | 'taxCode' | 'reimbursable' | 'confirmation';
 
-function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: StepName, threadReportID: string, backTo?: string) {
+const STEP_TO_DYNAMIC_SUFFIX = {
+    merchant: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT.path,
+    category: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.path,
+    tag: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG.path,
+    description: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION.path,
+    taxCode: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE.path,
+    reimbursable: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE.path,
+    billable: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE.path,
+    confirmation: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path,
+} as const satisfies Record<StepName, string>;
+
+/**
+ * @param backPath - The base path (the report the wizard is opened on top of, i.e. the current URL minus the dynamic suffix).
+ */
+function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: StepName, backPath: string) {
     const [nextScreen, setNextScreen] = useState<StepName>();
     const [prevScreen, setPrevScreen] = useState<StepName>();
     const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
@@ -28,65 +42,16 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     }, [currentScreenName, intersection]);
 
     const goBack = () => {
-        switch (prevScreen) {
-            case 'merchant':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'category':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'tag':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'description':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'taxCode':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'reimbursable':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'billable':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo));
-                break;
-            default:
-                if (backTo) {
-                    Navigation.goBack(backTo as Route);
-                    return;
-                }
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadReportID));
-                break;
+        if (prevScreen) {
+            Navigation.goBack(createDynamicRoute(STEP_TO_DYNAMIC_SUFFIX[prevScreen], backPath));
+            return;
         }
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.path, backPath));
     };
 
     const navigateToNextScreen = () => {
-        switch (nextScreen) {
-            case 'merchant':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'category':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'tag':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'description':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'taxCode':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'reimbursable':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo));
-                break;
-            case 'billable':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo));
-                break;
-            default:
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(threadReportID, backTo));
-                break;
-        }
+        const targetSuffix = nextScreen ? STEP_TO_DYNAMIC_SUFFIX[nextScreen] : DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path;
+        Navigation.navigate(createDynamicRoute(targetSuffix, backPath));
     };
 
     return {navigateToNextScreen, goBack, currentScreenIndex};

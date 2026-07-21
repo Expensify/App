@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,7 +33,7 @@ import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -44,7 +45,8 @@ import {View} from 'react-native';
 import DuplicateTransactionsList from './DuplicateTransactionsList';
 
 function TransactionDuplicateReview() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW>>();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.path);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -52,11 +54,11 @@ function TransactionDuplicateReview() {
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.threadReportID}`, {selector: Boolean});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`, {selector: Boolean});
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${route.params.threadReportID}`);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${route.params.reportID}`);
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -108,7 +110,7 @@ function TransactionDuplicateReview() {
     const isLoadingPage =
         (!report?.reportID && !hasLoadedThreadReportActions && !isThreadReportDeletedForReview) ||
         (!reportAction?.reportActionID && !hasLoadedParentReportActions && !wasParentActionDeleted && !isThreadReportDeletedForReview);
-    const isDeleteNavigateBackToThisReview = doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview(deleteTransactionNavigateBackUrl, route.params.threadReportID);
+    const isDeleteNavigateBackToThisReview = doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview(deleteTransactionNavigateBackUrl, route.params.reportID);
     const isNavigatingBackToDeletedReview = !!deleteTransactionNavigateBackUrl && !(isDeleteNavigateBackToThisReview && wasTransactionDeleted);
 
     const shouldShowNotFound = !isNavigatingBackToDeletedReview && (wasTransactionDeleted || (!isLoadingPage && !transactionID));
@@ -120,11 +122,11 @@ function TransactionDuplicateReview() {
     };
 
     useEffect(() => {
-        if (!route.params.threadReportID || report?.reportID) {
+        if (!route.params.reportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.threadReportID, introSelected, betas, hasReportActions});
-    }, [report?.reportID, route.params.threadReportID, introSelected, betas, hasReportActions]);
+        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions});
+    }, [report?.reportID, route.params.reportID, introSelected, betas, hasReportActions]);
 
     useEffect(() => {
         if (!transactionID) {
@@ -198,8 +200,7 @@ function TransactionDuplicateReview() {
 
         Navigation.navigate(
             getReviewNavigationRoute(
-                Navigation.getActiveRoute(),
-                route.params.threadReportID,
+                route.params.reportID,
                 selectedTransaction,
                 transactions.filter((transaction) => transaction.transactionID !== selectedTransaction.transactionID),
                 selectedTransactionPolicy,
@@ -231,14 +232,14 @@ function TransactionDuplicateReview() {
             <ScreenWrapper testID="TransactionDuplicateReview">
                 <HeaderWithBackButton
                     title={translate('iou.reviewDuplicates')}
-                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ConfirmationPage
                     heading={translate('iou.noDuplicatesTitle')}
                     description={translate('iou.noDuplicatesDescription')}
                     shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    onButtonPress={() => Navigation.goBack(backPath)}
                 />
             </ScreenWrapper>
         );
@@ -253,7 +254,7 @@ function TransactionDuplicateReview() {
             <FullPageNotFoundView shouldShow={shouldShowNotFound}>
                 <HeaderWithBackButton
                     title={translate('iou.reviewDuplicates')}
-                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <View style={styles.flex1}>
                     <ScrollView

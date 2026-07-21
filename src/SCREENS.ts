@@ -381,15 +381,15 @@ const SCREENS = {
     },
 
     TRANSACTION_DUPLICATE: {
-        REVIEW: 'Transaction_Duplicate_Review',
-        MERCHANT: 'Transaction_Duplicate_Merchant',
-        CATEGORY: 'Transaction_Duplicate_Category',
-        TAG: 'Transaction_Duplicate_Tag',
-        DESCRIPTION: 'Transaction_Duplicate_Description',
-        TAX_CODE: 'Transaction_Duplicate_Tax_Code',
-        REIMBURSABLE: 'Transaction_Duplicate_Reimbursable',
-        BILLABLE: 'Transaction_Duplicate_Billable',
-        CONFIRMATION: 'Transaction_Duplicate_Confirmation',
+        DYNAMIC_REVIEW: 'Dynamic_Transaction_Duplicate_Review',
+        DYNAMIC_MERCHANT: 'Dynamic_Transaction_Duplicate_Merchant',
+        DYNAMIC_CATEGORY: 'Dynamic_Transaction_Duplicate_Category',
+        DYNAMIC_TAG: 'Dynamic_Transaction_Duplicate_Tag',
+        DYNAMIC_DESCRIPTION: 'Dynamic_Transaction_Duplicate_Description',
+        DYNAMIC_TAX_CODE: 'Dynamic_Transaction_Duplicate_Tax_Code',
+        DYNAMIC_REIMBURSABLE: 'Dynamic_Transaction_Duplicate_Reimbursable',
+        DYNAMIC_BILLABLE: 'Dynamic_Transaction_Duplicate_Billable',
+        DYNAMIC_CONFIRMATION: 'Dynamic_Transaction_Duplicate_Confirmation',
     },
 
     MERGE_TRANSACTION: {
