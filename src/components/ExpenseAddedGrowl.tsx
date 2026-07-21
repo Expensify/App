@@ -47,7 +47,9 @@ function ExpenseAddedGrowl() {
     // on the self-DM report - not on transaction.reportID. Read actions from the report that actually hosts the
     // action so "View" resolves the real transaction thread (the action's childReportID) instead of fabricating
     // a mismatched optimistic one.
-    const hostReportID = !reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? findSelfDMReportID() : reportID;
+    const isUnreportedExpense = !reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const selfDMReportID = transactionID && isUnreportedExpense ? findSelfDMReportID() : undefined;
+    const hostReportID = isUnreportedExpense ? selfDMReportID : reportID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${hostReportID}`);
     // Only IOU/expense/invoice reports have the expense-report RHP that "View" opens. A tracked/unreported
     // (self-DM) expense lives in a chat, so it has no such report - leaving iouReportID undefined makes
