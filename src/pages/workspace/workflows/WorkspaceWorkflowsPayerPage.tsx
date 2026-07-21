@@ -118,7 +118,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 continue;
             }
             const isOwner = policy?.owner === details?.login;
-            const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+            const canBePayer = !!policyEmployee.role && canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
             const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || !canBePayer;
             if (shouldSkipMember) {
                 continue;
@@ -278,7 +278,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         isAccountInSetupState;
 
     const totalNumberOfPayerCandidates = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
-        const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+        const canBePayer = !!policyEmployee.role && canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
         return !isDeletedPolicyEmployee(policyEmployee) && canBePayer;
     });
 
