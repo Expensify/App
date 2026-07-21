@@ -50,6 +50,7 @@ function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
         <Table.Row
             interactive={false}
             rowIndex={index}
+            accessibilityLabel={item.name}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
