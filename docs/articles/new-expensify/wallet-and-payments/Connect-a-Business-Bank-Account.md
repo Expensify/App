@@ -1,8 +1,8 @@
 ---
 title: Connect a US Business Bank Account
 description: Learn how to connect and verify a US business bank account in Expensify for reimbursements, Expensify Card payments, and invoice payouts.
-keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents]
-internalScope: Audience is Workspace Admins and Payments Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
+keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, change bank account, switch bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents]
+internalScope: Audience is Workspace Admins and Payments Admins. Covers connecting a new US business bank account from a workspace or Wallet, linking an existing one to a workspace for reimbursements, and changing the connected bank account on a workspace. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
 ---
 
 # Connect a US Business Bank Account
@@ -59,6 +59,22 @@ If your business bank account already exists in Expensify, an admin with access 
 ## How to link an existing business bank account to a workspace
 
 If you already have a verified business bank account, you can share it to another workspace without needing to add it again. [Learn how to share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account). 
+
+---
+
+## How to change the connected business bank account on a workspace
+
+Workspace Admins and Payments Admins can switch the connected bank account without disconnecting the current one first.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspace > [Workspace name]**.
+2. Select **Workflows**.
+3. In the **Payments** section, select the connected bank account.
+4. Select **Change bank account**.
+5. Choose what to connect:
+   - If the workspace has other eligible business bank accounts, select one from the list. The currently connected account is hidden from this list.
+   - If there are no other eligible accounts, you'll continue into the flow to set up a new business bank account.
+
+The account you select becomes the bank account used for reimbursements on that workspace. If you select an account that isn't fully set up yet, you'll be prompted to finish setup before it can be used.
 
 ---
 
