@@ -284,17 +284,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             screenName: SCREENS.WORKSPACE.MEMBERS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
         },
-    ];
-
-    if (isBetaEnabled(CONST.BETAS.WORKSPACE_ROOMS_PAGE)) {
-        workspaceMenuItems.push({
+        {
             translationKey: 'workspace.common.rooms',
             icon: expensifyIcons.Hashtag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ROOMS.getRoute(policyID)))),
             screenName: SCREENS.WORKSPACE.ROOMS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
-        });
-    }
+        },
+    ];
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {

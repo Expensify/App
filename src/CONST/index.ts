@@ -992,7 +992,6 @@ const CONST = {
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
-        WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',

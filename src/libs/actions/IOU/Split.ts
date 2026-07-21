@@ -2136,6 +2136,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 odometerStart,
                 odometerEnd,
             },
+            shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
