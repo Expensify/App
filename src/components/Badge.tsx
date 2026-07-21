@@ -147,4 +147,5 @@ function Badge({
     );
 }
 
+export type {BadgeProps};
 export default Badge;

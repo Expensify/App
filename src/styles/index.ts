@@ -1990,6 +1990,11 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        popoverMenuIconCompact: {
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
         popoverIconCircle: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,

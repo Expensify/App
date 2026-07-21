@@ -9216,6 +9216,38 @@ const CONST = {
         NEWDOT: 83,
         OAUTH: 86,
     },
+
+    MENU_ITEM: {
+        BADGE_POSITION: {
+            RIGHT: 'right',
+            BELOW_TITLE: 'belowTitle',
+            SEPARATE_ROW: 'separateRow',
+        },
+        TITLE_FORMAT: {
+            MARKDOWN: 'markdown',
+            HTML: 'html',
+        },
+        TITLE_VARIANT: {
+            NORMAL: 'normal',
+            STRONG: 'strong',
+        },
+        VARIANT: {
+            DEFAULT: 'default',
+            SECTION: 'section',
+        },
+        DESCRIPTION_VARIANT: {
+            SUPPORTING: 'supporting',
+            PROMINENT: 'prominent',
+        },
+        ICON_VARIANT: {
+            DEFAULT: 'default',
+            COMPACT: 'compact',
+        },
+        RIGHT_LABEL_VARIANT: {
+            LABEL: 'label',
+            SUBTITLE: 'subtitle',
+        },
+    },
 } as const;
 
 /** Upgrade intro feature ids from UPGRADE_FEATURE_INTRO_MAPPING for Submit workspace */
