@@ -43,22 +43,9 @@ const domainSecurityGroupFixture: DomainSecurityGroup = {
     shared: {},
 };
 
-type DomainBoundarySecurityGroup = {
-    name?: string;
-    shared?: Record<string, string | null | undefined> | null;
-};
-
-type DomainBoundaryValue = BaseVacationDelegate | DomainBoundarySecurityGroup | boolean | number | string | null | undefined;
-
-type DomainSecurityGroupPendingActionsBoundary = {
-    name?: DomainPendingActions['pendingAction'];
-    pendingAction?: DomainPendingActions['pendingAction'];
-};
-
 type DomainFixtureOptions = {
-    accountID?: number;
     admins?: Array<[string, number]>;
-    boundaryEntries?: Record<string, DomainBoundaryValue>;
+    boundaryEntries?: Record<string, unknown>;
     defaultSecurityGroupID?: string;
     email?: string;
     empty?: boolean;
@@ -66,7 +53,6 @@ type DomainFixtureOptions = {
     omitDefaultSecurityGroupID?: boolean;
     securityGroups?: Array<[string, DomainSecurityGroup]>;
     vacationDelegates?: Record<number, BaseVacationDelegate>;
-    validated?: boolean;
 };
 
 const createFixture = <T extends Record<string, unknown>>(fixture: T, overrides: Partial<T> = {}): T => ({...fixture, ...overrides});
@@ -80,12 +66,6 @@ const createDomainFixture = (options: DomainFixtureOptions = {}): Domain => {
         }
     }
 
-    if (options.validated !== undefined) {
-        fixture.validated = options.validated;
-    }
-    if (options.accountID !== undefined) {
-        fixture.accountID = options.accountID;
-    }
     if (options.email !== undefined) {
         fixture.email = options.email;
     }
@@ -679,31 +659,31 @@ describe('domainSelectors', () => {
         });
 
         it('Should return false when the group has only non-delete pending actions', () => {
-            const domainPendingActions = createFixture(domainPendingActionsFixture);
-            const groupPendingActions: DomainSecurityGroupPendingActionsBoundary = {
-                name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            };
-            Reflect.set(domainPendingActions, `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`, groupPendingActions);
+            const domainPendingActions = createFixture(domainPendingActionsFixture, {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    createGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(false);
         });
 
         it('Should return true when the group has a top-level delete pending action', () => {
-            const domainPendingActions = createFixture(domainPendingActionsFixture);
-            const groupPendingActions: DomainSecurityGroupPendingActionsBoundary = {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            Reflect.set(domainPendingActions, `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`, groupPendingActions);
+            const domainPendingActions = createFixture(domainPendingActionsFixture, {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(true);
         });
 
         it('Should return true when at least one field-level pending action is delete', () => {
-            const domainPendingActions = createFixture(domainPendingActionsFixture);
-            const groupPendingActions: DomainSecurityGroupPendingActionsBoundary = {
-                name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            Reflect.set(domainPendingActions, `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`, groupPendingActions);
+            const domainPendingActions = createFixture(domainPendingActionsFixture, {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    enableStrictPolicyRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(true);
         });
 
@@ -712,11 +692,10 @@ describe('domainSelectors', () => {
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
             });
-            const deletingGroupPendingActions: DomainSecurityGroupPendingActionsBoundary = {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            Reflect.set(domainPendingActions, `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`, deletingGroupPendingActions);
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(false);
             expect(isSecurityGroupPendingDeleteSelector('2')(domainPendingActions)).toBe(true);
         });
