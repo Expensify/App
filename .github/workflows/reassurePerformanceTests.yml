@@ -25,7 +25,7 @@ jobs:
       # NOT setupNodeStickyDisk: this job force-checks-out origin/main above, discarding the PR's
       # working tree — a local action added only on this branch (not yet on main) wouldn't exist.
       - name: Setup NodeJS
-        uses: ./.github/actions/composite/setupNode
+        uses: ./.github/actions/composite/setupNodeStickyDisk
 
       - name: Run baseline performance tests
         shell: bash
