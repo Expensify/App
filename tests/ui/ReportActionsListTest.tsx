@@ -14,6 +14,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
+import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 
@@ -57,6 +58,10 @@ jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
     useConciergeSessionState: jest.fn(),
     useConciergeSessionActions: jest.fn(),
 }));
+jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
+    useConciergeDraft: jest.fn(),
+    useConciergeDraftActions: jest.fn(),
+}));
 
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
@@ -67,6 +72,8 @@ const mockUseParentReportAction = useParentReportAction as jest.MockedFunction<t
 const mockUseIsInSidePanel = useIsInSidePanel as jest.MockedFunction<typeof useIsInSidePanel>;
 const mockUseSidePanelState = useSidePanelState as jest.MockedFunction<typeof useSidePanelState>;
 const mockUseReportTransactionsCollection = useReportTransactionsCollection as jest.MockedFunction<typeof useReportTransactionsCollection>;
+const mockUseConciergeDraft = useConciergeDraft as jest.MockedFunction<typeof useConciergeDraft>;
+const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunction<typeof useConciergeDraftActions>;
 const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
 const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
 
@@ -137,11 +144,37 @@ jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
 
-const mockInvertedFlashList: jest.MockedFunction<(props: {data?: OnyxTypes.ReportAction[]}) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
+type MockInvertedFlashListProps = {
+    data?: OnyxTypes.ReportAction[];
+    extraData?: unknown;
+    renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
+};
+
+const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
 const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
 
 /** Returns the report actions the body fed into the (mocked) inverted list on its latest render. */
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
+const getCapturedListProps = (): MockInvertedFlashListProps | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0);
+
+const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAction, index = 0): {shouldDisableContextMenuForConciergeDraft?: boolean} => {
+    const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
+
+    if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
+        throw new Error('Expected renderItem to return a React element');
+    }
+
+    const child = React.Children.toArray(renderedItem.props.children).find(
+        (item): item is React.ReactElement<{shouldDisableContextMenuForConciergeDraft?: boolean}> =>
+            React.isValidElement<{shouldDisableContextMenuForConciergeDraft?: boolean}>(item) && 'shouldDisableContextMenuForConciergeDraft' in item.props,
+    );
+
+    if (!child) {
+        throw new Error('Expected renderItem to render ReportActionsListItemRenderer');
+    }
+
+    return child.props;
+};
 
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
@@ -238,6 +271,16 @@ describe('ReportActionsList (body)', () => {
         mockUseIsInSidePanel.mockReturnValue(false);
         mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
         mockUseReportTransactionsCollection.mockReturnValue({});
+        mockUseConciergeDraft.mockReturnValue({
+            draftReportAction: null,
+            hasActiveDraft: false,
+            isDraftPendingCompletion: false,
+        });
+        mockUseConciergeDraftActions.mockReturnValue({
+            clearDraft: jest.fn(),
+            dispatchLocalDraftEvent: jest.fn(),
+            revealDraftFromReportAction: jest.fn(),
+        });
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
         mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
@@ -267,6 +310,54 @@ describe('ReportActionsList (body)', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    describe('Concierge Draft Context Menu', () => {
+        const conciergeDraftReportAction: OnyxTypes.ReportAction = {
+            reportID: mockReport.reportID,
+            reportActionID: 'concierge-draft',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2023-01-03',
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            message: [{type: 'COMMENT', html: 'Bot reply', text: 'Bot reply'}],
+            originalMessage: {html: 'Bot reply', whisperedTo: []},
+            shouldShow: true,
+            person: [{type: 'TEXT', style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME}],
+            pendingAction: null,
+            errors: {},
+        };
+
+        beforeEach(() => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+        });
+
+        it('disables the context menu while the Concierge draft is still streaming', () => {
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: conciergeDraftReportAction,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+
+            renderReportActionsList();
+
+            expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
+            expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(true);
+            expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(true);
+        });
+
+        it('enables the context menu after the Concierge draft finishes streaming', () => {
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: conciergeDraftReportAction,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: false,
+            });
+
+            renderReportActionsList();
+
+            expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
+            expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(false);
+            expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(false);
+        });
     });
 
     describe('Skeleton Loading States', () => {
