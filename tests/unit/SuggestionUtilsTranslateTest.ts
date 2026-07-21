@@ -8,8 +8,10 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 
 jest.mock('@libs/ReportUtils', () => {
+    // jest.requireActual is typed as returning `any`, so this assignment is unavoidably unsafe.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@libs/ReportUtils');
+    // Spreading the actual (untyped `any`) module into the mock makes the return intentionally unsafe.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
