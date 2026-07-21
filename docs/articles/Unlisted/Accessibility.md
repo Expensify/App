@@ -7,8 +7,6 @@ internalScope: Audience is anyone evaluating or using Expensify with assistive t
 
 Expensify's mission is to make expense management effortless for everyone — and *everyone* includes people who rely on screen readers, keyboard navigation, magnification, and other assistive technologies. We're committed to building a product that anyone can use to track expenses, chat, and manage money, regardless of ability.
 
----
-
 # Standards we follow
 
 We design and evaluate Expensify against the following accessibility standards:
@@ -16,8 +14,6 @@ We design and evaluate Expensify against the following accessibility standards:
 - **Web Content Accessibility Guidelines (WCAG) 2.2, Levels A and AA** — our target standard, including the criteria carried over from WCAG 2.0 and 2.1
 - **Revised Section 508** of the U.S. Rehabilitation Act
 - **EN 301 549** — the European accessibility standard for ICT products and services
-
----
 
 # Our Accessibility Conformance Report (VPAT/ACR)
 
@@ -34,8 +30,6 @@ Our report was produced from an evaluation of Expensify's core flows — includi
 
 To download the latest report, go to the Expensify Trust Center resources page at [https://trust.expensify.com/resources](https://trust.expensify.com/resources).
 
----
-
 # How to report an accessibility issue
 
 Expensify's app is open source, and accessibility issues are tracked publicly on GitHub.
@@ -50,8 +44,6 @@ If you hit an accessibility barrier in Expensify:
    - The WCAG checkpoint that failed, if you know it
    - The platform (web, iOS, Android) and the assistive technology you were using
 
----
-
 # Holding ourselves accountable
 
 We hold ourselves to clear remediation targets for confirmed accessibility issues:
@@ -59,15 +51,11 @@ We hold ourselves to clear remediation targets for confirmed accessibility issue
 - **Critical issues** — fixed within **60 days**
 - **High-severity issues** — fixed within **120 days**
 
----
-
 # Being transparent
 
 Every accessibility issue is labeled `Accessibility` and tracked in the open, so you can follow our backlog and progress at any time:
 
 [View the public accessibility backlog](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AAccessibility)
-
----
 
 # FAQ
 
