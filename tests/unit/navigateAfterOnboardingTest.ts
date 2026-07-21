@@ -35,7 +35,7 @@ function mockBrowserReloadNavigation(useLegacyFallback = false) {
             if (type !== 'navigation') {
                 return [];
             }
-            return useLegacyFallback ? [] : [{type: 'reload'} as unknown as PerformanceNavigationTiming];
+            return useLegacyFallback ? [] : [{type: 'reload'}];
         }),
     });
 

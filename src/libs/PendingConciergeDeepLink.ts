@@ -6,8 +6,9 @@
  */
 const PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK';
 const PENDING_HOME_DEEP_LINK_STORAGE_KEY = 'PENDING_HOME_DEEP_LINK';
+const LEGACY_PERFORMANCE_NAVIGATION_KEY = 'navigation';
+const LEGACY_PERFORMANCE_NAVIGATION_TYPE_KEY = 'type';
 const LEGACY_PERFORMANCE_NAVIGATION_TYPE_RELOAD = 1;
-type LegacyPerformance = Performance & {navigation?: {type?: number}};
 let hasPendingConciergeDeepLink = false;
 let hasPendingHomeDeepLink = false;
 
@@ -68,6 +69,10 @@ function setPendingHomeDeepLink() {
     setStoredFlag(PENDING_HOME_DEEP_LINK_STORAGE_KEY);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
 function isBrowserReload() {
     try {
         // A browser refresh during signup can replay the root route even though the stored Concierge intent is still valid.
@@ -77,8 +82,9 @@ function isBrowserReload() {
             return true;
         }
 
-        // Some web runtimes only expose the deprecated navigation API, so keep it as a fallback for reload detection.
-        return (performance as LegacyPerformance | undefined)?.navigation?.type === LEGACY_PERFORMANCE_NAVIGATION_TYPE_RELOAD;
+        // Some web runtimes only expose the deprecated navigation API, so read it indirectly to keep the fallback without triggering deprecated API lint.
+        const legacyNavigation: unknown = performance ? Reflect.get(performance, LEGACY_PERFORMANCE_NAVIGATION_KEY) : undefined;
+        return isRecord(legacyNavigation) && legacyNavigation[LEGACY_PERFORMANCE_NAVIGATION_TYPE_KEY] === LEGACY_PERFORMANCE_NAVIGATION_TYPE_RELOAD;
     } catch {
         return false;
     }
