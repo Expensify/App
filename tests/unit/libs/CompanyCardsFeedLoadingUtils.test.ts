@@ -1,4 +1,5 @@
 import {shouldSynthesizeWorkspaceFeedsLoadError, shouldWaitForDomainFeedData} from '@libs/CompanyCardsFeedLoadingUtils';
+
 import CONST from '@src/CONST';
 
 describe('domain feed loading helpers', () => {
