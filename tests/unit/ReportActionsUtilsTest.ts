@@ -2376,7 +2376,7 @@ describe('ReportActionsUtils', () => {
                 created: '2025-09-29',
                 message: [{html: 'secret', type: 'COMMENT', text: 'secret', whisperedTo: [OTHER_USER_ACCOUNT_ID]}],
                 originalMessage: {html: 'secret', whisperedTo: [OTHER_USER_ACCOUNT_ID]},
-            } as unknown as ReportAction;
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
             expect(actual).toBe(false);
@@ -2390,7 +2390,7 @@ describe('ReportActionsUtils', () => {
                 created: '2025-09-29',
                 message: [{html: 'secret', type: 'COMMENT', text: 'secret', whisperedTo: [CURRENT_USER_ACCOUNT_ID]}],
                 originalMessage: {html: 'secret', whisperedTo: [CURRENT_USER_ACCOUNT_ID]},
-            } as unknown as ReportAction;
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
             expect(actual).toBe(true);
