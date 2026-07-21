@@ -105,10 +105,10 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const resetCurrentSearchKeyIfInvalid = useEffectEvent(() => {
         // Every time the query changes, we invalidate the currentSearchKey if the new query doesn't have the default filters
-        // from the currently selected search key query. For example, the "Card statements" suggested search default filters
-        // are Feed and Posted. When the query changes (by removing Posted), the search key becomes invalid, it's not a
-        // "Card statements" search anymore. This can happen when accessing the page through a link/deeplink.
-        if ([...currentDefaultSearchQueryFilterKeys].every((value) => currentQueryFilterKeys.has(value))) {
+        // from the currently selected search key query or the type is different. For example, the "Card statements" suggested
+        // search default filters are Feed and Posted. When the query changes (by removing Posted), the search key becomes invalid,
+        // it's not a "Card statements" search anymore. This can happen when accessing the page through a link/deeplink.
+        if ([...currentDefaultSearchQueryFilterKeys].every((value) => currentQueryFilterKeys.has(value)) && currentSearchQueryJSON?.type === currentDefaultSearchQueryJSON?.type) {
             return;
         }
         setInitialCurrentSearchKey();
