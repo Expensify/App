@@ -97,7 +97,8 @@ export default createOnyxDerivedValueConfig({
         const lastActions: SortedReportActionsDerivedValue['lastActions'] = {};
         const transactionThreadIDs: SortedReportActionsDerivedValue['transactionThreadIDs'] = {};
 
-        for (const [key, actions] of Object.entries(allReportActions)) {
+        for (const key of Object.keys(allReportActions)) {
+            const actions = allReportActions[key];
             if (!actions) {
                 continue;
             }
