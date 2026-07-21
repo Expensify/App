@@ -11,6 +11,7 @@ import type {
     ReplaceTwoFactorDeviceParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
+    ResendValidateCodeParams,
     ResetSMSDeliveryFailureStatusParams,
     SignInUserWithLinkParams,
     SignUpUserParams,
@@ -35,6 +36,7 @@ import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
 import reauthenticate from '@libs/Reauthentication';
 import {getReportIDFromLink} from '@libs/ReportUtils';
+import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 import * as SessionUtils from '@libs/SessionUtils';
 import {checkIfShouldUseNewPartnerName, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
@@ -521,7 +523,7 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
 /**
  * Request a new validate / magic code for user to sign in via passwordless flow
  */
-function resendValidateCode(login = credentials.login) {
+function resendValidateCode(reasonParams: ResendValidateCodeParams, login = credentials.login) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -543,7 +545,7 @@ function resendValidateCode(login = credentials.login) {
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: RequestNewValidateCodeParams = {email: login, deviceInfo};
+        const params: RequestNewValidateCodeParams = {email: login, deviceInfo, ...reasonParams};
         API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
     });
 }
@@ -1092,6 +1094,7 @@ function cleanupSession() {
     });
     clearCachedAttachments();
     clearSoundAssetsCache();
+    runSessionCleanupCallbacks();
 }
 
 function clearAccountMessages() {
