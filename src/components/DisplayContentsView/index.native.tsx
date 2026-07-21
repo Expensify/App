@@ -3,31 +3,32 @@
  * swipe-back or Activity visibility toggles. Web uses a plain View.
  */
 import {NativeComponentRegistry} from 'react-native';
-// @ts-expect-error No declaration file for this internal React Native module
 import ReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
 
 import type DisplayContentsViewProps from './types';
 
-type NativeComponentRegistryParams = Parameters<typeof NativeComponentRegistry.get<DisplayContentsViewProps>>;
-type ViewConfigProvider = NativeComponentRegistryParams[1];
-
-const VIEW_CONFIG = {
-    uiViewClassName: 'RCTView',
-    validAttributes: {
-        style: {
-            ...(ReactNativeStyleAttributes as Record<string, unknown>),
-            display: {
-                process: () => 'contents',
-            },
-        },
-    },
-} as ReturnType<ViewConfigProvider>;
+type ViewConfigProvider = Parameters<typeof NativeComponentRegistry.get<DisplayContentsViewProps>>[1];
+type StyleAttribute = true | {readonly diff?: (a: unknown, b: unknown) => boolean; readonly process?: (value: unknown) => unknown};
 
 /**
  * Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) — validated with RN 0.83.1.
  * Re-verify after upgrades.
  */
-const NativeDisplayContentsView = NativeComponentRegistry.get<DisplayContentsViewProps>('DisplayContentsView', () => VIEW_CONFIG);
+const NativeDisplayContentsView = NativeComponentRegistry.get<DisplayContentsViewProps>('DisplayContentsView', () => {
+    const styleAttributes: Record<string, StyleAttribute> = {
+        ...ReactNativeStyleAttributes,
+        display: {
+            process: () => 'contents',
+        },
+    };
+
+    return {
+        uiViewClassName: 'RCTView',
+        validAttributes: {
+            style: styleAttributes,
+        },
+    } satisfies ReturnType<ViewConfigProvider>;
+});
 
 function DisplayContentsView({children, style}: DisplayContentsViewProps) {
     return <NativeDisplayContentsView style={style ?? {}}>{children}</NativeDisplayContentsView>;
