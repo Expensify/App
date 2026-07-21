@@ -78,9 +78,6 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const isSnapshotCompatibleKey = !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
     const isOnSearch = useIsOnSearch();
 
-    // Test Tools toggle. Off (default): `subscribed` forced `true` everywhere. On: explicit caller option >
-    // enclosing OnyxFocusBoundary default > `true`. Read via raw useOnyx to avoid recursion.
-    const [shouldSubscribedFollowFocus] = originalUseOnyx(ONYXKEYS.SHOULD_ONYX_SUBSCRIBED_FOLLOW_FOCUS);
     const subscribedContextDefault = use(OnyxFocusDefaultContext);
 
     let currentSearchHash: number | undefined;
@@ -101,7 +98,7 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     // Create selector function that handles both regular and snapshot data
     const selector = !selectorProp || !shouldUseSnapshot ? selectorProp : (data: OnyxValue<OnyxKey> | undefined) => selectorProp(getKeyData(data as SearchResults, key));
 
-    const subscribed = shouldSubscribedFollowFocus ? (useOnyxOptions?.subscribed ?? subscribedContextDefault ?? true) : true;
+    const subscribed = useOnyxOptions?.subscribed ?? subscribedContextDefault ?? true;
     const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector, subscribed};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey) : key;
 
