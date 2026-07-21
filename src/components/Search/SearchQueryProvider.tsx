@@ -64,17 +64,22 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const getInitialCurrentSearchKey = (queryJSON = currentSearchQueryJSON) => {
         const suggestedSearchKey = Object.values(suggestedSearches).find((search) => {
-            const savedSearchFilterQuery = searchFilters?.[search.key];
-            const savedSearchFilter = savedSearchFilterQuery ? buildSearchQueryJSON(savedSearchFilterQuery) : undefined;
-            return (savedSearchFilter ?? search).similarSearchHash === queryJSON?.similarSearchHash;
+            const lastSearchFilterQuery = searchFilters?.[search.key];
+            const lastSearchFilter = lastSearchFilterQuery ? buildSearchQueryJSON(lastSearchFilterQuery) : undefined;
+            return search.similarSearchHash === queryJSON?.similarSearchHash || lastSearchFilter?.similarSearchHash === queryJSON?.similarSearchHash;
         })?.key;
         if (suggestedSearchKey) {
             return suggestedSearchKey;
         }
 
         const savedSearchID = Object.keys(savedSearches ?? {}).find((id) => {
-            const query = searchFilters?.[savedSearchIDToSearchKey(id)] ?? savedSearches?.[id].query;
-            return query ? buildSearchQueryJSON(query)?.similarSearchHash === queryJSON?.similarSearchHash : false;
+            const savedSearchQuery = savedSearches?.[id].query;
+            const lastSavedSearchQuery = searchFilters?.[savedSearchIDToSearchKey(id)];
+
+            return (
+                (savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.similarSearchHash === queryJSON?.similarSearchHash : false) ||
+                (lastSavedSearchQuery ? buildSearchQueryJSON(lastSavedSearchQuery)?.similarSearchHash === queryJSON?.similarSearchHash : false)
+            );
         });
 
         if (savedSearchID) {
