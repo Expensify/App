@@ -1005,7 +1005,7 @@ function search({
                 // Observability for the failure mode this read side converts from an infinite skeleton into an empty
                 // view: a jsonCode 200 that wrote no snapshot data. It used to be invisible (the skeleton just hung),
                 // so log it to keep the no-data resolve case queryable now that it silently resolves.
-                if (result?.jsonCode === 200 && response?.data === undefined) {
+                if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
                     Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
                 }
 
