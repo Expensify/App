@@ -8,29 +8,36 @@ import {useEffect, useRef, useState} from 'react';
  * When the component first mounts already active, shows immediately without waiting.
  */
 function useDeferVisibleUntilFocusTransitionEnd(isActive: boolean): boolean {
-    const [isVisible, setIsVisible] = useState(isActive);
-    const skipDeferOnFirstActiveRef = useRef(isActive);
+    const [isDeferredVisible, setIsDeferredVisible] = useState(isActive);
+    const isFirstRenderRef = useRef(true);
+
+    // Hide immediately when becoming inactive (adjust state during render).
+    const [prevIsActive, setPrevIsActive] = useState(isActive);
+    if (isActive !== prevIsActive) {
+        setPrevIsActive(isActive);
+        if (!isActive) {
+            setIsDeferredVisible(false);
+        }
+    }
 
     useEffect(() => {
         if (!isActive) {
-            setIsVisible(false);
             return;
         }
 
-        if (skipDeferOnFirstActiveRef.current) {
-            skipDeferOnFirstActiveRef.current = false;
-            setIsVisible(true);
+        if (isFirstRenderRef.current) {
+            isFirstRenderRef.current = false;
             return;
         }
 
         const handle = TransitionTracker.runAfterTransitions({
-            callback: () => setIsVisible(true),
+            callback: () => setIsDeferredVisible(true),
             waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
     }, [isActive]);
 
-    return isVisible;
+    return isActive ? isDeferredVisible : false;
 }
 
 export default useDeferVisibleUntilFocusTransitionEnd;
