@@ -40,6 +40,7 @@ import {
     isScanning,
     isTimeRequest,
 } from '@libs/TransactionUtils';
+import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDate';
 
 import variables from '@styles/variables';
 
@@ -248,7 +249,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, {isPostedColumnWide})]}
                     >
                         <DateCell
-                            date={transactionItem.posted ?? ''}
+                            date={getFormattedPostedDate(transactionItem.posted)}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                         />
