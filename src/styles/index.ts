@@ -4958,9 +4958,9 @@ const staticStyles = (theme: ThemeColors) =>
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
 
         receiptEmptyStateCompact: {
-            ...spacing.mh5,
+            ...spacing.mh4,
             overflow: 'hidden',
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusNormal,
             height: 52,
             maxWidth: '100%',
         },

@@ -132,7 +132,7 @@ function ReceiptSection({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
             }}
             isCompact={!compact.isCompactMode}
-            style={[compact.isCompactMode ? undefined : styles.mv3, compact.isCompactMode && compact.compactReceiptStyle ? compact.compactReceiptStyle : undefined]}
+            style={[compact.isCompactMode ? undefined : styles.mv2, compact.isCompactMode && compact.compactReceiptStyle ? compact.compactReceiptStyle : undefined]}
         />
     );
 }
