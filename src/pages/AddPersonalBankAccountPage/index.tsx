@@ -198,10 +198,6 @@ function AddPersonalBankAccountPage() {
         moveTo(successIndex, false);
     }, [shouldShowSuccess, currentPageName, moveTo, successIndex]);
 
-    // Clear the personal bank account state whenever the flow unmounts, regardless of how it was exited
-    // (back button, RHP dismiss, continue-setup, etc.) so a re-entry always starts fresh.
-    useEffect(() => clearPersonalBankAccount, []);
-
     useEffect(() => {
         if (!error) {
             return;
