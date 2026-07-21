@@ -5,7 +5,7 @@ keywords: accessibility, a11y, WCAG, WCAG 2.2, VPAT, ACR, accessibility conforma
 internalScope: Audience is anyone evaluating or using Expensify with assistive technology, plus procurement and compliance teams. Covers Expensify's accessibility commitment, conformance standards, how to get the VPAT/ACR, how to report accessibility issues, and remediation targets. Does not cover how to use specific assistive technologies with Expensify.
 ---
 
-Expensify's mission is to make expense management effortless for everyone — and *everyone* includes people who rely on screen readers, keyboard navigation, magnification, and other assistive technologies. We're committed to building a product that anyone can use to track expenses, chat, and manage money, regardless of ability.
+Expensify's mission is to make expense management effortless for everyone, and *everyone* includes people who rely on screen readers, keyboard navigation, magnification, and other assistive technologies. We're committed to building a product that anyone can use to track expenses, chat, and manage money, regardless of ability.
 
 # Standards we follow
 
@@ -13,7 +13,7 @@ We design and evaluate Expensify against the following accessibility standards:
 
 - **Web Content Accessibility Guidelines (WCAG) 2.2, Levels A and AA**
 - **Revised Section 508** of the U.S. Rehabilitation Act
-- **EN 301 549** — the European accessibility standard for ICT products and services
+- **EN 301 549**, the European accessibility standard for ICT products and services
 
 # Our Accessibility Conformance Report (VPAT/ACR)
 
@@ -48,8 +48,8 @@ If you hit an accessibility barrier in Expensify:
 
 We hold ourselves to clear remediation targets for confirmed accessibility issues:
 
-- **Critical issues** — fixed within **60 days**
-- **High-severity issues** — fixed within **120 days**
+- **Critical issues**: fixed within **60 days**
+- **High-severity issues**: fixed within **120 days**
 
 # Being transparent
 
