@@ -3,13 +3,15 @@ import Avatar from '@components/Avatar';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
 import HeaderReportAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderReportAvatar';
+import HeaderThreeDotsMenu from '@components/HeaderWithBackButtonComposed/primitives/HeaderThreeDotsMenu';
 import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/HeaderTitle';
+import HeaderTooltipIconButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderTooltipIconButton';
 import Icon from '@components/Icon';
 import PinButton from '@components/PinButton';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
@@ -29,8 +31,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-import type {SvgProps} from 'react-native-svg';
 
 import React from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
@@ -111,33 +111,18 @@ function HeaderWithBackButton({
     const ThreeDotMenuButton = (() => {
         if (shouldShowThreeDotsButton) {
             return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
-                <Tooltip text={threeDotsMenuItems.at(0)?.text}>
-                    <PressableWithoutFeedback
-                        onPress={threeDotsMenuItems.at(0)?.onSelected}
-                        style={[styles.touchableButtonImage]}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
-                        sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
-                    >
-                        <Icon
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                            src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
-                            fill={theme.icon}
-                        />
-                    </PressableWithoutFeedback>
-                </Tooltip>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                <HeaderTooltipIconButton threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
             ) : (
-                <ThreeDotsMenu
-                    shouldSelfPosition
+                <HeaderThreeDotsMenu
                     icon={threeDotsMenuIcon}
                     iconFill={threeDotsMenuIconFill}
                     disabled={shouldDisableThreeDotsButton}
-                    menuItems={threeDotsMenuItems}
+                    items={threeDotsMenuItems}
                     onIconPress={onThreeDotsButtonPress}
                     shouldOverlay={shouldOverlayDots}
                     anchorAlignment={threeDotsAnchorAlignment}
                     shouldSetModalVisibility={shouldSetModalVisibility}
-                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                 />
             );
         }
