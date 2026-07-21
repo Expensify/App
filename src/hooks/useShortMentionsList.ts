@@ -2,7 +2,8 @@ import {getEmailDomain, isDomainPublic} from '@libs/LoginUtils';
 import memoize from '@libs/memoize';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Session} from '@src/types/onyx';
+import {emailSelector} from '@src/selectors/Session';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -12,8 +13,6 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
 const emptyLoginsList: string[] = [];
-
-const sessionEmailSelector = (session: OnyxEntry<Session>) => session?.email;
 
 // One shared scan for all hook instances, cached by collection reference and login so it runs once
 // per Onyx write. 'shallow' compares the cache key by reference; the default 'deep' would walk the
@@ -55,7 +54,7 @@ const buildAvailableLoginsList = memoize(
  */
 export default function useShortMentionsList() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [currentUserLogin = ''] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailSelector});
+    const [currentUserLogin = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     // useOnyx compares the selector output by value, so consumers re-render only when the username list changes.
     const [availableLoginsList = emptyLoginsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin)});
