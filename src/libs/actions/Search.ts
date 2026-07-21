@@ -1072,12 +1072,14 @@ function search({
  */
 function getFooterConvertedAmounts({
     queryJSON,
+    searchKey,
     targetCurrency,
     transactionIDList,
     reportIDList,
     sources,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
+    searchKey: SearchKey | undefined;
     targetCurrency: string;
     transactionIDList?: string;
     reportIDList?: string;
@@ -1088,9 +1090,12 @@ function getFooterConvertedAmounts({
         return;
     }
 
+    // searchKey changes what the backend query matches (e.g. unapprovedCash excludes card expenses), so it must be
+    // sent exactly as search() sends it or the converted totals cover a different expense set than the snapshot.
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const jsonQuery = serializeQueryJSONForBackend({
         ...queryJSONWithoutFlatFilters,
+        searchKey,
         filters: queryJSONWithoutFlatFilters.filters ?? null,
     });
 

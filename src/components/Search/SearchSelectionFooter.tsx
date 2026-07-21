@@ -252,6 +252,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 if (selectedReportIDs.length > 0) {
                     getFooterConvertedAmounts({
                         queryJSON: currentSearchQueryJSON,
+                        searchKey: currentSearchKey,
                         targetCurrency: selectedCurrency,
                         reportIDList: selectedReportIDs.join(','),
                         sources: {reports: Object.fromEntries(selectedReportIDs.map((reportID) => [reportID, {[selectedCurrency]: reportSourceByID[reportID]}]))},
@@ -265,6 +266,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             if (selectedGroupKeys.some((key) => !isGroupFresh(key, selectedCurrency))) {
                 getFooterConvertedAmounts({
                     queryJSON: currentSearchQueryJSON,
+                    searchKey: currentSearchKey,
                     targetCurrency: selectedCurrency,
                     sources: {groups: Object.fromEntries(selectedGroupKeys.map((key) => [key, {[selectedCurrency]: groupSourceByKey[key]}]))},
                 });
@@ -275,6 +277,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             if (selectedTransactionIDs.some((transactionID) => !isTransactionFresh(transactionID, selectedCurrency))) {
                 getFooterConvertedAmounts({
                     queryJSON: currentSearchQueryJSON,
+                    searchKey: currentSearchKey,
                     targetCurrency: selectedCurrency,
                     transactionIDList: selectedTransactionIDs.join(','),
                     sources: {transactions: Object.fromEntries(selectedTransactionIDs.map((transactionID) => [transactionID, {[selectedCurrency]: transactionSourceByID[transactionID]}]))},
@@ -288,6 +291,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         if (!isSearchTotalFresh) {
             getFooterConvertedAmounts({
                 queryJSON: currentSearchQueryJSON,
+                searchKey: currentSearchKey,
                 targetCurrency: selectedCurrency,
                 sources: metadataTotal !== undefined ? {searchTotals: {[currentSearchHash]: {[selectedCurrency]: metadataTotal}}} : undefined,
             });
@@ -295,6 +299,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     }, [
         areAllSelectedConverted,
         currentSearchHash,
+        currentSearchKey,
         currentSearchQueryJSON,
         groupSourceByKey,
         hasCustomFooterCurrency,
