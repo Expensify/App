@@ -41,6 +41,9 @@ import {View} from 'react-native';
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
 type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
 
+const BUTTONS_TOP_MARGIN = 20;
+const DISCLAIMER_TOP_MARGIN = 8;
+
 function EditAgentRulePage({
     route: {
         params: {policyID, ruleID},
@@ -55,15 +58,18 @@ function EditAgentRulePage({
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !isInLandscapeMode;
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
+    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
             formRef.current?.submit();
         }
     };
@@ -110,6 +116,10 @@ function EditAgentRulePage({
         return <NotFoundPage />;
     }
 
+    const inputWrapperStyles: StyleProp<ViewStyle> = shouldShrinkPromptInput
+        ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+        : [styles.flex1, shouldUseExpandedRevampFormLayout && [styles.mnh0, styles.agentRulePromptInput]];
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -121,8 +131,9 @@ function EditAgentRulePage({
                 testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight={shouldUseExpandedRevampFormLayout}
             >
-                <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET}>
+                <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET + BUTTONS_TOP_MARGIN + DISCLAIMER_TOP_MARGIN}>
                     <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
                 </CollapsibleHeaderOnKeyboard>
                 <FormProvider
@@ -151,14 +162,14 @@ function EditAgentRulePage({
                         />
                     }
                 >
-                    <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [styles.flex1]}>
+                    <View style={inputWrapperStyles}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
-                            label={translate('workspace.rules.agentRules.describeRuleTitle')}
-                            accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
+                            label={describeRuleLabel}
+                            accessibilityLabel={describeRuleLabel}
                             role={CONST.ROLE.PRESENTATION}
-                            onKeyPress={handleKeyPress}
+                            onKeyPress={submitFormOnModEnter}
                             defaultValue={agentRule.prompt}
                             multiline
                             shouldLabelStayOnSingleLine
