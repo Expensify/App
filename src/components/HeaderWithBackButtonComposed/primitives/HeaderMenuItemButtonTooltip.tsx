@@ -12,7 +12,7 @@ import type {SvgProps} from 'react-native-svg';
 
 import React from 'react';
 
-type HeaderTooltipIconButtonProps = {
+type HeaderMenuItemButtonTooltipProps = {
     threeDotsMenuItem: PopoverMenuItem;
 };
 
@@ -20,7 +20,7 @@ type HeaderTooltipIconButtonProps = {
  * Single tooltip-wrapped icon button. Provisional block extracted from the legacy three-dots "minimized" variant
  * (a single-item menu collapsed to a plain icon button); its only real use is the money-request Category step.
  */
-function HeaderTooltipIconButton({threeDotsMenuItem}: HeaderTooltipIconButtonProps) {
+function HeaderMenuItemButtonTooltip({threeDotsMenuItem}: HeaderMenuItemButtonTooltipProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -43,5 +43,5 @@ function HeaderTooltipIconButton({threeDotsMenuItem}: HeaderTooltipIconButtonPro
     );
 }
 
-export default HeaderTooltipIconButton;
-export type {HeaderTooltipIconButtonProps};
+export default HeaderMenuItemButtonTooltip;
+export type {HeaderMenuItemButtonTooltipProps};

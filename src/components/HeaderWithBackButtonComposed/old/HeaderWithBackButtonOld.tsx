@@ -1,11 +1,12 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
+import HeaderCloseButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderCloseButtonTooltip';
+import HeaderMenuItemButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderMenuItemButtonTooltip';
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
 import HeaderReportAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderReportAvatar';
 import HeaderThreeDotsMenu from '@components/HeaderWithBackButtonComposed/primitives/HeaderThreeDotsMenu';
 import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/HeaderTitle';
-import HeaderTooltipIconButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderTooltipIconButton';
 import Icon from '@components/Icon';
 import PinButton from '@components/PinButton';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -32,7 +33,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 
 function HeaderWithBackButton({
@@ -108,12 +108,15 @@ function HeaderWithBackButton({
         isRotating,
     };
 
-    const ThreeDotMenuButton = (() => {
-        if (shouldShowThreeDotsButton) {
-            return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                <HeaderTooltipIconButton threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
-            ) : (
+    const threeDotMenuTooltipsSection = (
+        <>
+            {shouldShowThreeDotsButton &&
+                threeDotsMenuItems.length === 1 &&
+                shouldMinimizeMenuButton && (
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                    <HeaderMenuItemButtonTooltip threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
+                )}
+            {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
                 <HeaderThreeDotsMenu
                     icon={threeDotsMenuIcon}
                     iconFill={threeDotsMenuIconFill}
@@ -124,10 +127,15 @@ function HeaderWithBackButton({
                     anchorAlignment={threeDotsAnchorAlignment}
                     shouldSetModalVisibility={shouldSetModalVisibility}
                 />
-            );
-        }
-        return null;
-    })();
+            )}
+            {shouldShowCloseButton && (
+                <HeaderCloseButtonTooltip
+                    iconFill={iconFill}
+                    onPress={onCloseButtonPress}
+                />
+            )}
+        </>
+    );
 
     return (
         <View
@@ -277,23 +285,7 @@ function HeaderWithBackButton({
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
-                    {ThreeDotMenuButton}
-                    {shouldShowCloseButton && (
-                        <Tooltip text={translate('common.close')}>
-                            <PressableWithoutFeedback
-                                onPress={onCloseButtonPress}
-                                style={[styles.touchableButtonImage]}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('common.close')}
-                                sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
-                            >
-                                <Icon
-                                    src={icons.Close}
-                                    fill={iconFill ?? theme.icon}
-                                />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
-                    )}
+                    {threeDotMenuTooltipsSection}
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
