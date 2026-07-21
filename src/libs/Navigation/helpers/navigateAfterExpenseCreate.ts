@@ -1,5 +1,4 @@
 import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
-import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
@@ -139,9 +138,6 @@ function navigateAfterExpenseCreate({
     }
 
     const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-    // Signal that an expense was added so we can surface the "Expense added" growl.
-    mergeExpenseAddedGrowlTransactionIDs({[transactionID]: type});
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
