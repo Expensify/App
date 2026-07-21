@@ -1,8 +1,8 @@
 ---
 title: Set Up and Manage the Expensify Card in the UK and EU
 description: Learn how to set up and use the Expensify Card in the UK and EU, including eligibility, supported countries, and step-by-step setup instructions.
-keywords: [New Expensify, Expensify Card UK, EU, Global Reimbursements, GBP, EUR, card setup, issue cards, Smart Limit, virtual cards, physical cards, supported countries, Visa Secure]
-internalScope: Audience is Workspace Admins in the UK and EU. Covers eligibility, supported countries, enabling the Expensify Card, linking a settlement account, issuing virtual and physical cards, spending limits, PIN management, foreign exchange details, and Visa Secure. Does not cover US Expensify Card setup or non-GBP/EUR settlement accounts.
+keywords: [New Expensify, Expensify Card UK, EU, Global Reimbursement, GBP, EUR, card setup, issue cards, Smart Limit, virtual cards, physical cards, supported countries, Visa Secure]
+internalScope: Audience is Workspace Admins in the UK and EU. Covers eligibility, supported countries, enabling the Expensify Card, linking a settlement account, issuing virtual and physical cards, spending limits, foreign exchange details, and Visa Secure. Does not cover PIN management or cardholder instructions beyond initial activation.
 ---
 
 # Set Up and Manage the Expensify Card in the UK and EU
@@ -11,15 +11,14 @@ The Expensify Card is available for companies in the United Kingdom and select E
 
 Workspace Admins and Card Admins can issue virtual and physical Expensify Cards to members and manage spending in GBP or EUR.
 
-## Who can set up the Expensify Card in the UK and EU?
+## Who can set up the Expensify Card in the UK and EU
 
-Workspace Admins can set up the Expensify Card for companies in the UK and EU, as long as they meet the following requirements: 
+Workspace Admins can set up the Expensify Card for companies registered in the UK and supported European countries if they:
 
 - Have a GBP or EUR business bank account connected in Expensify
-- Are located in the UK or supported EU country
 - Have [enabled Global Reimbursement](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement)
 
-If your company hasn't yet connected a GBP or EUR business bank account, follow one of these guides:
+If your company hasn't connected a GBP or EUR business bank account, follow one of these guides:
 
 - [Connect a GBP bank account](/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-Kingdom)
 - [Connect a EUR bank account](/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Europe)
@@ -51,37 +50,29 @@ However, only companies registered in the following countries can enable the Exp
 
 ## How to enable the Expensify Card on your workspace
 
-Once you meet the requirements to set up the Expensify Card in the UK and EU, you can enable it on your GBP or EUR workspace.
-
-**Enable the Expensify Card on your workspace**
-
-Once you have completed the prerequisites, you can enable the Expensify Card on your GBP or EUR workspace.
+Once you meet the requirements, you can enable the Expensify Card on your GBP or EUR workspace.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > More features**.
 2. In the **Spend** section, enable **Expensify Card**.
-3. Provide the last three months of business bank statements. These statements help determine your eligible spending limit.
-4. Concierge will review your request and reach out to complete an onboarding form.
-5. Once enabled, **Expensify Card** will appear in the workspace navigation menu.
+3. In the workspace navigation menu, select **Expensify Card**.
+4. Click **Issue new card**.
+5. Select the GBP or EUR business bank account that will be used to settle all Expensify Card transactions.
+6. Review the **One more step** instructions and click **Go to Concierge**.
+7. In your conversation with Concierge, provide the most recent three months of bank statements for the bank account you selected in Step 5. These statements help determine your workspace's eligible spending limit.
 
-**Link a bank account to settle the Expensify Card**
+Concierge will review your request and contact you if any additional information is needed. Approval typically takes one to two business days. Once your workspace is approved, you can begin issuing Expensify Cards.
 
-Link a GBP or EUR business bank account that will be used to pay the card balance either daily or monthly.
+---
 
-> **Important:** This must be the same bank account shown in the statements provided during onboarding.
+## How to issue an Expensify Card to a member
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+After your workspace is approved and a spending limit has been assigned to your workspace, you can begin issuing cards to members.
+
+1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name] > Expensify Card**.
 2. Click **Issue new card**.
-3. Select the GBP or EUR business bank account that will be used to settle all Expensify Card transactions.
-
-**Issue Expensify Cards to members**
-
-After onboarding is complete and a spending limit has been assigned to your account, you can begin issuing cards to members.
-
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
-2. Click **Issue new card**.
-3. Select the member.
+3. Select the member who will be assigned the card.
 4. Choose **Virtual** or **Physical**.
-5. Choose a limit type:
+5. Choose a spending limit type:
    - **Smart limit** – Spend up to a threshold before approval is required.
    - **Monthly limit** – Limit renews each month.
    - **Fixed limit** – Spend until the limit is reached.
@@ -93,41 +84,31 @@ After onboarding is complete and a spending limit has been assigned to your acco
 8. Name the card for easier tracking.
 9. Click **Issue card** to confirm.
 
-**Activate the card (physical cards only)**
+---
 
-Once the member receives their physical card:
+## How to activate a physical Expensify Card
 
-1. Go to **Settings > Account > Wallet**.
-2. Follow the activation steps.
-3. After activation, a 4-digit PIN will be displayed.
+Members activate their own physical Expensify Cards after receiving them.
 
-You can manage your PIN from your card settings. See the FAQ below for details.
+To activate a physical Expensify Card: 
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Wallet**.
+2. Select the physical Expensify Card.
+3. Follow the prompts to activate the card.
+
+After activation, the card is ready to use.
+
+For details on how to set, view, change, or unblock an Expensify Card's PIN, see [Manage Your Expensify Card PIN (GBP/EUR Cards Only)](/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
+
+---
 
 # FAQ
 
-## What do I do if I forget my PIN?
-
-1. Navigate to **Account > Wallet**.
-2. Select your card.
-3. Click **Reveal PIN**.
-4. Follow the prompts to confirm your identity.
-
-Once confirmed, your PIN will be displayed.
-
-## How do I change my PIN?
-
-1. Navigate to **Account > Wallet**.
-2. Select your card.
-3. Click **Change PIN**.
-4. Follow the prompts to confirm your identity.
-
-Once confirmed, you can update your PIN.
-
 ## What exchange rate is used for foreign currency purchases?
 
-Expensify uses the [Visa FX calculator](https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html) to determine exchange rates for purchases made in currencies other than GBP or EUR.
+When the purchase currency differs from the Expensify Card’s currency, Expensify uses the [Visa FX calculator](https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html) to determine the exchange rate. This includes EUR purchases made with a GBP card and GBP purchases made with a EUR card.
 
-> **Note:** Set the bank fee to **0%** when using the calculator. The Expensify Card does not charge foreign exchange fees.
+**Note:** Set the bank fee to **0%** when using the calculator. The Expensify Card does not charge foreign exchange fees.
 
 ## Does the Expensify Card support Visa Secure?
 

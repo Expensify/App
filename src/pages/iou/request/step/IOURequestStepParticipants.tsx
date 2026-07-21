@@ -3,10 +3,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isSplitChildTransaction, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
@@ -52,8 +51,6 @@ function IOURequestStepParticipants({
     const isPerDiem = isPerDiemRequest(initialTransaction);
     const isTime = isTimeRequestUtil(initialTransaction);
     const isTransactionFromCreditCardImport = isFromCreditCardImport(initialTransaction);
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     let headerTitle = translate('iou.chooseRecipient');
     if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -128,11 +125,7 @@ function IOURequestStepParticipants({
 
     // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
     // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
-    // Otherwise, in the new flow the amount step is skipped, so we need to include the recents for all the cases.
-    const isWorkspacesOnly =
-        isWorkspacesOnlyFromRoute ||
-        (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) ||
-        (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
+    const isWorkspacesOnly = isWorkspacesOnlyFromRoute || (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction));
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly
