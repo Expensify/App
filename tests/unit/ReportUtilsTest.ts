@@ -93,6 +93,7 @@ import {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getEffectiveReportErrors,
+    getUserDetailTooltipText,
     getHarvestOriginalReportID,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
@@ -1313,6 +1314,54 @@ describe('ReportUtils', () => {
             expect(participants.at(4)?.login).toBe('ragnar@vikings.net');
             expect(participants.at(4)?.accountID).toBe(1);
             expect(participants.at(4)?.pronouns).toBeUndefined();
+        });
+
+        test('should return hidden translation for participants with no displayName or login', async () => {
+            const hiddenAccountID = 8888;
+            const personalDetailsWithHidden: PersonalDetailsList = {
+                [hiddenAccountID]: {
+                    accountID: hiddenAccountID,
+                    login: '',
+                    displayName: '',
+                    avatar: 'none',
+                    firstName: 'ShouldNotAppear',
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithHidden);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
+            await waitForBatchedUpdates();
+
+            const participants = getDisplayNamesWithTooltips(personalDetailsWithHidden, false, localeCompare, formatPhoneNumber, translateLocal);
+            expect(participants).toHaveLength(1);
+            expect(participants.at(0)?.displayName).toBe(translateLocal('common.hidden'));
+        });
+
+        test('should translate pronouns using the provided translate function', () => {
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare, formatPhoneNumber, translateLocal);
+            const lagertha = participants.find((p) => p.accountID === 3);
+            expect(lagertha?.pronouns).toBe('She/her');
+        });
+    });
+
+    describe('getUserDetailTooltipText', () => {
+        test('should return hidden translation when participant has no displayName or login', async () => {
+            const hiddenAccountID = 7777;
+            const personalDetailsWithHidden: PersonalDetailsList = {
+                [hiddenAccountID]: {
+                    accountID: hiddenAccountID,
+                    login: '',
+                    displayName: '',
+                    avatar: 'none',
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithHidden);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
+            await waitForBatchedUpdates();
+
+            const result = getUserDetailTooltipText(hiddenAccountID, formatPhoneNumber, translateLocal);
+            expect(result).toBe(translateLocal('common.hidden'));
         });
     });
 
