@@ -17,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
@@ -68,12 +69,13 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         }),
         [illustrations.Abacus, illustrations.Binoculars, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
     );
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PURPOSE);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
@@ -149,6 +151,16 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         isSelfTourViewed,
                         conciergeChat,
                         adminsChatReport,
+                    }).then(() => {
+                        navigateAfterOnboardingWithMicrotaskQueue(
+                            shouldUseNarrowLayout,
+                            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                            conciergeReportID,
+                            reportNameValuePairs,
+                            onboardingPolicyID,
+                            onboardingAdminsChatReportID,
+                            false,
+                        );
                     });
 
                     return;

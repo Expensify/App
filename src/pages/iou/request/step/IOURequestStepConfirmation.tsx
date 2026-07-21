@@ -22,7 +22,6 @@ import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -221,8 +220,6 @@ function IOURequestStepConfirmation({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
@@ -282,9 +279,30 @@ function IOURequestStepConfirmation({
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
+                    : getReportOption(
+                          participant,
+                          privateIsArchived,
+                          participantPolicy,
+                          personalDetails,
+                          conciergeReportID,
+                          reportAttributesDerived,
+                          participantReportDraft,
+                          currentUserPersonalDetails.accountID,
+                      );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, translate],
+        [
+            transaction?.participants,
+            iouType,
+            personalDetails,
+            reportAttributesDerived,
+            privateIsArchivedMap,
+            participantsPolicies,
+            policy,
+            conciergeReportID,
+            reportDrafts,
+            translate,
+            currentUserPersonalDetails.accountID,
+        ],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
@@ -306,8 +324,8 @@ function IOURequestStepConfirmation({
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
-        return !hasTransactionParticipants && !hasDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isNewManualExpenseFlowEnabled, isManualRequest]);
+        return !hasTransactionParticipants && !hasDefaultParticipants && isManualRequest;
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isManualRequest]);
     const activeTransactionID = transaction?.transactionID;
     const [manuallyOpenedParticipantPickerForTransactionID, setManuallyOpenedParticipantPickerForTransactionID] = useState<string | undefined>();
     const [dismissedAutoOpenParticipantPickerForTransactionID, setDismissedAutoOpenParticipantPickerForTransactionID] = useState<string | undefined>();
@@ -422,7 +440,7 @@ function IOURequestStepConfirmation({
         } else if (firstDefault?.reportID) {
             setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isManualRequest, navigation]);
 
     const isPolicyExpenseChat = useMemo(() => {
         const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
@@ -987,24 +1005,22 @@ function IOURequestStepConfirmation({
                             />
                         )}
                     </SubmitExpenseOrchestrator>
-                    {isNewManualExpenseFlowEnabled && (
-                        <ParticipantPicker
-                            participants={participants}
-                            iouType={participantPickerIOUType}
-                            action={action}
-                            isPerDiemRequest={isPerDiemRequest}
-                            isTimeRequest={isTimeRequest}
-                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
-                            onParticipantsAdded={handleParticipantsAdded}
-                            onFinish={closeParticipantPicker}
-                            isVisible={isParticipantPickerVisible}
-                            onClose={closeParticipantPicker}
-                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
-                            // matching standard RHP behavior, not just close the stacked participant picker.
-                            onBackdropPress={() => Navigation.dismissModal()}
-                        />
-                    )}
+                    <ParticipantPicker
+                        participants={participants}
+                        iouType={participantPickerIOUType}
+                        action={action}
+                        isPerDiemRequest={isPerDiemRequest}
+                        isTimeRequest={isTimeRequest}
+                        isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                        shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
+                        onParticipantsAdded={handleParticipantsAdded}
+                        onFinish={closeParticipantPicker}
+                        isVisible={isParticipantPickerVisible}
+                        onClose={closeParticipantPicker}
+                        // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
+                        // matching standard RHP behavior, not just close the stacked participant picker.
+                        onBackdropPress={() => Navigation.dismissModal()}
+                    />
                 </View>
             </DragAndDropProvider>
         </ScreenWrapper>
