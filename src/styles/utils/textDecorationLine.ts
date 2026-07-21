@@ -4,9 +4,6 @@ export default {
     textDecorationLineNone: {
         textDecorationLine: 'none',
     },
-    underline: {
-        textDecorationLine: 'underline',
-    },
     lineThrough: {
         textDecorationLine: 'line-through',
         textDecorationStyle: 'solid',

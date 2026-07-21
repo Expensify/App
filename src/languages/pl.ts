@@ -36,6 +36,8 @@ import type {
     IntacctMappingTitleParams,
     InvalidPropertyParams,
     InvalidValueParams,
+    LicenseLinkParams,
+    LicenseUnderlineParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
@@ -3060,7 +3062,9 @@ ${amount} dla ${merchant} - ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>Logując się, wyrażasz zgodę na <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi</a> oraz <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Prywatność</a>.</muted-text-xs>`,
-        license: `Usługę przekazu pieniężnego świadczy ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) na podstawie swoich <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencji</a>.`,
+        license: ({licenseLink}: LicenseLinkParams) =>
+            `Usługę przekazu pieniężnego świadczy ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) na podstawie swoich ${licenseLink}.`,
+        licenseLink: ({underline}: LicenseUnderlineParams) => `<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">${underline ? '<u>licencji</u>' : 'licencji'}</a>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Nie otrzymano magicznego kodu?',

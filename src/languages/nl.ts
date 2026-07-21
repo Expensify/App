@@ -36,6 +36,8 @@ import type {
     IntacctMappingTitleParams,
     InvalidPropertyParams,
     InvalidValueParams,
+    LicenseLinkParams,
+    LicenseUnderlineParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
@@ -3073,7 +3075,9 @@ ${amount} voor ${merchant} - ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>Door in te loggen ga je akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Servicevoorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacybeleid</a>.</muted-text-xs>`,
-        license: `Geldtransfers worden verzorgd door ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) volgens diens <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenties</a>.`,
+        license: ({licenseLink}: LicenseLinkParams) =>
+            `Geldtransfers worden verzorgd door ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) volgens diens ${licenseLink}.`,
+        licenseLink: ({underline}: LicenseUnderlineParams) => `<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">${underline ? '<u>licenties</u>' : 'licenties'}</a>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Geen magische code ontvangen?',

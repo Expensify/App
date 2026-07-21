@@ -24,6 +24,8 @@ import type {
     IntacctMappingTitleParams,
     InvalidPropertyParams,
     InvalidValueParams,
+    LicenseLinkParams,
+    LicenseUnderlineParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
@@ -3167,7 +3169,9 @@ const translations = {
     },
     termsOfUse: {
         terms: `<muted-text-xs>By logging in, you agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-xs>`,
-        license: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenses</a>.`,
+        license: ({licenseLink}: LicenseLinkParams) =>
+            `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its ${licenseLink}.`,
+        licenseLink: ({underline}: LicenseUnderlineParams) => `<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">${underline ? '<u>licenses</u>' : 'licenses'}</a>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
