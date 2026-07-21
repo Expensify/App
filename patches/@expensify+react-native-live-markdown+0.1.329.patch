@@ -1,0 +1,108 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/web/utils/cursorUtils.js b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/web/utils/cursorUtils.js
+index e6f6308..f262b2d 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/web/utils/cursorUtils.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/web/utils/cursorUtils.js
+@@ -10,6 +10,12 @@ exports.scrollIntoView = scrollIntoView;
+ exports.setCursorPosition = setCursorPosition;
+ var _blockUtils = require("./blockUtils.js");
+ var _treeUtils = require("./treeUtils.js");
++function getMaxRangeOffset(node) {
++  return node.nodeType === Node.TEXT_NODE ? (node.textContent ?? '').length : node.childNodes.length;
++}
++function getClampedRangeOffset(node, offset) {
++  return Math.max(0, Math.min(offset, getMaxRangeOffset(node)));
++}
+ function setCursorPosition(target, startIndex, endIndex = null, shouldScrollIntoView = false) {
+   // We don't want to move the cursor if the target is not focused
+   if (!target.tree || target !== document.activeElement) {
+@@ -32,13 +38,15 @@ function setCursorPosition(target, startIndex, endIndex = null, shouldScrollInto
+     range.setStartBefore(startTreeNode.element);
+   } else {
+     const startElement = startTreeNode.element;
+-    range.setStart(startElement.childNodes[0] || startElement, start - startTreeNode.start);
++    const startNode = startElement.childNodes[0] || startElement;
++    range.setStart(startNode, getClampedRangeOffset(startNode, start - startTreeNode.start));
+   }
+   if (endTreeNode.type === 'br') {
+     range.setEndBefore(endTreeNode.element);
+   } else {
+     const endElement = endTreeNode.element;
+-    range.setEnd(endElement.childNodes[0] || endElement, (end || start) - endTreeNode.start);
++    const endNode = endElement.childNodes[0] || endElement;
++    range.setEnd(endNode, getClampedRangeOffset(endNode, (end || start) - endTreeNode.start));
+   }
+   if (!end) {
+     range.collapse(true);
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/cursorUtils.js b/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/cursorUtils.js
+index 7bafaf7..e20cb5e 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/cursorUtils.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/cursorUtils.js
+@@ -2,6 +2,12 @@
+ 
+ import { isChildOfMultilineMarkdownElement } from "./blockUtils.js";
+ import { findHTMLElementInTree, getTreeNodeByIndex } from "./treeUtils.js";
++function getMaxRangeOffset(node) {
++  return node.nodeType === Node.TEXT_NODE ? (node.textContent ?? '').length : node.childNodes.length;
++}
++function getClampedRangeOffset(node, offset) {
++  return Math.max(0, Math.min(offset, getMaxRangeOffset(node)));
++}
+ function setCursorPosition(target, startIndex, endIndex = null, shouldScrollIntoView = false) {
+   // We don't want to move the cursor if the target is not focused
+   if (!target.tree || target !== document.activeElement) {
+@@ -24,13 +30,15 @@ function setCursorPosition(target, startIndex, endIndex = null, shouldScrollInto
+     range.setStartBefore(startTreeNode.element);
+   } else {
+     const startElement = startTreeNode.element;
+-    range.setStart(startElement.childNodes[0] || startElement, start - startTreeNode.start);
++    const startNode = startElement.childNodes[0] || startElement;
++    range.setStart(startNode, getClampedRangeOffset(startNode, start - startTreeNode.start));
+   }
+   if (endTreeNode.type === 'br') {
+     range.setEndBefore(endTreeNode.element);
+   } else {
+     const endElement = endTreeNode.element;
+-    range.setEnd(endElement.childNodes[0] || endElement, (end || start) - endTreeNode.start);
++    const endNode = endElement.childNodes[0] || endElement;
++    range.setEnd(endNode, getClampedRangeOffset(endNode, (end || start) - endTreeNode.start));
+   }
+   if (!end) {
+     range.collapse(true);
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/web/utils/cursorUtils.ts b/node_modules/@expensify/react-native-live-markdown/src/web/utils/cursorUtils.ts
+index 82eebc7..f35f474 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/web/utils/cursorUtils.ts
++++ b/node_modules/@expensify/react-native-live-markdown/src/web/utils/cursorUtils.ts
+@@ -3,6 +3,14 @@ import {isChildOfMultilineMarkdownElement} from './blockUtils';
+ import {findHTMLElementInTree, getTreeNodeByIndex} from './treeUtils';
+ import type {TreeNode} from './treeUtils';
+ 
++function getMaxRangeOffset(node: ChildNode): number {
++  return node.nodeType === Node.TEXT_NODE ? (node.textContent ?? '').length : node.childNodes.length;
++}
++
++function getClampedRangeOffset(node: ChildNode, offset: number): number {
++  return Math.max(0, Math.min(offset, getMaxRangeOffset(node)));
++}
++
+ function setCursorPosition(target: MarkdownTextInputElement, startIndex: number, endIndex: number | null = null, shouldScrollIntoView = false) {
+   // We don't want to move the cursor if the target is not focused
+   if (!target.tree || target !== document.activeElement) {
+@@ -29,14 +37,16 @@ function setCursorPosition(target: MarkdownTextInputElement, startIndex: number,
+     range.setStartBefore(startTreeNode.element);
+   } else {
+     const startElement = startTreeNode.element;
+-    range.setStart((startElement.childNodes[0] || startElement) as ChildNode, start - startTreeNode.start);
++    const startNode = (startElement.childNodes[0] || startElement) as ChildNode;
++    range.setStart(startNode, getClampedRangeOffset(startNode, start - startTreeNode.start));
+   }
+ 
+   if (endTreeNode.type === 'br') {
+     range.setEndBefore(endTreeNode.element);
+   } else {
+     const endElement = endTreeNode.element;
+-    range.setEnd((endElement.childNodes[0] || endElement) as ChildNode, (end || start) - endTreeNode.start);
++    const endNode = (endElement.childNodes[0] || endElement) as ChildNode;
++    range.setEnd(endNode, getClampedRangeOffset(endNode, (end || start) - endTreeNode.start));
+   }
+ 
+   if (!end) {
