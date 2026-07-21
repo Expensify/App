@@ -582,8 +582,8 @@ describe('ProductMarketingWindowManager', () => {
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(2);
-        expect(buttons.at(0)).toBe(screen.getByTestId('ProductMarketingWindowDismiss'));
-        expect(buttons.at(1)).toBe(screen.getByTestId('ProductMarketingWindowCTA'));
+        expect(buttons.at(0)).toBe(screen.getByTestId('ProductMarketingWindowCTA'));
+        expect(buttons.at(1)).toBe(screen.getByTestId('ProductMarketingWindowDismiss'));
     });
 
     it.each([
