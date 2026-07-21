@@ -46,5 +46,5 @@ function getVictoryBarTooltipData(
     };
 }
 
-export type {VictoryBarTooltipData, VictoryBarTooltipPoint};
+export type {VictoryBarTooltipData};
 export default getVictoryBarTooltipData;
