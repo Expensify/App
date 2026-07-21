@@ -65,7 +65,7 @@ Download it from the Expensify Trust Center resources page at [https://trust.exp
 
 ## How do I report an accessibility issue without a GitHub account?
 
-Message Concierge from the app or email [concierge@expensify.com](mailto:concierge@expensify.com) with the details, and we'll file the issue for you.
+Email [compliance@expensify.com](mailto:compliance@expensify.com) with the details, and we'll file the issue for you.
 
 ## Who do I contact about accessibility compliance documentation?
 
