@@ -8,6 +8,10 @@
  * Hermes) and breaks every API request. Keep React Native's built-in fetch, same as Metro builds
  * (see metro.config.js / babel.config.js).
  */
-export const env = {
+const env: Record<string, string> = {
     EXPO_PUBLIC_USE_RN_FETCH: '1',
 };
+
+// Must be a named export: expo's compiled code imports it as `import {env} from 'expo/virtual/env'`.
+// eslint-disable-next-line import/prefer-default-export
+export {env};

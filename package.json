@@ -255,7 +255,6 @@
     "@react-navigation/devtools": "7.0.52",
     "@rock-js/platform-android": "0.13.4",
     "@rock-js/platform-ios": "0.13.4",
-    "@rock-js/plugin-metro": "0.13.4",
     "@rock-js/plugin-repack": "0.13.4",
     "@rock-js/provider-s3": "0.13.4",
     "@rsbuild/core": "^2.1.4",

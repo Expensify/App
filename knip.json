@@ -9,13 +9,15 @@
                 "scripts/**/*.{js,mjs,ts}",
                 "web/proxy.ts",
                 "config/rsbuild/**/*.{js,mjs,cjs,ts}",
+                "config/repack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "metro.config.js",
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
-                "rock.config.mjs"
+                "rock.config.mjs",
+                "rspack.config.mjs"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
