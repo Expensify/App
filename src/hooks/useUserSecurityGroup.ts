@@ -1,8 +1,11 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
+import getUserSecurityGroup from '@libs/getUserSecurityGroup';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SecurityGroup from '@src/types/onyx/SecurityGroup';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 type UseUserSecurityGroupResult = {
@@ -25,20 +28,8 @@ function useUserSecurityGroup(): UseUserSecurityGroupResult {
     const [legacySecurityGroups, legacySecurityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
 
-    const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;
-    const membership = userDomain ? myDomainSecurityGroups?.[userDomain] : undefined;
-
-    // During the backend rollout the membership entry may still be the legacy `string` (the securityGroupID only).
-    const securityGroupID = typeof membership === 'string' ? membership : membership?.securityGroupID;
-    const ownerAccountID = typeof membership === 'string' ? undefined : membership?.ownerAccountID;
-
-    // Prefer the sharedNVP key (needs the owner account ID); fall back to the legacy collection key until the backend is deployed.
-    const sharedNVPSecurityGroup =
-        securityGroupID && ownerAccountID !== undefined ? securityGroups?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`] : undefined;
-    const legacySecurityGroup = securityGroupID ? legacySecurityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`] : undefined;
-
     return {
-        securityGroup: sharedNVPSecurityGroup ?? legacySecurityGroup,
+        securityGroup: getUserSecurityGroup(session?.email, myDomainSecurityGroups, securityGroups, legacySecurityGroups),
         isLoadingSecurityGroup: isLoadingOnyxValue(myDomainSecurityGroupsResult, securityGroupsResult, legacySecurityGroupsResult, sessionResult),
     };
 }
