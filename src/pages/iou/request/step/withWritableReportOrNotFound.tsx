@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -93,6 +94,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
@@ -104,7 +106,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
         if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas});
+        openReport({reportID: route.params.reportID, introSelected, betas, currentUserAccountID});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

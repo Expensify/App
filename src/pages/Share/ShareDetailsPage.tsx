@@ -163,6 +163,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         newReportObject: report,
                         betas,
                         hasReportActions: false,
+                        currentUserAccountID: personalDetail.accountID,
                     });
                 }
                 if (report.reportID) {
