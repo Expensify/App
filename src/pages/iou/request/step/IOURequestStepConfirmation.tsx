@@ -288,6 +288,7 @@ function IOURequestStepConfirmation({
                           reportAttributesDerived,
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
+                          translate,
                       );
             }) ?? [],
         [
