@@ -2,7 +2,7 @@
 This philosophy guides how we identify, prioritize, and remove technical debt so it's handled consistently.
 
 #### Related Philosophies
-- [Over-engineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
+- [Over-Engineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
 - [Small Incremental Releases Philosophy](/contributingGuides/philosophies/INCREMENTAL-RELEASES.md)
 
 #### Terminology
@@ -19,7 +19,7 @@ Do not leave `TODO` comments in the code as a way to track debt. Instead, open a
 ✅ GOOD: A GH issue describing the work that needs to be done, linked from a short comment if needed
 
 ### Technical debt introduced to unblock a deploy or fire MUST be fixed promptly
-If a shortcut is taken under time pressure (e.g. a deploy blocker fix), the follow-up GH issue MUST be filed immediately and assigned an owner.
+If a shortcut is taken under time pressure (e.g. a deploy blocker fix), the follow-up GH issue MUST be filed immediately, assigned, and labeled Daily and FireCleanup so it's addresses with urgency.
 
 ### How to prioritize it
 Match the priority label to the risk the technical debt introduces, not just how inconvenient it is to fix:
@@ -30,9 +30,10 @@ Match the priority label to the risk the technical debt introduces, not just how
 - The technical debt is forgotten and becomes permanent.
 - Other engineers/agents copy it elsewhere, treating it as an accepted pattern.
 - The original context is lost over time, making the eventual fix more expensive and riskier than fixing it promptly would have been.
+- The code becomes harder to read and reason about.
 
 ### Fixing technical debt SHOULD be scoped independently from feature work
-Do not bundle a technical debt fix into an unrelated feature PR. Bundling makes the PR harder to review and harder to revert, and it obscures the cost/benefit of the cleanup itself. Work on the fix as its own PR.
+Do not bundle a technical debt fix into an unrelated feature PR. Bundling makes the PR harder to review and harder to revert, and it's easier to miss subtle or unintentional business logic changes. Work on the fix as its own PR.
 
 ### Example
 ❌ BAD: Refactoring a shared component while implementing a new, unrelated feature in the same PR
