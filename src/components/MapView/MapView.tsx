@@ -118,11 +118,7 @@ function MapView({
 
             // Only read the device location when permission is ALREADY granted. We never request it here,
             // so opening the map cannot trigger an OS permission prompt without a prior explicit user action.
-            let ignore = false;
             getForegroundPermissionsAsync().then(({granted}) => {
-                if (ignore) {
-                    return;
-                }
                 if (!granted) {
                     // Pass the permission-denied error so any stale cached location is cleared and the map falls back to initialState.
                     setCurrentPositionToInitialState({
@@ -133,9 +129,6 @@ function MapView({
                 }
 
                 getCurrentPosition((params) => {
-                    if (ignore) {
-                        return;
-                    }
                     const currentCoords = {
                         longitude: params.coords.longitude,
                         latitude: params.coords.latitude,
@@ -143,10 +136,6 @@ function MapView({
                     setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             });
-
-            return () => {
-                ignore = true;
-            };
         }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 

@@ -1,3 +1,5 @@
+import fileURIToPath from '@libs/fileURIToPath';
+
 import RNFS from 'react-native-fs';
 
 /**
@@ -12,31 +14,15 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
         return Promise.resolve(false);
     }
 
-    // Decode URI if it's URL-encoded (handles special characters in filenames)
-    let decodedPath = path;
-    try {
-        decodedPath = decodeURI(path);
-    } catch (e) {
-        // If decoding fails, use the original path
-        decodedPath = path;
-    }
+    const rawPath = path.startsWith('file://') ? path.slice(7) : path;
 
-    // RNFS.stat uses NSFileManager.attributesOfItemAtPath: which expects
-    // a POSIX path, not a file:// URI
-    if (decodedPath.startsWith('file://')) {
-        decodedPath = decodedPath.slice(7);
-    }
+    // Receipts queued before moveReceiptToDurableStorage sanitized its filenames can still carry
+    // a literal "%23", which is indistinguishable from an encoded "#". Try decoded, then raw.
+    const decodedPath = fileURIToPath(path);
 
-    // RNFS.stat() returns file info without loading the file content
-    return RNFS.stat(decodedPath)
-        .then((fileStat) => {
-            // File exists if we get stats and it's actually a file (not directory)
-            return fileStat.isFile();
-        })
-        .catch(() => {
-            // File doesn't exist or can't be accessed
-            return false;
-        });
+    const statIsFile = (candidate: string) => RNFS.stat(candidate).then((fileStat) => fileStat.isFile());
+
+    return statIsFile(decodedPath).catch(() => (decodedPath === rawPath ? false : statIsFile(rawPath).catch(() => false)));
 }
 
 export default checkFileExists;
