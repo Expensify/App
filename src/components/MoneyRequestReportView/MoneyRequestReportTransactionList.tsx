@@ -500,11 +500,13 @@ function MoneyRequestReportTransactionList({
         if (anchorTransactionID && latestActiveTransactionIDs?.includes(anchorTransactionID)) {
             return;
         }
-        // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
-        // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
-        // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
-        // still seed the correct siblings lazily via useNavigateToTransactionThread.
-        if (getActiveTransactionIDs().descriptors) {
+        // Don't take over a snapshot-backed carousel (identified by its snapshot hash, e.g. the Spend page
+        // search, or its sibling descriptors, e.g. the Home "Recently added" flow) that belongs to the
+        // transaction thread sitting underneath this report. Overwriting and then clearing it would drop that
+        // carousel when the user navigates back. Row presses still seed the correct siblings lazily via
+        // useNavigateToTransactionThread.
+        const {snapshotHash: activeSnapshotHash, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        if (activeSnapshotHash != null || activeDescriptors) {
             return;
         }
 

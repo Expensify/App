@@ -14,7 +14,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
     setActiveTransactionIDs: jest.fn(() => Promise.resolve()),
     clearActiveTransactionIDs: jest.fn(() => Promise.resolve()),
-    getActiveTransactionIDs: jest.fn(() => ({ids: null, descriptors: null})),
+    getActiveTransactionIDs: jest.fn(() => ({ids: null, snapshotHash: null, descriptors: null})),
 }));
 
 // Mock the navigation module
@@ -44,7 +44,8 @@ function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
-        if (getActiveTransactionIDs().descriptors) {
+        const {snapshotHash: activeSnapshotHash, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        if (activeSnapshotHash != null || activeDescriptors) {
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
@@ -65,7 +66,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetActiveTransactionIDs.mockReturnValue({ids: null, descriptors: null});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: null, snapshotHash: null, descriptors: null});
         (navigationRef.getRootState as jest.Mock).mockReturnValue({} as ReturnType<typeof navigationRef.getRootState>);
     });
 
@@ -191,6 +192,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
         mockGetActiveTransactionIDs.mockReturnValue({
             ids: ['recentlyAdded1', 'recentlyAdded2'],
+            snapshotHash: null,
             descriptors: {recentlyAdded1: {reportID: 'r1', transaction: {...createRandomTransaction(1), transactionID: 'recentlyAdded1'}}},
         });
 
@@ -200,6 +202,29 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const {unmount} = renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
 
         // Then it should neither overwrite nor clear the existing carousel context
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
+
+        unmount();
+
+        expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
+    });
+
+    it('should NOT take over a snapshot-backed carousel that already has a snapshot hash (e.g. the Spend page)', () => {
+        // Given the focused route is SEARCH_REPORT and a snapshot-backed carousel (e.g. the Spend page search) is active
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({
+            ids: ['spend1', 'spend2'],
+            snapshotHash: 1234,
+            descriptors: null,
+        });
+
+        const transactionIDs = ['trans1', 'trans2', 'trans3'];
+
+        // When the hook is rendered and then unmounted
+        const {unmount} = renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+
+        // Then it should neither overwrite nor clear the existing carousel context, so the underlying
+        // Spend-page carousel (and its prev/next arrows) survives navigating back out of the report.
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
 
         unmount();

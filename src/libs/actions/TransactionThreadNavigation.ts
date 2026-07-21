@@ -78,12 +78,13 @@ function setActiveTransactionIDs(ids: string[], snapshotHash?: number, siblingDe
 }
 
 /**
- * Returns the currently active transaction IDs and sibling descriptors. Used by screens that would otherwise
- * take over the carousel context (e.g. a money request report opened on top of an existing transaction thread)
- * so they can detect a snapshot-backed carousel (one with descriptors) and avoid clobbering it.
+ * Returns the currently active transaction IDs, snapshot hash, and sibling descriptors. Used by screens that
+ * would otherwise take over the carousel context (e.g. a money request report opened on top of an existing
+ * transaction thread) so they can detect a snapshot-backed carousel (one with a snapshot hash and/or
+ * descriptors) and avoid clobbering it.
  */
-function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<string, TransactionThreadNavigationDescriptor> | null} {
-    return {ids: lastSetIDs, descriptors: lastSetDescriptors};
+function getActiveTransactionIDs(): {ids: string[] | null; snapshotHash: number | null; descriptors: Record<string, TransactionThreadNavigationDescriptor> | null} {
+    return {ids: lastSetIDs, snapshotHash: lastSetSnapshotHash, descriptors: lastSetDescriptors};
 }
 
 function clearActiveTransactionIDs() {
