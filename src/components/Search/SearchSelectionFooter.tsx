@@ -233,7 +233,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // the footer keeps showing the default-currency total behind a skeleton until the cache catches up — but only when
     // there's something to convert, so a selection with nothing convertible stays on the default total rather than a
     // skeleton that never resolves. Offline no conversion can complete, so keep the last-known/default total instead
-    // of a skeleton that would stay until connectivity returns; likewise drop the skeleton once a request has errored.
+    // of a skeleton that would stay until connectivity returns; likewise drop the skeleton once this currency's
+    // conversion request has failed.
     const isFooterTotalConverting =
         !isOffline && !hasConversionFailed && hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
 
