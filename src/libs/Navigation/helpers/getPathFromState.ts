@@ -168,7 +168,6 @@ function getPathFromStateWithDynamicRoute(state: State): string {
 
 function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
-
     const screenName = focusedRoute?.name ?? '';
 
     if (isDynamicRouteScreen(screenName as Screen)) {
