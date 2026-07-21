@@ -1103,13 +1103,13 @@ function getFooterConvertedAmounts({
             ...(reportIDList && {reportIDList}),
         },
         {
-            // Stamp the source figures this request converts (and clear any prior error for this currency) so a later
+            // Stamp the source figures this request converts (and clear any prior failure for this currency) so a later
             // edit that moves them is detected as stale and the footer can retry. The command merges its converted
             // figures into the same key, so the stamp and the converted value live side by side.
-            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {...(sources && {sources}), errors: {[targetCurrency]: null}}}],
-            // A failed read leaves no converted value, so record the error; the footer then falls back to the default
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {...(sources && {sources}), failedCurrencies: {[targetCurrency]: null}}}],
+            // A failed read leaves no converted value, so record the failure; the footer then falls back to the default
             // total instead of the stale converted value (or a skeleton that would stay until the next edit/reconnect).
-            failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {errors: {[targetCurrency]: true}}}],
+            failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {failedCurrencies: {[targetCurrency]: true}}}],
         },
     );
 }

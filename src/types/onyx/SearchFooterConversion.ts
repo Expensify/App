@@ -39,7 +39,7 @@ type SearchFooterConversion = {
      * errors and cleared when a fresh request for that currency is issued; lets the footer drop the loading state and
      * fall back to the default total instead of a skeleton that would never resolve.
      */
-    errors?: Record<string, boolean>;
+    failedCurrencies?: Record<string, boolean>;
 
     /**
      * Source figures the footer stamps the above conversions against, mirroring their keys (transaction ID / report ID /

@@ -101,7 +101,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const convertedReports = footerConversion?.reports;
     const convertedGroups = footerConversion?.groups;
     const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
-    const conversionErrors = footerConversion?.errors;
+    const failedConversionCurrencies = footerConversion?.failedCurrencies;
 
     // Source figures each conversion was stamped against. A conversion is "fresh" only while its stamped source
     // still equals the live snapshot value; an inline edit moves the live value and makes the conversion stale.
@@ -194,6 +194,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
+
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
@@ -202,10 +203,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
     const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? selectedTransactionDefaultCurrency;
     const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
+
     // The most recent conversion request for this currency failed, so stop waiting on a converted value that isn't coming.
-    const hasConversionError = hasCustomFooterCurrency && !!selectedCurrency && !!conversionErrors?.[selectedCurrency];
+    const hasConversionFailed = hasCustomFooterCurrency && !!selectedCurrency && !!failedConversionCurrencies?.[selectedCurrency];
 
     const selectedCurrencyConvertedTotal = hasCustomFooterCurrency && selectedCurrency ? convertedSearchTotal?.[selectedCurrency] : undefined;
+
     // The whole-search grand total is fresh only while its stamped source still equals the live snapshot total.
     const isSearchTotalFresh = !!selectedCurrencyConvertedTotal && !!selectedCurrency && conversionSources?.searchTotals?.[currentSearchHash]?.[selectedCurrency] === metadataTotal;
 
@@ -232,7 +235,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // skeleton that never resolves. Offline no conversion can complete, so keep the last-known/default total instead
     // of a skeleton that would stay until connectivity returns; likewise drop the skeleton once a request has errored.
     const isFooterTotalConverting =
-        !isOffline && !hasConversionError && hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
+        !isOffline && !hasConversionFailed && hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -344,7 +347,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         const fallbackCurrency = effectiveDefaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
 
         if (shouldUseClientTotal) {
-            const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionError && !!selectedCurrency;
+            const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionFailed && !!selectedCurrency;
 
             // Reports sum each selected report's converted total; other searches sum per row — whole groups from the
             // groups cache, individual transactions from the transactions cache — falling back to the default per-row
@@ -370,7 +373,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
-        if (hasCustomFooterCurrency && isSearchTotalFresh && !hasConversionError && selectedCurrencyConvertedTotal) {
+        if (hasCustomFooterCurrency && isSearchTotalFresh && !hasConversionFailed && selectedCurrencyConvertedTotal) {
             return {count: selectedCurrencyConvertedTotal.count, total: selectedCurrencyConvertedTotal.total, currency: selectedCurrency};
         }
 
@@ -381,7 +384,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         convertedReports,
         convertedTransactions,
         effectiveDefaultCurrency,
-        hasConversionError,
+        hasConversionFailed,
         hasCustomFooterCurrency,
         isReportsSearch,
         isSearchTotalFresh,
