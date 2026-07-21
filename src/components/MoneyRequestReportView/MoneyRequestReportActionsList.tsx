@@ -636,7 +636,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(reportID, true);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, introSelected, betas]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, introSelected, betas, currentUserAccountID]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
