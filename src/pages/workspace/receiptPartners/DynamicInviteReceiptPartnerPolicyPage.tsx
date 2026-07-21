@@ -15,7 +15,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearErrors, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -40,7 +39,7 @@ type DynamicInviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<Works
 function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddInCar']);
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.path);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');

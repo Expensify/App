@@ -57,6 +57,7 @@ import type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     UpdateRoleParams,
+    ViolationsInactiveVendorParams,
     ViolationsIncreasedDistanceParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
@@ -323,6 +324,7 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Modifier',
         category: 'Catégorie',
         vendor: 'Fournisseur',
+        supplier: 'Fournisseur',
         report: 'Note de frais',
         billable: 'Facturable',
         nonBillable: 'Non refacturable',
@@ -434,6 +436,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Valider',
         downloadAsPDF: 'Télécharger en PDF',
         downloadAsCSV: 'Télécharger au format CSV',
+        submitViaPDF: 'Soumettre via PDF',
         print: 'Imprimer',
         help: 'Aide',
         collapsed: 'Réduit',
@@ -516,8 +519,10 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} sur ${total}`,
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        tryAgain: 'Réessayer',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
@@ -993,8 +998,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portefeuille',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Ajoutez vos informations personnelles',
-                subtitle: 'Ajoutez vos informations pour afficher et commencer à utiliser votre Carte Expensify.',
+                title: 'Ajoutez vos informations pour voir et commencer à utiliser votre Carte Expensify.',
+                subtitle: 'Carte Expensify',
                 cta: 'Ajouter des détails',
             },
             enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
@@ -1080,6 +1085,13 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Personnalisez les contrôles et simplifiez les dépenses',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
+            customizeSpendCategories: 'Personnaliser les catégories de dépenses',
+            customizeSpendCategoriesSubText: 'Organiser et classer les dépenses',
+            createExpense: 'Créer une dépense',
+            createExpenseSubText: 'Numérisez, faites glisser-déposer ou saisissez manuellement une dépense à l’aide du bouton +',
+            linkPersonalCard: 'Lier une carte personnelle',
+            linkPersonalCardSubText: 'Importer les dépenses automatiquement',
+            configureApprovals: 'Configurer le flux d’approbation',
             begin: 'Commencer',
             done: 'Terminé',
             createWorkspaceSubText: 'Espace de travail prêt pour la configuration',
@@ -1092,6 +1104,7 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Parler à Concierge',
             talkToAccountExecutive: 'Parlez à votre chargé de compte',
             forGuidedSetup: 'pour la configuration guidée.',
+            configureApprovalsSubText: 'Définir les approbations de notes de frais',
         },
         yourSpend: {
             title: 'Vos dépenses',
@@ -1164,6 +1177,14 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags ont été ajoutés.` : '1 tag a été ajouté.'),
         importMultiLevelTagsSuccessfulDescription: 'Des tags à plusieurs niveaux ont été ajoutés.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} indemnités journalières ont été ajoutées.` : '1 taux de per diem a été ajouté.'),
+        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+            if (rules === 0) {
+                return "Aucune règle de marchand n'a été ajoutée, car elles existent toutes déjà.";
+            }
+            return rules > 1 ? `${rules} règles de marchand ont été ajoutées.` : '1 règle de marchand a été ajoutée.';
+        },
+        importMerchantRulesRequiredColumns:
+            'Oups ! Vous devez associer au moins une colonne « Le marchand est » ou « Le marchand contient », ainsi qu’au moins un champ à mettre à jour. Veuillez examiner et réessayer.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions ont été importées.` : '1 transaction a été importée.',
         importFailedTitle: 'Échec de l’importation',
@@ -1181,6 +1202,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Veuillez confirmer les détails ci-dessous pour les ${count} nouveaux membres de l’espace de travail qui seront ajoutés dans le cadre de ce téléversement. Les membres existants ne recevront aucune mise à jour de rôle ni message d’invitation.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'L’apparition de nouvelles cartes et transactions peut prendre un certain temps, veuillez patienter.',
+        importMembersRolePermissionWarning: 'Vous n’avez pas l’autorisation d’assigner certains rôles de membre. Tous les nouveaux membres concernés ont été invités en tant que membres.',
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -1623,6 +1645,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changed: 'modifié',
         removed: 'supprimé',
         transactionPending: 'Transaction en attente.',
+        transactionPendingDescription: "Transaction en attente. L'enregistrement peut prendre quelques jours.",
         chooseARate: 'Sélectionnez un taux de remboursement par mile ou kilomètre pour l’espace de travail',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} au ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valide à partir du ${startDate}`,
@@ -2158,7 +2181,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstall: 'Veuillez mettre à jour vers la dernière version de New Expensify',
         pleaseInstallExpensifyClassic: 'Veuillez installer la dernière version d’Expensify',
         toGetLatestChanges: 'Sur mobile, téléchargez et installez la dernière version. Sur le web, actualisez votre navigateur.',
-        newAppNotAvailable: "L'application New Expensify n'est plus disponible.",
+        newAppNotAvailable: 'Mettez à jour maintenant et vous nous remercierez plus tard.',
     },
     initialSettingsPage: {
         about: 'À propos',
@@ -2225,18 +2248,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Se déconnecter',
         restoreStashed: 'Restaurer la connexion mise de côté',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
-        saveReceiptsConfirmation: {
-            title: 'Enregistrer vos reçus ?',
-            prompt: ({count}: {count: number}) =>
-                `${count} ${count === 1 ? 'reçu est' : 'reçus sont'} encore en cours de téléchargement. Si vous vous déconnectez maintenant, nous ${count === 1 ? "l'enregistrerons" : 'les enregistrerons'} dans vos photos pour que vous puissiez ${count === 1 ? "l'ajouter" : 'les ajouter'} à une nouvelle dépense plus tard.`,
-            confirm: 'Enregistrer et se déconnecter',
-        },
-        saveReceiptsAndSignOutConfirmation: {
-            title: 'Enregistrer vos reçus ?',
-            prompt: ({count}: {count: number}) =>
-                `${count} ${count === 1 ? 'reçu est' : 'reçus sont'} encore en cours de téléchargement. Si vous vous déconnectez maintenant, nous ${count === 1 ? "l'enregistrerons" : 'les enregistrerons'} dans vos photos pour que vous puissiez ${count === 1 ? "l'ajouter" : 'les ajouter'} à une nouvelle dépense plus tard. Vous perdrez toutes les autres modifications hors ligne.`,
-            confirm: 'Enregistrer et se déconnecter',
-        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lisez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>.`,
         help: 'Aide',
@@ -2912,6 +2923,14 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Agents',
         subtitle: `<muted-text>Les agents gèrent vos workflows pour vous, afin que vous gagniez des heures dans votre journée. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
         findAgent: 'Trouver un agent',
+        deleteAgentsTitle: () => ({
+            one: 'Supprimer l’agent',
+            other: 'Supprimer les agents',
+        }),
+        deleteAgentsMessage: () => ({
+            one: 'Voulez-vous vraiment supprimer cet agent ? Cette action est irréversible.',
+            other: 'Voulez-vous vraiment supprimer ces agents ? Cette action est irréversible.',
+        }),
         newAgent: 'Nouvel agent',
         emptyAgents: {
             title: 'Aucun agent créé',
@@ -3776,7 +3795,6 @@ ${amount} pour ${merchant} - ${date}`,
         facialScan: 'Politique et autorisation relatives à la reconnaissance faciale d’Onfido',
         onfidoLinks: (onfidoTitle: string) =>
             `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Politique et autorisation de numérisation faciale d’Onfido</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Confidentialité</a> et <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Conditions d’utilisation</a>.</muted-text-micro>`,
-        tryAgain: 'Réessayer',
         verifyIdentity: 'Vérifier l’identité',
         letsVerifyIdentity: 'Vérifions votre identité',
         butFirst: `Mais d’abord, les choses ennuyeuses. Lisez le jargon juridique à l’étape suivante et cliquez sur « Accepter » quand vous êtes prêt.`,
@@ -4464,6 +4482,7 @@ ${amount} pour ${merchant} - ${date}`,
             delete: 'Supprimer l’espace de travail',
             settings: 'Paramètres',
             categories: 'Catégories',
+            vendors: 'Fournisseurs',
             tags: 'Tags',
             customField1: 'Champ personnalisé 1',
             customField2: 'Champ personnalisé 2',
@@ -4499,6 +4518,7 @@ ${amount} pour ${merchant} - ${date}`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
             deleteOpenExpensifyCardsError: 'Votre entreprise a encore des Cartes Expensify. Veuillez <concierge-link>contacter Concierge</concierge-link> pour les supprimer.',
+            deleteTravelInvoicingError: 'Votre entreprise a toujours la facturation de voyages consolidée activée.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
@@ -4983,6 +5003,10 @@ ${amount} pour ${merchant} - ${date}`,
             },
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter le compte dans Xero et synchroniser à nouveau la connexion',
+            defaultSupplier: 'Fournisseur par défaut',
+            defaultSupplierDescription: 'Définissez un fournisseur par défaut qui s’appliquera à toutes les transactions par carte de crédit lors de l’exportation.',
+            noSuppliersFound: 'Aucun fournisseur trouvé',
+            noSuppliersFoundDescription: 'Veuillez ajouter le fournisseur dans Xero et synchroniser à nouveau la connexion.',
             accountingMethods: {
                 label: 'Quand exporter',
                 description: 'Choisissez quand exporter les dépenses :',
@@ -5609,6 +5633,60 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: 'Choisissez un fournisseur Rillet par défaut pour les dépenses qui ne correspondent pas automatiquement.',
             },
             companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
+            noBankAccountsFound: 'Aucun compte bancaire trouvé',
+            noBankAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires dans Rillet et synchroniser à nouveau la connexion',
+            autoSyncDescription: 'Synchronisez Rillet et Expensify automatiquement, chaque jour. Les notes de frais se synchronisent en temps réel.',
+            accountingMethods: {
+                label: 'Méthode d’exportation',
+                description: 'Choisissez quand exporter les dépenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Comptabilité d’exercice',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors poche seront exportées une fois définitivement approuvées',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses payées de votre poche seront exportées une fois réglées',
+                },
+            },
+            syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un règlement de facture est généré sur ce compte.',
+            billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Rillet.'},
+            syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
+            settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.'},
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            travelInvoicingSettlementAccount: {
+                label: 'Compte de règlement de facturation de voyage',
+                description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.',
+            },
+            exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte de programme de carte',
+                description: 'Remplacer le compte d’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte d’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programme avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carte avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                },
+            },
         },
         type: {
             free: 'Gratuit',
@@ -5628,7 +5706,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
                 feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
                 feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
-                tryAgain: 'Réessayer',
             },
             addNewCard: {
                 other: 'Autre',
@@ -6258,6 +6335,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ de note de frais',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de note de frais. Veuillez réessayer.',
         },
+        vendors: {
+            emptyTitle: 'Aucun fournisseur pour le moment',
+            emptySubtitle: 'Les fournisseurs apparaîtront ici une fois la synchronisation comptable terminée.',
+            findVendor: 'Trouver un fournisseur',
+            managedInAccountingSoftware: 'Les fournisseurs sont gérés dans votre',
+        },
         tags: {
             tagName: 'Nom du tag',
             requiresTag: 'Les membres doivent taguer toutes les dépenses',
@@ -6437,6 +6520,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 conciergeNotificationTitle: 'Concierge vous en informera',
                 conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
                 copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
+                copyFailedTitle: 'Échec de la copie',
             },
             upgrade: {
                 title: 'Certaines fonctionnalités nécessitent un forfait Control',
@@ -6962,7 +7046,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                errors: {distanceMustBePositive: 'La distance doit être un nombre entier positif.'},
+                errors: {distanceMustBePositive: 'La distance doit être un nombre entier positif.', distanceTooLarge: 'La distance est trop grande.'},
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
@@ -7051,8 +7135,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             updateToUSD: 'Mettre à jour en USD',
             updateWorkspaceCurrency: 'Mettre à jour la devise de l’espace de travail',
             workspaceCurrencyNotSupported: "Devise de l'espace de travail non prise en charge",
+            notAllowedToAddBankAccount: 'Votre espace de travail est défini sur une devise non prise en charge. Contactez un administrateur de l’espace de travail autorisé à la modifier.',
             yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">liste des devises prises en charge</a>.`,
             chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
+            changeBankAccount: 'Changer de compte bancaire',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le responsable',
@@ -7480,6 +7566,15 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 addRule: 'Ajouter une règle de marchand',
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
+                importRulesTitle: 'Importer des règles de marchand',
+                importRulesSupportingText:
+                    'Faites correspondre chaque colonne de votre feuille de calcul à un champ de règle de marchand. Si tout semble correct, cliquez ci-dessous pour importer vos règles.',
+                importColumnMerchantIs: 'Le marchand est',
+                importColumnMerchantContains: 'Le marchand contient',
+                importColumnUpdatedMerchant: 'Marchand mis à jour',
+                importColumnUpdatedCategory: 'Catégorie mise à jour',
+                importColumnUpdatedTag: 'Tag mis à jour',
+                importColumnUpdatedDescription: 'Description mise à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
                 applyUpdates: 'Appliquer ces mises à jour :',
@@ -7656,7 +7751,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
-                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent, et...',
+                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent et les transferts d’argent',
                 findRule: 'Trouver une règle',
                 defaultSection: 'Par défaut',
                 customRulesSection: 'Règles personnalisées',
@@ -7706,14 +7801,25 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 addRule: 'Ajouter une règle d’agent',
                 findRule: 'Rechercher une règle d’agent',
                 addRuleTitle: 'Ajouter une règle',
+                newRuleTitle: 'Nouvelle règle',
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
                 describeRuleTitle: 'Décrivez la règle que votre agent IA doit suivre',
+                describeRuleHeadline: 'Décrivez votre règle',
                 disclaimer: 'Les agents IA peuvent faire des erreurs.',
                 agentCreatedTitle: 'RuleBot a été ajouté à votre espace de travail !',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
+                suggestionsTab: 'Suggestions',
+                writeTab: 'Modifier',
+                findSuggestion: 'Trouver une règle',
+                emptySuggestionsTitle: 'Aucune suggestion disponible',
+                emptySuggestionsSubtitle: 'Essayez d’écrire votre propre règle.',
+                revampSubtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
+                gotIt: 'Compris',
+                createRule: 'Créer une règle',
             },
             tabs: {
                 general: 'Général',
@@ -7721,6 +7827,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 expenseDefaults: 'Paramètres par défaut des dépenses',
                 requireFields: 'Champs obligatoires',
                 flagForReview: 'Marquer pour examen',
+                agents: 'Agents',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7779,9 +7886,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 applyExpenseDefaults: 'Appliquer les valeurs de dépense par défaut',
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
                 flagForReview: 'Marquer pour examen',
-                flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
+                flagForReviewDescription: 'Avertir lorsque vos conditions sont remplies.',
                 requireFields: 'Champs obligatoires',
-                requireFieldsDescription: 'Assurez-vous que les champs clés sont remplis avant que les dépenses soient soumises',
+                requireFieldsDescription: 'Reçus, catégories, etc., lors de la soumission.',
+                createAgentRule: 'Règle d’agent',
+                createAgentRuleDescription: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -7844,6 +7953,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie.',
                 confirmErrorAmount: 'Veuillez saisir un montant.',
                 thenFlagForReview: 'Puis signaler pour examen lorsque :',
+            },
+            agentRulesEmptyState: {
+                title: 'Aucune règle d’agent ajoutée',
+                subtitle: 'Créez une règle pour automatiser les politiques de votre espace de travail.',
+                cta: 'Ajouter une règle IA',
             },
         },
         planTypePage: {
@@ -7955,6 +8069,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
+                syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
             },
             notSync: 'Non synchronisé',
             authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
@@ -9239,6 +9354,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     actionableMentionTrackExpense: {
         submit: 'Soumettre à quelqu’un',
+        submitToFriend: 'Soumettre à un ami',
+        submitToEmployer: 'Soumettre à mon employeur',
         categorize: 'Catégorisez-la',
         share: 'Partager avec mon comptable',
         nothing: 'Rien pour l’instant',
@@ -9449,7 +9566,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         duplicatedTransaction: 'Doublon potentiel',
         fieldRequired: 'Les champs de note de frais sont obligatoires',
         futureDate: 'Date future non autorisée',
-        inactiveVendor: 'Fournisseur plus valide',
+        inactiveVendor: ({isSupplier = false}: ViolationsInactiveVendorParams = {}) => (isSupplier ? 'Fournisseur plus valide' : 'Fournisseur plus valide'),
         invoiceMarkup: (invoiceMarkup: number) => `Majoration de ${invoiceMarkup} %`,
         maxAge: (maxAge: number) => `Date antérieure de plus de ${maxAge} jours`,
         missingCategory: 'Catégorie manquante',
@@ -10068,6 +10185,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             chat: 'Discutez sur chaque dépense pour résoudre les questions rapidement',
         },
     },
+    submitPlanWelcomeModal: {
+        title: 'Vous voulez un forfait employé GRATUIT ?',
+        description: "N'attendez pas que votre entreprise adopte Expensify. Nous avons créé un forfait gratuit rien que pour vous :",
+        confirmText: 'Obtenir le forfait gratuit',
+        dismissText: 'Non merci',
+        features: {
+            getReimbursed: 'Soyez remboursé plus vite, directement dans Expensify',
+            buildReports: 'Créez des rapports de dépenses en quelques secondes',
+            categorize: 'Catégorisez vos dépenses',
+            inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
@@ -10363,5 +10492,21 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         negativeButton: 'Pas vraiment',
     },
     monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Nouveau dans Concierge IA',
+        confirmText: 'Allons-y !',
+        spendAnalysis: {
+            title: 'Analyse interactive des dépenses',
+            description: `<muted-text>Concierge met en avant des analyses mensuelles des dépenses et vous permet d’examiner en détail chaque chiffre. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">En savoir plus</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Découvrez votre nouvel assistant de dépenses',
+            description: `<muted-text>Discutez avec Concierge pour créer et mettre à jour des dépenses, directement dans l’application ou par e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">En savoir plus</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Créez vos propres agents',
+            description: `<muted-text>Créez des agents personnalisés pour examiner, approuver et acheminer les dépenses selon les règles que vous définissez. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">En savoir plus</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;

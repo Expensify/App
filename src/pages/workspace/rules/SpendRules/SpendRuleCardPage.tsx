@@ -16,6 +16,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -102,6 +103,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     useFocusEffect(
         useCallback(() => {
@@ -193,8 +195,10 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             return;
         }
 
-        updateDraftSpendRule({cardIDs: validSelectedCardIDs});
-        saveAndGoBack();
+        startWithLoading(() => {
+            updateDraftSpendRule({cardIDs: validSelectedCardIDs});
+            saveAndGoBack();
+        });
     };
 
     const hasCards = listData.length > 0;
@@ -273,6 +277,8 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
                                 onSubmit={handleSave}
+                                isLoading={isLoading}
+                                shouldShowLoadingImmediatelyOnPress={false}
                                 enabledWhenOffline
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                             />

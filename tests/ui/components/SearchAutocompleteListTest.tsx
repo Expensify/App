@@ -52,6 +52,7 @@ jest.mock('@hooks/useFilteredOptions', () => ({
         },
         isLoading: false,
         loadMore: jest.fn(),
+        loadAll: jest.fn(),
         hasMore: false,
         isLoadingMore: false,
     })),
@@ -98,6 +99,7 @@ describe('SearchAutocompleteList', () => {
             options: {reports: [], personalDetails: []},
             isLoading: false,
             loadMore: jest.fn(),
+            loadAll: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
         });
@@ -228,6 +230,7 @@ describe('SearchAutocompleteList', () => {
             options: {reports: [], personalDetails: []},
             isLoading: false,
             loadMore: jest.fn(),
+            loadAll: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
         });

@@ -193,8 +193,8 @@ describe('SearchPageNarrow', () => {
                 errors: {error: 'Something went wrong'},
                 search: {
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    status: '',
                     offset: 0,
+                    hash: failedQueryJSON?.hash,
                     isLoading: false,
                     hasMoreResults: false,
                 },

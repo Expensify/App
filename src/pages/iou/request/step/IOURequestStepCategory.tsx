@@ -39,7 +39,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -87,6 +89,9 @@ function IOURequestStepCategory({
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const policyData = usePolicyData(policy?.id);
@@ -177,6 +182,7 @@ function IOURequestStepCategory({
                     transactionID: transaction.transactionID,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     parentReportNextStep,
                     category: updatedCategory,
                     policy,
@@ -188,6 +194,8 @@ function IOURequestStepCategory({
                     isASAPSubmitBetaEnabled,
                     hash: currentSearchHash,
                     delegateAccountID,
+                    reportPolicyTags,
+                    isTrackIntentUser,
                 });
                 saveAndNavigateBack();
                 return;

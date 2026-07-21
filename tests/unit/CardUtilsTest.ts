@@ -55,6 +55,7 @@ import {
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
@@ -99,6 +100,7 @@ import * as fs from 'fs';
 import lodashSortBy from 'lodash/sortBy';
 import * as path from 'path';
 
+import createRandomCard from '../utils/collections/card';
 import createMock from '../utils/createMock';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -4254,6 +4256,43 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('isBrokenConnectionPastDismissThreshold', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('returns false when the connection is not broken', () => {
+            const spy = jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow');
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 200, lastScrape: '2020-01-01'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it('returns false when the connection is broken but lastScrape is missing', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: ''};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+
+        it('returns true when broken and unresolved for at least the grace period', () => {
+            jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow').mockReturnValue(CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS);
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns false when broken but still within the grace period', () => {
+            jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow').mockReturnValue(CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS - 1);
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+
+        // Uses the real DateUtils (no mock) to prove the DB-format string is parsed correctly, since new Date() on
+        // "yyyy-MM-dd HH:mm:ss" is not portable across JS engines and an invalid parse would silently never dismiss.
+        it('parses the DB datetime format and dismisses a long-broken connection without mocking', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+    });
+
     describe('getCardHintText', () => {
         afterEach(() => {
             jest.restoreAllMocks();
@@ -4377,9 +4416,53 @@ describe('getEligibleBankAccountsForUkEuCard', () => {
                 bankCountry: 'GB',
             },
         };
-        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, 'GBP');
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, {GBP: ['GB', 'GI']}, 'GBP');
         expect(result).toHaveLength(1);
         expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+    });
+
+    it('uses only the supported countries for the workspace settlement currency', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'EUR',
+                bankCountry: 'BE',
+            },
+            '2': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'EUR',
+                bankCountry: 'GB',
+            },
+        };
+        const supportedCountriesByCurrency = {GBP: ['GB', 'GI'], EUR: ['BE', 'DK']};
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, supportedCountriesByCurrency, 'EUR');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.bankCountry).toBe('BE');
+    });
+
+    it('returns no accounts when the settlement currency has no supported-country entry', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+        };
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, {EUR: ['BE', 'DK']}, 'GBP');
+        expect(result).toHaveLength(0);
+    });
+
+    it('falls back to the hard-coded supported countries when the backend list is unavailable', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+        };
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, undefined, 'GBP');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.bankCountry).toBe('GB');
     });
 });
 
