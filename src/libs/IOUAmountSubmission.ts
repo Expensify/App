@@ -516,6 +516,7 @@ function submitCreateAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): v
     const previousCurrency = getCurrency(transaction);
     const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, transaction, previousCurrency, transaction?.taxCode);
     const isPolicyExpenseChatParticipant = transaction?.participants?.some((participant) => participant.isPolicyExpenseChat) ?? false;
+
     // Mirror the tax contexts the confirmation list uses (see MoneyRequestConfirmationList's shouldShowTax): a Track
     // expense from a self-DM/default workspace isn't a policy expense chat, but the confirmation page still shows tax
     // for the track flow, so the currency recompute must run for it too. Otherwise Back → change currency → Next would
