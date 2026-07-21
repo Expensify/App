@@ -31,6 +31,8 @@ const setOngoingRequest = (request: AnyRequest | null) => Onyx.set(ONYXKEYS.PERS
 
 const setIsLoadingApp = (isLoadingApp: boolean) => Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoadingApp).then(waitForBatchedUpdates);
 
+const setHasLoadedApp = (hasLoadedApp: boolean) => Onyx.set(ONYXKEYS.HAS_LOADED_APP, hasLoadedApp).then(waitForBatchedUpdates);
+
 describe('useInFlightRequests', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -91,13 +93,15 @@ describe('useInFlightRequests', () => {
             await waitFor(() => expect(result.current).toBe(false));
         });
 
-        it('waits for the observed OpenApp data flush but ignores a stranded loading flag', async () => {
+        it('waits for the first OpenApp data flush but ignores a loading flag stranded after a completed load', async () => {
+            await setHasLoadedApp(true);
             await setIsLoadingApp(true);
             const {result: strandedResult, unmount: unmountStrandedConsumer} = renderHook(() => useIsAppLoadPending());
             await act(() => waitForBatchedUpdates());
             expect(strandedResult.current).toBe(false);
             unmountStrandedConsumer();
 
+            await setHasLoadedApp(false);
             await act(() => setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP)]));
             const {result: queuedResult, unmount: unmountQueuedConsumer} = renderHook(() => useIsAppLoadPending());
             await waitFor(() => expect(queuedResult.current).toBe(true));
@@ -109,6 +113,7 @@ describe('useInFlightRequests', () => {
             expect(flushingResult.current).toBe(true);
 
             await act(() => setIsLoadingApp(false));
+            await act(() => setHasLoadedApp(true));
             await waitFor(() => expect(flushingResult.current).toBe(false));
         });
     });

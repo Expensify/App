@@ -6,9 +6,6 @@ import type {AnyRequest} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useSyncExternalStore} from 'react';
-import Onyx from 'react-native-onyx';
-
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -55,70 +52,6 @@ type PendingRequestGroupConfig = {
 const APP_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP];
 const REPORT_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_REPORT];
 const LOADING_BAR_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION];
-
-type OpenAppFlushListener = () => void;
-
-const openAppFlushListeners = new Set<OpenAppFlushListener>();
-let hasPersistedOpenApp = false;
-let hasOngoingOpenApp = false;
-let storedIsLoadingApp: boolean | undefined;
-let hasObservedOpenApp = false;
-let isWaitingForOpenAppFlush = false;
-
-function updateOpenAppFlushState() {
-    const hasPendingOpenApp = hasPersistedOpenApp || hasOngoingOpenApp;
-    if (hasPendingOpenApp) {
-        hasObservedOpenApp = true;
-    } else if (storedIsLoadingApp !== true) {
-        hasObservedOpenApp = false;
-    }
-
-    const nextIsWaitingForOpenAppFlush = !hasPendingOpenApp && hasObservedOpenApp && storedIsLoadingApp === true;
-    if (nextIsWaitingForOpenAppFlush === isWaitingForOpenAppFlush) {
-        return;
-    }
-
-    isWaitingForOpenAppFlush = nextIsWaitingForOpenAppFlush;
-    for (const listener of openAppFlushListeners) {
-        listener();
-    }
-}
-
-// Queue presence ends before deferred write updates flush. This process-local observer remembers an
-// OpenApp seen in this process until its queued IS_LOADING_APP finallyData clears the flag. It never
-// latches from IS_LOADING_APP alone, so a stranded value loaded from disk cannot gate the UI.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.PERSISTED_REQUESTS,
-    callback: (requests) => {
-        hasPersistedOpenApp = !!requests?.some((request) => request.command === WRITE_COMMANDS.OPEN_APP);
-        updateOpenAppFlushState();
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
-    callback: (request) => {
-        hasOngoingOpenApp = request?.command === WRITE_COMMANDS.OPEN_APP;
-        updateOpenAppFlushState();
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (isLoadingApp) => {
-        storedIsLoadingApp = isLoadingApp;
-        updateOpenAppFlushState();
-    },
-});
-
-function subscribeToOpenAppFlush(listener: OpenAppFlushListener) {
-    openAppFlushListeners.add(listener);
-    return () => openAppFlushListeners.delete(listener);
-}
-
-function getIsWaitingForOpenAppFlush() {
-    return isWaitingForOpenAppFlush;
-}
 
 const PENDING_REQUEST_GROUPS = {
     appLoad: {
@@ -169,8 +102,12 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
 /** Whether an OpenApp request or its deferred Onyx updates are pending. */
 function useIsAppLoadPending(): boolean {
     const hasPendingOpenApp = useIsPendingInternal('appLoad');
-    const isWaitingForFlush = useSyncExternalStore(subscribeToOpenAppFlush, getIsWaitingForOpenAppFlush, getIsWaitingForOpenAppFlush);
-    return hasPendingOpenApp || isWaitingForFlush;
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+
+    // HAS_LOADED_APP is committed only after deferred OpenApp updates flush. Combining both existing
+    // markers covers that gap without trusting an IS_LOADING_APP value stranded after a completed load.
+    return hasPendingOpenApp || (isLoadingApp === true && hasLoadedApp !== true);
 }
 
 /**
