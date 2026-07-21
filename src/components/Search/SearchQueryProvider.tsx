@@ -103,8 +103,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentDefaultSimilarSearchHash = currentDefaultSearchQueryJSON?.similarSearchHash;
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
-    // deeplink
-    // display
     const resetCurrentSearchKeyIfInvalid = useEffectEvent(() => {
         // Every time the query changes, we invalidate the currentSearchKey if the new query doesn't have the default filters
         // from the currently selected search key query. For example, the "Card statements" suggested search default filters
