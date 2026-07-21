@@ -243,7 +243,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const isOwner = policy?.owner === currentUserPersonalDetails?.login;
         const canCurrentUserManagePayments = canMemberWrite(policy, currentUserPersonalDetails?.login ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
-        // Payments admins can manage and share workspace bank accounts even when they are not listed as sharees.
+        // Current user has no right to share (not owner, payments admin or a sharee) — show error
         if (!isOwner && !canCurrentUserManagePayments && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
             return;
