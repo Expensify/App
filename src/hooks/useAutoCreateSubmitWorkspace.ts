@@ -50,8 +50,10 @@ function useAutoCreateSubmitWorkspace() {
     );
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
     const existingSubmitPolicyIDSelector = useMemo(
-        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).find((policy) => isSubmitPolicy(policy) && canEditWorkspaceSettings(policy))?.id,
-        [],
+        // Pass the login so the per-employee role fallback in canEditWorkspaceSettings covers
+        // partially-loaded policies where the top-level `role` isn't populated yet.
+        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).find((policy) => isSubmitPolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail))?.id,
+        [currentUserEmail],
     );
     const [existingSubmitPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: existingSubmitPolicyIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

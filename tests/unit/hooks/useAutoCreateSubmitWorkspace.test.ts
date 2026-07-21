@@ -29,6 +29,9 @@ jest.mock('@hooks/useOnboardingMessages');
 const mockTranslate = jest.fn((key: string) => key);
 const mockFormatPhoneNumber = jest.fn((phone: string) => phone);
 
+// Single shared assertion so individual tests can re-mock useOnyx without repeating the unsafe cast
+const mockUseOnyx = useOnyx as jest.Mock;
+
 const MOCK_SESSION = {
     accountID: 12345,
     email: 'test@expensify.com',
@@ -39,7 +42,6 @@ const MOCK_ADMINS_CHAT_REPORT_ID = 'mock-admins-chat-report-id';
 const MOCK_ONBOARDING_MESSAGE = {message: 'Welcome!', video: undefined, tasks: []};
 
 function setupDefaultMocks() {
-    const mockUseOnyx = useOnyx as jest.Mock;
     mockUseOnyx.mockImplementation((key: string) => {
         if (key === 'session') {
             return [MOCK_SESSION];
@@ -283,7 +285,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
         };
-        (useOnyx as jest.Mock).mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
+        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
             if (key === 'session') {
                 return [MOCK_SESSION];
             }
@@ -323,7 +325,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
         };
-        (useOnyx as jest.Mock).mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
+        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
             if (key === 'session') {
                 return [MOCK_SESSION];
             }
