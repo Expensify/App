@@ -4625,7 +4625,6 @@ function getActionableCard3DSTransactionApprovalMessage(
     return translate('report.actions.type.actionableCard3DSTransactionApproval', formattedAmount, merchant);
 }
 
-// Renders content of TRAVEL_NUDGE reportActions
 function getTravelNudgeMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE>) {
     const originalMessage = getOriginalMessage(reportAction);
     if (!originalMessage) {
