@@ -30,7 +30,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
@@ -97,7 +97,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(PAYMENT_ICONS);
 
-    const {beginExportWithTemplate, showOfflineModal, showDownloadErrorModal, exportDownloadStatusModal} = useExportActions({
+    const {beginExportWithTemplate, showOfflineModal, showDownloadErrorModal} = useExportActions({
         reportID,
         policy,
     });
@@ -210,9 +210,13 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     });
 
     const showDeleteModal = () => {
+        const singleSelectedTransaction = selectedTransactionIDs.length === 1 ? transactions.find((t) => t.transactionID === selectedTransactionIDs.at(0)) : undefined;
+        const selectedTransactions = transactions.filter((t) => selectedTransactionIDs.includes(t.transactionID));
+        const hasSomePending = selectedTransactionIDs.length > 1 && selectedTransactions.some((t) => isPending(t));
+        const deletePrompt = getDeleteConfirmationPrompt(translate, singleSelectedTransaction, selectedTransactionIDs.length, hasSomePending);
         showConfirmModal({
-            title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
-            prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+            title: getDeleteExpenseTitle(translate, singleSelectedTransaction, selectedTransactionIDs.length),
+            prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -324,7 +328,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         return (
             <>
                 {bulkDuplicateHandler}
-                {exportDownloadStatusModal}
                 <MoneyReportHeaderKYCDropdown
                     chatReportID={chatReport?.reportID}
                     iouReport={moneyRequestReport}
@@ -349,8 +352,8 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     return (
         <>
             {bulkDuplicateHandler}
-            {exportDownloadStatusModal}
             <ButtonWithDropdownMenu
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}
                 options={selectedTransactionsOptions}
                 customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}

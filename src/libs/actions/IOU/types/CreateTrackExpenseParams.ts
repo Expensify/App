@@ -12,6 +12,8 @@ import type {TrackExpenseTransactionParams} from './TrackExpenseTransactionParam
 
 type TrackExpenseAccountantParams = {
     accountant?: Accountant;
+    newAccountIDs: number[] | undefined;
+    newLogins: string[] | undefined;
 };
 
 type CreateTrackExpenseParams = {
@@ -33,6 +35,8 @@ type CreateTrackExpenseParams = {
     currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -40,12 +44,10 @@ type CreateTrackExpenseParams = {
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
-    // Personal details list is optional here because we only use/pass it for SHARE case
-    personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    delegateAccountID: number | undefined;
+    reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
+    isDraftChatReport?: boolean;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

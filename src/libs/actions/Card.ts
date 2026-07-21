@@ -589,16 +589,16 @@ function clearReportVirtualCardFraudForm() {
 }
 
 /**
- * Makes an API call to get virtual card details (pan, cvv, expiration date, address)
+ * Makes an API call to get travel card details (cvv)
  * This function purposefully uses `makeRequestWithSideEffects` method. For security reason
  * card details cannot be persisted in Onyx and have to be asked for each time a user want's to
  * reveal them.
  *
- * @param cardID - virtual card ID
+ * @param cardID - travel card ID
  *
  * @returns promise with card details object
  */
-function revealVirtualCardDetails(cardID: number, validateCode: string): Promise<ExpensifyCardDetails> {
+function revealTravelCardDetails(cardID: number, validateCode: string): Promise<ExpensifyCardDetails> {
     return new Promise((resolve, reject) => {
         const parameters: RevealExpensifyCardDetailsParams = {cardID, validateCode};
 
@@ -627,7 +627,7 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
         ];
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters, {
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_TRAVEL_CARD_DETAILS, parameters, {
             optimisticData,
             successData,
             failureData,
@@ -1985,7 +1985,7 @@ export {
     clearReportVirtualCardFraudForm,
     clearIssueNewCardError,
     reportVirtualExpensifyCardFraud,
-    revealVirtualCardDetails,
+    revealTravelCardDetails,
     updateSettlementFrequency,
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,

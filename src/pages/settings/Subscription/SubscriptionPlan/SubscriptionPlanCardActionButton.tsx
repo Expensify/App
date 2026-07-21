@@ -146,14 +146,22 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const expensifyCode = isSecretPromoCode ? '' : (privatePromoCode ?? '');
 
     return (
-        <MenuItemWithTopDescription
-            description={translate('subscription.subscriptionSettings.title')}
-            style={style}
-            shouldShowRightIcon
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
-            numberOfLinesTitle={3}
-            title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
-        />
+        <View>
+            <MenuItemWithTopDescription
+                description={translate('subscription.subscriptionSettings.title')}
+                style={style}
+                interactive={false}
+                numberOfLinesTitle={3}
+                title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
+            />
+            <View style={[style, styles.mt2]}>
+                <Button
+                    text={translate('subscription.subscriptionSettings.editSubscription')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+                    style={styles.alignSelfStart}
+                />
+            </View>
+        </View>
     );
 }
 
