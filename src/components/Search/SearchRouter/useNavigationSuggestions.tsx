@@ -36,6 +36,7 @@ type BuildTopLevelNavigationItemsParams = {
     getDestinationText: (destination: string) => string;
 };
 
+// Tab buttons own stateful navigation behavior and do not expose reusable descriptors, so Search Router keeps deterministic destination actions here.
 function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return [
         {
