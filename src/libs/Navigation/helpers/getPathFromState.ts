@@ -1,6 +1,7 @@
 import {config, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
 import type {State} from '@libs/Navigation/types';
 
+import NAVIGATORS from '@src/NAVIGATORS';
 import type {Screen} from '@src/SCREENS';
 
 import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
@@ -169,6 +170,13 @@ function getPathFromStateWithDynamicRoute(state: State): string {
 /** An unresolved NavigatorScreenParams route that React Navigation stored verbatim instead of resolving to a path. */
 type UnresolvedNavigatorScreenParams = {screen: string; path: string};
 
+const navigatorNames = new Set<string>(Object.values(NAVIGATORS));
+
+/** Only navigators and non-URL-addressable hosts can carry a hint chain; URL-addressable screens may get `screen`/`path` params from a user-supplied URL query. */
+function canCarryNavigatorScreenParams(name: string): boolean {
+    return navigatorNames.has(name) || !isScreen(name);
+}
+
 /** Detects RN's deep-link hint chain (`{screen, params/initial, path}`) stored verbatim on a route that is not hydrated yet; its real target lives in `params.path`. */
 function hasUnresolvedNavigatorScreenParams(params: unknown): params is UnresolvedNavigatorScreenParams {
     return (
@@ -186,9 +194,8 @@ function hasUnresolvedNavigatorScreenParams(params: unknown): params is Unresolv
 function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
-    // Return the embedded path of an unresolved hint chain before RN serializes it to `/?params=[object Object]`;
-    // Excludes hydrated routes (`state` is the source of truth) and URL-addressable screens (their `screen`/`path` params may come from a user-supplied URL query).
-    if (focusedRoute && !focusedRoute.state && !isScreen(focusedRoute.name) && hasUnresolvedNavigatorScreenParams(focusedRoute.params)) {
+    // Return the embedded path of an unresolved hint chain before RN serializes it to `/?params=[object Object]`; hydrated routes skip it (`state` is the source of truth).
+    if (focusedRoute && !focusedRoute.state && canCarryNavigatorScreenParams(focusedRoute.name) && hasUnresolvedNavigatorScreenParams(focusedRoute.params)) {
         return focusedRoute.params.path;
     }
 

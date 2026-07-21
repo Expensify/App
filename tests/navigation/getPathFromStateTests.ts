@@ -11,6 +11,8 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     config: {},
     normalizedConfigs: {
+        // Mirrors production: this navigator is URL-addressable (path: ROUTES.ROOT) yet must still be treated as a hint-chain host.
+        ReportsSplitNavigator: {path: ''},
         TestDynamicScreen: {path: 'test-dynamic'},
         StandardScreen: {path: 'standard'},
         VerifyAccountScreen: {path: 'verify-account'},
