@@ -8,7 +8,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getEffectiveFlagForReviewRuleForm} from '@libs/FlagForReviewRulesUtils';
+import {getEffectiveFlagForReviewRuleForm, hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -41,7 +41,18 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
-        .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .filter((category) => {
+            if (!category.enabled || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return false;
+            }
+
+            // Create flow: only offer categories that do not already have a flag-for-review rule.
+            if (!isEditing && hasExplicitFlagAmount(category.maxExpenseAmount)) {
+                return false;
+            }
+
+            return true;
+        })
         .map((category) => {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {name: decodedCategoryName, value: category.name};

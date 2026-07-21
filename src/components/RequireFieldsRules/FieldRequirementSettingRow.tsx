@@ -54,11 +54,9 @@ function FieldRequirementSettingRow({
     const [dismissedCouplingTooltipKey, setDismissedCouplingTooltipKey] = useState<string | undefined>();
 
     const isCouplingDisabled = isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields);
-    const isReadOnly = !canWriteRules;
     const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields);
     const couplingTooltip = couplingTooltipKey ? translate(`workspace.rules.requireFieldsRule.${couplingTooltipKey}`) : undefined;
-    const shouldMountCouplingTooltip = !!couplingTooltip;
-    const shouldDisplayCouplingTooltip = shouldMountCouplingTooltip && dismissedCouplingTooltipKey !== couplingTooltipKey;
+    const shouldDisplayCouplingTooltip = !!couplingTooltip && dismissedCouplingTooltipKey !== couplingTooltipKey;
 
     const hideCouplingTooltip = useCallback(() => {
         setDismissedCouplingTooltipKey(couplingTooltipKey);
@@ -114,7 +112,7 @@ function FieldRequirementSettingRow({
     ]);
 
     const handleSelectSetting = (newSetting: FieldRequirementsDirection | undefined) => {
-        if (isReadOnly || isCouplingDisabled) {
+        if (!canWriteRules || isCouplingDisabled) {
             return;
         }
 
@@ -126,19 +124,19 @@ function FieldRequirementSettingRow({
             <Text style={[styles.flexShrink1, styles.pr3, styles.alignSelfCenter]}>{label}</Text>
             <FieldRequirementsDirectionToggle
                 direction={setting}
-                disabled={isReadOnly || isCouplingDisabled}
+                disabled={!canWriteRules || isCouplingDisabled}
                 onSelect={handleSelectSetting}
             />
         </View>
     );
 
-    if (!shouldMountCouplingTooltip) {
+    if (!couplingTooltip) {
         return rowContent;
     }
 
     return (
         <EducationalTooltip
-            shouldRender={shouldMountCouplingTooltip}
+            shouldRender
             shouldDisplayTooltip={shouldDisplayCouplingTooltip}
             renderTooltipContent={renderCouplingTooltipContent}
             wrapperStyle={styles.productTrainingTooltipWrapper}

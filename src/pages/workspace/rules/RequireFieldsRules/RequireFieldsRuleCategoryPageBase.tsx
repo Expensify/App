@@ -8,7 +8,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {setDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
+import {categoryHasAnyRequireFieldsRule, getRequireFieldsRuleBackToRoute} from '@libs/RequireFieldsRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -50,7 +50,18 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
-        .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .filter((category) => {
+            if (!category.enabled || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return false;
+            }
+
+            // Create flow: only offer categories that do not already have field requirements.
+            if (!isEditing && categoryHasAnyRequireFieldsRule(category)) {
+                return false;
+            }
+
+            return true;
+        })
         .map((category) => {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {name: decodedCategoryName, value: category.name};

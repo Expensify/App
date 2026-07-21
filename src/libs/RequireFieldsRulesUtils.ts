@@ -254,7 +254,7 @@ function hasRequireFieldsRuleChanges(
     return hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields, clearedFields);
 }
 
-type ReceiptOverrideTarget = number | null | undefined;
+type ReceiptOverrideTarget = number | undefined;
 
 function getReceiptOverrideTarget(currentValue: number | null | undefined, setting: FieldRequirementsDirection): ReceiptOverrideTarget {
     if (setting === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE) {
@@ -336,15 +336,11 @@ function applyRequireFieldsReceiptSettings(
         return;
     }
 
-    if (receiptTarget === null) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName);
-    } else if (isReceiptOverrideValue(receiptTarget)) {
+    if (isReceiptOverrideValue(receiptTarget)) {
         setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget);
     }
 
-    if (itemizedTarget === null) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
-    } else if (isReceiptOverrideValue(itemizedTarget)) {
+    if (isReceiptOverrideValue(itemizedTarget)) {
         setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget);
     }
 }
@@ -937,6 +933,7 @@ function getRequireFieldsFieldCouplingTooltipKey(
 }
 
 export {
+    categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
     getActiveFieldRequirementsDirection,
     getEffectiveRequireFieldsRuleForm,

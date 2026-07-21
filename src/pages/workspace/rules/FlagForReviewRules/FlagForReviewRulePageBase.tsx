@@ -73,7 +73,6 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
-    const formCategory = form?.[INPUT_IDS.CATEGORY];
 
     const parsedMaxAmount = Number.parseFloat(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
@@ -97,14 +96,14 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
             return;
         }
 
-        if (formCategory === categoryName) {
+        if (selectedCategoryName === categoryName) {
             initializedDraftForRuleKeyRef.current = categoryName;
             return;
         }
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, formCategory, getCurrencyDecimals, isEditing, policyCurrency]);
+    }, [category, categoryName, getCurrencyDecimals, isEditing, policyCurrency, selectedCategoryName]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -195,9 +194,10 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         description={translate('common.category')}
                         title={categoryDisplayName}
                         errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        onPress={canWriteRules && !isEditing ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
+                        shouldShowRightIcon={canWriteRules && !isEditing}
+                        interactive={canWriteRules && !isEditing}
+                        disabled={isEditing}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
