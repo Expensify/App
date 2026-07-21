@@ -111,7 +111,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
                 openReport({reportID, introSelected, betas, currentUserAccountID});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [shouldFetchReport, isReportLoaded, reportID]);
+            }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);

@@ -81,7 +81,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
             currentUserAccountID,
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldUseNarrowLayout, props.route.params.reportID]);
+    }, [shouldUseNarrowLayout, props.route.params.reportID, currentUserAccountID]);
 
     // Perform all the loading checks
     const isLoadingReport = isLoadingReportData && !report?.reportID;
