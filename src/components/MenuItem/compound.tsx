@@ -7,7 +7,7 @@
  *
  * @example Simple navigation row
  * ```tsx
- * import MenuItem from '@components/decomposition/MenuItem';
+ * import MenuItem from '@components/MenuItem/compound';
  *
  * <MenuItem onPress={onNavigate} accessibilityLabel={translate('common.settings')}>
  *     <MenuItem.Row>
