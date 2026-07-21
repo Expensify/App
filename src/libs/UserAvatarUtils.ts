@@ -343,6 +343,34 @@ function parseLetterAvatarURL(source: AvatarSource | undefined): {colors: Letter
 }
 
 /**
+ * Rebuilds a generated letter-avatar URL with the initials for a new name, keeping the URL's color key.
+ * The color key is preserved rather than recomputed so a user-picked avatar color survives a name change.
+ *
+ * @param source - The current avatar source
+ * @param firstName - The user's new first name
+ * @param lastName - The user's new last name
+ * @param login - The user's login (email or SMS), or '' when unknown
+ * @returns The rewritten URL, or undefined when the source is not a generated letter-avatar URL or the new name yields no initials
+ */
+function getUpdatedLetterAvatarURL(source: AvatarSource | undefined, firstName: string, lastName: string, login: string): string | undefined {
+    if (typeof source !== 'string' || !isGeneratedLetterAvatarURL(source)) {
+        return undefined;
+    }
+
+    const initials = getLetterAvatarInitials(firstName, lastName, login);
+    if (initials === '') {
+        return undefined;
+    }
+
+    const segments = source.split('?').at(0)?.split('/') ?? [];
+    if (segments.length < 2) {
+        return undefined;
+    }
+    segments[segments.length - 1] = `${initials}.png`;
+    return segments.join('/');
+}
+
+/**
  * Returns the appropriate avatar source (SVG asset or URL) for rendering in React components.
  *
  * **This is the primary function for getting avatar sources throughout the application.**
@@ -461,6 +489,7 @@ export {
     getSmallSizeAvatar,
     getLetterAvatarInitials,
     getLetterAvatarURL,
+    getUpdatedLetterAvatarURL,
     parseLetterAvatarURL,
     isCatalogAvatar,
     isDefaultAvatar,

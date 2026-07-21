@@ -91,32 +91,50 @@ function updatePronouns(pronouns: string, currentUserAccountID: number) {
     });
 }
 
-function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
-    if (!currentUserAccountID) {
+type DisplayNamePersonalDetails = Pick<CurrentUserPersonalDetails, 'accountID' | 'email' | 'firstName' | 'lastName' | 'displayName' | 'avatar'>;
+
+/**
+ * Builds the personal details fields a display name change touches. A generated letter avatar
+ * encodes the initials in its URL, so it is rewritten alongside the name to keep them in sync.
+ */
+function buildOptimisticDisplayNameDetails(
+    firstName: string,
+    lastName: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserPersonalDetails: DisplayNamePersonalDetails,
+): Partial<PersonalDetails> {
+    const letterAvatarURL = UserAvatarUtils.getUpdatedLetterAvatarURL(currentUserPersonalDetails.avatar, firstName, lastName, currentUserPersonalDetails.email ?? '');
+    return {
+        firstName,
+        lastName,
+        displayName: PersonalDetailsUtils.createDisplayName(
+            currentUserPersonalDetails.email ?? '',
+            {
+                firstName,
+                lastName,
+            },
+            formatPhoneNumber,
+        ),
+        ...(letterAvatarURL && {avatar: letterAvatarURL}),
+    };
+}
+
+function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserPersonalDetails: DisplayNamePersonalDetails) {
+    if (!currentUserPersonalDetails.accountID) {
         return;
     }
 
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [currentUserAccountID]: {
-            firstName,
-            lastName,
-            displayName: PersonalDetailsUtils.createDisplayName(
-                currentUserEmail ?? '',
-                {
-                    firstName,
-                    lastName,
-                },
-                formatPhoneNumber,
-            ),
-        },
+        [currentUserPersonalDetails.accountID]: buildOptimisticDisplayNameDetails(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails),
     });
 }
 
-function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
-    if (!currentUserAccountID) {
+function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserPersonalDetails: DisplayNamePersonalDetails) {
+    if (!currentUserPersonalDetails.accountID) {
         return;
     }
 
+    const optimisticDetails = buildOptimisticDisplayNameDetails(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
     const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
     API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
@@ -125,17 +143,20 @@ function updateDisplayName(firstName: string, lastName: string, formatPhoneNumbe
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
-                    [currentUserAccountID]: {
-                        firstName,
-                        lastName,
-                        displayName: PersonalDetailsUtils.createDisplayName(
-                            currentUserEmail ?? '',
-                            {
-                                firstName,
-                                lastName,
-                            },
-                            formatPhoneNumber,
-                        ),
+                    [currentUserPersonalDetails.accountID]: optimisticDetails,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserPersonalDetails.accountID]: {
+                        firstName: currentUserPersonalDetails.firstName ?? null,
+                        lastName: currentUserPersonalDetails.lastName ?? null,
+                        displayName: currentUserPersonalDetails.displayName ?? null,
+                        ...(optimisticDetails.avatar && {avatar: currentUserPersonalDetails.avatar}),
                     },
                 },
             },

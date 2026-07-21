@@ -590,4 +590,25 @@ describe('UserAvatarUtils', () => {
             expect(UserAvatarUtils.getLetterAvatarInitials(firstName, lastName, login)).toBe(expected);
         });
     });
+
+    describe('getUpdatedLetterAvatarURL', () => {
+        const BASE = `${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1`;
+
+        it('rewrites the initials and keeps the color key', () => {
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(`${BASE}/blue100/GM.png`, 'Ada', 'Lovelace', 'georgia@example.com')).toBe(`${BASE}/blue100/AL.png`);
+        });
+
+        it('falls back to the login initial when the name is cleared', () => {
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(`${BASE}/pink400/GM.png`, '', '', 'dave@example.com')).toBe(`${BASE}/pink400/D.png`);
+        });
+
+        it('returns undefined when the new name yields no initials', () => {
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(`${BASE}/pink400/GM.png`, '', '', '+15551234567@expensify.sms')).toBeUndefined();
+        });
+
+        it('returns undefined for non-letter-avatar sources', () => {
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(`${CONST.CLOUDFRONT_URL}/images/avatars/user/uploaded_128.png`, 'Ada', 'Lee', 'dave@example.com')).toBeUndefined();
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(undefined, 'Ada', 'Lee', 'dave@example.com')).toBeUndefined();
+        });
+    });
 });
