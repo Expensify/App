@@ -41,6 +41,8 @@ import {View} from 'react-native';
 type FlagForReviewRulePageBaseProps = {
     policyID: string;
     categoryName?: string;
+    /** Pre-scopes the category when creating a rule (e.g. from the category details RHP). */
+    initialCategoryName?: string;
     testID: string;
 };
 
@@ -52,7 +54,7 @@ function getValidationError(form: FlagForReviewRuleForm | null | undefined, tran
     return getFlagForReviewRuleAmountError(form[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) ?? '';
 }
 
-function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForReviewRulePageBaseProps) {
+function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName, testID}: FlagForReviewRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -83,7 +85,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftFlagForReviewRule({});
+                setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
             }
             return;
         }
@@ -98,7 +100,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, getCurrencyDecimals, isEditing, policyCurrency]);
+    }, [category, categoryName, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {

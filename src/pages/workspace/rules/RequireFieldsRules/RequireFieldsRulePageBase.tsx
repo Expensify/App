@@ -44,6 +44,8 @@ import {View} from 'react-native';
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
     categoryName?: string;
+    /** Pre-scopes the category when creating a rule (e.g. from the category details RHP). */
+    initialCategoryName?: string;
     testID: string;
 };
 
@@ -69,7 +71,7 @@ function getValidationError(
     return '';
 }
 
-function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFieldsRulePageBaseProps) {
+function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -99,7 +101,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftRequireFieldsRule({});
+                setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
             }
             return;
         }
@@ -117,7 +119,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             [INPUT_IDS.CATEGORY]: categoryName,
             ...getRequireFieldsFormFromCategory(category),
         });
-    }, [category, categoryName, isEditing]);
+    }, [category, categoryName, initialCategoryName, isEditing]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {

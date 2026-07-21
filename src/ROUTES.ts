@@ -33,6 +33,10 @@ function getRulesRevampRuleEditSegment(categoryName: string): string {
     return `edit/${encodeURIComponent(categoryName)}`;
 }
 
+function getOptionalCategoryNameQuery(categoryName?: string): string {
+    return categoryName ? `?categoryName=${encodeURIComponent(categoryName)}` : '';
+}
+
 // This is a file containing constants for all the routes we want to be able to go to
 
 /**
@@ -3198,7 +3202,7 @@ const ROUTES = {
     },
     RULES_REQUIRE_FIELDS_RULE_NEW: {
         route: 'workspaces/:policyID/rules/require-fields-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields-rules/new` as const,
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/require-fields-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_REQUIRE_FIELDS_RULE_EDIT: {
         route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName',
@@ -3214,7 +3218,7 @@ const ROUTES = {
     },
     RULES_FLAG_FOR_REVIEW_RULE_NEW: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new` as const,
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_EDIT: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName',
@@ -3278,11 +3282,11 @@ const ROUTES = {
     },
     RULES_NEW: {
         route: 'workspaces/:policyID/rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/new` as const,
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/merchant-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_MERCHANT_IMPORT: {
         route: 'workspaces/:policyID/rules/merchant-rules/import',

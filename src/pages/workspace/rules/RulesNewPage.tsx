@@ -27,7 +27,7 @@ import {View} from 'react-native';
 type RulesNewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>;
 
 function RulesNewPage({route}: RulesNewPageProps) {
-    const {policyID} = route.params;
+    const {policyID, categoryName} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -72,7 +72,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             title={translate('workspace.rules.newRule.flagForReview')}
                             description={translate('workspace.rules.newRule.flagForReviewDescription')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, categoryName))}
                             displayInDefaultIconColor
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
@@ -84,7 +84,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             title={translate('workspace.rules.newRule.requireFields')}
                             description={translate('workspace.rules.newRule.requireFieldsDescription')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, categoryName))}
                             displayInDefaultIconColor
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
@@ -96,7 +96,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             title={translate('workspace.rules.newRule.applyExpenseDefaults')}
                             description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID, categoryName))}
                             displayInDefaultIconColor
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
