@@ -6,6 +6,8 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
+type ViolationsInactiveVendorParams = {isSupplier?: boolean};
+
 type IntegrationsMessageParams = {
     label: string;
     result: {
@@ -28,6 +30,7 @@ type UnshareParams = {to: string};
 export type {
     ParentNavigationSummaryParams,
     StepCounterParams,
+    ViolationsInactiveVendorParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,

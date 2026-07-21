@@ -1,26 +1,32 @@
-import React from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
+import type {OptionTree} from '@libs/OptionsListUtils/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+    shouldShowNoneOption?: boolean;
 
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
@@ -42,7 +48,7 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -67,7 +73,28 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         translate,
     });
 
-    const categoryData = sections?.at(0)?.data ?? [];
+    const noneOption: OptionTree[] = shouldShowNoneOption
+        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map(
+              (option): OptionTree => ({
+                  text: option.text,
+                  keyForList: option.keyForList,
+                  searchText: '',
+                  tooltipText: option.text,
+                  isDisabled: false,
+                  isSelected: option.isSelected,
+              }),
+          )
+        : [];
+    const noneOptionSection = {
+        title: '',
+        data: noneOption,
+        sectionIndex: -1,
+    };
+    const selectedCategorySectionIndex = sections.findIndex((section) => section.data.some((category) => category.searchText === selectedCategory));
+    const sectionsWithNoneOption =
+        noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
+
+    const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
 
@@ -83,7 +110,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
 
     return (
         <SelectionListWithSections
-            sections={sections}
+            sections={sectionsWithNoneOption}
             onSelectRow={onSubmit}
             ListItem={SingleSelectListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}

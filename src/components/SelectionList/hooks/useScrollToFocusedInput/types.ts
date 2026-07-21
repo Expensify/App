@@ -1,7 +1,8 @@
+import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {FlashListRef} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
-import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
 type UseScrollToFocusedInputResult = {
     /** Attach to the list's outer container; its top is used as a stable anchor to pull focused inputs up to. */

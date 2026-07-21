@@ -1,14 +1,19 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
+import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
@@ -29,7 +34,7 @@ Onyx.connectWithoutView({
 function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -60,7 +65,7 @@ function getReportIDAfterOnboarding(
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -95,7 +100,7 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    } else {
+    } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME);
     }
@@ -104,7 +109,7 @@ function navigateAfterOnboarding(
 function navigateAfterOnboardingWithMicrotaskQueue(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,

@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import lightTheme from './light';
 
 const lightContrastTheme = {

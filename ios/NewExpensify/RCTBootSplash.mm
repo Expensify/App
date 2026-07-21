@@ -1,5 +1,12 @@
 #import "RCTBootSplash.h"
 
+#if __has_include("DeviceIntegrityChecks.h")
+#import "DeviceIntegrityChecks.h"
+#define DIC_SHOULD_BLOCK_SPLASH dic_should_block_splash()
+#else
+#define DIC_SHOULD_BLOCK_SPLASH false
+#endif
+
 #import <React/RCTUtils.h>
 
 #import <React/RCTSurfaceHostingProxyRootView.h>
@@ -132,6 +139,11 @@ RCT_EXPORT_MODULE();
 }
 
 + (void)onJavaScriptDidFailToLoad {
+  if (DIC_SHOULD_BLOCK_SPLASH) {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    return;
+  }
+
   [self hideAndClearPromiseQueue];
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
@@ -158,6 +170,10 @@ RCT_EXPORT_MODULE();
 }
 
 + (void)hide:(BOOL)fade {
+  if (DIC_SHOULD_BLOCK_SPLASH) {
+    return [RCTBootSplash clearResolveQueue];
+  }
+
   if (![RCTBootSplash isLoadingViewVisible] || RCTRunningInAppExtension())
     return [RCTBootSplash clearResolveQueue];
 
@@ -178,6 +194,11 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
+  if (DIC_SHOULD_BLOCK_SPLASH) {
+    reject(@"JAILBREAK_DETECTED", @"BootSplash blocked on jailbroken device", nil);
+    return;
+  }
+
   [self hideImpl:0 resolve:resolve];
 }
 

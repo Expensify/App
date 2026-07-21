@@ -1,5 +1,6 @@
-import {useEffect, useMemo} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
+import {useEffect, useMemo} from 'react';
 
 type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Array of items to search in */

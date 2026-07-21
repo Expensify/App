@@ -1,7 +1,10 @@
-import {Str} from 'expensify-common';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+
 import useOnyx from './useOnyx';
 
 const useHasPhoneNumberLogin = () => {

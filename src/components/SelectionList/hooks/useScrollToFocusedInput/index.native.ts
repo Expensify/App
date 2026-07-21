@@ -1,8 +1,12 @@
-import {useCallback, useEffect, useRef} from 'react';
-import type {EmitterSubscription, NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
-import {KeyboardEvents} from 'react-native-keyboard-controller';
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
 import CONST from '@src/CONST';
+
+import type {EmitterSubscription, NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
+
+import {useCallback, useEffect, useRef} from 'react';
+import {KeyboardEvents} from 'react-native-keyboard-controller';
+
 import type {UseScrollToFocusedInput} from './types';
 
 /** Extra space (px) left between the focused input and the top of the visible list area after scrolling. */

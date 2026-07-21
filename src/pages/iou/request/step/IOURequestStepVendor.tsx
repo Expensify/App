@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,19 +11,26 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
+import {getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import React, {useState} from 'react';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type VendorListItem = ListItem & {
@@ -56,12 +63,14 @@ function IOURequestStepVendor({
     const delegateAccountID = useDelegateAccountID();
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isOnXero = isXeroActiveMatchingSource(policy);
 
-    // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the QBO CC vendor-matching flow).
+    // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const vendors = getMatchingVendors(policy);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
+    const vendorLabel = isOnXero ? translate('common.supplier') : translate('common.vendor');
 
     const trimmedSearch = searchValue.trim().toLowerCase();
     const vendorRows: VendorListItem[] = vendors
@@ -118,15 +127,15 @@ function IOURequestStepVendor({
                 icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                title={isOnXero ? translate('workspace.xero.noSuppliersFound') : translate('workspace.qbo.noAccountsFound')}
+                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ) : null;
 
     return (
         <StepScreenWrapper
-            headerTitle={translate('common.vendor')}
+            headerTitle={vendorLabel}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}

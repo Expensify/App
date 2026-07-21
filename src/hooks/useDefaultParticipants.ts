@@ -1,13 +1,18 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useOnyx from './useOnyx';
@@ -23,9 +28,6 @@ type UseDefaultParticipantsParams = {
 
     /** The IOU type from the route params. */
     iouType?: IOUType;
-
-    /** When false, the hook short-circuits and returns an empty list (the new manual expense flow beta is off). */
-    isNewManualExpenseFlowEnabled?: boolean;
 };
 
 /**
@@ -38,7 +40,7 @@ type UseDefaultParticipantsParams = {
  * Shared by `useResetIOUType` (to seed the freshly-rebuilt transaction so the confirmation's auto-assign effect
  * short-circuits) and `IOURequestStepConfirmation` (to compute the participants it auto-assigns) so both stay in sync.
  */
-function useDefaultParticipants({sourceReport, transaction, iouType, isNewManualExpenseFlowEnabled = true}: UseDefaultParticipantsParams): Participant[] {
+function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefaultParticipantsParams): Participant[] {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
@@ -50,10 +52,6 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
     const accountID = currentUserPersonalDetails.accountID;
 
     return useMemo(() => {
-        if (!isNewManualExpenseFlowEnabled) {
-            return [];
-        }
-
         const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
         if (reportParticipants.length > 0) {
             return reportParticipants;
@@ -73,7 +71,6 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
         const defaultTargetReport = shouldAutoReport ? getPolicyExpenseChat(accountID, defaultExpensePolicy?.id) : selfDMReport;
         return getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
     }, [
-        isNewManualExpenseFlowEnabled,
         sourceReport,
         accountID,
         transaction?.isFromGlobalCreate,

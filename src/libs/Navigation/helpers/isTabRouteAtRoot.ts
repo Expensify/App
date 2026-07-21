@@ -1,6 +1,8 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
 import getFocusedLeafScreenName from './getFocusedLeafScreenName';
 
 /**

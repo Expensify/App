@@ -1,24 +1,31 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import React from 'react';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
+
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
+import getPlatform from '@libs/getPlatform';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openLink} from '@userActions/Link';
 import {clearTwoFactorAuthData, quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import React from 'react';
+
 import SuccessPageBase from './SuccessPageBase';
 
 type DynamicSuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS>;
@@ -75,7 +82,14 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         if (dynamicForwardPath) {
             const policyID = route.params?.policyID;
             if (policyID) {
-                openLink(getXeroSetupLink(policyID), environmentURL);
+                // Open Xero setup the same way ConnectToXeroFlow does per platform: on web open the link inline in a
+                // new browser tab (within this button's gesture), on native navigate to the in-app WebView setup
+                // screen. Calling openLink on native would open the external browser instead of the WebView.
+                if (getPlatform() === CONST.PLATFORM.WEB) {
+                    openLink(getXeroSetupLink(policyID), environmentURL);
+                } else {
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(policyID));
+                }
             }
         }
     };

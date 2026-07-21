@@ -1,8 +1,11 @@
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {SectionProps} from '@components/Section';
+
 import Accessibility from '@libs/Accessibility';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import {useMemoizedLazyIllustrations} from './useLazyAsset';
 
 /** Returns a static SVG when reduced motion is enabled, or a Lottie animation otherwise. */

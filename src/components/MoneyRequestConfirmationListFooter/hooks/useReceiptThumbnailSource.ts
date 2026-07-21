@@ -1,10 +1,14 @@
-import {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
+
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useState} from 'react';
 
 type UseReceiptThumbnailSourceParams = {
     /** Transaction the receipt belongs to */

@@ -1,17 +1,22 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import SortableTableHeader from '@components/Search/SortableTableHeader';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@components/Search/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSortableColumnName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type SearchTableHeaderProps = {
     sortBy?: SearchSortBy;
     sortOrder?: SortOrder;
     onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     dateColumnSize: TableColumnSize;
+    postedColumnSize: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
@@ -23,6 +28,7 @@ function MoneyRequestReportTableHeader({
     sortOrder,
     onSortPress,
     dateColumnSize,
+    postedColumnSize,
     shouldShowSorting,
     columns,
     amountColumnSize,
@@ -82,6 +88,7 @@ function MoneyRequestReportTableHeader({
                 columns={orderedColumnConfig}
                 shouldShowColumn={shouldShowColumn}
                 dateColumnSize={dateColumnSize}
+                postedColumnSize={postedColumnSize}
                 amountColumnSize={amountColumnSize}
                 taxAmountColumnSize={taxAmountColumnSize}
                 shouldShowSorting={shouldShowSorting}

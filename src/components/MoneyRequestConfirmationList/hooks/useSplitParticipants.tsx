@@ -1,20 +1,25 @@
-import React from 'react';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetSplitShares, setIndividualShare} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail} from '@libs/OptionsListUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {Keyboard, View} from 'react-native';
 
 type UseSplitParticipantsParams = {
     /** Whether the current IOU type is split */
@@ -81,7 +86,7 @@ function useSplitParticipants({
             return [];
         }
 
-        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
+        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;

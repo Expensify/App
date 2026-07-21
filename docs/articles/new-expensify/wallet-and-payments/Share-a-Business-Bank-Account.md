@@ -1,19 +1,19 @@
 ---
 title: Share a Business Bank Account
 description: Share a verified business bank account with other Workspace Admins so they can use it without repeating setup.
-keywords: [New Expensify, share business bank account, shared bank, Workspace Admin, verified bank account, bank account access, ACH sharing, shared access, Wallet]
-internalScope: Audience is Workspace Admins with a verified business bank account. Covers sharing a verified business bank account with other admins. Does not cover initial bank account setup, validation, unsharing, or unlocking.
+keywords: [New Expensify, share business bank account, shared bank, Workspace Admin, Payments Admin, verified bank account, bank account access, ACH sharing, shared access, Wallet]
+internalScope: Audience is Workspace Admins and Payments Admins with a verified business bank account. Covers sharing a verified business bank account with other admins. Does not cover initial bank account setup, validation, unsharing, or unlocking.
 ---
 
 # Share a Business Bank Account
 
-If you've already added and verified a business bank account, you can share it with other Workspace Admins. This allows them to use the account without repeating the full setup process.
+If you've already added and verified a business bank account, you can share it with other Workspace Admins and Payments Admins. This allows them to use the account without repeating the full setup process.
 
 ---
 
 ## Who can share a business bank account
 
-- Only **Workspace Admins** can share a business bank account.
+- **Workspace Admins** and **Payments Admins** can share a business bank account.
 - You can only share **verified** business bank accounts that support withdrawals. Deposit-only accounts cannot be shared.
 - You can only share with admins of Workspaces where you are also an admin.
 
@@ -28,7 +28,7 @@ If you've already added and verified a business bank account, you can share it w
 5. Click **Share**.
 6. You'll see a confirmation once the process is complete.
 
-**Note:** You can only share with Workspace Admins from Workspaces where you also have admin access.
+**Note:** You can only share with Workspace Admins and Payments Admins from Workspaces where you also have admin access.
 
 ![Open the wallet page]({{site.url}}/assets/images/Help-ShareBankAccount-1.png){:width="100%"}
 
@@ -67,14 +67,14 @@ Sharing saves time by avoiding repeated setup. It also helps when changing the w
 
 ## Can I share the same bank account with multiple admins?
 
-Yes. You can select multiple Workspace Admins when sharing.
+Yes. You can select multiple admins when sharing.
 
 ## Why don't I see the Share option?
 
 The **Share** option only appears if:
 - The account is verified
 - The account supports withdrawals (deposit-only accounts cannot be shared)
-- There is at least one eligible Workspace Admin you haven’t shared it with
+- There is at least one eligible admin you haven’t shared it with
 
 ## What if the other admin already has a copy of the account?
 

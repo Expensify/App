@@ -1,10 +1,14 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
 
 const HEADING_LEVEL = 3;
 

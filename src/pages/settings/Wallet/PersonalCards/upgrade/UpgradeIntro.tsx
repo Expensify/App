@@ -1,10 +1,9 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -12,10 +11,15 @@ import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type Props = {
     buttonDisabled?: boolean;
@@ -74,13 +78,14 @@ function UpgradeIntro({onUpgrade, buttonDisabled}: Props) {
                     </View>
                 </View>
                 <Button
-                    text={translate('onboarding.workspace.createWorkspace')}
                     testID="upgrade-button"
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('onboarding.workspace.createWorkspace')}</Button.Text>
+                </Button>
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
                 <RenderHTML html={translate('personalCard.note', subscriptionLink)} />

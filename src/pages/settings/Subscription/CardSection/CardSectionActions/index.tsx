@@ -1,11 +1,15 @@
-import React, {useMemo} from 'react';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useMemo} from 'react';
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,

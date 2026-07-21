@@ -1,7 +1,10 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
+
+import React from 'react';
+
 import type {OnboardingPersonalDetailsProps} from './types';
+
+import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
 
 function OnboardingPersonalDetails({...rest}: OnboardingPersonalDetailsProps) {
     return (

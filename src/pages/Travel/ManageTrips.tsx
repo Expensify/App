@@ -1,22 +1,29 @@
-import React, {useCallback, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import {Linking, View} from 'react-native';
 import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useCallback, useRef, useState} from 'react';
+import {Linking, View} from 'react-native';
 
 type ManageTripsProps = {
     policyID: string;

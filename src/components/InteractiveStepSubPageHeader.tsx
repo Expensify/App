@@ -1,15 +1,12 @@
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import Icon from './Icon';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import Text from './Text';
+
+import type {ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import InteractiveStepButton from './InteractiveStepButton';
 
 type InteractiveStepSubPageHeaderProps = {
     /** List of step names to display */
@@ -31,7 +28,6 @@ const MIN_AMOUNT_OF_STEPS = 2;
 function InteractiveStepSubPageHeader({stepNames, currentStepIndex, currentStepAccessibilityDescription, onStepSelected}: InteractiveStepSubPageHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
@@ -54,38 +50,25 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, currentStepA
                 const isLockedStep = currentStepIndex < index;
                 const isLockedLine = currentStepIndex < index + 1;
                 const hasConnectingLine = index < lastStepIndex;
+                const isCurrentStep = currentStepIndex === index;
 
                 return (
                     <View
                         style={[styles.interactiveStepHeaderStepContainer, hasConnectingLine && styles.flex1]}
                         key={stepName}
                     >
-                        <PressableWithFeedback
-                            style={[
-                                styles.interactiveStepHeaderStepButton,
-                                isLockedStep && styles.interactiveStepHeaderLockedStepButton,
-                                isCompletedStep && styles.interactiveStepHeaderCompletedStepButton,
-                                !onStepSelected && styles.cursorDefault,
-                            ]}
-                            disabled={isLockedStep || !onStepSelected}
-                            onPress={() => handleStepPress(isLockedStep, index)}
-                            accessible
-                            role={CONST.ROLE.GROUP}
-                            aria-current={currentStepIndex === index ? 'step' : undefined}
-                            accessibilityState={{selected: currentStepIndex === index}}
-                            accessibilityLabel={translate('stepCounter', index + 1, stepNames.length, currentStepIndex === index ? currentStepAccessibilityDescription : undefined)}
-                        >
-                            {isCompletedStep ? (
-                                <Icon
-                                    src={icons.Checkmark}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                    fill={colors.white}
-                                />
-                            ) : (
-                                <Text style={[styles.interactiveStepHeaderStepText, isLockedStep && styles.textSupporting]}>{index + 1}</Text>
-                            )}
-                        </PressableWithFeedback>
+                        <InteractiveStepButton
+                            stepNumber={index + 1}
+                            stepLabel={translate('stepCounter', {
+                                step: index + 1,
+                                total: stepNames.length,
+                            })}
+                            currentStepDescription={isCurrentStep ? currentStepAccessibilityDescription : undefined}
+                            isCurrentStep={isCurrentStep}
+                            isLockedStep={isLockedStep}
+                            isCompletedStep={isCompletedStep}
+                            onPress={onStepSelected ? () => handleStepPress(isLockedStep, index) : undefined}
+                        />
                         {hasConnectingLine ? <View style={[styles.interactiveStepHeaderStepLine, isLockedLine && styles.interactiveStepHeaderLockedStepLine]} /> : null}
                     </View>
                 );

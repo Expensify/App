@@ -1,6 +1,7 @@
 import Parser from '@libs/Parser';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {getParsedComment} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -17,6 +18,8 @@ type ConciergeDraft = {
     pusherQueuedTargetEvents?: ConciergeDraftEvent[];
     /** Completion event held while the Pusher pacer is still revealing banked text. */
     pusherPendingCompletionEvent?: ConciergeDraftEvent;
+    /** Terminal lifecycle event used to reject stale chunks after a content-free completion. */
+    pusherTerminalEvent?: ConciergeDraftEvent;
     /** Number of UTF-16 source units consumed from the current Pusher target. */
     pusherVisibleSourceOffset?: number;
     /** Source markdown prefix consumed from the current Pusher target, used to detect server-side corrections. */
@@ -35,6 +38,7 @@ type BuildConciergeDraftReportActionParams = {
     finalRenderedHTML?: string;
     reportActionID: string;
     reportID: string;
+    isGroupPolicyReport: boolean;
 };
 
 type TextRange = {
@@ -579,8 +583,16 @@ function stripIncompleteMarkdown(markdown: string): string {
     return result;
 }
 
-function buildConciergeDraftReportAction({actorAccountID, bodyMarkdown, created, finalRenderedHTML, reportActionID, reportID}: BuildConciergeDraftReportActionParams): ReportAction | null {
-    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}) : '');
+function buildConciergeDraftReportAction({
+    actorAccountID,
+    bodyMarkdown,
+    created,
+    finalRenderedHTML,
+    reportActionID,
+    reportID,
+    isGroupPolicyReport,
+}: BuildConciergeDraftReportActionParams): ReportAction | null {
+    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}, undefined, undefined, isGroupPolicyReport) : '');
 
     if (!html) {
         return null;
@@ -651,10 +663,6 @@ function getNextVisibleConciergeDraftMarkdown(
     };
 }
 
-function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, targetBodyMarkdown: string): string {
-    return getNextVisibleConciergeDraftMarkdown(currentBodyMarkdown, targetBodyMarkdown).bodyMarkdown;
-}
-
 // Module-level cache so a chat re-mount (ReportScreen unmount/remount on chat
 // switch) preserves the in-progress draft. Without this the gate's local state
 // resets to null on every revisit and the synthetic bubble disappears for the
@@ -675,7 +683,7 @@ function setCachedDraft(reportID: string, draft: ConciergeDraft | null): void {
     }
 }
 
-function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string): ConciergeDraft | null {
+function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string, isGroupPolicyReport: boolean): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
     }
@@ -702,6 +710,7 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
             finalRenderedHTML: event.finalRenderedHTML,
             reportActionID: event.reportActionID,
             reportID: event.reportID,
+            isGroupPolicyReport,
         }) ?? currentDraft?.reportAction;
 
     if (!nextReportAction) {
@@ -718,13 +727,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {
-    applyConciergeDraftEvent,
-    CONCIERGE_DRAFT_STATUS,
-    getCachedDraft,
-    getNextVisibleConciergeDraftBodyMarkdown,
-    getNextVisibleConciergeDraftMarkdown,
-    setCachedDraft,
-    stripIncompleteMarkdown,
-};
+export {applyConciergeDraftEvent, CONCIERGE_DRAFT_STATUS, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown};
 export type {ConciergeDraft};

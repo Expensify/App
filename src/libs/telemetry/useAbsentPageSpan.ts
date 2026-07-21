@@ -1,8 +1,12 @@
+import {useInitialURLState} from '@components/InitialURLContextProvider';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+
 import {useEffect, useRef} from 'react';
 import {Platform} from 'react-native';
-import {useInitialURLState} from '@components/InitialURLContextProvider';
-import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+
 import {endSpan, startSpan} from './activeSpans';
 
 export default function useAbsentPageSpan() {

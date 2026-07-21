@@ -1,10 +1,14 @@
-import type {OnyxKey} from 'react-native-onyx';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
+
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './types';
 
 // If we're executing any of these requests, we don't need to trigger our OnyxUpdates flow to update the current data even if our current value is out of

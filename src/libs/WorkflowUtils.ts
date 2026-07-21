@@ -1,8 +1,7 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -12,6 +11,12 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './HRUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
@@ -644,7 +649,12 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
 /**
  * Get eligible business bank accounts for the workspace reimbursement workflow
  */
-function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined, shouldIncludePartiallySetup?: boolean) {
+function getEligibleExistingBusinessBankAccounts(
+    bankAccountList: BankAccountList | undefined,
+    policyCurrency: string | undefined,
+    shouldIncludePartiallySetup?: boolean,
+    excludeBankAccountID?: number,
+) {
     if (!bankAccountList || policyCurrency === undefined) {
         return [];
     }
@@ -653,7 +663,8 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
         return (
             account.bankCurrency === policyCurrency &&
             (account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldIncludePartiallySetup && isBankAccountPartiallySetup(account.accountData?.state))) &&
-            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account.methodID !== excludeBankAccountID
         );
     });
 }

@@ -1,14 +1,16 @@
-import * as RNLocalize from 'react-native-localize';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
+
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
+
+import * as RNLocalize from 'react-native-localize';
+import Onyx from 'react-native-onyx';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';

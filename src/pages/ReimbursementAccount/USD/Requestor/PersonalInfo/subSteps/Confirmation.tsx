@@ -1,13 +1,18 @@
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useMemo} from 'react';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.PERSONAL_INFO;

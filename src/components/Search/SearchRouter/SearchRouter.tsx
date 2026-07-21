@@ -1,10 +1,3 @@
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {TextInputProps} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -16,6 +9,7 @@ import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/Searc
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -29,8 +23,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {scrollToRight} from '@libs/InputUtils';
 import backHistory from '@libs/Navigation/helpers/backHistory';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -41,16 +37,30 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
 import {setSearchContext} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
-import {buildSubstitutionsMap} from './buildSubstitutionsMap';
+
+import type {TextInputProps} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {deepEqual} from 'fast-equals';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+
+import {buildSubstitutionsMap} from './buildSubstitutionsMap';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterContext';
@@ -77,7 +87,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
@@ -85,6 +94,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {query: pendingInitialQuery, isFromSearchPageSearchButton} = peekPendingRouterState();
     const {currentSearchQueryJSON} = useSearchQueryContext();
@@ -92,6 +102,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
 
@@ -120,6 +131,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             translate,
             feedKeysWithCards,
             reportAttributes,
+            bankAccountList,
         });
         const substitutions = buildSubstitutionsMap(
             currentSearchQueryJSON.inputQuery,
@@ -132,6 +144,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             currentUserAccountID,
             translate,
             reportAttributes,
+            bankAccountList,
         );
         return [query, substitutions];
     });
@@ -360,13 +373,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             const setFocusAndScrollToRight = () => {
-                InteractionManager.runAfterInteractions(() => {
-                    if (!textInputRef.current) {
-                        return;
-                    }
-                    textInputRef.current.focus();
-                    scrollToRight(textInputRef.current);
-                });
+                if (!textInputRef.current) {
+                    return;
+                }
+                textInputRef.current.focus();
+                scrollToRight(textInputRef.current);
             };
 
             if (isSearchQueryItem(item)) {
