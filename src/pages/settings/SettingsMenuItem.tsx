@@ -53,8 +53,6 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
         <MenuItem
             wrapperStyle={wrapperStyle}
             title={keyTitle}
-            icon={item.icon}
-            iconType={item.iconType}
             disabled={isExecuting}
             onPress={onPress}
             iconStyles={item.iconStyles}
