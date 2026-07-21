@@ -32,6 +32,7 @@ function getAnchoredPreviewPosition(anchorPosition: AnchorPosition | undefined, 
     const rightOfThumbnail = anchorPosition.left + anchorPosition.width + RECEIPT_PREVIEW_GAP;
     const fitsLeft = leftOfThumbnail >= RECEIPT_PREVIEW_EDGE_MARGIN;
     const preferredLeft = fitsLeft ? leftOfThumbnail : rightOfThumbnail;
+
     // Clamp so the preview stays on-screen even when neither side has enough room (narrow viewports).
     const maxLeft = windowWidth - RECEIPT_PREVIEW_WIDTH - RECEIPT_PREVIEW_EDGE_MARGIN;
     const left = Math.max(RECEIPT_PREVIEW_EDGE_MARGIN, Math.min(preferredLeft, maxLeft));
