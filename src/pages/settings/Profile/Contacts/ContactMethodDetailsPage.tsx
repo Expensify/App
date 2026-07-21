@@ -112,7 +112,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         // Restrict the user from switching their default contact method if their domain security group
         // restricts primary login switching. Defaults to NOT restricted when the user has no security group.
         return !!securityGroup?.enableRestrictedPrimaryLogin;
-    }, [securityGroup]);
+    }, [securityGroup?.enableRestrictedPrimaryLogin]);
 
     /**
      * Checks if the user is allowed to change their default contact method.
