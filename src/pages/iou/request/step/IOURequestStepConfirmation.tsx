@@ -307,7 +307,7 @@ function IOURequestStepConfirmation({
 
     const sourceReportID = transaction?.reportID ?? reportID;
     const sourceReport = useMemo(() => (sourceReportID ? getReportOrDraftReport(sourceReportID) : undefined), [sourceReportID]);
-    const resolvedDefaultParticipants = useDefaultParticipants({sourceReport, transaction, iouType});
+    const {participants: resolvedDefaultParticipants, isLoading: areDefaultParticipantsLoading} = useDefaultParticipants({sourceReport, transaction, iouType});
     const defaultParticipants = useMemo(() => {
         // Don't override the participants the user has already selected, and bail when there is no source report.
         const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
@@ -321,11 +321,17 @@ function IOURequestStepConfirmation({
         if (!transaction?.transactionID) {
             return false;
         }
+        // While the default-participant sources are still hydrating, an empty `defaultParticipants` means "not resolved
+        // yet", not "no default". Wait for them to settle before deciding to auto-open, otherwise the picker briefly
+        // appears and then disappears once the default (e.g. the self DM when submissions are disabled) resolves.
+        if (areDefaultParticipantsLoading) {
+            return false;
+        }
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
         return !hasTransactionParticipants && !hasDefaultParticipants && isManualRequest;
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isManualRequest]);
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isManualRequest, areDefaultParticipantsLoading]);
     const activeTransactionID = transaction?.transactionID;
     const [manuallyOpenedParticipantPickerForTransactionID, setManuallyOpenedParticipantPickerForTransactionID] = useState<string | undefined>();
     const [dismissedAutoOpenParticipantPickerForTransactionID, setDismissedAutoOpenParticipantPickerForTransactionID] = useState<string | undefined>();

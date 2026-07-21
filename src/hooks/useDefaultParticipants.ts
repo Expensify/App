@@ -19,6 +19,13 @@ import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
 import useSelfDMReport from './useSelfDMReport';
 
+/**
+ * Stable selector used purely to read a collection's load status without subscribing to its value. Returning a
+ * constant keeps the selected value identical across updates, so these subscriptions only re-render on the
+ * loading -> loaded transition rather than on every policy/report change.
+ */
+const readLoadStatusOnly = () => true;
+
 type UseDefaultParticipantsParams = {
     /** The report the expense is being created from. Participants are derived from this report when it has any. */
     sourceReport: OnyxEntry<Report>;
@@ -30,6 +37,15 @@ type UseDefaultParticipantsParams = {
     iouType?: IOUType;
 };
 
+type DefaultParticipantsResult = {
+    /** The participants an expense should be created with. */
+    participants: Participant[];
+
+    /** Whether the Onyx data that backs the resolution is still hydrating. While true, an empty `participants` list
+     * means "not resolved yet" rather than "no default", so callers must not treat it as a final answer. */
+    isLoading: boolean;
+};
+
 /**
  * Resolves the participants an expense should be created with.
  *
@@ -37,21 +53,36 @@ type UseDefaultParticipantsParams = {
  * expense is started from the global "Create" (FAB) entry point, it falls back to the default expense policy chat
  * (or the selfDM report when auto-reporting is off), mirroring the resolution the confirmation step performs.
  *
+ * Also reports whether the Onyx sources it depends on are still loading, so callers can distinguish "no default
+ * participants" from "defaults not resolved yet" (e.g. to avoid briefly auto-opening the participant picker while
+ * the policy/report data is still hydrating).
+ *
  * Shared by `useResetIOUType` (to seed the freshly-rebuilt transaction so the confirmation's auto-assign effect
  * short-circuits) and `IOURequestStepConfirmation` (to compute the participants it auto-assigns) so both stay in sync.
  */
-function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefaultParticipantsParams): Participant[] {
+function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefaultParticipantsParams): DefaultParticipantsResult {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed, amountOwedMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds, userBillingGracePeriodEndsMetadata] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    // Status-only subscriptions for the collections that back the fallback resolution (`defaultExpensePolicy` reads the
+    // policy collection, `selfDMReport`/the policy expense chat read the report collection). See `readLoadStatusOnly`.
+    const [, policyMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: readLoadStatusOnly});
+    const [, reportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: readLoadStatusOnly});
 
     const accountID = currentUserPersonalDetails.accountID;
 
-    return useMemo(() => {
+    const isLoading =
+        amountOwedMetadata.status === 'loading' ||
+        userBillingGracePeriodEndsMetadata.status === 'loading' ||
+        ownerBillingGracePeriodEndMetadata.status === 'loading' ||
+        policyMetadata.status === 'loading' ||
+        reportMetadata.status === 'loading';
+
+    const participants = useMemo(() => {
         const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
         if (reportParticipants.length > 0) {
             return reportParticipants;
@@ -83,6 +114,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
         personalPolicy?.autoReporting,
         selfDMReport,
     ]);
+
+    return useMemo(() => ({participants, isLoading}), [participants, isLoading]);
 }
 
 export default useDefaultParticipants;

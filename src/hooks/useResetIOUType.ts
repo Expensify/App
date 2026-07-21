@@ -91,7 +91,7 @@ function useResetIOUType({
     // Derive participants from the current report (or the global-create fallback) so the freshly-rebuilt
     // transaction already includes them. This prevents the embedded confirmation's auto-assign useEffect from
     // re-firing on every cleanup and dragging back unrelated draft state (receipt, billable, etc.).
-    const resolvedDefaultParticipants = useDefaultParticipants({
+    const {participants: resolvedDefaultParticipants} = useDefaultParticipants({
         sourceReport: report,
         transaction,
         iouType,
