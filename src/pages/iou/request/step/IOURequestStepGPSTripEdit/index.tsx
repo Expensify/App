@@ -124,7 +124,7 @@ function IOURequestStepGPSTripEdit({
             testID="IOURequestStepGPSTripEdit"
         >
             <View style={[styles.flex1, isInLandscapeMode && styles.flexRow, styles.w100]}>
-                <View style={[styles.mapViewContainer, {minHeight: undefined}]}>
+                <View style={styles.flex1}>
                     <DistanceMapView
                         shouldDisplayCurrentLocation={false}
                         accessToken={mapboxAccessToken?.token ?? ''}

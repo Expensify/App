@@ -15,6 +15,7 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import {scheduleOnRN} from 'react-native-worklets';
 
 type SliderProps = {
+    /** Function called when the slider ratio changes */
     onSliderRatioChange: (ratio: number) => void;
 };
 
@@ -57,7 +58,7 @@ function Slider({onSliderRatioChange}: SliderProps) {
     }));
 
     return (
-        <View style={[{height: 64}, styles.ph5, styles.justifyContentCenter]}>
+        <View style={styles.editStopSliderBarContainer}>
             <View
                 style={styles.sliderBar}
                 onLayout={(e) => {

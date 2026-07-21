@@ -5,7 +5,7 @@ import {updateGpsTripNotificationDistance} from '@pages/iou/request/step/IOURequ
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
-import type {GPSPoint, GPSPointAddress} from '@src/types/onyx/GpsDraftDetails';
+import type {GPSPoint, GPSPointAddress, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import geodesicDistance from '@src/utils/geodesicDistance';
 
@@ -203,6 +203,13 @@ function resetTripTrim() {
         trimmedEndPoint: null,
     });
 }
+
+function updateTrimmedEndPoint(trimmedEndPoint: TrimmedGPSPoint) {
+    Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
+        trimmedEndPoint,
+    });
+}
+
 export {
     resetGPSDraftDetails,
     initGpsDraft,
@@ -215,4 +222,5 @@ export {
     applyTrimmedTrip,
     resetTripTrim,
     updateGpsPoints,
+    updateTrimmedEndPoint,
 };

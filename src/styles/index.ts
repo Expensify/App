@@ -3783,6 +3783,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.sliderBarHeight / 2,
         },
 
+        editStopSliderBarContainer: {
+            height: 64,
+            paddingHorizontal: 20,
+            justifyContent: 'center',
+        },
+
         sliderBar: {
             backgroundColor: theme.border,
             height: variables.sliderBarHeight,
