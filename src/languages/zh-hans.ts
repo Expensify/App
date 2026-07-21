@@ -5747,6 +5747,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
+            showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
             emptyCategories: {
