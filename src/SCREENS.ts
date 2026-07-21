@@ -600,6 +600,7 @@ const SCREENS = {
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects_Select',
             NETSUITE_REUSE_EXISTING_CONNECTIONS: 'Policy_Accounting_NetSuite_Reuse_Existing_Connections',
             NETSUITE_TOKEN_INPUT: 'Policy_Accounting_NetSuite_Token_Input',
+            NETSUITE_SETUP: 'Policy_Accounting_NetSuite_Setup',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_NetSuite_Subsidiary_Selector',
             NETSUITE_IMPORT: 'Policy_Accounting_NetSuite_Import',
             DYNAMIC_NETSUITE_EXPORT: 'Dynamic_Policy_Accounting_NetSuite_Export',

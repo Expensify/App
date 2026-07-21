@@ -5203,6 +5203,14 @@ ${amount} para ${merchant} - ${date}`,
                         title: 'Habilitar servicios web SOAP',
                         description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar funciones > SuiteCloud* > habilitar *Servicios Web SOAP*.',
                     },
+                    enableOAuth: {
+                        title: 'Habilitar OAuth 2.0',
+                        description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar funciones > SuiteCloud* > en *Gestionar autenticación*, habilitar *OAuth 2.0*.',
+                    },
+                    enableRestWebServices: {
+                        title: 'Habilitar servicios web REST',
+                        description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar funciones > SuiteCloud* > en *SuiteTalk (servicios web)*, habilitar *Servicios Web REST*.',
+                    },
                     createAccessToken: {
                         title: 'Crear un token de acceso',
                         description:
