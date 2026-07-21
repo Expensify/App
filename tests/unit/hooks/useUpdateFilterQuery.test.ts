@@ -24,7 +24,22 @@ jest.mock('@components/Search/SearchContext', () => ({
 
 jest.mock('@libs/Navigation/Navigation');
 
-const queryJSON = {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC} as SearchQueryJSON;
+const queryJSON: SearchQueryJSON = {
+    hash: 0,
+    recentSearchHash: 0,
+    similarSearchHash: 0,
+    groupBy: undefined,
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+    view: CONST.SEARCH.VIEW.TABLE,
+    flatFilters: [],
+    inputQuery: '',
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, right: ''},
+    columns: undefined,
+    limit: undefined,
+    rawFilterList: undefined,
+};
 
 describe('useUpdateFilterQuery', () => {
     beforeEach(() => {

@@ -9,16 +9,16 @@ import SearchAdvancedFiltersProvider, {SearchAdvancedFiltersActionContext, Searc
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-import React, {useContext} from 'react';
+import {useContext} from 'react';
 
-const mockUseOnyx = jest.fn();
+const mockUseOnyx = jest.fn<[Partial<SearchAdvancedFiltersForm> | undefined], []>();
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: () => mockUseOnyx(),
 }));
 
-const mockGetUpdatedFilterFormValues = jest.fn((current: unknown, next: unknown) => ({...(current as object), ...(next as object)}));
+const mockGetUpdatedFilterFormValues = jest.fn((current: Record<string, unknown>, next: Record<string, unknown>) => ({...current, ...next}));
 const mockSetFilterQueryParams = jest.fn();
 
 jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
@@ -26,13 +26,13 @@ jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
     default: () => ({getUpdatedFilterFormValues: mockGetUpdatedFilterFormValues, setFilterQueryParams: mockSetFilterQueryParams}),
 }));
 
-const mockUseSearchQueryContext = jest.fn();
+const mockUseSearchQueryContext = jest.fn<QueryContext, []>();
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockUseSearchQueryContext(),
 }));
 
-const mockSetSearchContext = jest.fn();
+const mockSetSearchContext = jest.fn<void, unknown[]>();
 
 jest.mock('@libs/actions/Search', () => ({
     setSearchContext: (...args: unknown[]) => mockSetSearchContext(...args),
@@ -76,9 +76,9 @@ describe('SearchAdvancedFiltersProvider', () => {
         mockGetUpdatedFilterFormValues.mockClear();
         mockSetFilterQueryParams.mockClear();
         mockSetSearchContext.mockClear();
-        (Navigation.setParams as jest.Mock).mockClear();
+        jest.mocked(Navigation.setParams).mockClear();
         // Make dismissModal run the afterTransition callback synchronously so resetFilters/applyFilters take effect.
-        (Navigation.dismissModal as jest.Mock).mockImplementation((options?: {afterTransition?: () => void}) => options?.afterTransition?.());
+        jest.mocked(Navigation.dismissModal).mockImplementation((options?: {afterTransition?: () => void}) => options?.afterTransition?.());
     });
 
     describe('shouldShowResetFilters', () => {

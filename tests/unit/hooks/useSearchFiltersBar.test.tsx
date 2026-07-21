@@ -1,17 +1,18 @@
 import {renderHook} from '@testing-library/react-native';
 
-import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import useSearchFiltersBar from '@components/Search/SearchPageHeader/useSearchFiltersBar';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
 const mockSetFilterQueryParams = jest.fn();
 const mockUpdateFilterQueryParams = jest.fn();
+const mockUseSearchResultsContext = jest.fn<Record<string, unknown>, []>();
+const mockUseSearchQueryContext = jest.fn<Record<string, unknown>, []>();
+const mockMapFiltersFormToLabelValueList = jest.fn<unknown[], unknown[]>();
 
 jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
     __esModule: true,
@@ -19,19 +20,33 @@ jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
-    ...jest.requireActual('@libs/SearchUIUtils'),
-    mapFiltersFormToLabelValueList: jest.fn(),
+    mapFiltersFormToLabelValueList: (...args: unknown[]) => mockMapFiltersFormToLabelValueList(...args),
 }));
 
-jest.mock('@components/Search/SearchContext');
+jest.mock('@components/Search/SearchContext', () => ({
+    useSearchResultsContext: () => mockUseSearchResultsContext(),
+    useSearchQueryContext: () => mockUseSearchQueryContext(),
+}));
+
 jest.mock('@libs/actions/Search');
 jest.mock('@libs/Navigation/Navigation');
 
-const mockUseSearchResultsContext = useSearchResultsContext as jest.Mock;
-const mockUseSearchQueryContext = useSearchQueryContext as jest.Mock;
-const mockMapFiltersFormToLabelValueList = mapFiltersFormToLabelValueList as jest.Mock;
-
-const queryJSON = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC} as SearchQueryJSON;
+const queryJSON: SearchQueryJSON = {
+    hash: 0,
+    recentSearchHash: 0,
+    similarSearchHash: 0,
+    groupBy: undefined,
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+    view: CONST.SEARCH.VIEW.TABLE,
+    flatFilters: [],
+    inputQuery: '',
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, right: ''},
+    columns: undefined,
+    limit: undefined,
+    rawFilterList: undefined,
+};
 
 function mockSearchResultsContext(overrides: Record<string, unknown> = {}) {
     mockUseSearchResultsContext.mockReturnValue({shouldShowFiltersBarLoading: false, currentSearchResults: undefined, ...overrides});
