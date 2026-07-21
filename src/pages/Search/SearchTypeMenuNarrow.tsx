@@ -80,6 +80,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const {translate, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections(
         {
@@ -204,6 +205,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
+                    isBadgeCondensed: true,
+                    badgeStyles: styles.tabSelectorBadge,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
                 if (item.key === activeTypeMenuKey) {
