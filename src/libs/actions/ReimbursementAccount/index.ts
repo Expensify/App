@@ -1,3 +1,5 @@
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -41,6 +43,28 @@ function clearReimbursementAccountDraft() {
 
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+}
+
+/**
+ * Prepares the app to set up a new bank account by marking the account change, clearing existing data,
+ * and initializing draft with country and currency.
+ * We need to temporarily clear this data to set up new account without disconnecting existing one
+ */
+function prepareNewBankAccountSetup(currency: string) {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
+    clearReimbursementAccount();
+    clearReimbursementAccountDraft();
+    updateReimbursementAccountDraft({
+        country: mapCurrencyToCountry(currency),
+        currency,
+    });
+}
+
+/**
+ * Cancels the change to new bank account
+ */
+function cancelChangingToNewBankAccount() {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, false);
 }
 
 /**
@@ -88,4 +112,6 @@ export {
     setReimbursementAccountOptionPressed,
     updateReimbursementAccount,
     resetReimbursementAccount,
+    cancelChangingToNewBankAccount,
+    prepareNewBankAccountSetup,
 };
