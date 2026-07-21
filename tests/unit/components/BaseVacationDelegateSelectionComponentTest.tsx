@@ -14,9 +14,14 @@ import type {PersonalDetails} from '@src/types/onyx';
 
 import React from 'react';
 
+// The component reads `formatPhoneNumber` from `useLocalize`. The real one depends on the Onyx
+// country code (not initialized here), so provide a deterministic stub that mirrors the behavior the
+// fix relies on: strip the SMS domain so a phone login is no longer rendered as `<phone>@expensify.sms`,
+// and return non-phone strings (e.g. emails) untouched.
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+        formatPhoneNumber: (value: string) => (value ? value.replace('@expensify.sms', '') : ''),
     })),
 );
 
@@ -61,19 +66,6 @@ jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
 
 jest.mock('@libs/actions/Report', () => ({
     searchUserInServer: jest.fn(),
-}));
-
-// formatPhoneNumber depends on Onyx country code, which is not initialized in this unit test.
-// Replace it with a deterministic implementation that mirrors the part of the real behavior the
-// fix relies on: strip the SMS domain so a phone-number login is no longer rendered as
-// `<phone>@expensify.sms`, and return non-phone strings (e.g. emails) untouched.
-jest.mock('@libs/LocalePhoneNumber', () => ({
-    formatPhoneNumber: jest.fn((value: string) => {
-        if (!value) {
-            return '';
-        }
-        return value.replace('@expensify.sms', '');
-    }),
 }));
 
 // `parsePhoneNumber` runs through awesome-phonenumber and would actually transform a number like
