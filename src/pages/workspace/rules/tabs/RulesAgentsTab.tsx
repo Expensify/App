@@ -89,7 +89,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
             contentContainerStyle={[styles.flexGrow1, styles.w100]}
             addBottomSafeAreaPadding
         >
-            <View style={[styles.w100, styles.alignSelfCenter, styles.workspaceSection]}>
+            <View style={[styles.w100, styles.workspaceSection]}>
                 <Section
                     isCentralPane
                     renderTitle={renderTitle}
