@@ -16,7 +16,7 @@ import SCREENS from '@src/SCREENS';
 import type {NavigationState} from '@react-navigation/routers';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
@@ -55,6 +55,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
+    const [prevCurrentSearchHash, setPrevCurrentSearchHash] = useState(currentSearchHash);
 
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -89,12 +90,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
 
-    const resetSearchKey = (queryJSON = currentSearchQueryJSON) => {
-        setCurrentSearchKey(getInitialCurrentSearchKey(queryJSON));
-    };
-
-    const setInitialCurrentSearchKey = useEffectEvent(() => setCurrentSearchKey(getInitialCurrentSearchKey()));
-
     const currentQueryFilterKeys = new Set(currentSearchQueryJSON?.flatFilters.map((filter) => filter.key));
     const currentDefaultSearchQueryString = currentSearchKey
         ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
@@ -103,7 +98,13 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentDefaultSearchHash = currentDefaultSearchQueryJSON?.hash;
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
-    const resetCurrentSearchKeyIfInvalid = useEffectEvent(() => {
+    const resetSearchKey = (queryJSON = currentSearchQueryJSON) => {
+        setCurrentSearchKey(getInitialCurrentSearchKey(queryJSON));
+    };
+
+    if (currentSearchHash !== prevCurrentSearchHash) {
+        setPrevCurrentSearchHash(currentSearchHash);
+
         // Every time the query changes, we invalidate the currentSearchKey if the new query doesn't have the default filters
         // from the currently selected search key query or the type is different. For example, the "Card statements" suggested
         // search default filters are Feed and Posted. When the query changes (by removing Posted), the search key becomes invalid,
@@ -111,12 +112,8 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         if ([...currentDefaultSearchQueryFilterKeys].every((value) => currentQueryFilterKeys.has(value)) && currentSearchQueryJSON?.type === currentDefaultSearchQueryJSON?.type) {
             return;
         }
-        setInitialCurrentSearchKey();
-    });
-
-    useEffect(() => {
-        resetCurrentSearchKeyIfInvalid();
-    }, [currentSearchHash]);
+        resetSearchKey();
+    }
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
