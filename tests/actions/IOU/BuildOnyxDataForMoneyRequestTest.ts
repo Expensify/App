@@ -475,4 +475,89 @@ describe('buildOnyxDataForMoneyRequest', () => {
             expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBeUndefined();
         });
     });
+
+    describe('failure rollback for a brand-new chat', () => {
+        function buildNewChatParams(overrides?: Partial<BuildOnyxDataParams>): BuildOnyxDataParams {
+            return {
+                isNewChatReport: true,
+                shouldCreateNewMoneyRequestReport: true,
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmailParam: CURRENT_USER_EMAIL,
+                hasViolations: false,
+                quickAction: undefined,
+                isSelfDMSplit: false,
+                optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ...overrides,
+            };
+        }
+
+        function findFailureEntry(failureData: ReturnType<typeof buildOnyxDataForMoneyRequest>['failureData'], key: string) {
+            return failureData?.find((entry) => entry.key === key);
+        }
+
+        it('rolls back the new chat report, IOU report, their metadata, actions, the transaction and the transaction thread by SETting them to null', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
+
+            const keysExpectedNull = [
+                `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT_METADATA}${CHAT_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT_METADATA}${IOU_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT_METADATA}${THREAD_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`,
+            ];
+
+            for (const key of keysExpectedNull) {
+                const entry = findFailureEntry(failureData, key);
+                expect(entry).toBeDefined();
+                expect(entry?.onyxMethod).toBe(Onyx.METHOD.SET);
+                expect(entry?.value).toBeNull();
+            }
+        });
+
+        it('does not leave any createChat error banner on the rolled-back reports', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
+
+            const chatReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+            const iouReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`);
+
+            expect(chatReportEntry?.value).toBeNull();
+            expect(iouReportEntry?.value).toBeNull();
+        });
+
+        it('does not re-create the transaction thread report actions shell via a later MERGE', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
+            const threadActionEntries = failureData?.filter((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`);
+
+            // Only the SET-null rollback entry should exist — no MERGE that would resurrect the shell.
+            expect(threadActionEntries).toHaveLength(1);
+            expect(threadActionEntries?.at(0)?.onyxMethod).toBe(Onyx.METHOD.SET);
+            expect(threadActionEntries?.at(0)?.value).toBeNull();
+        });
+
+        it('keeps the standard error-merge behavior when the expense is added to an existing chat and IOU report (retryable)', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(
+                buildNewChatParams({
+                    isNewChatReport: false,
+                    shouldCreateNewMoneyRequestReport: false,
+                }),
+            );
+
+            const chatReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+            const iouReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`);
+
+            expect(chatReportEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect(chatReportEntry?.value).not.toBeNull();
+            expect(iouReportEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect(iouReportEntry?.value).not.toBeNull();
+        });
+    });
 });
