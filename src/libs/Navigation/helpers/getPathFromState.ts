@@ -186,8 +186,9 @@ function hasUnresolvedNavigatorScreenParams(params: unknown): params is Unresolv
 function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
-    // Return the embedded path of an unresolved hint chain before RN serializes it to `/?params=[object Object]`; once `state` exists, the hydrated state is the source of truth.
-    if (focusedRoute && !focusedRoute.state && hasUnresolvedNavigatorScreenParams(focusedRoute.params)) {
+    // Return the embedded path of an unresolved hint chain before RN serializes it to `/?params=[object Object]`;
+    // Excludes hydrated routes (`state` is the source of truth) and URL-addressable screens (their `screen`/`path` params may come from a user-supplied URL query).
+    if (focusedRoute && !focusedRoute.state && !isScreen(focusedRoute.name) && hasUnresolvedNavigatorScreenParams(focusedRoute.params)) {
         return focusedRoute.params.path;
     }
 

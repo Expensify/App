@@ -142,6 +142,23 @@ describe('getPathFromState', () => {
         expect(mockRNGetPathFromState).toHaveBeenCalled();
     });
 
+    it('should not treat URL query params named screen/initial/path on an addressable screen as a navigator hint', () => {
+        const expectedPath = '/settings/wallet?screen=x&initial=true&path=/r/1';
+        mockRNGetPathFromState.mockReturnValue(expectedPath);
+
+        const state = buildState([
+            {
+                name: 'WalletScreen',
+                params: {screen: 'x', initial: 'true', path: '/r/1'},
+            },
+        ]);
+
+        const result = getPathFromState(state as PartialState<NavigationState>);
+
+        expect(result).toBe(expectedPath);
+        expect(mockRNGetPathFromState).toHaveBeenCalled();
+    });
+
     it('should ignore stale NavigatorScreenParams hint keys on a hydrated tab-host route', () => {
         const state = buildState([
             {name: 'WalletScreen'},
