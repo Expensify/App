@@ -68,6 +68,12 @@ describe('Search Router navigation query helpers', () => {
         expect(buildNavigationSuggestions('o inbox', source, localeCompare)).toEqual([]);
     });
 
+    it('does not include internal matching terms in returned navigation rows', () => {
+        const source = [[{text: 'Go to Inbox', keyForList: 'inbox', matchTerms: ['Inbox']}]];
+
+        expect(buildNavigationSuggestions('inbox', source, localeCompare).at(0)).not.toHaveProperty('matchTerms');
+    });
+
     it('matches short queries only when they exactly match a localized destination', () => {
         const source = [
             [

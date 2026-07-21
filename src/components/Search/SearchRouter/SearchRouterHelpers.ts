@@ -83,7 +83,7 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
                 isNavigationIntentOnly ||
                 (shouldMatchExactDestination ? matchesNavigationQueryExactly(matchQuery, ...(item.matchTerms ?? [])) : matchesNavigationQuery(matchQuery, ...(item.matchTerms ?? []))),
         )
-        .map((item) => ({
+        .map(({matchTerms, ...item}) => ({
             ...item,
             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
         }))
