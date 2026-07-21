@@ -2250,7 +2250,7 @@ const ROUTES = {
     GPS_TRIP_EDIT: {
         route: ':action/:iouType/gps-trip-edit/:transactionID/:reportID/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/gps-trip-edit/${transactionID}/${reportID}/${backToReport ? `/${backToReport}` : ''}` as const,
+            `${action as string}/${iouType as string}/gps-trip-edit/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}` as const,
     },
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
