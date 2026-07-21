@@ -122,7 +122,7 @@ describe('SelectionButton shift+mousedown', () => {
         expect(focusSpy).not.toHaveBeenCalled();
     });
 
-    it('never steals focus from a focused element', () => {
+    it('moves focus to the control, blurring the previously focused element', () => {
         render(
             <SelectionButton
                 role={CONST.ROLE.CHECKBOX}
@@ -139,7 +139,29 @@ describe('SelectionButton shift+mousedown', () => {
         const focusSpy = jest.spyOn(event.currentTarget, 'focus');
         getCapturedMouseDown()(event);
         expect(event.defaultPrevented).toBe(true);
-        expect(focusSpy).not.toHaveBeenCalled();
+        expect(focusSpy).toHaveBeenCalledWith({preventScroll: true});
+        expect(document.activeElement).not.toBe(input);
+    });
+
+    it('collapses an existing text selection', () => {
+        render(
+            <SelectionButton
+                role={CONST.ROLE.CHECKBOX}
+                isChecked
+                onPress={jest.fn()}
+                accessibilityLabel="checkbox"
+            />,
+        );
+        const text = document.createElement('p');
+        text.textContent = 'some selectable text';
+        document.body.append(text);
+        attachedNodes.push(text);
+        const range = document.createRange();
+        range.selectNodeContents(text);
+        window.getSelection()?.addRange(range);
+        expect(window.getSelection()?.isCollapsed).toBe(false);
+        getCapturedMouseDown()(makeMouseDownEvent(true));
+        expect(window.getSelection()?.isCollapsed).toBe(true);
     });
 
     it('skips the focus grab when the consumer already prevented default', () => {
