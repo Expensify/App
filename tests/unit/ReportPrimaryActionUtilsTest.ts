@@ -106,9 +106,9 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -123,7 +123,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
@@ -141,9 +141,9 @@ describe('getPrimaryAction', () => {
             },
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -158,7 +158,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
@@ -176,9 +176,9 @@ describe('getPrimaryAction', () => {
             },
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -193,7 +193,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
@@ -209,11 +209,11 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const policy = {
+        const policy = createMock<Policy>({
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, // Submit & Close
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, // Instant submit
-        };
+        });
 
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
@@ -229,7 +229,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
@@ -411,9 +411,9 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const policy = {
+        const policy = createMock<Policy>({
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             amount: 0,
@@ -431,7 +431,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
@@ -446,9 +446,9 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const policy = {
+        const policy = createMock<Policy>({
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             status: CONST.TRANSACTION.STATUS.PENDING,
@@ -467,7 +467,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
@@ -483,10 +483,10 @@ describe('getPrimaryAction', () => {
             managerID: CURRENT_USER_ACCOUNT_ID,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             approver: CURRENT_USER_EMAIL,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -501,7 +501,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
@@ -517,10 +517,10 @@ describe('getPrimaryAction', () => {
             managerID: CURRENT_USER_ACCOUNT_ID,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             approver: CURRENT_USER_EMAIL,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             comment: {
@@ -541,7 +541,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe('');
@@ -557,10 +557,10 @@ describe('getPrimaryAction', () => {
             managerID: CURRENT_USER_ACCOUNT_ID,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             approver: CURRENT_USER_EMAIL,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             status: CONST.TRANSACTION.STATUS.PENDING,
@@ -579,7 +579,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe('');
@@ -785,9 +785,9 @@ describe('getPrimaryAction', () => {
             total: -300,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             role: CONST.POLICY.ROLE.ADMIN,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -802,7 +802,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
@@ -913,9 +913,9 @@ describe('getPrimaryAction', () => {
             total: -300,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             role: CONST.POLICY.ROLE.ADMIN,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             comment: {
@@ -933,7 +933,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
@@ -949,9 +949,9 @@ describe('getPrimaryAction', () => {
             nonReimbursableTotal: 0,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             role: CONST.POLICY.ROLE.ADMIN,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             reimbursable: false,
@@ -967,7 +967,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
@@ -981,7 +981,7 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             connections: {
                 intacct: {
                     config: {
@@ -991,12 +991,12 @@ describe('getPrimaryAction', () => {
                     },
                 },
             },
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
 
-        (getValidConnectedIntegration as jest.Mock).mockReturnValue('netsuite');
+        jest.mocked(getValidConnectedIntegration).mockReturnValue('netsuite');
 
         expect(
             getReportPrimaryAction({
@@ -1008,7 +1008,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
@@ -1022,7 +1022,7 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             role: CONST.POLICY.ROLE.ADMIN,
             connections: {
                 intacct: {
@@ -1033,12 +1033,12 @@ describe('getPrimaryAction', () => {
                     },
                 },
             },
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
 
-        (getValidConnectedIntegration as jest.Mock).mockReturnValue('intacct');
+        jest.mocked(getValidConnectedIntegration).mockReturnValue('intacct');
 
         expect(
             getReportPrimaryAction({
@@ -1050,7 +1050,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
@@ -1064,7 +1064,7 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             connections: {
                 intacct: {
                     config: {
@@ -1074,7 +1074,7 @@ describe('getPrimaryAction', () => {
                     },
                 },
             },
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -1089,7 +1089,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
@@ -1103,7 +1103,7 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             connections: {
                 intacct: {
                     config: {
@@ -1113,7 +1113,7 @@ describe('getPrimaryAction', () => {
                     },
                 },
             },
-        };
+        });
         const reportActions = createMock<ReportAction[]>([
             {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, reportActionID: '1', created: '2025-01-01', originalMessage: {markedManually: true}},
         ]);
@@ -1128,7 +1128,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 reportNameValuePairs: {},
                 reportActions,
                 isChatReportArchived: false,
@@ -1206,7 +1206,7 @@ describe('getPrimaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = createMock<Policy>({});
         const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
         const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -1253,7 +1253,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
@@ -1340,7 +1340,7 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = createMock<Policy>({});
         const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
         const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -1387,7 +1387,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
@@ -1402,9 +1402,9 @@ describe('getPrimaryAction', () => {
             total: -300,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             role: CONST.POLICY.ROLE.ADMIN,
-        };
+        });
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
         const transaction = createMock<Transaction>({
@@ -1429,7 +1429,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
@@ -1444,7 +1444,7 @@ describe('getPrimaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = createMock<Policy>({});
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
         const transaction = createMock<Transaction>({
@@ -1468,7 +1468,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
@@ -1483,7 +1483,7 @@ describe('getPrimaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = createMock<Policy>({});
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
         const transaction = createMock<Transaction>({
@@ -1507,7 +1507,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
@@ -1522,7 +1522,7 @@ describe('getPrimaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = createMock<Policy>({});
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
         const transaction = createMock<Transaction>({
@@ -1546,7 +1546,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
@@ -1561,9 +1561,9 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-        };
+        });
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const transaction = createMock<Transaction>({
             transactionID: TRANSACTION_ID,
@@ -1586,7 +1586,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe('');
@@ -1601,9 +1601,9 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-        };
+        });
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const transaction = createMock<Transaction>({
             transactionID: TRANSACTION_ID,
@@ -1623,43 +1623,43 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe('');
     });
 
     it('should return SUBMIT for a multi-expense draft when at least one expense is valid and another has a smartscan failed violation', async () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        } as unknown as Report;
+        });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-        };
+        });
         const VALID_TRANSACTION_ID = 'VALID_TRANSACTION_ID';
         const FAILED_TRANSACTION_ID = 'FAILED_TRANSACTION_ID';
-        const validTransaction = {
+        const validTransaction = createMock<Transaction>({
             transactionID: VALID_TRANSACTION_ID,
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
-        const scanFailedTransaction = {
+        });
+        const scanFailedTransaction = createMock<Transaction>({
             transactionID: FAILED_TRANSACTION_ID,
             reportID: `${REPORT_ID}`,
             iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             merchant: '',
-        } as unknown as Transaction;
+        });
 
-        const violation = {
+        const violation = createMock<TransactionViolation>({
             name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
             type: CONST.VIOLATION_TYPES.WARNING,
             showInReview: true,
-        } as unknown as TransactionViolation;
+        });
 
         expect(
             getReportPrimaryAction({
@@ -1671,7 +1671,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [validTransaction, scanFailedTransaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${FAILED_TRANSACTION_ID}`]: [violation]},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
@@ -1711,8 +1711,7 @@ describe('getPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                policy: policy as Policy,
+                policy: policy ?? undefined,
                 isChatReportArchived: isChatReportArchived.current,
             }),
         ).toBe('');
@@ -1826,7 +1825,7 @@ describe('getTransactionThreadPrimaryAction', () => {
     });
 
     it('should return REMOVE HOLD for transaction thread being on hold', async () => {
-        const policy = {};
+        const policy = createMock<Policy>({});
         const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const CHILD_REPORT_ID = 'CHILD_REPORT_ID';
@@ -1850,7 +1849,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, createMock<Report>({}), undefined, transaction, [], policy as Policy, false)).toBe(
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, createMock<Report>({}), undefined, transaction, [], policy, false)).toBe(
             CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD,
         );
     });
@@ -1863,7 +1862,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = createMock<Policy>({});
         const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
         const TRANSACTION_ID = 'TRANSACTION_ID';
         const transaction = createMock<Transaction>({
@@ -1878,9 +1877,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         });
 
-        expect(
-            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
-        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
+        );
     });
 
     it('should return MARK AS CASH if has all RTER violations', async () => {
@@ -1892,7 +1891,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = createMock<Policy>({});
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
         const transaction = createMock<Transaction>({
@@ -1907,9 +1906,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         });
 
-        expect(
-            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
-        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
+        );
     });
 
     it('should return MARK AS CASH for broken connection', async () => {
@@ -1921,7 +1920,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = createMock<Policy>({});
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
         const transaction = createMock<Transaction>({
@@ -1935,9 +1934,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         });
 
-        expect(
-            getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy as Policy, false),
-        ).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
+        );
     });
 
     it('Should return empty string when we are waiting for user to add a bank account', async () => {
@@ -1949,7 +1948,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             isWaitingOnBankAccount: true,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {
+        const policy = createMock<Policy>({
             connections: {
                 intacct: {
                     config: {
@@ -1959,7 +1958,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                     },
                 },
             },
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -1974,7 +1973,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
-                policy: policy as Policy,
+                policy,
                 isChatReportArchived: false,
             }),
         ).toBe('');
@@ -1999,9 +1998,9 @@ describe('getTransactionThreadPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentReport);
-        const invoiceReceiverPolicy = {
+        const invoiceReceiverPolicy = createMock<Policy>({
             role: CONST.POLICY.ROLE.ADMIN,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -2016,7 +2015,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 violations: {},
                 bankAccountList: {},
                 policy: createMock<Policy>({}),
-                invoiceReceiverPolicy: invoiceReceiverPolicy as Policy,
+                invoiceReceiverPolicy,
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
@@ -2041,9 +2040,9 @@ describe('getTransactionThreadPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentReport);
-        const invoiceReceiverPolicy = {
+        const invoiceReceiverPolicy = createMock<Policy>({
             role: CONST.POLICY.ROLE.ADMIN,
-        };
+        });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
         });
@@ -2058,7 +2057,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 violations: {},
                 bankAccountList: {},
                 policy: createMock<Policy>({}),
-                invoiceReceiverPolicy: invoiceReceiverPolicy as Policy,
+                invoiceReceiverPolicy,
                 isChatReportArchived: false,
             }),
         ).toBe('');
@@ -2328,7 +2327,7 @@ describe('isExportAction and isPreferredExporter for todos filtering', () => {
             isWaitingOnBankAccount: false,
         });
 
-        (getValidConnectedIntegration as jest.Mock).mockReturnValue(CONST.POLICY.CONNECTIONS.NAME.QBO);
+        jest.mocked(getValidConnectedIntegration).mockReturnValue(CONST.POLICY.CONNECTIONS.NAME.QBO);
 
         expect(isExportAction(report, CURRENT_USER_EMAIL, policy)).toBe(true);
     });
