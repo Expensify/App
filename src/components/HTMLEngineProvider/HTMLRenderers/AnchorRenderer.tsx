@@ -106,6 +106,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             delete linkStyle.textDecorationColor;
         }
 
+        // Links can opt into a persistent underline via the "link-underline" class so they are
+        // distinguishable by more than color (WCAG 1.4.1), e.g. the sign-in Licenses link in high-contrast themes.
+        if (tnode.classes.includes('link-underline')) {
+            linkStyle = [linkStyle, styles.underline];
+        }
+
         return (
             <TextLink
                 style={linkStyle}
