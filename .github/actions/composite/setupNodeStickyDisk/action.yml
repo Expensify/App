@@ -33,12 +33,14 @@ runs:
       with:
         node-version-file: '.nvmrc'
 
-    # Mounts a persistent NVMe-backed disk at node_modules. Key includes the lockfile hash so a
-    # dependency change mounts a brand new (empty) disk, same effect as an actions/cache miss.
+    # Mounts a persistent NVMe-backed disk at node_modules. Key hashes normalized-package-lock.json
+    # (app version stripped by the jq step above), not the raw lockfile, so routine version bumps —
+    # which change package-lock.json on every deploy/main-merge but not the actual dependency tree —
+    # do NOT invalidate the disk. Only a real dependency or patch change mounts a fresh (empty) disk.
     - id: stickydisk-node-modules
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
-        key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', github.repository, hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', github.repository, hashFiles('package-lock.json', 'patches/**')) }}
+        key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', github.repository, hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', github.repository, hashFiles('normalized-package-lock.json', 'patches/**')) }}
         path: node_modules
 
     - id: stickydisk-old-dot-node-modules
