@@ -125,6 +125,7 @@ function ExpenseAddedGrowl() {
 
     return (
         <GrowlNotificationContent
+            key={active.nonce}
             nonce={active.nonce}
             type={CONST.GROWL.SUCCESS}
             duration={CONST.GROWL.DURATION_WITH_ACTION}
