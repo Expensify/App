@@ -1,7 +1,7 @@
 ---
 title: Accessibility at Expensify
 description: Learn about Expensify's accessibility commitment, the standards we follow, how to report accessibility issues, and how we track progress publicly.
-keywords: accessibility, a11y, WCAG, WCAG 2.2, VPAT, ACR, accessibility conformance report, Section 508, EN 301 549, screen reader, JAWS, NVDA, VoiceOver, keyboard navigation, assistive technology
+keywords: accessibility, a11y, WCAG, WCAG 2.2, VPAT, ACR, accessibility conformance report, Section 508, EN 301 549, screen reader, JAWS, NVDA, VoiceOver, TalkBack, keyboard navigation, assistive technology
 internalScope: Audience is anyone evaluating or using Expensify with assistive technology, plus procurement and compliance teams. Covers Expensify's accessibility commitment, conformance standards, how to get the VPAT/ACR, how to report accessibility issues, and remediation targets. Does not cover how to use specific assistive technologies with Expensify.
 ---
 
@@ -21,7 +21,7 @@ An Accessibility Conformance Report (ACR), based on the Voluntary Product Access
 
 Our report was produced from an evaluation of Expensify using:
 
-- Screen readers: JAWS, NVDA, and VoiceOver
+- Screen readers: JAWS, NVDA, VoiceOver, and TalkBack
 - Keyboard-only navigation
 - Browser zoom and text spacing checks
 - Colour contrast analysis
