@@ -130,10 +130,6 @@ jest.mock('@hooks/useReportActionsScroll', () =>
     })),
 );
 jest.mock('@pages/inbox/report/FloatingMessageCounter', () => jest.fn(() => null));
-jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
-    const reactModule = jest.requireActual<typeof React>('react');
-    return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
-});
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
 
