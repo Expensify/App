@@ -53,7 +53,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
         <BaseListItem
             item={item}
             pressableStyle={[[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]]}
-            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
+            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter, styles.overflowHidden]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}
             keyForList={item.keyForList}
@@ -73,7 +73,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         size={CONST.ICON_SIZE.MEDIUM}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                <View style={[styles.flexGrow1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip ?? false}
                         text={item.text ?? ''}
@@ -94,7 +94,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         />
                     )}
                 </View>
-                {!!item.rightElement && <View style={[styles.alignItemsCenter, styles.ml2, styles.flexShrink1]}>{item.rightElement}</View>}
+                {!!item.rightElement && <View style={[styles.alignItemsCenter, styles.ml2]}>{item.rightElement}</View>}
             </>
         </BaseListItem>
     );
