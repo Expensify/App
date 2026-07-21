@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
+import OnyxSubscribedBoundary from '@components/OnyxSubscribedBoundary';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
@@ -67,6 +68,11 @@ const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,
 };
 
+// Module-scoped for a stable array identity: an inline array would churn useSubmitToDestinationVisible's `tryEnd`
+// useCallback and its `onLayout`, re-rendering the memoized report list on every parent render.
+const SUBMIT_TO_DESTINATION_FOLLOW_UP_ACTIONS = [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY] as const;
+const SUBMIT_TO_DESTINATION_TRIGGERS = [CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT, CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS] as const;
+
 function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -76,15 +82,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
-    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    // Must stay live while blurred: the clearing effect below only acts while unfocused, so focus-gating would starve it.
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, {subscribed: true});
 
     const parentReportAction = useParentReportAction(report);
 
-    const handleSubmitToDestinationVisibleLayout = useSubmitToDestinationVisible(
-        [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
-        reportIDFromRoute,
-        [CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT, CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS],
-    );
+    const handleSubmitToDestinationVisibleLayout = useSubmitToDestinationVisible(SUBMIT_TO_DESTINATION_FOLLOW_UP_ACTIONS, reportIDFromRoute, SUBMIT_TO_DESTINATION_TRIGGERS);
 
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -421,4 +424,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     );
 }
 
-export default SearchMoneyRequestReportPage;
+function SearchMoneyRequestReportPageWithOnyxBoundary(props: SearchMoneyRequestPageProps) {
+    return (
+        <OnyxSubscribedBoundary>
+            <SearchMoneyRequestReportPage {...props} />
+        </OnyxSubscribedBoundary>
+    );
+}
+
+export default SearchMoneyRequestReportPageWithOnyxBoundary;

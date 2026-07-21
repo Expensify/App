@@ -583,6 +583,9 @@ const ONYXKEYS = {
     /** List of span operations to highlight in Sentry debug logs */
     SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS: 'sentryDebugHighlightedSpanOps',
 
+    /** Dev toggle: off (default) forces useOnyx `subscribed: true` everywhere; on lets it follow the enclosing OnyxSubscribedBoundary's focus */
+    SHOULD_ONYX_SUBSCRIBED_FOLLOW_FOCUS: 'shouldOnyxSubscribedFollowFocus',
+
     /** Stores new group chat draft */
     NEW_GROUP_CHAT_DRAFT: 'newGroupChatDraft',
 
@@ -1664,6 +1667,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
     [ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS]: string[];
+    [ONYXKEYS.SHOULD_ONYX_SUBSCRIBED_FOLLOW_FOCUS]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;

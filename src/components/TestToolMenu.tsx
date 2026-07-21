@@ -9,7 +9,7 @@ import {useIsAgentAccount} from '@libs/SessionUtils';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldOnyxSubscribedFollowFocus, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +31,7 @@ function TestToolMenu() {
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
+    const [shouldOnyxSubscribedFollowFocus = false] = useOnyx(ONYXKEYS.SHOULD_ONYX_SUBSCRIBED_FOLLOW_FOCUS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
@@ -49,6 +50,18 @@ function TestToolMenu() {
             >
                 {translate('initialSettingsPage.troubleshoot.testingPreferences')}
             </Text>
+
+            {/* Off (default): useOnyx always live. On: `subscribed` follows OnyxSubscribedBoundary focus */}
+            <TestToolRow
+                title="useOnyx subscribed follows focus"
+                isTitleAccessible={false}
+            >
+                <Switch
+                    accessibilityLabel="useOnyx subscribed follows focus"
+                    isOn={shouldOnyxSubscribedFollowFocus}
+                    onToggle={() => setShouldOnyxSubscribedFollowFocus(!shouldOnyxSubscribedFollowFocus)}
+                />
+            </TestToolRow>
             {isAuthenticated && (
                 <>
                     {/* When toggled the app will be put into debug mode. */}

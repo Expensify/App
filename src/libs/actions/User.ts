@@ -1418,6 +1418,10 @@ function setShouldShowBranchNameInTitle(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
 }
 
+function setShouldOnyxSubscribedFollowFocus(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_ONYX_SUBSCRIBED_FOLLOW_FOCUS, value);
+}
+
 function lockAccount(currentUserAccountID: number, accountID: number | undefined, domainAccountID: number | undefined, domainName: string | undefined) {
     let domainOptimisticData: DomainOnyxUpdate[] = [];
     let domainFailureData: DomainOnyxUpdate[] = [];
@@ -2040,6 +2044,7 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
+    setShouldOnyxSubscribedFollowFocus,
     lockAccount,
     requestUnlockAccount,
     respondToProactiveAppReview,
