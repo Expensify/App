@@ -14,14 +14,16 @@ type NavigationSuggestionSourceItem = SearchQueryItem & {
 
 const MAX_NAVIGATION_SUGGESTIONS = 8;
 const MIN_NAVIGATION_QUERY_LENGTH = 3;
+const GO_TO_PREFIX = /^go\s+to\s+/i;
+const GO_PREFIX = /^go\s+/i;
 
 function stripNavigationIntentPrefix(query: string) {
     const trimmedQuery = query.trim();
-    if (/^go\s+to\s+/i.test(trimmedQuery)) {
-        return trimmedQuery.replace(/^go\s+to\s+/i, '').trim();
+    if (GO_TO_PREFIX.test(trimmedQuery)) {
+        return trimmedQuery.replace(GO_TO_PREFIX, '').trim();
     }
-    if (/^go\s+/i.test(trimmedQuery)) {
-        return trimmedQuery.replace(/^go\s+/i, '').trim();
+    if (GO_PREFIX.test(trimmedQuery)) {
+        return trimmedQuery.replace(GO_PREFIX, '').trim();
     }
     return trimmedQuery;
 }
