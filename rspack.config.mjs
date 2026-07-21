@@ -33,6 +33,12 @@ export default Repack.defineRspackConfig({
     },
     resolve: {
         ...Repack.getResolveOptions({enablePackageExports: true}),
+        // expo/virtual/env relies on Expo's Metro integration to supply EXPO_PUBLIC_* values;
+        // without it expo replaces global fetch with expo/fetch and API requests fail
+        // ("Property 'ReadableStream' doesn't exist"). See config/repack/expoVirtualEnv.js.
+        alias: {
+            'expo/virtual/env': path.resolve(__dirname, './config/repack/expoVirtualEnv.js'),
+        },
         tsConfig: {
             configFile: path.resolve(__dirname, './tsconfig.json'),
             references: 'auto',
