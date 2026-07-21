@@ -62,6 +62,8 @@ function ExpenseAddedGrowl() {
             return;
         }
         const pendingTransactionIDs = Object.keys(signal ?? {});
+        // The last key is the last-created transaction: IDs are large (rand64), so they exceed the array-index
+        // range and JS preserves insertion order rather than sorting them numerically ascending.
         const latestTransactionID = pendingTransactionIDs.at(-1);
         const dataType = latestTransactionID ? signal?.[latestTransactionID] : undefined;
         if (!latestTransactionID || !dataType) {
