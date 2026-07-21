@@ -1,5 +1,6 @@
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -30,6 +31,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const {isOffline} = useNetwork();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -39,7 +41,12 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
 
     const categoryItems = Object.values(policyCategories ?? {})
         .filter((category) => {
-            if (!category.enabled || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            if (!category.enabled) {
+                return false;
+            }
+
+            // Match the rules table: keep pending-delete categories visible while offline.
+            if (!isOffline && category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return false;
             }
 
