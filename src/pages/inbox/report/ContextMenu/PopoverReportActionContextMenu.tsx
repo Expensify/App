@@ -427,6 +427,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isOriginalReportArchived,
                     email ?? '',
                     visibleReportActionsData ?? undefined,
+                    reportActions,
                 );
             };
         }

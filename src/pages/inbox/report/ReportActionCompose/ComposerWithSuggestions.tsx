@@ -289,7 +289,8 @@ function ComposerWithSuggestions({
     const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(
         useCallback(
             (comment: string) => {
-                saveReportActionDraft(reportID, editingReportAction, comment);
+                // The edited action is always local to reportID, so a minimal actions map is enough for saveReportActionDraft's getOriginalReportID to resolve to reportID (avoids subscribing the composer to REPORT_ACTIONS).
+                saveReportActionDraft(reportID, editingReportAction, editingReportAction ? {[editingReportAction.reportActionID]: editingReportAction} : undefined, comment);
             },
             [reportID, editingReportAction],
         ),
@@ -562,7 +563,9 @@ function ComposerWithSuggestions({
                     return;
                 }
 
-                saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                // The edited action is always local to reportID, so a minimal actions map is enough for saveReportActionDraft's getOriginalReportID to resolve to reportID (avoids subscribing the composer to REPORT_ACTIONS).
+                const editingReportActionForDraft = {reportActionID: editingReportActionID} as OnyxTypes.ReportAction;
+                saveReportActionDraft(reportID, editingReportActionForDraft, editingReportActionID ? {[editingReportActionID]: editingReportActionForDraft} : undefined, newCommentConverted);
                 return;
             }
 
@@ -633,7 +636,8 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
+                    // The edited action is always local to reportID, so a minimal actions map is enough for saveReportActionDraft's getOriginalReportID to resolve to reportID (avoids subscribing the composer to REPORT_ACTIONS).
+                    saveReportActionDraft(reportID, lastReportAction, {[lastReportAction.reportActionID]: lastReportAction}, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
