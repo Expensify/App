@@ -144,7 +144,14 @@ import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
-import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {
+    getAccountIDsByLogins,
+    getAllPersonalDetailLogins,
+    getDisplayNameOrDefault,
+    getLoginByAccountID,
+    getPersonalDetailByEmail,
+    temporaryGetDisplayNameOrDefault,
+} from './PersonalDetailsUtils';
 import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
@@ -1041,7 +1048,6 @@ Onyx.connect({
 });
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1050,7 +1056,6 @@ Onyx.connect({
             currentUserPersonalDetails = value?.[deprecatedCurrentUserAccountID] ?? undefined;
         }
         allPersonalDetails = value ?? {};
-        allPersonalDetailLogins = Object.values(allPersonalDetails).map((personalDetail) => personalDetail?.login ?? '');
     },
 });
 
@@ -6537,7 +6542,7 @@ function getParsedComment(
 
     return getParsedMessageWithShortMentions({
         text,
-        availableMentionLogins: allPersonalDetailLogins,
+        availableMentionLogins: getAllPersonalDetailLogins(),
         userEmailDomain,
         parserOptions: {
             disabledRules: isGroupPolicyReport ? [...rules] : ['reportMentions', ...rules],
