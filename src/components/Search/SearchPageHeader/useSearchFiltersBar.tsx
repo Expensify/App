@@ -15,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
-import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {FILTER_VIEW_MAP, getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -144,8 +144,8 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {currentDefaultSearchQueryFilterKeys, currentSimilarSearchHash, currentDefaultSimilarSearchHash} = useSearchQueryContext();
-    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {currentDefaultSearchQueryString, currentDefaultSearchQueryFilterKeys, currentSimilarSearchHash, currentDefaultSimilarSearchHash} = useSearchQueryContext();
+    const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
@@ -203,7 +203,11 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     );
 
     const resetFilters = () => {
-        updateFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}, currentDefaultSearchQueryFilterKeys));
+        if (currentDefaultSearchQueryString) {
+            Navigation.setParams({q: currentDefaultSearchQueryString, rawQuery: undefined});
+        } else {
+            setFilterQueryParams({[CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE]: queryJSON.type});
+        }
         setSearchContext(false);
     };
 
@@ -211,7 +215,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
-        shouldShowResetFilters: currentDefaultSimilarSearchHash !== currentSimilarSearchHash,
+        shouldShowResetFilters: currentDefaultSimilarSearchHash ? currentDefaultSimilarSearchHash !== currentSimilarSearchHash : filters.length > 0,
         resetFilters,
     };
 }

@@ -14,7 +14,6 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
-    getAdvancedFiltersToReset,
     getAllPolicyValues,
     getAllPolicyValuesMap,
     getConnectedIntegrationNamesForPolicies,
@@ -3529,52 +3528,6 @@ describe('SearchQueryUtils', () => {
             // The quoted phrase stays intact and the filter-like keyword is escaped separately
             expect(result).toContain('"hello world"');
             expect(result).toContain('"type:expense"');
-        });
-    });
-
-    describe('getAdvancedFiltersToReset', () => {
-        it('should return an empty object when input is empty', () => {
-            const result = getAdvancedFiltersToReset({}, new Set());
-            expect(result).toEqual({});
-        });
-
-        it('should reset non-root filter keys to undefined', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                view: CONST.SEARCH.VIEW.TABLE,
-                columns: ['action'],
-                groupBy: 'card',
-                limit: '5',
-                merchant: 'Marriott',
-                currency: ['USD', 'EUR'],
-                dateAfter: '2024-01-01',
-                keyword: 'hotel',
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
-            };
-            const result = getAdvancedFiltersToReset(form, new Set());
-            expect(result).toStrictEqual({
-                merchant: undefined,
-                currency: undefined,
-                dateAfter: undefined,
-                keyword: undefined,
-                status: undefined,
-            });
-        });
-
-        it('should not reset default filter keys', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                merchant: 'Marriott',
-                currency: ['USD', 'EUR'],
-                dateAfter: '2024-01-01',
-                keyword: 'hotel',
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
-            };
-            const result = getAdvancedFiltersToReset(form, new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]));
-            expect(result).toStrictEqual({
-                currency: undefined,
-                dateAfter: undefined,
-                keyword: undefined,
-            });
         });
     });
 

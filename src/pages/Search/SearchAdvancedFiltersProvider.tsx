@@ -5,8 +5,8 @@ import useOnyx from '@hooks/useOnyx';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
@@ -40,24 +40,23 @@ type SearchAdvancedFiltersProviderProps = {
 
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON, currentSimilarSearchHash, currentDefaultSimilarSearchHash} = useSearchQueryContext();
-    const {getUpdatedFilterFormValues, setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
+    const {currentDefaultSearchQueryString, currentSearchQueryJSON, currentSimilarSearchHash, currentDefaultSimilarSearchHash} = useSearchQueryContext();
+    const {getUpdatedFilterFormValues, setFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
-
-    const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm, currentDefaultSearchQueryFilterKeys) : undefined;
 
     const applyFilters = () => {
         Navigation.dismissModal({afterTransition: () => setFilterQueryParams(values)});
     };
 
     const resetFilters = () => {
-        if (!advancedFiltersToReset) {
-            return;
-        }
         Navigation.dismissModal({
             afterTransition: () => {
-                updateFilterQueryParams(advancedFiltersToReset);
+                if (currentDefaultSearchQueryString) {
+                    Navigation.setParams({q: currentDefaultSearchQueryString, rawQuery: undefined});
+                } else {
+                    setFilterQueryParams({[CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE]: searchAdvancedFiltersForm?.type});
+                }
                 setSearchContext(false);
             },
         });
@@ -69,7 +68,10 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
 
     const searchAdvancedFiltersValue: SearchAdvancedFiltersValue = {
         currentDraftFilters: values,
-        shouldShowResetFilters: currentSimilarSearchHash !== currentDefaultSimilarSearchHash,
+        shouldShowResetFilters: currentDefaultSimilarSearchHash
+            ? currentSimilarSearchHash !== currentDefaultSimilarSearchHash
+            : // Show the reset button only if a non-"type" filter is applied.
+              Object.values(searchAdvancedFiltersForm ?? {}).length > 1,
     };
 
     const searchAdvancedFiltersActionValue: SearchAdvancedFiltersActionValue = {

@@ -5523,21 +5523,11 @@ function isReportFieldKey(key: string): key is ReportFieldKey {
     return key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
 }
 
-const ROOT_FILTER_KEYS = new Set<string>(Object.values(CONST.SEARCH.SYNTAX_ROOT_KEYS));
-
-function isRootFilterKey(key: string): key is ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS> {
-    return ROOT_FILTER_KEYS.has(key);
-}
-
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
     label: string;
     value: string | string[];
 };
-
-function filterKeyToSyntaxKey(filterKey: string) {
-    return hasKey(FILTER_TO_SYNTAX_KEY, filterKey) ? FILTER_TO_SYNTAX_KEY[filterKey] : filterKey;
-}
 
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
@@ -6583,12 +6573,10 @@ export {
     getDateDisplayValue,
     getFilterNegatableValue,
     shouldShowFilter,
-    filterKeyToSyntaxKey,
     mapFiltersFormToLabelValueList,
     isTextFilterKey,
     isAmountFilterKey,
     isDateFilterKey,
-    isRootFilterKey,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
     TODO_SEARCH_KEYS,

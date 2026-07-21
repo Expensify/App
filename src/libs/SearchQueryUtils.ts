@@ -67,7 +67,6 @@ import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './Pers
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
-import {filterKeyToSyntaxKey, isRootFilterKey} from './SearchUIUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -2357,22 +2356,6 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
- * Returns an object containing the filter values needed to reset
- * the currently applied advanced filters back to their default state.
- */
-function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, defaultSearchQueryFilterKeys: ReadonlySet<string>): Partial<SearchAdvancedFiltersForm> {
-    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
-        const syntaxKey = filterKeyToSyntaxKey(filterKey);
-        if (isRootFilterKey(syntaxKey) || defaultSearchQueryFilterKeys.has(syntaxKey)) {
-            return acc;
-        }
-
-        Object.assign(acc, {[filterKey]: undefined});
-        return acc;
-    }, {} as Partial<SearchAdvancedFiltersForm>);
-}
-
-/**
  * Set of filter keys that represent free-text fields where the default `:` (eq) operator
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
@@ -2478,7 +2461,6 @@ export {
     buildOptimisticSnapshotData,
     getDateFilterKeys,
     getEmptyDateValues,
-    getAdvancedFiltersToReset,
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
