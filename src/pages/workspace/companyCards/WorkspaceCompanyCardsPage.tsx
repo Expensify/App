@@ -55,7 +55,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         onyxMetadata: {cardListMetadata},
     } = companyCards;
 
-    const [isLoadingCompanyCardsPage] = useOnyx(ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE);
+    const [isLoadingCompanyCardsPage] = useOnyx(`${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}${policyID}`);
 
     const baseAccountID = workspaceAccountID === CONST.DEFAULT_NUMBER_ID ? effectiveWorkspaceAccountID : workspaceAccountID;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(baseAccountID, selectedFeed);

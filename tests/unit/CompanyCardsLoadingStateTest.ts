@@ -113,14 +113,14 @@ describe('CompanyCards RAM-only loading state updates', () => {
                 optimisticData: [
                     {
                         onyxMethod: Onyx.METHOD.SET,
-                        key: ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE,
+                        key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}policy123`,
                         value: true,
                     },
                 ],
                 successData: [
                     {
                         onyxMethod: Onyx.METHOD.SET,
-                        key: ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE,
+                        key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}policy123`,
                         value: false,
                     },
                 ],

@@ -999,13 +999,13 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
 
     type CompanyCardsPageLoadingKey =
         | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
-        | typeof ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE
+        | typeof ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE
         | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE;
 
     const optimisticData: Array<OnyxUpdate<CompanyCardsPageLoadingKey>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE,
+            key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}${policyID}`,
             value: true,
         },
     ];
@@ -1013,7 +1013,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
     const successData: Array<OnyxUpdate<CompanyCardsPageLoadingKey>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE,
+            key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}${policyID}`,
             value: false,
         },
     ];
@@ -1021,7 +1021,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
     const failureData: Array<OnyxUpdate<CompanyCardsPageLoadingKey>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE,
+            key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}${policyID}`,
             value: false,
         },
     ];

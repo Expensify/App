@@ -674,10 +674,6 @@ const ONYXKEYS = {
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
-    /** Whether the OpenPolicyCompanyCardsPage read is in flight. Used to detect the read settling for domain-based
-     * workspaces where the per-domain loading flag can't be written (Onyx discards collection writes for member ID '0'). */
-    IS_LOADING_COMPANY_CARDS_PAGE: 'isLoadingCompanyCardsPage',
-
     /** Whether to kick off the "Concierge is thinking" indicator when AgentZeroStatusGate mounts */
     CONCIERGE_THINKING_KICKOFF: 'conciergeThinkingKickoff',
 
@@ -856,6 +852,10 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
+        /** Whether the OpenPolicyCompanyCardsPage read is in flight, keyed by policyID so overlapping reads across
+         *  workspaces don't clear each other. Detects the read settling even for domain-based workspaces where the
+         *  per-domain loading flag can't be written (Onyx discards collection writes for member ID '0'). */
+        IS_LOADING_COMPANY_CARDS_PAGE: 'isLoadingCompanyCardsPage_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -1432,6 +1432,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
+    [ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
@@ -1709,7 +1710,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_ROUTE]: string;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
-    [ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE]: boolean;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
