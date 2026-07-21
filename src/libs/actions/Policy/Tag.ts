@@ -45,7 +45,6 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import lodashCloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 type CreatePolicyTagParams = {
     policyData: PolicyData;
@@ -62,6 +61,7 @@ type CreatePolicyTagParams = {
     setupCategoriesAndTagsParentReportAction: OnyxEntry<ReportAction>;
     currentUserAccountID: number;
     policyHasCustomCategories: boolean;
+    shouldRestoreRequiresTagAfterSwitch?: boolean;
 };
 
 function getPolicyTagsRequiredAfterSwitchKey(policyID: string): `${typeof ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH}${string}` {
@@ -128,7 +128,7 @@ function getImportMultiLevelTagsFinalModal(): ImportFinalModal {
     };
 }
 
-async function createPolicyTag({
+function createPolicyTag({
     policyData,
     tagName,
     setupTagsTaskReport,
@@ -143,6 +143,7 @@ async function createPolicyTag({
     setupCategoriesAndTagsParentReportAction,
     currentUserAccountID,
     policyHasCustomCategories,
+    shouldRestoreRequiresTagAfterSwitch,
 }: CreatePolicyTagParams) {
     const {policy, tags: policyTags} = policyData;
     const policyID = policy?.id;
@@ -150,7 +151,7 @@ async function createPolicyTag({
     const newTagName = PolicyUtils.escapeTagName(tagName);
     const requiredAfterSwitchKey = policyID ? getPolicyTagsRequiredAfterSwitchKey(policyID) : undefined;
     // Restore the required toggle only for the first tag created after the switch-level cleanup.
-    const shouldRestoreRequiresTag = !!requiredAfterSwitchKey && (await OnyxUtils.get(requiredAfterSwitchKey)) === true && getEnabledPolicyTagsCount(policyTag) === 0;
+    const shouldRestoreRequiresTag = !!requiredAfterSwitchKey && shouldRestoreRequiresTagAfterSwitch === true && getEnabledPolicyTagsCount(policyTag) === 0;
     const policyRequiresTagOptimisticData: Partial<Policy> = shouldRestoreRequiresTag ? {requiresTag: true} : {};
     const tagListsOptimisticData = {
         [policyTag.name]: {
@@ -1429,4 +1430,5 @@ export {
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
     importMultiLevelTags,
+    getPolicyTagsRequiredAfterSwitchKey,
 };

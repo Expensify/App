@@ -10,11 +10,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {escapeTagName, getTagList, hasCustomCategories} from '@libs/PolicyUtils';
@@ -24,7 +24,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {createPolicyTag} from '@userActions/Policy/Tag';
+import {createPolicyTag, getPolicyTagsRequiredAfterSwitchKey} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +42,7 @@ type WorkspaceCreateTagPageProps =
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {policyID} = route.params;
     const policyData = usePolicyData(policyID);
+    const [shouldRestoreRequiresTagAfterSwitch] = useOnyx(getPolicyTagsRequiredAfterSwitchKey(policyID));
     const {tags: policyTagLists, categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -104,7 +105,8 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             setupCategoriesAndTagsParentReportAction,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             policyHasCustomCategories,
-        }).catch((error: unknown) => Log.warn('[WorkspaceCreateTagPage] Failed to create policy tag', {error}));
+            shouldRestoreRequiresTagAfterSwitch: shouldRestoreRequiresTagAfterSwitch === true,
+        });
         Keyboard.dismiss();
         Navigation.goBack(isDynamicFlow ? backPath : undefined);
     };
