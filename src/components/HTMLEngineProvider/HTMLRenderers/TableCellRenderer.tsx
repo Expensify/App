@@ -52,7 +52,10 @@ function TableCellRenderer({tnode}: CustomRendererProps<TBlock>) {
 
     return (
         <View style={[styles.htmlTableCell, cellAlignmentStyle]}>
-            <Text style={[isHeaderCell ? styles.htmlTableHeaderCellText : styles.htmlTableCellText, textAlignmentStyle]}>
+            <Text
+                numberOfLines={1}
+                style={[isHeaderCell ? styles.htmlTableHeaderCellText : styles.htmlTableCellText, textAlignmentStyle]}
+            >
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
         </View>
