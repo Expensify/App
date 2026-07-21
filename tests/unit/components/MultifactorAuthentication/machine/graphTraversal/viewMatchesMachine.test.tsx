@@ -7,12 +7,14 @@ import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigat
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import type {SnapshotFrom} from 'xstate';
 
 import Onyx from 'react-native-onyx';
+import {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths, {
     isAutoDrivenEvent,
     READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
@@ -215,11 +217,14 @@ describe('the real MFA modal matches the machine at every step of every generate
     // The navigation buffer is deliberately not reset here. The machine resets it when it enters
     // `closed`, which also runs when each test's fresh actor starts, so a reset here would hide a
     // machine that stopped doing that cleanup. Onyx is cleared because approving the soft prompt
-    // persists the acceptance, and no path may depend on what an earlier path stored.
+    // persists the acceptance, and no path may depend on what an earlier path stored. The session
+    // account is then seeded because the MFA context rejects a flow start while the account is
+    // still the hydration placeholder.
     beforeEach(async () => {
         resetMfaUiMocks();
         await act(async () => {
             await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID});
         });
         await waitForBatchedUpdatesWithAct();
     });

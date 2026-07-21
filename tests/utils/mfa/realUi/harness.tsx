@@ -1,6 +1,7 @@
 import {render} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {MultifactorAuthenticationContextProviders, useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -30,14 +31,17 @@ function MfaControlsCapture({controlsRef}: {controlsRef: MfaControlsRef}) {
 
 /**
  * Mounts the production MFA providers and modal navigator. The global safe-area mock provides fixed
- * values without a `SafeAreaProvider`. The returned `executeScenario` reads the captured controls at
- * call time because the provider recreates the context API on every render.
+ * values without a `SafeAreaProvider`. `CurrentUserPersonalDetailsProvider` is required because the
+ * MFA context rejects a flow start while the account is still the context default placeholder, so
+ * each test must also seed `ONYXKEYS.SESSION` with an account ID before starting a flow. The
+ * returned `executeScenario` reads the captured controls at call time because the provider recreates
+ * the context API on every render.
  */
 function renderMfaUi() {
     const controlsRef: MfaControlsRef = {current: undefined};
 
     const renderResult = render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <MultifactorAuthenticationContextProviders>
                 <MfaControlsCapture controlsRef={controlsRef} />
                 <MultifactorAuthenticationModalNavigator />
