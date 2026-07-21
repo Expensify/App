@@ -1892,6 +1892,24 @@ function openReport(params: OpenReportActionParams) {
             value: settledPersonalDetails,
         });
 
+        if (!isNewThread) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    errorFields: {
+                        createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                    },
+                },
+            });
+        }
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
+
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
 
@@ -2118,6 +2136,20 @@ function createGroupChat(
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         value: settledPersonalDetails,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            errorFields: {
+                createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+            },
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
     });
 
     // Build API parameters
