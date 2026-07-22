@@ -41,6 +41,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isSubmitPolicy = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const {translate} = useLocalize();
     const preferredCurrency = usePreferredCurrency();
@@ -122,9 +123,12 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
     const onlyAvailableOnPlanHTML = translate(
+        // eslint-disable-next-line no-nested-ternary
         feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports'
             ? 'workspace.upgrade.approvals.onlyAvailableOnPlan'
-            : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
+            : feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id && isRulesRevampEnabled
+              ? 'workspace.upgrade.rules.onlyAvailableOnPlanUnlimited'
+              : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
         {formattedPrice, hasTeam2025Pricing},
     );
 
