@@ -18,9 +18,10 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -103,7 +104,7 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             };
 
-            const MOCK_TRANSACTION_VIOLATIONS: NonNullable<OnyxCollection<TransactionViolations>> = {
+            const MOCK_TRANSACTION_VIOLATIONS = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -111,7 +112,7 @@ describe('SidebarUtils', () => {
                         showInReview: true,
                     },
                 ],
-            };
+            } satisfies TransactionViolationsCollectionDataSet;
 
             await act(async () => {
                 await Onyx.multiSet({
@@ -588,7 +589,7 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             };
 
-            const MOCK_TRANSACTION_VIOLATIONS: NonNullable<OnyxCollection<TransactionViolations>> = {
+            const MOCK_TRANSACTION_VIOLATIONS = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
                     {
                         type: CONST.VIOLATION_TYPES.NOTICE,
@@ -596,7 +597,7 @@ describe('SidebarUtils', () => {
                         showInReview: true,
                     },
                 ],
-            };
+            } satisfies TransactionViolationsCollectionDataSet;
 
             await act(async () => {
                 await Onyx.multiSet({
