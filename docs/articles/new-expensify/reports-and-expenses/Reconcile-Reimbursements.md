@@ -22,7 +22,9 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
 1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Spend**.
 2. In the **Reconciliation** section, select **Reimbursements**.
 3. Choose the **Withdrawn** filter to select a date range (for example, **Last month**).
-4. Review the list of reimbursements. Each row represents a reimbursement for a single report and shows the total amount.
+4. Review the list of reimbursements. Each row represents a reimbursement for a single report and shows the total amount, along with the **Amount debited** column showing what was actually withdrawn from your business bank account.
+
+**Note:** For cross-border reimbursements where your workspace is set to **Company pays** for currency conversion fees, the **Amount debited** can be greater than the report total because it includes the foreign exchange (FX) rate difference and conversion fee. Learn more about [who pays currency conversion fees](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
 
 ---
 
@@ -37,9 +39,11 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
 ## How to Verify Reimbursement Totals Against Your Bank Statement
 
 1. On your bank statement, locate the reimbursement charges for the period you are reconciling.
-2. In the reimbursement reconciliation view, compare each payment total to the corresponding charge on your bank statement.
-   - If the totals match, the reimbursement is reconciled. 
-   - If a total does not match, expand the reimbursement to review the underlying expenses and identify discrepancies.
+2. In the reimbursement reconciliation view, compare the **Amount debited** for each payment to the corresponding charge on your bank statement.
+   - If the amounts match, the reimbursement is reconciled. 
+   - If an amount does not match, expand the reimbursement to review the underlying expenses and identify discrepancies.
+
+**Note:** Match the bank charge against the **Amount debited**, not the report total. When your workspace is set to **Company pays** for currency conversion fees, the amount debited from your business bank account for a cross-border reimbursement can exceed the report total.
 
 ---
 
