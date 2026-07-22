@@ -65,7 +65,10 @@ function ReportActions() {
     // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
     // before content appeared.
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
-    const shouldShowAppLoadSkeleton = !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
+
+    const hasCachedReportActions = reportActions.some((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowAppLoadSkeleton =
+        !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM && !hasCachedReportActions;
 
     useMarkOpenReportEndOnSkeleton(report, shouldShowAppLoadSkeleton);
 

@@ -311,6 +311,46 @@ describe('ReportActionsList (body)', () => {
             expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
         });
 
+        it('should not show skeleton for app load when report actions are already cached (isLoadingApp is true and isOffline is false)', () => {
+            mockUseNetwork.mockReturnValue({
+                isOffline: false,
+            });
+
+            mockUseOnyx.mockImplementation((key: string) => {
+                if (key === ONYXKEYS.IS_LOADING_APP) {
+                    return [true, {status: 'loaded'}];
+                }
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+                    return [false, {status: 'loaded'}];
+                }
+                if (key.includes('reportLoadingState')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
+                if (key.includes('reportActions')) {
+                    return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
+                }
+                if (key.includes('report')) {
+                    return [undefined, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            // Cached report actions present, so the app-load skeleton must be suppressed even while OpenApp is in flight.
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+            });
+
+            renderReportActionsList();
+
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            expect(mockUseMarkAsRead).toHaveBeenCalled();
+            expect(mockUseReportActionsScroll).toHaveBeenCalled();
+        });
+
         it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isLoadingApp is false and isOffline is false)', () => {
             mockUseNetwork.mockReturnValue({
                 isOffline: false,

@@ -15,6 +15,9 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -22,6 +25,8 @@ import Onyx from 'react-native-onyx';
 
 import InboxTabSelector from './InboxTabSelector';
 import SidebarLinksData from './SidebarLinksData';
+
+const hasAnyReportSelector = (reports: OnyxCollection<Report>): boolean => Object.keys(reports ?? {}).length > 0;
 
 // Once the app finishes loading for the first time, we never show the skeleton again
 // (even if isLoadingApp briefly flips back to true during a reconnect).
@@ -44,7 +49,10 @@ function BaseSidebarScreen() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
+
+    const [hasReportData = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasAnyReportSelector});
+    const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading && !(hasReportData && hasLoadedApp);
 
     // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the
     // report list, so durations that include the openApp wait can be queried separately in Sentry.
@@ -75,7 +83,7 @@ function BaseSidebarScreen() {
                         {shouldShowSkeleton ? (
                             <OptionsListSkeletonView
                                 shouldAnimate
-                                reasonAttributes={{context: 'BaseSidebarScreen', isLoadingApp, hasEverFinishedLoading} satisfies SkeletonSpanReasonAttributes}
+                                reasonAttributes={{context: 'BaseSidebarScreen', isLoadingApp, hasEverFinishedLoading, hasReportData, hasLoadedApp} satisfies SkeletonSpanReasonAttributes}
                             />
                         ) : (
                             <SidebarLinksData insets={insets} />

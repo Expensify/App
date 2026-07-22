@@ -1,4 +1,5 @@
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -100,9 +101,7 @@ function useReportActionsListModel(reportID: string) {
 
     const isMissingReportActions = sortedVisibleReportActions.length === 0;
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
-    // allReportActions excludes the synthetic CREATED action always injected for Concierge, so this is
-    // false only on a genuinely cold load with no cached history.
-    const hasCachedReportActions = allReportActions.length > 0;
+    const hasCachedReportActions = allReportActions.some((action) => !isCreatedAction(action));
 
     // Readiness signals for the skeleton decision (some also read by the guard's effect hooks). Off the
     // context so their churn (loading, app-load, concierge-session, navigation) never re-renders the list.
