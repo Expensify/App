@@ -28,11 +28,13 @@ type FirstAndLastName = {
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
+let allPersonalDetailLogins: string[] = [];
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         const personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
+        allPersonalDetailLogins = personalDetails.map((detail) => detail?.login ?? '');
         emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
                 acc[detail.login.toLowerCase()] = detail;
@@ -264,6 +266,10 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
     return emailToPersonalDetailsCache[email.toLowerCase()];
 }
 
+function getAllPersonalDetailLogins(): string[] {
+    return allPersonalDetailLogins;
+}
+
 /**
  * Returns the accountID for a login only when it exists in personal details.
  * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
@@ -292,7 +298,7 @@ function getAccountIDsByLogins(logins: string[]): number[] {
     }, []);
 }
 
-function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string | undefined {
+function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): string | undefined {
     return accountID ? personalDetails?.[accountID]?.login : undefined;
 }
 
@@ -625,6 +631,7 @@ export {
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
+    getAllPersonalDetailLogins,
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,

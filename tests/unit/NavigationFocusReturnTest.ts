@@ -1,5 +1,25 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
 
+// scheduleRestore defers through TransitionTracker; mock it so the deferred restore can be flushed deterministically (waitForUpcomingTransition is Promise-based and can't be driven by fake timers alone).
+type TtEntry = {cb: () => void; cancelled: boolean; waitForUpcomingTransition: boolean | 'navigation'};
+let mockTtQueue: TtEntry[] = [];
+jest.mock('../../src/libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        startTransition: jest.fn(),
+        endTransition: jest.fn(),
+        runAfterTransitions: ({callback, waitForUpcomingTransition = false}: {callback: () => void; waitForUpcomingTransition?: boolean | 'navigation'}) => {
+            const entry: TtEntry = {cb: callback, cancelled: false, waitForUpcomingTransition};
+            mockTtQueue.push(entry);
+            return {
+                cancel: () => {
+                    entry.cancelled = true;
+                },
+            };
+        },
+    },
+}));
+
 const {resetCycle: resetArbiter, tryClaim, Priorities} = require<{
     resetCycle: () => void;
     tryClaim: (priority: number) => boolean;
@@ -10,8 +30,6 @@ const {resetForTests: resetHadTabNavigation, setupHadTabNavigation} = require<{
     setupHadTabNavigation: () => void;
 }>('../../src/libs/hadTabNavigation.ts');
 const {
-    diffNavigationState,
-    collectRouteKeys,
     captureTriggerForRoute,
     restoreTriggerForRoute,
     handleStateChange,
@@ -23,13 +41,10 @@ const {
     cancelPendingFocusRestore,
     skipNextFocusRestore,
     isFocusRestoreInProgress,
-    compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     setupNavigationFocusReturn,
     teardownNavigationFocusReturn,
 } = require<{
-    diffNavigationState: (prev: unknown, next: unknown) => {action: {type: string; captureKey?: string; restoreKey?: string}; removedKeys: string[]};
-    collectRouteKeys: (state: unknown) => Set<string>;
     captureTriggerForRoute: (routeKey: string) => void;
     restoreTriggerForRoute: (routeKey: string) => boolean;
     handleStateChange: (state: unknown) => void;
@@ -41,14 +56,18 @@ const {
     cancelPendingFocusRestore: () => void;
     skipNextFocusRestore: () => void;
     isFocusRestoreInProgress: () => boolean;
-    compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     setupNavigationFocusReturn: () => void;
     teardownNavigationFocusReturn: () => void;
-}>('../../src/libs/NavigationFocusReturn.ts');
-const {setActivePopoverLauncher, scheduleClearActivePopoverLauncher} = require<{
+}>('../../src/libs/NavigationFocusReturn/index.ts');
+const {diffNavigationState, collectRouteKeys} = require<{
+    diffNavigationState: (prev: unknown, next: unknown) => {action: {type: string; captureKey?: string; restoreKey?: string}; removedKeys: string[]};
+    collectRouteKeys: (state: unknown) => Set<string>;
+}>('../../src/libs/navigationStateDiff.ts');
+const {default: compoundParamsKey} = require<{default: (routeKey: string, params: unknown) => string}>('../../src/libs/compoundParamsKey.ts');
+const {setActivePopoverLauncher, markActivePopoverLauncherDeactivated} = require<{
     setActivePopoverLauncher: (element: HTMLElement) => void;
-    scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
+    markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
 }>('../../src/libs/LauncherStack.ts');
 const {default: hasFocusableAttributes} = require<{
     default: (el: Element) => boolean;
@@ -118,6 +137,18 @@ function withFakeTimers<T>(fn: () => T): T {
     }
 }
 
+// Runs the restore callbacks that scheduleRestore queued through the mocked TransitionTracker (mirrors a transition completing).
+function flushTransitions(): void {
+    const buffered = mockTtQueue;
+    mockTtQueue = [];
+    for (const entry of buffered) {
+        if (entry.cancelled) {
+            continue;
+        }
+        entry.cb();
+    }
+}
+
 setupHadTabNavigation();
 setupNavigationFocusReturn();
 
@@ -125,6 +156,7 @@ beforeEach(() => {
     resetForTests();
     resetArbiter();
     resetHadTabNavigation();
+    mockTtQueue = [];
     document.body.innerHTML = '';
 });
 
@@ -431,7 +463,7 @@ describe('captureTriggerForRoute', () => {
 
             // Popover opens then closes: launcher set, deferred clear pending.
             setActivePopoverLauncher(launcher);
-            scheduleClearActivePopoverLauncher();
+            markActivePopoverLauncherDeactivated();
 
             // FocusTrap returnFocus puts focus on launcher first.
             launcher.focus();
@@ -871,6 +903,23 @@ describe('restoreTriggerForRoute', () => {
         expect(triggerSpy).toHaveBeenCalled();
     });
 
+    it('should still preempt AUTO even after useAccessibilityFocus tail-resetCycle idles the cycle — recognize the programmatic-focus marker as app-driven', () => {
+        const trigger = appendButton();
+        const autoTarget = appendInput();
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+
+        tryClaim(Priorities.AUTO);
+        autoTarget.setAttribute('data-programmatic-focus', 'true');
+        autoTarget.focus();
+        resetArbiter();
+
+        const triggerSpy = jest.spyOn(trigger, 'focus');
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(triggerSpy).toHaveBeenCalled();
+    });
+
     it('releases the cycle at RETURN_HOLD_MS when the user has moved focus elsewhere so unrelated later AUTO claims are not blocked for 2s', () => {
         withFakeTimers(() => {
             const trigger = appendButton();
@@ -1101,7 +1150,7 @@ describe('restoreTriggerForRoute', () => {
             const clearSpy = jest.spyOn(clearAfterButton, 'focus');
 
             // Scheduled restore fires; RETURN preempts AUTO and focus lands on "Clear after", not the Message input.
-            jest.runAllTimers();
+            flushTransitions();
             expect(clearSpy).toHaveBeenCalled();
             expect(messageSpy).not.toHaveBeenCalled();
         });
@@ -1126,7 +1175,7 @@ describe('restoreTriggerForRoute', () => {
 
             // Esc → backward → scheduled restore refocuses Clear after. Hold extends because the target is still focused.
             handleStateChange(onStatus);
-            jest.runAllTimers();
+            flushTransitions();
             expect(document.activeElement).toBe(clearAfterButton);
 
             // Late useAutoFocusInput: the guard catches it before it reaches tryClaim.
@@ -1139,6 +1188,26 @@ describe('restoreTriggerForRoute', () => {
 
             expect(messageSpy).not.toHaveBeenCalled();
             expect(document.activeElement).toBe(clearAfterButton);
+        });
+    });
+
+    it('stack-pop restore fires synchronously inside the transition callback (no rAF defer)', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(stackState(0, [{key: 'route-a', name: 'A'}]));
+            handleStateChange(
+                stackState(1, [
+                    {key: 'route-a', name: 'A'},
+                    {key: 'route-b', name: 'B'},
+                ]),
+            );
+            trigger.blur();
+            handleStateChange(stackState(0, [{key: 'route-a', name: 'A'}]));
+            const spy = jest.spyOn(trigger, 'focus');
+            flushTransitions();
+            expect(spy).toHaveBeenCalled();
         });
     });
 
@@ -1450,7 +1519,27 @@ describe('handleStateChange integration', () => {
             handleStateChange(onA);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('clears an armed skipNextFocusRestore on a noop navigation so a later real Back still restores focus', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(onAB);
+            trigger.blur();
+
+            skipNextFocusRestore();
+            handleStateChange(onAB);
+
+            const spy = jest.spyOn(trigger, 'focus');
+            handleStateChange(onA);
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1468,15 +1557,39 @@ describe('handleStateChange integration', () => {
             skipNextFocusRestore();
             const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
 
-            // The flag is one-shot: a subsequent Back-button dismissal restores normally.
+            // The flag is one-shot: a fresh capture + Back-button dismissal restores normally.
+            fireFocusIn(trigger);
             handleStateChange(onAB);
             trigger.blur();
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('skipNextFocusRestore drops the entry, so a later same-key backward without re-capture does not replay a stale trigger', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(onAB);
+            trigger.blur();
+
+            skipNextFocusRestore();
+            handleStateChange(onA);
+            flushTransitions();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            handleStateChange(onAB);
+            trigger.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
         });
     });
 
@@ -1494,7 +1607,7 @@ describe('handleStateChange integration', () => {
             trigger.blur();
             const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1535,7 +1648,7 @@ describe('handleStateChange integration', () => {
             handleStateChange(onTab2);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
         });
     });
@@ -1561,7 +1674,7 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAC);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
         });
     });
@@ -1580,7 +1693,7 @@ describe('handleStateChange integration', () => {
         expect(restoreTriggerForRoute('a')).toBe(false);
     });
 
-    it('should drop the stale entry after MAX_RESTORE_ATTEMPTS retries all fail', () => {
+    it('should drop the stale entry after the retry budget is exhausted (trigger stays aria-hidden)', () => {
         withFakeTimers(() => {
             simulateTab();
             const hidden = document.createElement('div');
@@ -1595,7 +1708,8 @@ describe('handleStateChange integration', () => {
             trigger.blur();
             handleStateChange(onA);
 
-            // Trigger stays aria-hidden across all retry attempts — scheduleRestore gives up.
+            // Trigger stays aria-hidden across the transition + every rAF retry — scheduleRestore gives up.
+            flushTransitions();
             jest.runAllTimers();
             const spy = jest.spyOn(trigger, 'focus');
 
@@ -1682,6 +1796,27 @@ describe('PUSH_PARAMS notifications', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('recovers focus when the trigger is detached at the first attempt and remounts within the retry budget', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+
+            trigger.remove();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+
+            document.body.appendChild(trigger);
             jest.runAllTimers();
             expect(spy).toHaveBeenCalled();
         });
@@ -1711,6 +1846,56 @@ describe('PUSH_PARAMS notifications', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'baz'});
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+        });
+    });
+
+    it('defers the first restore attempt by one frame so the post-commit render lands before focus', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('yields to a user focus that lands during the rAF defer (baseline-vs-activeElement check still wins)', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const triggerSpy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            const userTarget = appendButton();
+            userTarget.focus();
+            jest.runAllTimers();
+            expect(triggerSpy).not.toHaveBeenCalled();
+            expect(document.activeElement).toBe(userTarget);
+        });
+    });
+
+    it('cancelPendingFocusRestore drops the rAF-deferred attempt so a later nav cannot replay it', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            cancelPendingFocusRestore();
             jest.runAllTimers();
             expect(spy).not.toHaveBeenCalled();
         });
@@ -1789,7 +1974,7 @@ describe('teardown / setup lifecycle', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             teardownNavigationFocusReturn();
-            jest.runAllTimers(); // if cancellation failed, restore would fire here
+            flushTransitions(); // if cancellation failed, the restore would fire here
             expect(spy).not.toHaveBeenCalled();
         });
     });

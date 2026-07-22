@@ -33,8 +33,10 @@ import {
     getReportAction,
     isActionOfType,
     isDeletedAction,
+    isMemberChangeAction,
     withDEWRoutedActionsObject,
 } from '@libs/ReportActionsUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     chatIncludesChronosWithID,
     getHarvestOriginalReportID,
@@ -283,6 +285,9 @@ function BaseReportActionContextMenu({
     const isUnreadChat = isUnread(report, lhnOneTransactionThreadReport, isOriginalReportArchived);
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+    const memberChangeLogReportActionMessage = isMemberChangeAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
+    const [memberChangeLogRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(`${memberChangeLogReportActionMessage?.reportID}`)}`);
+    const memberChangeLogRoomReportName = deprecatedGetReportName(memberChangeLogRoomReport, reportAttributes) || memberChangeLogReportActionMessage?.roomName;
 
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
@@ -444,6 +449,7 @@ function BaseReportActionContextMenu({
                                 delegateAccountID,
                                 reportAttributes,
                                 originalReportOfUnapprovedTransaction,
+                                memberChangeLogRoomReportName,
                             };
 
                             if ('renderContent' in contextAction) {
