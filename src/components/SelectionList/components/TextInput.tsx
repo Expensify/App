@@ -76,6 +76,10 @@ function TextInput({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    // The compact search input must be sized by the physical device width, not by `shouldUseNarrowLayout`. Using
+    // `shouldUseNarrowLayout` would grow the input to the tall mobile size whenever it is rendered inside an
+    // RHP/narrow pane on web/desktop, so `isSmallScreenWidth` is intentionally used here to keep it compact.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {
         label,
