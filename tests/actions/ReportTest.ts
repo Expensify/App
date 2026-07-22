@@ -7,6 +7,7 @@ import type handleWalletStatementNavigationDefault from '@components/WalletState
 
 import useAncestors from '@hooks/useAncestors';
 
+import type {GuidedSetupData} from '@libs/actions/Report';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
@@ -197,42 +198,31 @@ const TEST_INTRO_SELECTED: OnyxTypes.IntroSelected = {
     isInviteOnboardingComplete: false,
 };
 
-const getTransactionProperty = (value: unknown, property: 'pendingAction' | 'convertedAmount'): unknown => {
-    if (typeof value !== 'object' || value === null) {
-        return undefined;
+const isTransactionMergeUpdate = (value: unknown): value is Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>, {onyxMethod: typeof Onyx.METHOD.MERGE}> => {
+    if (typeof value !== 'object' || value === null || !('onyxMethod' in value) || !('key' in value) || !('value' in value)) {
+        return false;
     }
-    if (property === 'pendingAction' && 'pendingAction' in value) {
-        return value.pendingAction;
-    }
-    if (property === 'convertedAmount' && 'convertedAmount' in value) {
-        return value.convertedAmount;
-    }
-    return undefined;
+
+    return (
+        value.onyxMethod === Onyx.METHOD.MERGE &&
+        typeof value.key === 'string' &&
+        value.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
+        (value.value === null || typeof value.value === 'object')
+    );
 };
 
-type GuidedSetupItem = {
-    type: string;
-    task?: string;
-    completedTaskReportActionID?: string;
-};
+const isGuidedSetupData = (value: unknown): value is GuidedSetupData =>
+    Array.isArray(value) && value.every((item: unknown): item is GuidedSetupData[number] => typeof item === 'object' && item !== null && 'type' in item);
 
-const parseGuidedSetupData = (value: string): GuidedSetupItem[] => {
-    const parsed: unknown = JSON.parse(value);
-    if (
-        !Array.isArray(parsed) ||
-        !parsed.every(
-            (item: unknown): item is GuidedSetupItem =>
-                typeof item === 'object' &&
-                item !== null &&
-                'type' in item &&
-                typeof item.type === 'string' &&
-                (!('task' in item) || typeof item.task === 'string') &&
-                (!('completedTaskReportActionID' in item) || typeof item.completedTaskReportActionID === 'string'),
-        )
-    ) {
-        throw new Error('Expected guided setup data to contain only valid items');
+const parseGuidedSetupData = (value: string): GuidedSetupData => {
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(value);
+    } catch {
+        return [];
     }
-    return parsed;
+
+    return isGuidedSetupData(parsed) ? parsed : [];
 };
 
 type APIWriteSpy = jest.SpiedFunction<typeof API.write>;
@@ -4677,18 +4667,21 @@ describe('actions/Report', () => {
             const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             const transactionSuccessData = successData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             const transactionFailureData = failureData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const optimisticTransaction = isTransactionMergeUpdate(transactionOptimisticData) ? transactionOptimisticData : undefined;
+            const successTransaction = isTransactionMergeUpdate(transactionSuccessData) ? transactionSuccessData : undefined;
+            const failureTransaction = isTransactionMergeUpdate(transactionFailureData) ? transactionFailureData : undefined;
 
             // Should have pendingAction set to UPDATE
-            expect(getTransactionProperty(transactionOptimisticData?.value, 'pendingAction')).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(optimisticTransaction?.value?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             // Should have convertedAmount cleared
-            expect(getTransactionProperty(transactionOptimisticData?.value, 'convertedAmount')).toBeNull();
+            expect(optimisticTransaction?.value?.convertedAmount).toBeNull();
 
             // Success data should clear pendingAction
-            expect(getTransactionProperty(transactionSuccessData?.value, 'pendingAction')).toBeNull();
+            expect(successTransaction?.value?.pendingAction).toBeNull();
 
             // Failure data should restore original values
-            expect(getTransactionProperty(transactionFailureData?.value, 'pendingAction')).toBe(transaction.pendingAction ?? null);
-            expect(getTransactionProperty(transactionFailureData?.value, 'convertedAmount')).toBe(transaction.convertedAmount);
+            expect(failureTransaction?.value?.pendingAction).toBe(transaction.pendingAction ?? null);
+            expect(failureTransaction?.value?.convertedAmount).toBe(transaction.convertedAmount);
         });
 
         it('should NOT clear convertedAmount when source and destination currencies are the same', async () => {
@@ -4850,8 +4843,9 @@ describe('actions/Report', () => {
             // Should find optimistic data for the non-matching transaction (AUD doesn't match USD destination)
             const nonMatchingOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${nonMatchingTransactionID}`);
             expect(nonMatchingOptimisticData).toBeDefined();
-            expect(getTransactionProperty(nonMatchingOptimisticData?.value, 'pendingAction')).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            expect(getTransactionProperty(nonMatchingOptimisticData?.value, 'convertedAmount')).toBeNull();
+            const nonMatchingTransactionMerge = isTransactionMergeUpdate(nonMatchingOptimisticData) ? nonMatchingOptimisticData : undefined;
+            expect(nonMatchingTransactionMerge?.value?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(nonMatchingTransactionMerge?.value?.convertedAmount).toBeNull();
         });
 
         it('should mark old report preview action as deleted when changing report policy', () => {
