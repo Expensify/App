@@ -22,6 +22,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useIsFocused: jest.fn(),
     useRoute: jest.fn(),
     usePreventRemove: jest.fn(),
@@ -51,6 +52,7 @@ jest.mock('@hooks/useFilteredOptions', () => ({
         },
         isLoading: false,
         loadMore: jest.fn(),
+        loadAll: jest.fn(),
         hasMore: false,
         isLoadingMore: false,
     })),
@@ -97,6 +99,7 @@ describe('SearchAutocompleteList', () => {
             options: {reports: [], personalDetails: []},
             isLoading: false,
             loadMore: jest.fn(),
+            loadAll: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
         });
@@ -227,6 +230,7 @@ describe('SearchAutocompleteList', () => {
             options: {reports: [], personalDetails: []},
             isLoading: false,
             loadMore: jest.fn(),
+            loadAll: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
         });

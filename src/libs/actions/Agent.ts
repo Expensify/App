@@ -1,5 +1,6 @@
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -301,7 +302,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
             value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -341,6 +342,21 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 }
 
+/** Persists an uploaded agent avatar photo in a serialized form that survives a page refresh */
+function setNewAgentUploadedAvatar(image: File | CustomRNImageManipulatorResult) {
+    return buildAvatarCropResult(image).then((uploadedAvatar) => Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, {uploadedAvatar}));
+}
+
+/** Persists a preset agent avatar choice */
+function setNewAgentAvatarPreset(customExpensifyAvatarID: string) {
+    return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, {customExpensifyAvatarID});
+}
+
+/** Clears the agent avatar draft */
+function clearNewAgentAvatarDraft() {
+    return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, null);
+}
+
 export {
     openAgentsPage,
     openProfilePage,
@@ -355,4 +371,7 @@ export {
     updateAgentPrompt,
     updateAgentAvatar,
     deleteAgent,
+    setNewAgentUploadedAvatar,
+    setNewAgentAvatarPreset,
+    clearNewAgentAvatarDraft,
 };
