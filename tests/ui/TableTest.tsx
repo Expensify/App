@@ -10,7 +10,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 type MockFlashListProps<T> = {
     data?: T[];
@@ -28,34 +28,38 @@ const mockFlashListScrollToItem = jest.fn();
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 
 // Mock navigation
-jest.mock('@react-navigation/native', () => ({
-    NavigationContainer: ({children}: {children: React.ReactNode}) => children,
-    ThemeProvider: ({children}: {children: React.ReactNode}) => children,
-    useIsFocused: jest.fn(() => true),
-    useFocusEffect: jest.fn(),
-    useNavigation: () => ({
-        addListener: jest.fn(() => jest.fn()),
-        dispatch: jest.fn(),
-        getState: jest.fn(() => ({routes: []})),
-        isFocused: jest.fn(() => true),
-        navigate: jest.fn(),
-    }),
-    useNavigationState: jest.fn(() => ({routes: []})),
-    usePreventRemove: jest.fn(),
-    useRoute: jest.fn(() => ({params: {}})),
-    useTheme: jest.fn(() => ({})),
-    createNavigationContainerRef: jest.fn(() => ({
-        addListener: jest.fn(() => jest.fn()),
-        getCurrentRoute: jest.fn(),
-        getState: jest.fn(() => ({routes: []})),
-        isReady: jest.fn(() => true),
-        navigate: jest.fn(),
-        removeListener: jest.fn(),
-    })),
-    DarkTheme: {},
-    DefaultTheme: {},
-    LinkingContext: {},
-}));
+jest.mock('@react-navigation/native', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
+    return {
+        NavigationContainer: ({children}: {children: React.ReactNode}) => children,
+        NavigationRouteContext: ReactLocal.createContext(undefined),
+        ThemeProvider: ({children}: {children: React.ReactNode}) => children,
+        useIsFocused: jest.fn(() => true),
+        useFocusEffect: jest.fn(),
+        useNavigation: () => ({
+            addListener: jest.fn(() => jest.fn()),
+            dispatch: jest.fn(),
+            getState: jest.fn(() => ({routes: []})),
+            isFocused: jest.fn(() => true),
+            navigate: jest.fn(),
+        }),
+        useNavigationState: jest.fn(() => ({routes: []})),
+        usePreventRemove: jest.fn(),
+        useRoute: jest.fn(() => ({params: {}})),
+        useTheme: jest.fn(() => ({})),
+        createNavigationContainerRef: jest.fn(() => ({
+            addListener: jest.fn(() => jest.fn()),
+            getCurrentRoute: jest.fn(),
+            getState: jest.fn(() => ({routes: []})),
+            isReady: jest.fn(() => true),
+            navigate: jest.fn(),
+            removeListener: jest.fn(),
+        })),
+        DarkTheme: {},
+        DefaultTheme: {},
+        LinkingContext: {},
+    };
+});
 
 jest.mock('@react-navigation/core', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
@@ -829,6 +833,28 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
         });
 
+        it('should render ListEmptyComponent as a synthetic row when only the sticky header keeps the list mounted', () => {
+            const props = createDefaultProps();
+            const EmptyState = <Text testID="empty-state">No items found</Text>;
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={[]}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    ListEmptyComponent={EmptyState}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByTestId('empty-state')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
+            expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
+        });
+
         it('should render Table.EmptyState inside the list when a page header is present', () => {
             const props = createDefaultProps();
 
@@ -852,6 +878,40 @@ describe('Table', () => {
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(3);
             expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
+        });
+
+        it('should size a page-header empty state to the remaining list viewport', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={[]}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                >
+                    <Table.EmptyState title="No items yet" />
+                    <Table.Body testID="table-body" />
+                </Table>,
+            );
+
+            fireEvent(screen.getByTestId('table-body'), 'layout', {nativeEvent: {layout: {height: 800}}});
+
+            const pageHeaderContainer = screen.getByTestId('table-header-component').parent;
+            if (!pageHeaderContainer) {
+                throw new Error('Expected the page header to have a measurable container');
+            }
+            fireEvent(pageHeaderContainer, 'layout', {nativeEvent: {layout: {height: 120}}});
+
+            const emptyStateAncestorStyles: unknown[] = [];
+            let emptyStateAncestor = screen.getByTestId('generic-empty-state').parent;
+            while (emptyStateAncestor) {
+                emptyStateAncestorStyles.push(StyleSheet.flatten(emptyStateAncestor.props.style));
+                emptyStateAncestor = emptyStateAncestor.parent;
+            }
+
+            expect(emptyStateAncestorStyles).toEqual(expect.arrayContaining([expect.objectContaining({minHeight: 680})]));
         });
 
         it('should render Table.NoResultsState inside the list when search matches nothing and a page header is present', () => {

@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
 import React, {useEffect, useState} from 'react';
@@ -59,10 +59,12 @@ type TableBodyListProps = TableBodyProps & {
  * </Table>
  * ```
  */
-function TableBodyList({contentContainerStyle, emptyMessage, style, ...props}: TableBodyListProps) {
+function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
     const styles = useThemeStyles();
     const [isListLoaded, setIsListLoaded] = useState(false);
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
+    const [listViewportHeight, setListViewportHeight] = useState(0);
+    const [pageHeaderHeight, setPageHeaderHeight] = useState(0);
     const {
         processedData: filteredAndSortedData,
         listProps,
@@ -125,10 +127,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, style, ...props}: T
     };
 
     const pageHeaderElement = (
-        <>
+        <View onLayout={(event) => setPageHeaderHeight(event.nativeEvent.layout.height)}>
             {renderListComponent(ListHeaderComponent)}
             {headerComponent}
-        </>
+        </View>
     );
     const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
@@ -154,6 +156,18 @@ function TableBodyList({contentContainerStyle, emptyMessage, style, ...props}: T
         listEmptyComponent = undefined;
     }
 
+    const syntheticEmptyRowMinHeight = Math.max(
+        0,
+        listViewportHeight - (tableListMetadata.hasPageHeader ? pageHeaderHeight : 0) - (typeof tableBodyBottomPadding === 'number' ? tableBodyBottomPadding : 0),
+    );
+    const renderSyntheticEmptyRow = (content: React.ReactNode) => {
+        if (!tableListMetadata.hasPageHeader) {
+            return content;
+        }
+
+        return <View style={[styles.flexGrow1, styles.flexShrink0, {minHeight: syntheticEmptyRowMinHeight}]}>{content}</View>;
+    };
+
     const renderListItem = (info: ListRenderItemInfo<TableData>) => {
         const rowKind = getSyntheticRowKind(info.index, tableListMetadata);
 
@@ -163,9 +177,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, style, ...props}: T
             case 'tableHeader':
                 return <TableHeader isStickyListHeader />;
             case 'emptyResult':
-                return noResultsStateElement ?? EmptyResultComponent;
+                return renderSyntheticEmptyRow(noResultsStateElement ?? EmptyResultComponent);
             case 'listEmpty':
-                return emptyStateElement ?? renderListComponent(ListEmptyComponent);
+                return renderSyntheticEmptyRow(emptyStateElement ?? renderListComponent(ListEmptyComponent));
             case 'data':
             default:
                 return renderItem?.({...info, index: getDataIndex(info.index, tableListMetadata)}) ?? null;
@@ -192,10 +206,16 @@ function TableBodyList({contentContainerStyle, emptyMessage, style, ...props}: T
         return getItemType?.(item, getDataIndex(index, tableListMetadata), extraData);
     };
 
+    const handleLayout = (event: LayoutChangeEvent) => {
+        setListViewportHeight(event.nativeEvent.layout.height);
+        onLayout?.(event);
+    };
+
     return (
         <View
             ref={listContainerRef}
             style={[styles.flex1, styles.mnh0, style]}
+            onLayout={handleLayout}
             {...props}
         >
             <FlashList<TableData>
@@ -260,4 +280,4 @@ function TableBody(props: TableBodyProps) {
     );
 }
 
-export default React.memo(TableBody);
+export default TableBody;

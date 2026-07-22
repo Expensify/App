@@ -355,7 +355,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
-                    {!isTableTab && rulesTabSelector}
+                    {!isTableTab && !isAgentsTab && rulesTabSelector}
                     {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
                     <View
                         style={[
@@ -413,6 +413,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     policyID={policyID}
                                     canWriteRules={canWriteRules}
                                     showReadOnlyModal={showReadOnlyModal}
+                                    headerComponent={rulesTabSelector}
                                 />
                             </View>
                         )}

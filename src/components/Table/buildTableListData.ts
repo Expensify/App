@@ -40,11 +40,13 @@ function getTableListMetadata<DataType extends TableData>({
 }: TableListMetadataParams<DataType>): TableListMetadata {
     const hasPageHeader = !!listHeaderComponent || !!headerComponent;
     const syntheticRowsBeforeData = (hasPageHeader ? 1 : 0) + (shouldRenderStickyHeader ? 1 : 0);
+    const shouldRenderPageHeaderEmptyRow = hasPageHeader && (isEmptyResult || !!listEmptyComponent || hasEmptyStateContent);
+    const shouldRenderStickyListEmptyRow = !hasPageHeader && shouldRenderStickyHeader && !!listEmptyComponent;
 
     return {
         hasPageHeader,
         shouldRenderStickyHeader,
-        shouldRenderSyntheticEmptyRow: processedData.length === 0 && hasPageHeader && (isEmptyResult || !!listEmptyComponent || hasEmptyStateContent),
+        shouldRenderSyntheticEmptyRow: processedData.length === 0 && (shouldRenderPageHeaderEmptyRow || shouldRenderStickyListEmptyRow),
         isEmptyResult,
         syntheticRowsBeforeData,
         stickyTableHeaderIndex: hasPageHeader ? 1 : 0,
@@ -59,11 +61,13 @@ function createSyntheticRow<DataType extends TableData>(keyForList: string): Dat
 }
 
 function buildTableListData<DataType extends TableData>(data: Array<TableRow<DataType>>, metadata: TableListMetadata): DataType[] {
+    const syntheticEmptyRowKey = metadata.hasPageHeader && metadata.isEmptyResult ? EMPTY_RESULT_KEY : LIST_EMPTY_KEY;
+
     return [
         ...(metadata.hasPageHeader ? [createSyntheticRow<DataType>(PAGE_HEADER_KEY)] : []),
         ...(metadata.shouldRenderStickyHeader ? [createSyntheticRow<DataType>(TABLE_HEADER_KEY)] : []),
         ...data,
-        ...(metadata.shouldRenderSyntheticEmptyRow ? [createSyntheticRow<DataType>(metadata.isEmptyResult ? EMPTY_RESULT_KEY : LIST_EMPTY_KEY)] : []),
+        ...(metadata.shouldRenderSyntheticEmptyRow ? [createSyntheticRow<DataType>(syntheticEmptyRowKey)] : []),
     ];
 }
 
@@ -77,7 +81,7 @@ function getSyntheticRowKind(index: number, metadata: TableListMetadata): Synthe
     }
 
     if (metadata.shouldRenderSyntheticEmptyRow && index === metadata.syntheticRowsBeforeData) {
-        return metadata.isEmptyResult ? 'emptyResult' : 'listEmpty';
+        return metadata.hasPageHeader && metadata.isEmptyResult ? 'emptyResult' : 'listEmpty';
     }
 
     return 'data';
