@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
@@ -127,22 +127,21 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
                         </View>
 
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
-                            <Button
-                                icon={isPINHidden ? icons.Eye : icons.EyeDisabled}
-                                text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                                onPress={togglePINVisibility}
-                                medium
-                            />
+                            <Button onPress={togglePINVisibility}>
+                                <Button.Icon src={isPINHidden ? icons.Eye : icons.EyeDisabled} />
+                                <Button.Text>{isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}</Button.Text>
+                            </Button>
                         </View>
                     </View>
 
                     <Button
-                        success
-                        large
-                        text={isConfirmStep ? translate('common.confirm') : translate('common.next')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleSubmit}
                         style={[styles.mb5]}
-                    />
+                    >
+                        <Button.Text>{isConfirmStep ? translate('common.confirm') : translate('common.next')}</Button.Text>
+                    </Button>
                 </View>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

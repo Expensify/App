@@ -2,7 +2,7 @@ import cardScarf from '@assets/images/card-scarf.svg';
 
 import ActivityIndicator from '@components/ActivityIndicator';
 import AddToWalletButton from '@components/AddToWalletButton/index';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CardPreview from '@components/CardPreview';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -375,9 +375,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         />
                         <Button
                             style={[styles.mh5, styles.mb5]}
-                            text={translate('cardPage.reviewTransaction')}
                             onPress={() => openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
-                        />
+                        >
+                            <Button.Text>{translate('cardPage.reviewTransaction')}</Button.Text>
+                        </Button>
                     </>
                 )}
 
@@ -410,13 +411,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     type="error"
                                 />
                                 <Button
-                                    danger
-                                    text={translate('cardPage.unblock')}
+                                    variant={CONST.BUTTON_VARIANT.DANGER}
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID)));
                                     }}
-                                    small
-                                />
+                                >
+                                    <Button.Text>{translate('cardPage.unblock')}</Button.Text>
+                                </Button>
                             </View>
                         )}
                         {shouldShowSpendRulesSummary && (
@@ -464,15 +466,16 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         rightComponent={
                                             canRevealPIN ? (
                                                 <Button
-                                                    icon={expensifyIcons.Eye}
-                                                    text={translate('cardPage.revealPin')}
                                                     onPress={() => {
                                                         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
                                                             cardID: String(currentPhysicalCard?.cardID),
                                                         });
                                                     }}
                                                     isDisabled={isOffline}
-                                                />
+                                                >
+                                                    <Button.Icon src={expensifyIcons.Eye} />
+                                                    <Button.Text>{translate('cardPage.revealPin')}</Button.Text>
+                                                </Button>
                                             ) : undefined
                                         }
                                     />
@@ -521,7 +524,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             rightComponent={
                                                 !isSignedInAsDelegate ? (
                                                     <Button
-                                                        text={translate('cardPage.cardDetails.reveal')}
                                                         onPress={() => {
                                                             if (isAccountLocked) {
                                                                 showLockedAccountModal();
@@ -551,8 +553,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         }}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
-                                                        small
-                                                    />
+                                                        size={CONST.BUTTON_SIZE.SMALL}
+                                                    >
+                                                        <Button.Text>{translate('cardPage.cardDetails.reveal')}</Button.Text>
+                                                    </Button>
                                                 ) : undefined
                                             }
                                         />
@@ -576,11 +580,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             rightComponent={
                                                 !isSignedInAsDelegate ? (
                                                     <Button
-                                                        text={translate('cardPage.cardDetails.revealCvv')}
                                                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)))}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
-                                                    />
+                                                    >
+                                                        <Button.Text>{translate('cardPage.cardDetails.revealCvv')}</Button.Text>
+                                                    </Button>
                                                 ) : undefined
                                             }
                                         />
@@ -682,24 +687,26 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
             </ScrollView>
             {currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.p5]}
                     onPress={() =>
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID), route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL))
                     }
-                    text={translate('activateCardPage.activatePhysicalCard')}
-                />
+                >
+                    <Button.Text>{translate('activateCardPage.activatePhysicalCard')}</Button.Text>
+                </Button>
             )}
             {currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && (
                 <Button
-                    success
-                    large
-                    text={translate('cardPage.getPhysicalCard')}
-                    pressOnEnter
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(currentPhysicalCard.cardID))))}
                     style={[styles.mh5, styles.mb5]}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('cardPage.getPhysicalCard')}</Button.Text>
+                </Button>
             )}
             <ConfirmModal
                 title={`${translate('cardPage.freezeCard')}?`}

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -268,12 +268,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         if (activeTab !== RULES_TAB.EXPENSE_DEFAULTS) {
             return (
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleNewRule}
-                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                    icon={icons.Plus}
                     style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
-                />
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
+                </Button>
             );
         }
 
@@ -284,12 +285,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleNewRule}
-                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                    icon={icons.Plus}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                />
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
+                </Button>
                 <ButtonWithDropdownMenu
                     // onPress is required by ButtonWithDropdownMenu but never fires for a non-split button, where pressing only opens the dropdown menu
                     onPress={() => {}}

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DistanceMapView from '@components/DistanceMapView';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 
@@ -90,13 +90,14 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
             {numberOfFilledWaypoints >= 2 && (
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                     <Button
-                        small
-                        icon={expensifyIcons.Plus}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
-                        text={translate('distance.addStop')}
                         isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                         innerStyles={[styles.pl10, styles.pr10]}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Plus} />
+                        <Button.Text>{translate('distance.addStop')}</Button.Text>
+                    </Button>
                 </View>
             )}
             <View style={[styles.mapViewContainer, mapContainerStyle]}>

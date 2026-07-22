@@ -1,4 +1,5 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -132,14 +133,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             rightElement: (
                 <Button
                     isDisabled={isOffline}
-                    success
-                    medium
-                    text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     onPress={() => {
                         handleJoinWorkspace(policyInfo);
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
-                />
+                >
+                    <Button.Text>{policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}</Button.Text>
+                </Button>
             ),
             icons: [
                 {
@@ -215,32 +217,30 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 listFooterContent={
                     hasMoreThanLimit && !showAll ? (
                         <View style={[wrapperPadding, styles.alignItemsStart]}>
-                            <Button
-                                text={translate('common.showMore')}
+                            <LinkButton
                                 onPress={() => setShowAll(true)}
-                                link
-                                shouldUseDefaultHover={false}
-                                medium
-                                shouldShowRightIcon
-                                iconRight={icons.DownArrow}
-                                iconRightFill={theme.link}
-                                iconRightHoverFill={theme.linkHover}
                                 innerStyles={styles.ph0}
-                                textStyles={[styles.fontSizeNormal]}
-                            />
+                            >
+                                <LinkButton.Text style={[styles.fontSizeNormal]}>{translate('common.showMore')}</LinkButton.Text>
+                                <LinkButton.Icon
+                                    src={icons.DownArrow}
+                                    fill={theme.link}
+                                    hoverFill={theme.linkHover}
+                                />
+                            </LinkButton>
                         </View>
                     ) : null
                 }
                 footerContent={
                     <Button
-                        success={false}
-                        large
-                        text={translate('onboarding.skipForNow')}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         testID="onboardingWorkSpaceSkipButton"
                         onPress={skipJoiningWorkspaces}
                         style={[styles.mt5]}
                         sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
-                    />
+                    >
+                        <Button.Text>{translate('onboarding.skipForNow')}</Button.Text>
+                    </Button>
                 }
             />
         </ScreenWrapper>

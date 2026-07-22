@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -267,13 +267,14 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                 />
                             ) : (
                                 <Button
-                                    success
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
-                                    text={translate('workspace.invite.member')}
-                                    icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                                     style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                                />
+                                >
+                                    <Button.Icon src={icons.Plus} />
+                                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+                                </Button>
                             )}
                         </View>
                     )}

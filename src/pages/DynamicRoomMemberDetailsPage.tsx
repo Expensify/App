@@ -1,5 +1,5 @@
 import Avatar from '@components/Avatar';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -102,13 +102,16 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
                     )}
                     <>
                         <Button
-                            text={translate('workspace.people.removeRoomMemberButtonTitle')}
                             onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                             isDisabled={shouldDisableRemoveUser}
-                            icon={icons.RemoveMembers}
-                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                             style={styles.mv5}
-                        />
+                        >
+                            <Button.Icon
+                                src={icons.RemoveMembers}
+                                style={StyleUtils.getTransformScaleStyle(0.8)}
+                            />
+                            <Button.Text>{translate('workspace.people.removeRoomMemberButtonTitle')}</Button.Text>
+                        </Button>
                         <ConfirmModal
                             danger
                             title={translate('workspace.people.removeRoomMemberButtonTitle')}

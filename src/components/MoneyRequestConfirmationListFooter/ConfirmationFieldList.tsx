@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import Text from '@components/Text';
@@ -12,6 +12,7 @@ import {getTagLists} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -178,14 +179,13 @@ function ConfirmationFieldList({
                 <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
                     <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                     <Button
-                        text={translate('common.showMore')}
                         onPress={() => compactState.setShowMoreFields(true)}
-                        small
-                        shouldShowRightIcon
-                        iconRight={icons.DownArrow}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         innerStyles={[styles.hoveredComponentBG, styles.ph4, styles.pv2]}
-                        textStyles={styles.buttonSmallText}
-                    />
+                    >
+                        <Button.Text style={styles.buttonSmallText}>{translate('common.showMore')}</Button.Text>
+                        <Button.Icon src={icons.DownArrow} />
+                    </Button>
                 </View>
             )}
         </View>

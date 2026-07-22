@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -127,11 +127,12 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const avatarButton = (
         <Button
-            text={translate('domain.members.closeAccount', {count: 1})}
             onPress={() => setIsModalVisible(true)}
-            icon={icons.RemoveMembers}
             style={styles.mb5}
-        />
+        >
+            <Button.Icon src={icons.RemoveMembers} />
+            <Button.Text>{translate('domain.members.closeAccount', {count: 1})}</Button.Text>
+        </Button>
     );
 
     const showUnlockAccountModal = () => {

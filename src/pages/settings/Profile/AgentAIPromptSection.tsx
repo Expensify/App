@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -233,15 +233,16 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                 />
             </OfflineWithFeedback>
             <Button
-                success
-                text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
-                icon={showSavedConfirmation ? icons.Checkmark : undefined}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={handleSave}
                 isLoading={isSaving && isUserInitiatedSave}
                 isDisabled={isSaving && isUserInitiatedSave}
                 style={[styles.alignSelfStart]}
                 testID="save-prompt-button"
-            />
+            >
+                {showSavedConfirmation && <Button.Icon src={icons.Checkmark} />}
+                <Button.Text>{showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}</Button.Text>
+            </Button>
             <ErrorMessageRow
                 errors={agentPrompt?.promptErrors}
                 errorRowStyles={[styles.mt3]}

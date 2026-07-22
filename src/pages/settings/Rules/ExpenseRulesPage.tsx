@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -150,13 +150,14 @@ function ExpenseRulesPage() {
     ) : (
         <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             <Button
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={navigateToNewRulePage}
-                icon={icons.Plus}
-                text={translate('expenseRulesPage.newRule')}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
-            />
+            >
+                <Button.Icon src={icons.Plus} />
+                <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
+            </Button>
         </View>
     );
 

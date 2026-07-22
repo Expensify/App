@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -277,12 +277,13 @@ function ProfilePage() {
                             })}
                             <Button
                                 accessibilityLabel={translate('common.shareCode')}
-                                text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                icon={icons.QrCode}
                                 style={[styles.alignSelfStart, styles.mt6]}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
-                            />
+                            >
+                                <Button.Icon src={icons.QrCode} />
+                                <Button.Text>{translate('common.share')}</Button.Text>
+                            </Button>
                         </Section>
                         <Section
                             title={translate('profilePage.privateSection.title')}
