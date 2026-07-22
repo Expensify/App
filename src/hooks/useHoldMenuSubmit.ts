@@ -16,6 +16,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePolicy from './usePolicy';
@@ -46,6 +47,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const delegateAccountID = useDelegateAccountID();
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -84,6 +86,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
                 methodID,
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
+                delegateAccountID,
                 isTrackIntentUser,
             });
         }

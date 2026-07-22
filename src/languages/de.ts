@@ -57,6 +57,7 @@ import type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     UpdateRoleParams,
+    ViolationsInactiveVendorParams,
     ViolationsIncreasedDistanceParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
@@ -323,6 +324,7 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Ändern',
         category: 'Kategorie',
         vendor: 'Anbieter',
+        supplier: 'Lieferant',
         report: 'Bericht',
         billable: 'Abrechenbar',
         nonBillable: 'Nicht abrechenbar',
@@ -434,6 +436,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
+        submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
         help: 'Hilfe',
         collapsed: 'Eingeklappt',
@@ -1065,6 +1068,12 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
+            customizeSpendCategories: 'Ausgabenkategorien anpassen',
+            customizeSpendCategoriesSubText: 'Ausgaben organisieren und klassifizieren',
+            createExpense: 'Ausgabe erstellen',
+            createExpenseSubText: 'Scannen Sie eine Ausgabe, ziehen Sie sie per Drag &amp; Drop herein oder geben Sie sie manuell über die + Schaltfläche ein',
+            linkPersonalCard: 'Persönliche Karte verknüpfen',
+            linkPersonalCardSubText: 'Spesen automatisch importieren',
             configureApprovals: 'Genehmigungsworkflow konfigurieren',
             begin: 'Beginnen',
             done: 'Fertig',
@@ -1188,6 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Neue Karten und Transaktionen können etwas Zeit benötigen, bis sie erscheinen. Bitte haben Sie etwas Geduld.',
+        importMembersRolePermissionWarning: 'Sie haben keine Berechtigung, einige Mitgliederrollen zuzuweisen. Alle betroffenen neuen Mitglieder wurden als Mitglieder eingeladen.',
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -4439,6 +4449,24 @@ ${amount} für ${merchant} – ${date}`,
             inputLabel: 'Steuer-ID der juristischen Person',
             error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
         },
+        nudge: {
+            airfareManual:
+                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Hallo! Wussten Sie, dass Sie Hotelübernachtungen direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Wussten Sie schon, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Wussten Sie schon, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     workspace: {
         common: {
@@ -4457,6 +4485,7 @@ ${amount} für ${merchant} – ${date}`,
             delete: 'Arbeitsbereich löschen',
             settings: 'Einstellungen',
             categories: 'Kategorien',
+            vendors: 'Anbietende',
             tags: 'Tags',
             customField1: 'Benutzerdefiniertes Feld 1',
             customField2: 'Benutzerdefiniertes Feld 2',
@@ -4976,6 +5005,10 @@ ${amount} für ${merchant} – ${date}`,
             },
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in Xero hinzu und synchronisieren Sie die Verbindung erneut',
+            defaultSupplier: 'Standardlieferant',
+            defaultSupplierDescription: 'Legen Sie einen Standardsupplier fest, der beim Export auf alle Kreditkartentransaktionen angewendet wird.',
+            noSuppliersFound: 'Keine Lieferanten gefunden',
+            noSuppliersFoundDescription: 'Bitte fügen Sie den Lieferanten in Xero hinzu und synchronisieren Sie die Verbindung erneut.',
             accountingMethods: {
                 label: 'Wann exportieren',
                 description: 'Wähle aus, wann die Ausgaben exportiert werden sollen:',
@@ -6288,6 +6321,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reportFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
+        vendors: {
+            emptyTitle: 'Noch keine Lieferanten',
+            emptySubtitle: 'Anbieter werden hier angezeigt, nachdem Ihre Buchhaltungssynchronisierung abgeschlossen ist.',
+            findVendor: 'Lieferanten finden',
+            managedInAccountingSoftware: 'Lieferanten werden verwaltet in Ihrem',
+        },
         tags: {
             tagName: 'Tag-Name',
             requiresTag: 'Mitglieder müssen alle Ausgaben taggen',
@@ -6450,6 +6489,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
                 travelAddressMismatch: 'Sie können Reisen nur kopieren, wenn jeder ausgewählte Arbeitsbereich eine Unternehmensadresse hat.',
+                currencyBlockedByBankAccount:
+                    'Sie können die Währung nur kopieren, wenn jeder ausgewählte Workspace mit einem verbundenen Bankkonto die Währung des Quell-Workspace verwendet.',
             },
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',
@@ -7081,8 +7122,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             updateToUSD: 'Auf USD aktualisieren',
             updateWorkspaceCurrency: 'Arbeitsbereichswährung aktualisieren',
             workspaceCurrencyNotSupported: 'Workspace-Währung wird nicht unterstützt',
+            notAllowedToAddBankAccount:
+                'Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Wende dich an einen Arbeitsbereichsadministrator, der berechtigt ist, sie zu ändern.',
             yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
+            changeBankAccount: 'Bankkonto ändern',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Besitz übertragen',
@@ -7743,14 +7787,25 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 addRule: 'Agentenregel hinzufügen',
                 findRule: 'Agentenregel finden',
                 addRuleTitle: 'Regel hinzufügen',
+                newRuleTitle: 'Neue Regel',
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
                 describeRuleTitle: 'Beschreiben Sie die Regel, der Ihre KI-Agentin/Ihr KI-Agent folgen soll',
+                describeRuleHeadline: 'Beschreibe deine Regel',
                 disclaimer: 'KI-Agenten können Fehler machen.',
                 agentCreatedTitle: 'RuleBot wurde zu Ihrem Arbeitsbereich hinzugefügt!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
+                suggestionsTab: 'Vorschläge',
+                writeTab: 'Bearbeiten',
+                findSuggestion: 'Regel finden',
+                emptySuggestionsTitle: 'Keine Vorschläge verfügbar',
+                emptySuggestionsSubtitle: 'Versuchen Sie, Ihre eigene Regel zu schreiben.',
+                revampSubtitle: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
+                describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
+                gotIt: 'Verstanden',
+                createRule: 'Regel erstellen',
             },
             tabs: {
                 general: 'Allgemein',
@@ -7758,6 +7813,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 expenseDefaults: 'Standardausgaben',
                 requireFields: 'Felder erforderlich',
                 flagForReview: 'Zur Überprüfung markieren',
+                agents: 'Agents',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7816,9 +7872,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaults: 'Standardspesen übernehmen',
                 applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 flagForReview: 'Zur Überprüfung markieren',
-                flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
+                flagForReviewDescription: 'Benachrichtigen, wenn Ihre Bedingungen erfüllt sind.',
                 requireFields: 'Felder erforderlich',
-                requireFieldsDescription: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden',
+                requireFieldsDescription: 'Belege, Kategorien usw. beim Einreichen.',
+                createAgentRule: 'Agentenregel',
+                createAgentRuleDescription: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -7881,6 +7939,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
                 confirmErrorAmount: 'Bitte geben Sie einen Betrag ein.',
                 thenFlagForReview: 'Dann zur Überprüfung kennzeichnen, wenn:',
+            },
+            agentRulesEmptyState: {
+                title: 'Keine Agentenregeln hinzugefügt',
+                subtitle: 'Erstellen Sie eine Regel, um Ihre Arbeitsbereichsrichtlinien zu automatisieren.',
+                cta: 'KI-Regel hinzufügen',
             },
         },
         planTypePage: {
@@ -8606,6 +8669,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateDateRangeAllDates: () => `für alle Daten`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `Übersicht von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `Währung von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `Mitglieder von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `1 Berichtsfeld von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
@@ -8927,6 +8991,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         serverResults: 'Suchergebnisse',
         searchIn: 'Suchen in',
         askConcierge: (message: string) => `Frage Concierge „${message}“`,
+        goTo: ({destination}: {destination: string}) => `Gehe zu ${destination}`,
         searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (
@@ -9481,7 +9546,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         duplicatedTransaction: 'Möglicherweise dupliziert',
         fieldRequired: 'Berichtsfelder sind erforderlich',
         futureDate: 'Zukünftiges Datum nicht erlaubt',
-        inactiveVendor: 'Anbieter nicht mehr gültig',
+        inactiveVendor: ({isSupplier = false}: ViolationsInactiveVendorParams = {}) => (isSupplier ? 'Lieferant nicht mehr gültig' : 'Anbieter nicht mehr gültig'),
         invoiceMarkup: (invoiceMarkup: number) => `Um ${invoiceMarkup}% erhöht`,
         maxAge: (maxAge: number) => `Datum ist älter als ${maxAge} Tage`,
         missingCategory: 'Fehlende Kategorie',

@@ -159,6 +159,7 @@ import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LocationAdd from '@assets/images/location-add.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
 import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
@@ -410,6 +411,7 @@ const Expensicons = {
     Link,
     LinkCopy,
     Location,
+    LocationAdd,
     Lock,
     UserMinus,
     Luggage,
