@@ -1,18 +1,16 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useShortMentionsList from '@hooks/useShortMentionsList';
 
 import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {getAllPersonalDetailLogins, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, isConciergeChatReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -39,8 +37,6 @@ import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
-    const {availableLoginsList} = useShortMentionsList();
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
     const route = useRoute();
@@ -114,15 +110,15 @@ function useComposerSubmit(reportID: string) {
             if (taskTitle) {
                 const mention = taskMatch[1] ? taskMatch[1].trim() : '';
                 const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
-                const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
+                const mentionWithDomain = addDomainToShortMention(mention, getAllPersonalDetailLogins(), currentUserPrivateDomain) ?? mention;
                 const isValidMention = Str.isValidEmail(mentionWithDomain);
 
                 let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
                 let assigneeChatReport;
                 if (mentionWithDomain) {
                     if (isValidMention) {
-                        assignee = Object.values(personalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                        if (!Object.keys(assignee ?? {}).length) {
+                        assignee = getPersonalDetailByEmail(mentionWithDomain);
+                        if (!assignee) {
                             const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
                                 accountID: generateAccountID(mentionWithDomain),
                                 login: mentionWithDomain,
