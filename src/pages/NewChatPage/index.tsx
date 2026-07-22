@@ -82,21 +82,30 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    // Persist the current selection (plus the creator) to the group chat draft so an in-progress group survives navigation/reload.
-    const updateGroupDraft = (newSelectedOptions: OptionData[]) => {
+    // The group chat draft always stores the selected participants plus the current user as the creator.
+    // Returns an empty array when the current user's details aren't loaded yet, in which case the draft must not be written.
+    const buildDraftParticipants = (options: OptionData[]): SelectedParticipant[] => {
         if (!personalData?.login || !personalData?.accountID) {
-            return;
+            return [];
         }
-        const participants: SelectedParticipant[] = [
-            ...newSelectedOptions.map((selectedOption) => ({
-                login: selectedOption.login,
-                accountID: selectedOption.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        return [
+            ...options.map((option) => ({
+                login: option.login,
+                accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
             })),
             {
                 login: personalData.login,
                 accountID: personalData.accountID,
             },
         ];
+    };
+
+    // Persist the current selection (plus the creator) to the group chat draft so an in-progress group survives navigation/reload.
+    const updateGroupDraft = (newSelectedOptions: OptionData[]) => {
+        const participants = buildDraftParticipants(newSelectedOptions);
+        if (!participants.length) {
+            return;
+        }
         setGroupDraft({participants});
     };
 
@@ -288,15 +297,11 @@ function NewChatPage({ref}: NewChatPageProps) {
     };
 
     const createGroup = () => {
-        if (!personalData?.login || !personalData.accountID) {
+        const participants = buildDraftParticipants(selectedOptions);
+        if (!participants.length) {
             return;
         }
-        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option) => ({
-            login: option?.login,
-            accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        }));
-        const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-        setGroupDraft({participants: logins});
+        setGroupDraft({participants});
         Keyboard.dismiss();
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     };

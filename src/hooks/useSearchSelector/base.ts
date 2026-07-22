@@ -10,6 +10,7 @@ import useSortedActions from '@hooks/useSortedActions';
 import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -226,10 +227,28 @@ function useSearchSelectorBase({
         if (!contactOptions?.length || !areOptionsInitialized) {
             return defaultOptions;
         }
-        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions);
+
+        // Imported device contacts are always assigned a generated (optimistic) accountID, so a contact who is already a
+        // known Expensify user would otherwise be listed twice: once for the real Onyx account and once for the generated one.
+        // Selecting the generated row would then treat an existing user as a brand new invite. Onyx entries are kept (they
+        // carry the real accountID) and colliding imported contacts are dropped, matching on the normalized login.
+        const seenLogins = new Set(defaultOptions.personalDetails.map((option) => addSMSDomainIfPhoneNumber(option.login ?? '').toLowerCase()).filter(Boolean));
+        const dedupedContactOptions = contactOptions.filter((contact) => {
+            const login = addSMSDomainIfPhoneNumber(contact.login ?? '').toLowerCase();
+            if (!login || seenLogins.has(login)) {
+                return false;
+            }
+            seenLogins.add(login);
+            return true;
+        });
+
+        if (!dedupedContactOptions.length) {
+            return defaultOptions;
+        }
+
         return {
             ...defaultOptions,
-            personalDetails: personalDetailsWithContacts,
+            personalDetails: defaultOptions.personalDetails.concat(dedupedContactOptions),
         };
     })();
 
