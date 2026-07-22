@@ -158,13 +158,9 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
         [policy, report, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
     );
 
-    const [transactions = getEmptyArray<Transaction>()] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector: getEligibleTransactions,
-        },
-        [getEligibleTransactions],
-    );
+    const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: getEligibleTransactions,
+    });
 
     const fetchMoreUnreportedTransactions = () => {
         if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {

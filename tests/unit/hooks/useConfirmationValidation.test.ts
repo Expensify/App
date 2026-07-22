@@ -99,6 +99,7 @@ const baseParams = {
     isPerDiemRequest: false,
     isTimeRequest: false,
     routeError: undefined,
+    isNewManualExpenseFlowEnabled: false,
     isReadOnly: false,
     shouldShowDate: true,
 } satisfies UseConfirmationValidationParams;
@@ -243,12 +244,13 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: null});
     });
 
-    it('returns fieldRequired for manual expense when amount is not set with a policy expense chat participant', () => {
+    it('returns fieldRequired for manual expense when amount is not set in new manual expense flow with a policy expense chat participant', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation(
                 createValidationParamsForParticipant(
                     POLICY_EXPENSE_CHAT_PARTICIPANT,
                     {
+                        isNewManualExpenseFlowEnabled: true,
                         iouAmount: 0,
                     },
                     {isAmountSet: false},
@@ -258,10 +260,11 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
     });
 
-    it('does not return fieldRequired for scan expense when amount is not set', () => {
+    it('does not return fieldRequired for scan expense when amount is not set in new manual expense flow', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation({
                 ...baseParams,
+                isNewManualExpenseFlowEnabled: true,
                 transaction: createTransactionBase({
                     amount: 1000,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
@@ -272,10 +275,11 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: null});
     });
 
-    it('does not return fieldRequired for per diem expense when amount is not set', () => {
+    it('does not return fieldRequired for per diem expense when amount is not set in new manual expense flow', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation({
                 ...baseParams,
+                isNewManualExpenseFlowEnabled: true,
                 isPerDiemRequest: true,
                 transaction: createTransactionBase({
                     amount: 5000,
@@ -297,8 +301,9 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)).toEqual({errorKey: null});
     });
 
-    describe('amount validation — manual expense (isAmountSet)', () => {
+    describe('amount validation — new manual expense flow (isAmountSet)', () => {
         const newManualFlowParams = {
+            isNewManualExpenseFlowEnabled: true,
             iouAmount: 0,
         };
 
@@ -417,10 +422,26 @@ describe('useConfirmationValidation', () => {
                 expect(result.current.validate()).toEqual({errorKey: null});
             });
         });
+
+        it('does not return fieldRequired when the new manual expense flow beta is disabled', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(
+                        P2P_PARTICIPANT,
+                        {
+                            isNewManualExpenseFlowEnabled: false,
+                            iouAmount: 0,
+                        },
+                        {isAmountSet: false},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
     });
 
     describe('amount validation — P2P zero amount guard', () => {
-        it('returns invalidAmount for P2P manual submit with zero amount', () => {
+        it('returns invalidAmount for P2P manual submit with zero amount when flow is disabled', () => {
             const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, {iouAmount: 0}, {amount: 0, isAmountSet: true})));
             expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
         });
@@ -489,6 +510,7 @@ describe('useConfirmationValidation', () => {
     describe('amount validation — programmatic request types (scan, distance, time, per diem)', () => {
         const newManualFlowParams = {
             ...baseParams,
+            isNewManualExpenseFlowEnabled: true,
         };
 
         it('does not return fieldRequired for scan expense when amount is not set', () => {
@@ -662,6 +684,7 @@ describe('useConfirmationValidation', () => {
                         P2P_PARTICIPANT,
                         {
                             iouType: CONST.IOU.TYPE.SPLIT,
+                            isNewManualExpenseFlowEnabled: true,
                             iouAmount: 0,
                             selectedParticipants: splitParticipants,
                         },
@@ -679,6 +702,7 @@ describe('useConfirmationValidation', () => {
                         POLICY_EXPENSE_CHAT_PARTICIPANT,
                         {
                             iouType: CONST.IOU.TYPE.SPLIT,
+                            isNewManualExpenseFlowEnabled: true,
                             iouAmount: 0,
                         },
                         {isAmountSet: false},
@@ -696,6 +720,7 @@ describe('useConfirmationValidation', () => {
                         POLICY_EXPENSE_CHAT_PARTICIPANT,
                         {
                             iouType: CONST.IOU.TYPE.SPLIT,
+                            isNewManualExpenseFlowEnabled: true,
                             iouAmount: 0,
                             selectedParticipants: splitParticipants,
                         },
@@ -727,9 +752,10 @@ describe('useConfirmationValidation', () => {
         });
     });
 
-    describe('date validation — inline required date', () => {
+    describe('date validation — inline required date in new manual expense flow', () => {
         const newManualFlowParams = {
             ...baseParams,
+            isNewManualExpenseFlowEnabled: true,
         };
 
         it('returns fieldRequired for manual expense when the date is removed', () => {
@@ -805,6 +831,13 @@ describe('useConfirmationValidation', () => {
                 useConfirmationValidation(
                     createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, shouldShowDate: false}, {created: '', isAmountSet: true}),
                 ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not return fieldRequired when the new manual expense flow beta is disabled', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {isNewManualExpenseFlowEnabled: false}, {created: '', isAmountSet: true})),
             );
             expect(result.current.validate()).toEqual({errorKey: null});
         });
