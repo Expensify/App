@@ -14,8 +14,8 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {navigateToCannedSpendSearch} from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
@@ -143,12 +143,6 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
         );
 }
 
-function navigateToSpendSearch(searchQuery: string, clearSelectedTransactions: () => void) {
-    clearSelectedTransactions();
-    setSearchContext(false);
-    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
-}
-
 function useNavigationSuggestions(query: string, shouldWatchForApprovals = true): SearchQueryItem[] {
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons([
@@ -200,11 +194,11 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         ),
         getItemText: (item) => translate(item.translationPath),
         getDestinationText: (destination) => getGoToText(translate, destination),
-        onSelect: (searchQuery) => navigateToSpendSearch(searchQuery, clearSelectedTransactions),
+        onSelect: (searchQuery) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions),
     });
 
     return buildNavigationSuggestions(query, [topLevelItems, spendItems], localeCompare);
 }
 
 export default useNavigationSuggestions;
-export {buildTopLevelNavigationItems, buildSpendNavigationItems, navigateToSpendSearch};
+export {buildTopLevelNavigationItems, buildSpendNavigationItems};

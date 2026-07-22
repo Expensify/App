@@ -6,10 +6,11 @@ import {
     sortNavigationSuggestionItems,
     stripNavigationIntentPrefix,
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
-import {buildSpendNavigationItems, buildTopLevelNavigationItems, navigateToSpendSearch} from '@components/Search/SearchRouter/useNavigationSuggestions';
+import {buildSpendNavigationItems, buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {navigateToCannedSpendSearch} from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -303,7 +304,7 @@ describe('Spend Search Router navigation source', () => {
         const clearSelectedTransactions = jest.fn();
         const searchQuery = 'type:expense sortBy:date sortOrder:desc';
 
-        navigateToSpendSearch(searchQuery, clearSelectedTransactions);
+        navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions);
 
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(setSearchContext).toHaveBeenCalledWith(false);
