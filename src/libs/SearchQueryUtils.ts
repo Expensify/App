@@ -2459,27 +2459,6 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON?.type === defaultQueryJSON?.type;
 }
 
-/**
- * Compares the filter portion (keys, operators and values) of two queries, ignoring keyword search and non-filter parts (type, sort, view, groupBy, columns).
- * Used to detect when the filter bar deviates from a default/suggested search - either a filter value changed or an extra filter was applied.
- */
-function haveQueriesDifferentFilters(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
-    const serializeFilters = (json: SearchQueryJSON | undefined) =>
-        (json?.flatFilters ?? [])
-            .filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)
-            .map(
-                (filter) =>
-                    `${filter.key}:${filter.filters
-                        .map(({operator, value}) => `${operator}=${value}`)
-                        .sort()
-                        .join(',')}`,
-            )
-            .sort()
-            .join('|');
-
-    return serializeFilters(queryJSON) !== serializeFilters(defaultQueryJSON);
-}
-
 function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {
     if (!lastQuery) {
         return defaultQuery;
@@ -2553,7 +2532,6 @@ export {
     isFilterNegatable,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
-    haveQueriesDifferentFilters,
 };
 
 export type {BuildUserReadableQueryStringParams};
