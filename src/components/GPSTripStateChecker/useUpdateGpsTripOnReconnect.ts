@@ -42,8 +42,7 @@ function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
         const waypointAddresses = (await Promise.all(waypointUpdates)).filter((waypoints) => !!waypoints.point.address);
 
         // To avoid race conditions, we need to get the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
-        const gpsDraftDetailsPromiseResult = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined);
-        const latestGpsDraftDetails = gpsDraftDetailsPromiseResult;
+        const latestGpsDraftDetails = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
 
         const latestGpsPoints = getGpsPoints(latestGpsDraftDetails) ?? gpsPoints;
         const newGpsPoints = [...latestGpsPoints];

@@ -113,7 +113,7 @@ describe('PersistedRequests', () => {
             await waitForBatchedUpdates();
 
             expect(PersistedRequests.getOngoingRequest()).toEqual(newRequest);
-            expect((await OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
+            expect(OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS) == null).toBe(true);
         } finally {
             global.File = originalFile;
         }
@@ -156,7 +156,7 @@ describe('PersistedRequests persistence guarantees', () => {
             return waitForBatchedUpdates().then(async () => {
                 // FIX: processNextRequest() now always persists ongoingRequest to disk
                 // via Onyx.multiSet, regardless of the persistWhenOngoing flag.
-                const diskOngoing = await OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS);
+                const diskOngoing = OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS);
                 expect(diskOngoing).toEqual(expect.objectContaining({command: 'OpenReport'}));
             });
         }));
@@ -190,7 +190,7 @@ describe('PersistedRequests persistence guarantees', () => {
 
             // Read disk state directly to see what's actually persisted
             return waitForBatchedUpdates().then(async () => {
-                const diskRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+                const diskRequests = OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
                 const diskArray = diskRequests ?? [];
 
                 // FIX: processNextRequest() now persists the updated queue to disk
@@ -227,7 +227,7 @@ describe('PersistedRequests persistence guarantees', () => {
 
             expect(nextRequest).toEqual(requestWithFile);
             expect(PersistedRequests.getOngoingRequest()).toEqual(requestWithFile);
-            expect((await OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
+            expect(OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS) == null).toBe(true);
         } finally {
             global.File = originalFile;
         }
