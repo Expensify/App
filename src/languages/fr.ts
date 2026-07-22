@@ -8633,6 +8633,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateDateRangeAllDates: () => `pour toutes les dates`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `aperçu copié depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `devise copiée depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `a copié les membres depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `1 champ de note de frais copié depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

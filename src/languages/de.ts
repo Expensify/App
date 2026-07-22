@@ -8596,6 +8596,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateDateRangeAllDates: () => `für alle Daten`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `Übersicht von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `Währung von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `Mitglieder von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `1 Berichtsfeld von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,

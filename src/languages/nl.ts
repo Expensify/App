@@ -8555,6 +8555,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         customUnitRateDateRangeAllDates: () => `voor alle data`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `overzicht gekopieerd van <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `valuta gekopieerd van <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `leden gekopieerd van <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `1 rapportveld gekopieerd van <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

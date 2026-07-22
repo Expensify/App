@@ -7673,6 +7673,7 @@ describe('ReportUtils', () => {
 
         it.each([
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, 'copied overview from'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CURRENCY, 'copied currency from'],
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES, 'copied members from'],
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING, 'copied accounting settings from'],
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS, 'copied receipt partner settings from'],

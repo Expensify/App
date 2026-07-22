@@ -8584,6 +8584,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateDateRangeAllDates: () => `per tutte le date`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `panoramica copiata da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato la valuta da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato i membri da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copiato 1 campo del report da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

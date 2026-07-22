@@ -8543,6 +8543,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateDateRangeAllDates: () => `para todas as datas`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `visão geral copiada de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou a moeda de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou membros de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copiou 1 campo de relatório de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

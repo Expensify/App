@@ -8468,6 +8468,7 @@ ${reportName}`,
         customUnitRateDateRangeAllDates: () => `すべての日付に対して`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から概要をコピーしました`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から通貨をコピーしました`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からメンバーをコピーしました`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からレポート項目を 1 件コピーしました`,

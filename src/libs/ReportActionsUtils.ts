@@ -4734,6 +4734,7 @@ function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
 function isPolicyCopyReportAction(action: OnyxInputOrEntry<ReportAction>): action is ReportAction<PolicyChangeLogCopyReportActionNames> {
     return [
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CURRENCY,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING,

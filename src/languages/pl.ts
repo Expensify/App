@@ -8533,6 +8533,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateDateRangeAllDates: () => `dla wszystkich dat`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano podsumowanie z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano walutę z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano członków z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `skopiowano 1 pole raportu z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

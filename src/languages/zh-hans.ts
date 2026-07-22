@@ -8289,6 +8289,7 @@ ${reportName}`,
         customUnitRateDateRangeAllDates: () => `适用于所有日期`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制概览`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了货币设置`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制成员`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个报表字段`,

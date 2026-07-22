@@ -8379,6 +8379,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copió miembros de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `se copió 1 campo de informe desde <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
