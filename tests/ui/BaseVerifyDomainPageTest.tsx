@@ -25,17 +25,7 @@ import Onyx from 'react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {
-        Text: React.ComponentType<{children?: React.ReactNode}>;
-    };
-
-    return ({html}: {html: string}) => {
-        const plainText = html.replaceAll(/<[^>]*>/g, '');
-        return ReactMock.createElement(Text, null, plainText);
-    };
-});
+jest.mock('@components/RenderHTML', () => () => null);
 
 const DOMAIN_ACCOUNT_ID = 123456;
 const DOMAIN_EMAIL = 'user@test.com';
