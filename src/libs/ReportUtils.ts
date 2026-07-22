@@ -9669,10 +9669,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         }
     }
 
-    const effectiveCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    if (!isReportArchived && hasSmartscanError(reportActionsArray, report, allTransactions, effectiveCurrentUserAccountID, reports)) {
+    if (!isReportArchived && hasSmartscanError(reportActionsArray, report, allTransactions, currentUserAccountID, reports)) {
         reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
-        reportAction = getReportActionWithSmartscanError(reportActionsArray, report, allTransactions, effectiveCurrentUserAccountID, reports);
+        reportAction = getReportActionWithSmartscanError(reportActionsArray, report, allTransactions, currentUserAccountID, reports);
     }
 
     if (!isReportArchived && isReportOwner(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
