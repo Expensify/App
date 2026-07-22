@@ -369,7 +369,7 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
-    it('canSubmit should return true for workflow approver on OPEN expense report with stale managerID', async () => {
+    it('getReportPreviewAction should return VIEW for a workflow approver who does not own the OPEN expense report', async () => {
         const SUBMITTER_ACCOUNT_ID = 2;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         const OWNER_ACCOUNT_ID = 3;
@@ -431,7 +431,7 @@ describe('getReportPreviewAction', () => {
                 reportMetadata: undefined,
                 ownerLogin: SUBMITTER_EMAIL,
             }),
-        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canSubmit should return false for workflow approver on Submit & Close policy', async () => {
