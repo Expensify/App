@@ -47,7 +47,7 @@ import Permissions from './Permissions';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, hasValidModifiedAmount, isScanRequest} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -215,6 +215,10 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas, betaConfiguration),
         newAmount: convertToBackendAmount(Number.parseFloat(amount)),
     };
+}
+
+function isFailedScanAmountPlaceholderForSubmit(transaction: OnyxEntry<OnyxTypes.Transaction>): boolean {
+    return isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && transaction?.amount === 0 && !hasValidModifiedAmount(transaction);
 }
 
 function buildReportParticipants(args: SubmitAmountArgs) {
@@ -547,7 +551,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     // If the value hasn't changed, don't request to save changes on the server and just close the modal
     const transactionCurrency = getCurrency(currentTransaction);
-    if (newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
+    const isFailedScanAmountPlaceholder = isFailedScanAmountPlaceholderForSubmit(currentTransaction);
+    if (!isFailedScanAmountPlaceholder && newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
         navigateBack();
         return;
     }
