@@ -2554,7 +2554,7 @@ const translations = {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name on card cannot contain < or >',
+            invalidName: 'Name on card cannot contain tags',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -2577,7 +2577,7 @@ const translations = {
         growlMessageOnSave: 'Your payment card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name on card cannot contain < or >',
+            invalidName: 'Name on card cannot contain tags',
             addressZipCode: 'Please enter a valid zip code',
             paymentCardNumber: 'Please enter a valid card number',
             expirationDate: 'Please select a valid expiration date',

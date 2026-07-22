@@ -389,12 +389,17 @@ describe('ValidationUtils', () => {
             expect(isValidNameOnCard('12345')).toBe(true);
             expect(isValidNameOnCard('άλφα')).toBe(true);
             expect(isValidNameOnCard(`X Æ A-12`)).toBe(true);
+            // Lone angle brackets are allowed; only complete tags are blocked.
+            expect(isValidNameOnCard('<123a')).toBe(true);
+            expect(isValidNameOnCard('123a>')).toBe(true);
+            expect(isValidNameOnCard('<John')).toBe(true);
+            expect(isValidNameOnCard('John>')).toBe(true);
         });
 
         test('Invalid card embossing name', () => {
             expect(isValidNameOnCard('<script>')).toBe(false);
-            expect(isValidNameOnCard('John>')).toBe(false);
-            expect(isValidNameOnCard('<John')).toBe(false);
+            expect(isValidNameOnCard('<123a>')).toBe(false);
+            expect(isValidNameOnCard('John <Doe>')).toBe(false);
         });
     });
 
