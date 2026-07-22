@@ -9,13 +9,14 @@ import {getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import colors from '@styles/theme/colors';
 
-import {resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
+import {openReimbursementAccountPage, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 type AddBankAccountAddressProps = {
     /** The ID of the bank account missing an address */
@@ -31,10 +32,49 @@ type AddBankAccountAddressProps = {
     policyName?: string;
 };
 
+function navigateToWorkspaceAddressEdit(workspacePolicyID: string) {
+    Navigation.navigate(
+        ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+            policyID: workspacePolicyID,
+            page: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
+            subPage: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
+            action: 'edit',
+        }),
+    );
+}
+
+function loadWorkspaceBankAccountAndNavigateToAddressEdit(workspacePolicyID: string, workspaceBankAccountID: number) {
+    openReimbursementAccountPage({
+        policyID: workspacePolicyID,
+        bankAccountID: workspaceBankAccountID,
+        stepToOpen: CONST.BANK_ACCOUNT.STEP.COMPANY,
+        subStep: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
+    });
+
+    const connection = Onyx.connect({
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        callback: (reimbursementAccount) => {
+            if (reimbursementAccount?.isLoading) {
+                return;
+            }
+
+            const loadedBankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
+            if (loadedBankAccountID !== workspaceBankAccountID || reimbursementAccount?.achData?.policyID !== workspacePolicyID) {
+                return;
+            }
+
+            Onyx.disconnect(connection);
+            navigateToWorkspaceAddressEdit(workspacePolicyID);
+        },
+    });
+}
+
 function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, policyName}: AddBankAccountAddressProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [accountData] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: (list) => list?.[String(bankAccountID)]?.accountData,
+    });
 
     const title = policyName
         ? translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceTitle')
@@ -46,7 +86,6 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
 
     const handleCtaPress = () => {
         if (isPersonalAccount) {
-            const accountData = bankAccountList?.[String(bankAccountID)]?.accountData;
             const additionalData = accountData?.additionalData;
             const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
             resetPersonalBankAccountForUpdate(
@@ -75,14 +114,7 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
         }
 
         if (policyID) {
-            Navigation.navigate(
-                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
-                    policyID,
-                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
-                    subPage: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
-                    action: 'edit',
-                }),
-            );
+            loadWorkspaceBankAccountAndNavigateToAddressEdit(policyID, bankAccountID);
             return;
         }
 
