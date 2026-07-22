@@ -89,16 +89,6 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                 testID="ProductMarketingWindowActions"
             >
                 <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={buttonSize}
-                    style={styles.flex1}
-                    onPress={onCtaPress}
-                    sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
-                    testID="ProductMarketingWindowCTA"
-                >
-                    <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
-                </Button>
-                <Button
                     size={buttonSize}
                     style={styles.flex1}
                     innerStyles={shouldUseLightMarketingWindow ? styles.productMarketingWindowDismissButtonLight : styles.productMarketingWindowDismissButtonDark}
@@ -110,6 +100,16 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                     <Button.Text style={shouldUseLightMarketingWindow ? styles.productMarketingWindowDismissButtonTextLight : styles.productMarketingWindowDismissButtonTextDark}>
                         {translate('common.dismiss')}
                     </Button.Text>
+                </Button>
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={buttonSize}
+                    style={styles.flex1}
+                    onPress={onCtaPress}
+                    sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
+                    testID="ProductMarketingWindowCTA"
+                >
+                    <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
                 </Button>
             </View>
         </View>
