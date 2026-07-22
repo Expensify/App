@@ -28,6 +28,8 @@ type SearchResultsProviderProps = {
 const defaultSearchInfo: SearchResultsInfo = {
     offset: 0,
     hash: 0,
+    sortBy: 'date',
+    sortOrder: 'desc',
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
     hasMoreResults: false,
     hasResults: true,

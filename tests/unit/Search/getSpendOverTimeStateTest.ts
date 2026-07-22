@@ -20,7 +20,7 @@ const queryJSON: SearchQueryJSON = {
 };
 
 const defaultSearchResults: SearchResults = {
-    search: {offset: 0, hash: 0, type: queryJSON.type, hasMoreResults: false, hasResults: true, isLoading: false},
+    search: {offset: 0, hash: 0, sortBy: 'date', sortOrder: 'desc', type: queryJSON.type, hasMoreResults: false, hasResults: true, isLoading: false},
     data: {},
 };
 
