@@ -6,6 +6,8 @@ import type {AnyRequest} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useEffect} from 'react';
+
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -45,7 +47,11 @@ type PendingRequestGroupConfig = {
 // PERSISTED_REQUESTS / PERSISTED_ONGOING_REQUESTS. Groups may therefore only contain WRITE_COMMANDS —
 // a read/side-effect command here would make its hook permanently return false. Typing each command list
 // as `WriteCommand[]` makes the type system enforce that invariant rather than relying on the comment.
-const APP_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP];
+// OpenApp only, deliberately not ReconnectApp: this group replaces the `IS_LOADING_APP` flag, which is set
+// true only for OpenApp (see getOnyxDataForOpenOrReconnect in src/libs/actions/App.ts). Including ReconnectApp
+// would make full-page loaders show during background reconnects (coming back online, update-gap sync), where
+// the old flag stayed false. The top LoadingBar, which does show during reconnects, uses LOADING_BAR_COMMANDS.
+const APP_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP];
 const REPORT_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_REPORT];
 const LOADING_BAR_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION];
 
@@ -95,9 +101,38 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
     return !!hasPendingPersistedRequest || !!hasPendingOngoingRequest;
 }
 
-/** Whether an app-load request (OpenApp / ReconnectApp) is currently in the queue. */
+// Process-session memory: an OpenApp was seen in the queue this session and its deferred updates (whose
+// finallyData clears IS_LOADING_APP) have not flushed yet. The sequential queue drops the request from
+// PERSISTED_(ONGOING_)REQUESTS before it flushes those held updates, so `hasPendingOpenApp` alone goes
+// false too early and the migrated screens would render cleared/stale data during that window. This latch
+// keeps the gate pending across it. It is NOT a stored flag: a stranded IS_LOADING_APP read from disk on
+// a fresh reload never sets it, because that reload runs ReconnectApp, not OpenApp. Keying on an observed
+// OpenApp rather than HAS_LOADED_APP is what also covers an account switch, where HAS_LOADED_APP is
+// already true but a real OpenApp still fires (see Delegate's atomic reset).
+//
+// This is deliberately module scoped, not a useRef: the observing consumer can unmount while the flush is
+// still in progress (an account switch remounts screens), and a different consumer that mounts during the
+// window must still see the latch. Reading a mutable module value during render is safe here because the
+// only value the render combines it with is the reactive isLoadingApp, and the latch only changes inside
+// the effect below, whose deps are exactly [hasPendingOpenApp, isLoadingApp]: any latch change is therefore
+// accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale read.
+let hasObservedOpenAppFlushPending = false;
+
+/** Whether an OpenApp request or its deferred Onyx updates are pending. */
 function useIsAppLoadPending(): boolean {
-    return useIsPendingInternal('appLoad');
+    const hasPendingOpenApp = useIsPendingInternal('appLoad');
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    useEffect(() => {
+        if (hasPendingOpenApp) {
+            hasObservedOpenAppFlushPending = true;
+        } else if (isLoadingApp !== true) {
+            // The flag cleared, so the deferred OpenApp updates flushed: stop covering the window.
+            hasObservedOpenAppFlushPending = false;
+        }
+    }, [hasPendingOpenApp, isLoadingApp]);
+
+    return hasPendingOpenApp || (hasObservedOpenAppFlushPending && isLoadingApp === true);
 }
 
 /**
