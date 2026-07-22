@@ -12,7 +12,6 @@ import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanelState from '@hooks/useSidePanelState';
 
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,9 +29,6 @@ import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
-// Animated is used to verify that the marketing window follows the side panel offset.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import {buildPersonalDetails} from '../utils/TestHelper';
@@ -45,7 +41,6 @@ const USER_ACCOUNT_ID = 7;
 const OLDER_UPDATE_KEY = 'productUpdateJune2026';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-jest.mock('@hooks/useSidePanelState', () => jest.fn());
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -71,25 +66,10 @@ if (!announcement) {
 const mockSetNameValuePair = jest.mocked(setNameValuePair);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
-const mockUseSidePanelState = jest.mocked(useSidePanelState);
 
 const adminHeading = en.productMarketingWindow.roleTypes.admin.heading;
 const adminBody = en.productMarketingWindow.roleTypes.admin.body;
 const adminCtaLabel = en.productMarketingWindow.roleTypes.admin.cta;
-
-function buildSidePanelState(sidePanelOffset = new Animated.Value(0)): ReturnType<typeof useSidePanelState> {
-    return {
-        isSidePanelTransitionEnded: true,
-        isSidePanelHiddenOrLargeScreen: true,
-        shouldHideSidePanel: true,
-        shouldHideSidePanelBackdrop: true,
-        shouldHideHelpButton: true,
-        shouldHideToolTip: false,
-        sidePanelOffset: {current: sidePanelOffset},
-        sidePanelTranslateX: {current: new Animated.Value(0)},
-        sessionStartTime: null,
-    };
-}
 
 function buildAdminPolicy(policyID = POLICY_ID): Policy {
     return {
@@ -140,11 +120,9 @@ describe('ProductMarketingWindowManager', () => {
 
     beforeEach(() => {
         mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE});
-        mockUseSidePanelState.mockReturnValue(buildSidePanelState());
     });
 
     afterEach(async () => {
-        jest.restoreAllMocks();
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
@@ -577,7 +555,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
-    it('uses the fixed-width bottom-right card on wide layouts', async () => {
+    it('uses the fixed-width bottom-right overlay on wide layouts', async () => {
         mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false, isSmallScreenWidth: false});
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
@@ -593,6 +571,7 @@ describe('ProductMarketingWindowManager', () => {
             bottom: variables.productMarketingWindowOffset,
             right: variables.productMarketingWindowOffset,
             padding: 20,
+            zIndex: variables.modalBaseZIndex,
         });
         expect(screen.getByTestId('ProductMarketingWindowVisual')).toHaveStyle({
             aspectRatio: variables.productMarketingWindowVisualAspectRatio,
@@ -605,25 +584,8 @@ describe('ProductMarketingWindowManager', () => {
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(2);
-        expect(buttons.at(0)).toBe(screen.getByTestId('ProductMarketingWindowDismiss'));
-        expect(buttons.at(1)).toBe(screen.getByTestId('ProductMarketingWindowCTA'));
-    });
-
-    it('moves the wide marketing window with the side panel', async () => {
-        mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false, isSmallScreenWidth: false});
-        const sidePanelOffset = new Animated.Value(variables.sidePanelWidth);
-        mockUseSidePanelState.mockReturnValue(buildSidePanelState(sidePanelOffset));
-        const multiplySpy = jest.spyOn(Animated, 'multiply');
-        await act(async () => {
-            await setupOnyxBaseline({isAdmin: true});
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderManager();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(multiplySpy).toHaveBeenCalledWith(sidePanelOffset, -1);
-        expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({transform: [{translateX: -variables.sidePanelWidth}]});
+        expect(buttons.at(0)).toBe(screen.getByTestId('ProductMarketingWindowCTA'));
+        expect(buttons.at(1)).toBe(screen.getByTestId('ProductMarketingWindowDismiss'));
     });
 
     it.each([

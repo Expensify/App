@@ -1183,6 +1183,8 @@ const staticStyles = (theme: ThemeColors) =>
             ...positioning.pAbsolute,
             borderRadius: variables.componentBorderRadiusLarge,
             boxShadow: theme.shadow,
+            // Keep the persistent window above route-backed side panels. Covering modals suppress it through ProductMarketingWindowManager.
+            zIndex: variables.modalBaseZIndex,
         },
         productMarketingWindowContainerDark: {
             backgroundColor: colors.green800,
