@@ -15,6 +15,7 @@ import type {TodoCounts} from '@hooks/useTodoCounts';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
 import type {SearchKey, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
@@ -143,7 +144,7 @@ function SearchTypeMenuWide() {
         clearSelectedTransactions();
         setSearchContext(false);
         setCurrentSearchKey(key);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchFilters?.[key] ?? searchQuery}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: getValidLastQuery(searchFilters?.[key], searchQuery)}));
     });
 
     useLayoutEffect(() => {

@@ -14,6 +14,7 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    doesQueryMatchDefaultFilterKeysAndType,
     getAllPolicyValues,
     getAllPolicyValuesMap,
     getConnectedIntegrationNamesForPolicies,
@@ -28,6 +29,7 @@ import {
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    getValidLastQuery,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
     isSearchRootParams,
@@ -3827,6 +3829,79 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('getValidLastQuery', () => {
+        const defaultQuery = 'type:expense status:all';
+
+        it('returns the default query when the last query is undefined', () => {
+            expect(getValidLastQuery(undefined, defaultQuery)).toBe(defaultQuery);
+        });
+
+        it('returns the default query when the last query is an empty string', () => {
+            expect(getValidLastQuery('', defaultQuery)).toBe(defaultQuery);
+        });
+
+        it('returns the default query when the last query cannot be parsed', () => {
+            expect(getValidLastQuery('type:', defaultQuery)).toBe(defaultQuery);
+        });
+
+        it('returns the last query when it contains all default filter keys and matches the type', () => {
+            const lastQuery = 'type:expense status:all merchant:Amazon';
+            expect(getValidLastQuery(lastQuery, defaultQuery)).toBe(lastQuery);
+        });
+
+        it('returns the last query when it is identical to the default query', () => {
+            expect(getValidLastQuery(defaultQuery, defaultQuery)).toBe(defaultQuery);
+        });
+
+        it('returns the default query when the last query is missing a default filter key', () => {
+            const lastQuery = 'type:expense';
+            expect(getValidLastQuery(lastQuery, defaultQuery)).toBe(defaultQuery);
+        });
+
+        it('returns the default query when the last query type differs from the default type', () => {
+            const lastQuery = 'type:invoice status:all';
+            expect(getValidLastQuery(lastQuery, defaultQuery)).toBe(defaultQuery);
+        });
+    });
+
+    describe('doesQueryMatchDefaultFilterKeysAndType', () => {
+        const defaultQueryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+
+        it('returns true when the query has all default filter keys and the same type', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon category:travel');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the query is identical to the default query', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns false when the query is missing a default filter key', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when the query type differs from the default type', () => {
+            const queryJSON = buildSearchQueryJSON('type:invoice status:all merchant:Amazon');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when the default query has no extra filter keys to satisfy', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+            const bareDefaultQueryJSON = buildSearchQueryJSON('type:expense');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, bareDefaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when both query and default query are undefined', () => {
+            expect(doesQueryMatchDefaultFilterKeysAndType(undefined, undefined)).toBe(true);
+        });
+
+        it('returns false when the query is undefined but the default query has filter keys', () => {
+            expect(doesQueryMatchDefaultFilterKeysAndType(undefined, defaultQueryJSON)).toBe(false);
         });
     });
 });

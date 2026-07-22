@@ -5,7 +5,7 @@ import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, doesQueryMatchDefaultFilterKeysAndType} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, savedSearchIDToSearchKey, searchKeyToSavedSearchID, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
@@ -95,7 +95,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
 
-    const currentQueryFilterKeys = new Set(currentSearchQueryJSON?.flatFilters.map((filter) => filter.key));
     const currentDefaultSearchQueryString = currentSearchKey
         ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
         : undefined;
@@ -114,7 +113,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         // from the currently selected search key query or the type is different. For example, the "Card statements" suggested
         // search default filters are Feed and Posted. When the query changes (by removing Posted), the search key becomes invalid,
         // it's not a "Card statements" search anymore. This can happen when accessing the page through a link/deeplink.
-        if ([...currentDefaultSearchQueryFilterKeys].every((value) => currentQueryFilterKeys.has(value)) && currentSearchQueryJSON?.type === currentDefaultSearchQueryJSON?.type) {
+        if (doesQueryMatchDefaultFilterKeysAndType(currentSearchQueryJSON, currentDefaultSearchQueryJSON)) {
             return;
         }
         resetSearchKey();

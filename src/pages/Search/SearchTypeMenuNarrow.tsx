@@ -23,6 +23,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import {getItemBadgeText, getOverflowMenu, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
@@ -238,7 +239,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: searchFilters?.[tabKey] ?? searchData.query, name: searchData.name, rawQuery: undefined},
+                params: {q: getValidLastQuery(searchFilters?.[tabKey], searchData.query), name: searchData.name, rawQuery: undefined},
             },
         });
     };
