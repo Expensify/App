@@ -313,21 +313,47 @@ describe('API.writeWhenReady', () => {
         expect(mockPush).toHaveBeenCalledTimes(3);
     });
 
-    it('isolates a throwing write during background flush so the others still flush', async () => {
+    it('does not drop a write whose barrier cancel() throws during background flush, and still flushes the others', async () => {
         const {barrier: throwingBarrier, cancel} = makeThrowingCancelBarrier();
-        // Track that the throwing write settles (rejects) rather than hanging forever.
-        const throwingOutcome = deferWrite(throwingBarrier).catch(() => 'rejected');
+        // Track that the throwing write settles (does not hang) - and, per the isolation, resolves.
+        const throwingOutcome = deferWrite(throwingBarrier).then(
+            () => 'resolved',
+            () => 'rejected',
+        );
         deferWrite(neverSettlingBarrier());
         deferWrite(neverSettlingBarrier());
         await flushMicrotasks();
 
-        // The write whose cancel() throws must not abort the loop flushing the other two, nor hang.
+        // A throwing cancel() is best-effort cleanup on the forced-release path: it must neither abort the
+        // loop flushing the other two, nor drop its own write. All three writes should flush.
         expect(() => emitAppState('background')).not.toThrow();
-        await flushMicrotasks(() => mockPush.mock.calls.length >= 2);
+        await flushMicrotasks(() => mockPush.mock.calls.length >= 3);
 
-        expect(mockPush).toHaveBeenCalledTimes(2);
+        expect(mockPush).toHaveBeenCalledTimes(3);
         expect(cancel).toHaveBeenCalledTimes(1);
-        await expect(throwingOutcome).resolves.toBe('rejected');
+        await expect(throwingOutcome).resolves.toBe('resolved');
+    });
+
+    it('does not drop the write when the barrier cancel() throws on the safety timeout path', async () => {
+        jest.useFakeTimers();
+        try {
+            const {barrier: throwingBarrier, cancel} = makeThrowingCancelBarrier(); // never settles
+            const outcome = deferWrite(throwingBarrier).then(
+                () => 'resolved',
+                () => 'rejected',
+            );
+            await flushMicrotasks();
+
+            await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
+            await flushMicrotasks(pushHappened);
+
+            // The safety timeout must force the write through even though cancel() threw during cleanup.
+            expect(mockPush).toHaveBeenCalledTimes(1);
+            expect(cancel).toHaveBeenCalledTimes(1);
+            await expect(outcome).resolves.toBe('resolved');
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it('cancels the default TransitionTracker registration when released early via the safety timeout', async () => {

@@ -379,20 +379,25 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
             }
             hasExecuted = true;
 
-            // Everything here runs defensively: a synchronous throw (from cancelBarrier(), write(), or
-            // prepareRequest) must settle the returned promise via reject rather than leave it pending
-            // forever - and, on the background path, must not escape into the flush loop and strand the
-            // other pending writes.
+            // Everything here runs defensively: a synchronous throw (from write() or prepareRequest) must
+            // settle the returned promise via reject rather than leave it pending forever - and, on the
+            // background path, must not escape into the flush loop and strand the other pending writes. (A
+            // throw from cancelBarrier() is handled separately below so it never drops the write.)
             try {
                 clearTimeout(safetyTimeoutId);
                 pendingWriteWhenReadyFlushes.delete(flushOnBackground);
                 // Release the barrier only on the early-release paths (safety timeout / app background),
                 // where the barrier may still be pending and would otherwise leave a dangling registration.
                 // On the 'barrier'/'barrierRejected' paths the barrier has already settled, so there is
-                // nothing to cancel - and skipping the call means a custom barrier whose cancel() is unsafe
-                // after settling can never throw here and drop the write.
+                // nothing to cancel. cancel() is best-effort cleanup and these paths are meant to force the
+                // write through, so isolate a throwing cancel() here - letting it reject would drop the very
+                // write this path exists to guarantee.
                 if (reason === 'safetyTimeout' || reason === 'appBackground') {
-                    cancelBarrier();
+                    try {
+                        cancelBarrier();
+                    } catch (error) {
+                        Log.warn('[API] writeWhenReady barrier cancel() threw during forced release - proceeding with the write', {command, error});
+                    }
                 }
 
                 if (reason !== 'barrier') {
