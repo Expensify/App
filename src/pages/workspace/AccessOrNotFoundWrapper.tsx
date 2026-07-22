@@ -13,6 +13,7 @@ import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import {
     canEditWorkspaceSettings,
     canMemberRead,
@@ -194,8 +195,10 @@ function AccessOrNotFoundWrapper({
     const isPolicyEmpty = !Object.entries(policy ?? {}).length || !policy?.id;
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && (isLoadingReportData !== false || !!policy?.isLoading) && isPolicyEmpty;
 
-    // Pass categories so that migrated corporate policies with only Classic category rules (areRulesEnabled === undefined) are correctly treated as enabled
-    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories) : true;
+    // Pass categories so that migrated corporate policies with only Classic category rules (areRulesEnabled === undefined) are correctly treated as enabled.
+    // Collect workspaces can only access Rules when the rulesRevamp beta is enabled.
+    const isRulesRevampEnabled = Permissions.isBetaEnabled(CONST.BETAS.RULES_REVAMP, betas);
+    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories, isRulesRevampEnabled) : true;
 
     const {isOffline} = useNetwork();
 

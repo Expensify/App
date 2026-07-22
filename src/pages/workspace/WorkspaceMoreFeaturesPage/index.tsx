@@ -476,12 +476,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={isRulesRevampEnabled ? illustrations.Flash : illustrations.Rules}
                             title={translate('workspace.moreFeatures.rules.title')}
                             subtitle={translate('workspace.moreFeatures.rules.subtitle')}
-                            isActive={arePolicyRulesEnabled(policy, policyCategories)}
+                            isActive={arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled)}
                             pendingAction={policy?.pendingFields?.areRulesEnabled}
                             disabled={!canWriteMoreFeatures}
                             disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
+                                    return;
+                                }
+                                if (isEnabled && !isControlPolicy(policy) && !isRulesRevampEnabled) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                                    );
                                     return;
                                 }
                                 enablePolicyRules(policy, isEnabled, undefined, policyData);
