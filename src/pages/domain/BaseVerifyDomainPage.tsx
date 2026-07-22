@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,6 +27,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {PropsWithChildren} from 'react';
@@ -57,10 +59,14 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const doesDomainExist = !!domain;
+
+    // A domain admin has nothing to verify once the domain is validated, so keep them out of the flow if they deep-link; non-admins still land here to re-verify
+    const isVerifiedDomainAdmin = !!domain?.validated && isAdminSelector(currentUserAccountID)(domain);
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
@@ -72,7 +78,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
     useFocusEffect(() => {
-        if (!doesDomainExist || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
+        if (isVerifiedDomainAdmin || !doesDomainExist || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
@@ -96,6 +102,15 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     if (!domain) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
+    }
+
+    if (isVerifiedDomainAdmin) {
+        return (
+            <NotFoundPage
+                onLinkPress={() => Navigation.dismissModal()}
+                shouldForceFullScreen
+            />
+        );
     }
 
     return (
