@@ -21382,8 +21382,7 @@ describe('getPendingChatMembers', () => {
     });
 
     it('should skip account IDs that are missing at runtime', () => {
-        // A personal detail that has not finished loading contributes a missing account ID, which used to throw here.
-        // @ts-expect-error the declared type forbids missing entries, but they still reach this helper at runtime
+        // @ts-expect-error A personal detail that has not finished loading contributes a missing account ID at runtime
         const accountIDs: number[] = [1, undefined, 2, null];
 
         const result = getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -21396,7 +21395,7 @@ describe('getPendingChatMembers', () => {
 
     it('should keep the previous pending members when every account ID is missing', () => {
         const previousPendingChatMembers = [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}];
-        // @ts-expect-error the declared type forbids missing entries, but they still reach this helper at runtime
+        // @ts-expect-error A personal detail that has not finished loading contributes a missing account ID at runtime
         const accountIDs: number[] = [undefined];
 
         const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
