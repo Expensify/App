@@ -133,7 +133,7 @@ describe('ValidateLoginPage', () => {
         expect(screen.queryByTestId('validate-code')).toBeNull();
     });
 
-    it('Should navigate to home only AFTER protected routes are available (separate-session magic link)', async () => {
+    it('Should navigate to home only AFTER protected routes are available (separate-session security link)', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 authToken: 'abcd',
@@ -255,7 +255,7 @@ describe('ValidateLoginPage', () => {
     });
 
     it('Should request a new code and reset to the sign-in page when "request one here" is pressed on the expired-code page', async () => {
-        // Fresh-tab repro: the magic code expired (FAILED) so ExpiredValidateCodeModal renders. Pressing
+        // Fresh-tab repro: the validate code expired (FAILED) so ExpiredValidateCodeModal renders. Pressing
         // "request one here" must both request a new code and surface the sign-in page. goBack no-ops from
         // the root /v/ route, so we reset the public stack to TAB_NAVIGATOR (which hosts SignInPage).
         await act(async () => {
@@ -285,7 +285,7 @@ describe('ValidateLoginPage', () => {
         expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
     });
 
-    it('Should route an exitTo 2FA magic link to the sign-in page AND keep the deferred exitTo navigation', async () => {
+    it('Should route an exitTo 2FA security link to the sign-in page AND keep the deferred exitTo navigation', async () => {
         // exitTo deep link on a 2FA account: the user must still reach the authenticator form (not the
         // dead-end "2FA required" modal), so we reset to the sign-in page. We also register
         // handleExitToNavigation so that once 2FA completes and the authToken lands, the user is taken

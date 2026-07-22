@@ -436,7 +436,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // User interactions - soft prompt approval triggers biometric registration
         state.softPromptApproved,
 
-        // Magic code entry - required before registration challenge can be requested
+        // Validate code entry - required before registration challenge can be requested
         state.validateCode,
 
         // Challenge responses from backend - trigger next steps in registration/authorization
