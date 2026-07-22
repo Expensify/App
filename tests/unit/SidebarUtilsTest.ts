@@ -1255,6 +1255,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
@@ -1286,6 +1287,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
@@ -1317,6 +1319,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
