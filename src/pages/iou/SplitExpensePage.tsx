@@ -24,6 +24,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
@@ -59,15 +60,7 @@ import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {
-    getChildTransactions,
-    getExpenseTypeTranslationKey,
-    getTransactionType,
-    isCustomUnitRateIDForP2P,
-    isDistanceRequest,
-    isManagedCardTransaction,
-    isPerDiemRequest,
-} from '@libs/TransactionUtils';
+import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -140,6 +133,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, draftTransaction, transaction);
+    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    // `effectivePolicy` is undefined for a self-DM split on the personal (P2P) rate, so fall back to the
+    // moving-expenses policy to detect whether a workspace with selectable rates exists.
+    const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
+    // When the user belongs to more than one eligible workspace, `usePolicyForMovingExpenses` can't resolve a
+    // default (`shouldSelectPolicy: true`). Derive availability from the actual enabled rates across all
+    // policies rather than `shouldSelectPolicy` alone — otherwise the P2P split is blocked with no rate to pick.
+    const hasAvailableEnabledRates =
+        Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0 ||
+        (shouldSelectPolicy && Object.values(allPolicies ?? {}).some((policyItem) => Object.keys(DistanceRequestUtils.getMileageRates(policyItem)).length > 0));
 
     const normalizedBackTo = backTo?.replace(/^\//, '');
     const isSearchBackToRoute = normalizedBackTo?.startsWith(ROUTES.SEARCH_ROOT.route) ?? false;
@@ -208,7 +211,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // For selfDM expenses, the IOU action lives in the selfDM report, not in an expense report.
     const iouReportIDForActions = expenseReport?.reportID ?? (isSelfDM(draftTransactionReport) ? draftTransactionReport?.reportID : undefined);
-    const iouActions = getIOUActionForTransactions([originalTransactionID], iouReportIDForActions);
+    const iouActions = getIOUActionForTransactions([originalTransactionID], iouReportIDForActions).filter((action) => action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
@@ -249,17 +252,22 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             continue;
         }
         const isSplitDistance = isDistanceRequest(splitTransaction);
-        if (!isSplitDistance || isCustomUnitRateIDForP2P(splitTransaction)) {
-            continue;
-        }
-        if (!effectivePolicy) {
-            isUnitRateIDOutOfPolicy = true;
+        if (!isSplitDistance) {
             continue;
         }
         const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
-        const splitRate = rates[currentRateID]?.rate;
-        if (!rates[currentRateID] || !splitRate) {
+        if (currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+            if (isDraftSelfDMContext && hasAvailableEnabledRates) {
+                isUnitRateIDOutOfPolicy = true;
+            }
+            continue;
+        }
+        // `effectivePolicy` is undefined when the top-level draft is still on the personal rate, so resolve
+        // the split's picked rate across all policies too — like the per-split edit screen does.
+        const splitSelectedRate =
+            (effectivePolicy ? DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID)[currentRateID] : undefined) ??
+            DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(currentRateID, allPolicies);
+        if (!splitSelectedRate?.rate) {
             isUnitRateIDOutOfPolicy = true;
         }
     }
@@ -374,6 +382,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policyRecentlyUsedCategories,
             iouReport,
             firstIOU: iouActions.at(0),
+            extraIOUActions: iouActions.slice(1),
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             currentUserPersonalDetails,
             transactionViolations,
@@ -393,10 +402,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, allPolicies);
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, allPolicies);
         }
     };
 

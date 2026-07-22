@@ -1280,6 +1280,7 @@ function setDraftSplitTransaction(
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
     personalPolicyOutputCurrency?: string,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ) {
     if (!transactionID) {
         return undefined;
@@ -1297,6 +1298,7 @@ function setDraftSplitTransaction(
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
               policy,
+              policies,
               isSplitTransaction: true,
               personalPolicyOutputCurrency,
           })

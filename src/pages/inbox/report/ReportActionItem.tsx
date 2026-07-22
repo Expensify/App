@@ -65,7 +65,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {expandURLPreview} from '@userActions/Report';
-import {clearError} from '@userActions/Transaction';
+import {clearErrorWithOriginalTransactionError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -263,7 +263,7 @@ function ReportActionItem({
             navigation.setParams({reportActionID: ''});
         }
         if (transactionIDToDismiss) {
-            clearError(transactionIDToDismiss);
+            clearErrorWithOriginalTransactionError(transactionIDToDismiss);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
     };
