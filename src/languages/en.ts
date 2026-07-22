@@ -4542,6 +4542,24 @@ const translations = {
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
         },
+        nudge: {
+            airfareManual:
+                'Hey there! Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Hey there! Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Hey there! Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Hey there! Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
         flightTo: 'Flight to',
         trainTo: 'Train to',
         carRental: ' car rental',
@@ -6034,6 +6052,7 @@ const translations = {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
+            showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
@@ -6567,6 +6586,7 @@ const translations = {
                 description: 'Select the settings to overwrite on your existing workspaces.',
                 accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
                 travelAddressMismatch: 'You can only copy travel if every selected workspace has a company address.',
+                currencyBlockedByBankAccount: "You can only copy currency if every selected workspace with a connected bank account uses the source workspace's currency.",
             },
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',
@@ -7627,7 +7647,7 @@ const translations = {
                 general: 'General',
                 cardRestrictions: 'Card restrictions',
                 expenseDefaults: 'Expense defaults',
-                requireFields: 'Require fields',
+                requireFields: 'Field requirements',
                 flagForReview: 'Flag for review',
                 agents: 'Agents',
             },
@@ -7814,9 +7834,9 @@ const translations = {
                 restrictCardSpend: 'Restrict card spend',
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
-                flagForReviewDescription: 'Notify when your conditions are met.',
-                requireFields: 'Require fields',
-                requireFieldsDescription: 'Receipts, categories, etc, when submitting.',
+                flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
+                requireFields: 'Field requirements',
+                requireFieldsDescription: 'Require specific expense fields or waive requiring them.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
                 createAgentRule: 'Agent rule',
@@ -7842,28 +7862,33 @@ const translations = {
                 tableColumnCondition: 'Condition',
                 tableColumnRule: 'Rule',
                 findRule: 'Find rule',
-                typeLabel: 'Require fields',
                 conditionCategoryIs: (category: string) => `Category is "${category}"`,
                 requireDescription: 'Require description',
                 requireAttendees: 'Require attendees',
+                requireReceipt: 'Require receipt',
                 requireItemizedReceipt: 'Require itemized receipt',
                 requireItemizedReceiptOver: (amount: string) => `Require itemized receipt over ${amount}`,
-                alwaysRequireReceipt: 'Always require receipt',
                 requireReceiptOver: (amount: string) => `Require receipt over ${amount}`,
+                doNotRequireReceipt: "Don't require receipt",
+                doNotRequireItemizedReceipt: "Don't require itemized receipt",
             },
             requireFieldsEmptyState: {
                 title: 'Catch missing details upfront',
-                subtitle: 'Make sure key fields are filled in before expenses are submitted.',
-                cta: 'Create require rule',
+                subtitle: 'Require or waive expense fields for specific categories.',
+                cta: 'Create field requirement rule',
             },
             requireFieldsRule: {
-                title: 'Require fields',
-                subtitle: 'Require receipts, categories, etc, when submitting.',
-                thenWarnMember: 'Then warn member if fields are missing:',
+                title: 'Field requirements',
+                subtitle: 'Require specific expense fields or waive requiring them.',
+                requireDirection: 'Require',
+                doNotRequireDirection: "Don't require",
+                doTheFollowing: 'Do the following:',
                 itemizedReceipt: 'Itemized receipt',
                 saveRule: 'Save rule',
                 confirmErrorCategory: 'Please select a category.',
-                confirmErrorField: 'Please select at least one field to require.',
+                confirmErrorDoNotRequireField: 'Please select at least one field.',
+                receiptDisabledWhenItemizedRequired: 'Receipts are always required when itemized receipts are also required.',
+                itemizedDisabledWhenReceiptWaived: "Itemized receipts aren't required if any receipt also isn't required.",
             },
             flagForReviewTable: {
                 tableColumnType: 'Type',
@@ -8756,6 +8781,7 @@ const translations = {
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copied overview from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copied currency from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copied members from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copied 1 report field from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -9106,6 +9132,7 @@ const translations = {
         serverResults: 'Search results',
         searchIn: 'Search in',
         askConcierge: (message: string) => `Ask Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Go to ${destination}`,
         searchPlaceholder: 'Search for something...',
         suggestions: 'Suggestions',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
