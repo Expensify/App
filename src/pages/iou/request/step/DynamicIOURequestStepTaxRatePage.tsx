@@ -93,7 +93,7 @@ function DynamicIOURequestStepTaxRatePage({
     };
 
     const saveAndNavigateBack = () => {
-        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
     const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
