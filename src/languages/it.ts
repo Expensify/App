@@ -4437,6 +4437,24 @@ ${amount} per ${merchant} - ${date}`,
             inputLabel: 'Partita IVA dell’entità legale',
             error: {required: 'Inserisci il codice fiscale/partita IVA della tua entità legale.'},
         },
+        nudge: {
+            airfareManual:
+                'Ciao! Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Ehi! Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Ciao! Sapevi che puoi prenotare e gestire i tuoi soggiorni in hotel direttamente in Expensify? La prossima volta evita la seccatura di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Ehi! Sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Ehi! Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta evita il fastidio di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Ehi! Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Ehi! Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita il fastidio di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Ciao! Lo sai che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     workspace: {
         common: {
@@ -6462,6 +6480,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 accountingMismatch: ({part}: {part: string}) =>
                     `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
                 travelAddressMismatch: 'Puoi copiare i viaggi solo se ogni spazio di lavoro selezionato ha un indirizzo aziendale.',
+                currencyBlockedByBankAccount:
+                    'Puoi copiare la valuta solo se ogni spazio di lavoro selezionato con un conto bancario collegato utilizza la valuta dello spazio di lavoro di origine.',
             },
             confirmSettings: {
                 title: 'Assicuriamoci che sia tutto corretto.',
@@ -8636,6 +8656,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateDateRangeAllDates: () => `per tutte le date`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `panoramica copiata da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato la valuta da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato i membri da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copiato 1 campo del report da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

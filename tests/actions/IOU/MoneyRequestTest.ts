@@ -26,7 +26,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -143,6 +143,7 @@ describe('MoneyRequest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         };
 
         beforeEach(async () => {
@@ -692,6 +693,7 @@ describe('MoneyRequest', () => {
             currentUserLocalCurrency: undefined,
             policyTagList: {},
             isTrackIntentUser: false,
+            formatPhoneNumber,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
