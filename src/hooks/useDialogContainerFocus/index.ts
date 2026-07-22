@@ -1,15 +1,17 @@
+import claimInitialFocus from '@libs/claimInitialFocus';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
+import isHTMLElement from '@libs/isHTMLElement';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 
 import {useEffect} from 'react';
 
 import type UseDialogContainerFocus from './types';
 
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
-    if (!getHadTabNavigation() || !container || (document.activeElement && document.activeElement !== document.body)) {
+    // RHP initial focus is keyboard-only, so the ring is always shown (WCAG 2.4.7).
+    if (!getHadTabNavigation() || !container) {
         return false;
     }
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
@@ -17,43 +19,32 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!target) {
         return false;
     }
-    // Arbitrated so a concurrent RETURN restore wins over this dialog's initial focus.
-    if (!tryClaim(Priorities.INITIAL)) {
-        return false;
-    }
-    target.focus({preventScroll: true, focusVisible: true});
-    return true;
+    return claimInitialFocus(target, {focusVisible: true});
 }
 
 /** Focuses the first interactive element inside the dialog after the RHP transition for screen reader announcement. */
-const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocus, skipDialogContainerFocus = false) => {
+const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocusGate, skipDialogContainerFocus = false) => {
     useEffect(() => {
-        if (!isReady || !claimInitialFocus?.() || skipDialogContainerFocus) {
+        if (!isReady || skipDialogContainerFocus || !claimInitialFocusGate?.()) {
             return;
         }
-        let cancelled = false;
-        let frameId: number;
-        // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
-        const interactionHandle = TransitionTracker.runAfterTransitions({
+        let rafId: number | null = null;
+        const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
-                if (cancelled) {
-                    return;
-                }
-                frameId = requestAnimationFrame(() => {
-                    if (cancelled) {
-                        return;
-                    }
-                    const container = ref.current as unknown as HTMLElement | null;
+                // runAfterTransitions fires synchronously when no transition is active; defer one frame so late-mounted RHP content is queryable.
+                rafId = requestAnimationFrame(() => {
+                    const container = isHTMLElement(ref.current) ? ref.current : null;
                     focusFirstInteractiveElement(container);
                 });
             },
         });
         return () => {
-            cancelled = true;
-            interactionHandle.cancel();
-            cancelAnimationFrame(frameId);
+            handle.cancel();
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+            }
         };
-    }, [isReady, ref, claimInitialFocus, skipDialogContainerFocus]);
+    }, [isReady, ref, claimInitialFocusGate, skipDialogContainerFocus]);
 };
 
 export default useDialogContainerFocus;
