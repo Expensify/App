@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {buildParticipantsPolicyTags} from '@libs/actions/IOU';
 import {
     getMoneyRequestParticipantOptions,
@@ -105,6 +107,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -202,6 +205,7 @@ function handleMoneyRequestStepDistanceNavigation({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    formatPhoneNumber,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -405,6 +409,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         },
                         isTrackIntentUser,
                         delegateAccountID,
+                        formatPhoneNumber,
                         // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
                         // eslint-disable-next-line @typescript-eslint/no-deprecated
                         participantsPolicyTags: buildParticipantsPolicyTags(participants),

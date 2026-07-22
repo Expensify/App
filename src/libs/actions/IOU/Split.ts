@@ -1,5 +1,7 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -7,7 +9,6 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -143,6 +144,7 @@ type CreateDistanceRequestInformation = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
@@ -172,6 +174,7 @@ type CreateSplitsAndOnyxDataParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type StartSplitBilActionParams = {
@@ -198,6 +201,7 @@ type StartSplitBilActionParams = {
     policyRecentlyUsedCurrencies: string[];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CompleteSplitBillActionParams = {
@@ -213,6 +217,7 @@ type CompleteSplitBillActionParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     sessionEmail?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SplitBillActionsParams = {
@@ -248,6 +253,7 @@ type SplitBillActionsParams = {
     delegateAccountID: number | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /**
@@ -285,6 +291,7 @@ function splitBill({
     shouldDeferForSearch = false,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
     participantsPolicyTags,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
@@ -320,6 +327,7 @@ function splitBill({
         participantsPolicyTags,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
     });
 
     const parameters: SplitBillParams = {
@@ -399,6 +407,7 @@ function splitBillAndOpenReport({
     shouldDeferForSearch = false,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
     participantsPolicyTags,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
@@ -433,6 +442,7 @@ function splitBillAndOpenReport({
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
         participantsPolicyTags,
     });
 
@@ -507,6 +517,7 @@ function startSplitBill({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    formatPhoneNumber,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -698,6 +709,7 @@ function startSplitBill({
         policyRecentlyUsedTags,
         participantsPolicyTags,
         delegateAccountID,
+        formatPhoneNumber,
     };
 
     if (existingSplitChatReport) {
@@ -1429,6 +1441,7 @@ function createSplitsAndOnyxData({
     participantsPolicyTags,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1963,6 +1976,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         previousOdometerDraft,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
         participantsPolicyTags,
         optimisticChatReportID,
     } = distanceRequestInformation;
@@ -2056,6 +2070,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             participantsPolicyTags,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
         onyxData = splitOnyxData;
 
@@ -2138,6 +2153,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 odometerStart,
                 odometerEnd,
             },
+            shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,

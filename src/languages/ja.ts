@@ -518,7 +518,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
         tryAgain: '再試行',
@@ -4403,6 +4402,24 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             inputLabel: '法人納税者番号',
             error: {required: '法的事業体の納税者番号を入力してください。'},
         },
+        nudge: {
+            airfareManual:
+                'こんにちは！Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで大丈夫です ✈️',
+            airfareCard:
+                'こんにちは！Expensify でフライトの予約と管理ができるのをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
+            hotelManual:
+                'こんにちは！Expensify でホテルの予約や宿泊の管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
+            hotelCard:
+                'こんにちは！Expensify でホテルの予約や宿泊管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> からかんたんに予約できます。',
+            carManual:
+                'こんにちは！Expensify でレンタカーの予約と管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚗',
+            carCard:
+                'こんにちは！Expensify でレンタカーの予約や管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約できます。',
+            railManual:
+                'Expensify で電車の予約や管理ができることをご存じでしたか？次回からは手動で経費を作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください。',
+            railCard:
+                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約しましょう。',
+        },
     },
     workspace: {
         common: {
@@ -6382,6 +6399,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 description: '既存のワークスペースで上書きする設定を選択します。',
                 accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
                 travelAddressMismatch: '出張をコピーできるのは、選択したすべてのワークスペースに会社の住所がある場合のみです。',
+                currencyBlockedByBankAccount:
+                    '通貨をコピーできるのは、選択したワークスペースのうち、銀行口座に接続されているすべてのワークスペースが、元のワークスペースと同じ通貨を使用している場合のみです。',
             },
             confirmSettings: {
                 title: 'すべて正しく表示されているか確認しましょう。',
@@ -7745,7 +7764,7 @@ ${reportName}`,
                 flagForReview: '確認のためにフラグを付ける',
                 flagForReviewDescription: '条件が満たされたときに通知します。',
                 requireFields: '必須項目',
-                requireFieldsDescription: '提出時の領収書、カテゴリなど',
+                requireFieldsDescription: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
                 createAgentRule: 'エージェントルール',
                 createAgentRuleDescription: '必要なときに実行できる柔軟なルールを設定します。',
             },
@@ -7765,28 +7784,33 @@ ${reportName}`,
                 tableColumnCondition: '条件',
                 tableColumnRule: 'ルール',
                 findRule: 'ルールを検索',
-                typeLabel: '必須項目',
                 conditionCategoryIs: (category: string) => `カテゴリは「${category}」です`,
                 requireDescription: '説明が必須です',
                 requireAttendees: '参加者を必須にする',
                 requireItemizedReceipt: '明細付きレシートを必須にする',
                 requireItemizedReceiptOver: (amount: string) => `${amount} を超える金額には明細付き領収書が必要です`,
-                alwaysRequireReceipt: '常にレシートを必須にする',
                 requireReceiptOver: (amount: string) => `${amount} を超える領収書を必須にする`,
+                requireReceipt: '領収書を必須にする',
+                doNotRequireReceipt: '領収書を必須にしない',
+                doNotRequireItemizedReceipt: '明細付き領収書を必須にしない',
             },
             requireFieldsEmptyState: {
                 title: '不足している詳細を事前に把握しましょう',
-                subtitle: '経費を提出する前に、重要な項目がすべて入力されていることを確認してください。',
-                cta: '必須ルールを作成',
+                subtitle: '特定のカテゴリに対して、経費項目の入力を必須または任意に設定します。',
+                cta: 'フィールド必須ルールを作成',
             },
             requireFieldsRule: {
                 title: '必須項目',
-                subtitle: '提出時にレシートやカテゴリなどを必須にする',
-                thenWarnMember: '不足している項目がある場合はメンバーに警告します:',
+                subtitle: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
                 itemizedReceipt: '明細付きレシート',
                 saveRule: 'ルールを保存',
                 confirmErrorCategory: 'カテゴリを選択してください。',
-                confirmErrorField: '少なくとも 1 つの必須項目を選択してください。',
+                requireDirection: '必須',
+                doNotRequireDirection: '必須にしない',
+                doTheFollowing: '次を実行:',
+                confirmErrorDoNotRequireField: '少なくとも 1 つの項目を選択してください。',
+                receiptDisabledWhenItemizedRequired: '明細付き領収書が必要な場合は、常に領収書の提出も必要です。',
+                itemizedDisabledWhenReceiptWaived: 'どのレシートも必須でない場合は、明細付きレシートも必須ではありません。',
             },
             flagForReviewTable: {
                 tableColumnType: '種類',
@@ -8527,6 +8551,7 @@ ${reportName}`,
         customUnitRateDateRangeAllDates: () => `すべての日付に対して`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から概要をコピーしました`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から通貨をコピーしました`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からメンバーをコピーしました`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からレポート項目を 1 件コピーしました`,
@@ -8841,6 +8866,7 @@ ${reportName}`,
         serverResults: '検索結果',
         searchIn: '検索対象',
         askConcierge: (message: string) => `Concierge に「${message}」と聞く`,
+        goTo: ({destination}: {destination: string}) => `${destination}に移動`,
         searchPlaceholder: '何かを検索...',
         suggestions: '提案',
         suggestionsAvailable: (
