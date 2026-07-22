@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
@@ -33,7 +34,11 @@ function shouldShowTableSettingsTrigger({columns, shouldUseNarrowTableLayout, na
 // FilterPopupButton invokes PopoverComponent as a plain function during its own render, so the popover must be
 // wrapped in a JSX element here — otherwise its hooks would run inside FilterPopupButton's hook list and crash React.
 function renderTableSettingsPopover({closeOverlay}: PopoverComponentProps) {
-    return <TableSettingsPopoverComponent closeOverlay={closeOverlay} />;
+    return (
+        <ListFilterHeightContextProvider>
+            <TableSettingsPopoverComponent closeOverlay={closeOverlay} />
+        </ListFilterHeightContextProvider>
+    );
 }
 
 export default function TableSettingsTrigger() {

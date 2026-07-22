@@ -1,5 +1,6 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
+import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SelectionList from '@components/SelectionList';
@@ -11,10 +12,14 @@ import {useTableContext} from '@components/Table/TableContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+
+const DIVIDER_HEIGHT = 25;
 
 type TableSettingsPopoverComponentProps = {
     /** Function to call to close the overlay */
@@ -58,20 +63,26 @@ function TableSettingsSortByPopup({columns, pendingSorting, setPendingSorting, o
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
         >
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                description={translate('search.display.sortOrder')}
-                title={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
-                onPress={onSortOrderPress}
-            />
-            <View style={styles.dividerLine} />
-            <SelectionList
-                data={options}
-                shouldSingleExecuteRowSelect
-                ListItem={SingleSelectListItem}
-                onSelectRow={updateSelectedItem}
-                style={{contentContainerStyle: [styles.pb0]}}
-            />
+            <ListFilterWrapper
+                itemCount={columns.length}
+                hasHeader
+                extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
+            >
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    description={translate('search.display.sortOrder')}
+                    title={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
+                    onPress={onSortOrderPress}
+                />
+                <View style={styles.dividerLine} />
+                <SelectionList
+                    data={options}
+                    shouldSingleExecuteRowSelect
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={updateSelectedItem}
+                    style={{contentContainerStyle: [styles.pb0]}}
+                />
+            </ListFilterWrapper>
         </BasePopup>
     );
 }
