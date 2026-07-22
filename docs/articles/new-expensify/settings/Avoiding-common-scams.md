@@ -105,7 +105,7 @@ Legitimate Expensify emails always come from an address ending in **@expensify.c
 
 ## I received a security code I didn't request. Is my account compromised?
 
-No. Receiving an unrequested security code does not mean your account is compromised. It most likely means someone entered your email address by mistake when trying to log in. As long as you don't share the code with anyone, your account is safe. You can simply ignore or delete the email. If you want extra protection, enable [two-factor authentication](/articles/new-expensify/settings/Two-Factor-Authentication).
+No. Receiving a security code you didn't request does not mean your account is compromised. It most likely means someone entered your email address by mistake when trying to log in. As long as you don't share the code with anyone, your account is safe. You can simply ignore or delete the email. If you want extra protection, enable [two-factor authentication](/articles/new-expensify/settings/Two-Factor-Authentication).
 
 ## Can Expensify call me?
 
