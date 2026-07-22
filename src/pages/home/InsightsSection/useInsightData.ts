@@ -131,5 +131,5 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     };
 }
 
-export {INSIGHT_STATE, getInsightState, MIN_INSIGHT_DATA_POINTS};
+export {INSIGHT_STATE, getInsightState};
 export default useInsightData;
