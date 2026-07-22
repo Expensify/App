@@ -346,7 +346,7 @@ describe('getReportPreviewAction', () => {
             status: CONST.TRANSACTION.STATUS.PENDING,
             amount: 10,
             merchant: 'Merchant',
-            date: '2025-01-01',
+            created: '2025-01-01',
         });
 
         // Simulate how components use a hook to pass the isReportArchived parameter
@@ -783,7 +783,7 @@ describe('getReportPreviewAction', () => {
                 status: CONST.TRANSACTION.STATUS.PENDING,
                 amount: 10,
                 merchant: 'Merchant',
-                date: '2025-01-01',
+                created: '2025-01-01',
             });
 
             expect(
