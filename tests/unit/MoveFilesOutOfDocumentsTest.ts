@@ -148,6 +148,47 @@ describe('MoveFilesOutOfDocuments migration (iOS)', () => {
         expect(draftTransaction?.receipt?.source).toBe(NEW_URI_B);
     });
 
+    it('rewrites odometer image references on transactions, merge transactions, and the odometer draft', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}123`, {
+            transactionID: '123',
+            comment: {
+                odometerStartImage: {uri: STALE_URI_A, name: RECEIPT_A, type: 'image/jpeg'},
+                odometerEndImage: STALE_URI_B,
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}456`, {
+            transactionID: '456',
+            comment: {odometerStartImage: {uri: STALE_URI_A, name: RECEIPT_A, type: 'image/jpeg'}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}789`, {
+            receipt: {source: STALE_URI_A},
+            odometerEndImage: {uri: STALE_URI_B, name: RECEIPT_B, type: 'image/jpeg'},
+        });
+        await Onyx.set(ONYXKEYS.ODOMETER_DRAFT, {odometerStartImage: STALE_URI_A, odometerEndImage: SERVER_RECEIPT_URL});
+        await waitForBatchedUpdates();
+
+        await MoveFilesOutOfDocuments();
+        await waitForBatchedUpdates();
+
+        // Odometer images on the transaction comment are rewritten whether they are stored
+        // as a file object (only the uri changes) or as a plain URI string.
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}123`);
+        expect(transaction?.comment?.odometerStartImage).toEqual({uri: NEW_URI_A, name: RECEIPT_A, type: 'image/jpeg'});
+        expect(transaction?.comment?.odometerEndImage).toBe(NEW_URI_B);
+
+        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}456`);
+        expect(draftTransaction?.comment?.odometerStartImage).toEqual({uri: NEW_URI_A, name: RECEIPT_A, type: 'image/jpeg'});
+
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}789`);
+        expect(mergeTransaction?.receipt?.source).toBe(NEW_URI_A);
+        expect(mergeTransaction?.odometerEndImage).toEqual({uri: NEW_URI_B, name: RECEIPT_B, type: 'image/jpeg'});
+
+        // The rewritten draft image points at the new folder; a non-receipt value is untouched
+        const odometerDraft = await getOnyxValue(ONYXKEYS.ODOMETER_DRAFT);
+        expect(odometerDraft?.odometerStartImage).toBe(NEW_URI_A);
+        expect(odometerDraft?.odometerEndImage).toBe(SERVER_RECEIPT_URL);
+    });
+
     it('keeps the old directory and points persisted paths at it when a copy fails', async () => {
         mockRNFS.copyFile.mockImplementation((source: string) => (source.endsWith(RECEIPT_B) ? Promise.reject(new Error('copy failed')) : Promise.resolve()));
         await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildQueuedRequest(RECEIPT_A, STALE_URI_A), buildQueuedRequest(RECEIPT_B, STALE_URI_B)]);
