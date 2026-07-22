@@ -100,7 +100,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
         : undefined;
     const currentDefaultSearchQueryJSON = currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString) : undefined;
-    const currentDefaultSearchHash = currentDefaultSearchQueryJSON?.hash;
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
     const resetSearchKey = (pending = false, queryJSON = currentSearchQueryJSON) => {
@@ -133,7 +132,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         currentSimilarSearchHash,
         currentSearchKey,
         currentSearchQueryJSON,
-        currentDefaultSearchHash,
         currentDefaultSearchQueryString,
         currentDefaultSearchQueryJSON,
         currentDefaultSearchQueryFilterKeys,
