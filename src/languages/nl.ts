@@ -8935,8 +8935,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topMerchants: 'Topverkopers',
         },
         mergeReports: {
-            title: 'Merge reports',
-            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            title: 'Rapporten samenvoegen',
+            description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden ernaartoe verplaatst en de andere rapporten worden verwijderd.',
         },
     },
     genericErrorPage: {

@@ -9014,8 +9014,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             topMerchants: 'Meilleurs commerçants',
         },
         mergeReports: {
-            title: 'Merge reports',
-            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            title: 'Fusionner les notes de frais',
+            description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
         },
     },
     genericErrorPage: {

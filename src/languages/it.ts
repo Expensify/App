@@ -8965,10 +8965,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             topCategories: 'Categorie principali',
             topMerchants: 'Principali esercenti',
         },
-        mergeReports: {
-            title: 'Merge reports',
-            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
-        },
+        mergeReports: {title: 'Unisci report', description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.'},
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',

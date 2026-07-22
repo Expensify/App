@@ -8977,8 +8977,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             topMerchants: 'Top-Händler',
         },
         mergeReports: {
-            title: 'Merge reports',
-            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            title: 'Berichte zusammenführen',
+            description: 'Wählen Sie den Bericht aus, den Sie behalten möchten. Alle Ausgaben werden in diesen verschoben und die anderen Berichte werden gelöscht.',
         },
     },
     genericErrorPage: {

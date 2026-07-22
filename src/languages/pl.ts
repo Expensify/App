@@ -8914,10 +8914,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
         },
-        mergeReports: {
-            title: 'Merge reports',
-            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
-        },
+        mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
