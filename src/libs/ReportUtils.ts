@@ -7232,6 +7232,9 @@ function getPolicyChangeLogCopyMessage(translate: LocalizedTranslate, action: Re
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW:
             message = translate('workspaceActions.policyCopy.overview', sourcePolicyName, sourcePolicyURL);
             break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CURRENCY:
+            message = translate('workspaceActions.policyCopy.currency', sourcePolicyName, sourcePolicyURL);
+            break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES:
             message = translate('workspaceActions.policyCopy.employees', sourcePolicyName, sourcePolicyURL);
             break;

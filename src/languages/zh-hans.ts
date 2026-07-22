@@ -6265,6 +6265,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: '选择要在现有工作区中覆盖的设置。',
                 accountingMismatch: ({part}: {part: string}) => `仅当所有工作区使用相同的会计系统和公司连接时，您才能复制 ${part}。`,
                 travelAddressMismatch: '仅当每个所选工作区都有公司地址时，您才能复制差旅。',
+                currencyBlockedByBankAccount: '只有当所有已选工作区中，已连接银行账户的货币都与源工作区的货币相同时，才能复制货币。',
             },
             confirmSettings: {
                 title: '让我们确认一切都正确无误。',
@@ -8349,6 +8350,7 @@ ${reportName}`,
         customUnitRateDateRangeAllDates: () => `适用于所有日期`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制概览`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制了货币设置`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制成员`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制 1 个报表字段`,

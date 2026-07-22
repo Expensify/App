@@ -6578,6 +6578,7 @@ const translations = {
                 description: 'Select the settings to overwrite on your existing workspaces.',
                 accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
                 travelAddressMismatch: 'You can only copy travel if every selected workspace has a company address.',
+                currencyBlockedByBankAccount: "You can only copy currency if every selected workspace with a connected bank account uses the source workspace's currency.",
             },
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',
@@ -8767,6 +8768,7 @@ const translations = {
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copied overview from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copied currency from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copied members from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copied 1 report field from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
