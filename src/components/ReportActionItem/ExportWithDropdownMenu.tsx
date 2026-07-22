@@ -114,7 +114,7 @@ function ExportWithDropdownMenu({
 
     return (
         <ButtonWithDropdownMenu<ReportExportType>
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             pressOnEnter
             shouldAlwaysShowDropdownMenu
             anchorAlignment={dropdownAnchorAlignment}
@@ -139,7 +139,7 @@ function ExportWithDropdownMenu({
             options={dropdownOptions}
             style={[shouldUseNarrowLayout && styles.flexGrow1]}
             wrapperStyle={flattenedWrapperStyle}
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            size={CONST.BUTTON_SIZE.MEDIUM}
             sentryLabel={sentryLabel}
         />
     );

@@ -1,7 +1,6 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 
@@ -65,9 +64,12 @@ function ReplaceDeviceVerifyOldPage() {
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.ph5, styles.mb4, styles.mt3]}>
-                    <Text style={[styles.textLabel, styles.mb4]}>{translate('twoFactorAuth.verifyOldDeviceDescription')}</Text>
                     <TwoFactorAuthForm
                         ref={formRef}
+                        shouldAllowRecoveryCode
+                        descriptionKey="twoFactorAuth.verifyOldDeviceDescription"
+                        descriptionKeyWithRecovery="twoFactorAuth.verifyOldDeviceDescriptionWithRecovery"
+                        descriptionStyle={[styles.textLabel, styles.mb4]}
                         onSubmit={(code) => {
                             replaceTwoFactorDevice('verify_old', code);
                         }}
@@ -78,9 +80,8 @@ function ReplaceDeviceVerifyOldPage() {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
-                    success
-                    large
-                    text={translate('common.continue')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         if (!formRef.current) {
@@ -88,7 +89,9 @@ function ReplaceDeviceVerifyOldPage() {
                         }
                         formRef.current.validateAndSubmitForm();
                     }}
-                />
+                >
+                    <Button.Text>{translate('common.continue')}</Button.Text>
+                </Button>
             </FixedFooter>
         </TwoFactorAuthWrapper>
     );

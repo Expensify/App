@@ -1,207 +1,79 @@
-import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import ImageSVG from '@components/ImageSVG';
-import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
 import variables from '@styles/variables';
 
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {ImageContentFit} from 'expo-image';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import type {SharedValue} from 'react-native-reanimated';
+import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useMemo, useState} from 'react';
-import {PixelRatio, StyleSheet, View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
+import React from 'react';
+import {View} from 'react-native';
 
-import IconWrapperStyles from './IconWrapperStyles';
-
-type IconCarouselPagerProps = {
-    pagerRef: AttachmentCarouselPagerStateContextType['pagerRef'];
-    isScrollEnabled: SharedValue<boolean>;
-    onTap: () => void;
-    onSwipeDown: () => void;
-};
+import type IconSize from './types';
 
 type IconProps = {
     /** The asset to render. */
     src: IconAsset | undefined;
 
-    /** The width of the icon. */
+    /** Custom width when no preset size is selected. */
     width?: number;
 
-    /** The height of the icon. */
+    /** Custom height when no preset size is selected. */
     height?: number;
 
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
+    /** Fill color for the SVG. */
     fill?: string;
 
-    /** Is small icon */
-    extraSmall?: boolean;
-    small?: boolean;
+    /** Preset icon size. */
+    size?: IconSize;
 
-    /** Is large icon */
-    large?: boolean;
-
-    /** Is medium icon */
-    medium?: boolean;
-
-    /** Is inline icon */
-    inline?: boolean;
-
-    /** Is icon hovered */
+    /** Whether the icon is hovered. */
     hovered?: boolean;
 
-    /** Is icon pressed */
+    /** Whether the icon is pressed. */
     pressed?: boolean;
 
-    /** Additional styles to add to the Icon */
+    /** Additional styles for the icon wrapper. */
     additionalStyles?: StyleProp<ViewStyle>;
 
-    /** Used to locate this icon in end-to-end tests. */
+    /** Test identifier for end-to-end tests. */
     testID?: string;
 
-    /** Determines how the image should be resized to fit its container */
+    /** How the SVG content should fit its container. */
     contentFit?: ImageContentFit;
 
-    /** Determines whether the icon is being used within a button. The icon size will remain the same for both icon-only buttons and buttons with text. */
+    /** Keeps icon sizing consistent when used inside buttons. */
     isButtonIcon?: boolean;
 
-    /** Renders the Icon component within a MultiGestureCanvas for improved gesture controls. */
-    enableMultiGestureCanvas?: boolean;
-
-    /** When set, exposes the icon to assistive tech with this label. Leave unset to keep the icon decorative. */
+    /** When set, exposes the icon to assistive tech. Leave unset for decorative icons. */
     accessibilityLabel?: string;
 };
 
+/** Renders an SVG icon with preset sizes. */
 function Icon({
     src,
     width = variables.iconSizeNormal,
     height = variables.iconSizeNormal,
     fill = undefined,
-    extraSmall = false,
-    small = false,
-    large = false,
-    medium = false,
-    inline = false,
+    size,
     additionalStyles = [],
     hovered = false,
     pressed = false,
     testID = '',
     contentFit = 'cover',
     isButtonIcon = false,
-    enableMultiGestureCanvas = false,
     accessibilityLabel,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
-    const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(extraSmall, small, medium, large, width, height, isButtonIcon);
-    const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
-    const contentSize: Dimensions = {width: iconWidth as number, height: iconHeight as number};
-    const [canvasSize, setCanvasSize] = useState<Dimensions>();
-    const isCanvasLoading = canvasSize === undefined;
-    const updateCanvasSize = useCallback(
-        ({
-            nativeEvent: {
-                layout: {width: layoutWidth, height: layoutHeight},
-            },
-        }: LayoutChangeEvent) => setCanvasSize({width: PixelRatio.roundToNearestPixel(layoutWidth), height: PixelRatio.roundToNearestPixel(layoutHeight)}),
-        [],
-    );
-
-    const isScrollingEnabledFallback = useSharedValue(false);
-    const state = useAttachmentCarouselPagerState();
-    const actions = useAttachmentCarouselPagerActions();
-
-    const {onTap, onSwipeDown, pagerRef, isScrollEnabled}: IconCarouselPagerProps = useMemo((): IconCarouselPagerProps => {
-        if (state === null || actions === null) {
-            return {
-                pagerRef: undefined,
-                isScrollEnabled: isScrollingEnabledFallback,
-                onTap: () => {},
-                onSwipeDown: () => {},
-            };
-        }
-        return {
-            pagerRef: state.pagerRef,
-            isScrollEnabled: state.isScrollEnabled,
-            onTap: actions.onTap ?? (() => {}),
-            onSwipeDown: actions.onSwipeDown ?? (() => {}),
-        };
-    }, [state, actions, isScrollingEnabledFallback]);
 
     if (!src) {
         return null;
     }
 
-    if (inline) {
-        return (
-            <View
-                testID={testID}
-                style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
-                pointerEvents="none"
-            >
-                <View style={iconStyles}>
-                    <ImageSVG
-                        src={src}
-                        width={iconWidth}
-                        height={iconHeight}
-                        fill={fill}
-                        hovered={hovered}
-                        pressed={pressed}
-                        contentFit={contentFit}
-                        pointerEvents="none"
-                    />
-                </View>
-            </View>
-        );
-    }
-
-    if (canUseTouchScreen() && enableMultiGestureCanvas) {
-        return (
-            <View
-                style={StyleSheet.absoluteFill}
-                onLayout={updateCanvasSize}
-            >
-                {!isCanvasLoading && (
-                    <MultiGestureCanvas
-                        isActive
-                        canvasSize={canvasSize}
-                        contentSize={contentSize}
-                        zoomRange={DEFAULT_ZOOM_RANGE}
-                        pagerRef={pagerRef}
-                        isUsedInCarousel={false}
-                        isPagerScrollEnabled={isScrollEnabled}
-                        onTap={onTap}
-                        onSwipeDown={onSwipeDown}
-                    >
-                        <View
-                            testID={testID}
-                            style={[additionalStyles]}
-                        >
-                            <ImageSVG
-                                src={src}
-                                width={iconWidth}
-                                height={iconHeight}
-                                fill={fill}
-                                hovered={hovered}
-                                pressed={pressed}
-                                contentFit={contentFit}
-                            />
-                        </View>
-                    </MultiGestureCanvas>
-                )}
-            </View>
-        );
-    }
-
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(size, width, height, isButtonIcon);
     const hasLabel = !!accessibilityLabel;
 
     return (

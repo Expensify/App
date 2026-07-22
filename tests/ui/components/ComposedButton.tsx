@@ -3,12 +3,12 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import HapticFeedback from '@libs/HapticFeedback';
 
 import colors from '@styles/theme/colors';
+import type {ButtonVariant} from '@styles/utils/types';
 import variables from '@styles/variables';
 
-import Button from '@src/components/ButtonComposed/Button';
+import type {ButtonProps} from '@src/components/ButtonComposed';
+import Button from '@src/components/ButtonComposed';
 import {useButtonContext} from '@src/components/ButtonComposed/context';
-import type {ButtonVariant} from '@src/components/ButtonComposed/context';
-import type {ButtonProps} from '@src/components/ButtonComposed/types';
 import CONST from '@src/CONST';
 
 import React from 'react';

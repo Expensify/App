@@ -1,6 +1,7 @@
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
 import {useButtonContext} from '@components/ButtonComposed/context';
 import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
+import withNavigationFallback from '@components/withNavigationFallback';
 
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -59,4 +60,4 @@ function ButtonKeyboardShortcut({allowBubble, enterKeyEventListenerPriority, isP
     return null;
 }
 
-export default ButtonKeyboardShortcut;
+export default withNavigationFallback(ButtonKeyboardShortcut);
