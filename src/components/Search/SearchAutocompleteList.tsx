@@ -605,7 +605,7 @@ function SearchAutocompleteList({
                         <AvatarWithTextCell
                             reportName={workspaceIcon.name}
                             icon={workspaceIcon}
-                            isLargeScreenWidth
+                            textStyle={styles.textLabelSupporting}
                         />
                     ) : undefined,
                 };
