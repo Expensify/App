@@ -25,10 +25,16 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
+const avatarStyleColorSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+    accountID ? personalDetailsList?.[accountID]?.avatarStyle?.color : undefined;
+
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
 const personalDetailsDisplayNameSelector = (accountID: number, translate: LocalizedTranslate) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
-    temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate});
+    temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: personalDetails?.[accountID],
+        translate,
+    });
 
 const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
 
@@ -47,7 +53,12 @@ const createDisplayDetailsByAccountIDsSelector =
             if (!detail) {
                 continue;
             }
-            result[accountID] = {accountID: detail.accountID, displayName: detail.displayName, login: detail.login, avatar: detail.avatar};
+            result[accountID] = {
+                accountID: detail.accountID,
+                displayName: detail.displayName,
+                login: detail.login,
+                avatar: detail.avatar,
+            };
         }
         return result;
     };
@@ -85,6 +96,7 @@ const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmails
     getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, personalDetailsList);
 
 export {
+    avatarStyleColorSelector,
     personalDetailsSelector,
     multiPersonalDetailsSelector,
     personalDetailsListSelector,
