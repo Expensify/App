@@ -1,6 +1,8 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getPlatform from '@libs/getPlatform';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -14,6 +16,11 @@ import {View} from 'react-native';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
+
+// Hiding the badge's content from assistive tech is only needed on the web, where `accessible` does not group the
+// children into a single element. On native, `accessible` already announces the badge as one element, and `aria-hidden`
+// would additionally hide the content from queries (e.g. testing-library's getByText).
+const shouldHideBadgeContentFromAssistiveTech = getPlatform() === CONST.PLATFORM.WEB;
 
 type BadgeProps = {
     /** Is Success type */
@@ -119,7 +126,7 @@ function Badge({
             {!!icon && (
                 <View
                     style={[!!text && styles.mr1, iconStyles]}
-                    aria-hidden={!!text || undefined}
+                    aria-hidden={(shouldHideBadgeContentFromAssistiveTech && !!text) || undefined}
                 >
                     <Icon
                         width={iconSize}
@@ -144,7 +151,7 @@ function Badge({
                         isDeleted ? styles.offlineFeedbackDeleted : {},
                     ]}
                     numberOfLines={1}
-                    aria-hidden
+                    aria-hidden={shouldHideBadgeContentFromAssistiveTech || undefined}
                 >
                     {text}
                 </Text>
