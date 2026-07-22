@@ -1,6 +1,9 @@
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAvatar, optimizeAvatarSource, parseLetterAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 
@@ -8,7 +11,7 @@ import React from 'react';
 
 import type {AvatarCommonProps} from './types';
 
-import useUserAvatarSource from './hooks/useUserAvatarSource';
+import useAvatarLoadError from './hooks/useAvatarLoadError';
 import AvatarContainer from './primitives/AvatarContainer';
 import AvatarIcon from './primitives/AvatarIcon';
 import AvatarImage from './primitives/AvatarImage';
@@ -38,47 +41,79 @@ function UserAvatar({
     avatarID,
     testID,
 }: UserAvatarProps) {
+    const defaultAvatars = useDefaultAvatars();
     const theme = useTheme();
-    const resolvedAvatar = useUserAvatarSource({source, avatarID, fallbackIcon, fallbackIconTestID});
+    const StyleUtils = useStyleUtils();
+    const {hasImageError, onImageError} = useAvatarLoadError(source);
+
+    const accountID = typeof avatarID === 'string' ? parseInt(avatarID, 10) : avatarID;
+    const resolvedSource = getAvatar({avatarSource: source, accountID, defaultAvatars});
+
+    // Generated letter-avatar URLs are not fetched — their color and initials are parsed out and drawn locally.
+    const letterAvatar = parseLetterAvatarURL(resolvedSource);
+    if (letterAvatar) {
+        return (
+            <AvatarContainer
+                containerStyles={containerStyles}
+                testID={testID}
+            >
+                <AvatarInitials
+                    initials={letterAvatar.initials}
+                    urlColors={letterAvatar.colors}
+                    accountID={accountID}
+                    size={size}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    initialsContainerStyles={imageStyles}
+                    initialsAdditionalStyles={iconAdditionalStyles}
+                />
+            </AvatarContainer>
+        );
+    }
+
+    const optimizedSource = optimizeAvatarSource(resolvedSource);
+    const useFallBackAvatar = hasImageError || !resolvedSource || resolvedSource === defaultAvatars.FallbackAvatar;
+    const fallbackAvatar = (fallbackIcon ?? defaultAvatars.FallbackAvatar) || defaultAvatars.FallbackAvatar;
+    const fallbackAvatarTestID = fallbackIconTestID || 'SvgFallbackAvatar Icon';
+    const avatarSource = useFallBackAvatar ? fallbackAvatar : (optimizedSource ?? fallbackAvatar);
+
+    if (typeof avatarSource === 'string') {
+        return (
+            <AvatarContainer
+                containerStyles={containerStyles}
+                testID={testID}
+            >
+                <AvatarImage
+                    avatarSource={avatarSource}
+                    size={size}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    imageStyles={imageStyles}
+                    imageContainerAdditionalStyles={iconAdditionalStyles}
+                    onImageError={onImageError}
+                />
+            </AvatarContainer>
+        );
+    }
+
+    let iconColors = null;
+    if (useFallBackAvatar && avatarSource === defaultAvatars.FallbackAvatar) {
+        iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
+    }
 
     return (
         <AvatarContainer
             containerStyles={containerStyles}
             testID={testID}
         >
-            {resolvedAvatar.variant === 'initials' && (
-                <AvatarInitials
-                    initials={resolvedAvatar.initials}
-                    urlColors={resolvedAvatar.colors}
-                    accountID={typeof avatarID === 'string' ? parseInt(avatarID, 10) : avatarID}
-                    size={size}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    initialsContainerStyles={imageStyles}
-                    initialsAdditionalStyles={iconAdditionalStyles}
-                />
-            )}
-            {resolvedAvatar.variant === 'image' && (
-                <AvatarImage
-                    avatarSource={resolvedAvatar.avatarSource}
-                    size={size}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    imageStyles={imageStyles}
-                    imageContainerAdditionalStyles={iconAdditionalStyles}
-                    onImageError={resolvedAvatar.onImageError}
-                />
-            )}
-            {resolvedAvatar.variant === 'icon' && (
-                <AvatarIcon
-                    avatarSource={resolvedAvatar.avatarSource}
-                    size={size}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    iconContainerStyles={imageStyles}
-                    iconAdditionalStyles={iconAdditionalStyles}
-                    fallbackAvatarTestID={resolvedAvatar.fallbackAvatarTestID}
-                    iconColors={resolvedAvatar.iconColors}
-                    fill={resolvedAvatar.iconColors?.fill ?? (resolvedAvatar.hasImageError ? theme.offline : fill)}
-                />
-            )}
+            <AvatarIcon
+                avatarSource={avatarSource}
+                size={size}
+                type={CONST.ICON_TYPE_AVATAR}
+                iconContainerStyles={imageStyles}
+                iconAdditionalStyles={iconAdditionalStyles}
+                fallbackAvatarTestID={fallbackAvatarTestID}
+                iconColors={iconColors}
+                fill={iconColors?.fill ?? (hasImageError ? theme.offline : fill)}
+            />
         </AvatarContainer>
     );
 }

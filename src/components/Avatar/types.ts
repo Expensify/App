@@ -1,11 +1,8 @@
-import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AvatarSizeName} from '@styles/utils';
-import type {SVGAvatarColorStyle} from '@styles/utils/types';
 
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
@@ -35,49 +32,6 @@ type AvatarCommonProps = {
     testID?: string;
 };
 
-type ResolvedAvatarBase = {
-    /** Whether the remote image failed to load, forcing the fallback icon. */
-    hasImageError: boolean;
-
-    /** Test ID used to locate the fallback avatar icon in end-to-end tests. */
-    fallbackAvatarTestID: string;
-
-    /** Callback invoked when the avatar image fails to load. */
-    onImageError: () => void;
-};
-
-type ResolvedImageAvatar = ResolvedAvatarBase & {
-    /** Discriminant marking this as a remote image avatar. */
-    variant: 'image';
-
-    /** URL of the remote avatar image. */
-    avatarSource: string;
-};
-
-type ResolvedIconAvatar = ResolvedAvatarBase & {
-    /** Discriminant marking this as an SVG icon avatar. */
-    variant: 'icon';
-
-    /** Icon asset to render as the avatar. */
-    avatarSource: IconAsset;
-
-    /** Fill and background colors for the icon, or null to use the defaults. */
-    iconColors: SVGAvatarColorStyle | null;
-};
-
-type ResolvedInitialsAvatar = {
-    /** Discriminant marking this as a locally rendered initials (letter) avatar. */
-    variant: 'initials';
-
-    /** The initials to render. */
-    initials: string;
-
-    /** Background and fill colors parsed from the generated letter-avatar URL. */
-    colors: LetterAvatarColorStyle;
-};
-
-type ResolvedAvatar = ResolvedImageAvatar | ResolvedIconAvatar | ResolvedInitialsAvatar;
-
 type AvatarPrimitivesCommonProps = {
     /** Size of Avatar */
     size: AvatarSizeName;
@@ -86,4 +40,4 @@ type AvatarPrimitivesCommonProps = {
     type: AvatarType;
 };
 
-export type {AvatarCommonProps, ResolvedAvatar, ResolvedImageAvatar, ResolvedIconAvatar, AvatarPrimitivesCommonProps};
+export type {AvatarCommonProps, AvatarPrimitivesCommonProps};
