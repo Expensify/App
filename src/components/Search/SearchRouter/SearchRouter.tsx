@@ -364,7 +364,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             backHistory(() => {
                 onRouterClose();
                 setSearchContext(true);
-                resetSearchKey(buildSearchQueryJSON(updatedQuery));
+                resetSearchKey(true, buildSearchQueryJSON(updatedQuery));
                 Navigation.navigate(
                     ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
                 );

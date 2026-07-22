@@ -94,6 +94,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     };
 
     const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
+    const [pendingCurrentSearchKey, setPendingCurrentSearchKey] = useState<SearchKey | undefined | null>(null);
 
     const currentDefaultSearchQueryString = currentSearchKey
         ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
@@ -102,21 +103,29 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentDefaultSearchHash = currentDefaultSearchQueryJSON?.hash;
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
-    const resetSearchKey = (queryJSON = currentSearchQueryJSON) => {
-        setCurrentSearchKey(getInitialCurrentSearchKey(queryJSON));
+    const resetSearchKey = (pending = false, queryJSON = currentSearchQueryJSON) => {
+        const searchKey = getInitialCurrentSearchKey(queryJSON);
+        if (pending && queryJSON?.hash !== currentSearchHash) {
+            setPendingCurrentSearchKey(searchKey);
+        } else {
+            setCurrentSearchKey(searchKey);
+        }
     };
 
     if (currentSearchHash !== prevCurrentSearchHash) {
         setPrevCurrentSearchHash(currentSearchHash);
 
+        if (pendingCurrentSearchKey !== null) {
+            setCurrentSearchKey(pendingCurrentSearchKey);
+            setPendingCurrentSearchKey(null);
+        }
         // Every time the query changes, we invalidate the currentSearchKey if the new query doesn't have the default filters
         // from the currently selected search key query or the type is different. For example, the "Card statements" suggested
         // search default filters are Feed and Posted. When the query changes (by removing Posted), the search key becomes invalid,
         // it's not a "Card statements" search anymore. This can happen when accessing the page through a link/deeplink.
-        if (doesQueryMatchDefaultFilterKeysAndType(currentSearchQueryJSON, currentDefaultSearchQueryJSON)) {
-            return;
+        else if (!doesQueryMatchDefaultFilterKeysAndType(currentSearchQueryJSON, currentDefaultSearchQueryJSON)) {
+            resetSearchKey();
         }
-        resetSearchKey();
     }
 
     const queryValue: SearchQueryContextValue = {
@@ -134,7 +143,15 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const queryActionsValue: SearchQueryActionsValue = {
         setShouldResetSearchQuery,
-        setCurrentSearchKey,
+        setCurrentSearchKey: (key, pending) => {
+            // We pending the update of the currentSearchKey to be updated later at the same time with the
+            // currentSearchQueryJSON so the consumer won't see mismatch value between search key and query JSON.
+            if (pending) {
+                setPendingCurrentSearchKey(key);
+            } else {
+                setCurrentSearchKey(key);
+            }
+        },
         resetSearchKey,
     };
 

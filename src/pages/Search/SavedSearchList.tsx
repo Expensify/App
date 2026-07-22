@@ -18,6 +18,7 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem, SearchKey} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
@@ -127,7 +128,7 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchHash} = useSearchQueryContext();
     const {setCurrentSearchKey} = useSearchQueryActions();
 
     const {showDeleteModal} = useDeleteSavedSearch();
@@ -169,15 +170,16 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
 
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches)
-              .map(([key, item], index) =>
-                  buildSavedSearchMenuItem({
+              .map(([key, item], index) => {
+                  const itemQuery = getValidLastQuery(searchFilters?.[savedSearchIDToSearchKey(key)], item.query);
+                  return buildSavedSearchMenuItem({
                       item,
-                      itemQuery: searchFilters?.[savedSearchIDToSearchKey(key)] ?? item.query ?? '',
+                      itemQuery,
                       key,
                       index,
                       currentSearchKey,
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
-                      onPress: (savedSearchKey) => setCurrentSearchKey(savedSearchKey),
+                      onPress: (savedSearchKey) => setCurrentSearchKey(savedSearchKey, buildSearchQueryJSON(itemQuery)?.hash !== currentSearchHash),
                       getOverflowMenu,
                       shouldShowSavedSearchTooltip,
                       hideSavedSearchTooltip,
@@ -185,8 +187,8 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
                       itemStyle,
                       tooltipWrapperStyle,
                       isCopied: copiedID === key,
-                  }),
-              )
+                  });
+              })
               .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
         : [];
 

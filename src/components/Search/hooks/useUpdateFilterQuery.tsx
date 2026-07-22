@@ -48,7 +48,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         }
 
         if (values.type && searchAdvancedFiltersForm.type !== values.type) {
-            resetSearchKey(buildSearchQueryJSON(queryString));
+            resetSearchKey(true, buildSearchQueryJSON(queryString));
         }
 
         Navigation.setParams({q: queryString, rawQuery: undefined});

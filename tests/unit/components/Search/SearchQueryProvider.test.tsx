@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import {SearchQueryActionsContext, SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import SearchQueryProvider from '@components/Search/SearchQueryProvider';
 
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -212,7 +213,87 @@ describe('SearchQueryProvider', () => {
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
 
             act(() => {
-                result.current.resetSearchKey(result.current.currentSearchQueryJSON);
+                result.current.resetSearchKey(false, result.current.currentSearchQueryJSON);
+            });
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+    });
+
+    describe('pending search key', () => {
+        it('does not apply a pending setCurrentSearchKey until the query hash changes', () => {
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            // Pending update: the key must not change while the query hash is the same.
+            act(() => {
+                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, true);
+            });
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            // Once the query changes, the pending key is applied alongside the new query.
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
+            rerender(undefined);
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it('applies a non-pending setCurrentSearchKey immediately', () => {
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
+            const {result} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            act(() => {
+                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+            });
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it('pending key wins over the recompute-on-hash-change logic', () => {
+            const savedSearches = {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}};
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: savedSearches});
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
+
+            // Set a pending key, then change the query so a default filter is dropped.
+            // Without the pending logic the key would reset to EXPENSES, but the pending key must win.
+            act(() => {
+                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, true);
+            });
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} category:Food`);
+            rerender(undefined);
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it('does not apply a pending resetSearchKey until the query hash changes', () => {
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            // The pending reset targets a different query, so nothing changes until the hash catches up.
+            const nextQueryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
+            act(() => {
+                result.current.resetSearchKey(true, nextQueryJSON);
+            });
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
+            rerender(undefined);
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it('applies resetSearchKey immediately when the target query matches the current hash', () => {
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
+            const {result} = renderProvider();
+
+            act(() => {
+                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+            });
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+
+            // pending is true but the queryJSON hash equals the current hash, so it applies right away.
+            act(() => {
+                result.current.resetSearchKey(true, result.current.currentSearchQueryJSON);
             });
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
         });

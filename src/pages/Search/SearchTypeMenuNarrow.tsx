@@ -23,7 +23,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getValidLastQuery} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
 import {getItemBadgeText, getOverflowMenu, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
@@ -101,7 +101,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchHash} = useSearchQueryContext();
     const {setCurrentSearchKey} = useSearchQueryActions();
 
     const taxRates = getAllTaxRates(allPolicies);
@@ -234,12 +234,13 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             return;
         }
         onTabPress?.();
-        setCurrentSearchKey(tabKey);
+        const query = getValidLastQuery(searchFilters?.[tabKey], searchData.query);
+        setCurrentSearchKey(tabKey, buildSearchQueryJSON(query)?.hash !== currentSearchHash);
         setSearchContext(false);
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: getValidLastQuery(searchFilters?.[tabKey], searchData.query), name: searchData.name, rawQuery: undefined},
+                params: {q: query, name: searchData.name, rawQuery: undefined},
             },
         });
     };
