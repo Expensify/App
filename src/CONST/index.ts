@@ -732,6 +732,9 @@ const CONST = {
             PLAID: 'plaid',
             NONE: '',
         },
+        CONNECT_EXISTING_SOURCE: {
+            CHANGE_BANK_ACCOUNT: 'changeBankAccount',
+        },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
@@ -990,7 +993,6 @@ const CONST = {
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
-        WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
@@ -1491,6 +1493,12 @@ const CONST = {
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
         },
+        // The way a Submit-workspace report can be submitted. Persisted per-user so the report-view button
+        // can default to the last-used method.
+        SUBMISSION_METHOD: {
+            SUBMIT: 'submit',
+            SUBMIT_VIA_PDF: 'submitViaPDF',
+        },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
@@ -1650,6 +1658,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRAVEL_NUDGE: 'TRAVELNUDGE',
                 TRAVEL_UPDATE: 'TRAVEL_TRIP_ROOM_UPDATE',
                 TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
@@ -2761,8 +2770,6 @@ const CONST = {
         ONBOARDING: 'o',
     },
 
-    IMAGE_HIGH_RESOLUTION_THRESHOLD: 7000,
-
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
         INITIAL: 'initial',
@@ -2951,6 +2958,7 @@ const CONST = {
         },
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        DEFAULT_VENDOR: 'defaultVendor',
     },
 
     SAGE_INTACCT_MAPPING_VALUE: {
@@ -2971,7 +2979,7 @@ const CONST = {
 
     /** Salesforce package install URLs for the Certinia Expensify bundles (see help: Connect to Certinia). */
     CERTINIA_PSA_BUNDLE_INSTALL_URL: {
-        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BM',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
     },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
@@ -2979,7 +2987,7 @@ const CONST = {
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
-    CERTINIA_PSA_BUNDLE_VERSION: '1.2',
+    CERTINIA_PSA_BUNDLE_VERSION: '1.3',
     CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {
@@ -3973,6 +3981,7 @@ const CONST = {
             EXPENSIFY_CARD: 'expensifyCard',
             COMPANY_CARDS: 'companyCards',
             CATEGORIES: 'categories',
+            VENDORS: 'vendors',
             TAGS: 'tags',
             TAXES: 'taxes',
             RULES: 'rules',
@@ -5702,7 +5711,11 @@ const CONST = {
         SE: 'Sweden',
     },
 
-    EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES: ['BE', 'CY', 'EE', 'FI', 'DE', 'GR', 'IE', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES', 'GB', 'GI'],
+    // Hard-coded fallback for the Expensify Card supported countries keyed by settlement currency
+    EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY: {
+        GBP: ['GB', 'GI'],
+        EUR: ['BE', 'DK', 'ES', 'FI', 'IE', 'LT', 'LU', 'LV', 'NL', 'PL', 'SE'],
+    },
 
     EU_REGISTRATION_NUMBER_REGEX: {
         AT: /^FN\d{6}[a-z]?$/i,
@@ -6050,6 +6063,11 @@ const CONST = {
             EXPENSE_DEFAULTS: 'expenseDefaults',
             REQUIRE_FIELDS: 'requireFields',
             FLAG_FOR_REVIEW: 'flagForReview',
+            AGENTS: 'agents',
+        },
+        AGENT_RULE: {
+            SUGGESTIONS: 'suggestions',
+            WRITE: 'write',
         },
         SPLIT: {
             AMOUNT: 'amount',
@@ -6551,6 +6569,13 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    TRAVEL_NUDGE: {
+        ORIGINATION: {
+            CARD: 'card',
+            MANUAL: 'manual',
+        },
+    },
+
     PNR_STATUS: {
         CANCELLED: 'CANCELLED',
         CANCELLED_STATUS: 'CANCELLED_STATUS',
@@ -6677,6 +6702,8 @@ const CONST = {
             ITEMIZED: 'itemized',
             HOTEL: 'hotel',
         },
+        // Hotel needs historical receipts backfilled with isHotelReservation before it can return results
+        SELECTABLE_RECEIPT_TYPES: ['ereceipt', 'itemized'],
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
@@ -7279,6 +7306,7 @@ const CONST = {
             SEARCH: 'searchItem',
             FIND_ITEM: 'findItem',
             ASK_CONCIERGE: 'askConcierge',
+            NAVIGATE: 'navigate',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',
@@ -7449,6 +7477,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
         },
+        SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 200,
@@ -7891,6 +7920,11 @@ const CONST = {
         EXTERNAL_ID: 'externalID',
         MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
         MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
+        MERCHANT_IS: 'merchantIs',
+        MERCHANT_CONTAINS: 'merchantContains',
+        UPDATED_MERCHANT: 'updatedMerchant',
+        REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
     },
 
     IMPORT_SPREADSHEET: {
@@ -8737,6 +8771,7 @@ const CONST = {
                 TIME_TRACKING: 'WorkspaceInitial-TimeTracking',
                 INVOICES: 'WorkspaceInitial-Invoices',
                 MORE_FEATURES: 'WorkspaceInitial-MoreFeatures',
+                VENDORS: 'WorkspaceInitial-Vendors',
             },
             OVERVIEW: {
                 AVATAR: 'WorkspaceOverview-Avatar',
@@ -8822,6 +8857,7 @@ const CONST = {
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
+                IMPORT_MERCHANT_RULES: 'WorkspaceRules-ImportMerchantRules',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
@@ -8833,12 +8869,14 @@ const CONST = {
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
                 AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
+                SUGGESTED_AGENT_RULE: 'WorkspaceRules-SuggestedAgentRule',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
                 NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
                 NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND: 'WorkspaceRules-NewRuleMenuItem-RestrictCardSpend',
                 NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
                 NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS: 'WorkspaceRules-NewRuleMenuItem-ApplyExpenseDefaults',
+                NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE: 'WorkspaceRules-NewRuleMenuItem-CreateAgentRule',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
@@ -9140,6 +9178,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'The Expensify Card: Now in the UK & EU',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
+                publishedDate: '2026-07-20',
+            },
+            {
                 title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
@@ -9150,12 +9194,6 @@ const CONST = {
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
                 publishedDate: '2026-06-30',
-            },
-            {
-                title: 'AI agents, Concierge upgrades, and smarter card controls',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
-                publishedDate: '2026-06-24',
             },
         ],
     },
