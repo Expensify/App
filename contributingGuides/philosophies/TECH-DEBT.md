@@ -19,7 +19,7 @@ Do not leave `TODO` comments in the code as a way to track debt. Instead, open a
 ✅ GOOD: A GH issue describing the work that needs to be done, linked from a short comment if needed
 
 ### Technical debt introduced to unblock a deploy or fire MUST be fixed promptly
-If a shortcut is taken under time pressure (e.g. a deploy blocker fix), the follow-up GH issue MUST be filed immediately, assigned, and labeled Daily and FireCleanup so it's addresses with urgency.
+If a shortcut is taken under time pressure (e.g., a deploy blocker fix), the follow-up GH issue MUST be filed immediately, assigned, and labeled Daily and Fire-Cleanup so it's addressed with urgency.
 
 ### How to prioritize it
 Match the priority label to the risk the technical debt introduces, not just how inconvenient it is to fix:
