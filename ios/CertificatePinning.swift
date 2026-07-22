@@ -37,8 +37,10 @@ enum CertificatePinning {
         #else
             // Each domain pins the leaf SPKI hash (primary) plus its issuing intermediate CA SPKI hash
             // (durable backup that survives leaf rotation). TrustKit requires at least two pins per domain.
-            let groupAExpensifyCom = ["cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="]
-            let groupBNewExpensify = ["G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="]
+            // Group A migrated from Let's Encrypt to Google Trust Services on 2026-07-07; the stale
+            // LE leaf + YE1 intermediate are kept until the old chain is fully retired.
+            let groupAExpensifyCom = ["XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="]
+            let groupBNewExpensify = ["XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4="]
             let groupCIntegrations = ["7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="]
             let groupDTravel = ["Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="]
             let groupECloudfront = ["P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=", "DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw="]

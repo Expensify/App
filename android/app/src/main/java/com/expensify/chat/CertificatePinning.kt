@@ -50,14 +50,16 @@ object CertificatePinning {
      * Keep in sync with config/certificatePinning/pins.json.
      */
     private val PINNED_DOMAINS: Map<String, List<String>> = mapOf(
-        // Group A: leaf CN=expensify.com + Let's Encrypt YE1 intermediate
-        "www.expensify.com" to listOf("sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "secure.expensify.com" to listOf("sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "staging.expensify.com" to listOf("sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "staging-secure.expensify.com" to listOf("sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        // Group B: leaf CN=expensify.com + Google Trust Services WE1 intermediate
-        "new.expensify.com" to listOf("sha256/G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="),
-        "staging.new.expensify.com" to listOf("sha256/G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="),
+        // Group A: leaf CN=expensify.com + Google Trust Services WE1 intermediate (CA migrated from
+        // Let's Encrypt on 2026-07-07); stale LE leaf + YE1 intermediate kept until fully retired
+        "www.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
+        "secure.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
+        "staging.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
+        "staging-secure.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
+        // Group B: leaf CN=expensify.com + Google Trust Services WE1 intermediate; previous leaf kept
+        // until it expires 2026-08-18
+        "new.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4="),
+        "staging.new.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4="),
         // Group C: integrations leaf + Let's Encrypt R13 intermediate
         "integrations.expensify.com" to listOf("sha256/7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "sha256/AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="),
         // Group D: travel leaf + Google Trust Services WE1 intermediate
