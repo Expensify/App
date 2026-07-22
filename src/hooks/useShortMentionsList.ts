@@ -58,9 +58,8 @@ export default function useShortMentionsList() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [currentUserLogin = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
-    // useOnyx compares the selector output by value, so consumers re-render only when the username list changes.
-    // The raw hook skips the search-snapshot redirect: this domain-wide list must always come from live data,
-    // even when rendered inside search results (snapshots only carry the people appearing in the results).
+    // The selector output is compared by value, so consumers re-render only when the list changes.
+    // The raw hook skips the search-snapshot redirect: this list must always read live data.
     const [availableLoginsList = emptyLoginsList] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin),
     });
