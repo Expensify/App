@@ -140,7 +140,7 @@ import {
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
-import {getReportName} from './ReportNameUtils';
+import {deprecatedGetReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -2601,7 +2601,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
-                const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
+                const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
                 const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2773,7 +2773,7 @@ function getReportActionsSections(
                     ...reportAction,
                     reportID,
                     from,
-                    reportName: getReportName(report, reportAttributesDerivedValue),
+                    reportName: deprecatedGetReportName(report, reportAttributesDerivedValue),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -2942,6 +2942,8 @@ function getReportSections({
                 if (isIOUReport) {
                     reportIDToTransactions[reportKey].reportName = getIOUReportName(translate, convertToDisplayString, data, reportIDToTransactions[reportKey]);
                 }
+
+                reportIDToTransactions[reportKey].reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportIDToTransactions[reportKey].reportName ?? ''));
             }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
@@ -5612,7 +5614,7 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
     }
 
     if (filterKey === FILTER_KEYS.RECEIPT_TYPE) {
-        return Object.values(CONST.SEARCH.RECEIPT_TYPE).map((receiptType) => {
+        return CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((receiptType) => {
             const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType));
             return {text: receiptTypeName, value: receiptType};
         });
