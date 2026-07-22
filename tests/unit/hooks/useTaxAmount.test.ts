@@ -4,8 +4,6 @@ import useTaxAmount from '@components/MoneyRequestConfirmationList/hooks/useTaxA
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
-import type * as OnyxTypes from '@src/types/onyx';
-
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({getCurrencyDecimals: () => 2}),
 }));
@@ -39,8 +37,14 @@ const mockConvertToDistanceInMeters = jest.mocked(DistanceRequestUtils.convertTo
 const mockGetCommuterExclusionDisplayData = jest.mocked(DistanceRequestUtils.getCommuterExclusionDisplayData);
 const mockGetTaxableAmount = jest.mocked(DistanceRequestUtils.getTaxableAmount);
 
+const baseTransaction = {
+    transactionID: 'txn1',
+    amount: 1000,
+    currency: 'USD',
+} satisfies Params['transaction'];
+
 const baseParams: Params = {
-    transaction: {transactionID: 'txn1', amount: 1000, currency: 'USD'} as unknown as OnyxTypes.Transaction,
+    transaction: baseTransaction,
     policy: undefined,
     policyForMovingExpenses: undefined,
     isDistanceRequest: false,
@@ -77,6 +81,17 @@ describe('useTaxAmount', () => {
     });
 
     it('uses reimbursable distance for distance tax when commuter exclusion applies', () => {
+        const transaction = {
+            ...baseTransaction,
+            comment: {
+                customUnit: {
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                    distanceUnit: 'mi',
+                },
+            },
+        } satisfies Params['transaction'];
+
         mockGetCommuterExclusionDisplayData.mockReturnValue({
             commuterExclusion: 1,
             reimbursableDistance: 3,
@@ -86,16 +101,7 @@ describe('useTaxAmount', () => {
         renderHook(() =>
             useTaxAmount({
                 ...baseParams,
-                transaction: {
-                    ...baseParams.transaction,
-                    comment: {
-                        customUnit: {
-                            commuterExclusion: 1,
-                            reimbursableDistance: 3,
-                            distanceUnit: 'mi',
-                        },
-                    },
-                } as OnyxTypes.Transaction,
+                transaction,
                 isDistanceRequest: true,
                 distance: 4,
             }),
@@ -105,6 +111,16 @@ describe('useTaxAmount', () => {
     });
 
     it('falls back to the active mileage unit for commuter exclusion tax', () => {
+        const transaction = {
+            ...baseTransaction,
+            comment: {
+                customUnit: {
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                },
+            },
+        } satisfies Params['transaction'];
+
         mockGetCommuterExclusionDisplayData.mockReturnValue({
             commuterExclusion: 1,
             reimbursableDistance: 3,
@@ -114,15 +130,7 @@ describe('useTaxAmount', () => {
         renderHook(() =>
             useTaxAmount({
                 ...baseParams,
-                transaction: {
-                    ...baseParams.transaction,
-                    comment: {
-                        customUnit: {
-                            commuterExclusion: 1,
-                            reimbursableDistance: 3,
-                        },
-                    },
-                } as OnyxTypes.Transaction,
+                transaction,
                 isDistanceRequest: true,
                 distance: 4,
                 distanceUnit: 'km',
