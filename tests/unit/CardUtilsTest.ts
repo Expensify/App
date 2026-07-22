@@ -127,7 +127,7 @@ const directFeedBanks = [
 ];
 
 // OAuth/Plaid feeds that require oAuthAccountDetails (matches backend: isOAuthBank || isPlaidBank)
-const oAuthAndPlaidFeedTypes: string[] = [
+const oAuthAndPlaidFeedTypes: CompanyCardFeed[] = [
     CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
     CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA,
@@ -136,7 +136,8 @@ const oAuthAndPlaidFeedTypes: string[] = [
     CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK,
     CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT,
     CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK,
-    'plaid.ins_123456',
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed names that CompanyCardFeed cannot represent.
+    'plaid.ins_123456' as CompanyCardFeed,
 ];
 
 // Non-direct feeds that should show even WITHOUT oAuthAccountDetails (when feedKeysWithCards is NOT provided)
@@ -640,7 +641,7 @@ describe('CardUtils', () => {
         });
 
         test.each(oAuthAndPlaidFeedTypes)('Should include OAuth/Plaid feed %s when oAuthAccountDetails is present', (feed) => {
-            const cardFeeds = {
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feed]: {pending: false},
@@ -653,42 +654,33 @@ describe('CardUtils', () => {
                         },
                     },
                 },
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds);
             expect(Object.keys(companyFeeds)).toContain(feed);
         });
 
         test.each(oAuthAndPlaidFeedTypes)('Should NOT filter OAuth/Plaid feed %s when allWorkspaceCards is not provided (no card data to decide)', (feed) => {
-            const cardFeeds = {
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feed]: {pending: false},
                     },
                 },
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds);
             expect(Object.keys(companyFeeds)).toContain(feed);
         });
 
         test.each(oAuthAndPlaidFeedTypes)('Should filter out OAuth/Plaid feed %s when allWorkspaceCards is provided but empty and no oAuthAccountDetails', (feed) => {
             const domainID = 12345;
-            const cardFeeds = {
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feed]: {pending: false},
                     },
                 },
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, {}, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, {}, domainID);
             expect(Object.keys(companyFeeds)).not.toContain(feed);
         });
 
@@ -782,20 +774,17 @@ describe('CardUtils', () => {
 
         test.each(oAuthAndPlaidFeedTypes)('Should keep direct feed %s without oAuthAccountDetails when it has assigned cards', (feed) => {
             const domainID = 12345;
-            const cardFeeds = {
+            const feedKeysWithCards: FeedKeysWithAssignedCards = {
+                [`${domainID}_${feed}`]: true,
+            };
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feed]: {pending: false},
                     },
                 },
-            };
-            const feedKeysWithCards: FeedKeysWithAssignedCards = {
-                [`${domainID}_${feed}`]: true,
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, feedKeysWithCards, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, domainID);
             expect(Object.keys(companyFeeds)).toContain(feed);
         });
 
@@ -803,17 +792,14 @@ describe('CardUtils', () => {
 
         test.each(oAuthAndPlaidFeedTypes)('Should filter out direct feed %s without oAuthAccountDetails AND without cards', (feed) => {
             const domainID = 12345;
-            const cardFeeds = {
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feed]: {pending: false},
                     },
                 },
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, {}, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, {}, domainID);
             expect(Object.keys(companyFeeds)).not.toContain(feed);
         });
 
@@ -821,7 +807,7 @@ describe('CardUtils', () => {
 
         test.each(oAuthAndPlaidFeedTypes)('Should keep direct feed %s with oAuthAccountDetails even when it has no assigned cards', (feed) => {
             const domainID = 12345;
-            const cardFeeds = {
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feed]: {pending: false},
@@ -834,11 +820,8 @@ describe('CardUtils', () => {
                         },
                     },
                 },
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, {}, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, {}, domainID);
             expect(Object.keys(companyFeeds)).toContain(feed);
         });
 
@@ -846,7 +829,10 @@ describe('CardUtils', () => {
 
         test.each(oAuthAndPlaidFeedTypes)('Should keep direct feed %s when it has both oAuthAccountDetails AND assigned cards', (feed) => {
             const domainID = 12345;
-            const cardFeeds = {
+            const feedKeysWithCards: FeedKeysWithAssignedCards = {
+                [`${domainID}_${feed}`]: true,
+            };
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feed]: {pending: false},
@@ -859,14 +845,8 @@ describe('CardUtils', () => {
                         },
                     },
                 },
-            };
-            const feedKeysWithCards: FeedKeysWithAssignedCards = {
-                [`${domainID}_${feed}`]: true,
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, feedKeysWithCards, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, domainID);
             expect(Object.keys(companyFeeds)).toContain(feed);
         });
 
@@ -874,38 +854,32 @@ describe('CardUtils', () => {
 
         it('Should keep an OldDot OAuth feed (key with space) when it has assigned cards despite no oAuthAccountDetails', () => {
             const domainID = 67890;
-            const feedName = 'oauth.americanexpressfdx.com 3000';
-            const cardFeeds = {
+            const feedName: CardFeedWithNumber = 'oauth.americanexpressfdx.com 3000';
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feedName]: {pending: false},
                     },
                 },
-            };
+            });
             const feedKeysWithCards: FeedKeysWithAssignedCards = {
                 [`${domainID}_${feedName}`]: true,
             };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, feedKeysWithCards, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, domainID);
             expect(Object.keys(companyFeeds)).toContain(feedName);
         });
 
         it('Should filter out an OldDot OAuth feed (key with space) with no oAuthAccountDetails and no cards', () => {
             const domainID = 67890;
-            const feedName = 'oauth.americanexpressfdx.com 3000';
-            const cardFeeds = {
+            const feedName: CardFeedWithNumber = 'oauth.americanexpressfdx.com 3000';
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         [feedName]: {pending: false},
                     },
                 },
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, {}, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, {}, domainID);
             expect(Object.keys(companyFeeds)).not.toContain(feedName);
         });
 
@@ -913,7 +887,7 @@ describe('CardUtils', () => {
 
         it('Should correctly handle a mix of feed types with varying oAuthAccountDetails and cards', () => {
             const domainID = 11111;
-            const cardFeeds = {
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
                         // Commercial feeds — always shown
@@ -926,16 +900,19 @@ describe('CardUtils', () => {
                         // Direct feed with no oAuthAccountDetails and no cards — filtered
                         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: {pending: false},
                         // Plaid feed with no oAuthAccountDetails but has cards — shown
-                        'plaid.ins_999': {pending: false},
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed keys that CompanyCardFeed cannot represent.
+                        ['plaid.ins_999' as CompanyCardFeed]: {pending: false},
                         // Plaid feed with no oAuthAccountDetails and no cards — filtered
-                        'plaid.ins_000': {pending: false},
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed keys that CompanyCardFeed cannot represent.
+                        ['plaid.ins_000' as CompanyCardFeed]: {pending: false},
                         // Gray-zone feed with assigned cards — shown
                         [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: {pending: false},
                         // Gray-zone feed without assigned cards — filtered
                         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: {pending: false},
                         // Gray-zone feed without assigned cards — filtered
                         // cspell:disable-next-line
-                        capitalonecards: {pending: false},
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This legacy feed key is accepted at runtime but is not modeled by CompanyCardFeed.
+                        ['capitalonecards' as CompanyCardFeed]: {pending: false},
                     },
                     oAuthAccountDetails: {
                         [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
@@ -945,16 +922,13 @@ describe('CardUtils', () => {
                         },
                     },
                 },
-            };
+            });
             const feedKeysWithCards: FeedKeysWithAssignedCards = {
                 [`${domainID}_${CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE}`]: true,
                 [`${domainID}_plaid.ins_999`]: true,
                 [`${domainID}_${CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE}`]: true,
             };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, feedKeysWithCards, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, domainID);
             const feedKeys = Object.keys(companyFeeds);
 
             // Commercial — always shown
@@ -1065,17 +1039,15 @@ describe('CardUtils', () => {
             const domainID = 12345;
             // cspell:disable-next-line
             const feedName = 'capitalonecards';
-            const cardFeeds = {
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
-                        [feedName]: {pending: false},
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This legacy feed key is accepted at runtime but is not modeled by CompanyCardFeed.
+                        [feedName as CompanyCardFeed]: {pending: false},
                     },
                 },
-            };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, {}, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            });
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, {}, domainID);
             expect(Object.keys(companyFeeds)).not.toContain(feedName);
         });
 
@@ -1084,20 +1056,18 @@ describe('CardUtils', () => {
             const domainID = 12345;
             // cspell:disable-next-line
             const feedName = 'capitalonecards';
-            const cardFeeds = {
+            const cardFeeds = createMock<CardFeeds>({
                 settings: {
                     companyCards: {
-                        [feedName]: {pending: false},
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This legacy feed key is accepted at runtime but is not modeled by CompanyCardFeed.
+                        [feedName as CompanyCardFeed]: {pending: false},
                     },
                 },
-            };
+            });
             const feedKeysWithCards: FeedKeysWithAssignedCards = {
                 [`${domainID}_${feedName}`]: true,
             };
-            const companyFeeds: unknown = Reflect.apply(getOriginalCompanyFeeds, undefined, [cardFeeds, feedKeysWithCards, domainID]);
-            if (companyFeeds === null || typeof companyFeeds !== 'object') {
-                throw new Error('Expected company feeds to be an object');
-            }
+            const companyFeeds = getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, domainID);
             expect(Object.keys(companyFeeds)).toContain(feedName);
         });
 
@@ -1204,61 +1174,45 @@ describe('CardUtils', () => {
         });
 
         it('Should return empty object when entries only have cardList (no assigned cards)', () => {
-            const allWorkspaceCards = {
-                cards_12345_oauth_chase_com: {
-                    cardList: {
-                        'CREDIT CARD...1234': 'encrypted_value',
-                    },
-                },
+            const cardsWithList = createMock<WorkspaceCardsList>({});
+            cardsWithList.cardList = {
+                'CREDIT CARD...1234': 'encrypted_value',
             };
-            const result: unknown = Reflect.apply(buildFeedKeysWithAssignedCards, undefined, [allWorkspaceCards]);
+            const allWorkspaceCards = createMock<OnyxCollection<WorkspaceCardsList>>({
+                cards_12345_oauth_chase_com: cardsWithList,
+            });
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards);
             expect(result).toStrictEqual({});
         });
 
         it('Should include CSV feed keys even when entries only have cardList', () => {
             const csvFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_123456_`;
-            const allWorkspaceCards = {
-                [`cards_12345_${csvFeed}`]: {
-                    cardList: {
-                        'CREDIT CARD...1234': 'encrypted_value',
-                    },
-                },
+            const cardsWithList = createMock<WorkspaceCardsList>({});
+            cardsWithList.cardList = {
+                'CREDIT CARD...1234': 'encrypted_value',
             };
-            const result: unknown = Reflect.apply(buildFeedKeysWithAssignedCards, undefined, [allWorkspaceCards]);
+            const allWorkspaceCards = createMock<OnyxCollection<WorkspaceCardsList>>({
+                [`cards_12345_${csvFeed}`]: cardsWithList,
+            });
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards);
             expect(result).toStrictEqual({
                 [`12345_${csvFeed}`]: true,
             });
         });
 
         it('Should extract feed keys that have assigned cards', () => {
-            const allWorkspaceCards = {
-                'cards_12345_oauth.chase.com': {
-                    '1001': {
-                        cardID: 1001,
-                        bank: 'oauth.chase.com',
-                        accountID: 999,
-                        domainName: 'example.com',
-                        fundID: 12345,
-                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                    },
-                },
-                'cards_12345_oauth.brex.com': {
-                    cardList: {
-                        'CREDIT CARD...5678': 'encrypted_value',
-                    },
-                },
-                'cards_67890_plaid.ins_123456': {
-                    '2001': {
-                        cardID: 2001,
-                        bank: 'plaid.ins_123456',
-                        accountID: 555,
-                        domainName: 'company.com',
-                        fundID: 67890,
-                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                    },
-                },
+            const chaseCards = createMock<WorkspaceCardsList>({'1001': {}});
+            const brexCards = createMock<WorkspaceCardsList>({});
+            brexCards.cardList = {
+                'CREDIT CARD...5678': 'encrypted_value',
             };
-            const result: unknown = Reflect.apply(buildFeedKeysWithAssignedCards, undefined, [allWorkspaceCards]);
+            const plaidCards = createMock<WorkspaceCardsList>({'2001': {}});
+            const allWorkspaceCards = createMock<OnyxCollection<WorkspaceCardsList>>({
+                'cards_12345_oauth.chase.com': chaseCards,
+                'cards_12345_oauth.brex.com': brexCards,
+                'cards_67890_plaid.ins_123456': plaidCards,
+            });
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards);
             expect(result).toStrictEqual({
                 '12345_oauth.chase.com': true,
                 '67890_plaid.ins_123456': true,
@@ -1266,93 +1220,62 @@ describe('CardUtils', () => {
         });
 
         it('Should handle OldDot-style feed keys with spaces', () => {
-            const allWorkspaceCards = {
-                'cards_67890_oauth.americanexpressfdx.com 3000': {
-                    '3001': {
-                        cardID: 3001,
-                        bank: 'oauth.americanexpressfdx.com 3000',
-                        accountID: 777,
-                        domainName: 'company.com',
-                        fundID: 67890,
-                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                    },
-                },
-            };
-            const result: unknown = Reflect.apply(buildFeedKeysWithAssignedCards, undefined, [allWorkspaceCards]);
+            const oldDotCards = createMock<WorkspaceCardsList>({'3001': {}});
+            const allWorkspaceCards = createMock<OnyxCollection<WorkspaceCardsList>>({
+                'cards_67890_oauth.americanexpressfdx.com 3000': oldDotCards,
+            });
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards);
             expect(result).toStrictEqual({
                 '67890_oauth.americanexpressfdx.com 3000': true,
             });
         });
 
         it('Should include entries that have both cardList and assigned cards', () => {
-            const allWorkspaceCards = {
-                'cards_12345_oauth.chase.com': {
-                    cardList: {
-                        'CREDIT CARD...5678': 'encrypted_value',
-                    },
-                    '1001': {
-                        cardID: 1001,
-                        bank: 'oauth.chase.com',
-                        accountID: 999,
-                        domainName: 'example.com',
-                        fundID: 12345,
-                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                    },
-                },
+            const cardsWithListAndAssignment = createMock<WorkspaceCardsList>({});
+            cardsWithListAndAssignment.cardList = {
+                'CREDIT CARD...5678': 'encrypted_value',
             };
-            const result: unknown = Reflect.apply(buildFeedKeysWithAssignedCards, undefined, [allWorkspaceCards]);
+            cardsWithListAndAssignment['1001'] = createMock<Card>({
+                cardID: 1001,
+                bank: 'oauth.chase.com',
+                accountID: 999,
+                domainName: 'example.com',
+                fundID: '12345',
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            });
+            const allWorkspaceCards = createMock<OnyxCollection<WorkspaceCardsList>>({
+                'cards_12345_oauth.chase.com': cardsWithListAndAssignment,
+            });
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards);
             expect(result).toStrictEqual({
                 '12345_oauth.chase.com': true,
             });
         });
 
         it('Should skip null entries', () => {
-            const allWorkspaceCards = {
-                'cards_12345_oauth.chase.com': null,
-                'cards_67890_plaid.ins_123456': {
-                    '2001': {
-                        cardID: 2001,
-                        bank: 'plaid.ins_123456',
-                        accountID: 555,
-                        domainName: 'company.com',
-                        fundID: 67890,
-                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                    },
-                },
-            };
-            const result: unknown = Reflect.apply(buildFeedKeysWithAssignedCards, undefined, [allWorkspaceCards]);
+            const plaidCards = createMock<WorkspaceCardsList>({'2001': {}});
+            const allWorkspaceCards = createMock<NonNullable<OnyxCollection<WorkspaceCardsList>>>({
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the selector's runtime guard for null collection values.
+                'cards_12345_oauth.chase.com': null as unknown as WorkspaceCardsList,
+                'cards_67890_plaid.ins_123456': plaidCards,
+            });
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards);
             expect(result).toStrictEqual({
                 '67890_plaid.ins_123456': true,
             });
         });
 
         it('Should handle multiple feeds across different domains', () => {
-            const allWorkspaceCards = {
-                'cards_11111_oauth.chase.com': {
-                    '1001': {
-                        cardID: 1001,
-                        bank: 'oauth.chase.com',
-                        accountID: 100,
-                        domainName: 'a.com',
-                        fundID: 11111,
-                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                    },
-                },
-                'cards_22222_oauth.chase.com': {
-                    '2001': {
-                        cardID: 2001,
-                        bank: 'oauth.chase.com',
-                        accountID: 200,
-                        domainName: 'b.com',
-                        fundID: 22222,
-                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                    },
-                },
-                'cards_11111_plaid.ins_999': {
-                    cardList: {'CARD...1': 'enc'},
-                },
-            };
-            const result: unknown = Reflect.apply(buildFeedKeysWithAssignedCards, undefined, [allWorkspaceCards]);
+            const firstChaseCards = createMock<WorkspaceCardsList>({'1001': {}});
+            const secondChaseCards = createMock<WorkspaceCardsList>({'2001': {}});
+            const plaidCards = createMock<WorkspaceCardsList>({});
+            plaidCards.cardList = {'CARD...1': 'enc'};
+            const allWorkspaceCards = createMock<OnyxCollection<WorkspaceCardsList>>({
+                'cards_11111_oauth.chase.com': firstChaseCards,
+                'cards_22222_oauth.chase.com': secondChaseCards,
+                'cards_11111_plaid.ins_999': plaidCards,
+            });
+            const result = buildFeedKeysWithAssignedCards(allWorkspaceCards);
             expect(result).toStrictEqual({
                 '11111_oauth.chase.com': true,
                 '22222_oauth.chase.com': true,
@@ -1505,7 +1428,12 @@ describe('CardUtils', () => {
 
         it('Should return feed key name for unknown feed', () => {
             const companyCardNickname = '';
-            const feedName: unknown = Reflect.apply(getCustomOrFormattedFeedName, undefined, [translateLocal, unknownFeed, companyCardNickname]);
+            const feedName = getCustomOrFormattedFeedName(
+                translateLocal,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime fallback for an unrecognized feed key.
+                unknownFeed as Parameters<typeof getCustomOrFormattedFeedName>[1],
+                companyCardNickname,
+            );
             expect(feedName).toBe(unknownFeed);
         });
     });
@@ -1710,26 +1638,29 @@ describe('CardUtils', () => {
         });
 
         it('Should return a valid name if an OldDot feed variation was provided', () => {
-            const feed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 2003`;
-            const feedName: unknown = Reflect.apply(getBankName, undefined, [feed]);
+            const feed: CardFeedWithNumber = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 2003`;
+            const feedName = getBankName(feed);
             expect(feedName).toBe('American Express');
         });
 
         it('Should return a valid name if a CSV imported feed variation was provided', () => {
             const feed = `cards_10101_${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}666`;
-            const feedName: unknown = Reflect.apply(getBankName, undefined, [feed]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Imported CSV feed keys include runtime prefixes that the production parameter type does not model.
+            const feedName = getBankName(feed as Parameters<typeof getBankName>[0]);
             expect(feedName).toBe('CSV');
         });
 
         it('Should return empty string if invalid feed was provided', () => {
             const feed = 'vvcf';
-            const feedName: unknown = Reflect.apply(getBankName, undefined, [feed]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This malformed value intentionally exercises the function's runtime fallback.
+            const feedName = getBankName(feed as Parameters<typeof getBankName>[0]);
             expect(feedName).toBe('');
         });
 
         it('Should return empty string if feed is not provided (instead of TypeError crashing the app)', () => {
             const feed = undefined;
-            const feedName: unknown = Reflect.apply(getBankName, undefined, [feed]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a missing required argument.
+            const feedName = getBankName(feed as unknown as Parameters<typeof getBankName>[0]);
             expect(feedName).toBe('');
         });
 
@@ -1741,7 +1672,8 @@ describe('CardUtils', () => {
 
         it('Should match longest prefix first (e.g. AMEX_1205 before AMEX)', () => {
             const feedWithAmex1205Prefix = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205}something`;
-            const feedName: unknown = Reflect.apply(getBankName, undefined, [feedWithAmex1205Prefix]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Runtime feed suffixes are accepted but are not modeled by the production parameter type.
+            const feedName = getBankName(feedWithAmex1205Prefix as Parameters<typeof getBankName>[0]);
             expect(feedName).toBe('American Express');
         });
     });
@@ -1755,19 +1687,21 @@ describe('CardUtils', () => {
 
         it('Should return a valid illustration if an OldDot feed variation was provided', () => {
             const feed = 'oauth.americanexpressfdx.com 2003';
-            const illustration: unknown = Reflect.apply(getCardFeedIcon, undefined, [feed, mockIllustrations, mockCompanyCardFeedIcons]);
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockCompanyCardFeedIcons.AmexCardCompanyCardDetailLarge);
         });
 
         it('Should return a valid illustration if a CSV imported feed variation was provided', () => {
             const feed = 'cards_2267989_ccupload666';
-            const illustration: unknown = Reflect.apply(getCardFeedIcon, undefined, [feed, mockIllustrations, mockCompanyCardFeedIcons]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Imported CSV feed keys include runtime prefixes that the production parameter type does not model.
+            const illustration = getCardFeedIcon(feed as Parameters<typeof getCardFeedIcon>[0], mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockIllustrations.GenericCSVCompanyCardLarge);
         });
 
         it('Should return valid illustration if a non-matching feed was provided', () => {
             const feed = '666';
-            const illustration: unknown = Reflect.apply(getCardFeedIcon, undefined, [feed, mockIllustrations, mockCompanyCardFeedIcons]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This malformed value intentionally exercises the function's generic-icon fallback.
+            const illustration = getCardFeedIcon(feed as Parameters<typeof getCardFeedIcon>[0], mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockIllustrations.GenericCompanyCardLarge);
         });
     });
@@ -3080,10 +3014,11 @@ describe('CardUtils', () => {
             };
         }
 
-        function makePersonalPlaidCard(cardID: number) {
-            return {
+        function makePersonalPlaidCard(cardID: number): Card {
+            return createMock<Card>({
                 accountID: 1,
-                bank: 'plaid.ins_109508',
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime bank names that Card cannot represent.
+                bank: 'plaid.ins_109508' as Card['bank'],
                 cardID,
                 cardName: 'Chase Checking',
                 domainName: '',
@@ -3092,7 +3027,7 @@ describe('CardUtils', () => {
                 lastScrape: '',
                 lastUpdated: '',
                 state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-            };
+            });
         }
 
         it('returns [] when cardList is undefined', () => {
@@ -3128,15 +3063,10 @@ describe('CardUtils', () => {
         });
 
         it('includes an active personal Plaid card (isPersonalCard returns true)', () => {
-            const cardList = {20: makePersonalPlaidCard(20)};
-            const result: unknown = Reflect.apply(getDisplayableThirdPartyCards, undefined, [cardList, emptyCardFeedErrors]);
+            const cardList = createMock<CardList>({20: makePersonalPlaidCard(20)});
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
             expect(result).toHaveLength(1);
-            if (!Array.isArray(result)) {
-                throw new Error('Expected displayable third-party cards to be an array');
-            }
-            const firstCard: unknown = result.at(0);
-            const cardID = firstCard !== null && typeof firstCard === 'object' && 'cardID' in firstCard ? firstCard.cardID : undefined;
-            expect(cardID).toBe(20);
+            expect(result.at(0)?.cardID).toBe(20);
         });
 
         it('excludes Expensify Cards', () => {
@@ -3194,12 +3124,12 @@ describe('CardUtils', () => {
 
         it('excludes a personal card listed in cardFeedErrors.personalCardsWithBrokenConnection', () => {
             const card = makePersonalPlaidCard(70);
-            const cardList = {70: card};
+            const cardList = createMock<CardList>({70: card});
             const cardFeedErrors = {
                 cardsWithBrokenFeedConnection: {},
                 personalCardsWithBrokenConnection: {70: card},
             };
-            const result: unknown = Reflect.apply(getDisplayableThirdPartyCards, undefined, [cardList, cardFeedErrors]);
+            const result = getDisplayableThirdPartyCards(cardList, cardFeedErrors);
             expect(result).toEqual([]);
         });
 
@@ -3532,12 +3462,12 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined when domainID is not a number', () => {
-            const result: unknown = Reflect.apply(splitCardFeedWithDomainID, undefined, ['vcf#abc']);
+            const result = splitCardFeedWithDomainID('vcf#abc');
             expect(result).toBeUndefined();
         });
 
         it('should return undefined when there are multiple separators', () => {
-            const result: unknown = Reflect.apply(splitCardFeedWithDomainID, undefined, ['vcf#123#456']);
+            const result = splitCardFeedWithDomainID('vcf#123#456');
             expect(result).toBeUndefined();
         });
 
@@ -3552,7 +3482,8 @@ describe('CardUtils', () => {
         });
 
         it('should handle plaid feed with domain ID', () => {
-            const result: unknown = Reflect.apply(splitCardFeedWithDomainID, undefined, ['plaid.ins_129663#12345']);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed names that the production parameter type cannot represent.
+            const result = splitCardFeedWithDomainID('plaid.ins_129663#12345' as Parameters<typeof splitCardFeedWithDomainID>[0]);
             expect(result).toEqual({feedName: 'plaid.ins_129663', domainID: 12345});
         });
     });
@@ -3560,13 +3491,15 @@ describe('CardUtils', () => {
     describe('getPlaidInstitutionId', () => {
         it('should return institution ID from plaid feed name without domain ID', () => {
             const feedName = 'plaid.ins_123456';
-            const institutionId: unknown = Reflect.apply(getPlaidInstitutionId, undefined, [feedName]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed names that the production parameter type cannot represent.
+            const institutionId = getPlaidInstitutionId(feedName as Parameters<typeof getPlaidInstitutionId>[0]);
             expect(institutionId).toBe('ins_123456');
         });
 
         it('should return institution ID from plaid feed name with domain ID', () => {
             const feedName = 'plaid.ins_129663#12345';
-            const institutionId: unknown = Reflect.apply(getPlaidInstitutionId, undefined, [feedName]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed names that the production parameter type cannot represent.
+            const institutionId = getPlaidInstitutionId(feedName as Parameters<typeof getPlaidInstitutionId>[0]);
             expect(institutionId).toBe('ins_129663');
         });
 
@@ -3580,13 +3513,15 @@ describe('CardUtils', () => {
     describe('getPlaidInstitutionIconUrl', () => {
         it('should return correct icon URL for plaid feed without domain ID', () => {
             const feedName = 'plaid.ins_123456';
-            const iconUrl: unknown = Reflect.apply(getPlaidInstitutionIconUrl, undefined, [feedName]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed names that the production parameter type cannot represent.
+            const iconUrl = getPlaidInstitutionIconUrl(feedName as Parameters<typeof getPlaidInstitutionIconUrl>[0]);
             expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_123456.png`);
         });
 
         it('should return correct icon URL for plaid feed with domain ID', () => {
             const feedName = 'plaid.ins_129663#12345';
-            const iconUrl: unknown = Reflect.apply(getPlaidInstitutionIconUrl, undefined, [feedName]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed names that the production parameter type cannot represent.
+            const iconUrl = getPlaidInstitutionIconUrl(feedName as Parameters<typeof getPlaidInstitutionIconUrl>[0]);
             expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_129663.png`);
         });
     });
@@ -3992,13 +3927,15 @@ describe('CardUtils', () => {
 
         it('Should return undefined when cards is undefined', () => {
             const cards = undefined;
-            const result: unknown = Reflect.apply(getBrokenConnectionUrlToFixPersonalCard, undefined, [cards, environmentURL]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a missing required cards argument.
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL);
             expect(result).toBeUndefined();
         });
 
         it('Should return undefined when cards is null', () => {
             const cards = null;
-            const result: unknown = Reflect.apply(getBrokenConnectionUrlToFixPersonalCard, undefined, [cards, environmentURL]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a null required cards argument.
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL);
             expect(result).toBeUndefined();
         });
 
@@ -4206,7 +4143,8 @@ describe('CardUtils', () => {
             // OnyxEntry may resolve to undefined rather than null,
             // but exercise the runtime guard for null as well.
             const cardSettings = null;
-            const result: unknown = Reflect.apply(getCardSettings, undefined, [cardSettings]);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a null Onyx value.
+            const result = getCardSettings(cardSettings as unknown as Parameters<typeof getCardSettings>[0]);
             expect(result).toBeUndefined();
         });
 
@@ -4231,7 +4169,8 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined when feedCountry key does not exist', () => {
-            const result: unknown = Reflect.apply(getCardSettings, undefined, [nestedSettings, 'CA']);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This invalid program key deliberately exercises the runtime missing-key fallback.
+            const result = getCardSettings(nestedSettings, 'CA' as Parameters<typeof getCardSettings>[1]);
             expect(result).toBeUndefined();
         });
 
@@ -4243,7 +4182,8 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined for primitive values as feedCountry', () => {
-            const result: unknown = Reflect.apply(getCardSettings, undefined, [nestedSettings, 'limit']);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This settings property is deliberately supplied as an invalid program key.
+            const result = getCardSettings(nestedSettings, 'limit' as Parameters<typeof getCardSettings>[1]);
             expect(result).toBeUndefined();
         });
 
