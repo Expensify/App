@@ -59,7 +59,7 @@ type SearchResultsInfo = {
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
-    /** The sort by of the current sesarch */
+    /** The sort by of the current search */
     sortBy: SearchSortBy;
 
     /** The sort order of the current search */
