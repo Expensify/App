@@ -351,7 +351,7 @@
     "source-map": "^0.7.4",
     "storybook": "10.4.6",
     "storybook-react-rsbuild": "^3.3.4",
-    "svgo": "^4.0.0",
+    "svgo": "^4.0.2",
     "ts-jest": "^29.4.9",
     "type-fest": "4.35.0",
     "typescript": "^6.0.2",
