@@ -83,30 +83,32 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             shouldValidateOnBlur
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
-            {!isRulesRevampEnabled && (
-                <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                    <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
-                    <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleForConcierge')}</Text>
-                </CollapsibleHeaderOnKeyboard>
-            )}
-            <View style={inputWrapperStyles}>
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.PROMPT}
-                    label={describeRuleLabel}
-                    accessibilityLabel={describeRuleLabel}
-                    role={CONST.ROLE.PRESENTATION}
-                    onKeyPress={submitFormOnModEnter}
-                    multiline
-                    shouldSaveDraft
-                    shouldLabelStayOnSingleLine
-                    containerStyles={[styles.flex1]}
-                    touchableInputWrapperStyle={[styles.flex1]}
-                    textInputContainerStyles={[styles.flex1]}
-                    inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                />
+            <View style={styles.flex1}>
+                {!isRulesRevampEnabled && (
+                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                        <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
+                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleForConcierge')}</Text>
+                    </CollapsibleHeaderOnKeyboard>
+                )}
+                <View style={inputWrapperStyles}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.PROMPT}
+                        label={describeRuleLabel}
+                        accessibilityLabel={describeRuleLabel}
+                        role={CONST.ROLE.PRESENTATION}
+                        onKeyPress={submitFormOnModEnter}
+                        multiline
+                        shouldSaveDraft
+                        shouldLabelStayOnSingleLine
+                        containerStyles={[styles.flex1]}
+                        touchableInputWrapperStyle={[styles.flex1]}
+                        textInputContainerStyles={[styles.flex1]}
+                        inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                    />
+                </View>
+                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             </View>
-            <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
         </FormProvider>
     );
 }

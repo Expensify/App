@@ -162,24 +162,26 @@ function EditAgentRulePage({
                         />
                     }
                 >
-                    <View style={inputWrapperStyles}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={describeRuleLabel}
-                            accessibilityLabel={describeRuleLabel}
-                            role={CONST.ROLE.PRESENTATION}
-                            onKeyPress={submitFormOnModEnter}
-                            defaultValue={agentRule.prompt}
-                            multiline
-                            shouldLabelStayOnSingleLine
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        />
+                    <View style={styles.flex1}>
+                        <View style={inputWrapperStyles}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PROMPT}
+                                label={describeRuleLabel}
+                                accessibilityLabel={describeRuleLabel}
+                                role={CONST.ROLE.PRESENTATION}
+                                onKeyPress={submitFormOnModEnter}
+                                defaultValue={agentRule.prompt}
+                                multiline
+                                shouldLabelStayOnSingleLine
+                                containerStyles={[styles.flex1]}
+                                touchableInputWrapperStyle={[styles.flex1]}
+                                textInputContainerStyles={[styles.flex1]}
+                                inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            />
+                        </View>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                     </View>
-                    <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
