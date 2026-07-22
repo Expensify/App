@@ -1481,7 +1481,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const exportOptions: PopoverMenuItem[] = [];
 
-            const connectedIntegration = getConnectedIntegration(policy);
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = Object.entries(selectedTransactions).some(
                 ([key, selectedTransaction]) => key.startsWith(CONST.SEARCH.GROUP_PREFIX) && !selectedTransaction?.transaction,
@@ -1504,26 +1503,30 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return reportExportOptions.includes(exportOption);
             };
 
-            const canExportAllReportsToIntegration =
-                isReportsTab &&
-                selectedReportIDs.length > 0 &&
-                includeReportLevelExport &&
-                selectedReports.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION));
-            const canMarkAllReportsAsExported =
-                isReportsTab &&
-                selectedReportIDs.length > 0 &&
-                includeReportLevelExport &&
-                selectedReports.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED));
+            // Group the selected reports by their connected accounting integration. A single-workspace
+            // selection collapses to one group (unchanged behavior), while a multi-workspace selection
+            // surfaces one export + one "Mark as exported" option per integration, each scoped to the
+            // reports that belong to it.
+            const reportsByIntegration = new Map<NonNullable<ReturnType<typeof getConnectedIntegration>>, typeof selectedReports>();
+            if (isReportsTab && selectedReportIDs.length > 0 && includeReportLevelExport) {
+                for (const report of selectedReports) {
+                    const reportPolicy = report.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+                    const reportIntegration = getConnectedIntegration(reportPolicy);
+                    if (!reportIntegration) {
+                        continue;
+                    }
+                    const reportsForIntegration = reportsByIntegration.get(reportIntegration) ?? [];
+                    reportsForIntegration.push(report);
+                    reportsByIntegration.set(reportIntegration, reportsForIntegration);
+                }
+            }
 
-            if (connectedIntegration) {
-                const connectionNameFriendly = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration];
-                const integrationIcon = getIntegrationIcon(connectedIntegration, expensifyIcons);
-
-                const handleExportAction = (exportAction: () => void) => {
+            const buildIntegrationHandleExportAction =
+                (integrationReportIDs: string[], integration: NonNullable<ReturnType<typeof getConnectedIntegration>>) => (exportAction: () => void) => {
                     const exportedReportNames: string[] = [];
                     let areAnyReportsExported = false;
 
-                    for (const reportID of selectedReportIDs) {
+                    for (const reportID of integrationReportIDs) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
                         if (!report?.pendingFields?.export && !report?.isExportedToIntegration) {
@@ -1544,7 +1547,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         showConfirmModal({
                             title: translate('workspace.exportAgainModal.title'),
                             prompt: translate('workspace.exportAgainModal.description', {
-                                connectionName: connectedIntegration,
+                                connectionName: integration,
                                 reportName: exportedReportNames.join('\n'),
                             }),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
@@ -1566,29 +1569,44 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                 };
 
-                if (canExportAllReportsToIntegration) {
-                    exportOptions.push({
-                        text: connectionNameFriendly,
-                        icon: integrationIcon,
-                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, selectedReportIDs, connectedIntegration, currentSearchKey)),
-                        shouldCloseModalOnSelect: true,
-                        shouldCallAfterModalHide: true,
-                        displayInDefaultIconColor: true,
-                        additionalIconStyles: styles.integrationIcon,
-                    });
+            // Add every "Export to <integration>" option first, then every "Mark as exported" option,
+            // so a multi-integration selection lists all export actions before the mark-as-exported ones.
+            for (const [integration, reportsForIntegration] of reportsByIntegration) {
+                const integrationReportIDs = reportsForIntegration.map((report) => report.reportID).filter((reportID): reportID is string => reportID !== undefined);
+                const canExportGroupToIntegration =
+                    integrationReportIDs.length > 0 && reportsForIntegration.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION));
+                if (!canExportGroupToIntegration) {
+                    continue;
                 }
+                const handleExportAction = buildIntegrationHandleExportAction(integrationReportIDs, integration);
+                exportOptions.push({
+                    text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
+                    icon: getIntegrationIcon(integration, expensifyIcons),
+                    onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, integrationReportIDs, integration, currentSearchKey)),
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                    displayInDefaultIconColor: true,
+                    additionalIconStyles: styles.integrationIcon,
+                });
+            }
 
-                if (canMarkAllReportsAsExported) {
-                    exportOptions.push({
-                        text: translate('workspace.common.markAsExported'),
-                        icon: integrationIcon,
-                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration)),
-                        shouldCloseModalOnSelect: true,
-                        shouldCallAfterModalHide: true,
-                        displayInDefaultIconColor: true,
-                        additionalIconStyles: styles.integrationIcon,
-                    });
+            for (const [integration, reportsForIntegration] of reportsByIntegration) {
+                const integrationReportIDs = reportsForIntegration.map((report) => report.reportID).filter((reportID): reportID is string => reportID !== undefined);
+                const canMarkGroupAsExported =
+                    integrationReportIDs.length > 0 && reportsForIntegration.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED));
+                if (!canMarkGroupAsExported) {
+                    continue;
                 }
+                const handleExportAction = buildIntegrationHandleExportAction(integrationReportIDs, integration);
+                exportOptions.push({
+                    text: translate('workspace.common.markAsExported'),
+                    icon: getIntegrationIcon(integration, expensifyIcons),
+                    onSelected: () => handleExportAction(() => markAsManuallyExported(integrationReportIDs, integration)),
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                    displayInDefaultIconColor: true,
+                    additionalIconStyles: styles.integrationIcon,
+                });
             }
 
             const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
