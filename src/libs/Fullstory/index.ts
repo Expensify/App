@@ -7,12 +7,13 @@ import type {Session} from '@src/types/onyx';
 
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {FSPageLike, Fullstory} from './types';
 
 import {getChatFSClass, shouldInitializeFullstory} from './common';
 
-// Use connectWithoutView because it is only for fullstory initialization
+// connectWithoutView is used because this is only for fullstory initialization, not attached to any view
 let fullstorySession: Session = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -145,10 +146,8 @@ const FS: Fullstory = {
     },
 };
 
-// Use connectWithoutView because it is only for fullstory initialization
-Onyx.connectWithoutView({
-    key: ONYXKEYS.USER_METADATA,
-    callback: (value) => FS.consentAndIdentify(value, fullstorySession),
+OnyxUtils.get(ONYXKEYS.USER_METADATA).then((userMetadata) => {
+    FS.consentAndIdentify(userMetadata, fullstorySession);
 });
 
 export default FS;
