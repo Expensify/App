@@ -670,7 +670,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
         })
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_VALIDATE_CODE) {
                         // eslint-disable-next-line prefer-promise-reject-errors
                         reject('validateCodeForm.error.incorrectSecurityCode');
                         return;

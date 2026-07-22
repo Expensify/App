@@ -195,8 +195,8 @@ import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
 import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
-import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
+import type VerifyValidateCodeAction from './VerifyValidateCodeAction';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -392,7 +392,7 @@ export type {
     OnboardingPurpose,
     OnboardingRHPVariant,
     ValidateDomainTwoFactorCode,
-    ValidateMagicCodeAction,
+    VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
     CorpayFormField,

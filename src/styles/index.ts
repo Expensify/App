@@ -3221,26 +3221,26 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.checkBox,
         },
 
-        magicCodeInputContainer: {
+        validateCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             height: variables.inputHeight,
         },
 
-        magicCodeInput: {
+        validateCodeInput: {
             fontSize: variables.fontSizeXLarge,
             color: theme.heading,
             lineHeight: variables.lineHeightXXXLarge,
         },
 
-        magicCodeInputValueContainer: {
+        validateCodeInputValueContainer: {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
         },
 
-        magicCodeInputCursorContainer: {
+        validateCodeInputCursorContainer: {
             position: 'absolute',
             textAlign: 'center',
             flexDirection: 'row',
@@ -3249,7 +3249,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        magicCodeInputCursor: {
+        validateCodeInputCursor: {
             fontSize: 24,
             color: theme.heading,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,

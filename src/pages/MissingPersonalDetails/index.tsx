@@ -26,7 +26,7 @@ function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 
     const handleComplete = useCallback(() => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.getRoute(cardID), basePath), {forceReplace: true});
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE.getRoute(cardID), basePath), {forceReplace: true});
     }, [cardID, basePath]);
 
     if (isLoading) {

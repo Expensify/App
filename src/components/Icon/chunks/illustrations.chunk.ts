@@ -73,7 +73,6 @@ import SortingMachine from '@assets/images/product-illustrations/illustration-so
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
 import AgentsIceCream from '@assets/images/product-illustrations/illustration_agents-ice-cream.svg';
-import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
@@ -95,6 +94,7 @@ import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phone
 import TopiaryDollarSign from '@assets/images/product-illustrations/topiary-dollar-sign.svg';
 import TvScreenRobot from '@assets/images/product-illustrations/tv-screen-robot.svg';
 import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
+import ValidateCode from '@assets/images/product-illustrations/validate-code.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
@@ -286,7 +286,7 @@ const Illustrations = {
     Hands,
     CardReplacementSuccess,
     Copilots,
-    MagicCode,
+    ValidateCode,
     ModalHoldOrReject,
     MushroomTopHat,
     PaymentHands,

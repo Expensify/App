@@ -210,7 +210,7 @@ function resendValidateCode(reasonParams: ResendValidateCodeParams, login: strin
 }
 
 /**
- * Requests a new validate code be sent for the passed contact method
+ * Requests a new validateCode be sent for the passed contact method
  *
  * @param contactMethod - the new contact method that the user is trying to verify
  */
@@ -513,7 +513,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 }
 
 /**
- * Requests a magic code to verify current user
+ * Requests a validateCode to verify current user
  */
 function requestValidateCodeAction(params?: ResendValidateCodeParams) {
     const requestedAt = Date.now();
@@ -1681,7 +1681,7 @@ function respondToProactiveAppReview(
  *
  * This handles the complete flow for verifying a secondary login:
  * 1. Verifies the validation code entered by the user
- * 2. On success, stores the validate code to allow adding the new email
+ * 2. On success, stores the validateCode to allow adding the new email
  * 3. On failure, updates the state to reflect the failed verification
  *
  * @param validateCode - The validation code entered by the user

@@ -1,12 +1,12 @@
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import MagicCodeInput from '@components/MagicCodeInput';
-import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+import type {AutoCompleteVariant, ValidateCodeInputHandle} from '@components/ValidateCodeInput';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useLocalize from '@hooks/useLocalize';
@@ -55,14 +55,14 @@ type ValidateCodeFormProps = {
     /** Forwarded inner ref */
     ref?: ForwardedRef<ValidateCodeFormHandle>;
 
-    hasMagicCodeBeenSent?: boolean;
+    hasValidateCodeBeenSent?: boolean;
 
-    /** The pending action of magic code being sent
+    /** The pending action of validateCode being sent
      * if not supplied, we will retrieve it from the validateCodeAction above: `validateCodeAction.pendingFields.validateCodeSent`
      */
     validatePendingAction?: PendingAction;
 
-    /** The field where any magic code error will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
+    /** The field where any validateCode error will be stored. e.g. if replacing a card and validateCode fails, it'll be stored in:
      * {"errorFields": {"replaceLostCard": {<timestamp>}}}
      * If replacing a virtual card, the errorField wil be 'reportVirtualCard', etc.
      * These values are set in the backend, please reach out to an internal engineer if you're adding a validate code modal to a flow.
@@ -87,7 +87,7 @@ type ValidateCodeFormProps = {
     /** Text for the verify button  */
     submitButtonText?: string;
 
-    /** Function is called when validate code modal is mounted and on magic code resend */
+    /** Function is called when validate code modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
     /** Whether the form is loading or not */
@@ -106,7 +106,7 @@ type ValidateCodeFormProps = {
 function BaseValidateCodeForm({
     autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
     ref = () => {},
-    hasMagicCodeBeenSent,
+    hasValidateCodeBeenSent,
     validateCodeActionErrorField,
     validatePendingAction,
     validateError,
@@ -131,7 +131,7 @@ function BaseValidateCodeForm({
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
 
-    const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
+    const inputValidateCodeRef = useRef<ValidateCodeInputHandle>(null);
     const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
@@ -145,13 +145,13 @@ function BaseValidateCodeForm({
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
     // A request stamps `lastValidateCodeRequestedAt` and reverts it to null on failure, so a present timestamp with no in-flight request and no error means the code was sent successfully.
     const isCodeSentSuccessfully = !!lastValidateCodeRequestedAt && !validateCodeAction?.isLoading && isEmptyObject(defaultValidateCodeError);
-    // Flows that supply `hasMagicCodeBeenSent` track the magic code outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
-    const validateCodeSent = hasMagicCodeBeenSent ?? isCodeSentSuccessfully;
+    // Flows that supply `hasValidateCodeBeenSent` track the validateCode outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
+    const validateCodeSent = hasValidateCodeBeenSent ?? isCodeSentSuccessfully;
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
     const isFirstCountdownRunRef = useRef(true);
 
     const clearDefaultValidationCodeError = useCallback(() => {
-        // Clear "Failed to send magic code" error
+        // Clear "Failed to send validateCode" error
 
         if (isEmptyObject(defaultValidateCodeError)) {
             return;
@@ -264,7 +264,7 @@ function BaseValidateCodeForm({
     }, [validateCodeSent, wideRHPRouteKeys.length, isInPageModal]);
 
     /**
-     * Request a validate code / magic code be sent to verify this contact method
+     * Request a validateCode be sent to verify this contact method
      */
     const resendValidateCode = () => {
         sendValidateCode();
@@ -285,7 +285,7 @@ function BaseValidateCodeForm({
                 // Clear flow specific error
                 clearError();
 
-                // Clear "incorrect magic code" error
+                // Clear "incorrect validateCode code" error
                 clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
@@ -299,7 +299,7 @@ function BaseValidateCodeForm({
         // Clear flow specific error
         clearError();
 
-        // Clear "incorrect magic" code error
+        // Clear "incorrect validateCode code" error
         clearValidateCodeActionError(validateCodeActionErrorField);
 
         clearDefaultValidationCodeError();
@@ -334,12 +334,12 @@ function BaseValidateCodeForm({
         setIsCountdownRunning(false);
     }, []);
 
-    // latestValidateCodeError only holds an error related to bad magic code
+    // latestValidateCodeError only holds an error related to bad validateCode
     // while validateError holds flow-specific errors
     const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
     return (
         <>
-            <MagicCodeInput
+            <ValidateCodeInput
                 autoComplete={autoComplete}
                 ref={inputValidateCodeRef}
                 name="validateCode"
@@ -354,7 +354,7 @@ function BaseValidateCodeForm({
                 <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
                     <ValidateCodeCountdown
                         ref={countdownRef}
-                        requestedAt={hasMagicCodeBeenSent !== undefined ? undefined : lastValidateCodeRequestedAt}
+                        requestedAt={hasValidateCodeBeenSent !== undefined ? undefined : lastValidateCodeRequestedAt}
                         onCountdownFinish={handleCountdownFinish}
                     />
                 </View>

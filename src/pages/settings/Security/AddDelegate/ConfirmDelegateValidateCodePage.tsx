@@ -21,9 +21,9 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
 
-type ConfirmDelegateMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE>;
+type ConfirmDelegateValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_VALIDATE_CODE>;
 
-function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps) {
+function ConfirmDelegateValidateCodePage({route}: ConfirmDelegateValidateCodePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
@@ -39,7 +39,7 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
             return;
         }
 
-        // Dismiss modal on successful magic code verification
+        // Dismiss modal on successful validateCode verification
         Navigation.goBack(ROUTES.SETTINGS_COPILOT);
     }, [login, currentDelegate, role, addDelegateErrors]);
 
@@ -64,4 +64,4 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
     );
 }
 
-export default ConfirmDelegateMagicCodePage;
+export default ConfirmDelegateValidateCodePage;

@@ -20,7 +20,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef} from 'react';
 
-function PrivatePersonalDetailsConfirmMagicCodePage() {
+function PrivatePersonalDetailsConfirmValidateCodePage() {
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
@@ -73,7 +73,7 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
             validateError={submitError}
             clearError={clearError}
             onClose={() => {
-                // Plain goBack pops the magic-code RHP screen. Passing the SETTINGS_PRIVATE_PERSONAL_DETAILS route
+                // Plain goBack pops the confirm-validate-code RHP screen. Passing the SETTINGS_PRIVATE_PERSONAL_DETAILS route
                 // here would compare params against the existing PrivatePersonalDetails route (which carries a
                 // fieldToFocus param), miss, and REPLACE — leaving a duplicate PrivatePersonalDetails on the stack
                 // so the next back-press only pops the duplicate.
@@ -84,6 +84,6 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
     );
 }
 
-PrivatePersonalDetailsConfirmMagicCodePage.displayName = 'PrivatePersonalDetailsConfirmMagicCodePage';
+PrivatePersonalDetailsConfirmValidateCodePage.displayName = 'PrivatePersonalDetailsConfirmValidateCodePage';
 
-export default PrivatePersonalDetailsConfirmMagicCodePage;
+export default PrivatePersonalDetailsConfirmValidateCodePage;

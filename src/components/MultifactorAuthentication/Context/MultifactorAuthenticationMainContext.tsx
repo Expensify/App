@@ -241,7 +241,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             if (!validateCode) {
                 addMFABreadcrumb('Validate code requested');
                 requestValidateCodeAction();
-                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
                 return;
             }
 
@@ -436,7 +436,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // User interactions - soft prompt approval triggers biometric registration
         state.softPromptApproved,
 
-        // Magic code entry - required before registration challenge can be requested
+        // Validate code entry - required before registration challenge can be requested
         state.validateCode,
 
         // Challenge responses from backend - trigger next steps in registration/authorization

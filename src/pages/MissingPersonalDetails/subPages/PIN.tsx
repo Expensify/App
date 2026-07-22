@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
-import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -99,7 +99,7 @@ function PIN({onNext}: CustomSubPageProps) {
                 <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
                 <View style={[styles.mv4, styles.ph11]}>
-                    <MagicCodeInput
+                    <ValidateCodeInput
                         key={`pin-${isConfirmStep}`}
                         autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                         name="pin"

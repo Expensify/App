@@ -32,7 +32,7 @@ import {View} from 'react-native';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
-    const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
+    const [hasValidateCodeBeenSent, setHasValidateCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -161,15 +161,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
                             getAccessiblePolicies(code);
-                            setHasMagicCodeBeenSent(false);
+                            setHasValidateCodeBeenSent(false);
                         }}
                         sendValidateCode={() => {
                             sendValidateCode();
-                            setHasMagicCodeBeenSent(true);
+                            setHasValidateCodeBeenSent(true);
                         }}
                         clearError={() => clearGetAccessiblePoliciesErrors()}
                         validateError={getAccessiblePoliciesAction?.errors}
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => navigateToNextOnboardingStep(route.params?.backTo)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}

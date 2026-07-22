@@ -2469,7 +2469,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
-        INCORRECT_MAGIC_CODE: 451,
+        INCORRECT_VALIDATE_CODE: 451,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
@@ -2620,8 +2620,8 @@ const CONST = {
 
     TOOLTIP_MAX_LINES: 3,
 
-    MAGIC_CODE_LENGTH: 6,
-    MAGIC_CODE_EMPTY_CHAR: ' ',
+    VALIDATE_CODE_LENGTH: 6,
+    VALIDATE_CODE_EMPTY_CHAR: ' ',
 
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
@@ -9001,7 +9001,7 @@ const CONST = {
             SIGN_IN_BUTTON: 'SignIn-SignInButton',
             JOIN: 'SignIn-Join',
             SSO: 'SignIn-SSO',
-            MAGIC_CODE: 'SignIn-MagicCode',
+            VALIDATE_CODE: 'SignIn-ValidateCode',
             UNLINK: 'SignIn-Unlink',
             GO_BACK: 'SignIn-GoBack',
             VALIDATE: 'SignIn-Validate',
