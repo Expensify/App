@@ -40,7 +40,10 @@ const mockGetTaxableAmount = jest.mocked(DistanceRequestUtils.getTaxableAmount);
 const baseTransaction = {
     transactionID: 'txn1',
     amount: 1000,
+    created: '2026-07-22',
     currency: 'USD',
+    merchant: 'Merchant',
+    reportID: 'report1',
 } satisfies Params['transaction'];
 
 const baseParams: Params = {
