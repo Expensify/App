@@ -65,7 +65,7 @@ function ValidateLoginPage({
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
-    // Fresh-session magic-link sign-in. Not gated on `isSignedIn` because `autoAuthState` lands
+    // Fresh-session security link sign-in. Not gated on `isSignedIn` because `autoAuthState` lands
     // before `authToken` (separate Onyx broadcasts); that gap would otherwise flash a blank page.
     // Keeps the loader up across SIGNING_IN → JUST_SIGNED_IN until the redirect unmounts the page.
     // Excludes 2FA: it can't complete from here, so the 2FA modal (below) handles it instead of an
@@ -98,7 +98,7 @@ function ValidateLoginPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Redirect Home after a separate-session magic-link sign-in. On a focus effect (not mount-only)
+    // Redirect Home after a separate-session security link sign-in. On a focus effect (not mount-only)
     // so that returning to the consumed `/v/...` via browser Back re-fires it — the route can linger
     // in the stack when forceReplace is downgraded to a push, and a mount-only effect wouldn't re-run.
     useFocusEffect(
