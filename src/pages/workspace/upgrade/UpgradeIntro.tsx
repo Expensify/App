@@ -122,15 +122,17 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
-    const onlyAvailableOnPlanHTML = translate(
-        // eslint-disable-next-line no-nested-ternary
-        feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports'
-            ? 'workspace.upgrade.approvals.onlyAvailableOnPlan'
-            : feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id && isRulesRevampEnabled
-              ? 'workspace.upgrade.rules.onlyAvailableOnPlanUnlimited'
-              : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
-        {formattedPrice, hasTeam2025Pricing},
-    );
+    const getOnlyAvailableOnPlanKey = () => {
+        if (feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports') {
+            return 'workspace.upgrade.approvals.onlyAvailableOnPlan';
+        }
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id && isRulesRevampEnabled) {
+            return 'workspace.upgrade.rules.onlyAvailableOnPlanUnlimited';
+        }
+        return `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`;
+    };
+
+    const onlyAvailableOnPlanHTML = translate(getOnlyAvailableOnPlanKey(), {formattedPrice, hasTeam2025Pricing});
 
     const buttonText =
         isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id ? translate('workspace.upgrade.expensifyCard.upgradeButton') : translate('common.upgrade');

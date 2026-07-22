@@ -28,7 +28,7 @@ import {getVisibleAgentRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
+import {isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -108,7 +108,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     }, [policyID]);
 
     useEffect(() => {
-        if (isControlPolicy(policy) || activeTab === RULES_TAB.GENERAL) {
+        // Collect can only use the General tab; keep them there if a non-General tab is persisted.
+        // Wait until policy is loaded so we do not reset Control users while Onyx is still hydrating.
+        if (!isCollectPolicy(policy) || activeTab === RULES_TAB.GENERAL) {
             return;
         }
 

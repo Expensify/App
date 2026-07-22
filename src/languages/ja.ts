@@ -7163,6 +7163,8 @@ ${reportName}`,
 領収書や説明などの経費詳細を必須にし、上限やデフォルトを設定し、承認や支払いを自動化——すべてを1か所で行えます。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>ルールは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からのControlプランでのみご利用いただけます</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>ルールへの無制限アクセスは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からのControlプランでのみご利用いただけます</muted-text>`,
             },
             perDiem: {
                 title: '日当',

@@ -1389,10 +1389,14 @@ function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
 /**
  * Whether the policy can access a feature based on plan level.
  * Corporate-only features are restricted to control (Corporate) policies.
+ * Rules are available on Control always, and on Collect only when the rulesRevamp beta is enabled.
  */
-function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, isRulesRevampEnabled = false): boolean {
     if (!isPaidGroupPolicy(policy)) {
         return false;
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
+        return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
     }
     const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
     if (corporateOnlyFeatures.has(featureName)) {
