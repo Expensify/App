@@ -93,6 +93,7 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [workspaceCardFeeds, userCardList]);
     const {exportedToFilterOptions} = useExportedToFilterOptions();
+
     const formValues = queryJSON
         ? buildFilterFormValuesFromQuery(
               queryJSON,

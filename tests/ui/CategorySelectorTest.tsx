@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import ActivityIndicator from '@components/ActivityIndicator';
 import CategorySelector from '@components/Search/FilterComponents/CategorySelector';
 
 import useNetwork from '@hooks/useNetwork';
@@ -33,9 +34,11 @@ describe('CategorySelector', () => {
     const mockedUseOnyx = jest.mocked(useOnyx);
     const mockedUseNetwork = jest.mocked(useNetwork);
     const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
+    const mockedActivityIndicator = jest.mocked(ActivityIndicator);
 
     beforeEach(() => {
         mockedOpenSearchCategoryFiltersPage.mockClear();
+        mockedActivityIndicator.mockClear();
         (mockedUseOnyx as jest.Mock).mockImplementation((key) => {
             if (key === ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED) {
                 return [true];
@@ -50,7 +53,12 @@ describe('CategorySelector', () => {
     it('loads categories when opened online', () => {
         mockedUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
 
-        render(<CategorySelector onChange={jest.fn()} />);
+        render(
+            <CategorySelector
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
 
         expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1);
     });
@@ -58,8 +66,35 @@ describe('CategorySelector', () => {
     it('uses cached categories without requesting data while offline', () => {
         mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
 
-        render(<CategorySelector onChange={jest.fn()} />);
+        render(
+            <CategorySelector
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
 
         expect(mockedOpenSearchCategoryFiltersPage).not.toHaveBeenCalled();
+    });
+
+    it('shows a loading indicator while categories are loading online', () => {
+        mockedUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        (mockedUseOnyx as jest.Mock).mockImplementation((key) => {
+            if (key === ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED) {
+                return [false];
+            }
+            if (key === ONYXKEYS.PERSONAL_POLICY_ID) {
+                return [undefined];
+            }
+            return [{}];
+        });
+
+        render(
+            <CategorySelector
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(mockedActivityIndicator).toHaveBeenCalledTimes(1);
     });
 });
