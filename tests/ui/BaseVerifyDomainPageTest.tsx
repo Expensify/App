@@ -130,4 +130,26 @@ describe('BaseVerifyDomainPage', () => {
         expect(screen.queryByTestId('BaseVerifyDomainPage')).toBeNull();
         expect(apiReadSpy).not.toHaveBeenCalledWith(READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE, expect.anything(), expect.anything());
     });
+
+    it('renders the DNS verification screen for an admin on a not-yet-validated domain', async () => {
+        // Given a domain the current user is an admin of but that is NOT yet validated
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
+                accountID: DOMAIN_ACCOUNT_ID,
+                email: DOMAIN_EMAIL,
+                validated: false,
+                ...DOMAIN_ADMIN_ACCESS,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the verify-domain page is opened
+        renderVerifyDomainPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the verify screen renders
+        expect(screen.getByTestId('BaseVerifyDomainPage')).toBeTruthy();
+        expect(apiReadSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE, {domainName: DOMAIN_NAME}, expect.anything());
+    });
 });
