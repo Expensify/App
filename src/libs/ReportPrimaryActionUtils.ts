@@ -527,7 +527,11 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
-    if (isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) && !allExpensesHeld) {
+    if (
+        isCurrentUserSubmitter(report, currentUserAccountID) &&
+        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) &&
+        !allExpensesHeld
+    ) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
