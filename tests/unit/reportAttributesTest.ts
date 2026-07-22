@@ -7,6 +7,7 @@ import type {Policy, Report, ReportAttributesDerivedValue, Transaction} from '@s
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 
@@ -145,12 +146,13 @@ describe('reportAttributes compute — policy change code flow', () => {
         overrideReports?: OnyxCollection<Report>,
         transactionsUpdate?: OnyxCollection<Transaction> | null,
         conciergeReportID?: string,
+        overrideReportActions?: OnyxCollection<Record<string, unknown>>,
     ) =>
         [
             overrideReports ?? reports, // reports
             null, // preferredLocale
             null, // transactionViolations
-            null, // reportActions
+            overrideReportActions ?? null, // reportActions
             null, // reportNameValuePairs
             transactionsUpdate ?? null, // transactions
             null, // personalDetails
@@ -600,13 +602,24 @@ describe('reportAttributes compute — policy change code flow', () => {
             jest.requireMock<{default: {getReasonAndReportActionThatHasRedBrickRoad: jest.Mock}}>('@libs/SidebarUtils').default.getReasonAndReportActionThatHasRedBrickRoad;
 
         it('still propagates a new error to the parent chat when a child gains one during an incremental update', () => {
-            const expenseReport: Report = {...createRandomReport(10, undefined), reportID: 'expense1', policyID: 'policy3', chatReportID: 'chat1'};
+            // parentReportID/parentReportActionID point at a real (non-deleted) preview action — main's
+            // isDeletedAction guard treats a report with no resolvable parent action as deleted and skips
+            // propagation for it, so the fixture needs one to actually exercise the propagation path below.
+            const expenseReport: Report = {
+                ...createRandomReport(10, undefined),
+                reportID: 'expense1',
+                policyID: 'policy3',
+                chatReportID: 'chat1',
+                parentReportID: 'chat1',
+                parentReportActionID: 'previewAction1',
+            };
             const chatReport: Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chat1', policyID: 'policy3', chatReportID: undefined};
             const reportsWithChat: OnyxCollection<Report> = {
                 ...reports,
                 [`${ONYXKEYS.COLLECTION.REPORT}expense1`]: expenseReport,
                 [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
             };
+            const reportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}chat1`]: {previewAction1: createRandomReportAction(1)}};
 
             const existingValue: ReportAttributesDerivedValue = {
                 reports: {
@@ -623,7 +636,7 @@ describe('reportAttributes compute — policy change code flow', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'expense1'},
             };
 
-            const args = buildArgs(undefined, reportsWithChat, transactionsUpdate);
+            const args = buildArgs(undefined, reportsWithChat, transactionsUpdate, undefined, reportActions);
             const result = config.compute(args, {
                 currentValue: existingValue,
                 sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
@@ -635,13 +648,23 @@ describe('reportAttributes compute — policy change code flow', () => {
         });
 
         it('clears a stale parent error once the only erroring child stops erroring', () => {
-            const expenseReport: Report = {...createRandomReport(10, undefined), reportID: 'expense1', policyID: 'policy3', chatReportID: 'chat1'};
+            // A real (non-deleted) parent action, so the assertion below reflects needsViolationFix
+            // re-evaluating to false rather than main's isDeletedAction guard skipping expense1 outright.
+            const expenseReport: Report = {
+                ...createRandomReport(10, undefined),
+                reportID: 'expense1',
+                policyID: 'policy3',
+                chatReportID: 'chat1',
+                parentReportID: 'chat1',
+                parentReportActionID: 'previewAction1',
+            };
             const chatReport: Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chat1', policyID: 'policy3', chatReportID: undefined};
             const reportsWithChat: OnyxCollection<Report> = {
                 ...reports,
                 [`${ONYXKEYS.COLLECTION.REPORT}expense1`]: expenseReport,
                 [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
             };
+            const reportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}chat1`]: {previewAction1: createRandomReportAction(1)}};
 
             // Simulates the state left behind by a previous pass where expense1 was erroring and had
             // already propagated ERROR up to chat1.
@@ -672,7 +695,7 @@ describe('reportAttributes compute — policy change code flow', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'expense1'},
             };
 
-            const args = buildArgs(undefined, reportsWithChat, transactionsUpdate);
+            const args = buildArgs(undefined, reportsWithChat, transactionsUpdate, undefined, reportActions);
             const result = config.compute(args, {
                 currentValue: existingValue,
                 sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
