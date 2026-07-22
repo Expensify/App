@@ -321,7 +321,7 @@ describe('Avatar', () => {
                 <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
                     <WorkspaceAvatar
                         name={WORKSPACE_NAME}
-                        avatarID="policy_123"
+                        avatarID={123}
                     />
                 </ComposeProviders>,
             );

@@ -25,7 +25,7 @@ type UserAvatarProps = AvatarCommonProps & {
     fallbackIconTestID?: string;
 
     /** Owning account ID. Picks the default avatar when `source` is a default or absent. */
-    avatarID: number | string;
+    avatarID: number;
 };
 
 /** Renders a user avatar, falling back to a default icon when no source is available. */
