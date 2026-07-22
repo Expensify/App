@@ -129,17 +129,19 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                     <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
                     <Text style={valueTextStyle}>{count}</Text>
                 </View>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                    <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                    <FilterPopupButton
-                        PopoverComponent={renderCurrencyPopup}
-                        renderButton={totalButton}
-                        popoverAnchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                    />
-                </View>
+                {typeof total === 'number' && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                        <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
+                        <FilterPopupButton
+                            PopoverComponent={renderCurrencyPopup}
+                            renderButton={totalButton}
+                            popoverAnchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
+                        />
+                    </View>
+                )}
             </View>
             {isTotalLoading && (
                 <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd]}>

@@ -116,7 +116,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadataCount = metadata?.count;
     const metadataCurrency = metadata?.currency;
     const metadataTotal = metadata?.total;
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const selectedExpenseCount = useMemo(
         () =>
             selectedTransactionsKeys.reduce((count, key) => {

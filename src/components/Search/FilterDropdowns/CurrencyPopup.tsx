@@ -33,6 +33,9 @@ type CurrencyPopupProps = {
     shouldShowList?: boolean;
 };
 
+/**
+ * Searchable single-select currency picker popup, used by the Search footer's total-spend currency selector.
+ */
 function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value, defaultValue, searchPlaceholder, shouldShowList}: CurrencyPopupProps) {
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();

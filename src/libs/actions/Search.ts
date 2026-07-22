@@ -926,6 +926,28 @@ function handlePreventSearchAPI(hash: number | undefined) {
     };
 }
 
+/**
+ * Builds the backend-facing query from a client queryJSON: strips client-only fields and rewrites client-side-sorted
+ * columns to a backend-supported date sort.
+ */
+function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
+    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
+        ? {
+              ...queryJSONWithoutFlatFilters,
+              sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              inputQuery: buildSearchQueryString({
+                  ...queryJSON,
+                  sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              }),
+              rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
+                  filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
+              ),
+          }
+        : queryJSONWithoutFlatFilters;
+    return {backendQueryJSON, limit};
+}
+
 function search({
     queryJSON,
     searchKey,
@@ -965,20 +987,7 @@ function search({
     inFlightSearchRequests.add(dedupeKey);
 
     const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
-    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
-    const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
-        ? {
-              ...queryJSONWithoutFlatFilters,
-              sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-              inputQuery: buildSearchQueryString({
-                  ...queryJSON,
-                  sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-              }),
-              rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
-                  filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
-              ),
-          }
-        : queryJSONWithoutFlatFilters;
+    const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
         searchKey,
@@ -1092,11 +1101,11 @@ function getFooterConvertedAmounts({
 
     // searchKey changes what the backend query matches (e.g. unapprovedCash excludes card expenses), so it must be
     // sent exactly as search() sends it or the converted totals cover a different expense set than the snapshot.
-    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const {backendQueryJSON} = getBackendQueryJSON(queryJSON);
     const jsonQuery = serializeQueryJSONForBackend({
-        ...queryJSONWithoutFlatFilters,
+        ...backendQueryJSON,
         searchKey,
-        filters: queryJSONWithoutFlatFilters.filters ?? null,
+        filters: backendQueryJSON.filters ?? null,
     });
 
     read(

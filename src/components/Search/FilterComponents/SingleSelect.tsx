@@ -38,6 +38,7 @@ type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefi
     /** Custom height for each item in the list */
     itemHeight?: number;
 
+    /** Whether the popover keeps a fixed height instead of growing with its content */
     shouldUseFixedPopoverHeight?: boolean;
     allowDeselect?: boolean;
     hasTitle?: boolean;
