@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    buildCardFeedKey,
     doesCardFeedExist,
     feedHasCards,
     filterAllInactiveCards,
@@ -27,12 +28,14 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardHintText,
+    getCardProgramKeyFromValue,
     getCardsByCardholderName,
     getCardSettings,
     getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getConfiguredExpensifyCardProgramKeys,
     getConnectionBankAccountsForReconciliation,
     getCSVFeedType,
     getCustomFeedNameFromFeeds,
@@ -42,6 +45,7 @@ import {
     getDisplayableThirdPartyCards,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
+    getExpensifyCardProgramCurrency,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -49,6 +53,8 @@ import {
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
+    getProgramKeyForCard,
+    getSelectableCardProgramKey,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
@@ -62,6 +68,7 @@ import {
     isCSVUploadFeed,
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
+    filterCardsListByProgram,
     isActiveCard,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
@@ -72,6 +79,7 @@ import {
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
+    parseCardFeedKey,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
 } from '@src/libs/CardUtils';
@@ -4656,5 +4664,133 @@ describe('getCompanyCardCustomName', () => {
 
     it('returns undefined when neither NVP has a name for the card', () => {
         expect(getCompanyCardCustomName('9999', sharedCardCustomNames, customCardNames)).toBeUndefined();
+    });
+});
+
+describe('multi-program Expensify Card helpers', () => {
+    const usCard = createMock<Card>({cardID: 1, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.US}});
+    const gbCard = createMock<Card>({cardID: 2, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.GB}});
+    const legacyCard = createMock<Card>({cardID: 3, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {}});
+
+    describe('getSelectableCardProgramKey', () => {
+        it('returns the program when a selectable one (US or GB) is stored', () => {
+            expect(getSelectableCardProgramKey(CONST.COUNTRY.US)).toBe(CONST.COUNTRY.US);
+            expect(getSelectableCardProgramKey(CONST.COUNTRY.GB)).toBe(CONST.COUNTRY.GB);
+        });
+
+        it('returns undefined for undefined or unsupported values', () => {
+            expect(getSelectableCardProgramKey(undefined)).toBeUndefined();
+            expect(getSelectableCardProgramKey('CURRENT')).toBeUndefined();
+        });
+    });
+
+    describe('getCardProgramKeyFromValue', () => {
+        it('returns any known program key, including the non-selectable ones', () => {
+            expect(getCardProgramKeyFromValue(CONST.COUNTRY.US)).toBe(CONST.COUNTRY.US);
+            expect(getCardProgramKeyFromValue(CONST.COUNTRY.GB)).toBe(CONST.COUNTRY.GB);
+            expect(getCardProgramKeyFromValue(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT)).toBe(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT);
+            expect(getCardProgramKeyFromValue(CONST.TRAVEL.PROGRAM_TRAVEL_US)).toBe(CONST.TRAVEL.PROGRAM_TRAVEL_US);
+        });
+
+        it('returns undefined for undefined or unknown values', () => {
+            expect(getCardProgramKeyFromValue(undefined)).toBeUndefined();
+            expect(getCardProgramKeyFromValue('XX')).toBeUndefined();
+        });
+    });
+
+    describe('buildCardFeedKey / parseCardFeedKey', () => {
+        it('round-trips a fundID and program into and out of the composite value', () => {
+            const feed = buildCardFeedKey(16, CONST.COUNTRY.GB);
+            expect(feed).toBe('16_GB');
+            expect(parseCardFeedKey(feed)).toEqual({fundID: 16, programKey: CONST.COUNTRY.GB});
+        });
+
+        it('parses a legacy bare numeric value (stored before the program was persisted) with an undefined program', () => {
+            expect(parseCardFeedKey(16)).toEqual({fundID: 16, programKey: undefined});
+            expect(parseCardFeedKey('16')).toEqual({fundID: 16, programKey: undefined});
+        });
+
+        it('keeps any known program key (not only user-selectable ones)', () => {
+            expect(parseCardFeedKey('16_CURRENT')).toEqual({fundID: 16, programKey: CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT});
+            expect(parseCardFeedKey(`16_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`)).toEqual({fundID: 16, programKey: CONST.TRAVEL.PROGRAM_TRAVEL_US});
+        });
+
+        it('drops an unknown program key while keeping the fundID', () => {
+            expect(parseCardFeedKey('16_XX')).toEqual({fundID: 16, programKey: undefined});
+        });
+
+        it('returns undefined parts for an undefined or non-numeric fundID', () => {
+            expect(parseCardFeedKey(undefined)).toEqual({fundID: undefined, programKey: undefined});
+            expect(parseCardFeedKey('_GB')).toEqual({fundID: undefined, programKey: CONST.COUNTRY.GB});
+        });
+    });
+
+    describe('getProgramKeyForCard', () => {
+        it('maps GB cards to GB', () => {
+            expect(getProgramKeyForCard(gbCard)).toBe(CONST.COUNTRY.GB);
+        });
+
+        it('treats US, legacy (no feedCountry), and missing cards as US', () => {
+            expect(getProgramKeyForCard(usCard)).toBe(CONST.COUNTRY.US);
+            expect(getProgramKeyForCard(legacyCard)).toBe(CONST.COUNTRY.US);
+            expect(getProgramKeyForCard(undefined)).toBe(CONST.COUNTRY.US);
+        });
+    });
+
+    describe('getConfiguredExpensifyCardProgramKeys', () => {
+        it('returns both programs (US before GB) when both have a settlement bank account', () => {
+            const settings = createMock<ExpensifyCardSettings>({
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
+                [CONST.COUNTRY.GB]: {paymentBankAccountID: 2},
+            });
+            expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([CONST.COUNTRY.US, CONST.COUNTRY.GB]);
+        });
+
+        it('ignores program blocks without a settlement bank account', () => {
+            const settings = createMock<ExpensifyCardSettings>({
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 1},
+                [CONST.COUNTRY.GB]: {isEnabled: true},
+            });
+            expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([CONST.COUNTRY.US]);
+        });
+
+        it('returns an empty list for flat/legacy settings with no nested program', () => {
+            const settings = createMock<ExpensifyCardSettings>({domainName: 'legacy.com', isEnabled: true});
+            expect(getConfiguredExpensifyCardProgramKeys(settings)).toEqual([]);
+        });
+    });
+
+    describe('filterCardsListByProgram', () => {
+        const cardsList: WorkspaceCardsList = {'1': usCard, '2': gbCard, '3': legacyCard};
+        // Set the `cardList` meta entry separately: WorkspaceCardsList's string index signature is `Card`, so including it in
+        // the object literal would fail typechecking even though the runtime shape is correct.
+        cardsList.cardList = {someUnassigned: 'XXXX1234'};
+
+        it('keeps only the selected program cards and preserves the cardList meta entry', () => {
+            const gbOnly = filterCardsListByProgram(cardsList, CONST.COUNTRY.GB);
+            expect(Object.keys(gbOnly ?? {}).sort()).toEqual(['2', 'cardList']);
+
+            const usOnly = filterCardsListByProgram(cardsList, CONST.COUNTRY.US);
+            // US program keeps the explicit US card and the legacy card (no feedCountry).
+            expect(Object.keys(usOnly ?? {}).sort()).toEqual(['1', '3', 'cardList']);
+        });
+    });
+
+    describe('getExpensifyCardProgramCurrency', () => {
+        it('prefers an explicit currency over the program/country derivation', () => {
+            expect(getExpensifyCardProgramCurrency(CONST.COUNTRY.GB, CONST.COUNTRY.IE, CONST.CURRENCY.GBP)).toBe(CONST.CURRENCY.GBP);
+        });
+
+        it('returns USD for the US program when no explicit currency is set', () => {
+            expect(getExpensifyCardProgramCurrency(CONST.COUNTRY.US, undefined, undefined)).toBe(CONST.CURRENCY.USD);
+        });
+
+        it('derives GBP for the GB program (country GB) when no explicit currency is set', () => {
+            expect(getExpensifyCardProgramCurrency(CONST.COUNTRY.GB, CONST.COUNTRY.GB, undefined)).toBe(CONST.CURRENCY.GBP);
+        });
+
+        it('derives EUR for the GB program in a non-GBP country when no explicit currency is set', () => {
+            expect(getExpensifyCardProgramCurrency(CONST.COUNTRY.GB, CONST.COUNTRY.IE, undefined)).toBe(CONST.CURRENCY.EUR);
+        });
     });
 });

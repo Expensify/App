@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useDefaultFundID from '@hooks/useDefaultFundID';
 
+import {buildCardFeedKey} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -398,17 +399,17 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
                 policyAccountID: 0,
             };
-            const lastSelectedExpensifyCardFeed = 11111;
+            const lastSelectedFundID = 11111;
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, lastSelectedExpensifyCardFeed);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, buildCardFeedKey(lastSelectedFundID, CONST.COUNTRY.US));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedFundID}`, {
                 [CONST.COUNTRY.US]: {
                     paymentBankAccountID: 1234,
                 },
             });
             const {result} = renderHook(() => useDefaultFundID(policy.id));
 
-            expect(result?.current).toBe(lastSelectedExpensifyCardFeed);
+            expect(result?.current).toBe(lastSelectedFundID);
         });
 
         it('should return workspaceAccountID for given policyID', async () => {

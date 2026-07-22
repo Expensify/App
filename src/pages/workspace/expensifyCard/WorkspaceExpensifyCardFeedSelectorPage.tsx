@@ -19,9 +19,12 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import type {CardProgramKey} from '@libs/CardUtils';
+import {buildCardFeedKey, getCardSettings, getConfiguredExpensifyCardProgramKeys, getExpensifyCardProgramCurrency, parseCardFeedKey} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -53,6 +56,7 @@ import {View} from 'react-native';
 
 type ExpensifyFeedListItem = ListItem & {
     value: number;
+    programKey: CardProgramKey;
 };
 
 type WorkspaceExpensifyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED>;
@@ -73,7 +77,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const primaryContactMethod = usePrimaryContactMethod();
     const defaultFundID = useDefaultFundID(policyID);
-    const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
+    const lastSelectedExpensifyCardFeedID = parseCardFeedKey(lastSelectedExpensifyCardFeed).fundID ?? defaultFundID;
+    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, lastSelectedExpensifyCardFeedID);
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
@@ -113,7 +118,12 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
             showDelegateNoAccessModal();
             return;
         }
-        updateSelectedExpensifyCardFeed(issueCardFundID, policyID);
+        // When `issueCardFundID` is the last-selected feed, `selectedProgramKey` already tracks the user's chosen program
+        // for it (a fund can back both a US and a GB program). Otherwise `issueCardFundID` resolved to a different single
+        // primary feed, so fall back to that feed's first configured program.
+        const issueCardProgramKey =
+            issueCardFundID === lastSelectedExpensifyCardFeedID ? selectedProgramKey : (primaryFeeds.find((entry) => entry.fundID === issueCardFundID)?.programKey ?? selectedProgramKey);
+        updateSelectedExpensifyCardFeed(issueCardFundID, policyID, issueCardProgramKey);
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
@@ -134,11 +144,17 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => {
         const isFeedPendingDelete = entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const description = getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList);
+        const hasMultiplePrograms = getConfiguredExpensifyCardProgramKeys(entry.settings).length > 1;
+        const programSettings = getCardSettings(entry.settings, entry.programKey);
+        const labelSuffix = hasMultiplePrograms ? `(${getExpensifyCardProgramCurrency(entry.programKey, programSettings?.country, programSettings?.currency)})` : '';
+        const rowKey = buildCardFeedKey(entry.fundID, entry.programKey);
         return {
             value: entry.fundID,
-            text: getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList),
-            keyForList: entry.fundID.toString(),
-            isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
+            programKey: entry.programKey,
+            text: labelSuffix ? `${description} ${labelSuffix}` : description,
+            keyForList: rowKey,
+            isSelected: entry.fundID === lastSelectedExpensifyCardFeedID && entry.programKey === selectedProgramKey,
             isDisabled: isFeedPendingDelete || (isOtherWorkspaceSection && isOffline),
             pendingAction: entry.settings.pendingAction,
             errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
@@ -168,20 +184,20 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         resetCardFlowState();
         const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
         if (!isUserValidated || isUserFromPublicDomain) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value, feed.programKey));
             return;
         }
 
         const primaryLoginKey = primaryContactMethod ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === primaryContactMethod.toLowerCase()) : undefined;
         const isPrimaryContactValidated = primaryLoginKey ? !!loginList?.[primaryLoginKey]?.validatedDate : !primaryContactMethod;
         if (!isPrimaryContactValidated) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value, feed.programKey));
             return;
         }
 
-        linkCardFeedToPolicy(feed.value, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
+        linkCardFeedToPolicy(feed.value, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD, feed.programKey)
             .then(() => {
-                updateSelectedExpensifyCardFeed(feed.value, policyID);
+                updateSelectedExpensifyCardFeed(feed.value, policyID, feed.programKey);
                 goBack();
             })
             .catch((error: TranslationPaths) => {
@@ -194,7 +210,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
         resetCardFlowState();
-        updateSelectedExpensifyCardFeed(feed.value, policyID);
+        updateSelectedExpensifyCardFeed(feed.value, policyID, feed.programKey);
         goBack();
     };
 
@@ -257,7 +273,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                         onSelectRow={selectFeed}
                         data={primaryListData}
                         alternateNumberOfSupportedLines={2}
-                        initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
+                        initiallyFocusedItemKey={buildCardFeedKey(lastSelectedExpensifyCardFeedID, selectedProgramKey)}
                         addBottomSafeAreaPadding
                         listFooterContent={issueNewCardAndOtherFeedsFooter}
                         onDismissError={onDismissError}

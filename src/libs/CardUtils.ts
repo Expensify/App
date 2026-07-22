@@ -760,7 +760,7 @@ function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, feedKeysWithCa
             if (value?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value?.pending) {
                 return false;
             }
-            if (key === CONST.EXPENSIFY_CARD.BANK) {
+            if (key.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
                 return false;
             }
 
@@ -1413,6 +1413,145 @@ function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): Card
     });
 }
 
+/** The Expensify Card programs a user can issue into/select, in display order (US before GB). */
+const EXPENSIFY_CARD_ISSUABLE_PROGRAMS = [CONST.COUNTRY.US, CONST.COUNTRY.GB] as const;
+
+/**
+ * A single settings NVP can hold more than one provisioned Expensify Card program (e.g. a domain with both a US and a GB feed).
+ * The user-selectable programs are US and GB;
+ * Returns the configured program keys in display order (US before GB).
+ */
+function getConfiguredExpensifyCardProgramKeys(cardSettings: OnyxEntry<ExpensifyCardSettings>): CardProgramKey[] {
+    if (!cardSettings) {
+        return [];
+    }
+
+    return EXPENSIFY_CARD_ISSUABLE_PROGRAMS.filter((key) => {
+        const nested = cardSettings[key];
+        return nested != null && typeof nested === 'object' && !Array.isArray(nested) && nested.paymentBankAccountID != null;
+    });
+}
+
+/**
+ * Maps a card to the program it belongs to. Cards on the UK/EU program carry `feedCountry === 'GB'`; every other card
+ * (US program, or pre-2024 cards that omit `feedCountry`/use the deprecated `CURRENT` value) is treated as US.
+ */
+function getProgramKeyForCard(card: Card | undefined): CardProgramKey {
+    return isUkEuExpensifyCard(card) ? CONST.COUNTRY.GB : CONST.COUNTRY.US;
+}
+
+/**
+ * A single `cards_{fundID}_Expensify Card` Onyx list holds every card for the feed regardless of program (the backend keys
+ * Expensify Card settings/cards by fundID, not by country). This keeps only the cards belonging to `programKey`, preserving the
+ * `cardList` meta entry.
+ */
+function filterCardsListByProgram(cardsList: WorkspaceCardsList | undefined, programKey: CardProgramKey): WorkspaceCardsList | undefined {
+    if (!cardsList) {
+        return cardsList;
+    }
+
+    const result: WorkspaceCardsList = {};
+    if (cardsList.cardList) {
+        result.cardList = cardsList.cardList;
+    }
+    forEachAssignedCard(cardsList, (card) => {
+        if (getProgramKeyForCard(card) !== programKey) {
+            return;
+        }
+        result[card.cardID.toString()] = card;
+    });
+    return result;
+}
+
+/**
+ * Resolves the settlement currency for an Expensify Card program. Prefers an explicit `currency` (from the card or the
+ * program's settings NVP), then falls back to the program itself: the US (and deprecated CURRENT) program is always USD,
+ * the GB program is GBP for the UK/Gibraltar/unset country and EUR elsewhere. Defaults to USD when the program is unknown.
+ */
+function getExpensifyCardProgramCurrency(programKey: CardProgramKey | undefined, country: string | undefined, explicitCurrency: string | undefined): string {
+    if (explicitCurrency) {
+        return explicitCurrency;
+    }
+
+    if (programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
+        return CONST.CURRENCY.USD;
+    }
+
+    if (programKey === CONST.COUNTRY.GB) {
+        // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
+        if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
+            return CONST.CURRENCY.GBP;
+        }
+
+        // All other countries on this program use EUR
+        return CONST.CURRENCY.EUR;
+    }
+
+    return CONST.CURRENCY.USD;
+}
+
+/**
+ * Narrows a stored program value (e.g. the `lastSelectedExpensifyCardProgram` Onyx string) to a selectable program key.
+ * Only US and GB are user-selectable; anything else (including undefined) returns undefined for the caller to handle.
+ */
+function getSelectableCardProgramKey(programKey: string | undefined): CardProgramKey | undefined {
+    return EXPENSIFY_CARD_ISSUABLE_PROGRAMS.find((issuableProgram) => issuableProgram === programKey);
+}
+
+/** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
+const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
+
+/**
+ * Narrows a value to a known Expensify Card program key (US, CURRENT, GB or TRAVEL_US), or undefined if it is none of them.
+ * This is the general narrowing used when parsing stored/serialized program values; use `getSelectableCardProgramKey` when
+ * you specifically need to restrict to the user-selectable programs (e.g. the workspace feed selector).
+ */
+function getCardProgramKeyFromValue(programKey: string | undefined): CardProgramKey | undefined {
+    return NESTED_EXPENSIFY_CARD_PROGRAM_KEYS.find((knownProgramKey) => knownProgramKey === programKey);
+}
+
+/**
+ * A single fund (fundID) can back more than one Expensify Card program (US/GB), so a feed is identified by the `fundID` and
+ * `programKey` together. This encodes that pair into the composite string stored in `LAST_SELECTED_EXPENSIFY_CARD_FEED`
+ * (and used as the feed-selector row key), e.g. `16_GB`.
+ */
+function buildCardFeedKey(fundID: number, programKey: CardProgramKey): string {
+    return `${fundID}_${programKey}`;
+}
+
+/**
+ * Parses the composite `LAST_SELECTED_EXPENSIFY_CARD_FEED` key (`fundID_programKey`, e.g. `16_GB`) back into its parts.
+ * The `programKey` is narrowed to any known program (US, CURRENT, GB, TRAVEL_US) — callers that need only user-selectable
+ * programs should narrow further with `getSelectableCardProgramKey`. Tolerates a bare numeric value (e.g. `16` from before
+ * the program was persisted with the feed) by returning an undefined `programKey`, letting callers fall back to the fund's
+ * first configured program. Only the first `_` is treated as the separator so program keys that themselves contain a `_`
+ * (e.g. `TRAVEL_US`) round-trip intact.
+ */
+function parseCardFeedKey(feedKey: string | number | undefined): {fundID: number | undefined; programKey: CardProgramKey | undefined} {
+    if (feedKey === undefined) {
+        return {fundID: undefined, programKey: undefined};
+    }
+
+    const feedKeyString = String(feedKey);
+    const separatorIndex = feedKeyString.indexOf('_');
+    const fundIDStr = separatorIndex === -1 ? feedKeyString : feedKeyString.slice(0, separatorIndex);
+    const programKeyStr = separatorIndex === -1 ? undefined : feedKeyString.slice(separatorIndex + 1);
+    const fundID = fundIDStr ? Number(fundIDStr) : NaN;
+
+    return {
+        fundID: Number.isNaN(fundID) ? undefined : fundID,
+        programKey: getCardProgramKeyFromValue(programKeyStr),
+    };
+}
+
+/**
+ * Resolves which program's country a newly issued card should be routed to. A fund's settings can hold both a US and a
+ * GB program, so pass the selected program's country when the EU/UK beta is on. Without the beta only US exists, so keep sending US explicitly.
+ */
+function getIssuedCardFeedCountry(isEuUkEnabled: boolean, selectedProgramKey: CardProgramKey): CardProgramKey {
+    return isEuUkEnabled ? selectedProgramKey : CONST.COUNTRY.US;
+}
+
 function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
@@ -1445,8 +1584,14 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
     );
 }
 
-/** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
-const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
+/**
+ * Resolves the settings for the display page's currently-selected program, falling back to auto-detect when that program
+ * is not nested on the NVP. This keeps legacy domains the backend still sends flat (or single-program feeds that default to
+ * US) working, without changing `getCardSettings`, whose strict-`programKey` behavior other callers (e.g. currency resolution) rely on.
+ */
+function getCardSettingsForSelectedProgram(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey | undefined): NestedExpensifyCardSettings | undefined {
+    return getCardSettings(cardSettings, programKey) ?? getCardSettings(cardSettings);
+}
 
 function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
     const nested = settings[key];
@@ -1488,6 +1633,26 @@ function getLinkedPolicyIDsFromExpensifyCardSettings(settings: ExpensifyCardSett
     for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
         ids.push(...collectLinkedPolicyIDsFromBase(getNestedExpensifyCardProgramSettings(settings, key)));
     }
+    if (ids.length === 0) {
+        return undefined;
+    }
+    return dedupePolicyIDsCaseInsensitive(ids);
+}
+
+/**
+ * Linked workspace IDs for a single program on the feed. A domain provisioned with more than one program (e.g. US and GB)
+ * keeps a separate `linkedPolicyIDs` on each program's nested block, so a workspace linked to only the US program must not
+ * appear linked to the GB program. Root-level `linkedPolicyIDs` still apply to the program because legacy/single-program
+ * feeds store the links flat on the root rather than nested.
+ */
+function getLinkedPolicyIDsForExpensifyCardProgram(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey): string[] | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    const ids: string[] = [
+        ...collectLinkedPolicyIDsFromBase(settings as ExpensifyCardSettingsBase),
+        ...collectLinkedPolicyIDsFromBase(getNestedExpensifyCardProgramSettings(settings, programKey)),
+    ];
     if (ids.length === 0) {
         return undefined;
     }
@@ -1892,46 +2057,35 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
 }
 
 /**
- * Determines the currency of the card and/or feed. Data sources are prioritized as follows:
- * 1. Card currency, if card is passed and has a currency set on it
+ * Determines the currency of a feed. Data sources are prioritized as follows:
+ * 1. Feed settings currency, if settings are passed and have a currency
+ * 2. Use USD for US program keys
+ * 3. For UK/EU feeds, determine currency based on the feed's country, defaulting to GBP
+ * 4. Finally, if all else fails, fallback to USD
+ */
+function getFeedCurrency(cardSettings?: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): string {
+    const settings = getCardSettings(cardSettings, programKey);
+    return getExpensifyCardProgramCurrency(programKey, settings?.country, settings?.currency);
+}
+
+/**
+ * Determines the currency of a card. Data sources are prioritized as follows:
+ * 1. Card currency, if the card has a currency set on it
  * 2. Feed settings currency, if settings are passed and have a currency
  * 3. Use USD for US program keys
  * 4. For UK/EU feeds, determine currency based on card country, defaulting to GBP
  * 5. Finally, if all else fails, fallback to USD
  */
-function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
     // If currency is set on the card itself, use it.
     if (card?.nameValuePairs?.currency) {
         return card.nameValuePairs.currency;
     }
 
-    // If not, attempt to get currency from the card settings.
+    // If not, attempt to get currency from the card settings. A card's `feedCountry` is its own program key.
     const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
     const settings = getCardSettings(cardSettings, programKey);
-    if (settings?.currency) {
-        return settings.currency;
-    }
-
-    // Fall back to the program and country to try to determine the correct currency.
-    // US programs are always USD
-    if (programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
-        return CONST.CURRENCY.USD;
-    }
-
-    // For UK/EU cards, determine currency by country
-    const country = card?.nameValuePairs?.country;
-    if (programKey === CONST.COUNTRY.GB) {
-        // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
-        if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
-            return CONST.CURRENCY.GBP;
-        }
-
-        // All other countries on this program use EUR
-        return CONST.CURRENCY.EUR;
-    }
-
-    // Finally if all else fails, default to USD
-    return CONST.CURRENCY.USD;
+    return getExpensifyCardProgramCurrency(programKey, card?.nameValuePairs?.country, settings?.currency);
 }
 
 /**
@@ -2075,8 +2229,19 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
+    getCardSettingsForSelectedProgram,
     getCardProgramKey,
+    getConfiguredExpensifyCardProgramKeys,
+    getProgramKeyForCard,
+    filterCardsListByProgram,
+    getExpensifyCardProgramCurrency,
+    getSelectableCardProgramKey,
+    getCardProgramKeyFromValue,
+    buildCardFeedKey,
+    parseCardFeedKey,
+    getIssuedCardFeedCountry,
     getLinkedPolicyIDsFromExpensifyCardSettings,
+    getLinkedPolicyIDsForExpensifyCardProgram,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
     getDomainByFundID,
@@ -2126,7 +2291,8 @@ export {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     isExpiredCard,
-    getCardOrFeedCurrency,
+    getCardCurrency,
+    getFeedCurrency,
     getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,
