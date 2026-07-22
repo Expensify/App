@@ -19,12 +19,6 @@ Onyx.connectWithoutView({
     callback: (value) => (fullstorySession = value ?? {}),
 });
 
-// Use connectWithoutView because it is only for fullstory initialization
-Onyx.connectWithoutView({
-    key: ONYXKEYS.USER_METADATA,
-    callback: (value) => FS.consentAndIdentify(value, fullstorySession),
-});
-
 // Placeholder Browser API does not support Manual Page definition
 class FSPage implements FSPageLike {
     start() {}
@@ -150,5 +144,11 @@ const FS: Fullstory = {
         // It's a mobile-only feature
     },
 };
+
+// Use connectWithoutView because it is only for fullstory initialization
+Onyx.connectWithoutView({
+    key: ONYXKEYS.USER_METADATA,
+    callback: (value) => FS.consentAndIdentify(value, fullstorySession),
+});
 
 export default FS;
