@@ -1,4 +1,5 @@
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {isRecord} from '@libs/ObjectUtils';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -6,10 +7,6 @@ import SCREENS from '@src/SCREENS';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 
 type RootNavigationState = NavigationState | PartialState<NavigationState> | undefined;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null;
-}
 
 function getStringParam(params: unknown, key: string): string | undefined {
     if (!isRecord(params)) {
