@@ -48,7 +48,7 @@ function UserAvatar({
             {resolvedAvatar.variant === 'initials' ? (
                 <AvatarInitials
                     initials={resolvedAvatar.initials}
-                    colors={resolvedAvatar.colors}
+                    urlColors={resolvedAvatar.colors}
                     size={size}
                     type={CONST.ICON_TYPE_AVATAR}
                     initialsContainerStyles={imageStyles}
