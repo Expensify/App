@@ -412,13 +412,22 @@ export default createOnyxDerivedValueConfig({
             canPersistSignaturesWithoutRecompute = true;
         }
 
-        // Baseline writes that may ride an early return: only signature snapshots that require no recompute.
-        // conciergeReportID/isTrackIntentUser baselines advance exclusively in the final return, and only on
-        // passes that recomputed everything with the current values — advancing them on other passes would
-        // silently absorb a change and suppress the full recompute its next delivery should cause.
+        // Baseline writes that may ride an early return. Once a baseline exists, conciergeReportID/isTrackIntentUser
+        // only advance in the final return, and only on passes that recomputed everything with the current
+        // values — advancing them on other passes would silently absorb a change and suppress the full
+        // recompute its next delivery should cause. A missing (undefined) baseline is different: there is no
+        // drift to absorb yet, so it can always be seeded here, even on a pass triggered by something else
+        // entirely — otherwise a value written before these fields existed could stay unseeded indefinitely
+        // if the key that would normally detect the change keeps landing on an otherwise-empty pass.
         const metaPatch: Partial<ReportAttributesDerivedValue> = {};
         if (canPersistSignaturesWithoutRecompute && nextPolicySignatures !== storedPolicySignatures) {
             metaPatch.policySignatures = nextPolicySignatures;
+        }
+        if (storedConciergeReportID === undefined) {
+            metaPatch.conciergeReportID = nextConciergeReportID;
+        }
+        if (storedIsTrackIntentUser === undefined) {
+            metaPatch.isTrackIntentUser = nextIsTrackIntentUser;
         }
         const withMetaPatch = (value: ReportAttributesDerivedValue): ReportAttributesDerivedValue => (Object.keys(metaPatch).length > 0 ? {...value, ...metaPatch} : value);
 

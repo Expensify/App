@@ -437,6 +437,34 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(deliveryResult?.reports.r2?.reportName).toBe('Test Report');
     });
 
+    it('seeds missing conciergeReportID/isTrackIntentUser baselines even when the pass has no other updates', () => {
+        // Old-format persisted value: reports/policySignatures exist, but conciergeReportID/isTrackIntentUser
+        // were never stored (written before these fields existed). A lone CONCIERGE_REPORT_ID delivery is the
+        // only thing that changes in this pass, so the seed must not depend on some other update riding along.
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+            },
+        };
+
+        const result = config.compute(buildArgs(policies, undefined, null, 'conciergeNew'), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.CONCIERGE_REPORT_ID]: 'conciergeNew' as never},
+        });
+
+        // The baseline is seeded from this pass alone, without forcing a full recompute.
+        expect(result?.conciergeReportID).toBe('conciergeNew');
+        expect(result?.isTrackIntentUser).toBe(false);
+        expect(result?.reports.r1?.reportName).toBe('Old Name 1');
+        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
+    });
+
     it('does not persist advanced policy signatures when the reports collection is unavailable', () => {
         const policy1Changed = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
         const updatedPolicies: OnyxCollection<Policy> = {
