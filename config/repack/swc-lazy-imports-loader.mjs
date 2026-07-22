@@ -12,8 +12,10 @@ export default async function swcLazyImportsLoader(source, inputSourceMap) {
         const result = await rspack.experiments.swc.transform(source, {
             filename: this.resourcePath,
             isModule: true,
-            // node 24 targets = no syntax lowering here (oxc already transpiled)
-            env: {targets: {node: 24}},
+            env: {
+                targets: {node: 24},
+                include: ['transform-block-scoping'],
+            },
             module: {type: 'commonjs', lazy: true},
             sourceMaps: !!this.sourceMap,
             inputSourceMap: inputSourceMap ? JSON.stringify(inputSourceMap) : undefined,
