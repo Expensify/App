@@ -1,10 +1,12 @@
 import Button from '@components/ButtonComposed';
+import Image from '@components/Image';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,7 +18,9 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
-import {Image, View} from 'react-native';
+// Animated is required to keep the marketing window aligned with the side panel transition.
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
 
 type ProductMarketingWindowProps = {
     /** Content variant to display, already resolved for the user's audience. */
@@ -37,12 +41,14 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const insets = useSafeAreaInsets();
+    const {sidePanelOffset} = useSidePanelState();
     const theme = useTheme();
     const shouldUseLightMarketingWindow = theme.colorScheme === CONST.COLOR_SCHEME.DARK;
     const buttonSize = shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL;
+    const sidePanelAnimatedStyle = shouldUseNarrowLayout ? undefined : {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]};
 
     return (
-        <View
+        <Animated.View
             style={[
                 styles.productMarketingWindowContainer,
                 shouldUseLightMarketingWindow ? styles.productMarketingWindowContainerLight : styles.productMarketingWindowContainerDark,
@@ -50,6 +56,7 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                 shouldUseNarrowLayout
                     ? [styles.productMarketingWindowContainerNarrow, {bottom: variables.productMarketingWindowOffsetNarrow + insets.bottom}]
                     : styles.productMarketingWindowContainerWide,
+                sidePanelAnimatedStyle,
             ]}
             testID={ProductMarketingWindow.displayName}
         >
@@ -62,12 +69,11 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                 testID="ProductMarketingWindowVisual"
             >
                 {variant.visual.type === 'image' ? (
+                    // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
                     <Image
                         source={variant.visual.source}
                         style={styles.productMarketingWindowImage}
                         resizeMode="cover"
-                        accessibilityIgnoresInvertColors
-                        testID="ProductMarketingWindowImage"
                     />
                 ) : (
                     <ImageSVG
@@ -89,16 +95,6 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                 testID="ProductMarketingWindowActions"
             >
                 <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={buttonSize}
-                    style={styles.flex1}
-                    onPress={onCtaPress}
-                    sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
-                    testID="ProductMarketingWindowCTA"
-                >
-                    <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
-                </Button>
-                <Button
                     size={buttonSize}
                     style={styles.flex1}
                     innerStyles={shouldUseLightMarketingWindow ? styles.productMarketingWindowDismissButtonLight : styles.productMarketingWindowDismissButtonDark}
@@ -111,8 +107,18 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                         {translate('common.dismiss')}
                     </Button.Text>
                 </Button>
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={buttonSize}
+                    style={styles.flex1}
+                    onPress={onCtaPress}
+                    sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
+                    testID="ProductMarketingWindowCTA"
+                >
+                    <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
+                </Button>
             </View>
-        </View>
+        </Animated.View>
     );
 }
 
