@@ -45,6 +45,7 @@ import type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     UpdateRoleParams,
+    ViolationsInactiveVendorParams,
     ViolationsIncreasedDistanceParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
@@ -348,6 +349,7 @@ const translations = {
         change: 'Change',
         category: 'Category',
         vendor: 'Vendor',
+        supplier: 'Supplier',
         report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
@@ -377,8 +379,6 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
-        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -1239,6 +1239,7 @@ const translations = {
 
             return added > 1 ? `${added} members have been added.` : '1 member has been added.';
         },
+        importMembersRolePermissionWarning: "You don't have permission to assign some member roles. Any affected new members were invited as members.",
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
@@ -4534,6 +4535,24 @@ const translations = {
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
         },
+        nudge: {
+            airfareManual:
+                'Hey there! Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Hey there! Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Hey there! Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Hey there! Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
         flightTo: 'Flight to',
         trainTo: 'Train to',
         carRental: ' car rental',
@@ -4564,6 +4583,7 @@ const translations = {
             delete: 'Delete workspace',
             settings: 'Settings',
             categories: 'Categories',
+            vendors: 'Vendors',
             tags: 'Tags',
             customField1: 'Custom field 1',
             customField2: 'Custom field 2',
@@ -5086,6 +5106,10 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
+            defaultSupplier: 'Default supplier',
+            defaultSupplierDescription: 'Set a default supplier that will apply to all credit card transactions upon export.',
+            noSuppliersFound: 'No suppliers found',
+            noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
             accountingMethods: {
                 label: 'When to Export',
                 description: 'Choose when to export the expenses:',
@@ -6381,6 +6405,12 @@ const translations = {
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
+        vendors: {
+            emptyTitle: 'No vendors yet',
+            emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
+            findVendor: 'Find vendor',
+            managedInAccountingSoftware: 'Vendors are managed in your',
+        },
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
@@ -6548,6 +6578,7 @@ const translations = {
                 description: 'Select the settings to overwrite on your existing workspaces.',
                 accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
                 travelAddressMismatch: 'You can only copy travel if every selected workspace has a company address.',
+                currencyBlockedByBankAccount: "You can only copy currency if every selected workspace with a connected bank account uses the source workspace's currency.",
             },
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',
@@ -7280,6 +7311,7 @@ const translations = {
             notAllowedToAddBankAccount: 'Your workspace is set to an unsupported currency. Contact a workspace admin with permission to change it.',
             yourWorkspace: `Your workspace is set to an unsupported currency. View the <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">list of supported currencies</a>.`,
             chooseAnExisting: 'Choose an existing bank account to pay expenses or add a new one.',
+            changeBankAccount: 'Change bank account',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transfer owner',
@@ -8064,12 +8096,18 @@ const translations = {
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 describeRuleTitle: 'Describe the rule for your AI agent to follow',
+                describeRuleHeadline: 'Describe your rule',
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
+                suggestionsTab: 'Suggested',
+                writeTab: 'Edit',
+                findSuggestion: 'Find a rule',
+                emptySuggestionsTitle: 'No suggestions available',
+                emptySuggestionsSubtitle: 'Try writing your own rule.',
                 gotIt: 'Got it',
             },
         },
@@ -8730,6 +8768,7 @@ const translations = {
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copied overview from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copied currency from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copied members from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copied 1 report field from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -9080,6 +9119,7 @@ const translations = {
         serverResults: 'Search results',
         searchIn: 'Search in',
         askConcierge: (message: string) => `Ask Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Go to ${destination}`,
         searchPlaceholder: 'Search for something...',
         suggestions: 'Suggestions',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
@@ -9617,7 +9657,7 @@ const translations = {
         duplicatedTransaction: 'Potential duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
-        inactiveVendor: 'Vendor no longer valid',
+        inactiveVendor: ({isSupplier = false}: ViolationsInactiveVendorParams = {}) => (isSupplier ? 'Supplier no longer valid' : 'Vendor no longer valid'),
         invoiceMarkup: (invoiceMarkup: number) => `Marked up by ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
