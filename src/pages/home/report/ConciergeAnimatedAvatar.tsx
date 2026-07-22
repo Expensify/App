@@ -1,3 +1,4 @@
+import Avatar from '@components/Avatar';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 
@@ -29,13 +30,25 @@ function ConciergeAnimatedAvatar() {
 
     return (
         <View style={[StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT), styles.overflowHidden]}>
-            <Lottie
-                source={ANIMATION}
-                autoPlay
-                loop
-                style={styles.conciergeAnimatedAvatar}
-                webStyle={styles.conciergeAnimatedAvatar}
-            />
+            {/* Plain Concierge avatar shown underneath while the Lottie animation isn't ready yet. Lottie renders a
+                transparent placeholder until it loads, so the static image fills the grey gap and the animation
+                paints over it once it starts. */}
+            <View style={styles.pAbsolute}>
+                <Avatar
+                    source={CONST.CONCIERGE_ICON_URL}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.DEFAULT}
+                />
+            </View>
+            <View style={styles.pAbsolute}>
+                <Lottie
+                    source={ANIMATION}
+                    autoPlay
+                    loop
+                    style={styles.conciergeAnimatedAvatar}
+                    webStyle={styles.conciergeAnimatedAvatar}
+                />
+            </View>
         </View>
     );
 }
