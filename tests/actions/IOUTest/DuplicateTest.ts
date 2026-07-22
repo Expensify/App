@@ -1839,6 +1839,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 delegateAccountID: undefined,
                 policyTagList: targetPolicyTags ?? {},
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
