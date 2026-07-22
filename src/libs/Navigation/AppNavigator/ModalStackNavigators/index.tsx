@@ -1175,7 +1175,7 @@ const TransactionDuplicateStackNavigator = createModalStackNavigator<Transaction
     [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewDescription').default,
     [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTaxCode').default,
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewBillablePage').default,
-    [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewReimbursable').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewReimbursablePage').default,
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicConfirmationPage').default,
 });
 
