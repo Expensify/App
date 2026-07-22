@@ -88,6 +88,30 @@ Example phrases for your agent's instructions:
 
 ---
 
+## How to write instructions that hold expenses until a problem is fixed
+
+Places specific expenses on a submitted report on hold, with a reason the submitter can see. Held expenses show a hold violation to the submitter and approver and cannot be approved or paid until the hold is released, so the report waits while the submitter fixes the problem. Works for the report's current approver or a workspace admin.
+
+Example phrases for your agent's instructions:
+- Hold any meal expense that is missing the Offsite tag and tell the submitter to add it
+- If an expense over $75 has no receipt, hold it until a receipt is attached
+- Require a note explaining the business purpose on every flight — hold flights that don't have one
+- Block reports where an expense is missing a required tag until the submitter fixes it
+
+---
+
+## How to write instructions that release a hold once the problem is fixed
+
+Releases the hold on previously held expenses so the report can continue through the approval flow. Used when the agent re-evaluates a report and the issue named in the hold reason has been fixed.
+
+Example phrases for your agent's instructions:
+- When the submitter adds the missing tag, release the hold and approve the report
+- Once a receipt is attached to a held expense, unhold it
+- Release the hold when the required note is added, and let the report continue
+- Re-check held expenses whenever the report changes and unhold the ones that now comply
+
+---
+
 ## How to write instructions that create new expense reports
 
 Creates a new expense report with a specified name, independent of any currently open report.
@@ -97,6 +121,32 @@ Example phrases for your agent's instructions:
 - Start a new report called Monthly Subscriptions
 - Open a new report for the offsite trip
 - Create a report named after the project
+
+---
+
+## How to write instructions that rename expense reports
+
+Changes the title of an existing expense report. It only updates the report name — it does not modify the report's expenses, approval state, ownership, or participants.
+
+Example phrases for your agent's instructions:
+- Rename this report to Q2 Marketing Expenses
+- Change the report title to match the project it belongs to
+- Title reports with the submitter's name and the month
+- Rename untitled reports to a short summary of their expenses
+
+---
+
+## How to write instructions that create expenses
+
+Creates a new expense — a cash or receipt expense, or a distance/mileage entry — for the person who asked, using the details in their message.
+
+Example phrases for your agent's instructions:
+- Create an expense when I give you an amount and merchant
+- Add a $25 Uber expense for my trip to the airport
+- Log 30 km of mileage for the client site visit
+- Track receipts I upload in this chat as expenses
+- Create expenses with the Travel category by default
+- Record my lunch expenses and add them to my open report
 
 ---
 
@@ -141,6 +191,18 @@ Example phrases for your agent's instructions:
 
 ---
 
+## How to write instructions that export data as a CSV file
+
+Writes tabular data — such as figures already gathered by an agent — out as a CSV file attached directly to the chat, so it can be downloaded or picked up by another agent.
+
+Example phrases for your agent's instructions:
+- Export a summary of this month's approved expenses as a CSV
+- Post a CSV of unapproved expenses by card on the 1st of each month
+- Generate a CSV report of the analysis before approving
+- Write out the workspace spend breakdown as a downloadable file
+
+---
+
 ## How to write instructions that manage workspace settings and members
 
 Inspects Workspace configuration, answers membership questions, and — for Workspace Admins — adds or removes members and modifies workspace settings such as categories and approval rules.
@@ -155,4 +217,4 @@ Example phrases for your agent's instructions:
 
 ---
 
-*This reference covers all 11 AI Agent capabilities.*
+*This reference covers all 16 AI Agent capabilities.*
