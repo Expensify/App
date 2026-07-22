@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
-import type {ComponentType, ReactNode} from 'react';
+import type {ComponentProps, ComponentType, ReactNode} from 'react';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -98,6 +98,13 @@ const queryJSON = builtQueryJSON;
 const TYPE = CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE;
 const DATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
 
+// A module-level component wrapping the subject so both React Compiler backends (Babel and OXC) classify
+// this file as containing a component and memoize it identically. Without a top-level component OXC reports
+// `no-components` and skips memoization while Babel memoizes the mock, which trips the compliance check.
+function SearchAdvancedFiltersPopupForTest(props: ComponentProps<typeof SearchAdvancedFiltersPopup>) {
+    return <SearchAdvancedFiltersPopup {...props} />;
+}
+
 describe('SearchAdvancedFiltersPopup year-selector return (BUG#1)', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -106,7 +113,7 @@ describe('SearchAdvancedFiltersPopup year-selector return (BUG#1)', () => {
     beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
 
     test('with no pending year write-back, the host shows the default Type filter (not Date)', async () => {
-        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+        render(<SearchAdvancedFiltersPopupForTest queryJSON={queryJSON} />);
         await waitForBatchedUpdates();
 
         // The default selectedFilter is TYPE, and nothing forces Date, so both the menu and the content are on Type.
@@ -121,7 +128,7 @@ describe('SearchAdvancedFiltersPopup year-selector return (BUG#1)', () => {
         setCalendarPickerSelectedYear('datePicker-dob', 1995);
         await waitForBatchedUpdates();
 
-        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+        render(<SearchAdvancedFiltersPopupForTest queryJSON={queryJSON} />);
         await waitForBatchedUpdates();
 
         expect(screen.getByText(`selectedFilter:${TYPE}`)).toBeOnTheScreen();
@@ -134,7 +141,7 @@ describe('SearchAdvancedFiltersPopup year-selector return (BUG#1)', () => {
         setCalendarPickerSelectedYear('searchSingleDate', 2018);
         await waitForBatchedUpdates();
 
-        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+        render(<SearchAdvancedFiltersPopupForTest queryJSON={queryJSON} />);
         await waitForBatchedUpdates();
 
         // effectiveFilter is forced to DATE so the CalendarPicker re-mounts to consume the picked year,
@@ -150,7 +157,7 @@ describe('SearchAdvancedFiltersPopup year-selector return (BUG#1)', () => {
         setCalendarPickerSelectedYear('searchRangeFrom', 2020);
         await waitForBatchedUpdates();
 
-        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+        render(<SearchAdvancedFiltersPopupForTest queryJSON={queryJSON} />);
         await waitForBatchedUpdates();
 
         expect(screen.getByText(`selectedFilter:${DATE}`)).toBeOnTheScreen();
@@ -163,7 +170,7 @@ describe('SearchAdvancedFiltersPopup year-selector return (BUG#1)', () => {
         clearCalendarPickerSelectedYear();
         await waitForBatchedUpdates();
 
-        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+        render(<SearchAdvancedFiltersPopupForTest queryJSON={queryJSON} />);
         await waitForBatchedUpdates();
 
         // No pending search write-back => nothing forces Date => default Type menu.

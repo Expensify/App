@@ -8,7 +8,7 @@ import DateUtils from '@libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
-import type {ComponentType, ReactNode} from 'react';
+import type {ComponentProps, ComponentType, ReactNode} from 'react';
 
 import {act} from 'react';
 import Onyx from 'react-native-onyx';
@@ -98,6 +98,13 @@ function getDisplayedYear(section: 'from' | 'to'): string {
     return String(within(node).getByText(/\d{4}/).props.children);
 }
 
+// A module-level component wrapping the subject so both React Compiler backends (Babel and OXC) classify
+// this file as containing a component and memoize it identically. Without a top-level component OXC reports
+// `no-components` and skips memoization while Babel memoizes the mock, which trips the compliance check.
+function RangeDatePickerForTest(props: ComponentProps<typeof RangeDatePicker>) {
+    return <RangeDatePicker {...props} />;
+}
+
 describe('RangeDatePicker year selector write-back (per-contextID isolation)', () => {
     beforeEach(async () => {
         await Onyx.set(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR, null);
@@ -106,7 +113,7 @@ describe('RangeDatePicker year selector write-back (per-contextID isolation)', (
 
     async function renderRangeDatePicker() {
         const result = render(
-            <RangeDatePicker
+            <RangeDatePickerForTest
                 fromValue="2010-06-15"
                 toValue="2012-06-15"
                 onFromSelected={jest.fn()}
