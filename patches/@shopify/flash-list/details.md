@@ -161,8 +161,8 @@
 - Reason: Adds an **`overrideWindowSize`** prop that lets a list declare its visible window (`{width, height}`) instead of deriving it from `measureParentSize(internalViewRef)`. Needed for an *externally-driven* list — one whose `renderScrollComponent` is a non-scrolling `View` that grows to the full content height and receives synthetic scroll events from a parent scroller. Without this, FlashList measures the outer container (as tall as all content) as its viewport and renders every row, defeating virtualization. The change is minimal: `measureParentSize` is still assigned to `outerViewSize` and used for `containerViewSizeRef` (layout-change detection) and the 0×0 hidden-guard from patch 002; only the `windowSize` fed to `updateLayoutParams` is `overrideWindowSize ?? outerViewSize`. Fully backward compatible — when the prop is unset, `windowSize === outerViewSize` and behavior is byte-identical. Used by `MoneyRequestReportView`'s horizontally-scrollable transaction table (`ExternalScrollFlashListTable`), which windows its rows against the unified list's vertical scroll.
 - Files changed: `src/FlashListProps.ts`, `src/recyclerview/RecyclerView.tsx`, `dist/FlashListProps.d.ts`, `dist/recyclerview/RecyclerView.js`.
 - Upstream PR/issue: TBD
-- E/App issue: TBD
-- PR introducing patch: TBD
+- E/App issue: https://github.com/Expensify/App/issues/91425
+- PR introducing patch: https://github.com/Expensify/App/pull/91422
 
 ### [@shopify+flash-list+2.3.0+015+mvcp-header-aware.patch](@shopify+flash-list+2.3.0+015+mvcp-header-aware.patch)
 
@@ -173,5 +173,5 @@
   Used by `MoneyRequestReportView`'s horizontally-scrollable transaction table, where the whole table is the unified list's `ListHeaderComponent`: deep links into the report actions below the table now stay anchored while the table settles, and MVCP could be re-enabled for that mode (the `{disabled: true}` workaround is removed).
 - Files changed: `src/recyclerview/RecyclerView.tsx`, `src/recyclerview/hooks/useRecyclerViewController.tsx`, `src/recyclerview/hooks/useSecondaryProps.tsx`, and their `dist` counterparts.
 - Upstream PR/issue: TBD
-- E/App issue: TBD
-- PR introducing patch: TBD
+- E/App issue: https://github.com/Expensify/App/issues/91425
+- PR introducing patch: https://github.com/Expensify/App/pull/91422
