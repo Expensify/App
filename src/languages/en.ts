@@ -1796,6 +1796,18 @@ const translations = {
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> instead of you (their Vacation Delegate) because you are not a member of this report's policy`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> instead of your Vacation Delegate <mention-user>@${delegate}</mention-user> because they are not a member of this report's policy`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> instead of their Vacation Delegate <mention-user>@${delegate}</mention-user> because they are not a member of this report's policy`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> for approval since <mention-user>@${delegate}</mention-user> can't approve your own reports`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> for approval since your Vacation Delegate, <mention-user>@${delegate}</mention-user> can't approve their own reports`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> for approval since their Vacation Delegate, <mention-user>@${delegate}</mention-user> can't approve their own reports`,
             actions: {
                 addApprover: 'Add approver',
                 addApproverSubtitle: 'Add an additional approver to the existing workflow.',
