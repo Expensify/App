@@ -3006,6 +3006,40 @@ describe('actions/Policy', () => {
 
             expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
         });
+
+        it('upgradeToCorporate should optimistically set receipt defaults but not max expense age/amount', async () => {
+            // Given a Collect policy with expense limits disabled (empty in Rules UI)
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When upgrading to corporate
+            Policy.upgradeToCorporate(fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then age/amount stay disabled (API leaves them empty — avoids #74401 flash),
+            // while receipt thresholds get Control defaults (matches post-upgrade Rules UI).
+            expect(policy?.maxExpenseAge).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+            expect(policy?.maxExpenseAmount).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+            expect(policy?.maxExpenseAmountNoReceipt).toBe(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT);
+            expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT);
+            expect(policy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
     });
 
     describe('upgradeSubmit', () => {

@@ -122,17 +122,18 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
-    const getOnlyAvailableOnPlanKey = () => {
+    const getOnlyAvailableOnPlanHTML = () => {
+        const planParams = {formattedPrice, hasTeam2025Pricing};
         if (feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports') {
-            return 'workspace.upgrade.approvals.onlyAvailableOnPlan';
+            return translate('workspace.upgrade.approvals.onlyAvailableOnPlan', planParams);
         }
         if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id && isRulesRevampEnabled) {
-            return 'workspace.upgrade.rules.onlyAvailableOnPlanUnlimited';
+            return translate('workspace.upgrade.rules.onlyAvailableOnPlanUnlimited', planParams);
         }
-        return `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`;
+        return translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, planParams);
     };
 
-    const onlyAvailableOnPlanHTML = translate(getOnlyAvailableOnPlanKey(), {formattedPrice, hasTeam2025Pricing});
+    const onlyAvailableOnPlanHTML = getOnlyAvailableOnPlanHTML();
 
     const buttonText =
         isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id ? translate('workspace.upgrade.expensifyCard.upgradeButton') : translate('common.upgrade');

@@ -5772,12 +5772,16 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string, currentTax
 /**
  * Corporate (Control) upgrade fields shared between `upgradeToCorporate` and `upgradeSubmit`.
  * Keep in sync with `UpgradeToCorporate` API semantics.
+ *
+ * maxExpenseAge / maxExpenseAmount stay unset — the API leaves those DISABLED (empty in Rules UI).
+ * Optimistically setting DEFAULT_MAX_* for those caused a brief "90 days" / "$2,000" flash (#74401).
+ *
+ * Receipt thresholds are set to the Control defaults — the API applies those, and omitting them
+ * briefly shows "Don't require receipts" until the response lands.
  */
 function getCorporateUpgradeOnyxFields(policy: OnyxEntry<Policy>) {
     return {
         optimistic: {
-            maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
-            maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
             maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
             maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
             glCodes: true,
@@ -5788,8 +5792,6 @@ function getCorporateUpgradeOnyxFields(policy: OnyxEntry<Policy>) {
             isAttendeeTrackingEnabled: false,
         },
         failure: {
-            maxExpenseAge: policy?.maxExpenseAge ?? null,
-            maxExpenseAmount: policy?.maxExpenseAmount ?? null,
             maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
             maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
             glCodes: policy?.glCodes ?? null,
