@@ -160,7 +160,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         0,
         listViewportHeight - (tableListMetadata.hasPageHeader ? pageHeaderHeight : 0) - (typeof tableBodyBottomPadding === 'number' ? tableBodyBottomPadding : 0),
     );
-    const renderSyntheticEmptyRow = (content: React.ReactNode) => {
+    const renderSyntheticEmptyRow = (content: React.ReactElement | null): React.ReactElement | null => {
         if (!tableListMetadata.hasPageHeader) {
             return content;
         }
