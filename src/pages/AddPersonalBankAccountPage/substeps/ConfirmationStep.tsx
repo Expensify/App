@@ -61,6 +61,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
         const bankConnection = isManual
             ? [
                   {
+                      id: 'routing-number',
                       description: translate('bankAccount.routingNumber'),
                       title: bankAccountPersonalDetails?.routingNumber,
                       shouldShowRightIcon: true,
@@ -69,6 +70,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                       },
                   },
                   {
+                      id: 'account-number',
                       description: translate('bankAccount.accountNumber'),
                       title: bankAccountPersonalDetails?.accountNumber,
                       shouldShowRightIcon: true,
@@ -79,6 +81,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
               ]
             : [
                   {
+                      id: 'plaid-bank-account',
                       description: translate('common.bankAccount'),
                       title: selectedPlaidAccount?.addressName ?? '',
                       shouldShowRightIcon: true,
@@ -91,6 +94,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
         return [
             ...bankConnection,
             {
+                id: 'legal-name',
                 description: translate('personalInfoStep.legalName'),
                 title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
                 shouldShowRightIcon: true,
@@ -99,6 +103,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'address',
                 description: translate('personalInfoStep.address'),
                 title: `${personalDetails?.addressStreet}, ${personalDetails?.addressCity}, ${personalDetails?.addressState} ${personalDetails?.addressZip}`,
                 shouldShowRightIcon: true,
@@ -107,6 +112,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'phone-number',
                 description: translate('common.phoneNumber'),
                 title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
                 shouldShowRightIcon: true,
