@@ -2,13 +2,13 @@ import {render} from '@testing-library/react-native';
 
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal/index.web';
 
-import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, setActivePopoverLauncher} from '@libs/LauncherStack';
 
 import React from 'react';
 
 jest.mock('@libs/LauncherStack', () => ({
     setActivePopoverLauncher: jest.fn(),
-    scheduleClearActivePopoverLauncher: jest.fn(),
+    markActivePopoverLauncherDeactivated: jest.fn(),
 }));
 
 let capturedOptions: {onActivate?: () => void; onPostDeactivate?: () => void} | null = null;
@@ -21,6 +21,14 @@ jest.mock('focus-trap-react', () => ({
 }));
 
 jest.mock('@libs/Accessibility/blurActiveElement', () => ({__esModule: true, default: jest.fn()}));
+
+const mockRestoreFocusWithModality = jest.fn();
+jest.mock('@libs/restoreFocusWithModality', () => ({
+    __esModule: true,
+    default: (...args: unknown[]): void => {
+        mockRestoreFocusWithModality(...args);
+    },
+}));
 
 // document.activeElement isn't settable under the RN-web test harness — stub via Document.prototype descriptor.
 function withActiveElement<T>(element: HTMLElement, fn: () => T): T {
@@ -39,7 +47,8 @@ describe('FocusTrapForModal — launcher capture', () => {
     beforeEach(() => {
         capturedOptions = null;
         (setActivePopoverLauncher as jest.Mock).mockClear();
-        (scheduleClearActivePopoverLauncher as jest.Mock).mockClear();
+        (markActivePopoverLauncherDeactivated as jest.Mock).mockClear();
+        mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
     });
 
@@ -55,7 +64,7 @@ describe('FocusTrapForModal — launcher capture', () => {
         });
 
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
-        expect(scheduleClearActivePopoverLauncher).toHaveBeenCalled();
+        expect(markActivePopoverLauncherDeactivated).toHaveBeenCalled();
     });
 
     it('captures the launcher even when shouldReturnFocus is false (PopoverMenu / ThreeDotsMenu / ReanimatedModal with new focus management)', () => {
@@ -78,7 +87,28 @@ describe('FocusTrapForModal — launcher capture', () => {
         });
 
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
-        expect(scheduleClearActivePopoverLauncher).toHaveBeenCalled();
+        expect(markActivePopoverLauncherDeactivated).toHaveBeenCalled();
+    });
+
+    it('marks the LauncherStack entry deactivated even if restoreFocusWithModality throws', () => {
+        const launcher = document.createElement('button');
+        document.body.appendChild(launcher);
+        mockRestoreFocusWithModality.mockImplementation(() => {
+            throw new Error('focus failed');
+        });
+
+        render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
+
+        withActiveElement(launcher, () => {
+            capturedOptions?.onActivate?.();
+            try {
+                capturedOptions?.onPostDeactivate?.();
+            } catch {
+                // swallow — mocked throw, the assertion below pins markActive ran first
+            }
+        });
+
+        expect(markActivePopoverLauncherDeactivated).toHaveBeenCalledWith(launcher);
     });
 
     it('skips launcher capture when activeElement is document.body (nothing to capture)', () => {
@@ -90,6 +120,6 @@ describe('FocusTrapForModal — launcher capture', () => {
         });
 
         expect(setActivePopoverLauncher).not.toHaveBeenCalled();
-        expect(scheduleClearActivePopoverLauncher).not.toHaveBeenCalled();
+        expect(markActivePopoverLauncherDeactivated).not.toHaveBeenCalled();
     });
 });
