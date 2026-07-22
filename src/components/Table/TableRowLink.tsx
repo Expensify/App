@@ -40,9 +40,26 @@ function TableRowLink({children, accessibilityLabel, sentryLabel}: TableRowLinkP
             role={href ? CONST.ROLE.LINK : CONST.ROLE.BUTTON}
             href={href}
             disabled={isDisabled}
-            // Keeps the link at the minimum pointer target size (WCAG 2.5.8).
             style={[styles.justifyContentCenter, styles.minHeight6]}
             sentryLabel={sentryLabel}
+            onKeyDown={
+                href
+                    ? (event) => {
+                          if (event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                              return;
+                          }
+
+                          event.preventDefault();
+
+                          if (event.metaKey || event.ctrlKey) {
+                              window.open(href, '_blank', 'noopener,noreferrer');
+                              return;
+                          }
+
+                          onPress?.();
+                      }
+                    : undefined
+            }
             onPress={(event) => {
                 // The row is pressable for the mouse, so don't fire the press twice.
                 event?.stopPropagation?.();

@@ -122,6 +122,23 @@ function propsByProp(prop: string): Array<Record<string, unknown>> {
     return propsWhere((props) => props[prop] === true);
 }
 
+type KeyDownEvent = {key: string; metaKey?: boolean; ctrlKey?: boolean; preventDefault: () => void};
+
+function isKeyDownHandler(value: unknown): value is (event: KeyDownEvent) => void {
+    return typeof value === 'function';
+}
+
+/** Fires the key-down handler of the first node carrying the given role, which the walker only sees as an unknown prop. */
+function pressKeyOnRole(role: string, event: Omit<KeyDownEvent, 'preventDefault'>) {
+    const onKeyDown = propsByRole(role).at(0)?.onKeyDown;
+
+    if (!isKeyDownHandler(onKeyDown)) {
+        throw new Error(`No onKeyDown handler found on a node with role ${role}`);
+    }
+
+    onKeyDown({...event, preventDefault: jest.fn()});
+}
+
 const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
     <Table.Row
         interactive
@@ -413,6 +430,26 @@ describe('Table accessibility semantics', () => {
 
             expect(links).toHaveLength(mockData.length);
             expect(links.map((link) => link.href)).toEqual(mockRoutes.map((mockRoute) => `${window.location.origin}/${mockRoute}`));
+        });
+
+        it('opens a link in a new tab on modified Enter, matching what a modified click does', () => {
+            const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+            renderTableWithRowLinks({shouldProvideRoute: true, shouldDisableRows: false});
+
+            pressKeyOnRole(CONST.ROLE.LINK, {key: 'Enter', metaKey: true});
+
+            expect(openSpy).toHaveBeenCalledWith(`${window.location.origin}/${mockRoutes.at(0)}`, '_blank', 'noopener,noreferrer');
+            openSpy.mockRestore();
+        });
+
+        it('keeps a plain Enter inside the app rather than opening a tab', () => {
+            const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+            renderTableWithRowLinks({shouldProvideRoute: true, shouldDisableRows: false});
+
+            pressKeyOnRole(CONST.ROLE.LINK, {key: 'Enter'});
+
+            expect(openSpy).not.toHaveBeenCalled();
+            openSpy.mockRestore();
         });
 
         it('withholds the href from a disabled row, which would otherwise navigate for real', () => {
