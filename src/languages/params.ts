@@ -133,10 +133,6 @@ type ConciergeBrokenCardConnectionParams = {
     connectionLink?: string;
 };
 
-type LicenseLinkParams = {licenseLink: string};
-
-type LicenseUnderlineParams = {underline: boolean};
-
 export type {
     MissingPropertyParams,
     InvalidPropertyParams,
@@ -178,6 +174,4 @@ export type {
     UpdateRoleParams,
     OptionalParam,
     WorkspaceLockedPlanTypeParams,
-    LicenseLinkParams,
-    LicenseUnderlineParams,
 };

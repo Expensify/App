@@ -106,6 +106,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             delete linkStyle.textDecorationColor;
         }
 
+        // Links opt into an underline via the link-underline class so they are distinguishable by more than color (WCAG 1.4.1).
+        // styles.link sets textDecorationLine: 'none', so the underline is appended last to override it.
+        if (tnode.classes.includes('link-underline')) {
+            linkStyle = [linkStyle, styles.underline];
+        }
+
         return (
             <TextLink
                 style={linkStyle}

@@ -27,7 +27,9 @@ function Licenses() {
     // Detection mirrors the sibling HighContrastModeSwitcher, since the logged-out sign-in flow tracks contrast via SIGN_IN_HIGH_CONTRAST_INTENT.
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
     const isHighContrast = highContrastIntent ?? isHighContrastTheme(currentTheme);
-    const licenseHTML = translate('termsOfUse.license', {licenseLink: translate('termsOfUse.licenseLink', {underline: isHighContrast})});
+    // In high contrast, opt the link into an underline via the link-underline class, which AnchorRenderer honors when rendering the HTML.
+    const license = translate('termsOfUse.license');
+    const licenseHTML = isHighContrast ? license.replace('<a ', '<a class="link-underline" ') : license;
     return (
         <>
             <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>{`© ${currentYear} Expensify`}</Text>

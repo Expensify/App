@@ -200,9 +200,7 @@ function AboutPage() {
                     </Section>
                 </View>
                 <View style={[styles.renderHTML, styles.ph5, styles.mb5]}>
-                    <RenderHTML
-                        html={`<muted-text-micro>${translate('initialSettingsPage.readTheTermsAndPrivacy')} ${translate('termsOfUse.license', {licenseLink: translate('termsOfUse.licenseLink', {underline: false})})}</muted-text-micro>`}
-                    />
+                    <RenderHTML html={`<muted-text-micro>${translate('initialSettingsPage.readTheTermsAndPrivacy')} ${translate('termsOfUse.license')}</muted-text-micro>`} />
                 </View>
             </ScrollView>
         </ScreenWrapper>
