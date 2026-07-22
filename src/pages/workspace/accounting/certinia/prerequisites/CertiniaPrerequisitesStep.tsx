@@ -17,9 +17,10 @@ import {View} from 'react-native';
 
 type CertiniaPrerequisitesStepProps = SubPageProps & {
     onConnect: () => void;
+    isSandbox: boolean;
 };
 
-function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: CertiniaPrerequisitesStepProps) {
+function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbox}: CertiniaPrerequisitesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -41,7 +42,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundlePSAHeader')}</Text>
                     <Text style={styles.textNormal}>
                         {translate('workspace.certinia.prerequisites.installBundleDescription')}{' '}
-                        <TextLink href={CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION}>
+                        <TextLink href={isSandbox ? CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.SANDBOX : CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION}>
                             {translate('workspace.certinia.prerequisites.installBundlePSALink', {version: CONST.CERTINIA_PSA_BUNDLE_VERSION})}
                         </TextLink>
                     </Text>
@@ -50,7 +51,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundleFFAHeader')}</Text>
                     <Text style={styles.textNormal}>
                         {translate('workspace.certinia.prerequisites.installBundleDescription')}{' '}
-                        <TextLink href={CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION}>
+                        <TextLink href={isSandbox ? CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.SANDBOX : CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION}>
                             {translate('workspace.certinia.prerequisites.installBundleFFALink', {version: CONST.CERTINIA_FFA_BUNDLE_VERSION})}
                         </TextLink>
                     </Text>

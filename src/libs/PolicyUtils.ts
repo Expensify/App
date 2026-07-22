@@ -57,7 +57,7 @@ import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionEr
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
-import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -386,77 +386,66 @@ function getPolicyForDistanceRateID(customUnitRateID: string | undefined, polici
     });
 }
 
-/**
- * Return admins from active policies
- */
-function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
-    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
-    if (!activePolicies) {
+/** Return the emails that can receive a shared bank account from the current user. */
+function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): string[] {
+    if (!currentUserLogin) {
         return [];
     }
-    const adminMap = new Map<string, MemberForList>();
-    // O(1) checks for already-shared emails
+
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const isOffline = getIsOffline();
+    const activePolicies = getActivePolicies(policies, currentUserLogin).filter(
+        (policy) => shouldShowPolicy(policy, isOffline, currentUserLogin) && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS),
+    );
+    const recipientEmails = new Set<string>();
     const shareesSet = new Set(currentBankAccount?.accountData?.sharees ?? []);
-    for (const policy of Object.values(activePolicies)) {
-        for (const admin of getAdminEmployees(policy)) {
-            const email = admin?.email;
-            // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
+
+    for (const policy of activePolicies) {
+        for (const [email, employee] of Object.entries(policy.employeeList ?? {})) {
             if (
-                !email ||
+                employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                !employee.role ||
+                !canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS) ||
                 email === currentUserLogin ||
-                adminMap.has(email) ||
+                recipientEmails.has(email) ||
                 shareesSet.has(email) ||
                 (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))
             ) {
                 continue;
             }
-            const personalDetails = getPersonalDetailByEmail(email);
-            if (!personalDetails) {
-                continue;
-            }
-            adminMap.set(
-                email,
-                formatMemberForList({
-                    text: personalDetails.displayName,
-                    alternateText: personalDetails.login,
-                    keyForList: personalDetails.login ?? String(personalDetails.accountID),
-                    accountID: personalDetails.accountID,
-                    login: personalDetails.login,
-                    pendingAction: personalDetails.pendingAction,
-                    reportID: '',
-                }),
-            );
+
+            recipientEmails.add(email);
         }
     }
 
-    return Array.from(adminMap.values());
+    return Array.from(recipientEmails);
 }
 
-/**
- * Return true if there is at least one eligible admin in active policies
- */
-function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
-    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
-    if (!activePolicies) {
-        return false;
-    }
-    // Normalize sharees to a Set for O(1) lookups
-    const alreadySharedSharees = new Set(currentBankAccount?.accountData?.sharees ?? []);
-    for (const policy of Object.values(activePolicies)) {
-        const admins = getAdminEmployees(policy);
-        for (const admin of admins) {
-            const email = admin?.email;
-            if (!email || email === currentUserLogin || alreadySharedSharees.has(email) || (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))) {
-                continue;
-            }
-
-            return true;
+/** Return members who can receive a shared bank account from the current user. */
+function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
+    return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, bankAccountID).flatMap((email) => {
+        const personalDetails = getPersonalDetailByEmail(email);
+        if (!personalDetails) {
+            return [];
         }
-    }
 
-    return false;
+        return [
+            formatMemberForList({
+                text: personalDetails.displayName,
+                alternateText: personalDetails.login,
+                keyForList: personalDetails.login ?? String(personalDetails.accountID),
+                accountID: personalDetails.accountID,
+                login: personalDetails.login,
+                pendingAction: personalDetails.pendingAction,
+                reportID: '',
+            }),
+        ];
+    });
+}
+
+/** Return whether the current user has someone they can share a bank account with. */
+function hasEligibleBankAccountShareRecipient(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
+    return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, bankAccountID).length > 0;
 }
 
 /**
@@ -1511,17 +1500,6 @@ function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
     return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
 }
 
-function getPolicyEmployeeAccountIDs(policy: OnyxEntry<Pick<Policy, 'employeeList'>>, currentUserAccountID?: number) {
-    if (!policy) {
-        return [];
-    }
-
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-    return Object.values(policyMemberEmailsToAccountIDs)
-        .map((policyMemberAccountID) => Number(policyMemberAccountID))
-        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
-}
-
 function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
@@ -1638,6 +1616,38 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     return policy?.approver || policy?.owner || '';
 }
 
+/**
+ * Whether the policy has at least one custom approval workflow. A workflow is considered custom when either:
+ * - the default workflow was modified by changing its first approver or adding an "Approves to" user, or
+ * - a new workflow was created (a member submits to an approver other than the default approver).
+ */
+function hasCustomApprovalWorkflow(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const defaultApprover = getDefaultApprover(policy);
+
+    // The default workflow's first approver was changed away from the workspace owner.
+    if (!!policy.approver && !!policy.owner && policy.approver !== policy.owner) {
+        return true;
+    }
+
+    const employees = policy.employeeList ?? {};
+
+    // The default approver forwards approvals to someone, i.e. an "Approves to" user was added,
+    // either unconditionally (forwardsTo) or above an approval limit (overLimitForwardsTo).
+    const defaultApproverEmployee = employees[defaultApprover];
+    if (!!defaultApprover && (!!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo)) {
+        return true;
+    }
+
+    // A new workflow exists when a member submits to an approver other than the default approver.
+    return Object.values(employees).some(
+        (employee) => employee?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!employee?.submitsTo && employee.submitsTo !== defaultApprover,
+    );
+}
+
 function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
     const categoryApprovers: string[] = [];
     const tagApprovers: string[] = [];
@@ -1749,19 +1759,28 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | und
 }
 
 /**
- * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
+ * Returns the email the expense report should submit to per workspace approval config
+ * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined): number {
+function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined): string {
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
         const ruleApprover = getFirstRuleApprover(approvalRules, expenseReport, ownerLogin);
         if (ruleApprover) {
-            return getAccountIDsByLogins([ruleApprover]).at(0) ?? -1;
+            return ruleApprover;
         }
     }
 
-    return getManagerAccountID(policy, ownerLogin);
+    return getManagerAccountEmail(policy, ownerLogin);
+}
+
+/**
+ * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
+ */
+function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined): number {
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin);
+    return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
 function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
@@ -1786,25 +1805,6 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     }
 
     return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
-}
-
-/**
- * Returns the email the expense report should submit to per workspace approval config
- * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
- */
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
-    const defaultApprover = getDefaultApprover(policy).trim();
-    if (!expenseReport) {
-        return defaultApprover;
-    }
-
-    const ownerLogin = getLoginsByAccountIDs([expenseReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]).at(0);
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, ownerLogin);
-    if (!isValidAccountRoute(submitToAccountID)) {
-        return defaultApprover;
-    }
-
-    return getLoginsByAccountIDs([submitToAccountID]).at(0)?.trim() ?? defaultApprover;
 }
 
 /**
@@ -2280,6 +2280,38 @@ function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * True when Xero is connected AND the connection is configured. Xero has no export-destination
+ * enum (bank-transactions is the only non-reimbursable mode), so `config.isConfigured` is the
+ * configuration gate — mirrors `Xero::hasVendorFeature` on the PHP side. The `isConfigured` check
+ * matters because Integration-Server clears that flag during a Xero tenant switch while the old
+ * tenant's `data.contacts` lingers until the next sync repopulates it; without the gate the
+ * Supplier picker would render stale contacts from the previous tenant and a user-pick during
+ * that window would persist a now-invalid `comment.vendor.externalID` that flips inactive the
+ * moment the new sync completes.
+ *
+ * This is the *eligibility* predicate used by `hasVendorFeature`, NOT the source predicate — on
+ * dual-connected workspaces QBO/Intacct precedence still applies in `getMatchingVendors`. Use
+ * `isXeroActiveMatchingSource` when the question is "is Xero the integration whose vendors are
+ * actually being shown to the user?" (e.g. for the Supplier/Vendor label flip in the expense row,
+ * picker, and modified-expense fragments).
+ */
+function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config?.isConfigured;
+}
+
+/**
+ * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
+ * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
+ * in `getMatchingVendors` (QBO → Intacct → Xero) so the UI labels, copy, and inactive-vendor
+ * guardrail stay bound to whichever integration's vendor list is actually being consulted. Without
+ * this scoping, a workspace with active QBO matching + a lingering Xero connection would render
+ * QBO vendors under the "Supplier" label.
+ */
+function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
+    return isXeroVendorMatchingActive(policy) && !isQBOVendorMatchingActive(policy) && !isIntacctVendorMatchingActive(policy);
+}
+
+/**
  * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
  * enabled AND a supported accounting integration is connected with a non-reimbursable export type
  * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
@@ -2288,17 +2320,18 @@ function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
  * Supported integrations:
  *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1)
  *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2)
+ *   - Xero (R4) — no export-destination enum; connection present is sufficient
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!isVendorMatchingBetaEnabled || !policy) {
         return false;
     }
-    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy);
+    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy);
 }
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO or Sage Intacct) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, or Xero) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2309,8 +2342,30 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
  *
  * The shape is normalized to `Vendor` (id + name). For Intacct's `SageIntacctDataElementWithValue`,
  * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
- * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI.
+ * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI. Xero
+ * stores suppliers as a keyed object at `connections.xero.data.contacts`, normalized here to the
+ * same `Vendor` shape.
  */
+/**
+ * Returns the connection name whose export mode is currently scoping vendor matching for the
+ * workspace, or undefined when none is. Callers that render vendor-matching UI should use this
+ * to stay in sync with `getActiveVendorMatchingVendors` — picking a connection via a generic
+ * "first accounting connection" lookup can mismatch when the workspace still has a stale
+ * secondary connection attached.
+ */
+function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): ConnectionName | undefined {
+    if (!policy) {
+        return undefined;
+    }
+    if (isQBOVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.QBO;
+    }
+    if (isIntacctVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
+    }
+    return undefined;
+}
+
 function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | undefined {
     if (!policy) {
         return undefined;
@@ -2319,7 +2374,10 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors;
     }
     if (isIntacctVendorMatchingActive(policy)) {
-        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
+        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors;
+        if (intacctVendors === undefined) {
+            return undefined;
+        }
         return intacctVendors.map((vendor) => ({
             id: vendor.id,
             name: vendor.value,
@@ -2327,14 +2385,21 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
             email: '',
         }));
     }
+    if (isXeroVendorMatchingActive(policy)) {
+        const xeroContacts = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts;
+        if (!xeroContacts) {
+            return undefined;
+        }
+        return Object.values(xeroContacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO or Sage Intacct). Empty array when no integration is
- * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
- * and inactive-vendor lookups.
+ * the vendor field for this workspace (QBO, Sage Intacct, or Xero). Empty array when no integration
+ * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
+ * RHP and inactive-vendor lookups.
  */
 function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return getActiveVendorMatchingVendors(policy) ?? [];
@@ -2394,35 +2459,43 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             email: '',
         };
     }
+    const xeroContact = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[vendorID];
+    if (xeroContact) {
+        return {id: xeroContact.id, name: xeroContact.name, currency: '', email: xeroContact.email};
+    }
     return undefined;
+}
+
+/**
+ * Xero-scoped supplier list, normalized to the shared `Vendor` shape. Use this from Xero-specific
+ * UI (the default-supplier picker, the Xero export config row) so the data source stays bound to
+ * `connections.xero.data.contacts` regardless of whether QBO or Intacct is the *active* matching
+ * source on a dual-connected workspace — `getMatchingVendors` is integration-priority-aware and
+ * would return non-Xero vendors in that state, which is wrong for Xero-only controls.
+ */
+function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
+    const contacts = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts;
+    if (!contacts) {
+        return [];
+    }
+    return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/**
+ * Xero-scoped supplier lookup. Same rationale as `getXeroSuppliers`: bound strictly to Xero data
+ * so the Xero export config display can never accidentally render a non-Xero vendor's name when
+ * another integration is the active matching source.
+ */
+function getXeroSupplierByID(policy: OnyxEntry<Policy>, supplierID: string | undefined): Vendor | undefined {
+    if (!supplierID) {
+        return undefined;
+    }
+    const contact = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[supplierID];
+    return contact ? {id: contact.id, name: contact.name, currency: '', email: contact.email} : undefined;
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
-}
-
-/**
- * Returns a set of connected integration names for the given policies.
- * @param policies - Collection of policies to get connected integrations.
- * @param policyIDs - Policy IDs to filter by. When provided, only integrations from these policies are included.
- */
-function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyIDs?: string[]): Set<string> {
-    if (!policies) {
-        return new Set();
-    }
-
-    const connectedIntegrationNames = new Set<string>();
-    const hasWorkspaceFilter = policyIDs && policyIDs.length > 0;
-    const policiesToCheck = hasWorkspaceFilter ? policyIDs.map((id) => policies[`${ONYXKEYS.COLLECTION.POLICY}${id}`]) : Object.values(policies);
-
-    for (const policy of policiesToCheck) {
-        const connectedIntegration = getValidConnectedIntegration(policy, getAccountingConnectionNames());
-        if (connectedIntegration) {
-            connectedIntegrationNames.add(connectedIntegration);
-        }
-    }
-
-    return connectedIntegrationNames;
 }
 
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
@@ -2438,7 +2511,9 @@ function hasUnsupportedIntegration(policy: Policy | undefined) {
 }
 
 function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
-    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
+    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT as Record<string, string>).some(
+        (integration) => !!(policy?.connections as Record<string, unknown>)?.[integration],
+    );
 }
 
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
@@ -2459,7 +2534,7 @@ function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
 }
 
 function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
-    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
+    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].optimisticPreviousTaxCode === taxID || taxIDKey === taxID);
 }
 
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
@@ -2746,6 +2821,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.quickbooksOnline?.config?.export?.exporter,
         policy?.connections?.xero?.config?.export?.exporter,
         policy?.connections?.netsuite?.options?.config?.exporter,
+        policy?.connections?.rillet?.config?.export?.exporter,
     ];
 }
 
@@ -2811,11 +2887,15 @@ export {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
-    getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
     findVendorByID,
+    getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getXeroSupplierByID,
+    getXeroSuppliers,
+    isXeroActiveMatchingSource,
+    isXeroVendorMatchingActive,
     hasVendorFeature,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
@@ -2861,6 +2941,7 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
+    isPaidGroupPolicyByType,
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
@@ -2873,7 +2954,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
-    hasEligibleActiveAdminFromWorkspaces,
+    hasEligibleBankAccountShareRecipient,
     isPolicyEmployee,
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
@@ -2931,6 +3012,7 @@ export {
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
     getDefaultApprover,
+    hasCustomApprovalWorkflow,
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
@@ -2980,7 +3062,6 @@ export {
     getTagGLCode,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
-    getPolicyEmployeeAccountIDs,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     getTravelStep,

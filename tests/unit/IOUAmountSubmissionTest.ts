@@ -9,6 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {createRandomReport} from '../utils/collections/reports';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 5;
@@ -165,10 +166,12 @@ describe('AmountSubmission', () => {
             };
             return {
                 report: baseReport,
+                translate: translateLocal,
                 transaction: undefined,
                 splitDraftTransaction: undefined,
                 policy: undefined,
                 policyTags: undefined,
+                reportPolicyTags: undefined,
                 isDraftChatReport: undefined,
                 selectedCurrency: CONST.CURRENCY.USD,
                 decimals: 2,
@@ -212,6 +215,7 @@ describe('AmountSubmission', () => {
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 conciergeReportID: undefined,
+                isTrackIntentUser: false,
                 ...overrides,
             };
         };
