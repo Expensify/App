@@ -1243,11 +1243,15 @@ const translations = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+        importMerchantRulesSuccessfulDescription: ({rules, duplicates = 0, invalidCategories = 0}: {rules: number; duplicates?: number; invalidCategories?: number}) => {
+            const invalidCategoriesNote =
+                invalidCategories > 0
+                    ? ` ${invalidCategories === 1 ? '1 category was' : `${invalidCategories} categories were`} skipped because ${invalidCategories === 1 ? "it doesn't" : "they don't"} exist in this workspace.`
+                    : '';
             if (rules === 0) {
-                return 'No merchant rules have been added, since they all already exist.';
+                return `${duplicates > 0 ? 'No merchant rules have been added, since they all already exist.' : 'No merchant rules have been added.'}${invalidCategoriesNote}`;
             }
-            return rules > 1 ? `${rules} merchant rules have been added.` : '1 merchant rule has been added.';
+            return `${rules > 1 ? `${rules} merchant rules have been added.` : '1 merchant rule has been added.'}${invalidCategoriesNote}`;
         },
         importMerchantRulesRequiredColumns: 'Oops! You must map at least one "Merchant is" or "Merchant contains" column, plus at least one field to update. Please review and try again.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
