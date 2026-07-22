@@ -137,7 +137,8 @@ function createPolicyTag({
 }: CreatePolicyTagParams) {
     const {policy, tags: policyTags} = policyData;
     const policyID = policy?.id;
-    const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
+    const emptyTagList: PolicyTagList = {name: '', orderWeight: 0, required: false, tags: {}};
+    const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? emptyTagList;
     const newTagName = PolicyUtils.escapeTagName(tagName);
     const tagListsOptimisticData = {
         [policyTag.name]: {
@@ -486,12 +487,12 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
 
     const tagsToDeleteSet = new Set(tagsToDelete);
     const codingRules = policyData.policy?.rules?.codingRules ?? {};
-    const updatedCodingRules: Record<string, Partial<CodingRule>> = {};
+    const updatedCodingRules: Record<string, {tag: null}> = {};
     const failureCodingRules: Record<string, Partial<CodingRule>> = {};
 
     for (const [ruleID, rule] of Object.entries(codingRules)) {
         if (rule?.tag && tagsToDeleteSet.has(rule.tag)) {
-            updatedCodingRules[ruleID] = {tag: null as unknown as string};
+            updatedCodingRules[ruleID] = {tag: null};
             failureCodingRules[ruleID] = {tag: rule.tag};
         }
     }

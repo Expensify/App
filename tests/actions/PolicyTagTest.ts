@@ -1179,18 +1179,18 @@ describe('actions/Policy', () => {
             const tagListName = 'Fake tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const tagNames = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
-            const tagsToDelete = [tagNames[0]];
+            const tagsToDelete = tagNames.slice(0, 1);
 
             // Set up coding rules that reference the tag being deleted
             fakePolicy.rules = {
                 codingRules: {
                     rule1: {
                         filters: {left: 'merchant', operator: 'eq', right: 'test'},
-                        tag: tagNames[0],
+                        tag: tagNames.at(0),
                     },
                     rule2: {
                         filters: {left: 'merchant', operator: 'eq', right: 'other'},
-                        tag: tagNames[1],
+                        tag: tagNames.at(1),
                     },
                 },
             };
@@ -1218,7 +1218,7 @@ describe('actions/Policy', () => {
             // Onyx merge with null removes the key, so tag becomes undefined
             expect(updatedPolicy?.rules?.codingRules?.rule1?.tag).toBeUndefined();
             // Rule2 references a tag that was NOT deleted, so it should remain unchanged
-            expect(updatedPolicy?.rules?.codingRules?.rule2?.tag).toBe(tagNames[1]);
+            expect(updatedPolicy?.rules?.codingRules?.rule2?.tag).toBe(tagNames.at(1));
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -1231,13 +1231,13 @@ describe('actions/Policy', () => {
             const tagListName = 'Fake tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const tagNames = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
-            const tagsToDelete = [tagNames[0]];
+            const tagsToDelete = tagNames.slice(0, 1);
 
             fakePolicy.rules = {
                 codingRules: {
                     rule1: {
                         filters: {left: 'merchant', operator: 'eq', right: 'test'},
-                        tag: tagNames[0],
+                        tag: tagNames.at(0),
                     },
                 },
             };
@@ -1266,7 +1266,7 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatedPolicy = val),
             });
 
-            expect(updatedPolicy?.rules?.codingRules?.rule1?.tag).toBe(tagNames[0]);
+            expect(updatedPolicy?.rules?.codingRules?.rule1?.tag).toBe(tagNames.at(0));
         });
 
         it('should not add coding rule updates when no coding rules reference deleted tags', async () => {
@@ -1276,14 +1276,14 @@ describe('actions/Policy', () => {
             const tagListName = 'Fake tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const tagNames = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
-            const tagsToDelete = [tagNames[0]];
+            const tagsToDelete = tagNames.slice(0, 1);
 
             // Coding rule references a different tag that is NOT being deleted
             fakePolicy.rules = {
                 codingRules: {
                     rule1: {
                         filters: {left: 'merchant', operator: 'eq', right: 'test'},
-                        tag: tagNames[1],
+                        tag: tagNames.at(1),
                     },
                 },
             };
@@ -1308,7 +1308,7 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatedPolicy = val),
             });
 
-            expect(updatedPolicy?.rules?.codingRules?.rule1?.tag).toBe(tagNames[1]);
+            expect(updatedPolicy?.rules?.codingRules?.rule1?.tag).toBe(tagNames.at(1));
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
