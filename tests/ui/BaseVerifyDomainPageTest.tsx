@@ -108,4 +108,26 @@ describe('BaseVerifyDomainPage', () => {
         // And the validation code is fetched, so the DNS TXT field is not left empty
         expect(apiReadSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE, {domainName: DOMAIN_NAME}, expect.anything());
     });
+
+    it('renders NotFoundPage for an admin on an already-validated domain and skips the code fetch', async () => {
+        // Given an already-validated domain the current user is an admin of
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
+                accountID: DOMAIN_ACCOUNT_ID,
+                email: DOMAIN_EMAIL,
+                validated: true,
+                ...DOMAIN_ADMIN_ACCESS,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the verify-domain page is deep-linked
+        renderVerifyDomainPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the verify screen is not shown (NotFoundPage), and no validation code is fetched
+        expect(screen.queryByTestId('BaseVerifyDomainPage')).toBeNull();
+        expect(apiReadSpy).not.toHaveBeenCalledWith(READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE, expect.anything(), expect.anything());
+    });
 });
