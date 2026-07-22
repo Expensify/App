@@ -76,7 +76,7 @@ function TextInput({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {
         label,
         value,
@@ -179,9 +179,11 @@ function TextInput({
                     errorText={errorText}
                     autoCorrect={!disableAutoCorrect}
                     shouldInterceptSwipe={shouldInterceptSwipe ?? false}
-                    touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
-                    textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
-                    inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
+                    // Size is based on device width (isSmallScreenWidth), not shouldUseNarrowLayout, so the input stays
+                    // the compact 34px size on web/desktop even inside the RHP/narrow pane, and only grows to 46px on mobile.
+                    touchableInputWrapperStyle={isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
+                    textInputContainerStyles={[styles.pb0, isSmallScreenWidth ? styles.ph3 : styles.ph2]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, isSmallScreenWidth ? undefined : styles.fontSizeLabel]}
                 />
             </View>
             {shouldShowHeaderMessage && (
