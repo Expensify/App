@@ -1,6 +1,12 @@
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
-import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, ImportMerchantRulesSpreadsheetParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
+import type {
+    AddPolicyAgentRuleParams,
+    DeletePolicyAgentRuleParams,
+    GetAgentRuleSuggestionsParams,
+    ImportMerchantRulesSpreadsheetParams,
+    UpdatePolicyAgentRuleParams,
+} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -120,6 +126,41 @@ function openPolicyRulesPage(policyID: string | undefined) {
     const params: OpenPolicyRulesPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_RULES_PAGE, params);
+}
+
+/**
+ * Fetches ready-made agent rule suggestions for the add-agent-rule Suggestions tab.
+ */
+function getAgentRuleSuggestions(policyID: string | undefined) {
+    if (!policyID) {
+        Log.warn('Invalid params for getAgentRuleSuggestions', {policyID});
+        return;
+    }
+
+    const params: GetAgentRuleSuggestionsParams = {policyID};
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: false,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -632,6 +673,7 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 
 export {
     openPolicyRulesPage,
+    getAgentRuleSuggestions,
     setPolicyCodingRule,
     importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,
