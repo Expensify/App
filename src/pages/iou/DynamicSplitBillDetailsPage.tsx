@@ -6,6 +6,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -47,7 +48,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -92,6 +93,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
@@ -105,8 +107,10 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             transactionViolations,
             betas,
             personalDetails,
+            delegateAccountID,
             isTrackIntentUser,
             sessionEmail: session?.email,
+            formatPhoneNumber,
         });
     }, [
         reportID,
@@ -119,7 +123,9 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         transactionViolations,
         betas,
         personalDetails,
+        delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
     ]);
 
     return (
