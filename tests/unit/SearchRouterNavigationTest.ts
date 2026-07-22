@@ -1,3 +1,5 @@
+import {renderHook} from '@testing-library/react-native';
+
 import {
     buildNavigationSuggestions,
     isNavigationIntentOnlyQuery,
@@ -6,7 +8,7 @@ import {
     sortNavigationSuggestionItems,
     stripNavigationIntentPrefix,
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
-import {buildSpendNavigationItems, buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
+import useNavigationSuggestions, {buildSpendNavigationItems, buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,6 +18,53 @@ import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtil
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import {isValidElement} from 'react';
+
+const mockUseSearchTypeMenuSections = jest.fn();
+const mockUseMemoizedLazyExpensifyIcons = jest.fn();
+const mockClearSelectedTransactions = jest.fn();
+
+jest.mock('@components/Search/SearchContext', () => ({
+    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
+}));
+
+jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyExpensifyIcons: () => mockUseMemoizedLazyExpensifyIcons(),
+}));
+
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({
+        localeCompare: (firstValue: string, secondValue: string) => firstValue.localeCompare(secondValue),
+        translate: (key: string, params?: {destination?: string}) => {
+            if (key === 'search.goTo') {
+                return `Go to ${params?.destination}`;
+            }
+
+            const translations: Record<string, string> = {
+                'common.home': 'Home',
+                'common.inbox': 'Inbox',
+                'common.spend': 'Spend',
+                'common.workspacesTabTitle': 'Workspaces',
+                'initialSettingsPage.account': 'Account',
+                'search.tabs.reports': 'Reports',
+                'search.tabs.expenses': 'Expenses',
+            };
+            return translations[key] ?? key;
+        },
+    }),
+}));
+
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: () => [undefined],
+}));
+
+jest.mock('@hooks/useSearchTypeMenuSections', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockUseSearchTypeMenuSections(...args),
+}));
 
 jest.mock('@libs/actions/Search', () => ({
     setSearchContext: jest.fn(),
@@ -311,5 +360,56 @@ describe('Spend Search Router navigation source', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
         expect(clearSelectedTransactions.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0) ?? 0);
         expect(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
+    });
+
+    it('composes Spend suggestions from the menu hook with icons, context, exclusions, and approval gating', () => {
+        const reportsIcon: IconAsset = () => null;
+        const spendContextIcon: IconAsset = () => null;
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
+            ...spendIcons,
+            Home: mockIcon,
+            Inbox: mockIcon,
+            ReceiptMultiple: spendContextIcon,
+            Building: mockIcon,
+            Gear: mockIcon,
+            Document: reportsIcon,
+        });
+        mockUseSearchTypeMenuSections.mockReturnValue({
+            typeMenuSections: [
+                {
+                    translationPath: 'search.tabs.expenseReports',
+                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+                },
+                {
+                    translationPath: 'search.savedSearchesMenuItemTitle',
+                    menuItems: [createSpendMenuItem(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}1`, 'search.tabs.reports', 'Receipt', 'saved-search-query')],
+                },
+            ],
+            activeItemIndex: -1,
+            activeKey: undefined,
+        });
+
+        const {result, rerender} = renderHook(({shouldWatchForApprovals}) => useNavigationSuggestions('reports', shouldWatchForApprovals), {
+            initialProps: {shouldWatchForApprovals: false},
+        });
+
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, false);
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)).toMatchObject({
+            text: 'Go to Reports',
+            keyForList: 'spend_reports',
+            singleIcon: reportsIcon,
+        });
+        expect(result.current.some((item) => item.keyForList === `spend_${CONST.SEARCH.SAVED_SEARCH_PREFIX}1`)).toBe(false);
+
+        const rightElement = result.current.at(0)?.rightElement;
+        expect(isValidElement<{label: string; icon: IconAsset}>(rightElement)).toBe(true);
+        if (!isValidElement<{label: string; icon: IconAsset}>(rightElement)) {
+            throw new Error('Expected Spend navigation context to be a React element');
+        }
+        expect(rightElement.props).toMatchObject({label: 'Spend', icon: spendContextIcon});
+
+        rerender({shouldWatchForApprovals: true});
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, true);
     });
 });
