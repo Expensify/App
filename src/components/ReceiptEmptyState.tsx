@@ -1,8 +1,8 @@
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -86,9 +86,9 @@ function ReceiptEmptyState({
     setReceiptFile = () => {},
 }: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const illustrations = useThemeIllustrations();
     const isLoadedRef = useRef(false);
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
 
@@ -138,21 +138,11 @@ function ReceiptEmptyState({
                     {ErrorModal}
                     {isCompact ? (
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap3]}>
-                            <View style={styles.pRelative}>
-                                <Icon
-                                    fill={theme.border}
-                                    src={icons.Receipt}
-                                    width={variables.iconSizeXLarge}
-                                    height={variables.iconSizeXLarge}
-                                />
-                                <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, StyleUtils.getWidthAndHeightStyle(variables.avatarSizeSubscript)]}>
-                                    <ReceiptPlaceholderPlusIcon
-                                        circleFill={theme.success}
-                                        plusFill={theme.receiptPlaceholderPlus}
-                                        size={variables.avatarSizeSubscript}
-                                    />
-                                </View>
-                            </View>
+                            <Icon
+                                src={illustrations.ReceiptAddSmall}
+                                width={36}
+                                height={36}
+                            />
                             <Text style={styles.textStrong}>{translate('dropzone.addReceipt')}</Text>
                         </View>
                     ) : (
