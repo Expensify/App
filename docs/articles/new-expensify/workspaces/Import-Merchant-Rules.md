@@ -73,4 +73,4 @@ Tag cells are interpreted based on your workspace tag setup at the time of impor
 
 ## Can I import Merchant Rules on mobile?
 
-Importing a spreadsheet is done from the **Rules** page. For the best experience uploading and mapping a spreadsheet, use Expensify on web.
+Yes. You can import Merchant Rules on both web and mobile from the **Rules** page. On a smaller screen you choose the file rather than drag and drop it.
