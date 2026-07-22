@@ -509,6 +509,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             // The builder must not produce a transaction thread — the backend creates it lazily when first needed.
