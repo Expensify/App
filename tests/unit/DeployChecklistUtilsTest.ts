@@ -1,21 +1,20 @@
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
-
 /**
  * @jest-environment node
  */
 /* eslint-disable @typescript-eslint/naming-convention */
 import {RequestError} from '@octokit/request-error';
 
-type OctokitIssue = RestEndpointMethodTypes['issues']['listForRepo']['response']['data'][number];
-type ListForRepoResponse = RestEndpointMethodTypes['issues']['listForRepo']['response'];
-type OctokitListForRepo = (params?: RestEndpointMethodTypes['issues']['listForRepo']['parameters']) => Promise<ListForRepoResponse>;
-type OctokitListPulls = (params?: RestEndpointMethodTypes['pulls']['list']['parameters']) => Promise<RestEndpointMethodTypes['pulls']['list']['response']>;
-type OctokitGetPull = (params?: RestEndpointMethodTypes['pulls']['get']['parameters']) => Promise<RestEndpointMethodTypes['pulls']['get']['response']>;
-type PullRequestSimple = RestEndpointMethodTypes['pulls']['list']['response']['data'][number];
-type PullRequest = RestEndpointMethodTypes['pulls']['get']['response']['data'];
+type Octokit = typeof GithubUtils.octokit;
+type OctokitListForRepo = Octokit['issues']['listForRepo'];
+type OctokitListPulls = Octokit['pulls']['list'];
+type OctokitGetPull = Octokit['pulls']['get'];
+type ListForRepoResponse = Awaited<ReturnType<OctokitListForRepo>>;
+type OctokitIssue = Awaited<ReturnType<OctokitListForRepo>>['data'][number];
+type PullRequestSimple = Awaited<ReturnType<OctokitListPulls>>['data'][number];
+type PullRequest = Awaited<ReturnType<OctokitGetPull>>['data'];
 type PullRequestFixture = PullRequestSimple & PullRequest;
 type PullRequestRepository = PullRequestSimple['head']['repo'] & NonNullable<PullRequest['head']['repo']>;
 type PullRequestHead = PullRequestSimple['head'] & PullRequest['head'];
@@ -182,6 +181,7 @@ const defaultPullRequest: PullRequestFixture = {
     auto_merge: null,
     merged: false,
     mergeable: null,
+    // cspell:disable-next-line
     rebaseable: null,
     mergeable_state: 'unknown',
     merged_by: null,
@@ -196,14 +196,14 @@ const defaultPullRequest: PullRequestFixture = {
 
 const createPullRequest = (overrides: Partial<PullRequestFixture>): PullRequestFixture => ({...defaultPullRequest, ...overrides});
 
-const createListPullsResponse = (data: PullRequestSimple[]): RestEndpointMethodTypes['pulls']['list']['response'] => ({
+const createListPullsResponse = (data: PullRequestSimple[]): Awaited<ReturnType<OctokitListPulls>> => ({
     data,
     headers: {},
     status: 200,
     url: 'https://api.github.com/repos/Expensify/Expensify/pulls',
 });
 
-const createGetPullResponse = (data: PullRequest): RestEndpointMethodTypes['pulls']['get']['response'] => ({
+const createGetPullResponse = (data: PullRequest): Awaited<ReturnType<OctokitGetPull>> => ({
     data,
     headers: {},
     status: 200,
