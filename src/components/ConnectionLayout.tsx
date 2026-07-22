@@ -76,6 +76,9 @@ type ConnectionLayoutProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
+
+    /** Whether or not to block user from accessing the page regardless of the connection state */
+    shouldForceBeBlocked?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -110,6 +113,7 @@ function ConnectionLayout({
     shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
+    shouldForceBeBlocked = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -133,7 +137,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked && shouldBlockByConnection}
+            shouldBeBlocked={(!!shouldBeBlocked && shouldBlockByConnection) || shouldForceBeBlocked}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
