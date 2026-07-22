@@ -15,7 +15,7 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 
-import {addPersonalBankAccount, clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {addPersonalBankAccount, clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
@@ -96,8 +96,9 @@ function AddPersonalBankAccountPage() {
             continueSetup(kycWallRef, onSuccessFallbackRoute);
         } else {
             exit();
-            clearPersonalBankAccount();
         }
+        // Clear the flow's scratch state on every real exit path. The flow no longer clears on unmount.
+        clearPersonalBankAccount();
     };
 
     const submitBankAccountForm = () => {
