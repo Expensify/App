@@ -1250,13 +1250,13 @@ describe('ReportUtils', () => {
 
         it('should use the resolved policy name rather than the translate fallback when the policy is available', () => {
             // Given an available policy and a report pointing at it
-            const policy = LHNTestUtils.getFakePolicy('wsIconAvailableID', 'Available WS');
-            const report = {...LHNTestUtils.getFakeReport(), policyID: policy.id};
+            const availablePolicy = LHNTestUtils.getFakePolicy('wsIconAvailableID', 'Available WS');
+            const report = {...LHNTestUtils.getFakeReport(), policyID: availablePolicy.id};
             // And a custom translate that would surface a sentinel if the fallback were used
             const customTranslate: LocalizedTranslate = () => 'CUSTOM_UNAVAILABLE_WS';
 
             // When the workspace icon is built with the available policy
-            const icon = getWorkspaceIcon(report, customTranslate, policy);
+            const icon = getWorkspaceIcon(report, customTranslate, availablePolicy);
 
             // Then the icon uses the real policy name, not the translate fallback
             expect(icon.name).toBe('Available WS');
