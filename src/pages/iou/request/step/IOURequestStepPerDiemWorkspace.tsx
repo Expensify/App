@@ -16,8 +16,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 
-import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useState} from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 
@@ -34,54 +37,69 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
+    const [pendingPolicyID, setPendingPolicyID] = useState<string>();
+    const [pendingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${pendingPolicyID}`);
+
+    const selectWorkspace = (policy: OnyxEntry<Policy>) => {
+        const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
+            getPolicyExpenseChat(accountID, policy?.id),
+            selfDMReport,
+            iouType,
+            defaultExpensePolicy,
+            personalPolicy,
+            transaction?.isFromGlobalCreate ?? false,
+        );
+
+        if (!targetReport) {
+            return;
+        }
+
+        const perDiemUnit = getPerDiemCustomUnit(policy);
+        if (!perDiemUnit && policy?.id) {
+            fetchPerDiemRates(policy.id);
+        }
+
+        const canDestinationResolvePolicy = !!perDiemUnit || (!!targetReport.policyID && targetReport.policyID !== CONST.POLICY.ID_FAKE);
+        if (!canDestinationResolvePolicy) {
+            setPendingPolicyID(policy?.id);
+            return;
+        }
+        setPendingPolicyID(undefined);
+
+        setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+        if (targetIouType === CONST.IOU.TYPE.TRACK) {
+            setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, false);
+        } else {
+            setMoneyRequestParticipants(transactionID, [
+                {
+                    selected: true,
+                    accountID: 0,
+                    isPolicyExpenseChat: true,
+                    reportID: targetReport.reportID,
+                    policyID: policy?.id,
+                },
+            ]);
+        }
+        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, targetIouType, transactionID, targetReport.reportID));
+    };
+
+    useEffect(() => {
+        if (!pendingPolicyID || !getPerDiemCustomUnit(pendingPolicy)) {
+            return;
+        }
+        const frame = requestAnimationFrame(() => selectWorkspace(pendingPolicy));
+        return () => cancelAnimationFrame(frame);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pendingPolicy, pendingPolicyID]);
 
     return (
         <BaseRequestStepWorkspace
             route={route}
             navigation={navigation}
             getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
-            onSelectWorkspace={(policy) => {
-                const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
-                    getPolicyExpenseChat(accountID, policy?.id),
-                    selfDMReport,
-                    iouType,
-                    defaultExpensePolicy,
-                    personalPolicy,
-                    transaction?.isFromGlobalCreate ?? false,
-                );
-
-                if (!targetReport) {
-                    return;
-                }
-
-                const perDiemUnit = getPerDiemCustomUnit(policy);
-                if (!perDiemUnit && policy?.id) {
-                    fetchPerDiemRates(policy.id);
-                }
-
-                const canDestinationResolvePolicy = !!perDiemUnit || (!!targetReport.policyID && targetReport.policyID !== CONST.POLICY.ID_FAKE);
-                if (!canDestinationResolvePolicy) {
-                    return;
-                }
-
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                if (targetIouType === CONST.IOU.TYPE.TRACK) {
-                    setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, false);
-                } else {
-                    setMoneyRequestParticipants(transactionID, [
-                        {
-                            selected: true,
-                            accountID: 0,
-                            isPolicyExpenseChat: true,
-                            reportID: targetReport.reportID,
-                            policyID: policy?.id,
-                        },
-                    ]);
-                }
-                setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-                setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, targetIouType, transactionID, targetReport.reportID));
-            }}
+            onSelectWorkspace={selectWorkspace}
         />
     );
 }
