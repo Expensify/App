@@ -10,7 +10,8 @@ import {
     getInvoicesChatName,
     getMoneyRequestReportName,
     getPolicyExpenseChatName,
-    getReportName as getSimpleReportName,
+    getReportName,
+    deprecatedGetReportName,
 } from '@libs/ReportNameUtils';
 
 import CONST from '@src/CONST';
@@ -975,7 +976,7 @@ describe('ReportNameUtils', () => {
         });
     });
 
-    describe('getReportName (derived value vs fallback)', () => {
+    describe('deprecatedGetReportName (resolves the name out of the attributes Record)', () => {
         test('Returns derived value when provided', () => {
             const report: Report = {
                 ...createPolicyExpenseChat(60, true),
@@ -993,7 +994,7 @@ describe('ReportNameUtils', () => {
                 },
             };
 
-            expect(getSimpleReportName(report, derived)).toBe("Ragnar Lothbrok's expenses");
+            expect(deprecatedGetReportName(report, derived)).toBe("Ragnar Lothbrok's expenses");
         });
 
         test('Falls back to report.reportName when derived missing', () => {
@@ -1004,7 +1005,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            expect(getSimpleReportName(report, {} as never)).toBe('Custom Report Name');
+            expect(deprecatedGetReportName(report, {} as never)).toBe('Custom Report Name');
         });
 
         test('Returns empty string when neither present', () => {
@@ -1015,7 +1016,69 @@ describe('ReportNameUtils', () => {
                 reportName: undefined,
             };
 
-            expect(getSimpleReportName(report, {} as never)).toBe('');
+            expect(deprecatedGetReportName(report, {} as never)).toBe('');
+        });
+    });
+
+    describe('getReportName (derived name vs fallback)', () => {
+        test('Returns the derived name when provided', () => {
+            const report: Report = {
+                ...createPolicyExpenseChat(70, true),
+                reportID: '70',
+                reportName: 'Raw Report Name',
+                ownerAccountID: 1,
+            };
+
+            expect(getReportName(report, "Ragnar Lothbrok's expenses")).toBe("Ragnar Lothbrok's expenses");
+        });
+
+        test('Falls back to report.reportName when no derived name is passed', () => {
+            const report: Report = {
+                ...createRegularChat(71, [currentUserAccountID, 1]),
+                reportID: '71',
+                reportName: 'Custom Report Name',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            expect(getReportName(report)).toBe('Custom Report Name');
+            expect(getReportName(report, undefined)).toBe('Custom Report Name');
+        });
+
+        test('Returns empty string when neither the derived name nor report.reportName is present', () => {
+            const report: Report = {
+                ...createRegularChat(72, [currentUserAccountID, 1]),
+                reportID: '72',
+                ownerAccountID: currentUserAccountID,
+                reportName: undefined,
+            };
+
+            expect(getReportName(report)).toBe('');
+        });
+
+        test('Returns empty string when the report is missing or has no reportID', () => {
+            const reportWithoutID: Report = {
+                ...createRegularChat(74, [currentUserAccountID, 1]),
+                reportID: '',
+                reportName: 'Custom Report Name',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            expect(getReportName(undefined, 'Derived Name')).toBe('');
+            // reportID is the lookup key, so a report without one has no name even if it carries a reportName
+            expect(getReportName(reportWithoutID, 'Derived Name')).toBe('');
+        });
+
+        test('Keeps an empty derived name rather than falling back to report.reportName', () => {
+            const report: Report = {
+                ...createRegularChat(73, [currentUserAccountID, 1]),
+                reportID: '73',
+                reportName: 'Custom Report Name',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            // `??` only falls through on null/undefined, so a derived empty name wins. This mirrors the
+            // pre-migration behavior of indexing the attributes Record inline.
+            expect(getReportName(report, '')).toBe('');
         });
     });
 

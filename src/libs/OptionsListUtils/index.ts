@@ -111,7 +111,7 @@ import {
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -161,15 +161,18 @@ import {
     shouldReportBeInOptionList,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {getDescription, getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
+    Locale,
     Login,
     OnyxInputOrEntry,
     PersonalDetails,
@@ -231,7 +234,6 @@ import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersona
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -245,9 +247,9 @@ const deprecatedAllSortedReportActions: Record<string, ReportAction[]> = {};
 const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;
@@ -464,6 +466,8 @@ type GetAlternateTextConfig = {
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number;
 };
 
 /**
@@ -484,6 +488,7 @@ function getAlternateText(
         conciergeReportID,
         sortedActions,
         isTrackIntentUser,
+        currentUserAccountID,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
@@ -507,6 +512,7 @@ function getAlternateText(
             conciergeReportID,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -650,6 +656,7 @@ function getLastMessageTextForReport({
     isTrackIntentUser = false,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
+    currentUserAccountID,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -671,6 +678,8 @@ function getLastMessageTextForReport({
     isTrackIntentUser?: boolean;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -732,7 +741,7 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage({
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, {
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -755,7 +764,7 @@ function getLastMessageTextForReport({
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            const reportPreviewMessage = getReportPreviewMessage({
+            const reportPreviewMessage = getReportPreviewMessage(translate, {
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -783,6 +792,7 @@ function getLastMessageTextForReport({
             report?.ownerAccountID,
             getLoginByAccountID(report?.ownerAccountID, personalDetails),
             getLoginByAccountID(lastReportAction.actorAccountID, personalDetails),
+            currentUserAccountID,
         );
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translate('common.attachment')}]`;
@@ -1022,7 +1032,7 @@ function getLastMessageTextForReport({
                 lastMessageTextFromReport =
                     formatReportLastMessageText(
                         Parser.htmlToText(
-                            getReportPreviewMessage({
+                            getReportPreviewMessage(translate, {
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -1073,6 +1083,8 @@ type CreateOptionParams = {
     conciergeReportID?: string;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number;
 };
 
 /**
@@ -1092,6 +1104,7 @@ function createOption({
     isTrackIntentUser,
     conciergeReportID,
     sortedActions,
+    currentUserAccountID,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -1178,6 +1191,7 @@ function createOption({
             conciergeReportID,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1195,10 +1209,11 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          currentUserAccountID,
                       },
                   );
 
-        const computedReportName = getReportName(report, reportAttributesDerived);
+        const computedReportName = deprecatedGetReportName(report, reportAttributesDerived);
 
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
@@ -1254,6 +1269,7 @@ function getReportOption(
     conciergeReportID: string | undefined,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report>,
+    currentUserAccountID: number,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): OptionData {
@@ -1275,13 +1291,14 @@ function getReportOption(
         policyTags: reportPolicyTags,
         visibleReportActionsData,
         conciergeReportID,
+        currentUserAccountID,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report, reportAttributesDerived);
+        option.text = deprecatedGetReportName(report, reportAttributesDerived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report, policy});
@@ -1338,7 +1355,7 @@ function getReportDisplayOption(
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report, reportAttributesDerived);
+        option.text = deprecatedGetReportName(report, reportAttributesDerived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
@@ -1498,6 +1515,8 @@ function processReport(
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     isTrackIntentUser?: boolean,
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>,
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1521,7 +1540,18 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption({accountIDs, personalDetails, report, privateIsArchived, policy, reportAttributesDerived, policyTags, visibleReportActionsData, isTrackIntentUser}),
+            ...createOption({
+                accountIDs,
+                personalDetails,
+                report,
+                privateIsArchived,
+                policy,
+                reportAttributesDerived,
+                policyTags,
+                visibleReportActionsData,
+                isTrackIntentUser,
+                sortedActions,
+            }),
         },
     };
 }
@@ -1554,6 +1584,75 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *
  * Use this for screens that need recent reports (NewChatPage, WorkspaceInvitePage, etc.)
  */
+// Shared stable default so an omitted `visibleReportActionsData` keeps a constant reference across calls,
+// which the cache below relies on for hits.
+const EMPTY_VISIBLE_REPORT_ACTIONS: VisibleReportActionsDerivedValue = {};
+
+// Cache keyed by the options signature so each selection screen configuration (SearchRouter, NewChatPage,
+// ShareTab, etc.) keeps its own entry and reopening one screen is not evicted by opening another.
+// An entry is reused only while its Onyx inputs are referentially unchanged.
+const filteredOptionListCache = new Map<string, {inputs: unknown[]; result: OptionList}>();
+
+// One slot per active screen configuration (~7 distinct callers) plus a small buffer.
+// The LRU bound prevents a paginating screen from flooding the cache with one entry
+// per distinct maxRecentReports value and evicting entries for other screens.
+const FILTERED_OPTION_LIST_CACHE_MAX_ENTRIES = 8;
+
+/** Builds the cache key from the option values that define a distinct screen configuration. */
+function buildFilteredOptionListCacheKey(args: Array<string | number | boolean>): string {
+    return args.join('_');
+}
+
+// Consumers (e.g. getValidOptions) mutate option objects in place (isBold/isSelected/brickRoadIndicator),
+// so the cache keeps a pristine copy and every caller receives its own shallow clones, matching the
+// per-call fresh objects they would get without the cache.
+// NOTE: this is a shallow clone — the top-level fields consumers mutate today are all scalars. Nested
+// objects (icons, participantsList, item, allReportErrors) stay shared with the cached entry, so any new
+// consumer that mutates those in place would corrupt the cache and must clone them first.
+function cloneOptionList(optionList: OptionList): OptionList {
+    return {
+        reports: optionList.reports.map((option) => ({...option})),
+        personalDetails: optionList.personalDetails.map((option) => ({...option})),
+    };
+}
+
+// Enforces the cloneOptionList invariant in dev: the cached entry's nested objects are shared with every
+// clone handed out, so freezing them makes a consumer that mutates one throw immediately instead of
+// silently corrupting the cache for other screens. The clones' top-level objects stay mutable because
+// spreading a frozen object produces a new unfrozen one — which covers all mutations consumers do today.
+//
+// `item` and the members of `participantsList` are exempt: they are Onyx snapshot objects shared with the
+// whole app, not structures this cache created, and existing code still writes to them in place (e.g.
+// getPersonalDetailsForAccountIDs sets accountID during every option build), so freezing them would crash
+// unrelated flows in dev. Mutating them corrupts app-wide Onyx state, which is beyond this cache's invariant.
+function deepFreeze(value: unknown) {
+    if (typeof value !== 'object' || value === null || Object.isFrozen(value)) {
+        return;
+    }
+    Object.freeze(value);
+    for (const [key, child] of Object.entries(value)) {
+        if (key === 'item') {
+            continue;
+        }
+        if (key === 'participantsList') {
+            if (Array.isArray(child)) {
+                Object.freeze(child);
+            }
+            continue;
+        }
+        deepFreeze(child);
+    }
+}
+
+/** Clears the createFilteredOptionList cache. For tests that measure or exercise the build path with unchanged inputs. */
+function clearFilteredOptionListCache() {
+    filteredOptionListCache.clear();
+}
+
+// The cached results (and the Onyx collection references in their keys) belong to the signed-in
+// account, so drop them on sign-out instead of holding them until the next call.
+registerSessionCleanupCallback(() => filteredOptionListCache.clear());
+
 function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
@@ -1564,13 +1663,57 @@ function createFilteredOptionList(
         maxRecentReports?: number;
         includeP2P?: boolean;
         isSearching?: boolean;
-        betas?: OnyxEntry<Beta[]>;
+        /**
+         * When true, personal details (contacts) are only built while searching (`isSearching`).
+         * For screens whose idle/empty state shows no standalone contacts (e.g. the SearchRouter),
+         * this skips building an option for every contact on open. Screens that show contacts at
+         * empty state (contact pickers) must leave this false.
+         */
+        deferContactsUntilSearch?: boolean;
+        locale?: Locale;
     } = {},
     policyTags?: OnyxCollection<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
     isTrackIntentUser?: boolean,
-) {
-    const {maxRecentReports = 500, includeP2P = true, isSearching = false} = options;
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>,
+): OptionList {
+    const {maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+
+    // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
+    // opts into deferral and is not actively searching, skip building them entirely; the empty state
+    // does not display standalone contacts, and typing flips `isSearching` which rebuilds the full set.
+    const areContactsDeferred = deferContactsUntilSearch && !isSearching;
+    const shouldBuildContacts = includeP2P && !areContactsDeferred;
+
+    // Search-mode results contain an option for every report and contact, so caching them would retain
+    // full-account-sized arrays until sign-out — and any Onyx change invalidates them anyway.
+    const shouldUseCache = !isSearching;
+
+    const cacheEntryKey = buildFilteredOptionListCacheKey([maxRecentReports, includeP2P, isSearching, deferContactsUntilSearch]);
+    const cacheInputs = [
+        personalDetails,
+        reports,
+        reportAttributesDerived,
+        privateIsArchivedMap,
+        policiesCollection,
+        policyTags,
+        visibleReportActionsData,
+        isTrackIntentUser,
+        // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
+        locale ?? IntlStore.getCurrentLocale(),
+        // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
+        // so its reference signals that the underlying report actions changed.
+        sortedActions,
+    ];
+    const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
+    if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
+        // Re-inserting refreshes recency so a frequently-hit entry is not evicted by writes to other keys.
+        filteredOptionListCache.delete(cacheEntryKey);
+        filteredOptionListCache.set(cacheEntryKey, cachedEntry);
+        return cloneOptionList(cachedEntry.result);
+    }
+
     const reportMapForAccountIDs: Record<number, Report> = {};
 
     // Step 1: Pre-filter reports to avoid processing thousands
@@ -1624,6 +1767,7 @@ function createFilteredOptionList(
             reportPolicyTags,
             visibleReportActionsData,
             isTrackIntentUser,
+            sortedActions,
         );
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1646,8 +1790,8 @@ function createFilteredOptionList(
         }
     }
 
-    // Step 5: Process personal details (all of them - needed for search functionality)
-    const personalDetailsOptions = includeP2P
+    // Step 5: Process personal details (all of them when built - needed for search functionality)
+    const personalDetailsOptions = shouldBuildContacts
         ? Object.values(personalDetails ?? {}).map((personalDetail) => {
               const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -1672,10 +1816,30 @@ function createFilteredOptionList(
           })
         : [];
 
-    return {
+    const result: OptionList = {
         reports: reportOptions,
         personalDetails: personalDetailsOptions as Array<SearchOption<PersonalDetails>>,
     };
+
+    if (!shouldUseCache) {
+        return result;
+    }
+
+    // Re-inserting moves the entry to the end of the Map, so eviction below drops the least recently used entry.
+    filteredOptionListCache.delete(cacheEntryKey);
+    if (filteredOptionListCache.size >= FILTERED_OPTION_LIST_CACHE_MAX_ENTRIES) {
+        const oldestEntryKey = filteredOptionListCache.keys().next().value;
+        if (oldestEntryKey !== undefined) {
+            filteredOptionListCache.delete(oldestEntryKey);
+        }
+    }
+    if (__DEV__) {
+        deepFreeze(result);
+    }
+    filteredOptionListCache.set(cacheEntryKey, {inputs: cacheInputs, result});
+
+    // The caller gets clones because the cached entry must stay pristine (see cloneOptionList).
+    return cloneOptionList(result);
 }
 
 function createOptionFromReport(
@@ -2977,6 +3141,9 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    // The default falls back to the module-level Onyx.connect() cache until every caller passes a resolver (tracked in https://github.com/Expensify/App/issues/66378).
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report> = (reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2990,8 +3157,7 @@ function formatSectionsFromSearchTerm(
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                           if (isReportPolicyExpenseChat) {
-                              // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-                              const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+                              const expenseReport = getReportByID(participant.reportID);
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                               return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
@@ -3023,8 +3189,7 @@ function formatSectionsFromSearchTerm(
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                       if (isReportPolicyExpenseChat) {
-                          // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-                          const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+                          const expenseReport = getReportByID(participant.reportID);
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                           return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
@@ -3351,6 +3516,7 @@ function processSearchString(searchString: string | undefined): string[] {
 
 export {
     canCreateOptimisticPersonalDetailOption,
+    clearFilteredOptionListCache,
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createFilteredOptionList,

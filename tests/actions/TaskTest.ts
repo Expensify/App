@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {act, renderHook} from '@testing-library/react-native';
 
@@ -36,7 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -55,6 +54,47 @@ jest.mock('@libs/ErrorUtils');
 jest.mock('@libs/actions/Welcome');
 // Keep OnyxDerived real initialization below
 jest.mock('@components/LocaleContextProvider');
+
+const mockWrite = jest.mocked(API.write);
+
+type ReportActionsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+
+type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+
+function getRequiredWriteOnyxData(callIndex = 0): OnyxData<OnyxKey> {
+    const onyxData = mockWrite.mock.calls.at(callIndex)?.[2];
+    if (!onyxData) {
+        throw new Error(`API.write call ${callIndex} did not include Onyx data`);
+    }
+    return onyxData;
+}
+
+function getRequiredOnyxUpdate(onyxData: OnyxData<OnyxKey>, dataType: 'optimisticData' | 'failureData', key: ReportActionsKey): OnyxUpdate<ReportActionsKey>;
+function getRequiredOnyxUpdate(onyxData: OnyxData<OnyxKey>, dataType: 'optimisticData' | 'failureData', key: ReportKey): OnyxUpdate<ReportKey>;
+function getRequiredOnyxUpdate(onyxData: OnyxData<OnyxKey>, dataType: 'optimisticData' | 'failureData', key: OnyxKey): OnyxUpdate<OnyxKey> {
+    const updates = onyxData[dataType];
+    if (!updates) {
+        throw new Error(`API.write Onyx data did not include ${dataType}`);
+    }
+
+    const update = updates.find((candidate) => candidate.key === key);
+    if (!update) {
+        throw new Error(`API.write ${dataType} did not include ${key}`);
+    }
+    return update;
+}
+
+function getRequiredReportAction(update: OnyxUpdate<ReportActionsKey>, actionName: ReportAction['actionName']) {
+    if (update.onyxMethod !== Onyx.METHOD.MERGE || !update.value) {
+        throw new Error(`Expected a report actions MERGE update for ${update.key}`);
+    }
+
+    const reportAction = Object.values(update.value).find((action) => action?.actionName === actionName);
+    if (!reportAction) {
+        throw new Error(`Expected ${actionName} report action in ${update.key}`);
+    }
+    return reportAction;
+}
 
 // ReportUtils spies used in createTaskAndNavigate tests
 const mockBuildOptimisticTaskReport = jest.fn();
@@ -315,17 +355,15 @@ describe('actions/Task', () => {
         });
         it('forwards delegateAccountID when delegateEmail is provided', () => {
             const onyxData = getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined, DELEGATE_EMAIL);
-            const reportActionsData = onyxData.optimisticData?.find((entry) => (entry.key as string).startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
-            const reportActions = reportActionsData?.value as Record<string, ReportAction> | undefined;
-            const completedAction = reportActions ? Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED) : undefined;
-            expect(completedAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            const reportActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.reportID}`);
+            const completedAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED);
+            expect(completedAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
         it('does not set delegateAccountID when delegateEmail is undefined', () => {
             const onyxData = getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined, undefined);
-            const reportActionsData = onyxData.optimisticData?.find((entry) => (entry.key as string).startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
-            const reportActions = reportActionsData?.value as Record<string, ReportAction> | undefined;
-            const completedAction = reportActions ? Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED) : undefined;
-            expect(completedAction?.delegateAccountID).toBeUndefined();
+            const reportActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.reportID}`);
+            const completedAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED);
+            expect(completedAction.delegateAccountID).toBeUndefined();
         });
     });
 
@@ -449,9 +487,13 @@ describe('actions/Task', () => {
                 taskCreatorAndAssigneeDetails: undefined,
             });
             // Then: Verify API.write called with expected arguments
-            const calls = (API.write as jest.Mock).mock.calls;
+            const calls = mockWrite.mock.calls;
             expect(calls.length).toBe(1);
-            const [command, params, onyx] = calls.at(0);
+            const call = calls.at(0);
+            if (!call) {
+                throw new Error('CreateTask write was not called');
+            }
+            const [command, params] = call;
             expect(command).toBe('CreateTask');
             expect(params).toEqual(
                 expect.objectContaining({
@@ -463,7 +505,7 @@ describe('actions/Task', () => {
                     assigneeChatReportID: mockAssigneeChatReport.reportID,
                 }),
             );
-            expect(onyx).toEqual(
+            expect(getRequiredWriteOnyxData()).toEqual(
                 expect.objectContaining({
                     optimisticData: expect.any(Array),
                     successData: expect.any(Array),
@@ -496,10 +538,11 @@ describe('actions/Task', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the optimistic task report should include policyAdmins chatType
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
-            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
-            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+            const optimisticTaskReportUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            if (optimisticTaskReportUpdate.onyxMethod !== Onyx.METHOD.SET || !optimisticTaskReportUpdate.value) {
+                throw new Error('Expected an optimistic task report SET update');
+            }
+            expect(optimisticTaskReportUpdate.value.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
         });
 
         it('should not set optimistic task chatType for tasks created in policy expense chats', async () => {
@@ -526,10 +569,11 @@ describe('actions/Task', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the optimistic task report should keep chatType unset
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
-            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
-            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBeUndefined();
+            const optimisticTaskReportUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            if (optimisticTaskReportUpdate.onyxMethod !== Onyx.METHOD.SET || !optimisticTaskReportUpdate.value) {
+                throw new Error('Expected an optimistic task report SET update');
+            }
+            expect(optimisticTaskReportUpdate.value.chatType).toBeUndefined();
         });
 
         it('should handle task creation without assignee chat report', async () => {
@@ -560,7 +604,6 @@ describe('actions/Task', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(
                 'CreateTask',
                 expect.objectContaining({
@@ -712,10 +755,13 @@ describe('actions/Task', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const calls = (API.write as jest.Mock).mock.calls;
+            const calls = mockWrite.mock.calls;
             expect(calls.length).toBe(1);
-            const [command, params, onyx] = calls.at(0);
+            const call = calls.at(0);
+            if (!call) {
+                throw new Error('CreateTask write was not called');
+            }
+            const [command, params] = call;
             expect(command).toBe('CreateTask');
             expect(params).toEqual(
                 expect.objectContaining({
@@ -726,7 +772,7 @@ describe('actions/Task', () => {
                     assigneeAccountID: mockCurrentUserAccountID,
                 }),
             );
-            expect(onyx.optimisticData).toEqual(
+            expect(getRequiredWriteOnyxData().optimisticData).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
                         key: `${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`,
@@ -939,12 +985,11 @@ describe('actions/Task', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then: the optimistic parent report update uses the provided account ID, proving the function does not read the session
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
-            const parentReportUpdate = onyx.optimisticData?.find(
-                (update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}` && (update.value as Report | undefined)?.lastActorAccountID !== undefined,
-            );
-            expect((parentReportUpdate?.value as Report | undefined)?.lastActorAccountID).toBe(overrideUserAccountID);
+            const parentReportUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`);
+            if (parentReportUpdate.onyxMethod !== Onyx.METHOD.MERGE || !parentReportUpdate.value) {
+                throw new Error('Expected an optimistic parent report MERGE update');
+            }
+            expect(parentReportUpdate.value.lastActorAccountID).toBe(overrideUserAccountID);
             expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith(
                 expect.objectContaining({
                     currentUserAccountID: overrideUserAccountID,
@@ -1041,13 +1086,12 @@ describe('actions/Task', () => {
             );
 
             // Verify optimisticData contains childStateNum and childStatusNum updates
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
+            const onyxData = getRequiredWriteOnyxData();
 
             // Find the optimistic update for parent report action
-            const parentReportActionUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
+            const parentReportActionUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
 
             expect(parentReportActionUpdate).toBeDefined();
             expect(parentReportActionUpdate?.value).toEqual({
@@ -1058,8 +1102,7 @@ describe('actions/Task', () => {
             });
 
             // Verify failureData contains rollback to OPEN state
-            const failureData = onyxData.failureData ?? [];
-            const parentReportActionFailure = failureData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
+            const parentReportActionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
 
             expect(parentReportActionFailure).toBeDefined();
             expect(parentReportActionFailure?.value).toEqual({
@@ -1103,10 +1146,12 @@ describe('actions/Task', () => {
             );
 
             // Verify optimisticData does NOT contain parent report action updates
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
+            const {optimisticData} = getRequiredWriteOnyxData();
+            if (!optimisticData) {
+                throw new Error('CompleteTask write did not include optimistic data');
+            }
 
             // Should not have any parent report action updates
             const parentReportActionUpdate = optimisticData.find(
@@ -1128,16 +1173,14 @@ describe('actions/Task', () => {
 
             completeTask(taskReport, false, false, undefined, DELEGATE_EMAIL);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
 
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(reportActionsUpdate).toBeDefined();
 
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED);
+            expect(reportAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
@@ -1152,16 +1195,14 @@ describe('actions/Task', () => {
 
             completeTask(taskReport, false, false, undefined, undefined);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
 
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(reportActionsUpdate).toBeDefined();
 
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBeUndefined();
+            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED);
+            expect(reportAction.delegateAccountID).toBeUndefined();
         });
     });
 
@@ -1260,16 +1301,14 @@ describe('actions/Task', () => {
 
             editTask(taskReport, {title: 'Updated Title'}, DELEGATE_EMAIL);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
 
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(reportActionsUpdate).toBeDefined();
 
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_EDITED);
+            expect(reportAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
@@ -1282,16 +1321,14 @@ describe('actions/Task', () => {
 
             editTask(taskReport, {title: 'Updated Title'}, undefined);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
 
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(reportActionsUpdate).toBeDefined();
 
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBeUndefined();
+            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_EDITED);
+            expect(reportAction.delegateAccountID).toBeUndefined();
         });
     });
 
@@ -1349,16 +1386,14 @@ describe('actions/Task', () => {
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
             });
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
 
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(reportActionsUpdate).toBeDefined();
 
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_EDITED);
+            expect(reportAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
@@ -1381,16 +1416,14 @@ describe('actions/Task', () => {
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
             });
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
 
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(reportActionsUpdate).toBeDefined();
 
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBeUndefined();
+            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_EDITED);
+            expect(reportAction.delegateAccountID).toBeUndefined();
         });
     });
 
@@ -1628,17 +1661,14 @@ describe('actions/Task', () => {
 
             deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, undefined, DELEGATE_EMAIL, undefined);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
 
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(reportActionsUpdate).toBeDefined();
 
-            const reportActions = reportActionsUpdate?.value as Record<string, ReportAction>;
-            const cancelAction = Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
-            expect(cancelAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            const cancelAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
+            expect(cancelAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('should set delegateAccountID to undefined when delegateEmail is undefined', async () => {
@@ -1659,17 +1689,14 @@ describe('actions/Task', () => {
 
             deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, undefined, undefined, undefined);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
+            const calls = mockWrite.mock.calls;
+            expect(calls).toHaveLength(1);
 
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(reportActionsUpdate).toBeDefined();
 
-            const reportActions = reportActionsUpdate?.value as Record<string, ReportAction>;
-            const cancelAction = Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
-            expect(cancelAction?.delegateAccountID).toBeUndefined();
+            const cancelAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
+            expect(cancelAction.delegateAccountID).toBeUndefined();
         });
     });
 
