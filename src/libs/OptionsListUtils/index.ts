@@ -1576,16 +1576,7 @@ function selectTopReportsForOptionList(reports: Report[], privateIsArchivedMap: 
         return reports;
     }
 
-    const decoratedReports = new Array<{key: string; report: Report}>(reports.length);
-    for (let i = 0; i < reports.length; i++) {
-        const report = reports.at(i);
-        if (!report) {
-            continue;
-        }
-        decoratedReports[i] = {key: reportSortComparator(report, privateIsArchivedMap), report};
-    }
-
-    return optionsOrderBy(decoratedReports, (decorated) => decorated.key, maxRecentReports).options.map((decorated) => decorated.report);
+    return optionsOrderBy(reports, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
 }
 
 /**
@@ -1935,7 +1926,6 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
     filter?: (option: T) => boolean | undefined,
     reversed = false,
 ): {options: T[]; hasMore: boolean} {
-    const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
     let hasMore = false;
 
     // If a limit is 0 or negative, return an empty array
@@ -1943,25 +1933,33 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
         return {options: [], hasMore};
     }
 
+    // Decorate each option with its comparator key once (Schwartzian transform).
+    // The heap then compares precomputed primitives instead of re-running `comparator`
+    // on every O(log n) heap comparison, so `comparator` is evaluated exactly once per option.
+    type Decorated = {key: number | string; option: T};
+    const getKey = (decorated: Decorated) => decorated.key;
+    const heap = reversed ? new MaxHeap<Decorated>(getKey) : new MinHeap<Decorated>(getKey);
+
     for (const option of options) {
         if (filter && !filter(option)) {
             continue;
         }
+        const decorated: Decorated = {key: comparator(option), option};
         if (limit !== undefined && heap.size() >= limit) {
             hasMore = true;
             const peekedValue = heap.peek();
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
             }
-            if (reversed ? comparator(option) < comparator(peekedValue) : comparator(option) > comparator(peekedValue)) {
+            if (reversed ? decorated.key < peekedValue.key : decorated.key > peekedValue.key) {
                 heap.pop();
-                heap.push(option);
+                heap.push(decorated);
             }
         } else {
-            heap.push(option);
+            heap.push(decorated);
         }
     }
-    return {options: [...heap].reverse(), hasMore};
+    return {options: [...heap].reverse().map((decorated) => decorated.option), hasMore};
 }
 
 /**
