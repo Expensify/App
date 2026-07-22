@@ -1,6 +1,5 @@
 import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
-import scheduleMacrotask from '@libs/scheduleMacrotask';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
@@ -197,7 +196,18 @@ function init() {
                     return;
                 }
                 flushScheduled = true;
-                scheduleMacrotask(flushRecompute);
+                // Flush on a microtask so the recompute lands before the next render/paint — keeping raw Onyx
+                // data and derived data consistent within a render — while still coalescing every dependency
+                // change delivered in this synchronous burst. The try/catch isolates a throw so it can't escape
+                // as an uncaught microtask error; pending deltas are preserved (flushRecompute clears them only
+                // on success), so the next dependency change re-flushes them.
+                queueMicrotask(() => {
+                    try {
+                        flushRecompute();
+                    } catch (error) {
+                        Log.alert(`[OnyxDerived] flush for ${key} threw`, {error});
+                    }
+                });
             };
 
             for (let i = 0; i < dependencies.length; i++) {
