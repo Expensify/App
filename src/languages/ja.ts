@@ -1715,6 +1715,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: '残りの承認ワークフローに回す前に、これらのレポートの追加承認者を選択してください。',
             },
             bulkSubtitle: 'これらのレポートの承認者を変更する方法を選択してください。',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `このレポートは、あなた（休暇代理人）ではなく、あなたがこのレポートのポリシーのメンバーではないため、代わりに <mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `このレポートは、このレポートのポリシーのメンバーではないため、休暇代理人の <mention-user>@${delegate}</mention-user> ではなく、<mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `このレポートは、このレポートのポリシーのメンバーではないため、休暇代理人の <mention-user>@${delegate}</mention-user> ではなく、<mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
+                `このレポートは、<mention-user>@${delegate}</mention-user> さんがご自身のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+                `このレポートは、休暇代理人である <mention-user>@${delegate}</mention-user> さんは自分のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `このレポートは、休暇中の代理人である <mention-user>@${delegate}</mention-user> さんは自分のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
         },
         chooseWorkspace: 'ワークスペースを選択',
         routedDueToDEW: (to: string, reason?: string) => `レポートは ${to}${reason ? ` ${reason} のため` : ''} に回覧されました`,

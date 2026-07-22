@@ -1742,6 +1742,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Choisissez un approbateur supplémentaire pour ces rapports avant que nous ne les transmettions pour le reste du flux de validation.',
             },
             bulkSubtitle: 'Choisissez une option pour changer l’approbateur de ces rapports.',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> au lieu de vous (leur remplaçant en vacances), car vous n’êtes pas membre de la politique de cette note de frais`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> au lieu de votre remplaçant de vacances <mention-user>@${delegate}</mention-user>, car cette personne n’est pas membre de la politique de cette note de frais`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> au lieu de son remplaçant de vacances <mention-user>@${delegate}</mention-user>, car il n’est pas membre de la politique de cette note de frais`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car <mention-user>@${delegate}</mention-user> ne peut pas approuver ses propres notes de frais`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car votre remplaçant de congés, <mention-user>@${delegate}</mention-user>, ne peut pas approuver ses propres notes de frais`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car sa personne déléguée pour les congés, <mention-user>@${delegate}</mention-user>, ne peut pas approuver ses propres notes de frais`,
         },
         chooseWorkspace: 'Choisir un espace de travail',
         routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? ` parce que ${reason}` : ''}`,
