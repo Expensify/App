@@ -7598,16 +7598,7 @@ describe('createDistanceRequest', () => {
 
         // Onyx is cleared before each test, so the only reports that should exist are the chat and the iou report.
         // A proactively-created transaction thread would show up as an extra report — the backend owns thread creation now.
-        const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
-                callback: (reports) => {
-                    Onyx.disconnect(connection);
-                    resolve(reports);
-                },
-            });
-        });
+        const allReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
 
         const allowedReportIDs = new Set([result.chatReportID, result.iouReport?.reportID]);
         const unexpectedReports = Object.values(allReports ?? {}).filter((report) => !!report?.reportID && !allowedReportIDs.has(report.reportID));
