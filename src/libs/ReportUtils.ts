@@ -1402,13 +1402,9 @@ function getPolicyName(params: GetPolicyNameParams): string {
     const noPolicyFound = params.returnEmptyIfNotFound ? '' : (params.unavailableTranslation ?? unavailableTranslation);
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
-    // Bail only when none of the sources used below can resolve a name. oldPolicyName is included because it's a valid
-    // fallback (see below) and is the only name a draft workspace's expense chat carries (e.g. "Submit to my employer"
-    // with no persisted policies) — without it this returned "Unavailable workspace" for those drafts.
-    if (
-        (!report?.policyName && !report?.oldPolicyName && !parentReport?.policyName && !parentReport?.oldPolicyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) ||
-        isEmptyObject(report)
-    ) {
+    // A caller that explicitly passes `policy` (e.g. a draft workspace's policy from getReportOption) can resolve a name
+    // even for a user with no persisted policies, so don't bail in that case.
+    if ((!report?.policyName && !parentReport?.policyName && isEmptyObject(policy) && isEmptyObject(policies) && isEmptyObject(allPolicies)) || isEmptyObject(report)) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
@@ -3938,7 +3934,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
 /**
  * Helper function to get the icons for a group chat. Only to be used in getIcons().
  */
-function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): Icon[] {
+function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], translate: LocalizedTranslate): Icon[] {
     if (!report) {
         return [];
     }
@@ -3947,7 +3943,7 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumbe
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
-        name: getGroupChatName(formatPhoneNumber, undefined, true, report),
+        name: getGroupChatName(formatPhoneNumber, translate, undefined, true, report),
     };
     return [groupChatIcon];
 }
@@ -4071,7 +4067,7 @@ function getIcons(
         return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
     }
     if (isGroupChat(report)) {
-        return getIconsForGroupChat(report, formatPhoneNumber);
+        return getIconsForGroupChat(report, formatPhoneNumber, translate);
     }
     if (isOneOnOneChat(report)) {
         const otherParticipantsAccountIDs = Object.keys(report.participants ?? {})
@@ -4151,8 +4147,8 @@ function getDisplayNamesWithTooltips(
 /**
  * Returns the the display names of the given user accountIDs
  */
-function getUserDetailTooltipText(accountID: number, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], fallbackUserDisplayName = ''): string {
-    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber});
+function getUserDetailTooltipText(accountID: number, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], translate: LocalizedTranslate, fallbackUserDisplayName = ''): string {
+    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber, translate});
     return displayNameForParticipant || fallbackUserDisplayName;
 }
 
@@ -5779,7 +5775,7 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
     const policyName = getPolicyName({report: parentReport ?? report, policy});
     const payerName = isExpenseReport(report)
         ? policyName
-        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
@@ -5836,7 +5832,7 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
         let actualPayerName =
             report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
                 ? ''
-                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
@@ -5855,7 +5851,8 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
     }
 
     if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const submitterDisplayName =
+            getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
         return translate('iou.waitingOnBankAccount', submitterDisplayName);
     }
 
@@ -5884,13 +5881,17 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
                 : '';
         return `${requestorName ? `${requestorName}: ` : ''}${translate('iou.expenseAmount', amountToDisplay, comment)}`;
     }
 
     if (containsNonReimbursable) {
-        return translate('iou.payerSpentAmount', formattedAmount, getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
+        return translate(
+            'iou.payerSpentAmount',
+            formattedAmount,
+            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '',
+        );
     }
     return translate('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);
 }
@@ -6224,7 +6225,7 @@ function getModifiedExpenseOriginalMessage(
 /**
  * Get the payee name given a report.
  */
-function getPayeeName(report: OnyxEntry<Report>): string | undefined {
+function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate): string | undefined {
     if (isEmptyObject(report)) {
         return undefined;
     }
@@ -6236,7 +6237,7 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
     if (participantsWithoutCurrentUser.length === 0) {
         return undefined;
     }
-    return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+    return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
 }
 
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412

@@ -4928,6 +4928,10 @@ const CONST = {
         REQUIRE_RECEIPTS_OVER: 'requireReceiptsOver',
         REQUIRE_ITEMIZED_RECEIPTS_OVER: 'requireItemizedReceiptsOver',
     },
+    FIELD_REQUIREMENTS_DIRECTION: {
+        REQUIRE: 'require',
+        DO_NOT_REQUIRE: 'doNotRequire',
+    },
     SPEND_RULES: {
         BADGE_VARIANTS: {
             SUCCESS: 'success',
@@ -5304,6 +5308,8 @@ const CONST = {
         ERROR: 'error',
         TRACK: {
             SUBMIT: 'submit',
+            SUBMIT_TO_FRIEND: 'submitToFriend',
+            SUBMIT_TO_EMPLOYER: 'submitToEmployer',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
@@ -8861,6 +8867,7 @@ const CONST = {
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_CATEGORY: 'WorkspaceRules-RequireFieldsRuleCategory',
                 REQUIRE_FIELDS_RULE_FIELD_TOGGLE: 'WorkspaceRules-RequireFieldsRuleFieldToggle',
+                REQUIRE_FIELDS_RULE_DIRECTION_TOGGLE: 'WorkspaceRules-RequireFieldsRuleDirectionToggle',
                 FLAG_FOR_REVIEW_RULE_ITEM: 'WorkspaceRules-FlagForReviewRuleItem',
                 FLAG_FOR_REVIEW_RULE_SAVE: 'WorkspaceRules-FlagForReviewRuleSave',
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
