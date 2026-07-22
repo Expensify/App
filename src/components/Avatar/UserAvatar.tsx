@@ -25,7 +25,7 @@ type UserAvatarProps = AvatarCommonProps & {
     fallbackIconTestID?: string;
 
     /** Owning account ID. Picks the default avatar when `source` is a default or absent. */
-    avatarID: number;
+    accountID: number;
 };
 
 /** Renders a user avatar, falling back to a default icon when no source is available. */
@@ -38,7 +38,7 @@ function UserAvatar({
     fill,
     fallbackIcon,
     fallbackIconTestID = '',
-    avatarID,
+    accountID,
     testID,
 }: UserAvatarProps) {
     const defaultAvatars = useDefaultAvatars();
@@ -46,7 +46,6 @@ function UserAvatar({
     const StyleUtils = useStyleUtils();
     const {hasImageError, onImageError} = useAvatarLoadError(source);
 
-    const accountID = typeof avatarID === 'string' ? parseInt(avatarID, 10) : avatarID;
     const resolvedSource = getAvatar({avatarSource: source, accountID, defaultAvatars});
 
     // Generated letter-avatar URLs are not fetched — their color and initials are parsed out and drawn locally.

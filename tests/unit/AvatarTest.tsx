@@ -303,7 +303,7 @@ describe('Avatar', () => {
                 <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
                     <UserAvatar
                         source={UPLOADED_AVATAR_URL}
-                        avatarID={1}
+                        accountID={1}
                     />
                 </ComposeProviders>,
             );

@@ -21,7 +21,7 @@ type WorkspaceAvatarProps = AvatarCommonProps & {
     name: string;
 
     /** Workspace/policy ID. Picks the background color of the default workspace avatar. */
-    avatarID: number;
+    avatarID: number | string;
 };
 
 /** Renders a workspace avatar, falling back to a default icon derived from the workspace name. */

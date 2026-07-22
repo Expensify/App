@@ -44,8 +44,6 @@ function Avatar({
     testID,
     avatarID = CONST.DEFAULT_NUMBER_ID,
 }: AvatarProps) {
-    const numericAvatarID = typeof avatarID === 'string' ? parseInt(avatarID, 10) : avatarID;
-
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return (
             <WorkspaceAvatar
@@ -57,10 +55,12 @@ function Avatar({
                 size={size}
                 fill={fill}
                 testID={testID}
-                avatarID={numericAvatarID}
+                avatarID={avatarID}
             />
         );
     }
+
+    const accountID = typeof avatarID === 'string' ? parseInt(avatarID, 10) : avatarID;
 
     return (
         <UserAvatar
@@ -73,7 +73,7 @@ function Avatar({
             size={size}
             fill={fill}
             testID={testID}
-            avatarID={numericAvatarID}
+            accountID={accountID}
         />
     );
 }
