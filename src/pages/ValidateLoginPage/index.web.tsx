@@ -154,7 +154,7 @@ function ValidateLoginPage({
             return;
         }
         const timeoutID = setTimeout(() => {
-            Log.alert('[ValidateLoginPage] Magic-link sign-in appears stuck (protected routes / authToken not ready)', {autoAuthState: autoAuthStateWithDefault});
+            Log.alert('[ValidateLoginPage] Security-link sign-in appears stuck (protected routes / authToken not ready)', {autoAuthState: autoAuthStateWithDefault});
         }, STUCK_DIRECT_SIGN_IN_TIMEOUT_MS);
         return () => clearTimeout(timeoutID);
     }, [isCompletingDirectSignIn, autoAuthStateWithDefault]);
