@@ -138,7 +138,7 @@ export default {
     htmlTableRowMinHeight: 40,
     htmlTableHeaderRowMinHeight: 30,
     htmlTableColumnMinWidth: 120,
-    htmlTableColumnMaxWidth: 192,
+    htmlTableColumnMaxWidth: 240,
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
     tableCheckboxColumnWidth: 20,
