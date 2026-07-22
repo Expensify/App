@@ -1,6 +1,6 @@
 # `@expensify` patches
 
-### [@expensify+react-native-live-markdown+0.1.329+001+clamp-cursor-range-offset.patch](@expensify+react-native-live-markdown+0.1.329+001+clamp-cursor-range-offset.patch)
+### [@expensify+react-native-live-markdown+0.1.333+001+clamp-cursor-range-offset.patch](@expensify+react-native-live-markdown+0.1.333+001+clamp-cursor-range-offset.patch)
 
 - Reason:
 
