@@ -56,6 +56,7 @@ describe('CategorySelector', () => {
         render(
             <CategorySelector
                 value={[]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
@@ -69,6 +70,7 @@ describe('CategorySelector', () => {
         render(
             <CategorySelector
                 value={[]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
@@ -91,6 +93,7 @@ describe('CategorySelector', () => {
         render(
             <CategorySelector
                 value={[]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
