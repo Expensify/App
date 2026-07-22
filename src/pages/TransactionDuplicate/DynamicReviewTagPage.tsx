@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
@@ -8,6 +9,7 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getCleanedTagName} from '@libs/PolicyUtils';
@@ -15,6 +17,7 @@ import {compareDuplicateTransactionFields, getTransactionID} from '@libs/Transac
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -24,9 +27,10 @@ import type {FieldItemType} from './ReviewFields';
 
 import ReviewFields from './ReviewFields';
 
-function ReviewTag() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+function DynamicReviewTagPage() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG>>();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG.path);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
@@ -44,12 +48,7 @@ function ReviewTag() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
-        Object.keys(compareResult.change ?? {}),
-        'tag',
-        route.params.threadReportID,
-        route.params.backTo,
-    );
+    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'tag', route.params.threadReportID, route.params.backTo);
     const options = useMemo(
         () =>
             compareResult.change.tag?.map((tag) =>
@@ -70,10 +69,10 @@ function ReviewTag() {
     };
 
     return (
-        <ScreenWrapper testID="ReviewTag">
+        <ScreenWrapper testID="DynamicReviewTagPage">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <ReviewFields<'tag'>
                 stepNames={stepNames}
@@ -87,4 +86,4 @@ function ReviewTag() {
     );
 }
 
-export default ReviewTag;
+export default DynamicReviewTagPage;

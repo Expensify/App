@@ -1850,10 +1850,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.route,
                             exact: true,
                         },
-                        [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG.path,
                         [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION.path,
                         [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE.path,
                         [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE.path,

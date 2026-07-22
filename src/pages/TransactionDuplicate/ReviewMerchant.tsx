@@ -24,7 +24,7 @@ import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewMerchant() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.MERCHANT>>();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const transactionID = getTransactionID(report);

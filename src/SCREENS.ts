@@ -384,7 +384,7 @@ const SCREENS = {
         REVIEW: 'Transaction_Duplicate_Review',
         MERCHANT: 'Transaction_Duplicate_Merchant',
         CATEGORY: 'Transaction_Duplicate_Category',
-        TAG: 'Transaction_Duplicate_Tag',
+        DYNAMIC_TAG: 'Dynamic_Transaction_Duplicate_Tag',
         DYNAMIC_DESCRIPTION: 'Dynamic_Transaction_Duplicate_Description',
         DYNAMIC_TAX_CODE: 'Dynamic_Transaction_Duplicate_Tax_Code',
         DYNAMIC_BILLABLE: 'Dynamic_Transaction_Duplicate_Billable',
