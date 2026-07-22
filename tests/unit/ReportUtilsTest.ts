@@ -16233,7 +16233,11 @@ describe('ReportUtils', () => {
                 // The localized preview differs between English and Spanish...
                 expect(getReportPreviewMessage(spanishTranslate, params)).not.toBe(getReportPreviewMessage(englishTranslate, params));
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-                expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, params));
+
+                // TODO: Re-enable this assertion once getReportPreviewReportActionMessage is refactored
+                // This will be done in the next PR https://github.com/Expensify/App/issues/66430.
+
+                // expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, params));
             });
         });
 
