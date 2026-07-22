@@ -158,7 +158,7 @@ describe('actions/SendInvoice', () => {
             participants: baseParticipants,
         };
 
-        const existingInvoiceChatReport = {
+        const existingInvoiceChatReportFixture = {
             reportID: 'invoice_chat_123',
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             type: CONST.REPORT.TYPE.CHAT,
@@ -354,7 +354,7 @@ describe('actions/SendInvoice', () => {
                 transaction: transaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                invoiceChatReport: existingInvoiceChatReportFixture as OnyxEntry<Report>,
                 receiptFile: undefined,
                 policy: undefined,
                 policyTagList: undefined,
@@ -421,7 +421,7 @@ describe('actions/SendInvoice', () => {
                 transaction: transaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                invoiceChatReport: existingInvoiceChatReportFixture as OnyxEntry<Report>,
                 receiptFile: undefined,
                 policy: undefined,
                 policyTagList: undefined,
