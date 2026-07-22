@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,7 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration, setOnboardingUserReportedIntegrationName} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
@@ -115,10 +116,13 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
+    const [onboardingUserReportedIntegrationName] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION_NAME);
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
+    const [userReportedIntegrationName, setUserReportedIntegrationName] = useState(onboardingUserReportedIntegrationName ?? '');
     const [error, setError] = useState('');
+    const isOtherSelected = userReportedIntegration === 'other';
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
@@ -174,7 +178,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
             />
         ),
-        isSelected: userReportedIntegration === 'other',
+        isSelected: isOtherSelected,
     };
 
     const accountingOptions: OnboardingListItem[] = [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
@@ -186,6 +190,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         }
 
         setOnboardingUserReportedIntegration(userReportedIntegration);
+        const trimmedIntegrationName = userReportedIntegrationName.trim();
+        setOnboardingUserReportedIntegrationName(userReportedIntegration === 'other' && trimmedIntegrationName ? trimmedIntegrationName : undefined);
 
         // Navigate to the next onboarding step interested features with the selected integration
         Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
@@ -193,6 +199,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {
         setUserReportedIntegration(integrationKey === 'none' ? null : integrationKey);
+        if (integrationKey !== 'other') {
+            setUserReportedIntegrationName('');
+        }
         setError('');
     };
 
@@ -246,8 +255,26 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     {translate('onboarding.accounting.title')}
                 </Text>
             </View>
-            <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pt3, styles.pb8]}>
-                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptions.map(renderOption)}</View>
+            <ScrollView
+                style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                contentContainerStyle={[styles.pt0, styles.pb2]}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={[styles.flexRow, styles.flexWrap, styles.gap3]}>{accountingOptions.map(renderOption)}</View>
+                {isOtherSelected && (
+                    <View style={styles.mt2}>
+                        <TextInput
+                            accessibilityLabel={translate('onboarding.accounting.otherAccountingSoftware')}
+                            label={translate('onboarding.accounting.otherAccountingSoftware')}
+                            value={userReportedIntegrationName}
+                            onChangeText={(text) => {
+                                setUserReportedIntegrationName(text);
+                                setError('');
+                            }}
+                        />
+                    </View>
+                )}
             </ScrollView>
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 {!!error && (
