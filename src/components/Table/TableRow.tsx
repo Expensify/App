@@ -172,13 +172,17 @@ export default function TableRow({
         );
 
         // When table semantics apply, the checkbox occupies the leading grid column, so it is exposed as a table cell to
-        // keep the row's cell count aligned with `aria-colcount` (which counts the selection column). The wrapper is only
-        // added in that case to avoid changing the checkbox's grid layout on native and in the narrow card layout.
-        if (!isTableSemanticsEnabled) {
-            return checkbox;
-        }
-
-        return <View {...getCellAccessibilityProps(true)}>{checkbox}</View>;
+        // keep the row's cell count aligned with `aria-colcount` (which counts the selection column). The accessibility
+        // props are empty otherwise; the `flex1` wrapper mirrors the checkbox's own flex so its layout is unchanged in
+        // the grid, native, and narrow card layouts.
+        return (
+            <View
+                style={styles.flex1}
+                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+            >
+                {checkbox}
+            </View>
+        );
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {

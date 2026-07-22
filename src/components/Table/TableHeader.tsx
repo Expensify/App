@@ -147,20 +147,11 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 
             {!shouldUseNarrowTableLayout && (
                 <>
-                    {!!selectionEnabled &&
-                        (isTableSemanticsEnabled ? (
-                            // Exposed as a (non-sortable) column header so the header column count matches the data rows,
-                            // which now include the selection checkbox cell.
-                            <View {...getColumnHeaderAccessibilityProps(true, false, false)}>
-                                <Checkbox
-                                    disabled={!hasSelectableRows}
-                                    isChecked={isEverySelectableRowSelected}
-                                    isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
-                                    onPress={tableMethods.handleSelectAll}
-                                    accessibilityLabel={translate('workspace.common.selectAll')}
-                                />
-                            </View>
-                        ) : (
+                    {!!selectionEnabled && (
+                        // When semantics apply, this is exposed as a (non-sortable) column header so the header column
+                        // count matches the data rows, which include the selection checkbox cell. The accessibility
+                        // props are empty otherwise, leaving the checkbox's layout unchanged.
+                        <View {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false)}>
                             <Checkbox
                                 disabled={!hasSelectableRows}
                                 isChecked={isEverySelectableRowSelected}
@@ -168,7 +159,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                                 onPress={tableMethods.handleSelectAll}
                                 accessibilityLabel={translate('workspace.common.selectAll')}
                             />
-                        ))}
+                        </View>
+                    )}
 
                     {columns.map((column) => {
                         return (

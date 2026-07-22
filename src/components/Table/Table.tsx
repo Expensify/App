@@ -5,7 +5,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 
@@ -14,7 +13,6 @@ import CONST from '@src/CONST';
 import type {FlashListRef} from '@shopify/flash-list';
 
 import React, {useImperativeHandle, useRef} from 'react';
-import {View} from 'react-native';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
@@ -24,10 +22,9 @@ import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
-import {getTableContainerAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
-import TableBody from './TableBody';
+import {shouldUseTableSemantics} from './tableAccessibility';
 import TableContext from './TableContext';
-import TableHeader from './TableHeader';
+import TableSemanticContainer from './TableSemanticContainer';
 
 /**
  * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
@@ -198,7 +195,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     onSearchStringChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
@@ -295,55 +291,16 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // web layout where semantics apply), so it has to be counted alongside the configured data columns.
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
 
-    /**
-     * Wraps only the header/body rows in the `role="table"` container so that surrounding controls (filter bar, empty
-     * states, …) stay outside the ARIA table, where a screen reader would otherwise navigate into them as table content.
-     * The container is only rendered when semantics apply; otherwise the children render as-is, avoiding an extra layout
-     * node on native and in the narrow card layout. Header and body are contiguous in every table, so grouping the
-     * consecutive run keeps a single table container while preserving child order.
-     */
-    const renderChildren = () => {
-        if (!isTableSemanticsEnabled) {
-            return children;
-        }
-
-        const renderedChildren: React.ReactNode[] = [];
-        let rowGroup: React.ReactNode[] = [];
-
-        const flushRowGroup = () => {
-            if (rowGroup.length === 0) {
-                return;
-            }
-
-            renderedChildren.push(
-                <View
-                    key={`tableSemanticContainer-${renderedChildren.length}`}
-                    style={[styles.flex1, styles.mnh0]}
-                    {...getTableContainerAccessibilityProps(true, title, processedData.length, semanticColumnCount)}
-                >
-                    {rowGroup}
-                </View>,
-            );
-            rowGroup = [];
-        };
-
-        for (const child of React.Children.toArray(children)) {
-            if (React.isValidElement(child) && (child.type === TableHeader || child.type === TableBody)) {
-                rowGroup.push(child);
-                continue;
-            }
-
-            flushRowGroup();
-            renderedChildren.push(child);
-        }
-        flushRowGroup();
-
-        return renderedChildren;
-    };
-
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            {renderChildren()}
+            <TableSemanticContainer
+                isEnabled={isTableSemanticsEnabled}
+                title={title}
+                rowCount={processedData.length}
+                columnCount={semanticColumnCount}
+            >
+                {children}
+            </TableSemanticContainer>
 
             <Modal
                 shouldPreventScrollOnFocus
