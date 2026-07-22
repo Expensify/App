@@ -96,11 +96,8 @@ function normalizeImportedTag(tag: string, hasMultipleTagLists: boolean): string
 }
 
 /**
- * Builds a lookup from decoded, lowercased category name to the canonical stored name for every category the
- * manual "Add category" flow offers (enabled and not pending deletion). Imported "Updated category" cells are
- * resolved through this map so a rule can only reference a category that exists on the workspace — mirroring the
- * manual flow, where the category picker only offers existing categories — and so the rule stores the category
- * exactly as the policy encodes it (policy category names are stored HTML-encoded, spreadsheet cells are plain text).
+ * Policy category names are stored HTML-encoded while spreadsheet cells are plain text, so imported cells are
+ * matched against decoded names and resolved back to the stored name the rule must reference.
  */
 function buildImportedCategoryLookup(policyCategories: OnyxEntry<PolicyCategories>): Map<string, string> {
     const lookup = new Map<string, string>();
@@ -246,6 +243,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
             }
 
             const updatedMerchant = getCellValue(updatedMerchantColumn, rowIndex);
+
             // A rule may only reference a category that exists on the workspace, so unknown cells are dropped
             // and reported in the final modal rather than stored as a category the rule could never apply
             const categoryCell = getCellValue(categoryColumn, rowIndex);
