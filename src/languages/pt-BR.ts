@@ -8544,6 +8544,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `alterou a categoria de gasto padrão de "${mccGroupName}" para "${newCategory}" (antes "${oldCategory}")`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de compras com cartão corporativo`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `adicionou a regra de agente "${title}": ${prompt}` : `adicionou uma regra de agente: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `atualizou a regra de agente "${title}" para: ${prompt}` : `atualizou uma regra de agente para: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `removeu a regra de agente "${title}"` : `removeu uma regra de agente`),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'acima', under: 'abaixo'},

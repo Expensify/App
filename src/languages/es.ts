@@ -8068,6 +8068,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `agregó la regla de agente "${title}": ${prompt}` : `agregó una regla de agente: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `actualizó la regla de agente "${title}" a: ${prompt}` : `actualizó una regla de agente a: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `eliminó la regla de agente "${title}"` : 'eliminó una regla de agente'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'más de', under: 'debajo'},

@@ -8537,6 +8537,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `zmieniono domyślną kategorię wydatków dla „${mccGroupName}” na „${newCategory}” (poprzednio „${oldCategory}”)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg dotyczący zakupów kartą służbową`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `dodano regułę agenta "${title}": ${prompt}` : `dodano regułę agenta: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `zaktualizowano regułę agenta "${title}" na: ${prompt}` : `zaktualizowano regułę agenta na: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `usunięto regułę agenta "${title}"` : `usunięto regułę agenta`),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'zablokowane', allow: 'dozwolone'},
             amountOperator: {over: 'ponad', under: 'pod'},

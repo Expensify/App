@@ -8586,6 +8586,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `ha modificato la categoria di spesa predefinita per "${mccGroupName}" in "${newCategory}" (precedentemente "${oldCategory}")`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} il requisito per gli acquisti con carta aziendale`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `regola dell'agente "${title}" aggiunta: ${prompt}` : `regola dell'agente aggiunta: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `regola dell'agente "${title}" aggiornata in: ${prompt}` : `regola dell'agente aggiornata in: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `regola dell'agente "${title}" rimossa` : `regola dell'agente rimossa`),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloccato', allow: 'consentito'},
             amountOperator: {over: 'terminato', under: 'sotto'},
