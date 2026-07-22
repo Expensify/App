@@ -1404,6 +1404,45 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
+
+            it('excludes participants whose accountIDs are in pendingDeleteMemberAccountIDs', async () => {
+                const report: Report = {
+                    ...createRegularChat(1, [1, 2, 3, 4]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, ['2', '4'])).toEqual('One, Three');
+            });
+
+            it('includes all participants when pendingDeleteMemberAccountIDs is empty', async () => {
+                const report: Report = {
+                    ...createRegularChat(1, [1, 2, 3, 4]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, [])).toEqual('Four, One, Three, Two');
+            });
+
+            it('uses passed pendingDeleteMemberAccountIDs instead of falling back to report metadata', async () => {
+                const report: Report = {
+                    ...createRegularChat(1, [1, 2, 3, 4]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {
+                    pendingChatMembers: [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                });
+
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report, ['3'])).toEqual('Four, One, Two');
+            });
         });
     });
 
