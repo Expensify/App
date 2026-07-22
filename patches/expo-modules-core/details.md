@@ -11,5 +11,5 @@
 
 - Reason: Add the Boost pod directory to `ExpoModulesWorkletsAdapter` header search paths so RCT-Folly framework headers can resolve Boost preprocessor headers when building with frameworks.
 - Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: 🛑
+- E/App issue: [#95197](https://github.com/Expensify/App/issues/95197)
+- PR Introducing Patch: [#95501](https://github.com/Expensify/App/pull/95501)
