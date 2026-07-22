@@ -22,7 +22,6 @@ import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
@@ -116,11 +115,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             const adminAccountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[adminAccountID];
             if (!details) {
-                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${adminAccountID}`);
                 continue;
             }
             const isOwner = policy?.owner === details?.login;
-            const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+            const canBePayer = !!policyEmployee.role && canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
             const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || !canBePayer;
             if (shouldSkipMember) {
                 continue;
@@ -243,9 +241,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const isAccountAlreadySharedWithCurrentUser =
             bankAccountInfo?.accountData?.sharees && currentUserPersonalDetails?.login ? bankAccountInfo?.accountData?.sharees.includes(currentUserPersonalDetails?.login) : false;
         const isOwner = policy?.owner === currentUserPersonalDetails?.login;
+        const canCurrentUserManagePayments = canMemberWrite(policy, currentUserPersonalDetails?.login ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
-        // Current user has no right to share (not owner and not a sharee) — show error
-        if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
+        // Current user has no right to share (not owner, payments admin or a sharee) — show error
+        if (!isOwner && !canCurrentUserManagePayments && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
             return;
         }
@@ -280,7 +279,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         isAccountInSetupState;
 
     const totalNumberOfPayerCandidates = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
-        const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+        const canBePayer = !!policyEmployee.role && canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
         return !isDeletedPolicyEmployee(policyEmployee) && canBePayer;
     });
 
@@ -364,12 +363,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         <RenderHTML
                             onLinkPress={() => {
                                 setShowValidationModal(false);
-                                navigateToBankAccountRoute({
-                                    policyID,
-                                    backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
-                                    policyCurrency: policy?.outputCurrency,
-                                    bankAccountState: bankAccountInfo?.accountData?.state,
-                                });
+                                navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)});
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
