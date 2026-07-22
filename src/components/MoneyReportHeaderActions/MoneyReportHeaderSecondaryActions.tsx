@@ -14,6 +14,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
@@ -45,6 +46,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
@@ -102,13 +104,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const [submitterLogin] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID),
-        },
-        [moneyRequestReport?.ownerAccountID],
-    );
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
@@ -130,6 +126,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         selector: delegateEmailSelector,
     });
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
@@ -138,6 +136,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const delegateAccountID = useDelegateAccountID();
 
     const {isOffline} = useNetwork();
     const activePolicy = usePolicy(activePolicyID);
@@ -154,6 +153,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const allTransactions = Object.values(reportTransactions);
     const singleTransaction = nonPendingDeleteTransactions.length === 1 ? nonPendingDeleteTransactions.at(0) : undefined;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -211,10 +211,13 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 methodID,
                 paymentMethod,
                 activePolicy,
+                conciergeChat,
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                delegateAccountID,
+                isTrackIntentUser,
             });
         } else {
             startAnimation();
@@ -239,6 +242,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                     startAnimation();
                 },
                 chatReportActions: getChatReportActions(false),
+                delegateAccountID,
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -357,7 +362,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onRejectModalOpen: openRejectModal,
     });
 
-    const {exportActionEntries, exportDownloadStatusModal} = useExportActions({
+    const {exportActionEntries} = useExportActions({
         reportID,
         policy,
         onPDFModalOpen: openPDFDownload,
@@ -445,29 +450,27 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            isTrackIntentUser,
             ownerLogin: submitterLogin,
         });
     };
 
     if (!applicableSecondaryActions.length) {
-        return exportDownloadStatusModal;
+        return null;
     }
 
     return (
-        <>
-            {exportDownloadStatusModal}
-            <MoneyReportHeaderKYCDropdown
-                chatReportID={chatReport?.reportID}
-                iouReport={moneyRequestReport}
-                onPaymentSelect={onPaymentSelect}
-                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                primaryAction={primaryAction}
-                applicableSecondaryActions={applicableSecondaryActions}
-                dropdownMenuRef={dropdownMenuRef}
-                onOptionsMenuHide={handleOptionsMenuHide}
-                ref={kycWallRef}
-            />
-        </>
+        <MoneyReportHeaderKYCDropdown
+            chatReportID={chatReport?.reportID}
+            iouReport={moneyRequestReport}
+            onPaymentSelect={onPaymentSelect}
+            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+            primaryAction={primaryAction}
+            applicableSecondaryActions={applicableSecondaryActions}
+            dropdownMenuRef={dropdownMenuRef}
+            onOptionsMenuHide={handleOptionsMenuHide}
+            ref={kycWallRef}
+        />
     );
 }
 

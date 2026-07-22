@@ -527,11 +527,6 @@ describe('actions/IOU', () => {
                 attendees: [
                     {
                         email: currentUserPersonalDetails.email ?? '',
-                        login: currentUserPersonalDetails.login,
-                        accountID: 3,
-                        text: currentUserPersonalDetails.login,
-                        selected: true,
-                        reportID: '0',
                         avatarUrl: SafeString(currentUserPersonalDetails.avatar) ?? '',
                         displayName: currentUserPersonalDetails.displayName ?? '',
                     },

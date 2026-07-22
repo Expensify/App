@@ -4,6 +4,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
+
 import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
 
 import CONST from '@src/CONST';
@@ -130,6 +133,34 @@ function createDraftTransaction(): Transaction {
     } as Transaction;
 }
 
+// Seed the shared Onyx state both tests drive: a chat report, a draft transaction, and the shared file.
+async function seedShareState() {
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, createTestReport());
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, createDraftTransaction());
+        await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.jpg', mimeType: 'image/jpeg'});
+        // Recent prompt timestamp skips the location-permission modal so onConfirm goes straight to performUpload → finishRequestAndNavigate.
+        await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: 'participant@example.com', displayName: 'Participant'},
+        });
+    });
+}
+
+// Render the page and press the mocked confirm button, which is the single entry point both tests exercise.
+async function renderAndConfirm() {
+    render(
+        <SubmitDetailsPage
+            // @ts-expect-error minimal route for test
+            route={{key: 'submit-test', name: 'Share_Submit_Details', params: {reportOrAccountID: SHARED_REPORT_ID}}}
+            navigation={{} as never}
+        />,
+    );
+    await waitForBatchedUpdatesWithAct();
+    fireEvent.press(screen.getByTestId('mock-confirm-button'));
+    await waitForBatchedUpdatesWithAct();
+}
+
 describe('SubmitDetailsPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
@@ -139,32 +170,11 @@ describe('SubmitDetailsPage', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdates();
+        await seedShareState();
     });
 
     it('threads the same optimisticTransactionID into requestMoney AND cleanupAndNavigateAfterExpenseCreate (V8 contract)', async () => {
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, createTestReport());
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, createDraftTransaction());
-            await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.jpg', mimeType: 'image/jpeg'});
-            // Recent prompt timestamp skips the location-permission modal so onConfirm goes straight to performUpload → finishRequestAndNavigate.
-            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: 'participant@example.com', displayName: 'Participant'},
-            });
-        });
-
-        render(
-            <SubmitDetailsPage
-                // @ts-expect-error minimal route for test
-                route={{key: 'submit-test', name: 'Share_Submit_Details', params: {reportOrAccountID: SHARED_REPORT_ID}}}
-                navigation={{} as never}
-            />,
-        );
-
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByTestId('mock-confirm-button'));
-        await waitForBatchedUpdatesWithAct();
+        await renderAndConfirm();
 
         // A regular chat (not self-DM) routes to requestMoney.
         const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
@@ -176,5 +186,61 @@ describe('SubmitDetailsPage', () => {
         expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
         expect(requestMoneyArg?.optimisticTransactionID).not.toBe(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         expect(cleanupArg?.transactionID).toBe(requestMoneyArg?.optimisticTransactionID);
+    });
+
+    it('stamps the shared receipt with a trace id and logs the capture and submit milestones with source share', async () => {
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+
+        await renderAndConfirm();
+
+        // The trace id minted at capture travels into the request receipt, so the enqueued and snapshot logs can join back to the capture log.
+        const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
+        const receiptTraceId = requestMoneyArg?.transactionParams?.receipt?.receiptTraceId;
+        expect(typeof receiptTraceId).toBe('string');
+        expect(receiptTraceId).toBeTruthy();
+
+        // Each [Receipt] milestone carries its `event` in the params (Log.info's 3rd arg), so find by event.
+        const receiptMilestone = (event: string) =>
+            logInfoSpy.mock.calls.map((call) => call[2]).find((params) => typeof params === 'object' && params !== null && 'event' in params && params.event === event);
+
+        // The capture milestone fires for the share entry point.
+        expect(receiptMilestone('captured')).toMatchObject({captureSource: 'share', receiptTraceId});
+
+        // The submit milestone maps the fixed draft id to the final transaction id.
+        expect(receiptMilestone('submitted')).toMatchObject({
+            receiptTraceId,
+            draftTransactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            transactionID: requestMoneyArg?.optimisticTransactionID,
+        });
+
+        logInfoSpy.mockRestore();
+    });
+
+    it('uploads the converted JPEG (not the raw HEIC) when the shared file needed validation', async () => {
+        // A HEIC share: SHARE_TEMP_FILE holds the raw .heic file, VALIDATED_FILE_OBJECT holds the converted JPEG.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.heic', mimeType: CONST.SHARE_FILE_MIMETYPE.HEIC});
+            await Onyx.merge(ONYXKEYS.VALIDATED_FILE_OBJECT, {uri: 'file://converted.jpg', type: CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG});
+        });
+
+        await renderAndConfirm();
+
+        // The upload must read the converted JPEG, never the raw .heic the backend rejects.
+        const readFileArg = jest.mocked(readFileAsync).mock.calls.at(0);
+        expect(readFileArg?.[0]).toBe('file://converted.jpg');
+        expect(readFileArg?.[4]).toBe(CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG);
+    });
+
+    it('does not upload while a share that needs validation is still awaiting its converted file', async () => {
+        // A HEIC share whose conversion has not landed yet: VALIDATED_FILE_OBJECT is empty.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, {content: 'file://shared.heic', mimeType: CONST.SHARE_FILE_MIMETYPE.HEIC});
+            await Onyx.set(ONYXKEYS.VALIDATED_FILE_OBJECT, undefined);
+        });
+
+        await renderAndConfirm();
+
+        // Confirm must bail out (no raw HEIC uploaded) until the converted file is ready.
+        expect(jest.mocked(readFileAsync)).not.toHaveBeenCalled();
     });
 });

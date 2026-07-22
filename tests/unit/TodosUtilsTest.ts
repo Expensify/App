@@ -48,8 +48,7 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
 });
 
 // Admin policy with a QBO connection whose auto-sync is disabled, so a report on it is manually exportable.
-// `Policy['connections']` is typed as the full integration map, so the single-integration literal goes through
-// `createMock`, which type-checks the partial and isolates the one unavoidable assertion in that helper.
+// The literal sets only the QBO config fields this test needs; `createMock` deep-partials the rest.
 const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connectionExporter}: {policyExporter: string; connectionExporter: string}): Policy =>
     createMock<Policy>({
         ...createMockPolicy(policyID, {role: CONST.POLICY.ROLE.ADMIN, exporter: policyExporter}),
@@ -234,6 +233,34 @@ describe('TodosUtils', () => {
                 expect(result.transactionsByReportID[SUBMIT_REPORT_IDS.at(0) ?? '']).toHaveLength(1);
                 expect(result.transactionsByReportID[APPROVE_REPORT_IDS.at(0) ?? '']).toHaveLength(1);
             });
+        });
+
+        it('excludes a report the current user approves for but does not own from the submit bucket', async () => {
+            const OTHER_USER_EMAIL = 'owner@mail.com';
+            const personalDetailsList = {
+                [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL},
+                [OTHER_USER_ACCOUNT_ID]: {accountID: OTHER_USER_ACCOUNT_ID, login: OTHER_USER_EMAIL},
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await waitForBatchedUpdates();
+
+            const approverSubmitReport = createMockReport('approver_submit', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {approver: CURRENT_USER_EMAIL});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                personalDetailsList,
+                allReports: toReportsCollection([approverSubmitReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_approver_submit', 'approver_submit')]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
         });
 
         it('excludes a report whose expenses are all on hold', () => {
