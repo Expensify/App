@@ -3,7 +3,7 @@ import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {MergeTransaction, OdometerDraft, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -20,6 +20,12 @@ const OLD_RECEIPTS_PATH_MARKER = `/Documents${CONST.RECEIPTS_UPLOAD_PATH}/`;
 type RewriteReceiptPath = (value: string) => string | null;
 
 type DeepRewriteResult<T> = {result: T; changed: boolean};
+
+type OdometerImageKey = 'odometerStartImage' | 'odometerEndImage';
+
+type OdometerImagesUpdate = Partial<Record<OdometerImageKey, string | {uri: string}>>;
+
+const ODOMETER_IMAGE_KEYS: OdometerImageKey[] = ['odometerStartImage', 'odometerEndImage'];
 
 /**
  * The attachment cache now lives in Library/Caches. The old copies in Documents are
@@ -130,10 +136,45 @@ function rewritePersistedRequests(key: typeof ONYXKEYS.PERSISTED_REQUESTS | type
 }
 
 /**
- * Offline-created transactions keep the receipt's local path in receipt.source until the
- * upload completes, so those references are rewritten to where the file actually is now.
+ * Rewrites a persisted file reference, which is either a plain path/URI string or a file
+ * object carrying the path in its uri field. Returns a merge-ready replacement (the new
+ * string, or a partial object updating only the uri), or null when the value does not
+ * reference a moved receipt.
  */
-function rewriteTransactionReceipts(collectionKey: typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, rewrite: RewriteReceiptPath): Promise<void> {
+function rewriteFileReference(value: unknown, rewrite: RewriteReceiptPath): string | {uri: string} | null {
+    if (typeof value === 'string') {
+        return rewrite(value);
+    }
+    if (value !== null && typeof value === 'object' && 'uri' in value && typeof value.uri === 'string') {
+        const rewritten = rewrite(value.uri);
+        return rewritten === null ? null : {uri: rewritten};
+    }
+    return null;
+}
+
+/**
+ * Builds the merge update fixing the odometer image references held by a container
+ * (a transaction comment, a merge transaction, or the odometer draft). Returns null
+ * when neither image references a moved receipt.
+ */
+function buildOdometerImagesUpdate(container: Partial<Record<OdometerImageKey, unknown>> | undefined, rewrite: RewriteReceiptPath): OdometerImagesUpdate | null {
+    let update: OdometerImagesUpdate | null = null;
+    for (const imageKey of ODOMETER_IMAGE_KEYS) {
+        const rewritten = rewriteFileReference(container?.[imageKey], rewrite);
+        if (rewritten === null) {
+            continue;
+        }
+        update = {...(update ?? {}), [imageKey]: rewritten};
+    }
+    return update;
+}
+
+/**
+ * Offline-created transactions keep local file paths until the upload completes: the
+ * receipt in receipt.source and the odometer images on the comment. Those references
+ * are rewritten to where the files actually are now.
+ */
+function rewriteTransactionPaths(collectionKey: typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, rewrite: RewriteReceiptPath): Promise<void> {
     return new Promise((resolve) => {
         const connection = Onyx.connectWithoutView({
             key: collectionKey,
@@ -143,18 +184,88 @@ function rewriteTransactionReceipts(collectionKey: typeof ONYXKEYS.COLLECTION.TR
                 const updatePromises: Array<Promise<void>> = [];
                 for (const [transactionKey, transaction] of Object.entries(transactions ?? {})) {
                     const source = transaction?.receipt?.source;
-                    if (typeof source !== 'string') {
+                    const rewrittenSource = typeof source === 'string' ? rewrite(source) : null;
+                    const commentUpdate = buildOdometerImagesUpdate(transaction?.comment, rewrite);
+                    if (rewrittenSource === null && commentUpdate === null) {
                         continue;
                     }
-                    const rewritten = rewrite(source);
+                    const update = {
+                        ...(rewrittenSource === null ? {} : {receipt: {source: rewrittenSource}}),
+                        ...(commentUpdate === null ? {} : {comment: commentUpdate}),
+                    };
+                    // No need to add a new action just for this migration
+                    // eslint-disable-next-line rulesdir/prefer-actions-set-data, @typescript-eslint/no-unsafe-type-assertion -- keys from a collection callback always carry the collection prefix
+                    updatePromises.push(Onyx.merge(transactionKey as `${typeof collectionKey}${string}`, update).then(() => undefined));
+                }
+                Promise.all(updatePromises).then(() => resolve());
+            },
+        });
+    });
+}
+
+/**
+ * Merge-expense drafts persist the receipt and the odometer images at the top level of
+ * each mergeTransaction entry, so those references are rewritten to where the files
+ * actually are now.
+ */
+function rewriteMergeTransactions(rewrite: RewriteReceiptPath): Promise<void> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.COLLECTION.MERGE_TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (mergeTransactions: OnyxCollection<MergeTransaction>) => {
+                Onyx.disconnect(connection);
+                const updatePromises: Array<Promise<void>> = [];
+                for (const [mergeTransactionKey, mergeTransaction] of Object.entries(mergeTransactions ?? {})) {
+                    const source = mergeTransaction?.receipt?.source;
+                    const rewrittenSource = typeof source === 'string' ? rewrite(source) : null;
+                    const imagesUpdate = buildOdometerImagesUpdate(mergeTransaction ?? undefined, rewrite);
+                    if (rewrittenSource === null && imagesUpdate === null) {
+                        continue;
+                    }
+                    const update = {
+                        ...(rewrittenSource === null ? {} : {receipt: {source: rewrittenSource}}),
+                        ...imagesUpdate,
+                    };
+                    // No need to add a new action just for this migration
+                    // eslint-disable-next-line rulesdir/prefer-actions-set-data, @typescript-eslint/no-unsafe-type-assertion -- keys from a collection callback always carry the collection prefix
+                    updatePromises.push(Onyx.merge(mergeTransactionKey as `${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`, update).then(() => undefined));
+                }
+                Promise.all(updatePromises).then(() => resolve());
+            },
+        });
+    });
+}
+
+/**
+ * The standalone odometer draft (the "save for later" flow) stores each image as a plain
+ * file URI string on native, so those references are rewritten to where the files
+ * actually are now.
+ */
+function rewriteOdometerDraft(rewrite: RewriteReceiptPath): Promise<void> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.ODOMETER_DRAFT,
+            callback: (draft) => {
+                Onyx.disconnect(connection);
+                const update: Partial<OdometerDraft> = {};
+                for (const imageKey of ODOMETER_IMAGE_KEYS) {
+                    const value = draft?.[imageKey];
+                    if (typeof value !== 'string') {
+                        continue;
+                    }
+                    const rewritten = rewrite(value);
                     if (rewritten === null) {
                         continue;
                     }
-                    // No need to add a new action just for this migration
-                    // eslint-disable-next-line rulesdir/prefer-actions-set-data, @typescript-eslint/no-unsafe-type-assertion -- keys from a collection callback always carry the collection prefix
-                    updatePromises.push(Onyx.merge(transactionKey as `${typeof collectionKey}${string}`, {receipt: {source: rewritten}}).then(() => undefined));
+                    update[imageKey] = rewritten;
                 }
-                Promise.all(updatePromises).then(() => resolve());
+                if (Object.keys(update).length === 0) {
+                    return resolve();
+                }
+                // No need to add a new action just for this migration
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.merge(ONYXKEYS.ODOMETER_DRAFT, update).then(() => resolve());
             },
         });
     });
@@ -168,8 +279,10 @@ function updatePersistedReceiptPaths(uploadFolder: string, copiedFileNames: Set<
     return Promise.all([
         rewritePersistedRequests(ONYXKEYS.PERSISTED_REQUESTS, rewrite),
         rewritePersistedRequests(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, rewrite),
-        rewriteTransactionReceipts(ONYXKEYS.COLLECTION.TRANSACTION, rewrite),
-        rewriteTransactionReceipts(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, rewrite),
+        rewriteTransactionPaths(ONYXKEYS.COLLECTION.TRANSACTION, rewrite),
+        rewriteTransactionPaths(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, rewrite),
+        rewriteMergeTransactions(rewrite),
+        rewriteOdometerDraft(rewrite),
     ]).then(() => undefined);
 }
 
