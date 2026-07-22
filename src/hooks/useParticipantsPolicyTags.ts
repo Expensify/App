@@ -32,7 +32,9 @@ function getPolicyTagsSelector(participants: ParticipantWithPolicyID[]): (allTag
  * @returns Record mapping policyID to PolicyTagLists
  */
 function useParticipantsPolicyTags(participants: ParticipantWithPolicyID[]): Record<string, PolicyTagLists> {
-    const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getPolicyTagsSelector(participants)});
+    const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getPolicyTagsSelector(participants)}, [
+        participants,
+    ]);
 
     return participantsPolicyTags;
 }

@@ -3,6 +3,8 @@ import type {TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 
 const transactionViolationsSelector = (violations: OnyxCollection<TransactionViolations>, eligibleTransactionIDs?: Set<string>) => {
@@ -18,9 +20,18 @@ const transactionViolationsSelector = (violations: OnyxCollection<TransactionVio
 };
 
 function useTransactionViolation(eligibleTransactionIDs?: Set<string>) {
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDs),
-    });
+    const transactionViolationSelector = useCallback(
+        (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDs),
+        [eligibleTransactionIDs],
+    );
+
+    const [transactionViolations] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        {
+            selector: transactionViolationSelector,
+        },
+        [transactionViolationSelector],
+    );
 
     return transactionViolations;
 }
