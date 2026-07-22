@@ -1,11 +1,5 @@
 import CONST from '@src/CONST';
 
-// eer
-//trigger
-//
-//rer
-//
-
 type EmptyObject = Record<string, never>;
 
 type EmptyValue = EmptyObject | null | undefined;
