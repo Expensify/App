@@ -485,6 +485,7 @@ function buildOnyxDataForInvoice(
         },
     ];
 
+    // Only failed new invoice rooms need this seed; successful rooms rely on OpenReport to own the loading lifecycle.
     if (chat.isNewReport) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,

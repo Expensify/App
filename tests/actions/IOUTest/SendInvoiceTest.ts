@@ -158,6 +158,32 @@ describe('actions/SendInvoice', () => {
             participants: baseParticipants,
         };
 
+        const existingInvoiceChatReport = {
+            reportID: 'invoice_chat_123',
+            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '123': {
+                    accountID: 123,
+                    role: CONST.REPORT.ROLE.MEMBER,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '456': {
+                    accountID: 456,
+                    role: CONST.REPORT.ROLE.MEMBER,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+            invoiceReceiver: {
+                type: 'individual',
+                accountID: 456,
+                displayName: 'Client Company',
+                login: 'client@example.com',
+            },
+        };
+
         it('should merge policyRecentlyUsedCategories when provided', () => {
             const currentUserAccountID = 123;
             const existingRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
@@ -316,6 +342,37 @@ describe('actions/SendInvoice', () => {
                 },
             });
         });
+
+        it('should not set report loading state in failure data for existing invoice chat report', () => {
+            const currentUserAccountID = 123;
+            const transaction = {
+                ...baseTransaction,
+                participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
+            };
+
+            const result = getSendInvoiceInformation({
+                transaction: transaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: 'Client Company Ltd.',
+                companyWebsite: 'https://clientcompany.com',
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                delegateAccountID: undefined,
+            });
+
+            const reportLoadingStateUpdate = result.onyxData.failureData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`,
+            );
+
+            expect(reportLoadingStateUpdate).toBeUndefined();
+        });
+
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the IOU action when delegateAccountID is provided', () => {
                 const DELEGATE_ACCOUNT_ID = 999;
@@ -352,33 +409,6 @@ describe('actions/SendInvoice', () => {
         });
 
         it('should return correct invoice information with existing chat report', () => {
-            // Given: Existing invoice chat report
-            const existingInvoiceChatReport = {
-                reportID: 'invoice_chat_123',
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '123': {
-                        accountID: 123,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '456': {
-                        accountID: 456,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-                invoiceReceiver: {
-                    type: 'individual',
-                    accountID: 456,
-                    displayName: 'Client Company',
-                    login: 'client@example.com',
-                },
-            };
-
             const currentUserAccountID = 123;
 
             const transaction = {
