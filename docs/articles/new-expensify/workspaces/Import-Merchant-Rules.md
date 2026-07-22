@@ -26,7 +26,7 @@ If **Rules** is not enabled, [learn how to enable Workspace Rules](/articles/new
 
 Prepare a spreadsheet where each row is one rule. Include a column for the merchant to match and a column for each field you want the rule to update (for example, Tag).
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [workspace name]**.
 2. Click **Rules**.
 3. If the **Rules** page shows tabs, select the **Expense defaults** tab.
 4. Click **More**, then select **Import merchant rules**.
