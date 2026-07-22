@@ -198,6 +198,8 @@ const TEST_INTRO_SELECTED: OnyxTypes.IntroSelected = {
     isInviteOnboardingComplete: false,
 };
 
+const getMockFetch = (fetch: typeof global.fetch) => fetch as MockFetch;
+
 type APIWriteSpy = jest.SpiedFunction<typeof API.write>;
 
 describe('actions/Report', () => {
@@ -971,11 +973,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
+        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (val, key) => {
-                reportActionsReactions[key] = val ?? {};
+            callback: (snapshot) => {
+                reportActionsReactions = snapshot ?? {};
             },
         });
         let reportAction: OnyxTypes.ReportAction | undefined;
@@ -1110,11 +1112,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
+        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (val, key) => {
-                reportActionsReactions[key] = val ?? {};
+            callback: (snapshot) => {
+                reportActionsReactions = snapshot ?? {};
             },
         });
 
@@ -2658,7 +2660,7 @@ describe('actions/Report', () => {
     it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
         const accountID = 1234;
         const policyID = '5678';
-        const mockFetchData = fetch as MockFetch;
+        const mockFetchData = getMockFetch(fetch);
         // Given a policy with harvesting is disabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
@@ -2694,8 +2696,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
-                callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
+                callback: (reports) => {
                     Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
@@ -2719,8 +2720,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
-                callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
+                callback: (reports) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
@@ -2734,7 +2734,7 @@ describe('actions/Report', () => {
     it('should set hasOnceLoadedReportActions for parent report metadata when creating a new report', async () => {
         const accountID = 1234;
         const policyID = '5678';
-        const mockFetchData = fetch as MockFetch;
+        const mockFetchData = getMockFetch(fetch);
         const policy = {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
@@ -2790,8 +2790,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
-                callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
+                callback: (reports) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
@@ -3132,7 +3131,7 @@ describe('actions/Report', () => {
                 ...createRandomReport(1, undefined),
                 description: '<h1>test</h1>',
             };
-            const mockFetch = fetch as MockFetch;
+            const mockFetch = getMockFetch(fetch);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -3798,7 +3797,6 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
-                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3811,7 +3809,6 @@ describe('actions/Report', () => {
                 employeeList: {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
-                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
@@ -3837,7 +3834,7 @@ describe('actions/Report', () => {
             const ownerAccountID = 999;
             const ownerEmail = 'submitter@test.com';
             const adminEmail = 'admin@test.com';
-            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            const mockFetch = getMockFetch(TestHelper.getGlobalFetchMock());
 
             const expenseReport: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
@@ -3892,7 +3889,6 @@ describe('actions/Report', () => {
 
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
-                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
@@ -3903,7 +3899,6 @@ describe('actions/Report', () => {
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
                 employeeList,
-                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
                 reportActionsList: {},
@@ -3939,7 +3934,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
-                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3950,7 +3944,6 @@ describe('actions/Report', () => {
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
-                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
@@ -3972,7 +3965,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
-                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
@@ -3983,7 +3975,6 @@ describe('actions/Report', () => {
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
-                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
@@ -4004,7 +3995,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
-                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -4015,7 +4005,6 @@ describe('actions/Report', () => {
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
-                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
@@ -4036,7 +4025,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
-                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -4047,7 +4035,6 @@ describe('actions/Report', () => {
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
-                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
@@ -4070,7 +4057,6 @@ describe('actions/Report', () => {
 
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
-                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -4081,7 +4067,6 @@ describe('actions/Report', () => {
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
-                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
@@ -4120,12 +4105,11 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}`, targetPolicy);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {login: ownerEmail, accountID: ownerAccountID}});
 
-            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            const mockFetch = getMockFetch(TestHelper.getGlobalFetchMock());
             global.fetch = mockFetch;
             mockFetch.pause?.();
 
             Report.changeReportPolicyAndInviteSubmitter({
-                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
@@ -4136,7 +4120,6 @@ describe('actions/Report', () => {
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
                 employeeList: targetPolicy.employeeList,
-                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
                 reportActionsList: {},
@@ -4367,7 +4350,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4386,7 +4369,7 @@ describe('actions/Report', () => {
         it('correctly implements RedBrickRoad error handling for MoveIOUReportToPolicyAndInviteSubmitter when the request fails to add a new user to workspace', async () => {
             const ownerAccountID = 999;
             const ownerEmail = 'submitter@test.com';
-            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            const mockFetch = getMockFetch(TestHelper.getGlobalFetchMock());
 
             const iouReport: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
@@ -4433,8 +4416,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
-            const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -4492,7 +4474,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -4538,7 +4520,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
@@ -4561,22 +4543,13 @@ describe('actions/Report', () => {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
             };
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(
-                iouReport,
-                undefined as unknown as OnyxTypes.Policy,
-                (phone: string) => phone,
-                {},
-                undefined,
-                TEST_USER_ACCOUNT_ID,
-                '',
-                false,
-            );
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, undefined as unknown as OnyxTypes.Policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false);
             expect(result).toBeUndefined();
         });
 
         it('should return undefined when iouReport is missing', () => {
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {}, undefined, TEST_USER_ACCOUNT_ID, '', false);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false);
             expect(result).toBeUndefined();
         });
     });
@@ -4611,6 +4584,7 @@ describe('actions/Report', () => {
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isTrackIntentUser: false,
             });
         });
 
@@ -8032,7 +8006,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, true);
             await waitForBatchedUpdates();
 
-            const openReportCalls = (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.OPEN_REPORT}?`);
+            const openReportCalls = getMockFetch(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.OPEN_REPORT}?`);
             expect(openReportCalls.length).toBeGreaterThanOrEqual(1);
             const openReportParamsList = openReportCalls.map((call) => {
                 const body = (call.at(1) as RequestInit)?.body;
@@ -8053,7 +8027,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-            const addCommentCalls = (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.ADD_COMMENT}?`);
+            const addCommentCalls = getMockFetch(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.ADD_COMMENT}?`);
             const addCommentBody = (addCommentCalls.at(-1)?.at(1) as RequestInit)?.body;
             const addCommentParams = addCommentBody instanceof FormData ? Object.fromEntries(addCommentBody) : {};
             expect(addCommentParams.reportID).toBe(MOCK_FALLBACK_DM_REPORT_ID);
@@ -8084,7 +8058,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: true};
 
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
             expect(result).toBeUndefined();
         });
 
@@ -8094,7 +8068,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8109,7 +8083,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8128,7 +8102,7 @@ describe('actions/Report', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
                 isInviteOnboardingComplete: false,
             };
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toContain(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
@@ -8145,7 +8119,7 @@ describe('actions/Report', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
                 isInviteOnboardingComplete: false,
             };
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeDefined();
             expect(result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING)?.value).toEqual({hasCompletedGuidedSetupFlow: true});
@@ -8157,7 +8131,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeUndefined();
         });
@@ -8171,7 +8145,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, isSelfTourViewed);
 
             expect(result).toBeDefined();
             const guidedSetupData = JSON.parse(result?.guidedSetupData ?? '[]') as Array<{type: string; task?: string; completedTaskReportActionID?: string}>;
@@ -8191,7 +8165,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, true);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, true);
 
             expect(result).toBeUndefined();
         });
@@ -8202,7 +8176,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, false);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, false);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8217,7 +8191,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeUndefined();
         });
@@ -8770,7 +8744,7 @@ describe('actions/Report', () => {
         });
 
         it('should remove optimistically added participants on failure rollback', async () => {
-            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+            const mockFetch = getMockFetch(TestHelper.getGlobalFetchMock());
             global.fetch = mockFetch;
 
             const REPORT_ID = '3';
@@ -9161,6 +9135,321 @@ describe('actions/Report', () => {
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
             const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('mergeReports', () => {
+        const currentUserAccountID = 1;
+        const currentUserEmail = 'test@example.com';
+
+        const POLICY_ID = 'policy_123';
+        const WORKSPACE_CHAT_REPORT_ID = 'workspace_chat_456';
+        const DESTINATION_REPORT_ID = 'destination_report_789';
+        const SOURCE_REPORT_1_ID = 'source_report_101';
+        const SOURCE_REPORT_2_ID = 'source_report_102';
+        const REPORT_PREVIEW_ACTION_1_ID = 'preview_action_201';
+        const REPORT_PREVIEW_ACTION_2_ID = 'preview_action_202';
+        const TRANSACTION_1_ID = 'transaction_301';
+        const TRANSACTION_2_ID = 'transaction_302';
+        const SNAPSHOT_HASH = 999;
+
+        const policy = createMock<OnyxTypes.Policy>({
+            ...createRandomPolicy(1),
+            id: POLICY_ID,
+            ownerAccountID: currentUserAccountID,
+            owner: currentUserEmail,
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+        });
+
+        const workspaceChatReport = createMock<OnyxTypes.Report>({
+            ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+            reportID: WORKSPACE_CHAT_REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        });
+
+        const destinationReport = createMock<OnyxTypes.Report>({
+            ...createRandomReport(0, undefined),
+            reportID: DESTINATION_REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            currency: CONST.CURRENCY.USD,
+            total: 0,
+            transactionCount: 0,
+        });
+
+        const sourceReport1 = createMock<OnyxTypes.Report>({
+            ...createRandomReport(0, undefined),
+            reportID: SOURCE_REPORT_1_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            currency: CONST.CURRENCY.USD,
+            parentReportID: WORKSPACE_CHAT_REPORT_ID,
+            parentReportActionID: REPORT_PREVIEW_ACTION_1_ID,
+            total: -1000,
+            transactionCount: 1,
+        });
+
+        const sourceReport2 = createMock<OnyxTypes.Report>({
+            ...createRandomReport(0, undefined),
+            reportID: SOURCE_REPORT_2_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            currency: CONST.CURRENCY.USD,
+            parentReportID: WORKSPACE_CHAT_REPORT_ID,
+            parentReportActionID: REPORT_PREVIEW_ACTION_2_ID,
+            total: -2000,
+            transactionCount: 1,
+        });
+
+        const reportPreviewAction1 = createMock<OnyxTypes.ReportAction>({
+            ...createRandomReportAction(0),
+            reportActionID: REPORT_PREVIEW_ACTION_1_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            message: [{type: 'COMMENT', html: 'Report preview', text: 'Report preview'}],
+            originalMessage: {
+                linkedReportID: SOURCE_REPORT_1_ID,
+            },
+        });
+
+        const reportPreviewAction2 = createMock<OnyxTypes.ReportAction>({
+            ...createRandomReportAction(0),
+            reportActionID: REPORT_PREVIEW_ACTION_2_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            message: [{type: 'COMMENT', html: 'Report preview', text: 'Report preview'}],
+            originalMessage: {
+                linkedReportID: SOURCE_REPORT_2_ID,
+            },
+        });
+
+        const transaction1 = createMock<OnyxTypes.Transaction>({
+            ...createRandomTransaction(0),
+            transactionID: TRANSACTION_1_ID,
+            reportID: SOURCE_REPORT_1_ID,
+            amount: -1000,
+            currency: CONST.CURRENCY.USD,
+        });
+
+        const transaction2 = createMock<OnyxTypes.Transaction>({
+            ...createRandomTransaction(0),
+            transactionID: TRANSACTION_2_ID,
+            reportID: SOURCE_REPORT_2_ID,
+            amount: -2000,
+            currency: CONST.CURRENCY.USD,
+        });
+
+        let mockFetch: MockFetch;
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${WORKSPACE_CHAT_REPORT_ID}`, workspaceChatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`, sourceReport1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`, sourceReport2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_1_ID}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_2_ID}`, transaction2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${WORKSPACE_CHAT_REPORT_ID}`, {
+                [REPORT_PREVIEW_ACTION_1_ID]: reportPreviewAction1,
+                [REPORT_PREVIEW_ACTION_2_ID]: reportPreviewAction2,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_1_ID}`, {
+                someAction: createRandomReportAction(203),
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_2_ID}`, {
+                someAction: createRandomReportAction(204),
+            });
+            await waitForBatchedUpdates();
+
+            global.fetch = TestHelper.getGlobalFetchMock();
+            mockFetch = getMockFetch(global.fetch);
+            // Clear the queue before each test to avoid test pollution
+            SequentialQueue.resetQueue();
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+            PusherHelper.teardown();
+        });
+
+        it('handles success case: moves transactions, deletes source reports, and updates parent preview actions in Onyx', async () => {
+            mockFetch.pause();
+
+            Report.mergeReports({
+                destinationReportID: DESTINATION_REPORT_ID,
+                sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+                policy,
+                policyTagList: {},
+                allReports: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
+                },
+                bankAccountList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Verify optimistic state in Onyx
+            // Transactions moved to destination report
+            const tx1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_1_ID}`);
+            expect(tx1?.reportID).toBe(DESTINATION_REPORT_ID);
+            const tx2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_2_ID}`);
+            expect(tx2?.reportID).toBe(DESTINATION_REPORT_ID);
+            const destReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`);
+            expect(destReport?.total).toBe(-3000);
+            expect(destReport?.transactionCount).toBe(2);
+
+            // Source reports marked as deleted
+            const rep1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`);
+            expect(rep1?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            const rep2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`);
+            expect(rep2?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            // Source report actions cleared optimistically
+            const actions1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_1_ID}`);
+            expect(actions1).toBeFalsy();
+            const actions2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_2_ID}`);
+            expect(actions2).toBeFalsy();
+
+            // Parent report preview actions marked as deleted
+            const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${WORKSPACE_CHAT_REPORT_ID}`);
+            expect(parentActions?.[REPORT_PREVIEW_ACTION_1_ID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(parentActions?.[REPORT_PREVIEW_ACTION_2_ID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Verify success state in Onyx
+            // Source reports deleted (null)
+            const rep1AfterSuccess = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`);
+            expect(rep1AfterSuccess).toBeFalsy();
+
+            const rep2AfterSuccess = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`);
+            expect(rep2AfterSuccess).toBeFalsy();
+
+            // Parent preview actions cleared
+            const parentActionsAfterSuccess = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${WORKSPACE_CHAT_REPORT_ID}`);
+            expect(parentActionsAfterSuccess?.[REPORT_PREVIEW_ACTION_1_ID]).toBeFalsy();
+            expect(parentActionsAfterSuccess?.[REPORT_PREVIEW_ACTION_2_ID]).toBeFalsy();
+        });
+
+        it('handles failure case: rolls back transaction moves, restores source reports, and restores parent preview actions in Onyx', async () => {
+            mockFetch.pause();
+
+            Report.mergeReports({
+                destinationReportID: DESTINATION_REPORT_ID,
+                sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+                policy,
+                policyTagList: {},
+                allReports: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
+                },
+                bankAccountList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Verify failure state in Onyx
+            // Transactions rolled back to source reports
+            const tx1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_1_ID}`);
+            expect(tx1?.reportID).toBe(SOURCE_REPORT_1_ID);
+
+            const tx2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_2_ID}`);
+            expect(tx2?.reportID).toBe(SOURCE_REPORT_2_ID);
+
+            // Source reports restored
+            const rep1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`);
+            expect(rep1?.reportID).toBe(SOURCE_REPORT_1_ID);
+            expect(rep1?.pendingAction).toBeUndefined();
+
+            const rep2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`);
+            expect(rep2?.reportID).toBe(SOURCE_REPORT_2_ID);
+            expect(rep2?.pendingAction).toBeUndefined();
+
+            // Parent preview actions restored with errors and keep pendingAction as DELETE
+            const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${WORKSPACE_CHAT_REPORT_ID}`);
+            expect(parentActions?.[REPORT_PREVIEW_ACTION_1_ID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(parentActions?.[REPORT_PREVIEW_ACTION_1_ID]?.errors).toBeDefined();
+            expect(parentActions?.[REPORT_PREVIEW_ACTION_2_ID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(parentActions?.[REPORT_PREVIEW_ACTION_2_ID]?.errors).toBeDefined();
+
+            const destReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`);
+            expect(destReport?.total).toBe(0);
+            expect(destReport?.transactionCount).toBe(0);
+        });
+
+        it('correctly handles snapshot updates when hash is provided', async () => {
+            mockFetch.pause();
+
+            Report.mergeReports({
+                destinationReportID: DESTINATION_REPORT_ID,
+                sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+                policy,
+                policyTagList: {},
+                allReports: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
+                },
+                hash: SNAPSHOT_HASH,
+                bankAccountList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Check snapshot update in optimisticData via Onyx
+            const snapshotOptimistic = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`);
+            expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.total).toBe(-3000);
+            expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(2);
+
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Check snapshot update in failureData via Onyx
+            const snapshotFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`);
+            expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]?.reportID).toBe(SOURCE_REPORT_1_ID);
+            expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.total).toBe(0);
+            expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(0);
         });
     });
 

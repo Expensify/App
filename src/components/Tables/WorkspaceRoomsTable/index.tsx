@@ -60,8 +60,15 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerCompon
         if (!highlightedRoom) {
             return;
         }
-        tableRef.current?.scrollToItem({item: highlightedRoom, animated: false});
-        tableRef.current?.highlightItems([highlightedRoom.keyForList]);
+        // The room has to be looked up in the table's processed data: an active search can filter it out
+        // (in which case there is nothing to scroll to and the FlashList is not even mounted), and FlashList
+        // matches the scroll target by reference, so the row instance must come from the data the list renders.
+        const highlightedRow = tableRef.current?.getProcessedData().find((row) => row.keyForList === highlightedRoom.keyForList);
+        if (!highlightedRow) {
+            return;
+        }
+        tableRef.current?.scrollToItem({item: highlightedRow, animated: false});
+        tableRef.current?.highlightItems([highlightedRow.keyForList]);
     }, [highlightedReportID, rooms]);
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
