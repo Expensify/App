@@ -1019,23 +1019,6 @@ function IOURequestStepConfirmation({
                             />
                         )}
                     </SubmitExpenseOrchestrator>
-                    <ParticipantPicker
-                        participants={participants}
-                        iouType={participantPickerIOUType}
-                        action={action}
-                        isPerDiemRequest={isPerDiemRequest}
-                        isTimeRequest={isTimeRequest}
-                        isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                        shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
-                        onParticipantsAdded={handleParticipantsAdded}
-                        onFinish={closeParticipantPicker}
-                        isVisible={isParticipantPickerVisible}
-                        onClose={closeParticipantPicker}
-                        // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
-                        // matching standard RHP behavior, not just close the stacked participant picker.
-                        onBackdropPress={() => Navigation.dismissModal()}
-                        shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
-                    />
                     {isNewManualExpenseFlowEnabled && (
                         <ParticipantPicker
                             participants={participants}
@@ -1052,6 +1035,7 @@ function IOURequestStepConfirmation({
                             // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                             // matching standard RHP behavior, not just close the stacked participant picker.
                             onBackdropPress={() => Navigation.dismissModal()}
+                            shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
                         />
                     )}
                 </View>
