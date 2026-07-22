@@ -158,7 +158,7 @@ describe('actions/SendInvoice', () => {
             participants: baseParticipants,
         };
 
-        const existingInvoiceChatReportFixture = {
+        const existingInvoiceChatReportFixture: OnyxEntry<Report> = {
             reportID: 'invoice_chat_123',
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             type: CONST.REPORT.TYPE.CHAT,
@@ -345,16 +345,19 @@ describe('actions/SendInvoice', () => {
 
         it('should not set report loading state in failure data for existing invoice chat report', () => {
             const currentUserAccountID = 123;
-            const transaction = {
+            const transaction: OnyxEntry<Transaction> = {
                 ...baseTransaction,
-                participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_456'},
+                    {accountID: 456, isSender: false},
+                ],
             };
 
             const result = getSendInvoiceInformation({
-                transaction: transaction as OnyxEntry<Transaction>,
+                transaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: existingInvoiceChatReportFixture as OnyxEntry<Report>,
+                invoiceChatReport: existingInvoiceChatReportFixture,
                 receiptFile: undefined,
                 policy: undefined,
                 policyTagList: undefined,
@@ -411,17 +414,20 @@ describe('actions/SendInvoice', () => {
         it('should return correct invoice information with existing chat report', () => {
             const currentUserAccountID = 123;
 
-            const transaction = {
+            const transaction: OnyxEntry<Transaction> = {
                 ...baseTransaction,
-                participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_456'},
+                    {accountID: 456, isSender: false},
+                ],
             };
 
             // When: Call getSendInvoiceInformation with existing chat report
             const result = getSendInvoiceInformation({
-                transaction: transaction as OnyxEntry<Transaction>,
+                transaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: existingInvoiceChatReportFixture as OnyxEntry<Report>,
+                invoiceChatReport: existingInvoiceChatReportFixture,
                 receiptFile: undefined,
                 policy: undefined,
                 policyTagList: undefined,
