@@ -237,7 +237,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
             });
             const submitButtons: ActionableItem[] = isSubmit2026BetaEnabled
                 ? [
-                      prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.FRIEND, 'submitToFriend'),
+                      ...(isSplitExpense ? [] : [prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.FRIEND, 'submitToFriend')]),
                       prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER, 'submitToEmployer'),
                   ]
                 : [

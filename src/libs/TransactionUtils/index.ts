@@ -746,6 +746,16 @@ function getUpdatedTransaction({
                 const rateFromAnyPolicy = DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(transactionChanges.customUnitRateID, policies);
                 if (rateFromAnyPolicy?.rate) {
                     updatedMileageRate = rateFromAnyPolicy;
+
+                    // The fallback rate wasn't known when the distance unit/quantity were set above from the
+                    // (rate-less) provided policy, so redo that conversion against the fallback rate's actual unit.
+                    if (rateFromAnyPolicy.unit && rateFromAnyPolicy.unit !== newDistanceUnit && !isOdometerDistanceRequest(transaction)) {
+                        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', rateFromAnyPolicy.unit);
+                        const fallbackConversionFactor =
+                            newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+                        const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
+                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(currentQuantity * fallbackConversionFactor));
+                    }
                 }
             }
             const {unit, rate} = updatedMileageRate;

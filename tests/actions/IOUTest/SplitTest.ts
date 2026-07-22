@@ -2382,7 +2382,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
             callback: (allReports) => {
                 chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             },
@@ -2421,14 +2420,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
             callback: (allReports) => {
                 expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
             },
         });
         await getOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-            waitForCollectionCallback: false,
             callback: (allReportActions) => {
                 const iouActions = Object.values(allReportActions ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                     isMoneyRequestAction(reportAction),
@@ -2457,35 +2454,30 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             let allSnapshots: OnyxCollection<SearchResults>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     allTransactions = value;
                 },
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     allReports = value;
                 },
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     allReportNameValuePairs = value;
                 },
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     allReportActions = value;
                 },
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.SNAPSHOT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     allSnapshots = value;
                 },
@@ -2548,13 +2540,17 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const split2SnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}` as const;
         const split1TransactionForSnapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
         const split2TransactionForSnapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`);
+        const snapshotData: SearchResults['data'] = {};
+        if (split1TransactionForSnapshot) {
+            snapshotData[split1SnapshotKey] = split1TransactionForSnapshot;
+        }
+        if (split2TransactionForSnapshot) {
+            snapshotData[split2SnapshotKey] = split2TransactionForSnapshot;
+        }
         await Onyx.merge(snapshotKey, {
-            data: {
-                [split1SnapshotKey]: split1TransactionForSnapshot,
-                [split2SnapshotKey]: split2TransactionForSnapshot,
-            },
+            data: snapshotData,
             search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
-        } as unknown as SearchResults);
+        });
         await waitForBatchedUpdates();
 
         // Step 2: Revert - remove the selfDM split (opened from within selfDM, per the repro), leaving the
@@ -2830,13 +2826,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const selfDMChildSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${selfDMChildTransactionID}` as const;
         const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
         const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        const snapshotData: SearchResults['data'] = {};
+        snapshotData[workspaceChildSnapshotKey] = workspaceChildTransaction;
+        snapshotData[selfDMChildSnapshotKey] = selfDMChildTransaction;
         await Onyx.merge(snapshotKey, {
-            data: {
-                [workspaceChildSnapshotKey]: workspaceChildTransaction,
-                [selfDMChildSnapshotKey]: selfDMChildTransaction,
-            },
+            data: snapshotData,
             search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
-        } as unknown as SearchResults);
+        });
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -2844,11 +2840,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
         let allReportActions: OnyxCollection<ReportActions>;
         let allSnapshots: OnyxCollection<SearchResults>;
-        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, waitForCollectionCallback: true, callback: (value) => (allTransactions = value)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (value) => (allReports = value)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (value) => (allReportNameValuePairs = value)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, waitForCollectionCallback: true, callback: (value) => (allReportActions = value)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, waitForCollectionCallback: true, callback: (value) => (allSnapshots = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
 
         // When the user removes the selfDM split (from within the selfDM transaction's own split-edit screen),
         // leaving the workspace split as the sole remaining split — this triggers a reverse split that merges
@@ -2972,13 +2968,13 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const child2SnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID2}` as const;
         const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
         const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        const snapshotData: SearchResults['data'] = {};
+        snapshotData[child1SnapshotKey] = childTransaction1;
+        snapshotData[child2SnapshotKey] = childTransaction2;
         await Onyx.merge(snapshotKey, {
-            data: {
-                [child1SnapshotKey]: childTransaction1,
-                [child2SnapshotKey]: childTransaction2,
-            },
+            data: snapshotData,
             search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
-        } as unknown as SearchResults);
+        });
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -2986,11 +2982,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
         let allReportActions: OnyxCollection<ReportActions>;
         let allSnapshots: OnyxCollection<SearchResults>;
-        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, waitForCollectionCallback: true, callback: (value) => (allTransactions = value)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (value) => (allReports = value)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (value) => (allReportNameValuePairs = value)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, waitForCollectionCallback: true, callback: (value) => (allReportActions = value)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, waitForCollectionCallback: true, callback: (value) => (allSnapshots = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
 
         // When the user (from within the selfDM, per the bug repro) removes one of the two selfDM splits,
         // leaving the other as the sole remaining split — this triggers a reverse split that merges it back
@@ -5808,9 +5804,9 @@ describe('updateSplitTransactions', () => {
         let allTransactions: OnyxCollection<Transaction>;
         let allReports: OnyxCollection<Report>;
         let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, waitForCollectionCallback: true, callback: (v) => (allTransactions = v)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (v) => (allReports = v)});
-        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (v) => (allTransactions = v)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (v) => (allReports = v)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (v) => (allReportNameValuePairs = v)});
 
         // A fresh split (isCreationOfSplits: no live children exist yet) is initiated, passing `firstIOU` as
         // just the first stale action (matching `iouActions.at(0)` in SplitExpensePage.tsx) and the rest via
