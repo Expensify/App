@@ -69,7 +69,7 @@ function init() {
                 sourceValues: undefined,
             };
 
-            // Coalesce per-dependency recomputes from one logical change into a single compute on the next macrotask.
+            // Coalesce per-dependency recomputes from one logical change into a single compute on the next microtask.
             let flushScheduled = false;
 
             // Dependency indexes that fired since the last flush; their deltas are reconstructed at flush time.

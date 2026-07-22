@@ -101,7 +101,7 @@ describe('HeaderView', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Report attributes recompute is coalesced onto a macrotask, so the title can settle a tick after
+        // Report attributes recompute is coalesced onto a microtask, so the title can settle a tick after
         // the initial flush; waitFor retries until the derived recompute + re-render lands.
         await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
 
