@@ -39,7 +39,10 @@ type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Bu
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
 type RightSideContextProps = {
+    /** Text label shown to the right of the suggestion row */
     label: string;
+
+    /** Icon rendered alongside the label */
     icon: IconAsset;
 };
 
