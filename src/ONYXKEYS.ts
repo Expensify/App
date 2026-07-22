@@ -412,6 +412,10 @@ const ONYXKEYS = {
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
+    /** Snapshot of the in-progress reimbursement account, captured before a "change bank account" flow clears the shared
+     * data so it can be restored if the user backs out without confirming a new account */
+    REIMBURSEMENT_ACCOUNT_BACKUP: 'reimbursementAccountBackup',
+
     /** Indicates whether the user started changing their business bank account to a fresh account */
     IS_CHANGING_TO_NEW_BANK_ACCOUNT: 'isChangingToNewBankAccount',
 
@@ -1602,6 +1606,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
     [ONYXKEYS.UNSHARE_BANK_ACCOUNT]: OnyxTypes.UnshareBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
+    [ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP]: OnyxTypes.ReimbursementAccount;
     [ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT]: boolean;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED]: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: number;

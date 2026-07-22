@@ -46,7 +46,13 @@ import {
 import {setDraftValues} from '@userActions/FormActions';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {cancelChangingToNewBankAccount, clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {
+    cancelChangingToNewBankAccount,
+    clearReimbursementAccount,
+    clearReimbursementAccountBackup,
+    clearReimbursementAccountDraft,
+    restoreReimbursementAccountBackup,
+} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -97,6 +103,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
     const [isChangingToNewBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT);
+    const [reimbursementAccountBackup] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP);
 
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
@@ -278,19 +285,32 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }, [isLoadingWorkspaceReimbursement, prevIsLoadingWorkspaceReimbursement]);
 
     // A pushed "change bank account" instance and its setup steps mutate the shared reimbursement account. When focus
-    // returns to this connected (non-changing) screen and the shared data has been clobbered, reload it so the
-    // "you're all set" page is shown again instead of the setup entry.
+    // returns to this (non-changing) screen and the shared data has been clobbered, restore the original page
+    // instead of the setup entry.
     useEffect(() => {
-        if (isConnectedVerifiedBankAccountData && !isChangingBankAccount) {
-            hasShownConnectedBankAccountRef.current = true;
+        if (isChangingBankAccount || !isFocused) {
             return;
         }
-        if (isFocused && !isChangingBankAccount && hasShownConnectedBankAccountRef.current && !isConnectedVerifiedBankAccountData) {
+        if (isConnectedVerifiedBankAccountData) {
+            hasShownConnectedBankAccountRef.current = true;
+        }
+        if (isConnectedVerifiedBankAccountData || shouldShowContinueSetupButtonValue) {
+            // A legitimate account is shown, so the backup is stale — drop it to avoid restoring over newer data.
+            if (reimbursementAccountBackup) {
+                clearReimbursementAccountBackup();
+            }
+            return;
+        }
+        // Focus returned and the shared data is empty/clobbered. Restore the in-progress snapshot instantly
+        // when we captured one; otherwise fall back to reloading the connected account.
+        if (reimbursementAccountBackup) {
+            restoreReimbursementAccountBackup(reimbursementAccountBackup);
+        } else if (hasShownConnectedBankAccountRef.current) {
             fetchData();
         }
-        // fetchData is intentionally omitted; this must react to the connected data being clobbered, not to fetchData's identity.
+        // fetchData is intentionally omitted; this must react to the shared data being clobbered, not to fetchData's identity.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isChangingBankAccount, isConnectedVerifiedBankAccountData]);
+    }, [isFocused, isChangingBankAccount, isConnectedVerifiedBankAccountData, shouldShowContinueSetupButtonValue, reimbursementAccountBackup]);
 
     useEffect(() => {
         // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
