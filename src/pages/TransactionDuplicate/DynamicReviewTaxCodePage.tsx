@@ -2,6 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -11,6 +12,7 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getTaxByID} from '@libs/PolicyUtils';
@@ -18,6 +20,7 @@ import {calculateTaxAmount, compareDuplicateTransactionFields, getAmount, getDef
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -27,10 +30,11 @@ import type {FieldItemType} from './ReviewFields';
 
 import ReviewFields from './ReviewFields';
 
-function ReviewTaxRate() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAX_CODE>>();
+function DynamicReviewTaxCodePage() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE>>();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE.path);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
     const policy = usePolicy(report?.policyID);
@@ -49,12 +53,7 @@ function ReviewTaxRate() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
-        Object.keys(compareResult.change ?? {}),
-        'taxCode',
-        route.params.threadReportID,
-        route.params.backTo,
-    );
+    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.threadReportID, route.params.backTo);
 
     const options = useMemo(
         () =>
@@ -88,10 +87,10 @@ function ReviewTaxRate() {
     );
 
     return (
-        <ScreenWrapper testID="ReviewDescription">
+        <ScreenWrapper testID="DynamicReviewTaxCodePage">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <ReviewFields<'taxCode'>
                 stepNames={stepNames}
@@ -105,4 +104,4 @@ function ReviewTaxRate() {
     );
 }
 
-export default ReviewTaxRate;
+export default DynamicReviewTaxCodePage;
