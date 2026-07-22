@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
-import {navigateToCannedSpendSearch} from '@libs/SearchNavigationUtils';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 

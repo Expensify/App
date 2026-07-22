@@ -12,7 +12,7 @@ import useNavigationSuggestions, {buildSpendNavigationItems, buildTopLevelNaviga
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {navigateToCannedSpendSearch} from '@libs/SearchNavigationUtils';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -21,8 +21,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import {isValidElement} from 'react';
 
-const mockUseSearchTypeMenuSections = jest.fn();
-const mockUseMemoizedLazyExpensifyIcons = jest.fn();
+type MockSearchTypeMenuSectionsResult = {
+    typeMenuSections: SearchTypeMenuSection[];
+    activeItemIndex: number;
+    activeKey: string | undefined;
+};
+
+const mockUseSearchTypeMenuSections = jest.fn<MockSearchTypeMenuSectionsResult, [queryParams: unknown, isScreenFocused: boolean]>();
+const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockClearSelectedTransactions = jest.fn();
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -42,16 +48,16 @@ jest.mock('@hooks/useLocalize', () => ({
                 return `Go to ${params?.destination}`;
             }
 
-            const translations: Record<string, string> = {
-                'common.home': 'Home',
-                'common.inbox': 'Inbox',
-                'common.spend': 'Spend',
-                'common.workspacesTabTitle': 'Workspaces',
-                'initialSettingsPage.account': 'Account',
-                'search.tabs.reports': 'Reports',
-                'search.tabs.expenses': 'Expenses',
-            };
-            return translations[key] ?? key;
+            const translations = new Map([
+                ['common.home', 'Home'],
+                ['common.inbox', 'Inbox'],
+                ['common.spend', 'Spend'],
+                ['common.workspacesTabTitle', 'Workspaces'],
+                ['initialSettingsPage.account', 'Account'],
+                ['search.tabs.reports', 'Reports'],
+                ['search.tabs.expenses', 'Expenses'],
+            ]);
+            return translations.get(key) ?? key;
         },
     }),
 }));
@@ -63,7 +69,7 @@ jest.mock('@hooks/useOnyx', () => ({
 
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     __esModule: true,
-    default: (...args: unknown[]) => mockUseSearchTypeMenuSections(...args),
+    default: (queryParams: unknown, isScreenFocused: boolean) => mockUseSearchTypeMenuSections(queryParams, isScreenFocused),
 }));
 
 jest.mock('@libs/actions/Search', () => ({

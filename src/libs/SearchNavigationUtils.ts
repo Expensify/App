@@ -1,7 +1,7 @@
-import {setSearchContext} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
-
 import ROUTES from '@src/ROUTES';
+
+import {setSearchContext} from './actions/Search';
+import Navigation from './Navigation/Navigation';
 
 function navigateToCannedSpendSearch(searchQuery: string, clearSelectedTransactions: () => void) {
     clearSelectedTransactions();
@@ -9,4 +9,4 @@ function navigateToCannedSpendSearch(searchQuery: string, clearSelectedTransacti
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
 }
 
-export {navigateToCannedSpendSearch};
+export default navigateToCannedSpendSearch;
