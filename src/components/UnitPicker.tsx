@@ -1,11 +1,15 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
 type UnitItemType = {
     value: Unit;
@@ -38,7 +42,7 @@ function UnitPicker({defaultValue, onOptionSelected}: UnitPickerProps) {
     return (
         <SelectionList
             data={unitOptions}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             onSelectRow={onOptionSelected}
             initiallyFocusedItemKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
         />

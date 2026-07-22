@@ -1,5 +1,3 @@
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -7,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -14,18 +13,24 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {setContactMethodAsDefault} from '@libs/actions/User';
 import {addErrorMessage, getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {isValidEmail} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {setErrorFields} from '@userActions/FormActions';
 import {AddWorkEmail} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,15 +39,17 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddWorkEmailForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+import React, {useEffect, useState} from 'react';
+
 type WorkspaceExpensifyCardAddWorkEmailPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL>;
 
 function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardAddWorkEmailPageProps) {
     const {policyID, fundID} = route.params;
     const primaryContactMethod = usePrimaryContactMethod();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [loading, setLoading] = useState(false);
 
     const {translate, formatPhoneNumber} = useLocalize();
@@ -64,7 +71,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
                 return;
             }
-            setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, existingLoginKey, formatPhoneNumber, undefined, true);
+            setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
             setLoading(true);
             linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
                 .then(() => {
@@ -123,6 +130,8 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceExpensifyCardAddWorkEmailPage"

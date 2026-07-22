@@ -1,46 +1,51 @@
-import {useIsFocused} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import Footer from '@components/SelectionList/components/Footer';
+import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
 import TextInput from '@components/SelectionList/components/TextInput';
 import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@components/SelectionList/hooks/useFlattenedSections';
+import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
+import useSelectionListKeyboardFocus from '@components/SelectionList/hooks/useSelectionListKeyboardFocus';
+import useSelectionListScroll from '@components/SelectionList/hooks/useSelectionListScroll';
+import useSelectionListShortcuts from '@components/SelectionList/hooks/useSelectionListShortcuts';
+import useSelectionListTextInput from '@components/SelectionList/hooks/useSelectionListTextInput';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
-import type {InteractiveElementRoles} from '@components/SelectionList/types';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useActiveElementRole from '@hooks/useActiveElementRole';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useDebounce from '@hooks/useDebounce';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
-import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
+
+import {useIsFocused} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
-function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
+function getItemType(item: FlattenedItem<ListItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
     return item?.type ?? CONST.SECTION_LIST_ITEM_TYPE.ROW;
 }
 
-function BaseSelectionListWithSections<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BaseSelectionListWithSectionsImpl({
     sections,
     ref,
     ListItem,
     textInputOptions,
+    searchValueForFocusSync,
     initiallyFocusedItemKey,
     confirmButtonOptions,
     initialScrollIndex,
@@ -71,81 +76,49 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldScrollToFocusedIndex = true,
+    shouldHighlightInitiallyFocusedItem = false,
+    shouldClearInputOnSelect = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldPreventAutoScrollOnSelect = false,
     isRowMultilineSupported = false,
     titleNumberOfLines,
-    shouldUseDefaultRightHandSideComponent,
-    shouldDisableHoverStyle = false,
+    shouldHighlightSelectedItem,
+    shouldDisableHoverStyle,
+    selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
-    canShowProductTrainingTooltip,
-}: SelectionListWithSectionsProps<TItem>) {
+}: SelectionListWithSectionsProps<ListItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
-    const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
-    const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
-    const isTextInputFocusedRef = useRef<boolean>(false);
-    const hasKeyBeenPressed = useRef(false);
-    const suppressNextFocusScrollRef = useRef(false);
-    const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
+    const listRef = useRef<FlashListRef<FlattenedItem<ListItem>> | null>(null);
+    const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
+    const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
-    const setHasKeyBeenPressed = () => {
-        if (hasKeyBeenPressed.current) {
-            return;
-        }
-        hasKeyBeenPressed.current = true;
-    };
-
-    const scrollToIndex = (index: number) => {
-        if (index < 0 || index >= flattenedData.length || !listRef.current) {
-            return;
-        }
-        const item = flattenedData.at(index);
-        if (!item) {
-            return;
-        }
-        try {
-            listRef.current.scrollToIndex({index});
-        } catch (error) {
-            // FlashList may throw if layout for this index doesn't exist yet
-            // This can happen when data changes rapidly (e.g., during search filtering)
-            // The layout will be computed on next render, so we can safely ignore this
-            Log.warn('SelectionListWithSections: error scrolling to index', {error});
-        }
-    };
-
-    const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
-
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+    const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
         initialFocusedIndex,
         maxIndex: flattenedData.length - 1,
         disabledIndexes,
         isActive: isScreenFocused && itemsCount > 0,
-        onFocusedIndexChange: (index: number) => {
-            if (suppressNextFocusScrollRef.current) {
-                suppressNextFocusScrollRef.current = false;
-                return;
-            }
-            if (!shouldScrollToFocusedIndex) {
-                return;
-            }
-
-            (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index);
-        },
-        setHasKeyBeenPressed,
         isFocused: isScreenFocused,
-        onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
+        shouldScrollToFocusedIndex,
+        shouldDebounceScrolling,
+        scrollToIndex,
+        debouncedScrollToIndex,
+        announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
+        setShouldDisableHoverStyle,
     });
 
-    const getFocusedItem = (): TItem | undefined => {
+    const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
+
+    const getFocusedItem = useCallback((): ListItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
             return;
         }
@@ -153,19 +126,19 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         if (!item || shouldTreatItemAsDisabled(item)) {
             return;
         }
-        return item as TItem;
-    };
+        return item as ListItem;
+    }, [flattenedData, focusedIndex]);
 
-    const selectRow = (item: TItem, indexToFocus?: number) => {
+    const selectRow = (item: ListItem, indexToFocus?: number) => {
         if (!isScreenFocused) {
             return;
         }
         if (canSelectMultiple) {
-            if (sections.length > 1 && !isItemSelected(item)) {
+            if (!shouldPreventAutoScrollOnSelect && sections.length > 1 && !isItemSelected(item)) {
                 scrollToIndex(0);
             }
 
-            if (shouldShowTextInput) {
+            if (shouldShowTextInput && shouldClearInputOnSelect) {
                 textInputOptions?.onChangeText?.('');
             }
         }
@@ -174,8 +147,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
-            innerTextInputRef.current.focus();
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
+            focusTextInput();
         }
     };
 
@@ -187,30 +160,29 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         selectRow(focusedItem);
     };
 
-    const focusTextInput = () => {
-        innerTextInputRef.current?.focus();
-    };
-
-    const clearInputAfterSelect = () => {
+    const clearInputAfterSelect = useCallback(() => {
         textInputOptions?.onChangeText?.('');
-    };
+    }, [textInputOptions]);
 
-    const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
-        if (!shouldScroll) {
-            suppressNextFocusScrollRef.current = true;
-        }
-        setFocusedIndex(index);
-        if (shouldScroll) {
-            scrollToIndex(index);
-        }
-    };
+    const updateAndScrollToFocusedIndex = useCallback(
+        (index: number, shouldScroll = true) => {
+            setFocusedIndex(index);
+            if (shouldScroll) {
+                scrollToIndex(index);
+            }
+        },
+        [scrollToIndex, setFocusedIndex],
+    );
 
     /**
      * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
      */
-    const updateExternalTextInputFocus = (isTextInputFocused: boolean) => {
-        isTextInputFocusedRef.current = isTextInputFocused;
-    };
+    const updateExternalTextInputFocus = useCallback(
+        (isTextInputFocused: boolean) => {
+            isTextInputFocusedRef.current = isTextInputFocused;
+        },
+        [isTextInputFocusedRef],
+    );
 
     useImperativeHandle(
         ref,
@@ -221,55 +193,35 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             updateAndScrollToFocusedIndex,
             updateExternalTextInputFocus,
             getFocusedOption: getFocusedItem,
+            scrollInputIntoView,
         }),
-        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem],
+        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem, scrollInputIntoView],
     );
 
-    // Disable `Enter` shortcut if the active element is a button, checkbox, or switch
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as InteractiveElementRoles);
+    const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
-        captureOnInputs: true,
-        shouldBubble: itemsCount > 0 && !getFocusedItem(),
+    useSelectionListShortcuts({
+        selectFocusedItem,
+        getFocusedOption: getFocusedItem,
+        confirmButtonOptions,
+        isActive: isScreenFocused,
+        focusedIndex,
+        disableKeyboardShortcuts,
         shouldStopPropagation,
-        isActive: !disableKeyboardShortcuts && isScreenFocused && focusedIndex >= 0 && !disableEnterShortcut,
+        shouldBubble: itemsCount > 0 && !getFocusedItem(),
     });
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
-        (e) => {
-            if (confirmButtonOptions?.onConfirm) {
-                const focusedOption = getFocusedItem();
-                confirmButtonOptions?.onConfirm(e, focusedOption);
-                return;
-            }
-            selectFocusedItem();
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: itemsCount > 0 && !getFocusedItem(),
-            isActive: !disableKeyboardShortcuts && isScreenFocused && !confirmButtonOptions?.isDisabled,
-        },
-    );
-
-    const textInputKeyPress = (event: TextInputKeyPressEvent) => {
-        const key = event.nativeEvent.key;
-        if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-            focusedItemRef?.focus();
-        }
-    };
 
     useSelectedItemFocusSync({
         data: flattenedData,
         initiallyFocusedItemKey,
         isItemSelected,
         focusedIndex,
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         setFocusedIndex,
     });
 
     useSearchFocusSync({
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         data: flattenedData,
         selectedOptionsCount: selectedItems.length,
         isItemSelected,
@@ -302,20 +254,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         );
     };
 
-    const renderListEmptyContent = () => {
-        if (shouldShowLoadingPlaceholder) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'BaseSelectionListWithSections',
-                shouldShowLoadingPlaceholder,
-            };
-            return <OptionsListSkeletonView reasonAttributes={reasonAttributes} />;
-        }
-        if (shouldShowListEmptyContent) {
-            return listEmptyContent;
-        }
-    };
-
-    const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<TItem>>) => {
+    const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<ListItem>>) => {
         if (!item) {
             return null;
         }
@@ -334,7 +273,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
             case CONST.SECTION_LIST_ITEM_TYPE.ROW: {
                 const isItemFocused = index === focusedIndex;
-                const isDisabled = !!item.isDisabled;
+                const isItemVisuallyFocused = isItemFocused && (shouldHighlightInitiallyFocusedItem || isKeyboardNavigating);
+                const isDisabled = !!item.isDisabled && !item.isSelected;
 
                 return (
                     <ListItemRenderer
@@ -345,24 +285,23 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         index={index}
                         normalizedIndex={index}
                         isFocused={isItemFocused}
+                        isFocusVisible={isItemVisuallyFocused}
                         isDisabled={isDisabled}
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
-                        canShowProductTrainingTooltip={canShowProductTrainingTooltip}
-                        shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                        shouldHighlightSelectedItem
+                        shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
                         isMultilineSupported={isRowMultilineSupported}
                         titleNumberOfLines={titleNumberOfLines}
-                        shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
+                        shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        selectionButtonPosition={selectionButtonPosition}
                         shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                     />
                 );
@@ -374,13 +313,19 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     return (
         <View
+            ref={containerRef}
             style={[styles.flex1, addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}
             onLayout={onLayout}
         >
             {textInputComponent()}
             {customHeaderContent}
             {itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
-                renderListEmptyContent()
+                <SelectionListEmptyState
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                    shouldShowListEmptyContent={shouldShowListEmptyContent}
+                    listEmptyContent={listEmptyContent}
+                    context="BaseSelectionListWithSections"
+                />
             ) : (
                 <FlashList
                     role={getListboxRole(canSelectMultiple)}
@@ -395,7 +340,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     onEndReachedThreshold={onEndReachedThreshold}
                     onScrollBeginDrag={onScrollBeginDrag}
                     scrollEnabled={scrollEnabled}
-                    onScroll={() => {
+                    onScroll={(event) => {
+                        trackScrollOffset(event);
                         onScroll?.();
                         triggerScrollEvent();
                     }}
@@ -411,13 +357,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 />
             )}
             {!!footerContent && (
-                <Footer<TItem>
+                <Footer<ListItem>
                     footerContent={footerContent}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 />
             )}
         </View>
     );
+}
+
+function BaseSelectionListWithSections<TItem extends ListItem>(props: SelectionListWithSectionsProps<TItem>) {
+    return <BaseSelectionListWithSectionsImpl {...(props as unknown as SelectionListWithSectionsProps<ListItem>)} />;
 }
 
 export default BaseSelectionListWithSections;

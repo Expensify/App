@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-return */
-import type {NavigationState} from '@react-navigation/native';
 import cleanStaleReportActionBackToParam from '@src/pages/inbox/cleanStaleReportActionBackToParam';
+
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import type {NavigationState} from '@react-navigation/native';
 
 const mockDispatch = jest.fn();
 let mockRootState: NavigationState | undefined;

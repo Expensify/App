@@ -1,31 +1,39 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getDraftValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForSignerInfo';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
+
 import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import EnterEmail from './EnterEmail';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {EmailSubmitParams} from './EnterEmail';
+
+import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
 import SignerDetailsFormPages from './SignerDetailsFormPages';
 
 const {PAGE_NAME, SIGNER_INFO_STEP} = CONST.NON_USD_BANK_ACCOUNT;
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+
 const SUB_PAGE_NAMES = SIGNER_INFO_STEP.SUB_PAGE_NAMES;
 const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -74,7 +82,6 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
     }, [bankAccountID, isUserOwner, reimbursementAccountDraft, signerEmail]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation || !reimbursementAccount?.isSuccess) {
             return;
         }
@@ -96,7 +103,6 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, policyID, backTo]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isAskingForCorpaySignerInformation || !reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
             return;
         }
@@ -190,12 +196,12 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                     submitFlexEnabled={!showNoPolicyError}
                 >
                     {showNoPolicyError && (
-                        <View style={[styles.flex1, styles.justifyContentEnd]}>
+                        <View style={[styles.flex1, styles.justifyContentEnd, styles.ph5]}>
                             <FormHelpMessage
                                 style={styles.mt3}
                                 isError
                                 shouldRenderMessageAsHTML
-                                message={translate('signerInfoStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
+                                message={translate('countryStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
                             />
                         </View>
                     )}

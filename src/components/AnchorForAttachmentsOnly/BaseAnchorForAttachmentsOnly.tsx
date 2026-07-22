@@ -1,20 +1,25 @@
-import React from 'react';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
+
 import {setDownload} from '@userActions/Download';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+
 import type AnchorForAttachmentsOnlyProps from './types';
 
 type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
@@ -39,7 +44,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source, encryptedAuthToken);
 
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
@@ -58,7 +63,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                 if (isDisabled || !shouldDisplayContextMenu) {
                     return;
                 }
-                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived), originalReportID);
+                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
             }}
             shouldUseHapticsOnLongPress
             accessibilityLabel={displayName}

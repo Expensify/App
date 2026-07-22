@@ -1,7 +1,9 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import type {InlineSystemMessageProps} from '@components/InlineSystemMessage';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
 
 type InlineSystemMessageStory = StoryFn<typeof InlineSystemMessage>;
 
@@ -16,7 +18,6 @@ const story: Meta<typeof InlineSystemMessage> = {
 };
 
 function Template(props: InlineSystemMessageProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <InlineSystemMessage {...props} />;
 }
 

@@ -1,10 +1,12 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import DisplayNames from '@components/DisplayNames';
+
 import Parser from '@libs/Parser';
 
+import React from 'react';
+
 jest.mock('@libs/Parser', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         htmlToText: jest.fn((html: string) => html.replaceAll(/<[^>]*>/g, '')),
@@ -12,7 +14,6 @@ jest.mock('@libs/Parser', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         translate: jest.fn((key: string) => key),

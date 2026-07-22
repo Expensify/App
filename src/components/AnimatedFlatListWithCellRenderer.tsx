@@ -4,36 +4,45 @@
  * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
  */
 import type {Ref} from 'react';
-import React, {useRef} from 'react';
 import type {FlatListProps, CellRendererProps as RNCellRendererProps} from 'react-native';
-import {FlatList} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
+
+import React, {createContext, useContext} from 'react';
+import {FlatList} from 'react-native';
 import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 type CellRendererComponentProps<T> = React.ComponentType<RNCellRendererProps<T>> | null | undefined;
 
-const createCellRendererComponent = <Item,>(CellRendererComponentProp?: CellRendererComponentProps<Item>, itemLayoutAnimationRef?: React.RefObject<ILayoutAnimationBuilder | undefined>) => {
-    // Make CellRendererComponent specifically use the 'Item' type from its parent scope
-    function CellRendererComponent(props: RNCellRendererProps<Item>) {
-        return (
-            <Animated.View
-                // TODO TYPESCRIPT This is temporary cast is to get rid of .d.ts file.
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-                layout={itemLayoutAnimationRef?.current as any}
-                onLayout={props.onLayout}
-                style={CellRendererComponentProp ? undefined : props.style}
-            >
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                {CellRendererComponentProp ? <CellRendererComponentProp {...props}>{props.children}</CellRendererComponentProp> : props.children}
-            </Animated.View>
-        );
-    }
-
-    return CellRendererComponent;
+type CellRendererConfig = {
+    itemLayoutAnimation?: ILayoutAnimationBuilder;
+    outerCellRenderer?: CellRendererComponentProps<unknown>;
 };
+
+const CellRendererConfigContext = createContext<CellRendererConfig>({});
+
+/**
+ * Module-scope cell renderer so OXC's React Compiler can discover and memoize it.
+ * `itemLayoutAnimation` and the optional outer renderer are read from context because
+ * FlatList only passes standard cell props to `CellRendererComponent`.
+ */
+function CellRendererComponentImpl(props: RNCellRendererProps<unknown>) {
+    const {itemLayoutAnimation, outerCellRenderer: OuterCellRenderer} = useContext(CellRendererConfigContext);
+
+    return (
+        <Animated.View
+            // TODO TYPESCRIPT This is temporary cast is to get rid of .d.ts file.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            layout={itemLayoutAnimation as any}
+            onLayout={props.onLayout}
+            style={OuterCellRenderer ? undefined : props.style}
+        >
+            {OuterCellRenderer ? <OuterCellRenderer {...props}>{props.children}</OuterCellRenderer> : props.children}
+        </Animated.View>
+    );
+}
+
 type ReanimatedFlatListPropsWithLayout<T> = {
     /**
      * Lets you pass layout animation directly to the FlatList item.
@@ -47,9 +56,6 @@ type ReanimatedFlatListPropsWithLayout<T> = {
 
 // Since createAnimatedComponent return type is ComponentClass that has the props of the argument,
 // but not things like NativeMethods, etc. we need to add them manually by extending the type.
-type AnimatedFlatListComplement<T> = {
-    getNode(): FlatList<T>;
-} & FlatList<T>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll' | 'inverted'> & {
@@ -59,10 +65,12 @@ type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatList
     ref?: Ref<FlatList>;
 };
 
-// We need explicit any here, because this is the exact same type that is used in React Native types.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function FlatListRender<Item = any>(props: AnimatedFlatListWithCellRendererProps<Item>) {
-    const {itemLayoutAnimation, skipEnteringExitingAnimations, ref, ...restProps} = props;
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function FlatListRenderImpl(props: AnimatedFlatListWithCellRendererProps<unknown>) {
+    const {itemLayoutAnimation, skipEnteringExitingAnimations, ref, CellRendererComponent: outerCellRenderer, ...restProps} = props;
 
     // Set default scrollEventThrottle, because user expects
     // to have continuous scroll events and
@@ -73,23 +81,16 @@ function FlatListRender<Item = any>(props: AnimatedFlatListWithCellRendererProps
         restProps.scrollEventThrottle = 1;
     }
 
-    const itemLayoutAnimationRef = useRef(itemLayoutAnimation);
-    itemLayoutAnimationRef.current = itemLayoutAnimation;
-
-    const CellRendererComponent = React.useMemo(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        () => createCellRendererComponent<any>(props.CellRendererComponent, itemLayoutAnimationRef),
-        [props.CellRendererComponent],
-    );
+    const cellRendererConfig: CellRendererConfig = {itemLayoutAnimation, outerCellRenderer};
 
     const animatedFlatList = (
-        // @ts-expect-error In its current type state, createAnimatedComponent cannot create generic components.
-        <AnimatedFlatList
-            ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...restProps}
-            CellRendererComponent={CellRendererComponent}
-        />
+        <CellRendererConfigContext.Provider value={cellRendererConfig}>
+            <AnimatedFlatList
+                ref={ref}
+                {...restProps}
+                CellRendererComponent={CellRendererComponentImpl}
+            />
+        </CellRendererConfigContext.Provider>
     );
 
     if (skipEnteringExitingAnimations === undefined) {
@@ -106,6 +107,12 @@ function FlatListRender<Item = any>(props: AnimatedFlatListWithCellRendererProps
     );
 }
 
+// We need explicit any here, because this is the exact same type that is used in React Native types.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function FlatListRender<Item = any>(props: AnimatedFlatListWithCellRendererProps<Item>) {
+    return <FlatListRenderImpl {...(props as AnimatedFlatListWithCellRendererProps<unknown>)} />;
+}
+
 const AnimatedFlatListWithCellRenderer = FlatListRender as <
     // We need explicit any here, because this is the exact same type that is used in React Native types.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -114,8 +121,6 @@ const AnimatedFlatListWithCellRenderer = FlatListRender as <
     props: AnimatedFlatListWithCellRendererProps<ItemT>,
 ) => React.ReactElement;
 
-type ReanimatedFlatList<T> = typeof AnimatedFlatList & AnimatedFlatListComplement<T>;
-
-export type {ReanimatedFlatList, AnimatedFlatListWithCellRendererProps};
+export type {AnimatedFlatListWithCellRendererProps};
 
 export default AnimatedFlatListWithCellRenderer;

@@ -1,6 +1,6 @@
-import oldRoutes from '@navigation/linkingConfig/OldRoutes';
+import StringUtils from '@libs/StringUtils';
 
-const escapeRegExp = (str: string) => str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+import oldRoutes from '@navigation/linkingConfig/OldRoutes';
 
 /**
  * Converts an OldRoutes pattern string into a RegExp.
@@ -17,7 +17,7 @@ function patternToRegex(pattern: string): RegExp {
     let regexStr = '^';
 
     for (let i = 0; i < parts.length; i++) {
-        regexStr += escapeRegExp(parts.at(i) ?? '');
+        regexStr += StringUtils.escapeRegExp(parts.at(i) ?? '');
         if (i < parts.length - 1) {
             const isTrailing = i === parts.length - 2 && pattern.endsWith('*');
             regexStr += isTrailing ? '(.*)' : '([^/]+)';

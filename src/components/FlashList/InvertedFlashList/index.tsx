@@ -1,14 +1,13 @@
+import type FlatListRefType from '@components/FlashList/types';
+
 import type {FlashListProps} from '@shopify/flash-list';
+
 import React from 'react';
-import useFlashListScrollKey from '@components/FlashList/useFlashListScrollKey';
-import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+
 import FlashList from '..';
 import CellRendererComponent from './CellRendererComponent';
 
 type InvertedFlashListProps<T> = FlashListProps<T> & {
-    /** Key of the item to initially scroll to when the list first renders. */
-    initialScrollKey?: string | null;
-
     /** The array of items to render in the list. */
     data: T[];
 
@@ -19,24 +18,12 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
     ref: FlatListRefType;
 };
 
-function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReached: onStartReachedProp, ...restProps}: InvertedFlashListProps<T>) {
-    const {displayedData, onStartReached, maintainVisibleContentPosition} = useFlashListScrollKey<T>({
-        data,
-        keyExtractor,
-        initialScrollKey,
-        onStartReached: onStartReachedProp,
-    });
-
+function InvertedFlashList<T>(props: InvertedFlashListProps<T>) {
     return (
         <FlashList<T>
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...restProps}
+            {...props}
             inverted
-            onStartReached={onStartReached}
-            data={displayedData}
-            keyExtractor={keyExtractor}
             CellRendererComponent={CellRendererComponent}
-            maintainVisibleContentPosition={maintainVisibleContentPosition}
         />
     );
 }

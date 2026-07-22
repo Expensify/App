@@ -1,23 +1,29 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import useAvatarCrop from '@hooks/useAvatarCrop';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
+
 import AttachmentPicker from './AttachmentPicker';
 import AvatarButtonWithIcon from './AvatarButtonWithIcon';
-import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
-import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
@@ -108,15 +114,10 @@ function AvatarWithImagePicker({
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
-    const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
-    const [imageData, setImageData] = useState({
-        uri: '',
-        name: '',
-        type: '',
-    });
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
+    const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -141,7 +142,7 @@ function AvatarWithImagePicker({
     /**
      * Validates an image and opens avatar crop modal if valid
      */
-    const showAvatarCropModal = useCallback((image: FileObject) => {
+    const showAvatarCropModal = (image: FileObject) => {
         validateAvatarImage(image)
             .then((validationResult) => {
                 if (!validationResult.isValid) {
@@ -149,22 +150,13 @@ function AvatarWithImagePicker({
                     return;
                 }
 
-                setIsAvatarCropModalOpen(true);
                 setError(null, {});
                 setIsMenuVisible(false);
-                setImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                });
+                openCropper(image);
             })
             .catch(() => {
                 setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
             });
-    }, []);
-
-    const hideAvatarCropModal = () => {
-        setIsAvatarCropModalOpen(false);
     };
 
     /**
@@ -201,23 +193,20 @@ function AvatarWithImagePicker({
         return menuItems;
     };
 
-    const onPressAvatar = useCallback(
-        (openPicker: OpenPicker) => {
-            anchorRef.current?.blur();
-            if (disabled && enablePreview && onViewPhotoPress) {
-                onViewPhotoPress();
-                return;
-            }
-            if (isUsingDefaultAvatar) {
-                openPicker({
-                    onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                });
-                return;
-            }
-            setIsMenuVisible((prev) => !prev);
-        },
-        [disabled, enablePreview, isUsingDefaultAvatar, onViewPhotoPress, showAvatarCropModal],
-    );
+    const onPressAvatar = (openPicker: OpenPicker) => {
+        anchorRef.current?.blur();
+        if (disabled && enablePreview && onViewPhotoPress) {
+            onViewPhotoPress();
+            return;
+        }
+        if (isUsingDefaultAvatar) {
+            openPicker({
+                onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+            });
+            return;
+        }
+        setIsMenuVisible((prev) => !prev);
+    };
 
     useLayoutEffect(() => {
         if (!anchorRef.current || !isMenuVisible) {
@@ -307,15 +296,6 @@ function AvatarWithImagePicker({
                     type="error"
                 />
             )}
-            <AvatarCropModal
-                onClose={hideAvatarCropModal}
-                isVisible={isAvatarCropModalOpen}
-                onSave={onImageSelected}
-                imageUri={imageData.uri}
-                imageName={imageData.name}
-                imageType={imageData.type}
-                maskImage={editorMaskImage}
-            />
         </View>
     );
 }

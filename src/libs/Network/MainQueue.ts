@@ -1,8 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import {getIsOffline} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
+
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import {isAuthenticating} from './NetworkStore';
 import {isRunning as sequentialQueueIsRunning} from './SequentialQueue';
 
@@ -25,7 +28,6 @@ function push<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
 function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
     push(request);
 
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     process();
 }
 

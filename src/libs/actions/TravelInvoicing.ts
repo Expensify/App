@@ -1,7 +1,5 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {
     ConfigureTravelInvoicingForPolicyParams,
@@ -9,7 +7,9 @@ import type {
     OpenPolicyTravelPageParams,
     PayTravelInvoicingSpendParams,
     RetryTravelCardsProvisioningParams,
+    SetTravelInvoicingReconciliationBankAccountParams,
     SetTravelInvoicingSettlementAccountParams,
+    ToggleTravelInvoicingContinuousReconciliationParams,
     UpdateTravelInvoicingMonthlyLimitParams,
     UpdateTravelInvoicingSettlementFrequencyParams,
 } from '@libs/API/parameters';
@@ -20,8 +20,15 @@ import fileDownload from '@libs/fileDownload';
 import localFileDownload from '@libs/localFileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Opens the Travel page for a policy and fetches Travel Invoicing data.
@@ -157,6 +164,120 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
     };
 
     API.write(WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT, params, {optimisticData, successData, failureData});
+}
+
+type TravelInvoicingContinuousReconciliationUpdate = OnyxUpdate<
+    | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
+    | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION
+    | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
+>;
+
+function toggleTravelInvoicingContinuousReconciliation(
+    workspaceAccountID: number,
+    shouldUseContinuousReconciliation: boolean,
+    connectionName: ConnectionName,
+    oldConnectionName?: ConnectionName,
+) {
+    const parameters: ToggleTravelInvoicingContinuousReconciliationParams = shouldUseContinuousReconciliation
+        ? {
+              policyAccountID: workspaceAccountID,
+              shouldUseContinuousReconciliation,
+              travelInvoicingContinuousReconciliationConnection: connectionName,
+          }
+        : {
+              policyAccountID: workspaceAccountID,
+              shouldUseContinuousReconciliation,
+          };
+
+    const optimisticData: TravelInvoicingContinuousReconciliationUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: shouldUseContinuousReconciliation,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`,
+            value: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: connectionName,
+        },
+    ];
+
+    const successData: TravelInvoicingContinuousReconciliationUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: shouldUseContinuousReconciliation,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: connectionName,
+        },
+    ];
+
+    const failureData: TravelInvoicingContinuousReconciliationUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: !shouldUseContinuousReconciliation,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: oldConnectionName ?? null,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.TOGGLE_TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function setTravelInvoicingReconciliationBankAccount(
+    workspaceAccountID: number,
+    domainName: string,
+    travelInvoicingReconciliationBankAccountID: string,
+    currentReconciliationBankAccountID?: string,
+) {
+    const parameters: SetTravelInvoicingReconciliationBankAccountParams = {
+        domainName,
+        travelInvoicingReconciliationBankAccountID,
+    };
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+            value: travelInvoicingReconciliationBankAccountID,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+            value: currentReconciliationBankAccountID ?? null,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT, parameters, {optimisticData, failureData});
 }
 
 /**
@@ -630,6 +751,8 @@ export {
     exportTravelInvoiceStatementCSV,
     configureTravelInvoicingForPolicy,
     deactivateTravelInvoicing,
+    toggleTravelInvoicingContinuousReconciliation,
+    setTravelInvoicingReconciliationBankAccount,
     clearTravelInvoicingErrors,
     retryTravelCardsProvisioning,
     updateTravelInvoicingMonthlyLimit,

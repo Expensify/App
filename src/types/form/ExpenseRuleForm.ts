@@ -1,8 +1,19 @@
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+
 import type Form from './Form';
 
-const INPUT_IDS = CONST.EXPENSE_RULES.FIELDS;
+const INPUT_IDS = {
+    BILLABLE: 'billable',
+    CATEGORY: 'category',
+    DESCRIPTION: 'comment',
+    CREATE_REPORT: 'createReport',
+    MERCHANT: 'merchantToMatch',
+    RENAME_MERCHANT: 'merchant',
+    REIMBURSABLE: 'reimbursable',
+    REPORT: 'report',
+    TAG: 'tag',
+    TAX: 'tax',
+} as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
@@ -22,5 +33,7 @@ type ExpenseRuleForm = Form<
     }
 >;
 
-export type {ExpenseRuleForm, InputID};
+type ExpenseRuleFormFieldID = InputID;
+
+export type {ExpenseRuleForm, ExpenseRuleFormFieldID};
 export default INPUT_IDS;

@@ -1,12 +1,15 @@
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {NavigationProp, NavigationState} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type InputType = 'markdown' | 'mask' | 'default';
 type CustomBaseTextInputProps = ForwardedFSClassProps &
@@ -92,6 +95,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Hint text to display below the TextInput */
         hint?: string;
 
+        /** Whether the hint should be rendered as HTML */
+        shouldRenderHintAsHTML?: boolean;
+
         /** Prefix character */
         prefixCharacter?: string;
 
@@ -113,6 +119,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
 
         /** Indicate whether input is multiline */
         multiline?: boolean;
+
+        /** Force the floating label to render on a single line and ellipsize even when the input is multiline */
+        shouldLabelStayOnSingleLine?: boolean;
 
         /** Set the default value to the input if there is a valid saved value */
         shouldUseDefaultValue?: boolean;
@@ -164,6 +173,12 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
 
         /** Style for the icon container */
         iconContainerStyle?: StyleProp<ViewStyle>;
+
+        /** Style for the clear button */
+        clearButtonStyle?: StyleProp<ViewStyle>;
+
+        /** The clear button icon size */
+        clearButtonIconSize?: number;
 
         /** The width of inner content */
         contentWidth?: number;

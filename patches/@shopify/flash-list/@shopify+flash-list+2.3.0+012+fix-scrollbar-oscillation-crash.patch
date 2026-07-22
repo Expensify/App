@@ -1,0 +1,59 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
+index 12375d9..1fb7c8c 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
+@@ -1,4 +1,10 @@
++import { Platform } from "react-native";
+ import { RVLayoutManager, } from "./LayoutManager";
++// Recent cross-axis sizes kept for oscillation detection. A strict A,B,A,B pattern needs 4 samples.
++const BOUNDED_SIZE_HISTORY_LENGTH = 4;
++// Max cross-axis delta (px) treated as a scrollbar-induced oscillation rather than a real resize.
++// Classic desktop scrollbars are ~15-17px; the headroom covers thicker/zoomed scrollbars.
++const SCROLLBAR_OSCILLATION_TOLERANCE = 25;
+ /**
+  * LinearLayoutManager implementation that arranges items in a single row or column.
+  * Supports both horizontal and vertical layouts with dynamic item sizing.
+@@ -23,9 +29,42 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+         const prevHorizontal = this.horizontal;
+         super.updateLayoutParams(params);
+         const oldBoundedSize = this.boundedSize;
+-        this.boundedSize = this.horizontal
++        const measuredBoundedSize = this.horizontal
+             ? params.windowSize.height
+             : params.windowSize.width;
++        // --- Scrollbar oscillation guard (web only) ---
++        // On web a vertical scrollbar appearing/disappearing changes the measured cross-axis size by
++        // the scrollbar width. That feeds back into layout and toggles the scrollbar again, an
++        // infinite layout loop that crashes the app. Native uses overlay scrollbars and never
++        // oscillates, so this runs on web only.
++        // We treat a change as scrollbar-induced only when ALL hold,
++        // so a manual window resize is never misread:
++        //   (1) the last 4 rounded sizes strictly alternate between exactly two values (A,B,A,B),
++        //   (2) which is 3 consecutive flips — a drag never revisits the same two pixels that often,
++        //   (3) the two values differ by no more than a scrollbar's width.
++        // When detected we settle on the smaller value (it already accounts for the scrollbar, so
++        // items never overflow the client width).
++        let nextBoundedSize = measuredBoundedSize;
++        if (Platform.OS === "web") {
++            const history = this.recentBoundedSizes ?? (this.recentBoundedSizes = []);
++            history.push(Math.round(measuredBoundedSize));
++            if (history.length > BOUNDED_SIZE_HISTORY_LENGTH) {
++                history.shift();
++            }
++            if (history.length === BOUNDED_SIZE_HISTORY_LENGTH) {
++                const [a, b, c, d] = history;
++                const isScrollbarOscillation = a === c &&
++                    b === d &&
++                    a !== b &&
++                    Math.abs(a - b) <= SCROLLBAR_OSCILLATION_TOLERANCE;
++                if (isScrollbarOscillation) {
++                    // Settle on the smaller of the two oscillating values.
++                    nextBoundedSize = Math.min(a, b);
++                }
++            }
++        }
++        this.boundedSize = nextBoundedSize;
++        // --- end guard ---
+         if (oldBoundedSize !== this.boundedSize ||
+             prevHorizontal !== this.horizontal) {
+             if (this.layouts.length > 0) {

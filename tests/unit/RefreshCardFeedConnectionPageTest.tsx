@@ -1,62 +1,66 @@
 import {act, cleanup, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {clearAssignCardStepAndData} from '@libs/actions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Bypass the HOC and render the inner component directly
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
 
+jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => children,
+}));
+
 const mockCloseRHPFlow = jest.fn();
 
 jest.mock('@hooks/useCardFeeds', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 
 jest.mock('@pages/workspace/companyCards/BankConnection', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
-    // eslint-disable-next-line react/display-name
+
     default: () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const {View} = require('react-native');
         return <View testID="BankConnection" />;
     },
 }));
 
 jest.mock('@pages/workspace/companyCards/addNew/PlaidConnectionStep', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
-    // eslint-disable-next-line react/display-name
+
     default: () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const {View} = require('react-native');
         return <View testID="PlaidConnectionStep" />;
     },
 }));
 
 jest.mock('@pages/LoadingPage', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
-    // eslint-disable-next-line react/display-name
+
     default: () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const {View} = require('react-native');
         return <View testID="LoadingPage" />;
     },
 }));
 
 jest.mock('@pages/ErrorPage/NotFoundPage', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
-    // eslint-disable-next-line react/display-name
+
     default: () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const {View} = require('react-native');
         return <View testID="NotFoundPage" />;
     },
@@ -64,6 +68,8 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     closeRHPFlow: mockCloseRHPFlow,
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn(),
@@ -75,14 +81,13 @@ jest.mock('@libs/actions/CompanyCards', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({translate: (key: string) => key}),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const useCardFeeds = require('@hooks/useCardFeeds').default as jest.Mock;
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const RefreshCardFeedConnectionPage = require('@pages/workspace/companyCards/RefreshCardFeedConnectionPage').default;
 
 const MOCK_FEED = 'oauth.chase_bank_card_99999' as const;

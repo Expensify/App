@@ -1,18 +1,26 @@
-import React from 'react';
 import Button from '@components/Button';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
+
 import {createTransactionThreadReport} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+
+import React from 'react';
+
 import type {SimpleActionProps} from './types';
+
 import useTransactionThreadData from './useTransactionThreadData';
 
 function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
@@ -24,6 +32,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
@@ -41,6 +50,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                             email ?? '',
                             accountID,
                             moneyRequestReport,
+                            ownerLogin,
                             policy,
                             allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
                         ),
@@ -52,7 +62,14 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                         } else {
                             const transactionID = duplicateTransaction.transactionID;
                             const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                            const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, betas, moneyRequestReport, iouAction);
+                            const createdTransactionThreadReport = createTransactionThreadReport({
+                                introSelected,
+                                currentUserLogin: email ?? '',
+                                currentUserAccountID: accountID,
+                                betas,
+                                iouReport: moneyRequestReport,
+                                iouReportAction: iouAction,
+                            });
                             threadID = createdTransactionThreadReport?.reportID;
                         }
                     }

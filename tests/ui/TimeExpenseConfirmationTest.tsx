@@ -1,21 +1,28 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
+
 import IOURequestStepConfirmation from '@pages/iou/request/step/IOURequestStepConfirmation';
+
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import type * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -63,11 +70,15 @@ jest.mock('@components/ProductTrainingContext', () => ({
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
-    getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Step_Confirmation',
-        params: {},
-    })),
-    getState: jest.fn(() => ({})),
+    __esModule: true,
+    default: {
+        getCurrentRoute: jest.fn(() => ({
+            name: 'Money_Request_Step_Confirmation',
+            params: {},
+        })),
+        getState: jest.fn(() => ({})),
+        getRootState: jest.fn(() => ({routes: []})),
+    },
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -82,13 +93,17 @@ jest.mock('@libs/Navigation/Navigation', () => {
     };
     return {
         navigate: jest.fn(),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         goBack: jest.fn(),
         dismissModal: jest.fn(),
         dismissModalWithReport: jest.fn(),
+        getActiveRoute: jest.fn(() => ''),
         getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
         getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
         clearFullscreenPreInsertedFlag: jest.fn(),
         revealRouteBeforeDismissingModal: jest.fn(),
+        isTopmostRouteModalScreen: jest.fn(() => false),
         navigationRef: mockRef,
     };
 });
@@ -102,6 +117,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
@@ -123,6 +139,22 @@ function createPolicyWithTimeTracking(): Policy {
         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test Policy'),
         id: POLICY_ID,
         outputCurrency: CONST.CURRENCY.USD,
+        tax: {
+            trackingEnabled: true,
+        },
+        taxRates: {
+            defaultExternalID: 'TAX_RATE_1',
+            defaultValue: '10%',
+            foreignTaxDefault: 'TAX_RATE_2',
+            name: 'Tax',
+            taxes: {
+                TAX_RATE_1: {
+                    name: 'Tax Rate 1',
+                    value: '10%',
+                    isDisabled: false,
+                },
+            },
+        },
         units: {
             time: {
                 enabled: true,
@@ -134,6 +166,7 @@ function createPolicyWithTimeTracking(): Policy {
 
 const DEFAULT_TIME_TRANSACTION: Transaction = {
     amount: 40000, // $400.00 (8 hours * $50/hr)
+    isAmountSet: true,
     billable: false,
     comment: {
         units: {
@@ -338,6 +371,23 @@ describe('TimeExpenseConfirmationTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(requestMoney).toHaveBeenCalled();
+        });
+
+        it('should not apply default tax code to time expenses', async () => {
+            await setupTransaction();
+
+            renderConfirmation();
+            await waitForBatchedUpdatesWithAct();
+
+            const submitButton = screen.getByText(/create.*expense/i);
+            fireEvent.press(submitButton);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(requestMoney).toHaveBeenCalled();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const callArgs = (requestMoney as jest.Mock).mock.calls.at(0)?.[0] as {transactionParams: {taxCode: string; taxAmount: number}};
+            expect(callArgs.transactionParams.taxCode).toBe('');
+            expect(callArgs.transactionParams.taxAmount).toBe(0);
         });
 
         it('should show error when rate and hours result in too large amount', async () => {

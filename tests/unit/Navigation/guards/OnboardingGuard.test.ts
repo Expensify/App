@@ -1,11 +1,15 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
 import OnboardingGuard from '@libs/Navigation/guards/OnboardingGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 describe('OnboardingGuard', () => {
@@ -361,6 +365,27 @@ describe('OnboardingGuard', () => {
             // Then the user should be redirected to onboarding because their domain/policy context determines which onboarding step they should land on
             expect(result.type).toBe('REDIRECT');
             expect(result.route).toContain('onboarding');
+        });
+
+        it('should skip onboarding for invited or group members even when they have not completed onboarding', async () => {
+            // Given an invited user who has not completed the NewDot guided setup
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.INTRO_CHOICES.SUBMIT,
+            });
+            await Onyx.merge(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates on a non-onboarding screen
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            // Then allow navigation (skip onboarding) because the user is an invited workspace member
+            expect(result.type).toBe('ALLOW');
         });
     });
 

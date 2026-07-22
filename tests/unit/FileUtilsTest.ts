@@ -1,16 +1,21 @@
-import {Platform} from 'react-native';
-import ImageSize from 'react-native-image-size';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
 import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
     appendTimeToFileName,
     canvasFallback,
+    getExportFileName,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
+    isHighResolutionImage,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
+
+import {Platform} from 'react-native';
+import ImageSize from 'react-native-image-size';
 
 jest.useFakeTimers();
 jest.mock('react-native-image-size');
@@ -95,6 +100,20 @@ describe('FileUtils', () => {
                     expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
                 });
             });
+        });
+    });
+
+    describe('getExportFileName', () => {
+        it('builds the expensify_<name>_<id> filename, sanitizes and lowercases the export name', () => {
+            expect(getExportFileName('Current view', '123abc')).toEqual('expensify_current_view_123abc.csv');
+        });
+
+        it('replaces every illegal character in the export name with an underscore', () => {
+            expect(getExportFileName('All Data - expense level', 'abc')).toEqual('expensify_all_data_-_expense_level_abc.csv');
+        });
+
+        it('honors a custom extension', () => {
+            expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('expensify_current_view_abc.xlsx');
         });
     });
 
@@ -459,6 +478,24 @@ describe('FileUtils', () => {
             });
         });
         /* eslint-enable no-bitwise */
+    });
+
+    describe('isHighResolutionImage', () => {
+        it('should return false when resolution is null', () => {
+            expect(isHighResolutionImage(null)).toBe(false);
+        });
+
+        it('should not treat narrow tall images under the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 864, height: 24174})).toBe(false);
+        });
+
+        it('should not treat images at exactly the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 10000, height: 5000})).toBe(false);
+        });
+
+        it('should treat images above the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 10000, height: 5001})).toBe(true);
+        });
     });
 
     describe('getFileValidationErrorText', () => {

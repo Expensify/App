@@ -1,19 +1,29 @@
-import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
-import isObject from 'lodash/isObject';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
+import isEmpty from 'lodash/isEmpty';
+import isObject from 'lodash/isObject';
+
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
+
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
+};
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -43,18 +53,40 @@ function validateCardNumber(value: string): boolean {
 }
 
 /**
- * Validating that this is a valid address (PO boxes are not allowed)
+ * Returns whether the value is a PO box or a private mailbox (PMB / mail drop), which are not accepted as physical addresses.
  */
-function isValidAddress(value: FormValue): boolean {
+function isPOBoxOrMailDrop(value: FormValue): boolean {
     if (typeof value !== 'string') {
         return false;
     }
 
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
-        return false;
+    return CONST.REGEX.PO_BOX.test(value) || CONST.REGEX.PMB.test(value);
+}
+
+/**
+ * Returns the translation path for the error to display on an invalid address input, or undefined when the value is valid.
+ */
+function getInvalidAddressErrorTranslationPath(value: FormValue): TranslationPaths | undefined {
+    if (typeof value !== 'string') {
+        return 'bankAccount.error.addressStreet';
     }
 
-    return !CONST.REGEX.PO_BOX.test(value);
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
+        return 'bankAccount.error.addressStreet';
+    }
+
+    if (isPOBoxOrMailDrop(value)) {
+        return 'bankAccount.error.physicalAddressRequired';
+    }
+
+    return undefined;
+}
+
+/**
+ * Validating that this is a valid address (PO boxes and PMBs are not allowed)
+ */
+function isValidAddress(value: FormValue): boolean {
+    return getInvalidAddressErrorTranslationPath(value) === undefined;
 }
 
 /**
@@ -131,7 +163,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             continue;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
+
         errors[fieldKey] = translate('common.error.fieldRequired');
     }
 
@@ -182,6 +214,25 @@ function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
 }
 
+function getCountryZipRegexDetails(country?: Country | ''): CountryZipRegex | undefined {
+    if (!country) {
+        return undefined;
+    }
+
+    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex | undefined;
+}
+
+function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): boolean {
+    const normalizedZipCode = zipCode.trim().toUpperCase();
+    const countrySpecificZipRegex = getCountryZipRegexDetails(country)?.regex;
+
+    if (countrySpecificZipRegex) {
+        return countrySpecificZipRegex.test(normalizedZipCode);
+    }
+
+    return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
+}
+
 function isValidPaymentZipCode(zipCode: string): boolean {
     return CONST.REGEX.ALPHANUMERIC_WITH_SPACE_AND_HYPHEN.test(zipCode);
 }
@@ -220,7 +271,6 @@ function getAgeRequirementError(translate: LocalizedTranslate, date: string, min
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 
@@ -232,10 +282,9 @@ function getAgeRequirementError(translate: LocalizedTranslate, date: string, min
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('privatePersonalDetails.error.dateShouldBeBefore', format(maximalDate, CONST.DATE.FNS_FORMAT_STRING));
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     return translate('privatePersonalDetails.error.dateShouldBeAfter', format(minimalDate, CONST.DATE.FNS_FORMAT_STRING));
 }
 
@@ -248,7 +297,6 @@ function getDatePassedError(translate: LocalizedTranslate, inputDate: string): s
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 
@@ -256,7 +304,6 @@ function getDatePassedError(translate: LocalizedTranslate, inputDate: string): s
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 
@@ -276,40 +323,6 @@ function isPublicDomain(domain: string): boolean {
     return PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
 }
 
-function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
-    const errors: Record<string, boolean> = {};
-
-    // Check that all required fields are filled
-    for (const fieldName of requiredFields) {
-        if (isRequiredFulfilled(identity[fieldName])) {
-            continue;
-        }
-        errors[fieldName] = true;
-    }
-
-    if (!isValidAddress(identity.street)) {
-        errors.street = true;
-    }
-
-    if (!isValidZipCode(identity.zipCode)) {
-        errors.zipCode = true;
-    }
-
-    // dob field has multiple validations/errors, we are handling it temporarily like this.
-    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
-        errors.dob = true;
-    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
-        errors.dobAge = true;
-    }
-
-    if (!isValidSSNLastFour(identity.ssnLast4)) {
-        errors.ssnLast4 = true;
-    }
-
-    return errors;
-}
-
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
     const phone = phoneNumber || '';
     const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
@@ -326,6 +339,27 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     // We accept these as valid US phone numbers for wallet/bank account verification.
     const validUSRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP];
     return parsedPhoneNumber.possible && validUSRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
+}
+
+/**
+ * Validates a phone number from the North American Numbering Plan (+1 calling code).
+ * Accepts the US, US territories, and Canada. Canada shares the +1 calling code under NANP
+ * but parses to its own ISO region code (CA), so isValidUSPhone rejects it.
+ */
+function isValidNANPPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
+    const phone = phoneNumber || '';
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
+
+    // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
+    // so we need to check if it is a valid phone.
+    if (regionCode && !Str.isValidPhoneFormat(phone)) {
+        return false;
+    }
+
+    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
+
+    const validNANPRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP, CONST.COUNTRY.CA];
+    return parsedPhoneNumber.possible && validNANPRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
 }
 
 function isValidPhoneNumber(phoneNumber: string): boolean {
@@ -805,11 +839,51 @@ function isValidPIN(pin: string): boolean {
     return !(CONST.EXPENSIFY_CARD.PIN.INVALID_PINS as readonly string[]).includes(pin);
 }
 
+/**
+ * Returns true if the given string contains a non-whitelisted HTML-like tag.
+ *
+ * Mirrors the HTML-tag check in FormProvider.onValidate so callers that don't go through
+ * FormProvider (e.g. inline edit-in-place sections) can produce the same `Invalid character`
+ * error for inputs like `<script>...</script>` while still allowing the harmless tokens listed
+ * in CONST.WHITELISTED_TAGS (`<>`, `<->`, `<br>`, etc.).
+ *
+ * @param strict - When true, uses STRICT_VALIDATE_FOR_HTML_TAG_REGEX, which also flags
+ * non-standard angle-bracket content (e.g. `<✓>`). Defaults to the non-strict variant
+ * to match FormProvider's default.
+ */
+function containsHtmlTag(value: string, strict = false): boolean {
+    if (!value) {
+        return false;
+    }
+    const tagRegex = strict ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
+    const foundHtmlTagIndex = value.search(tagRegex);
+    const leadingSpaceIndex = value.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
+
+    if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
+        return false;
+    }
+
+    const matchedHtmlTags = value.match(tagRegex);
+    let isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(value));
+    if (matchedHtmlTags) {
+        for (const htmlTag of matchedHtmlTags) {
+            isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
+            if (!isWhitelisted) {
+                break;
+            }
+        }
+    }
+
+    return !(isWhitelisted && leadingSpaceIndex === -1);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
+    isPOBoxOrMailDrop,
+    getInvalidAddressErrorTranslationPath,
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
@@ -817,13 +891,15 @@ export {
     isValidDebitCard,
     isValidIndustryCode,
     isValidZipCode,
+    getCountryZipRegexDetails,
+    isValidZipCodeForCountry,
     isValidPaymentZipCode,
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
+    isValidNANPPhone,
     isValidPhoneNumber,
     isValidWebsite,
-    validateIdentity,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidRoutingNumber,
@@ -861,4 +937,5 @@ export {
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
     isValidPIN,
+    containsHtmlTag,
 };

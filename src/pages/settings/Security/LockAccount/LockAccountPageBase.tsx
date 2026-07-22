@@ -1,17 +1,20 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {LockAccountOnyxKey} from '@userActions/User';
 import {lockAccount} from '@userActions/User';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type Response from '@src/types/onyx/Response';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type BaseLockAccountComponentProps = {
     confirmModalPrompt: React.JSX.Element | string;
@@ -22,6 +25,7 @@ type BaseLockAccountComponentProps = {
     domainAccountID?: number;
     domainName?: string;
     accountID?: number;
+    lockButtonText?: string;
 };
 function LockAccountPageBase({
     confirmModalPrompt,
@@ -32,17 +36,18 @@ function LockAccountPageBase({
     domainAccountID,
     domainName,
     accountID,
+    lockButtonText,
 }: BaseLockAccountComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [isLoading, setIsLoading] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {showConfirmModal} = useConfirmModal();
 
     const handleReportSuspiciousActivity = async () => {
-        if (!accountID && session?.accountID === -1) {
+        if (!accountID && !currentUserPersonalDetails.accountID) {
             return;
         }
         const modalResult = await showConfirmModal({
@@ -61,7 +66,7 @@ function LockAccountPageBase({
         }
 
         setIsLoading(true);
-        const response = await lockAccount(accountID, domainAccountID, domainName);
+        const response = await lockAccount(currentUserPersonalDetails.accountID, accountID, domainAccountID, domainName);
         setIsLoading(false);
 
         handleLockRequestFinish(response);
@@ -73,7 +78,7 @@ function LockAccountPageBase({
             isLoading={isLoading}
             isDisabled={isOffline}
             large
-            text={translate('lockAccountPage.reportSuspiciousActivity')}
+            text={lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}
             style={styles.mt6}
             pressOnEnter
             onPress={handleReportSuspiciousActivity}

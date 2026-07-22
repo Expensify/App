@@ -1,12 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 
 type SelectionItem = {
@@ -41,9 +45,12 @@ type RuleSelectionBaseProps = {
 
     /** Optional hash for rule not found validation */
     hash?: string;
+
+    /** Set at parents whose Save is `pressOnEnter` so an auto-save selection can't leave the row re-focused and hijack the next Enter. */
+    shouldSkipFocusRestoreOnSave?: boolean;
 };
 
-function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, hash}: RuleSelectionBaseProps) {
+function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, hash, shouldSkipFocusRestoreOnSave}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -65,6 +72,8 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                         items={items}
                         onSaveSelection={onSave}
                         shouldAutoSave
+                        allowNoneOption
+                        shouldSkipFocusRestoreOnSave={shouldSkipFocusRestoreOnSave}
                     />
                 </View>
             </ScreenWrapper>

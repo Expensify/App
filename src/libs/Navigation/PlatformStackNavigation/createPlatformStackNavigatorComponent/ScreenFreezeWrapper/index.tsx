@@ -1,9 +1,13 @@
+import TooltipSense from '@components/Tooltip/TooltipSense';
+
+import {areAllModalsHidden} from '@userActions/Modal';
+
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
-import TooltipSense from '@components/Tooltip/TooltipSense';
-import {areAllModalsHidden} from '@userActions/Modal';
-import ScreenFreezeContext from './ScreenFreezeContext';
+
 import type ScreenFreezeWrapperProps from './types';
+
+import ScreenFreezeContext from './ScreenFreezeContext';
 
 function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
     const [frozen, setFrozen] = useState(false);
@@ -41,7 +45,7 @@ function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperPro
 
         // No blockers or overlays — freeze immediately.
         // isScreenBlurred is the only dependency and setFrozen(true) won't trigger further isScreenBlurred changes.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         setFrozen(isScreenBlurred);
     }, [isScreenBlurred]);
 

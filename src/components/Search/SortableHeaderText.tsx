@@ -1,16 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {SortOrder} from './types';
 
 type SearchTableHeaderColumnProps = WithSentryLabel & {
     text: string;
@@ -19,11 +24,25 @@ type SearchTableHeaderColumnProps = WithSentryLabel & {
     sortOrder: SortOrder;
     isSortable?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the inner content row. Put padding/borders here, not on the container, so flex columns stay aligned. */
+    innerContainerStyle?: StyleProp<ViewStyle>;
     textStyle?: StyleProp<TextStyle>;
     onPress: (order: SortOrder) => void;
 };
 
-export default function SortableHeaderText({text, icon, sortOrder, isActive, textStyle, containerStyle, isSortable = true, onPress, sentryLabel}: SearchTableHeaderColumnProps) {
+export default function SortableHeaderText({
+    text,
+    icon,
+    sortOrder,
+    isActive,
+    textStyle,
+    containerStyle,
+    innerContainerStyle,
+    isSortable = true,
+    onPress,
+    sentryLabel,
+}: SearchTableHeaderColumnProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -31,7 +50,7 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
     if (!isSortable) {
         return (
             <View style={containerStyle}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, innerContainerStyle]}>
                     {!!icon && (
                         <Icon
                             src={icon}
@@ -69,7 +88,7 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
                 disabled={!isSortable}
                 sentryLabel={sentryLabel}
             >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, innerContainerStyle]}>
                     {!!icon && (
                         <Icon
                             src={icon}

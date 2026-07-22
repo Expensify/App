@@ -1,16 +1,20 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {checkIfScanFileCanBeRead, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import {checkIfLocalFileIsAccessible, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
 import {isLocalFile as isLocalFileUtil} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import {getRequestType} from '@libs/TransactionUtils';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
+
 import useOnyx from './useOnyx';
 
 const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportID: string, iouType: IOUType, action: IOUAction) => {
@@ -40,7 +44,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
             setMoneyRequestReceipt(transaction.transactionID, '', '', true);
         };
 
-        checkIfScanFileCanBeRead(itemReceiptFilename, itemReceiptPath, itemReceiptType, () => {}, onFailure)?.then(() => {
+        checkIfLocalFileIsAccessible(itemReceiptFilename, itemReceiptPath, itemReceiptType, () => {}, onFailure)?.then(() => {
             const requestType = getRequestType(transaction);
             if (isScanFilesCanBeRead || requestType !== CONST.IOU.REQUEST_TYPE.SCAN) {
                 return;
@@ -50,7 +54,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
             navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);
         });
 
-        // We want this hook to run on mounting only
+        // We want this hook to run once after Onyx finishes loading the draft transactions
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [draftTransactionsMetadata]);
 };

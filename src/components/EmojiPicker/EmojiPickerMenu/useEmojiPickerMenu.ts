@@ -1,22 +1,27 @@
-import type {FlashListRef} from '@shopify/flash-list';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import emojis from '@assets/emojis';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
 import {getHeaderEmojis, getSpacersIndexes, mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis, suggestEmojis} from '@libs/EmojiUtils';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {FlashListRef} from '@shopify/flash-list';
+
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 const useEmojiPickerMenu = () => {
     const emojiListRef = useRef<FlashListRef<EmojiPickerListItem>>(null);
     const [frequentlyUsedEmojis] = useOnyx(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     const allEmojis = useMemo(() => mergeEmojisWithFrequentlyUsedEmojis(emojis, processFrequentlyUsedEmojis(frequentlyUsedEmojis)), [frequentlyUsedEmojis]);
     const headerEmojis = useMemo(() => getHeaderEmojis(allEmojis), [allEmojis]);
     const headerRowIndices = useMemo(() => headerEmojis.map((headerEmoji) => headerEmoji.index), [headerEmojis]);

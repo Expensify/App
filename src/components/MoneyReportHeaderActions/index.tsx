@@ -1,21 +1,28 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimaryAction';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import useExportAgainModal from '@hooks/useExportAgainModal';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+import type {MoneyReportHeaderActionsProps} from './types';
+
 import MoneyReportHeaderSecondaryActions from './MoneyReportHeaderSecondaryActions';
 import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDropdown';
-import type {MoneyReportHeaderActionsProps} from './types';
 
 /**
  * Narrow the wide primaryAction union to what report-level secondary actions accept.
@@ -32,22 +39,20 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const styles = useThemeStyles();
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null) as React.RefObject<ButtonWithDropdownMenuRef>;
 
-    // We need isSmallScreenWidth for the hold expense modal layout https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
-    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
+    const shouldDisplayNarrowMoreButton = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
-    const {transactionThreadReportID} = useTransactionThreadReport(reportID);
+    const {transactionThreadReportID} = useMoneyReportTransactionThread();
 
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
 
-    const {selectedTransactionIDs} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const hasSelectedTransactions = !!selectedTransactionIDs.length;
     const isTransactionThread = !!transactionThreadReportID;
 
@@ -98,4 +103,3 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 }
 
 export default MoneyReportHeaderActions;
-export type {MoneyReportHeaderActionsProps};

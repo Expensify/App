@@ -1,33 +1,42 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
-import {View} from 'react-native';
 import getInitialPaginationSize from '@components/FlatList/getInitialPaginationSize';
 import RenderTaskQueue from '@components/FlatList/RenderTaskQueue';
 import type {FlatListInnerRefType} from '@components/FlatList/types';
 import type {ScrollViewProps} from '@components/ScrollView';
+
 import usePrevious from '@hooks/usePrevious';
+
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef, RefObject} from 'react';
+import type {ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
+
+import {createElement, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import useFlatListHandle from './useFlatListHandle';
 
-type FlatListScrollKeyProps<T> = {
-    ref?: ForwardedRef<RNFlatList<T>>;
-    data: T[];
-    keyExtractor: (item: T, index: number) => string;
+type FlatListScrollKeyProps = {
+    ref?: ForwardedRef<RNFlatList<unknown>>;
+    data: unknown[];
+    keyExtractor: (item: unknown, index: number) => string;
     initialScrollKey: string | null | undefined;
     inverted: boolean;
     onStartReached?: ((info: {distanceFromStart: number}) => void) | null;
     shouldEnableAutoScrollToTopThreshold?: boolean;
-    renderItem: ListRenderItem<T>;
+    renderItem: ListRenderItem<unknown>;
     remainingItemsToDisplay?: number;
     onScrollToIndexFailed?: (params: {index: number; averageItemLength: number; highestMeasuredFrameIndex: number}) => void;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
-export default function useFlatListScrollKey<T>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the hook.
+ * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
+ */
+function useFlatListScrollKeyImpl({
     data,
     keyExtractor,
     initialScrollKey,
@@ -38,51 +47,36 @@ export default function useFlatListScrollKey<T>({
     ref,
     remainingItemsToDisplay,
     onScrollToIndexFailed,
-}: FlatListScrollKeyProps<T>) {
-    // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
-    // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
-    // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
-    // list to make sure `maintainVisibleContentPosition` works as expected.
+}: FlatListScrollKeyProps) {
     const [currentDataId, setCurrentDataId] = useState(() => {
         if (initialScrollKey) {
             return initialScrollKey;
         }
         return null;
     });
-    const currentDataIndex = useMemo(() => (currentDataId === null ? -1 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
+    const currentDataIndex = currentDataId === null ? -1 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId);
     const [isInitialData, setIsInitialData] = useState(currentDataIndex >= 0);
     const [isQueueRendering, setIsQueueRendering] = useState(false);
 
-    // On the web platform, when data.length === 1, `maintainVisibleContentPosition` does not work.
-    // Therefore, we need to duplicate the data to ensure data.length >= 2
-    const shouldDuplicateData = useMemo(() => !inverted && data.length === 1 && isInitialData && getPlatform() === CONST.PLATFORM.WEB, [data.length, inverted, isInitialData]);
+    const shouldDuplicateData = !inverted && data.length === 1 && isInitialData && getPlatform() === CONST.PLATFORM.WEB;
 
-    const displayedData = useMemo(() => {
+    const displayedData = (() => {
         if (shouldDuplicateData) {
-            return [{...data.at(0), reportActionID: '0'} as T, ...data];
+            return [{...(data.at(0) as Record<string, unknown>), reportActionID: '0'}, ...data];
         }
         if (currentDataIndex <= 0) {
             return data;
         }
-        // If data.length > 1 and highlighted item is the last element, there will be a bug that does not trigger the `onStartReached` event.
-        // So we will need to return at least the last 2 elements in this case.
         const offset = !inverted && currentDataIndex === data.length - 1 ? 1 : 0;
-        // We always render the list from the highlighted item to the end of the list because:
-        // - With an inverted FlatList, items are rendered from bottom to top,
-        //   so the highlighted item stays at the bottom and within the visible viewport.
-        // - With a non-inverted (base) FlatList, items are rendered from top to bottom,
-        //   making the highlighted item appear at the top of the list.
-        // Then, `maintainVisibleContentPosition` ensures the highlighted item remains in place
-        // as the rest of the items are appended.
         return data.slice(Math.max(0, currentDataIndex - (isInitialData ? offset : getInitialPaginationSize)));
-    }, [currentDataIndex, data, inverted, isInitialData, shouldDuplicateData]);
+    })();
 
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
     const dataIndexDifference = data.length - displayedData.length;
 
-    // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
     const renderQueue = useMemo(() => new RenderTaskQueue(setIsQueueRendering), []);
+
     useEffect(() => {
         return () => {
             renderQueue.cancel();
@@ -98,16 +92,11 @@ export default function useFlatListScrollKey<T>({
         setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, Math.max(0, currentDataIndex)) : null);
     });
 
-    const handleStartReached = useCallback(
-        (info: {distanceFromStart: number}) => {
-            renderQueue.add(info);
-        },
-        [renderQueue],
-    );
+    const handleStartReached = (info: {distanceFromStart: number}) => {
+        renderQueue.add(info);
+    };
 
     useEffect(() => {
-        // In cases where the data is empty on the initial render, `handleStartReached` will never be triggered.
-        // We'll manually invoke it in this scenario.
         if (inverted || data.length > 0) {
             return;
         }
@@ -116,13 +105,12 @@ export default function useFlatListScrollKey<T>({
     }, []);
 
     const [shouldPreserveVisibleContentPosition, setShouldPreserveVisibleContentPosition] = useState(true);
-    const maintainVisibleContentPosition = useMemo(() => {
+    const maintainVisibleContentPosition = (() => {
         if ((!initialScrollKey && (!isInitialData || !isQueueRendering)) || !shouldPreserveVisibleContentPosition) {
             return undefined;
         }
 
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
-            // This needs to be 1 to avoid using loading views as anchors.
             minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
         };
 
@@ -131,38 +119,28 @@ export default function useFlatListScrollKey<T>({
         }
 
         return config;
-    }, [initialScrollKey, isInitialData, isQueueRendering, shouldPreserveVisibleContentPosition, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    })();
 
-    const handleRenderItem = useCallback(
-        ({item, index, separators}: ListRenderItemInfo<T>) => {
-            // Adjust the index passed here so it matches the original data.
-            if (shouldDuplicateData && index === 1) {
-                return React.createElement(View, {style: {opacity: 0}}, renderItem({item, index: index + dataIndexDifference, separators}));
-            }
+    const handleRenderItem = ({item, index, separators}: ListRenderItemInfo<unknown>) => {
+        if (shouldDuplicateData && index === 1) {
+            return createElement(View, {style: {opacity: 0}}, renderItem({item, index: index + dataIndexDifference, separators}));
+        }
 
-            return renderItem({item, index: index + dataIndexDifference, separators});
-        },
-        [shouldDuplicateData, renderItem, dataIndexDifference],
-    );
+        return renderItem({item, index: index + dataIndexDifference, separators});
+    };
 
     useEffect(() => {
         if (inverted || isInitialData || isQueueRendering) {
             return;
         }
 
-        // Unlike an inverted FlatList, a non-inverted FlatList can have data.length === 0,
-        // which causes the initial value of `minIndexForVisible` to be 0.
-        // When data.length increases and `minIndexForVisible` updates accordingly,
-        // it can lead to a crash due to inconsistent rendering behavior.
-        // Additionally, keeping `minIndexForVisible` at 1 may cause the scroll offset to shift
-        // when the height of the ListHeaderComponent changes, as FlatList tries to keep items within the visible viewport.
         requestAnimationFrame(() => {
             setShouldPreserveVisibleContentPosition(false);
         });
     }, [inverted, isInitialData, isQueueRendering]);
 
-    const listRef = useRef<FlatListInnerRefType<T> | null>(null);
-    useFlatListHandle<T>({
+    const listRef = useRef<FlatListInnerRefType<unknown> | null>(null);
+    useFlatListHandle({
         ref,
         listRef,
         remainingItemsToDisplay,
@@ -178,6 +156,27 @@ export default function useFlatListScrollKey<T>({
         isInitialData,
         handleRenderItem,
         listRef,
+    };
+}
+
+type FlatListScrollKeyPropsGeneric<T> = {
+    ref?: ForwardedRef<RNFlatList<T>>;
+    data: T[];
+    keyExtractor: (item: T, index: number) => string;
+    initialScrollKey: string | null | undefined;
+    inverted: boolean;
+    onStartReached?: ((info: {distanceFromStart: number}) => void) | null;
+    shouldEnableAutoScrollToTopThreshold?: boolean;
+    renderItem: ListRenderItem<T>;
+    remainingItemsToDisplay?: number;
+    onScrollToIndexFailed?: (params: {index: number; averageItemLength: number; highestMeasuredFrameIndex: number}) => void;
+};
+
+export default function useFlatListScrollKey<T>(props: FlatListScrollKeyPropsGeneric<T>) {
+    return useFlatListScrollKeyImpl(props as FlatListScrollKeyProps) as ReturnType<typeof useFlatListScrollKeyImpl> & {
+        displayedData: T[];
+        handleRenderItem: ListRenderItem<T>;
+        listRef: RefObject<FlatListInnerRefType<T> | null>;
     };
 }
 

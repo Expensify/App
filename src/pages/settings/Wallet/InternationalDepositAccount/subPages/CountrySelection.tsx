@@ -1,14 +1,19 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useCallback, useMemo, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+
 import {fetchCorpayFields} from '@userActions/BankAccounts';
+
 import CONST, {COUNTRIES_US_BANK_FLOW} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import React, {useCallback, useMemo, useState} from 'react';
 
 function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});

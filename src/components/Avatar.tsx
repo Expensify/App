@@ -1,20 +1,32 @@
-import React, {useState} from 'react';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal} from '@libs/Avatars/PresetAvatarCatalog';
+
+import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
+import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
+import {isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getAvatar, getPresetAvatarNameFromURL} from '@libs/UserAvatarUtils';
+import {getAvatar, parseLetterAvatarURL} from '@libs/UserAvatarUtils';
+
 import type {AvatarSizeName} from '@styles/utils';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {avatarStyleColorSelector} from '@src/selectors/PersonalDetails';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Image from './Image';
+import UserInitialsAvatar from './UserInitialsAvatar';
 
 type AvatarProps = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -59,6 +71,36 @@ type AvatarProps = {
     testID?: string;
 };
 
+type UserLetterAvatarProps = {
+    /** Initials parsed from the generated letter-avatar URL */
+    initials: string;
+
+    /** Colors encoded in the generated letter-avatar URL */
+    urlColors: LetterAvatarColorStyle;
+
+    /** Account whose picked avatarStyle color overrides the URL colors */
+    accountID: number | undefined;
+
+    /** Avatar size in pixels */
+    size: number;
+};
+
+function UserLetterAvatar({initials, urlColors, accountID, size}: UserLetterAvatarProps) {
+    // A picked avatarStyle color is authoritative over the color encoded in the URL.
+    const [pickedColorKey] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: avatarStyleColorSelector(accountID),
+    });
+    const colors = pickedColorKey && isLetterAvatarSchemeKey(pickedColorKey) ? LETTER_AVATAR_SCHEMES[pickedColorKey] : urlColors;
+
+    return (
+        <UserInitialsAvatar
+            text={initials}
+            colors={colors}
+            size={size}
+        />
+    );
+}
+
 function Avatar({
     source: originalSource,
     imageStyles,
@@ -85,12 +127,22 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, defaultAvatars});
-    let optimizedSource = source;
-    const maybeDefaultAvatarName = getPresetAvatarNameFromURL(source);
+    const source = isWorkspace
+        ? originalSource
+        : getAvatar({
+              avatarSource: originalSource,
+              accountID: userAccountID,
+              defaultAvatars,
+          });
 
-    if (maybeDefaultAvatarName) {
-        optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
+    // Read the color and initials directly from the generated letter-avatar URL.
+    const letterAvatarParts = parseLetterAvatarURL(source);
+
+    let optimizedSource = source;
+    const localFromCatalog = findLocalAvatarForURL(source);
+
+    if (localFromCatalog) {
+        optimizedSource = localFromCatalog;
     }
     const useFallBackAvatar = imageError || !source || source === defaultAvatars.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : (fallbackIcon ?? defaultAvatars.FallbackAvatar) || defaultAvatars.FallbackAvatar;
@@ -111,6 +163,25 @@ function Avatar({
     } else {
         iconColors = null;
     }
+
+    if (!isWorkspace && letterAvatarParts) {
+        return (
+            <View
+                style={[containerStyles, styles.pointerEventsNone]}
+                testID={testID}
+            >
+                <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    <UserLetterAvatar
+                        initials={letterAvatarParts.initials}
+                        urlColors={letterAvatarParts.colors}
+                        accountID={userAccountID}
+                        size={iconSize}
+                    />
+                </View>
+            </View>
+        );
+    }
+
     return (
         <View
             style={[containerStyles, styles.pointerEventsNone]}
@@ -118,6 +189,7 @@ function Avatar({
         >
             {typeof avatarSource === 'string' ? (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: avatarSource}}
                         style={imageStyle}

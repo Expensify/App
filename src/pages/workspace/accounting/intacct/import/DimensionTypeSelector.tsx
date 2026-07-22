@@ -1,12 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DimensionTypeSelectorProps = {
     /** Error text to display */
@@ -52,7 +55,7 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
             <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('workspace.common.displayedAs')}</Text>
             <View style={[styles.mhn5, styles.pb5, styles.mb0]}>
                 {selectionOptions.map((option) => (
-                    <RadioListItem
+                    <SingleSelectListItem
                         key={option.value}
                         item={option}
                         showTooltip={false}

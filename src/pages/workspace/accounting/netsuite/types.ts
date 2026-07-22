@@ -1,14 +1,18 @@
-import type {SharedValue} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import type {Policy} from '@src/types/onyx';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+
+import type {SharedValue} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
 
@@ -81,6 +85,9 @@ type CustomFieldSubPageWithPolicy = SubPageProps & {
     /** Current policy in the form steps */
     policy: Policy | undefined;
 
+    /** Policy ID from the parent route's URL params (set before the policy Onyx record finishes hydrating) */
+    policyIDParam?: string;
+
     /** Whether the page is a custom segment or custom list */
     importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 
@@ -110,7 +117,6 @@ export type {
     MenuItemToRender,
     DividerLineItem,
     ToggleItem,
-    AccordionItem,
     ExpenseRouteParams,
     CustomFieldSubPageWithPolicy,
     CustomListSelectorType,

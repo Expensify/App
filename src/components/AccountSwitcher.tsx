@@ -1,7 +1,3 @@
-import {accountIDSelector} from '@selectors/Session';
-import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -12,23 +8,34 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
-import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {accountIDSelector} from '@selectors/Session';
+import {Str} from 'expensify-common';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {PopoverMenuItem} from './PopoverMenu';
+
 import Avatar from './Avatar';
 import Icon from './Icon';
 import {ModalActions} from './Modal/Global/ModalContext';
-import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
@@ -58,6 +65,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
@@ -98,7 +106,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             return;
         }
 
-        await stopGpsTrip(false, true);
+        await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
 
         switchAccount();
     };
@@ -143,6 +151,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
+            shouldIgnoreCompactStyle: true,
             numberOfLinesDescription: 1,
             errorText: error ?? '',
             shouldShowRedDotIndicator: !!error,
@@ -152,12 +161,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     };
 
     const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
-            shouldShowRightIcon: true,
-            iconRight: icons.Checkmark,
-            success: true,
-            isSelected: true,
-        });
+        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
 
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
@@ -226,7 +230,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     return (
         <>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <TooltipToRender {...tooltipProps}>
                 <PressableWithFeedback
                     accessible
@@ -306,12 +309,13 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     }}
                     menuItems={menuItems()}
                     headerText={translate('delegate.switchAccount')}
-                    containerStyles={[{maxHeight: windowHeight / 2}, styles.pb0, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}
-                    scrollContainerStyle={styles.pb4}
                     shouldUseScrollView
                     shouldUpdateFocusedIndex={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldShowRadioButton
                 />
             )}
         </>

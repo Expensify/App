@@ -1,25 +1,37 @@
-import React from 'react';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {appendParam} from '@libs/Url';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
+
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+
 import {setReimbursementAccountLoading} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
 
@@ -33,12 +45,29 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isChangingBankAccount = route.params?.source === CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT;
+    const isBankAccountFullySetup = !!policy?.achAccount && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
+    const connectedBankAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policyID);
+    const connectedAccountBankAccountID = (isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : connectedBankAccount?.methodID) ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const [isSelectingBankAccount, setIsSelectingBankAccount] = useState(false);
+
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute({policyID, backTo});
+        // When changing the bank account we prepare a fresh setup (clearing the current account without disconnecting it).
+        // We keep the policyID in the route so the newly connected account still links to the workspace's Workflows > Payments.
+        // We must not set the loading flag here: during the change flow the page skips fetchData, so nothing would reset it.
+        if (isChangingBankAccount) {
+            prepareNewBankAccountSetup(policyCurrency);
+        } else {
+            setReimbursementAccountLoading(true);
+        }
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(appendParam(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo, isChangingBankAccount}), 'stepToOpen', REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW));
+        });
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
@@ -48,7 +77,8 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
 
-        if (bankAccountList && methodID && !bankAccountList[methodID]?.accountData?.policyIDs?.includes(policyID)) {
+        if (bankAccountList && methodID && methodID !== connectedAccountBankAccountID && methodID !== policy?.achAccount?.bankAccountID) {
+            setIsSelectingBankAccount(true);
             setWorkspaceReimbursement({
                 policyID,
                 currentAchAccount: policy?.achAccount,
@@ -68,12 +98,18 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            if (isBankAccountPartiallySetup(accountData?.state)) {
-                navigateToBankAccountRoute({policyID, backTo, navigationOptions: {forceReplace: true}});
-            } else {
+            if (!isBankAccountPartiallySetup(accountData?.state)) {
                 setReimbursementAccountLoading(false);
                 Navigation.closeRHPFlow();
+                return;
             }
+
+            if (isChangingBankAccount) {
+                Navigation.goBack(backTo);
+                return;
+            }
+
+            navigateToBankAccountRoute({policyID, backTo, navigationOptions: {forceReplace: true}});
         });
     };
 
@@ -87,20 +123,30 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                 subtitle={policyName}
                 onBackButtonPress={Navigation.goBack}
             />
-            <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
-                <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
-                <PaymentMethodList
-                    onPress={handleItemPress}
-                    onAddBankAccountPress={handleAddBankAccountPress}
-                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                    itemIconRight={icons.ArrowRight}
-                    filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
-                    filterCurrency={policyCurrency}
-                    excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
-                    shouldHideDefaultBadge
-                />
-            </ScrollView>
+            {isSelectingBankAccount ? (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'ConnectExistingBusinessBankAccountPage'}}
+                    />
+                </View>
+            ) : (
+                <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
+                    <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
+                    <PaymentMethodList
+                        onPress={handleItemPress}
+                        onAddBankAccountPress={handleAddBankAccountPress}
+                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        itemIconRight={icons.ArrowRight}
+                        filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
+                        filterCurrency={policyCurrency}
+                        excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
+                        excludeBankAccountID={isChangingBankAccount ? connectedAccountBankAccountID : undefined}
+                        shouldHideDefaultBadge
+                    />
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 }

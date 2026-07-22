@@ -1,4 +1,14 @@
-import {getMemberCustomRowProps, hasDomainAdminsErrors, hasDomainAdminsSettingsErrors, hasDomainErrors, hasDomainMembersErrors, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
+import {
+    getMemberCustomRowProps,
+    hasDomainAdminsErrors,
+    hasDomainAdminsSettingsErrors,
+    hasDomainErrors,
+    hasDomainGroupDetailsErrors,
+    hasDomainGroupsErrors,
+    hasDomainMembersErrors,
+    hasDomainMembersSettingsErrors,
+} from '@libs/DomainUtils';
+
 import CONST from '@src/CONST';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
@@ -234,6 +244,131 @@ describe('DomainUtils', () => {
         });
     });
 
+    describe('hasDomainGroupDetailsErrors', () => {
+        const groupPrefix = CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX;
+        const groupID = 'group1';
+        const groupKey = `${groupPrefix}${groupID}` as const;
+
+        it('should return false when groupErrors is undefined', () => {
+            expect(hasDomainGroupDetailsErrors(undefined)).toBe(false);
+        });
+
+        it('should return false when all error fields are empty', () => {
+            expect(
+                hasDomainGroupDetailsErrors({
+                    nameErrors: {},
+                    defaultSecurityGroupIDErrors: {},
+                    enableStrictPolicyRulesErrors: {},
+                    enableRestrictedPolicyCreationErrors: {},
+                }),
+            ).toBe(false);
+        });
+
+        it('should return false when only errors (delete) field is set — it is shown inline, not via RBR', () => {
+            expect(hasDomainGroupDetailsErrors({errors: {timestamp1: 'Delete error'}})).toBe(false);
+        });
+
+        it('should return true when nameErrors is set', () => {
+            expect(hasDomainGroupDetailsErrors({nameErrors: {timestamp1: 'Name error'}})).toBe(true);
+        });
+
+        it('should return true when defaultSecurityGroupIDErrors is set', () => {
+            expect(hasDomainGroupDetailsErrors({defaultSecurityGroupIDErrors: {timestamp1: 'Default group error'}})).toBe(true);
+        });
+
+        it('should return true when enableStrictPolicyRulesErrors is set', () => {
+            expect(hasDomainGroupDetailsErrors({enableStrictPolicyRulesErrors: {timestamp1: 'Strict policy error'}})).toBe(true);
+        });
+
+        it('should return true when enableRestrictedPolicyCreationErrors is set', () => {
+            expect(hasDomainGroupDetailsErrors({enableRestrictedPolicyCreationErrors: {timestamp1: 'Restricted policy error'}})).toBe(true);
+        });
+
+        it('should return true when multiple detail errors are set alongside empty errors field', () => {
+            expect(
+                hasDomainGroupDetailsErrors({
+                    errors: {},
+                    nameErrors: {timestamp1: 'Name error'},
+                    enableStrictPolicyRulesErrors: {timestamp2: 'Strict policy error'},
+                }),
+            ).toBe(true);
+        });
+
+        // Ensures hasDomainGroupDetailsErrors is used correctly in DomainGroupsPage context
+        it('should return false when domainErrors has a group key but the group has only empty fields', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                [groupKey]: {nameErrors: {}, enableStrictPolicyRulesErrors: {}},
+            };
+            expect(hasDomainGroupDetailsErrors(domainErrors[groupKey])).toBe(false);
+        });
+    });
+
+    describe('hasDomainGroupsErrors', () => {
+        const groupPrefix = CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX;
+        const groupKey1 = `${groupPrefix}group1` as const;
+        const groupKey2 = `${groupPrefix}group2` as const;
+
+        it('should return false when domainErrors is undefined', () => {
+            expect(hasDomainGroupsErrors(undefined)).toBe(false);
+        });
+
+        it('should return false when there are no group keys', () => {
+            const domainErrors: DomainErrors = {errors: {}};
+            expect(hasDomainGroupsErrors(domainErrors)).toBe(false);
+        });
+
+        it('should return false when all group error fields are empty', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                [groupKey1]: {errors: {}, nameErrors: {}},
+            };
+            expect(hasDomainGroupsErrors(domainErrors)).toBe(false);
+        });
+
+        it('should return true when a group has delete errors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                [groupKey1]: {errors: {timestamp1: 'Delete error'}},
+            };
+            expect(hasDomainGroupsErrors(domainErrors)).toBe(true);
+        });
+
+        it('should return true when a group has detail errors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                [groupKey1]: {nameErrors: {timestamp1: 'Name error'}},
+            };
+            expect(hasDomainGroupsErrors(domainErrors)).toBe(true);
+        });
+
+        it('should return true when only one of multiple groups has errors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                [groupKey1]: {errors: {}, nameErrors: {}},
+                [groupKey2]: {enableStrictPolicyRulesErrors: {timestamp1: 'Strict policy error'}},
+            };
+            expect(hasDomainGroupsErrors(domainErrors)).toBe(true);
+        });
+
+        it('should return false when multiple groups all have empty error fields', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                [groupKey1]: {errors: {}, nameErrors: {}},
+                [groupKey2]: {errors: {}, enableRestrictedPolicyCreationErrors: {}},
+            };
+            expect(hasDomainGroupsErrors(domainErrors)).toBe(false);
+        });
+
+        it('should not be triggered by top-level domain errors unrelated to groups', () => {
+            const domainErrors: DomainErrors = {
+                errors: {timestamp1: 'Domain error'},
+                technicalContactEmailErrors: {timestamp2: 'Email error'},
+            };
+            expect(hasDomainGroupsErrors(domainErrors)).toBe(false);
+        });
+    });
+
     describe('getMemberCustomRowProps', () => {
         const accountID = 42;
         const email = 'user@example.com';
@@ -244,7 +379,6 @@ describe('DomainUtils', () => {
             const result = getMemberCustomRowProps(accountID, undefined, undefined);
             expect(result.errors).toEqual({});
             expect(result.pendingAction).toBeUndefined();
-            expect(result.brickRoadIndicator).toBeUndefined();
         });
 
         it('should return pendingAction from email key', () => {
@@ -327,7 +461,7 @@ describe('DomainUtils', () => {
             expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Lock error'});
         });
 
-        it('should set brickRoadIndicator to ERROR when vacationDelegateErrors exist', () => {
+        it('should surface vacationDelegateErrors in result errors', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
@@ -335,10 +469,10 @@ describe('DomainUtils', () => {
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
-            expect(result.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Delegate error'});
         });
 
-        it('should set brickRoadIndicator to ERROR when twoFactorAuthExemptEmailsError exist', () => {
+        it('should surface twoFactorAuthExemptEmailsError in result errors', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
@@ -346,10 +480,10 @@ describe('DomainUtils', () => {
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
-            expect(result.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: '2FA error'});
         });
 
-        it('should surface changeDomainSecurityGroupErrors in result errors (not brickRoadIndicator)', () => {
+        it('should surface changeDomainSecurityGroupErrors in result errors', () => {
             // changeDomainSecurityGroupErrors are merged into base errors, not tracked as a separate field
             const domainErrors: DomainErrors = {
                 errors: {},
@@ -359,10 +493,9 @@ describe('DomainUtils', () => {
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
             expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Group error'});
-            expect(result.brickRoadIndicator).toBeUndefined();
         });
 
-        it('should leave brickRoadIndicator undefined when there are only base errors', () => {
+        it('should return only base errors when there are no detail-page errors', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
@@ -370,7 +503,7 @@ describe('DomainUtils', () => {
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
-            expect(result.brickRoadIndicator).toBeUndefined();
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Some error'});
         });
     });
 });

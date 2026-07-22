@@ -1,7 +1,11 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
-import {isAuthenticationError} from '@userActions/connections';
+
+import {isAuthenticationError, isConnectionUnverified} from '@userActions/connections';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -74,7 +78,7 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
 
 function getAllValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: readonly ConnectionName[]) {
     return (accountingIntegrations ?? CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES).filter(
-        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration) && !isConnectionUnverified(policy, integration),
     );
 }
 

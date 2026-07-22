@@ -1,12 +1,16 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import fileDownload from './fileDownload';
+import {buildSecureDownloadURL} from './UrlUtils';
 
 /**
  * Checks whether Travel Invoicing is enabled based on the card settings.
@@ -147,7 +151,7 @@ function downloadTravelInvoiceStatementPDF(
     encryptedAuthToken: string,
 ): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
-    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    const pdfURL = buildSecureDownloadURL({baseURL, secureType: CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT, fileName, downloadName: downloadFileName, email: currentUserEmail});
     return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
@@ -166,11 +170,10 @@ function getTravelInvoicingCard(cardList: OnyxEntry<CardList>) {
 
 /**
  * Checks if user is eligible to see Travel CVV in Wallet.
- * Requires: TRAVEL_INVOICING beta AND having a travel card.
+ * Requires having a travel card.
  */
-function isTravelCVVEligible(isTravelInvoicingBetaEnabled: boolean, cardList: OnyxEntry<CardList>): boolean {
-    const hasTravelCard = !!getTravelInvoicingCard(cardList);
-    return isTravelInvoicingBetaEnabled && hasTravelCard;
+function isTravelCVVEligible(cardList: OnyxEntry<CardList>): boolean {
+    return !!getTravelInvoicingCard(cardList);
 }
 
 export {
@@ -186,5 +189,3 @@ export {
     getTravelInvoicingCard,
     isTravelCVVEligible,
 };
-
-export type {TravelSettlementAccountInfo};

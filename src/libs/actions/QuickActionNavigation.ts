@@ -1,11 +1,13 @@
 import {generateReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
-import type {IOURequestType} from './IOU';
-import {startDistanceRequest, startMoneyRequest} from './IOU';
+
+import {startDistanceRequest, startMoneyRequest} from './IOU/MoneyRequest';
 import {startOutCreateTaskQuickAction} from './Task';
 
 type NavigateToQuickActionParams = {
@@ -79,4 +81,5 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
         default:
     }
 }
-export {navigateToQuickAction, getQuickActionRequestType};
+// eslint-disable-next-line import/prefer-default-export
+export {navigateToQuickAction};

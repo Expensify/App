@@ -1,23 +1,29 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteSubsidiary} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {NetSuiteSubsidiary} from '@src/types/onyx/Policy';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -87,7 +93,6 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteSubsidiarySelector"
             data={subsidiaryListSections}
-            listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onSelectRow={updateSubsidiary}
             initiallyFocusedOptionKey={netsuiteConfig?.subsidiaryID ?? subsidiaryListSections?.at(0)?.keyForList}

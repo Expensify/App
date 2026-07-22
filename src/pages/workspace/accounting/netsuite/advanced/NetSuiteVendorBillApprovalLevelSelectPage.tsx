@@ -1,22 +1,29 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteExportVendorBillsTo} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL>;
@@ -59,7 +66,6 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
             title="workspace.netsuite.advancedConfig.exportVendorBillsTo.label"
             headerContent={headerContent}
             data={data}
-            listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectVendorBillApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}

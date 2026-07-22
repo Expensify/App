@@ -1,28 +1,30 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useOnyx from '@hooks/useOnyx';
-import {getAllTaxRates} from '@libs/PolicyUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-function taxRateSelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) {
-    return searchAdvancedFiltersForm?.taxRate;
+import {getAllTaxRates} from '@libs/PolicyUtils';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+function taxRatesPoliciesSelector(value: string[]) {
+    return (policies: OnyxCollection<Policy>) => {
+        const taxRates = getAllTaxRates(policies);
+        const result: string[] = [];
+        for (const [taxRateName, taxRateKeys] of Object.entries(taxRates)) {
+            if (!taxRateKeys.some((taxRateKey) => value.includes(taxRateKey)) || result.includes(taxRateName)) {
+                continue;
+            }
+            result.push(taxRateName);
+        }
+
+        return result.join(', ');
+    };
 }
 
-function useFilterTaxRateValue(): string {
-    const [taxRateIDs] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: taxRateSelector});
-    const {policies} = useAdvancedSearchFilters();
-
-    const taxRates = getAllTaxRates(policies);
-    const result: string[] = [];
-    for (const [taxRateName, taxRateKeys] of Object.entries(taxRates)) {
-        if (!taxRateKeys.some((taxRateKey) => taxRateIDs?.includes(taxRateKey)) || result.includes(taxRateName)) {
-            continue;
-        }
-        result.push(taxRateName);
-    }
-
-    return result.join(', ');
+function useFilterTaxRateValue(value: string[]): string {
+    const [taxRateValue = ''] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: taxRatesPoliciesSelector(value)});
+    return taxRateValue;
 }
 
 export default useFilterTaxRateValue;

@@ -1,14 +1,16 @@
 import {render, waitFor} from '@testing-library/react-native';
-import React from 'react';
+
 import EnvironmentProvider, {EnvironmentActionsContext} from '@components/EnvironmentContextProvider';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 // Mock getEnvironment and getEnvironmentURL
 const mockGetEnvironment: jest.MockedFunction<() => Promise<string>> = jest.fn();
 const mockGetEnvironmentURL: jest.MockedFunction<() => Promise<string>> = jest.fn();
 
 jest.mock('@libs/Environment/getEnvironment', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => mockGetEnvironment()),
 }));
@@ -40,7 +42,7 @@ describe('EnvironmentProvider', () => {
             // Wait for useEffect to resolve mocked promises
             await waitFor(() => {
                 expect(mockGetEnvironment).toHaveBeenCalled();
-                // eslint-disable-next-line testing-library/no-wait-for-multiple-assertions
+
                 expect(mockGetEnvironmentURL).toHaveBeenCalled();
             });
         };

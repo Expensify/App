@@ -1,14 +1,14 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import {setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount} from '@libs/actions/IOU';
+
+import {setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxAmount} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
@@ -16,17 +16,28 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
+
 import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useCallback, useRef} from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT> & {
@@ -62,6 +73,8 @@ function IOURequestStepTaxAmountPage({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -72,6 +85,7 @@ function IOURequestStepTaxAmountPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -96,24 +110,29 @@ function IOURequestStepTaxAmountPage({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (isEditing) {
             if (taxAmountInSmallestCurrencyUnits === getTransactionTaxAmount(currentTransaction, false)) {
-                navigateBack();
+                saveAndNavigateBack();
                 return;
             }
             updateMoneyRequestTaxAmount({
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,
+                iouReportOwnerLogin,
                 taxAmount: taxAmountInSmallestCurrencyUnits,
                 policy,
                 policyTagList: policyTags,
@@ -122,8 +141,10 @@ function IOURequestStepTaxAmountPage({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
+                delegateAccountID,
+                isTrackIntentUser,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
@@ -133,7 +154,7 @@ function IOURequestStepTaxAmountPage({
         setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
-            Navigation.goBack(backTo);
+            saveAndNavigateBack();
             return;
         }
 
@@ -178,9 +199,8 @@ function IOURequestStepTaxAmountPage({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxAmountPageWithWritableReportOrNotFound);
 
 export default IOURequestStepTaxAmountPageWithFullTransactionOrNotFound;

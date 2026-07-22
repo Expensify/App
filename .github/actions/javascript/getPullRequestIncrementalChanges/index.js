@@ -11580,13 +11580,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
-const github_1 = __nccwpck_require__(5438);
-const request_error_1 = __nccwpck_require__(537);
 const ActionUtils_1 = __nccwpck_require__(6981);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const Git_1 = __importDefault(__nccwpck_require__(7037));
+const core = __importStar(__nccwpck_require__(2186));
+const github_1 = __nccwpck_require__(5438);
+const request_error_1 = __nccwpck_require__(537);
 /**
  * Main function to check all specified files
  */
@@ -11839,6 +11839,7 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+        DAILY: 'Daily',
     },
     STATE: {
         OPEN: 'open',
@@ -11935,7 +11936,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -12353,13 +12354,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const github_1 = __nccwpck_require__(5438);
 const child_process_1 = __nccwpck_require__(2081);
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const util_1 = __nccwpck_require__(3837);
-const CONST_1 = __importDefault(__nccwpck_require__(9873));
-const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const Logger_1 = __nccwpck_require__(8891);
 function exec(command, options) {
     const optionsWithEncoding = {
@@ -12647,6 +12648,19 @@ class Git {
         }
     }
     /**
+     * Abbreviated hash for HEAD in the current working directory.
+     *
+     * @returns Short commit hash, or `unknown` when not a git repo or git fails.
+     */
+    static getHeadShort() {
+        try {
+            return execSync('git rev-parse --short HEAD').trim();
+        }
+        catch {
+            return 'unknown';
+        }
+    }
+    /**
      * Ensure a git reference is available locally, fetching it if necessary.
      *
      * @param ref - The git reference to ensure is available (commit hash, branch, tag, etc.)
@@ -12659,7 +12673,9 @@ class Git {
         }
         try {
             console.log(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
+            // Only shallow-fetch in CI; a local --depth=1 fetch would convert a full clone into a shallow one.
+            const depthArg = IS_CI ? '--depth=1' : '';
+            await exec(`git fetch ${remote} ${ref} --no-tags --quiet ${depthArg}`);
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
                 throw new Error(`Reference ${ref} is still not valid after fetching from remote ${remote}`);
@@ -12673,7 +12689,9 @@ class Git {
         const baseRefName = GITHUB_BASE_REF ?? 'main';
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
+            // Only shallow-fetch in CI; a local --depth=1 fetch would convert a full clone into a shallow one.
+            const depthArg = IS_CI ? '--depth=1' : '';
+            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags ${depthArg}`);
         }
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations

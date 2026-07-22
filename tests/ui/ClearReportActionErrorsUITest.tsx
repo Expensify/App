@@ -1,22 +1,27 @@
-import {PortalProvider} from '@gorhom/portal';
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
+
+import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {setHasRadio} from '@libs/NetworkState';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
+
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -78,40 +83,23 @@ describe('ClearReportActionErrors UI', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderReportActionItem(
-        action: ReportAction,
-        report: Report,
-        options?: {
-            clearErrorFn?: typeof clearAllRelatedReportActionErrors;
-            originalReportID?: string;
-        },
-    ) {
-        const {clearErrorFn, originalReportID = report.reportID} = options ?? {};
+    function renderReportActionItem(action: ReportAction, report: Report) {
         return render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                <OptionsListContextProvider>
-                    <ScreenWrapper testID="test">
-                        <PortalProvider>
-                            <PureReportActionItem
-                                personalPolicyID={undefined}
-                                report={report}
-                                parentReportAction={undefined}
-                                action={action}
-                                displayAsGroup={false}
-                                shouldDisplayNewMarker={false}
-                                index={0}
-                                isFirstVisibleReportAction={false}
-                                taskReport={undefined}
-                                linkedReport={undefined}
-                                iouReportOfLinkedReport={undefined}
-                                currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                betas={undefined}
-                                clearAllRelatedReportActionErrors={clearErrorFn}
-                                originalReportID={originalReportID}
-                            />
-                        </PortalProvider>
-                    </ScreenWrapper>
-                </OptionsListContextProvider>
+                <ScreenWrapper testID="test">
+                    <PortalProvider>
+                        <ReportActionItem
+                            report={report}
+                            chatReport={undefined}
+                            transactionThreadReport={undefined}
+                            parentReportAction={undefined}
+                            action={action}
+                            displayAsGroup={false}
+                            shouldDisplayNewMarker={false}
+                            isFirstVisibleReportAction={false}
+                        />
+                    </PortalProvider>
+                </ScreenWrapper>
             </ComposeProviders>,
         );
     }
@@ -130,7 +118,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // When the PureReportActionItem component is rendered
+            // When the ReportActionItem component is rendered
             renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
@@ -139,10 +127,10 @@ describe('ClearReportActionErrors UI', () => {
         });
 
         it('should call clearAllRelatedReportActionErrors when error is dismissed', async () => {
-            // Given a rendered report action with errors and a mock clear function
+            // Given a rendered report action with errors and a spy on the clear function
             const action = getFakeReportAction(Number(REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: DEFAULT_ERRORS});
             const report = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
-            const mockClearErrors = jest.fn();
+            const spy = jest.spyOn(ClearReportActionErrorsActions, 'clearAllRelatedReportActionErrors');
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -152,10 +140,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(action, report, {
-                clearErrorFn: mockClearErrors,
-                originalReportID: REPORT_ID,
-            });
+            renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
             // When the user presses the dismiss button
@@ -163,7 +148,8 @@ describe('ClearReportActionErrors UI', () => {
             fireEvent.press(dismissButton);
 
             // Then clearAllRelatedReportActionErrors should be called with correct arguments
-            expect(mockClearErrors).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID);
+            expect(spy).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID);
+            spy.mockRestore();
         });
 
         it('should clear error from Onyx when dismissed', async () => {
@@ -183,10 +169,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(action, report, {
-                clearErrorFn: clearAllRelatedReportActionErrors,
-                originalReportID: REPORT_ID,
-            });
+            renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('Test error message')).toBeOnTheScreen();
@@ -240,10 +223,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(parentAction, parentReport, {
-                clearErrorFn: clearAllRelatedReportActionErrors,
-                originalReportID: REPORT_ID,
-            });
+            renderReportActionItem(parentAction, parentReport);
             await waitForBatchedUpdatesWithAct();
 
             // When the user dismisses the error on the parent action
@@ -280,10 +260,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(action, report, {
-                clearErrorFn: clearAllRelatedReportActionErrors,
-                originalReportID: REPORT_ID,
-            });
+            renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
             // When the user dismisses the error

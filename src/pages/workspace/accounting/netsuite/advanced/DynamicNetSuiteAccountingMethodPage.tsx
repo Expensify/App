@@ -1,23 +1,29 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteAccountingMethod} from '@libs/actions/connections/NetSuiteCommands';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
@@ -67,7 +73,6 @@ function DynamicNetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProp
             title="workspace.netsuite.advancedConfig.accountingMethods.label"
             headerContent={headerContent}
             data={data}
-            listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}

@@ -1,0 +1,788 @@
+diff --git a/node_modules/react-native-onyx/dist/Onyx.js b/node_modules/react-native-onyx/dist/Onyx.js
+index ee33551..baee2b5 100644
+--- a/node_modules/react-native-onyx/dist/Onyx.js
++++ b/node_modules/react-native-onyx/dist/Onyx.js
+@@ -209,11 +209,14 @@ function merge(key, changes) {
+             return mergeQueuePromise[key];
+         }
+         mergeQueue[key] = [changes];
+-        mergeQueuePromise[key] = OnyxUtils_1.default.get(key).then((existingValue) => {
++        mergeQueuePromise[key] = Promise.resolve().then(() => {
+             // Calls to Onyx.set after a merge will terminate the current merge process and clear the merge queue
+             if (mergeQueue[key] == null) {
+                 return Promise.resolve();
+             }
++            // Read the existing value at merge application time (not at queue time) so that
++            // any intervening synchronous cache updates (e.g. from mergeCollection) are picked up.
++            const existingValue = OnyxUtils_1.default.get(key);
+             try {
+                 const validChanges = mergeQueue[key].filter((change) => {
+                     const { isCompatible, existingValueType, newValueType, isEmptyArrayCoercion } = utils_1.default.checkCompatibilityWithExistingValue(change, existingValue);
+@@ -292,81 +295,86 @@ function mergeCollection(collectionKey, collection) {
+  */
+ function clear(keysToPreserve = []) {
+     return OnyxUtils_1.default.afterInit(() => {
++        var _a;
+         const defaultKeyStates = OnyxUtils_1.default.getDefaultKeyStates();
+         const initialKeys = Object.keys(defaultKeyStates);
+-        const promise = OnyxUtils_1.default.getAllKeys()
+-            .then((cachedKeys) => {
+-            var _a;
+-            OnyxCache_1.default.clearNullishStorageKeys();
+-            const keysToBeClearedFromStorage = [];
+-            const keyValuesToResetIndividually = {};
+-            // We need to store old and new values for collection keys to properly notify subscribers when clearing Onyx
+-            // because the notification process needs the old values in cache but at that point they will be already removed from it.
+-            const keyValuesToResetAsCollection = {};
+-            const allKeys = new Set([...cachedKeys, ...initialKeys]);
+-            // The only keys that should not be cleared are:
+-            // 1. Anything specifically passed in keysToPreserve (because some keys like language preferences, offline
+-            //      status, or activeClients need to remain in Onyx even when signed out)
+-            // 2. Any keys with a default state (because they need to remain in Onyx as their default, and setting them
+-            //      to null would cause unknown behavior)
+-            //   2.1 However, if a default key was explicitly set to null, we need to reset it to the default value
+-            for (const key of allKeys) {
+-                const isKeyToPreserve = keysToPreserve.some((preserveKey) => OnyxKeys_1.default.isKeyMatch(preserveKey, key));
+-                const isDefaultKey = key in defaultKeyStates;
+-                // If the key is being removed or reset to default:
+-                // 1. Update it in the cache
+-                // 2. Figure out whether it is a collection key or not,
+-                //      since collection key subscribers need to be updated differently
+-                if (!isKeyToPreserve) {
+-                    const oldValue = OnyxCache_1.default.get(key);
+-                    const newValue = (_a = defaultKeyStates[key]) !== null && _a !== void 0 ? _a : null;
+-                    if (newValue !== oldValue) {
+-                        OnyxCache_1.default.set(key, newValue);
+-                        const collectionKey = OnyxKeys_1.default.getCollectionKey(key);
+-                        if (collectionKey) {
+-                            if (!keyValuesToResetAsCollection[collectionKey]) {
+-                                keyValuesToResetAsCollection[collectionKey] = { oldValues: {}, newValues: {} };
+-                            }
+-                            keyValuesToResetAsCollection[collectionKey].oldValues[key] = oldValue;
+-                            keyValuesToResetAsCollection[collectionKey].newValues[key] = newValue !== null && newValue !== void 0 ? newValue : undefined;
+-                        }
+-                        else {
+-                            keyValuesToResetIndividually[key] = newValue !== null && newValue !== void 0 ? newValue : undefined;
++        const cachedKeys = OnyxUtils_1.default.getAllKeys();
++        OnyxCache_1.default.clearNullishStorageKeys();
++        // Clear pending merge queues so that any in-flight Onyx.merge() calls
++        // don't overwrite the default values we're about to set.
++        const mergeQueue = OnyxUtils_1.default.getMergeQueue();
++        const mergeQueuePromise = OnyxUtils_1.default.getMergeQueuePromise();
++        for (const key of Object.keys(mergeQueue)) {
++            delete mergeQueue[key];
++            delete mergeQueuePromise[key];
++        }
++        const keysToBeClearedFromStorage = [];
++        const keyValuesToResetIndividually = {};
++        // We need to store old and new values for collection keys to properly notify subscribers when clearing Onyx
++        // because the notification process needs the old values in cache but at that point they will be already removed from it.
++        const keyValuesToResetAsCollection = {};
++        const allKeys = new Set([...cachedKeys, ...initialKeys]);
++        // The only keys that should not be cleared are:
++        // 1. Anything specifically passed in keysToPreserve (because some keys like language preferences, offline
++        //      status, or activeClients need to remain in Onyx even when signed out)
++        // 2. Any keys with a default state (because they need to remain in Onyx as their default, and setting them
++        //      to null would cause unknown behavior)
++        //   2.1 However, if a default key was explicitly set to null, we need to reset it to the default value
++        for (const key of allKeys) {
++            const isKeyToPreserve = keysToPreserve.some((preserveKey) => OnyxKeys_1.default.isKeyMatch(preserveKey, key));
++            const isDefaultKey = key in defaultKeyStates;
++            // If the key is being removed or reset to default:
++            // 1. Update it in the cache
++            // 2. Figure out whether it is a collection key or not,
++            //      since collection key subscribers need to be updated differently
++            if (!isKeyToPreserve) {
++                const oldValue = OnyxCache_1.default.get(key);
++                const newValue = (_a = defaultKeyStates[key]) !== null && _a !== void 0 ? _a : null;
++                if (newValue !== oldValue) {
++                    OnyxCache_1.default.set(key, newValue);
++                    const collectionKey = OnyxKeys_1.default.getCollectionKey(key);
++                    if (collectionKey) {
++                        if (!keyValuesToResetAsCollection[collectionKey]) {
++                            keyValuesToResetAsCollection[collectionKey] = { oldValues: {}, newValues: {} };
+                         }
++                        keyValuesToResetAsCollection[collectionKey].oldValues[key] = oldValue;
++                        keyValuesToResetAsCollection[collectionKey].newValues[key] = newValue !== null && newValue !== void 0 ? newValue : undefined;
++                    }
++                    else {
++                        keyValuesToResetIndividually[key] = newValue !== null && newValue !== void 0 ? newValue : undefined;
+                     }
+                 }
+-                if (isKeyToPreserve || isDefaultKey) {
+-                    continue;
+-                }
+-                // If it isn't preserved and doesn't have a default, we'll remove it
+-                keysToBeClearedFromStorage.push(key);
+             }
+-            // Exclude RAM-only keys to prevent them from being saved to storage
+-            const defaultKeyValuePairs = Object.entries(Object.keys(defaultKeyStates)
+-                .filter((key) => !keysToPreserve.some((preserveKey) => OnyxKeys_1.default.isKeyMatch(preserveKey, key)) && !OnyxKeys_1.default.isRamOnlyKey(key))
+-                .reduce((obj, key) => {
+-                // eslint-disable-next-line no-param-reassign
+-                obj[key] = defaultKeyStates[key];
+-                return obj;
+-            }, {}));
+-            // Remove only the items that we want cleared from storage, and reset others to default
+-            for (const key of keysToBeClearedFromStorage)
+-                OnyxCache_1.default.drop(key);
+-            return storage_1.default.removeItems(keysToBeClearedFromStorage)
+-                .then(() => OnyxConnectionManager_1.default.refreshSessionID())
+-                .then(() => storage_1.default.multiSet(defaultKeyValuePairs))
+-                .then(() => {
+-                DevTools_1.default.clearState(keysToPreserve);
+-                // Notify the subscribers for each key/value group so they can receive the new values
+-                for (const [key, value] of Object.entries(keyValuesToResetIndividually)) {
+-                    OnyxUtils_1.default.keyChanged(key, value);
+-                }
+-                for (const [key, value] of Object.entries(keyValuesToResetAsCollection)) {
+-                    OnyxUtils_1.default.keysChanged(key, value.newValues, value.oldValues);
+-                }
+-            });
+-        })
+-            .then(() => undefined);
++            if (isKeyToPreserve || isDefaultKey) {
++                continue;
++            }
++            // If it isn't preserved and doesn't have a default, we'll remove it
++            keysToBeClearedFromStorage.push(key);
++        }
++        // Exclude RAM-only keys to prevent them from being saved to storage
++        const defaultKeyValuePairs = Object.entries(Object.keys(defaultKeyStates)
++            .filter((key) => !keysToPreserve.some((preserveKey) => OnyxKeys_1.default.isKeyMatch(preserveKey, key)) && !OnyxKeys_1.default.isRamOnlyKey(key))
++            .reduce((obj, key) => {
++            // eslint-disable-next-line no-param-reassign
++            obj[key] = defaultKeyStates[key];
++            return obj;
++        }, {}));
++        // Remove only the items that we want cleared from storage, and reset others to default
++        for (const key of keysToBeClearedFromStorage)
++            OnyxCache_1.default.drop(key);
++        const promise = storage_1.default.removeItems(keysToBeClearedFromStorage)
++            .then(() => OnyxConnectionManager_1.default.refreshSessionID())
++            .then(() => storage_1.default.multiSet(defaultKeyValuePairs))
++            .then(() => {
++            DevTools_1.default.clearState(keysToPreserve);
++            // Notify the subscribers for each key/value group so they can receive the new values
++            for (const [key, value] of Object.entries(keyValuesToResetIndividually)) {
++                OnyxUtils_1.default.keyChanged(key, value);
++            }
++            for (const [key, value] of Object.entries(keyValuesToResetAsCollection)) {
++                OnyxUtils_1.default.keysChanged(key, value.newValues, value.oldValues);
++            }
++        });
+         return OnyxCache_1.default.captureTask(OnyxCache_1.TASK.CLEAR, promise);
+     });
+ }
+@@ -476,6 +484,11 @@ function update(data) {
+                 mergeReplaceNullPatches: {},
+                 set: {},
+             });
++            // Set operations must run before merge operations so their cache writes are
++            // visible when mergeCollectionWithPatches reads previous values synchronously.
++            if (!utils_1.default.isEmptyObject(batchedCollectionUpdates.set)) {
++                promises.push(() => OnyxUtils_1.default.partialSetCollection({ collectionKey, collection: batchedCollectionUpdates.set }));
++            }
+             if (!utils_1.default.isEmptyObject(batchedCollectionUpdates.merge)) {
+                 promises.push(() => OnyxUtils_1.default.mergeCollectionWithPatches({
+                     collectionKey,
+@@ -484,9 +497,6 @@ function update(data) {
+                     isProcessingCollectionUpdate: true,
+                 }));
+             }
+-            if (!utils_1.default.isEmptyObject(batchedCollectionUpdates.set)) {
+-                promises.push(() => OnyxUtils_1.default.partialSetCollection({ collectionKey, collection: batchedCollectionUpdates.set }));
+-            }
+         }
+         for (const [key, operations] of Object.entries(updateQueue)) {
+             if (operations[0] === null) {
+diff --git a/node_modules/react-native-onyx/dist/OnyxCache.d.ts b/node_modules/react-native-onyx/dist/OnyxCache.d.ts
+index e2c4c9a..fb38cf2 100644
+--- a/node_modules/react-native-onyx/dist/OnyxCache.d.ts
++++ b/node_modules/react-native-onyx/dist/OnyxCache.d.ts
+@@ -119,7 +119,7 @@ declare class OnyxCache {
+      * @param isCollectionKeyFn - Function to determine if a key is a collection key
+      * @param getAllKeysFn - Function to get all keys, defaults to Storage.getAllKeys
+      */
+-    addEvictableKeysToRecentlyAccessedList(isCollectionKeyFn: (key: OnyxKey) => boolean, getAllKeysFn: () => Promise<Set<OnyxKey>>): Promise<void>;
++    addEvictableKeysToRecentlyAccessedList(isCollectionKeyFn: (key: OnyxKey) => boolean, getAllKeysFn: () => Set<OnyxKey>): void;
+     /**
+      * Finds the least recently accessed key that can be safely evicted from storage.
+      * `excludeKeys` skips keys that must not be evicted (e.g. the in-flight write's own keys,
+diff --git a/node_modules/react-native-onyx/dist/OnyxCache.js b/node_modules/react-native-onyx/dist/OnyxCache.js
+index 102fe93..11f0a1c 100644
+--- a/node_modules/react-native-onyx/dist/OnyxCache.js
++++ b/node_modules/react-native-onyx/dist/OnyxCache.js
+@@ -252,16 +252,15 @@ class OnyxCache {
+      * @param getAllKeysFn - Function to get all keys, defaults to Storage.getAllKeys
+      */
+     addEvictableKeysToRecentlyAccessedList(isCollectionKeyFn, getAllKeysFn) {
+-        return getAllKeysFn().then((keys) => {
+-            for (const evictableKey of this.evictionAllowList) {
+-                for (const key of keys) {
+-                    if (!OnyxKeys_1.default.isKeyMatch(evictableKey, key)) {
+-                        continue;
+-                    }
+-                    this.addLastAccessedKey(key, isCollectionKeyFn(key));
++        const keys = getAllKeysFn();
++        for (const evictableKey of this.evictionAllowList) {
++            for (const key of keys) {
++                if (!OnyxKeys_1.default.isKeyMatch(evictableKey, key)) {
++                    continue;
+                 }
++                this.addLastAccessedKey(key, isCollectionKeyFn(key));
+             }
+-        });
++        }
+     }
+     /**
+      * Finds the least recently accessed key that can be safely evicted from storage.
+diff --git a/node_modules/react-native-onyx/dist/OnyxUtils.d.ts b/node_modules/react-native-onyx/dist/OnyxUtils.d.ts
+index 91f9a52..4d91894 100644
+--- a/node_modules/react-native-onyx/dist/OnyxUtils.d.ts
++++ b/node_modules/react-native-onyx/dist/OnyxUtils.d.ts
+@@ -80,17 +80,17 @@ declare function sendActionToDevTools(method: Exclude<OnyxMethod, typeof METHOD.
+  */
+ declare function reduceCollectionWithSelector<TKey extends CollectionKeyBase, TReturn>(collection: OnyxCollection<KeyValueMapping[TKey]>, selector: Selector<TKey, TReturn>): Record<string, TReturn>;
+ /** Get some data from the store */
+-declare function get<TKey extends OnyxKey, TValue extends OnyxValue<TKey>>(key: TKey): Promise<TValue>;
+-declare function multiGet<TKey extends OnyxKey>(keys: CollectionKeyBase[]): Promise<Map<OnyxKey, OnyxValue<TKey>>>;
++declare function get<TKey extends OnyxKey, TValue extends OnyxValue<TKey>>(key: TKey): TValue;
++declare function multiGet<TKey extends OnyxKey>(keys: CollectionKeyBase[]): Map<OnyxKey, OnyxValue<TKey>>;
+ /**
+  * This helper exists to map an array of Onyx keys such as `['report_', 'conciergeReportID']`
+  * to the values for those keys (correctly typed) such as `[OnyxCollection<Report>, OnyxEntry<string>]`
+  *
+  * Note: just using `.map`, you'd end up with `Array<OnyxCollection<Report>|OnyxEntry<string>>`, which is not what we want. This preserves the order of the keys provided.
+  */
+-declare function tupleGet<Keys extends readonly OnyxKey[]>(keys: Keys): Promise<{
++declare function tupleGet<Keys extends readonly OnyxKey[]>(keys: Keys): {
+     [Index in keyof Keys]: OnyxValue<Keys[Index]>;
+-}>;
++};
+ /**
+  * Stores a subscription ID associated with a given key.
+  *
+@@ -105,7 +105,7 @@ declare function storeKeyBySubscriptions(key: OnyxKey, subscriptionID: number):
+  */
+ declare function deleteKeyBySubscriptions(subscriptionID: number): void;
+ /** Returns current key names stored in persisted storage */
+-declare function getAllKeys(): Promise<Set<OnyxKey>>;
++declare function getAllKeys(): Set<OnyxKey>;
+ /**
+  * Tries to get a value from the cache. If the value is not present in cache it will return the default value or undefined.
+  * If the requested key is a collection, it will return an object with all the collection members.
+diff --git a/node_modules/react-native-onyx/dist/OnyxUtils.js b/node_modules/react-native-onyx/dist/OnyxUtils.js
+index 344cd49..9c718f8 100644
+--- a/node_modules/react-native-onyx/dist/OnyxUtils.js
++++ b/node_modules/react-native-onyx/dist/OnyxUtils.js
+@@ -41,7 +41,7 @@ const fast_equals_1 = require("fast-equals");
+ const underscore_1 = __importDefault(require("underscore"));
+ const DevTools_1 = __importDefault(require("./DevTools"));
+ const Logger = __importStar(require("./Logger"));
+-const OnyxCache_1 = __importStar(require("./OnyxCache"));
++const OnyxCache_1 = __importDefault(require("./OnyxCache"));
+ const OnyxKeys_1 = __importDefault(require("./OnyxKeys"));
+ const StorageCircuitBreaker_1 = __importDefault(require("./StorageCircuitBreaker"));
+ const storage_1 = __importDefault(require("./storage"));
+@@ -191,142 +191,19 @@ function reduceCollectionWithSelector(collection, selector) {
+ }
+ /** Get some data from the store */
+ function get(key) {
+-    // When we already have the value in cache - resolve right away
+-    if (OnyxCache_1.default.hasCacheForKey(key)) {
+-        return Promise.resolve(OnyxCache_1.default.get(key));
+-    }
+-    // RAM-only keys should never read from storage (they may have stale persisted data
+-    // from before the key was migrated to RAM-only). Mark as nullish so future get() calls
+-    // short-circuit via hasCacheForKey and avoid re-running this branch.
+-    if (OnyxKeys_1.default.isRamOnlyKey(key)) {
+-        OnyxCache_1.default.addNullishStorageKey(key);
+-        return Promise.resolve(undefined);
+-    }
+-    const taskName = `${OnyxCache_1.TASK.GET}:${key}`;
+-    // When a value retrieving task for this key is still running hook to it
+-    if (OnyxCache_1.default.hasPendingTask(taskName)) {
+-        return OnyxCache_1.default.getTaskPromise(taskName);
+-    }
+-    // Otherwise retrieve the value from storage and capture a promise to aid concurrent usages
+-    const promise = storage_1.default.getItem(key)
+-        .then((val) => {
+-        if (skippableCollectionMemberIDs.size) {
+-            try {
+-                const [, collectionMemberID] = OnyxKeys_1.default.splitCollectionMemberKey(key);
+-                if (skippableCollectionMemberIDs.has(collectionMemberID)) {
+-                    // The key is a skippable one, so we set the value to undefined.
+-                    // eslint-disable-next-line no-param-reassign
+-                    val = undefined;
+-                }
+-            }
+-            catch (e) {
+-                // The key is not a collection one or something went wrong during split, so we proceed with the function's logic.
+-            }
+-        }
+-        // Prefer cache over stale storage if a concurrent write populated it during the read.
+-        const cachedValue = OnyxCache_1.default.get(key);
+-        if (cachedValue !== undefined) {
+-            return cachedValue;
+-        }
+-        if (val === undefined) {
+-            OnyxCache_1.default.addNullishStorageKey(key);
+-            return undefined;
+-        }
+-        OnyxCache_1.default.set(key, val);
+-        return val;
+-    })
+-        .catch((err) => Logger.logInfo(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
+-    return OnyxCache_1.default.captureTask(taskName, promise);
++    return OnyxCache_1.default.get(key);
+ }
+-// multiGet the data first from the cache and then from the storage for the missing keys.
++// multiGet the data from the cache for all given keys.
+ function multiGet(keys) {
+-    // Keys that are not in the cache
+-    const missingKeys = [];
+-    // Tasks that are pending
+-    const pendingTasks = [];
+-    // Keys for the tasks that are pending
+-    const pendingKeys = [];
+-    // Data to be sent back to the invoker
+     const dataMap = new Map();
+-    /**
+-     * We are going to iterate over all the matching keys and check if we have the data in the cache.
+-     * If we do then we add it to the data object. If we do not have them, then we check if there is a pending task
+-     * for the key. If there is such task, then we add the promise to the pendingTasks array and the key to the pendingKeys
+-     * array. If there is no pending task then we add the key to the missingKeys array.
+-     *
+-     * These missingKeys will be later used to multiGet the data from the storage.
+-     */
+     for (const key of keys) {
+-        // RAM-only keys should never read from storage as they may have stale persisted data
+-        // from before the key was migrated to RAM-only.
+-        if (OnyxKeys_1.default.isRamOnlyKey(key)) {
+-            if (OnyxCache_1.default.hasCacheForKey(key)) {
+-                dataMap.set(key, OnyxCache_1.default.get(key));
+-            }
+-            continue;
+-        }
+         // hasCacheForKey catches cached falsy values (0, '', false, null) as cache hits, which
+         // a truthy check on the value would miss.
+         if (OnyxCache_1.default.hasCacheForKey(key)) {
+             dataMap.set(key, OnyxCache_1.default.get(key));
+-            continue;
+-        }
+-        const pendingKey = `${OnyxCache_1.TASK.GET}:${key}`;
+-        if (OnyxCache_1.default.hasPendingTask(pendingKey)) {
+-            pendingTasks.push(OnyxCache_1.default.getTaskPromise(pendingKey));
+-            pendingKeys.push(key);
+-        }
+-        else {
+-            missingKeys.push(key);
+         }
+     }
+-    return (Promise.all(pendingTasks)
+-        // Wait for all the pending tasks to resolve and then add the data to the data map.
+-        .then((values) => {
+-        for (const [index, value] of values.entries()) {
+-            dataMap.set(pendingKeys[index], value);
+-        }
+-        return Promise.resolve();
+-    })
+-        // Get the missing keys using multiGet from the storage.
+-        .then(() => {
+-        if (missingKeys.length === 0) {
+-            return Promise.resolve(undefined);
+-        }
+-        return storage_1.default.multiGet(missingKeys);
+-    })
+-        // Add the data from the missing keys to the data map and also merge it to the cache.
+-        .then((values) => {
+-        if (!values || values.length === 0) {
+-            return dataMap;
+-        }
+-        // temp object is used to merge the missing data into the cache
+-        const temp = {};
+-        for (const [key, value] of values) {
+-            if (skippableCollectionMemberIDs.size) {
+-                try {
+-                    const [, collectionMemberID] = OnyxKeys_1.default.splitCollectionMemberKey(key);
+-                    if (skippableCollectionMemberIDs.has(collectionMemberID)) {
+-                        // The key is a skippable one, so we skip this iteration.
+-                        continue;
+-                    }
+-                }
+-                catch (e) {
+-                    // The key is not a collection one or something went wrong during split, so we proceed with the function's logic.
+-                }
+-            }
+-            // Prefer cache over stale storage if a concurrent write populated it during
+-            // the read — otherwise cache.merge(temp) below would resurrect dropped fields.
+-            if (OnyxCache_1.default.hasCacheForKey(key)) {
+-                dataMap.set(key, OnyxCache_1.default.get(key));
+-                continue;
+-            }
+-            dataMap.set(key, value);
+-            temp[key] = value;
+-        }
+-        OnyxCache_1.default.merge(temp);
+-        return dataMap;
+-    }));
++    return dataMap;
+ }
+ /**
+  * This helper exists to map an array of Onyx keys such as `['report_', 'conciergeReportID']`
+@@ -335,7 +212,7 @@ function multiGet(keys) {
+  * Note: just using `.map`, you'd end up with `Array<OnyxCollection<Report>|OnyxEntry<string>>`, which is not what we want. This preserves the order of the keys provided.
+  */
+ function tupleGet(keys) {
+-    return Promise.all(keys.map((key) => get(key)));
++    return keys.map((key) => get(key));
+ }
+ /**
+  * Stores a subscription ID associated with a given key.
+@@ -364,25 +241,7 @@ function deleteKeyBySubscriptions(subscriptionID) {
+ }
+ /** Returns current key names stored in persisted storage */
+ function getAllKeys() {
+-    // When we've already read stored keys, resolve right away
+-    const cachedKeys = OnyxCache_1.default.getAllKeys();
+-    if (cachedKeys.size > 0) {
+-        return Promise.resolve(cachedKeys);
+-    }
+-    // When a value retrieving task for all keys is still running hook to it
+-    if (OnyxCache_1.default.hasPendingTask(OnyxCache_1.TASK.GET_ALL_KEYS)) {
+-        return OnyxCache_1.default.getTaskPromise(OnyxCache_1.TASK.GET_ALL_KEYS);
+-    }
+-    // Otherwise retrieve the keys from storage and capture a promise to aid concurrent usages
+-    const promise = storage_1.default.getAllKeys().then((keys) => {
+-        // Filter out RAM-only keys from storage results as they may be stale entries
+-        // from before the key was migrated to RAM-only.
+-        const filteredKeys = keys.filter((key) => !OnyxKeys_1.default.isRamOnlyKey(key));
+-        OnyxCache_1.default.setAllKeys(filteredKeys);
+-        // return the updated set of keys
+-        return OnyxCache_1.default.getAllKeys();
+-    });
+-    return OnyxCache_1.default.captureTask(OnyxCache_1.TASK.GET_ALL_KEYS, promise);
++    return OnyxCache_1.default.getAllKeys();
+ }
+ /**
+  * Tries to get a value from the cache. If the value is not present in cache it will return the default value or undefined.
+@@ -622,9 +481,7 @@ function sendDataToConnection(mapping, matchedKey) {
+  * Gets the data for a given an array of matching keys, combines them into an object, and sends the result back to the subscriber.
+  */
+ function getCollectionDataAndSendAsObject(matchingKeys, mapping) {
+-    multiGet(matchingKeys).then(() => {
+-        sendDataToConnection(mapping, mapping.key);
+-    });
++    sendDataToConnection(mapping, mapping.key);
+ }
+ /**
+  * Remove a key from Onyx and update the subscribers
+@@ -972,7 +829,7 @@ function subscribeToKey(connectOptions) {
+                 return;
+             }
+             // If we are not subscribed to a collection key then there's only a single key to send an update for.
+-            get(mapping.key).then(() => sendDataToConnection(mapping, mapping.key));
++            sendDataToConnection(mapping, mapping.key);
+             return;
+         }
+         console.error('Warning: Onyx.connect() was found without a callback');
+@@ -1244,38 +1101,37 @@ function setCollectionWithRetry({ collectionKey, collection }, retryAttempt) {
+         }, {});
+     }
+     resultCollectionKeys = Object.keys(resultCollection);
+-    return OnyxUtils.getAllKeys().then((persistedKeys) => {
+-        const mutableCollection = Object.assign({}, resultCollection);
+-        for (const key of persistedKeys) {
+-            if (!key.startsWith(collectionKey)) {
+-                continue;
+-            }
+-            if (resultCollectionKeys.includes(key)) {
+-                continue;
+-            }
+-            mutableCollection[key] = null;
+-        }
+-        const keyValuePairs = OnyxUtils.prepareKeyValuePairsForStorage(mutableCollection, true, undefined, true);
+-        const previousCollection = OnyxUtils.getCachedCollection(collectionKey);
+-        for (const [key, value] of keyValuePairs)
+-            OnyxCache_1.default.set(key, value);
+-        // Skip subscriber notification on retry — already notified on attempt 0.
+-        // Collection-root subscribers re-fire on every keysChanged by contract.
+-        if (!retryAttempt) {
+-            keysChanged(collectionKey, mutableCollection, previousCollection);
++    const persistedKeys = OnyxUtils.getAllKeys();
++    const mutableCollection = Object.assign({}, resultCollection);
++    for (const key of persistedKeys) {
++        if (!key.startsWith(collectionKey)) {
++            continue;
+         }
+-        // RAM-only keys are not supposed to be saved to storage
+-        if (OnyxKeys_1.default.isRamOnlyKey(collectionKey)) {
+-            OnyxUtils.sendActionToDevTools(OnyxUtils.METHOD.SET_COLLECTION, undefined, mutableCollection);
+-            return;
++        if (resultCollectionKeys.includes(key)) {
++            continue;
+         }
+-        const inFlightKeys = new Set(keyValuePairs.map(([key]) => key));
+-        return storage_1.default.multiSet(keyValuePairs)
+-            .then(() => StorageCircuitBreaker_1.default.recordWriteSuccess())
+-            .catch((error) => OnyxUtils.retryOperation(error, setCollectionWithRetry, { collectionKey, collection }, retryAttempt, inFlightKeys))
+-            .then(() => {
+-            OnyxUtils.sendActionToDevTools(OnyxUtils.METHOD.SET_COLLECTION, undefined, mutableCollection);
+-        });
++        mutableCollection[key] = null;
++    }
++    const keyValuePairs = OnyxUtils.prepareKeyValuePairsForStorage(mutableCollection, true, undefined, true);
++    const previousCollection = OnyxUtils.getCachedCollection(collectionKey);
++    for (const [key, value] of keyValuePairs)
++        OnyxCache_1.default.set(key, value);
++    // Skip subscriber notification on retry — already notified on attempt 0.
++    // Collection-root subscribers re-fire on every keysChanged by contract.
++    if (!retryAttempt) {
++        keysChanged(collectionKey, mutableCollection, previousCollection);
++    }
++    // RAM-only keys are not supposed to be saved to storage
++    if (OnyxKeys_1.default.isRamOnlyKey(collectionKey)) {
++        OnyxUtils.sendActionToDevTools(OnyxUtils.METHOD.SET_COLLECTION, undefined, mutableCollection);
++        return Promise.resolve();
++    }
++    const inFlightKeys = new Set(keyValuePairs.map(([key]) => key));
++    return storage_1.default.multiSet(keyValuePairs)
++        .then(() => StorageCircuitBreaker_1.default.recordWriteSuccess())
++        .catch((error) => OnyxUtils.retryOperation(error, setCollectionWithRetry, { collectionKey, collection }, retryAttempt, inFlightKeys))
++        .then(() => {
++        OnyxUtils.sendActionToDevTools(OnyxUtils.METHOD.SET_COLLECTION, undefined, mutableCollection);
+     });
+ }
+ /**
+@@ -1319,101 +1175,85 @@ function mergeCollectionWithPatches({ collectionKey, collection, mergeReplaceNul
+         }, {});
+     }
+     resultCollectionKeys = Object.keys(resultCollection);
+-    return getAllKeys()
+-        .then((persistedKeys) => {
+-        // Split to keys that exist in storage and keys that don't
+-        const keys = resultCollectionKeys.filter((key) => {
+-            if (resultCollection[key] === null) {
+-                remove(key, isProcessingCollectionUpdate);
+-                return false;
+-            }
+-            return true;
+-        });
+-        const existingKeys = keys.filter((key) => persistedKeys.has(key));
+-        const cachedCollectionForExistingKeys = getCachedCollection(collectionKey, existingKeys);
+-        const existingKeyCollection = existingKeys.reduce((obj, key) => {
+-            const { isCompatible, existingValueType, newValueType, isEmptyArrayCoercion } = utils_1.default.checkCompatibilityWithExistingValue(resultCollection[key], cachedCollectionForExistingKeys[key]);
+-            if (isEmptyArrayCoercion) {
+-                // Merging an object into an empty array isn't semantically correct, but we allow it
+-                // in case we accidentally encoded an empty object as an empty array in PHP. If you're
+-                // looking at a bugbot from this message, we're probably missing that key in OnyxKeys::KEYS_REQUIRING_EMPTY_OBJECT
+-                Logger.logAlert(`[ENSURE_BUGBOT] Onyx mergeCollection called on key "${key}" whose existing value is an empty array. Will coerce to object.`);
+-            }
+-            if (!isCompatible) {
+-                Logger.logAlert(logMessages_1.default.incompatibleUpdateAlert(key, 'mergeCollection', existingValueType, newValueType));
+-                return obj;
+-            }
+-            // eslint-disable-next-line no-param-reassign
+-            obj[key] = resultCollection[key];
++    const persistedKeys = getAllKeys();
++    // Split to keys that exist in storage and keys that don't
++    const keys = resultCollectionKeys.filter((key) => {
++        if (resultCollection[key] === null) {
++            remove(key, isProcessingCollectionUpdate);
++            return false;
++        }
++        return true;
++    });
++    const existingKeys = keys.filter((key) => persistedKeys.has(key));
++    const cachedCollectionForExistingKeys = getCachedCollection(collectionKey, existingKeys);
++    const existingKeyCollection = existingKeys.reduce((obj, key) => {
++        const { isCompatible, existingValueType, newValueType, isEmptyArrayCoercion } = utils_1.default.checkCompatibilityWithExistingValue(resultCollection[key], cachedCollectionForExistingKeys[key]);
++        if (isEmptyArrayCoercion) {
++            // Merging an object into an empty array isn't semantically correct, but we allow it
++            // in case we accidentally encoded an empty object as an empty array in PHP. If you're
++            // looking at a bugbot from this message, we're probably missing that key in OnyxKeys::KEYS_REQUIRING_EMPTY_OBJECT
++            Logger.logAlert(`[ENSURE_BUGBOT] Onyx mergeCollection called on key "${key}" whose existing value is an empty array. Will coerce to object.`);
++        }
++        if (!isCompatible) {
++            Logger.logAlert(logMessages_1.default.incompatibleUpdateAlert(key, 'mergeCollection', existingValueType, newValueType));
+             return obj;
+-        }, {});
+-        const newCollection = {};
+-        for (const key of keys) {
+-            if (persistedKeys.has(key)) {
+-                continue;
+-            }
+-            newCollection[key] = resultCollection[key];
+         }
+-        // When (multi-)merging the values with the existing values in storage,
+-        // we don't want to remove nested null values from the data that we pass to the storage layer,
+-        // because the storage layer uses them to remove nested keys from storage natively.
+-        const keyValuePairsForExistingCollection = prepareKeyValuePairsForStorage(existingKeyCollection, false, mergeReplaceNullPatches);
+-        // We can safely remove nested null values when using (multi-)set,
+-        // because we will simply overwrite the existing values in storage.
+-        const keyValuePairsForNewCollection = prepareKeyValuePairsForStorage(newCollection, true);
+-        // finalMergedCollection contains all the keys that were merged, without the keys of incompatible updates
+-        const finalMergedCollection = Object.assign(Object.assign({}, existingKeyCollection), newCollection);
+-        // Pre-warm cache for cache-miss existingKeys so cache.merge() merges the new delta into
+-        // the real previous storage value. Fast path (all warm) skips the pre-warm to preserve
+-        // promise-chain depth; slow path batches the misses into one Storage.multiGet.
+-        const hasColdExistingKey = existingKeys.some((key) => !OnyxCache_1.default.hasCacheForKey(key));
+-        // Swallow pre-warm read failures so a transient Storage.multiGet rejection doesn't
+-        // skip the cache.merge() + keysChanged() below. Subscribers still see the merge even
+-        // when storage reads fail.
+-        const prewarmPromise = hasColdExistingKey
+-            ? multiGet(existingKeys).catch((err) => Logger.logInfo(`mergeCollectionWithPatches pre-warm failed; proceeding with cache-only merge. Error: ${err}`))
+-            : Promise.resolve();
+-        return prewarmPromise.then(() => {
+-            // Snapshot previous values from the (now-warm) cache for keysChanged's diff, then update
+-            // cache and notify subscribers synchronously BEFORE issuing storage writes. This matches
+-            // the cache-first / storage-second invariant followed by every other Onyx write method
+-            // (setWithRetry, applyMerge, setCollectionWithRetry, partialSetCollection, clear),
+-            // ensuring subscribers still reflect the merged data even if the subsequent storage
+-            // write fails.
+-            const previousCollection = getCachedCollection(collectionKey, existingKeys);
+-            OnyxCache_1.default.merge(finalMergedCollection);
+-            // Skip subscriber notification on retry — already notified on attempt 0.
+-            // Collection-root subscribers re-fire on every keysChanged by contract.
+-            if (!retryAttempt) {
+-                keysChanged(collectionKey, finalMergedCollection, previousCollection);
+-            }
+-            const promises = [];
+-            // New keys go through multiSet and existing keys through multiMerge. multiMerge on a
+-            // missing key stores the value just like multiSet across all backends; splitting them lets
+-            // multiSet strip nested nulls (the merge layer keeps them to delete nested storage keys).
+-            // We can skip this step for RAM-only keys as they should never be saved to storage
+-            if (!OnyxKeys_1.default.isRamOnlyKey(collectionKey) && keyValuePairsForExistingCollection.length > 0) {
+-                promises.push(storage_1.default.multiMerge(keyValuePairsForExistingCollection));
+-            }
+-            // We can skip this step for RAM-only keys as they should never be saved to storage
+-            if (!OnyxKeys_1.default.isRamOnlyKey(collectionKey) && keyValuePairsForNewCollection.length > 0) {
+-                promises.push(storage_1.default.multiSet(keyValuePairsForNewCollection));
+-            }
+-            const inFlightKeys = new Set(Object.keys(finalMergedCollection));
+-            return Promise.all(promises)
+-                .then(() => StorageCircuitBreaker_1.default.recordWriteSuccess())
+-                .catch((error) => retryOperation(error, mergeCollectionWithPatches, {
+-                collectionKey,
+-                collection: resultCollection,
+-                mergeReplaceNullPatches,
+-                isProcessingCollectionUpdate,
+-            }, retryAttempt, inFlightKeys))
+-                .then(() => {
+-                sendActionToDevTools(METHOD.MERGE_COLLECTION, undefined, resultCollection);
+-            });
+-        });
+-    })
+-        .then(() => undefined);
++        // eslint-disable-next-line no-param-reassign
++        obj[key] = resultCollection[key];
++        return obj;
++    }, {});
++    const newCollection = {};
++    for (const key of keys) {
++        if (persistedKeys.has(key)) {
++            continue;
++        }
++        newCollection[key] = resultCollection[key];
++    }
++    // When (multi-)merging the values with the existing values in storage,
++    // we don't want to remove nested null values from the data that we pass to the storage layer,
++    // because the storage layer uses them to remove nested keys from storage natively.
++    const keyValuePairsForExistingCollection = prepareKeyValuePairsForStorage(existingKeyCollection, false, mergeReplaceNullPatches);
++    // We can safely remove nested null values when using (multi-)set,
++    // because we will simply overwrite the existing values in storage.
++    const keyValuePairsForNewCollection = prepareKeyValuePairsForStorage(newCollection, true);
++    // finalMergedCollection contains all the keys that were merged, without the keys of incompatible updates
++    const finalMergedCollection = Object.assign(Object.assign({}, existingKeyCollection), newCollection);
++    // Snapshot previous values from the cache for keysChanged's diff, then update cache and notify
++    // subscribers synchronously BEFORE issuing storage writes. This matches the cache-first /
++    // storage-second invariant followed by every other Onyx write method (setWithRetry, applyMerge,
++    // setCollectionWithRetry, partialSetCollection, clear), ensuring subscribers still reflect the
++    // merged data even if the subsequent storage write fails.
++    const previousCollection = getCachedCollection(collectionKey, existingKeys);
++    OnyxCache_1.default.merge(finalMergedCollection);
++    // Skip subscriber notification on retry — already notified on attempt 0.
++    // Collection-root subscribers re-fire on every keysChanged by contract.
++    if (!retryAttempt) {
++        keysChanged(collectionKey, finalMergedCollection, previousCollection);
++    }
++    const promises = [];
++    // New keys go through multiSet and existing keys through multiMerge. multiMerge on a
++    // missing key stores the value just like multiSet across all backends; splitting them lets
++    // multiSet strip nested nulls (the merge layer keeps them to delete nested storage keys).
++    // We can skip this step for RAM-only keys as they should never be saved to storage
++    if (!OnyxKeys_1.default.isRamOnlyKey(collectionKey) && keyValuePairsForExistingCollection.length > 0) {
++        promises.push(storage_1.default.multiMerge(keyValuePairsForExistingCollection));
++    }
++    // We can skip this step for RAM-only keys as they should never be saved to storage
++    if (!OnyxKeys_1.default.isRamOnlyKey(collectionKey) && keyValuePairsForNewCollection.length > 0) {
++        promises.push(storage_1.default.multiSet(keyValuePairsForNewCollection));
++    }
++    const inFlightKeys = new Set(Object.keys(finalMergedCollection));
++    return Promise.all(promises)
++        .then(() => StorageCircuitBreaker_1.default.recordWriteSuccess())
++        .catch((error) => retryOperation(error, mergeCollectionWithPatches, {
++        collectionKey,
++        collection: resultCollection,
++        mergeReplaceNullPatches,
++        isProcessingCollectionUpdate,
++    }, retryAttempt, inFlightKeys))
++        .then(() => {
++        sendActionToDevTools(METHOD.MERGE_COLLECTION, undefined, resultCollection);
++    });
+ }
+ /**
+  * Sets keys in a collection by replacing all targeted collection members with new values.
+@@ -1450,29 +1290,28 @@ function partialSetCollection({ collectionKey, collection }, retryAttempt) {
+         }, {});
+     }
+     resultCollectionKeys = Object.keys(resultCollection);
+-    return getAllKeys().then((persistedKeys) => {
+-        const mutableCollection = Object.assign({}, resultCollection);
+-        const existingKeys = resultCollectionKeys.filter((key) => persistedKeys.has(key));
+-        const previousCollection = getCachedCollection(collectionKey, existingKeys);
+-        const keyValuePairs = prepareKeyValuePairsForStorage(mutableCollection, true, undefined, true);
+-        for (const [key, value] of keyValuePairs)
+-            OnyxCache_1.default.set(key, value);
+-        // Skip subscriber notification on retry — already notified on attempt 0.
+-        // Collection-root subscribers re-fire on every keysChanged by contract.
+-        if (!retryAttempt) {
+-            keysChanged(collectionKey, mutableCollection, previousCollection);
+-        }
+-        if (OnyxKeys_1.default.isRamOnlyKey(collectionKey)) {
+-            sendActionToDevTools(METHOD.SET_COLLECTION, undefined, mutableCollection);
+-            return;
+-        }
+-        const inFlightKeys = new Set(keyValuePairs.map(([key]) => key));
+-        return storage_1.default.multiSet(keyValuePairs)
+-            .then(() => StorageCircuitBreaker_1.default.recordWriteSuccess())
+-            .catch((error) => retryOperation(error, partialSetCollection, { collectionKey, collection }, retryAttempt, inFlightKeys))
+-            .then(() => {
+-            sendActionToDevTools(METHOD.SET_COLLECTION, undefined, mutableCollection);
+-        });
++    const persistedKeys = getAllKeys();
++    const mutableCollection = Object.assign({}, resultCollection);
++    const existingKeys = resultCollectionKeys.filter((key) => persistedKeys.has(key));
++    const previousCollection = getCachedCollection(collectionKey, existingKeys);
++    const keyValuePairs = prepareKeyValuePairsForStorage(mutableCollection, true, undefined, true);
++    for (const [key, value] of keyValuePairs)
++        OnyxCache_1.default.set(key, value);
++    // Skip subscriber notification on retry — already notified on attempt 0.
++    // Collection-root subscribers re-fire on every keysChanged by contract.
++    if (!retryAttempt) {
++        keysChanged(collectionKey, mutableCollection, previousCollection);
++    }
++    if (OnyxKeys_1.default.isRamOnlyKey(collectionKey)) {
++        sendActionToDevTools(METHOD.SET_COLLECTION, undefined, mutableCollection);
++        return Promise.resolve();
++    }
++    const inFlightKeys = new Set(keyValuePairs.map(([key]) => key));
++    return storage_1.default.multiSet(keyValuePairs)
++        .then(() => StorageCircuitBreaker_1.default.recordWriteSuccess())
++        .catch((error) => retryOperation(error, partialSetCollection, { collectionKey, collection }, retryAttempt, inFlightKeys))
++        .then(() => {
++        sendActionToDevTools(METHOD.SET_COLLECTION, undefined, mutableCollection);
+     });
+ }
+ function logKeyChanged(onyxMethod, key, value, hasChanged) {

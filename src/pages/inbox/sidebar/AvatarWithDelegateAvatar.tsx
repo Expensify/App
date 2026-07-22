@@ -1,20 +1,29 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp} from 'react-native';
-import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
 import Avatar from '@components/Avatar';
+
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp} from 'react-native';
+import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type AvatarWithDelegateAvatarProps = {
     /** Original account of delegate */
     delegateEmail: string;
+
+    /** Whether the avatar is hovered */
+    isHovered?: boolean;
 
     /** Whether the avatar is selected */
     isSelected?: boolean;
@@ -23,7 +32,7 @@ type AvatarWithDelegateAvatarProps = {
     containerStyle?: StyleProp<ViewStyle>;
 };
 
-function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
+function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
     const defaultAvatars = useDefaultAvatars();
     const styles = useThemeStyles();
 
@@ -36,7 +45,7 @@ function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerS
     return (
         <View style={[styles.sidebarStatusAvatarContainer, containerStyle]}>
             <ProfileAvatarWithIndicator isSelected={isSelected} />
-            <View style={[styles.sidebarStatusAvatar]}>
+            <View style={[styles.sidebarStatusAvatar, isHovered && styles.sidebarStatusAvatarHovered]}>
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
                         size={isSmallScreenWidth ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALL}

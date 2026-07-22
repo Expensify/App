@@ -5,16 +5,15 @@ on:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
     paths:
-      - "src/libs/SearchParser/**"
+      - 'src/libs/SearchParser/**'
 
 jobs:
   verify:
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
-    runs-on: macos-latest
+    runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

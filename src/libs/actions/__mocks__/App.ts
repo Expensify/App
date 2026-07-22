@@ -1,8 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import type * as AppImport from '@libs/actions/App';
+
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import type {OnyxUpdatesFromServer, Response as OnyxResponse} from '@src/types/onyx';
 import createProxyForObject from '@src/utils/createProxyForObject';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 jest.mock('@libs/actions/OnyxUpdates');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
@@ -13,11 +16,8 @@ const {
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openApp,
-    reconnectApp,
-    confirmReadyToOpenApp,
     handleRestrictedEvent,
     finalReconnectAppAfterActivatingReliableUpdates,
-    savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     KEYS_TO_PRESERVE,
@@ -25,19 +25,29 @@ const {
 
 type AppMockValues<TKey extends OnyxKey = never> = {
     missingOnyxUpdatesToBeApplied: Array<OnyxUpdatesFromServer<TKey>> | undefined;
+    missingOnyxUpdatesResponse: OnyxResponse<never> | undefined;
 };
 
 type AppActionsMock<TKey extends OnyxKey = never> = typeof AppImport & {
-    getMissingOnyxUpdates: jest.Mock<Promise<Response[] | void[]>>;
+    getMissingOnyxUpdates: jest.Mock<Promise<OnyxResponse<never> | undefined | void>, [updateIDFrom?: number, updateIDTo?: number | string]>;
+    reconnectApp: jest.Mock<void, [number?]>;
     mockValues: AppMockValues<TKey>;
 };
 
 const mockValues: AppMockValues = {
     missingOnyxUpdatesToBeApplied: undefined,
+    missingOnyxUpdatesResponse: undefined,
 };
 const mockValuesProxy = createProxyForObject(mockValues);
 
+const reconnectApp = jest.fn();
+
 const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number) => {
+    // When a response is set, the server answers without serving the requested range: nothing is applied.
+    if (mockValuesProxy.missingOnyxUpdatesResponse !== undefined) {
+        return Promise.resolve(mockValuesProxy.missingOnyxUpdatesResponse);
+    }
+
     const updates = mockValuesProxy.missingOnyxUpdatesToBeApplied ?? [];
     if (updates.length === 0) {
         for (let i = updateIDFrom + 1; i <= updateIDTo; i++) {
@@ -66,6 +76,7 @@ const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number)
 export {
     // Mocks
     getMissingOnyxUpdates,
+    reconnectApp,
     mockValuesProxy as mockValues,
 
     // Actual App implementation
@@ -73,11 +84,8 @@ export {
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openApp,
-    reconnectApp,
-    confirmReadyToOpenApp,
     handleRestrictedEvent,
     finalReconnectAppAfterActivatingReliableUpdates,
-    savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     KEYS_TO_PRESERVE,

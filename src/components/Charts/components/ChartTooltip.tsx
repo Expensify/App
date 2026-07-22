@@ -1,16 +1,14 @@
-import React, {useLayoutEffect, useRef} from 'react';
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-/** The height of the chart tooltip pointer */
-const TOOLTIP_POINTER_HEIGHT = 4;
+import type {SharedValue} from 'react-native-reanimated';
 
-/** The width of the chart tooltip pointer */
-const TOOLTIP_POINTER_WIDTH = 12;
+import React, {useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 
 type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */
@@ -114,9 +112,9 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
                     style={[
                         styles.chartTooltipPointer,
                         {
-                            borderLeftWidth: TOOLTIP_POINTER_WIDTH / 2,
-                            borderRightWidth: TOOLTIP_POINTER_WIDTH / 2,
-                            borderTopWidth: TOOLTIP_POINTER_HEIGHT,
+                            borderLeftWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                            borderRightWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                            borderTopWidth: VictoryTheme.tooltip.pointerHeight,
                             borderLeftColor: theme.transparent,
                             borderRightColor: theme.transparent,
                             borderTopColor: theme.heading,

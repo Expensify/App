@@ -1,4 +1,4 @@
-type SelectableState = {selected: boolean} | undefined;
+type SelectableState = {selected: boolean};
 
 type GetSelectableState = (isSelected: boolean) => SelectableState;
 

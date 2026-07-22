@@ -1,13 +1,17 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
+
 import type CalendarPickerListItem from './types';
 
 type YearPickerModalProps = {
@@ -25,9 +29,12 @@ type YearPickerModalProps = {
 
     /** Function to call when the user closes the year picker */
     onClose?: () => void;
+
+    /** Whether RIGHT_DOCKED modal should keep backdrop in narrow pane context */
+    shouldEnableBackdropInNarrowPane?: boolean;
 };
 
-function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose}: YearPickerModalProps) {
+function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose, shouldEnableBackdropInNarrowPane = false}: YearPickerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
@@ -67,6 +74,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             shouldHandleNavigationBack
             shouldUseCustomBackdrop
             onBackdropPress={onClose}
+            shouldKeepRightDockedBackdropInNarrowPane={shouldEnableBackdropInNarrowPane}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
@@ -81,7 +89,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                 />
                 <SelectionList
                     data={data}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(option) => {
                         Keyboard.dismiss();
                         onYearChange?.(option.value);

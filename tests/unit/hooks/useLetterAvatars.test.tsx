@@ -1,91 +1,83 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {SvgProps} from 'react-native-svg';
-import useLetterAvatars from '@hooks/useLetterAvatars';
-// eslint-disable-next-line no-restricted-syntax -- For mocking
-import * as PresetAvatarCatalog from '@libs/Avatars/PresetAvatarCatalog';
 
-const mockAvatarComponent: React.FC<SvgProps> = React.memo((props: SvgProps) =>
-    React.createElement('svg', {
-        ...props,
-        dataTestId: 'letter-avatar',
-    }),
-);
+import useLetterAvatars from '@hooks/useLetterAvatars';
+
+import {LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
+
+const mockCurrentUserPersonalDetails = jest.fn<{firstName?: string; lastName?: string; login?: string; email?: string}, []>();
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => mockCurrentUserPersonalDetails());
 
 describe('useLetterAvatars', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    describe('basic functionality', () => {
-        it('should return the expected structure', () => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
-
-            const {result} = renderHook(() => useLetterAvatars('John'));
-
-            expect(result.current).toHaveProperty('avatarList');
-            expect(result.current).toHaveProperty('avatarMap');
-            expect(Array.isArray(result.current.avatarList)).toBe(true);
-            expect(typeof result.current.avatarMap).toBe('object');
-            // LETTER_AVATAR_COLOR_OPTIONS has 18 color combinations
-            expect(result.current.avatarList).toHaveLength(18);
-            expect(Object.keys(result.current.avatarMap)).toHaveLength(18);
+    it('returns one option per palette scheme with the user initials', () => {
+        mockCurrentUserPersonalDetails.mockReturnValue({
+            firstName: 'Sofia',
+            lastName: 'Barbosa',
+            login: 'sofia@example.com',
         });
 
-        it('should create unique IDs for each avatar variant', () => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+        const {result} = renderHook(() => useLetterAvatars());
 
-            const {result} = renderHook(() => useLetterAvatars('Bob'));
-
-            const ids = result.current.avatarList.map((item) => item.id);
-            const uniqueIds = new Set(ids);
-
-            expect(uniqueIds.size).toBe(ids.length);
-            // IDs should follow the pattern: letter-avatar-{backgroundColor}-{fillColor}-{initial}
-            expect(ids.at(0)).toMatch(/^letter-avatar-#[0-9a-f]{6}-#[0-9a-f]{6}-[a-z0-9]$/i);
-        });
-
-        it('should include the StyledLetterAvatar component in each item', () => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
-
-            const {result} = renderHook(() => useLetterAvatars('Charlie'));
-
-            for (const item of result.current.avatarList) {
-                expect(item).toHaveProperty('id');
-                expect(item).toHaveProperty('StyledLetterAvatar');
-                expect(typeof item.StyledLetterAvatar).toBe('function');
-            }
-        });
+        expect(result.current.initials).toBe('SB');
+        expect(result.current.options).toHaveLength(LETTER_AVATAR_COLOR_KEYS.length);
+        for (const [index, option] of result.current.options.entries()) {
+            const schemeKey = LETTER_AVATAR_COLOR_KEYS.at(index);
+            expect(option.id).toBe(schemeKey);
+            expect(option.colors).toEqual(schemeKey ? LETTER_AVATAR_SCHEMES[schemeKey] : undefined);
+        }
     });
 
-    describe('name handling', () => {
-        it.each([
-            ['names with special characters', 'Émilie', '-E'],
-            ['names starting with numbers', '5th Avenue', '-5'],
-            ['single character names', 'X', '-'],
-        ])('should handle %s', (_, name, expectedChar) => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
-
-            const {result} = renderHook(() => useLetterAvatars(name));
-
-            expect(result.current.avatarList).toHaveLength(18);
-            expect(result.current.avatarList.at(0)?.id).toContain(expectedChar);
+    it('falls back to the session email when personal details lack a login', () => {
+        mockCurrentUserPersonalDetails.mockReturnValue({
+            firstName: '',
+            lastName: '',
+            email: 'sofia@example.com',
         });
+
+        const {result} = renderHook(() => useLetterAvatars());
+
+        expect(result.current.initials).toBe('S');
+        expect(result.current.options).toHaveLength(LETTER_AVATAR_COLOR_KEYS.length);
     });
 
-    describe('edge cases', () => {
-        it.each([
-            ['undefined string name', undefined],
-            ['empty string name', ''],
-            ['names with only spaces', '   '],
-            ['names with only special characters', '!@#$%'],
-        ])('should handle %s', (_, name) => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(null);
-
-            const {result} = renderHook(() => useLetterAvatars(name));
-
-            expect(result.current.avatarList).toEqual([]);
-            expect(result.current.avatarMap).toEqual({});
+    it('uses a single initial when there is only a first name', () => {
+        mockCurrentUserPersonalDetails.mockReturnValue({
+            firstName: 'Sofia',
+            lastName: '',
+            login: 'sofia@example.com',
         });
+
+        const {result} = renderHook(() => useLetterAvatars());
+
+        expect(result.current.initials).toBe('S');
+    });
+
+    it('falls back to the login initial when there is no name', () => {
+        mockCurrentUserPersonalDetails.mockReturnValue({
+            firstName: '',
+            lastName: '',
+            login: 'dave@example.com',
+        });
+
+        const {result} = renderHook(() => useLetterAvatars());
+
+        expect(result.current.initials).toBe('D');
+        expect(result.current.options).toHaveLength(LETTER_AVATAR_COLOR_KEYS.length);
+    });
+
+    it.each([
+        ['an SMS login and no name', {firstName: '', lastName: '', login: '+15551234567@expensify.sms'}],
+        ['no usable characters', {firstName: '!@#$%', lastName: '', login: ''}],
+        ['empty personal details', {}],
+    ])('returns no options for %s', (_, personalDetails) => {
+        mockCurrentUserPersonalDetails.mockReturnValue(personalDetails);
+
+        const {result} = renderHook(() => useLetterAvatars());
+
+        expect(result.current.initials).toBe('');
+        expect(result.current.options).toEqual([]);
     });
 });

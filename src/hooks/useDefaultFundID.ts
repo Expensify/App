@@ -1,5 +1,3 @@
-import {useCallback} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import {
     getCardSettings,
     getFundIdFromSettingsKey,
@@ -7,9 +5,15 @@ import {
     getPreferredPolicyFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
 } from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -25,7 +29,9 @@ function useDefaultFundID(policyID: string | undefined) {
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
-            const eligibleEntries = Object.entries(cardSettings ?? {}).filter(([key, settings]) => !!settings && !key.includes(workspaceAccountID.toString()));
+            const eligibleEntries = Object.entries(cardSettings ?? {}).filter(
+                ([key, settings]) => !!settings && !key.includes(workspaceAccountID.toString()) && settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
 
             if (policyID) {
                 const preferredMatch = eligibleEntries.find(([, settings]) => getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase());
@@ -44,15 +50,13 @@ function useDefaultFundID(policyID: string | undefined) {
         [policyID, workspaceAccountID],
     );
 
-    const [domainFundID] = useOnyx(
-        ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS,
-        {
-            selector: getDomainFundID,
-        },
-        [getDomainFundID],
-    );
+    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: getDomainFundID,
+    });
 
-    if (lastSelectedExpensifyCardFeed && lastSelectedSettings?.paymentBankAccountID) {
+    const isFeedPendingDelete = lastSelectedCardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+    if (lastSelectedExpensifyCardFeed && lastSelectedSettings?.paymentBankAccountID && !isFeedPendingDelete) {
         return lastSelectedExpensifyCardFeed;
     }
 

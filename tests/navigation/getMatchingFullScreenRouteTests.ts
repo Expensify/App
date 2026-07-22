@@ -1,6 +1,8 @@
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import {getMatchingFullScreenRoute} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
@@ -8,6 +10,7 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         DynamicScreen: {path: 'suffix-a'},
     },
     screensWithOnyxTabNavigator: new Set(),
+    dynamicTabPatternToTabPaths: new Map(),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
@@ -136,7 +139,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         expect(mockGetStateFromPath).toHaveBeenCalledWith('/base');
         expect(mockFindFocusedRouteWithOnyxTabGuard).toHaveBeenCalledWith(basePathState);
         expect(result).toBeDefined();
-        expect(result?.name).toBe(SCREENS.HOME);
+        expect(result?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
     });
 
     it('should return undefined when path has dynamic suffix but base path resolves to NOT_FOUND', () => {

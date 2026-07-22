@@ -1,7 +1,7 @@
 ---
 title: Login Troubleshooting
 description: Troubleshoot common login issues — like missing Magic Codes, 2FA lockouts, SSO problems, or blocked emails — and find out who to contact to get back in fast.
-keywords: [New Expensify, Expensify login, can't log in, login help, Magic Code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out]
+keywords: [New Expensify, Expensify login, can't log in, login help, Magic Code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out, change password, update password, reset password, forgot password, password reset, new password, password change]
 ---
 
 # Login troubleshooting
@@ -146,4 +146,15 @@ No. If you’re not part of a company domain and didn’t save your recovery cod
 
 ## How can I contact Concierge if I can't log into my account? 
 Email concierge@expensify.com from the email address associated with your Expensify account. 
+
+## Why do I see the error Incorrect or invalid code when logging in? 
+
+This error appears when the login code entered is no longer valid or was entered incorrectly. It commonly happens when multiple login codes are requested, and an older code is used after a newer one has already been generated. To prevent this issue, avoid requesting multiple login codes in a short period of time.
+
+To resolve it:
+
+- Wait a few minutes to make sure you received the most recent login code.
+- Enter the newest code you received.
+- If the issue continues, request a new code and try again.
+
 

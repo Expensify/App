@@ -1,10 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import StatusBadge from '@components/StatusBadge';
+
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getReportStatusColorStyle, getReportStatusTranslation} from '@libs/ReportUtils';
+
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type StatusCellProps = {
     /** The stateNum of the report */
@@ -18,9 +21,12 @@ type StatusCellProps = {
 
     /** Whether the transaction is deleted */
     isDeleted?: boolean;
+
+    /** Whether the parent row is selected */
+    isSelected?: boolean;
 };
 
-function StatusCell({stateNum, statusNum, isPending, isDeleted}: StatusCellProps) {
+function StatusCell({stateNum, statusNum, isPending, isDeleted, isSelected}: StatusCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -32,12 +38,16 @@ function StatusCell({stateNum, statusNum, isPending, isDeleted}: StatusCellProps
         return null;
     }
 
+    const backgroundColor = getStatusBadgeBackgroundColor(theme, stateNum, statusNum, isDeleted, isSelected);
+    const tooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, isDeleted, translate});
+
     return (
         <View style={[styles.w100, styles.justifyContentCenter, isPending && styles.offlineFeedbackPending]}>
             <StatusBadge
                 text={statusText}
-                backgroundColor={reportStatusColorStyle.backgroundColor}
+                backgroundColor={backgroundColor}
                 textColor={reportStatusColorStyle.textColor}
+                tooltipText={tooltipText}
             />
         </View>
     );

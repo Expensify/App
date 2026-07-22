@@ -1,5 +1,7 @@
-import {Str} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+
 import useOnyx from './useOnyx';
 
 type UsePreferredPolicyResult = {
@@ -44,4 +46,3 @@ function usePreferredPolicy(): UsePreferredPolicyResult {
 }
 
 export default usePreferredPolicy;
-export type {UsePreferredPolicyResult};

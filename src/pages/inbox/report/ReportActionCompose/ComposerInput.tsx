@@ -1,10 +1,11 @@
-import React from 'react';
-import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
+import {setIsComposerFullSize} from '@libs/actions/Report';
 import FS from '@libs/Fullstory';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -13,19 +14,21 @@ import {
     isMoneyRequestReport,
     isReportTransactionThread,
 } from '@libs/ReportUtils';
+
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FileObject} from '@src/types/utils/Attachment';
-import {useComposerActions, useComposerMeta, useComposerSendActions, useComposerSendState, useComposerState} from './ComposerContext';
-import ComposerWithSuggestions from './ComposerWithSuggestions';
-import useComposerSubmit from './useComposerSubmit';
 
-type ComposerInputProps = {
-    reportID: string;
-    onPasteFile: (files: FileObject | FileObject[]) => void;
-};
+import type {MeasureInWindowOnSuccessCallback} from 'react-native';
+
+import React from 'react';
+
+import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import ComposerWithSuggestions from './ComposerWithSuggestions';
+import useAttachmentPicker from './useAttachmentPicker';
+import useComposerSubmit from './useComposerSubmit';
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
@@ -34,20 +37,27 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
     return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
 }
 
-function ComposerInput({reportID, onPasteFile}: ComposerInputProps) {
+function ComposerInput() {
+    const {reportID} = useComposerState();
     const {translate, preferredLocale} = useLocalize();
     const {isMenuVisible} = useComposerState();
-    const {isBlockedFromConcierge} = useComposerSendState();
+    const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();
     const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
-    const {handleSendMessage, onValueChange} = useComposerSendActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
 
-    const submitForm = useComposerSubmit(reportID);
+    const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
+    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
-    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
+
+    const onValueChange = (v: string) => {
+        if (v.length === 0 && isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+        debouncedCommentMaxLengthValidation?.(v);
+    };
 
     const measureContainer = (callback: MeasureInWindowOnSuccessCallback) => {
         containerRef.current?.measureInWindow(callback);
@@ -73,31 +83,34 @@ function ComposerInput({reportID, onPasteFile}: ComposerInputProps) {
     const fsClass = report ? FS.getChatFSClass(report) : undefined;
 
     return (
-        <ComposerWithSuggestions
-            ref={setComposerRef}
-            suggestionsRef={suggestionsRef}
-            isNextModalWillOpenRef={isNextModalWillOpenRef}
-            isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-            reportID={reportID}
-            policyID={report?.policyID}
-            includeChronos={chatIncludesChronos(report)}
-            isGroupPolicyReport={isGroupPolicyReport}
-            isMenuVisible={isMenuVisible}
-            inputPlaceholder={inputPlaceholder}
-            isComposerFullSize={isComposerFullSize}
-            setIsFullComposerAvailable={setIsFullComposerAvailable}
-            onPasteFile={onPasteFile}
-            onClear={submitForm}
-            disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
-            onEnterKeyPress={handleSendMessage}
-            shouldShowComposeInput={shouldShowComposeInput}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            measureParentContainer={measureContainer}
-            onValueChange={onValueChange}
-            forwardedFSClass={fsClass}
-        />
+        <>
+            <ComposerWithSuggestions
+                ref={setComposerRef}
+                suggestionsRef={suggestionsRef}
+                isNextModalWillOpenRef={isNextModalWillOpenRef}
+                isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
+                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                reportID={reportID}
+                policyID={report?.policyID}
+                includeChronos={chatIncludesChronos(report)}
+                isGroupPolicyReport={isGroupPolicyReport}
+                isMenuVisible={isMenuVisible}
+                inputPlaceholder={inputPlaceholder}
+                isComposerFullSize={isComposerFullSize}
+                setIsFullComposerAvailable={setIsFullComposerAvailable}
+                onPasteFile={(files) => pickAttachments({files})}
+                onClear={validateAndSubmitDraft}
+                disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
+                onEnterKeyPress={submitDraftAndClearComposer}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                measureParentContainer={measureContainer}
+                onValueChange={onValueChange}
+                forwardedFSClass={fsClass}
+            />
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
     );
 }
 

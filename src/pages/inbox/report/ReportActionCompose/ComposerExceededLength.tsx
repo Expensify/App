@@ -1,16 +1,18 @@
-import React from 'react';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+
+import React from 'react';
+
 import {useComposerSendState} from './ComposerContext';
 
 function ComposerExceededLength() {
-    const {exceededMaxLength, hasExceededMaxTaskTitleLength} = useComposerSendState();
+    const {exceededMaxLength, isTaskTitle} = useComposerSendState();
     if (!exceededMaxLength) {
         return null;
     }
     return (
         <ExceededCommentLength
             maxCommentLength={exceededMaxLength}
-            isTaskTitle={hasExceededMaxTaskTitleLength}
+            isTaskTitle={isTaskTitle}
         />
     );
 }

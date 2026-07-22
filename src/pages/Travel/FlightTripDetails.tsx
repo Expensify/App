@@ -1,20 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import UserPills from '@components/UserPills';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type FlightTripDetailsProps = {
     reservation: Reservation;
@@ -26,7 +32,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass']);
 
     const cabinClassMapping: Record<string, string> = {
         UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
@@ -136,15 +142,23 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 )}
             </View>
             {!!displayName && (
-                <MenuItem
-                    label={translate('travel.flightDetails.passenger')}
-                    title={displayName}
-                    icon={personalDetails?.avatar ?? expensifyIcons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                <MenuItemWithTopDescription
+                    description={translate('travel.flightDetails.passenger')}
+                    descriptionTextStyle={styles.fontSizeLabel}
                     interactive={false}
-                    wrapperStyle={styles.pb3}
-                    labelStyle={styles.mb2}
+                    accessibilityLabel={`${translate('travel.flightDetails.passenger')} ${displayName}`}
+                    titleComponent={
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: personalDetails?.avatar,
+                                    displayName,
+                                    accountID: personalDetails?.accountID,
+                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                },
+                            ]}
+                        />
+                    }
                 />
             )}
         </>

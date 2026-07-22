@@ -1,24 +1,31 @@
-import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
+import useOnyx from '@hooks/useOnyx';
+import useReusablePoliciesConnectedTo from '@hooks/useReusablePoliciesConnectedTo';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useMemo} from 'react';
+
 import getQuickbooksDesktopSetupEntryRoute from './utils';
 
 type QuickbooksDesktopExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS>;
@@ -28,7 +35,8 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const policyID: string = route.params.policyID;
-    const {connectionSyncProgressCollection, reusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedToQBD(policyID);
+    const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
+    const [connectionSyncProgressCollection] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
 
     const menuItems = useMemo(
         () =>

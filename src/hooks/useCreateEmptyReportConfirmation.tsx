@@ -1,13 +1,17 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
@@ -38,8 +42,7 @@ function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspac
     return (
         <View style={styles.gap4}>
             <Text>
-                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName})}{' '}
-                <TextLink onPress={onLinkPress}>{translate('report.newReport.emptyReportConfirmationPromptLink')}.</TextLink>
+                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName})} <TextLink onPress={onLinkPress}>{translate('search.tabs.reports')}.</TextLink>
             </Text>
             <CheckboxWithLabel
                 accessibilityLabel={translate('report.newReport.emptyReportConfirmationDontShowAgain')}

@@ -1,16 +1,22 @@
-import isEmpty from 'lodash/isEmpty';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+import {View} from 'react-native';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
@@ -70,6 +76,9 @@ type ConnectionLayoutProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
+
+    /** Whether or not to block user from accessing the page regardless of the connection state */
+    shouldForceBeBlocked?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -104,6 +113,7 @@ function ConnectionLayout({
     shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
+    shouldForceBeBlocked = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -127,7 +137,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked && shouldBlockByConnection}
+            shouldBeBlocked={(!!shouldBeBlocked && shouldBlockByConnection) || shouldForceBeBlocked}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

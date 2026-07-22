@@ -1,11 +1,15 @@
-import {Str} from 'expensify-common';
-import isObject from 'lodash/isObject';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
+import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
+import type {DomainSecurityGroupPendingActions} from '@src/types/onyx/DomainPendingActions';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import isObject from 'lodash/isObject';
 
 type DomainSecurityGroupWithID = {
     id: string;
@@ -133,7 +137,7 @@ function selectSecurityGroupForAccount(accountID: number) {
 
             const [key, group] = entry;
 
-            if (group.shared && accountIDStr in group.shared) {
+            if (group.shared?.[accountIDStr] != null) {
                 return {
                     key,
                     securityGroup: group,
@@ -159,6 +163,13 @@ const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingAction
 
 const defaultSecurityGroupIDSelector = (domain: OnyxEntry<Domain>) => domain?.domain_defaultSecurityGroupID;
 
+/**
+ * Creates a selector that finds a single security group by its ID.
+ */
+function selectGroupByID(groupID?: string) {
+    return (domain: OnyxEntry<Domain>): DomainSecurityGroup | undefined => domain?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`];
+}
+
 function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] {
     if (!domain) {
         return getEmptyArray<DomainSecurityGroupWithID>();
@@ -172,6 +183,16 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
 }
 
 const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
+
+function selectRestrictedPrimaryPolicyID(groupID?: string) {
+    return (domain: OnyxEntry<Domain>): string | undefined => {
+        const targetGroup = groupsSelector(domain)?.find((g) => g.id === groupID);
+        if (!targetGroup?.details.enableRestrictedPrimaryPolicy || !targetGroup?.details.restrictedPrimaryPolicyID) {
+            return undefined;
+        }
+        return targetGroup.details.restrictedPrimaryPolicyID;
+    };
+}
 
 /**
  * Creates a selector that checks if a given account ID is an admin of the domain.
@@ -192,8 +213,31 @@ function isAdminSelector(accountID: number) {
     };
 }
 
+/** Creates a selector that extracts the pending action for a security group's setting */
+function domainSecurityGroupSettingPendingActionSelector(settingName: keyof DomainSecurityGroupPendingActions, groupID?: string) {
+    return (domainPendingActions: OnyxEntry<DomainPendingActions>) => {
+        return domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.[settingName];
+    };
+}
+
+/** Creates a selector that extracts the errors for a security group's setting */
+function domainSecurityGroupSettingErrorsSelector(settingName: keyof DomainSecurityGroupErrors, groupID?: string) {
+    return (domainErrors: OnyxEntry<DomainErrors>) => {
+        return domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.[settingName];
+    };
+}
+
+/** Creates a selector that returns true if a security group has any pending delete action. */
+function isSecurityGroupPendingDeleteSelector(groupID?: string) {
+    return (domainPendingActions: OnyxEntry<DomainPendingActions>): boolean => {
+        const groupPendingActions = domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`];
+        return Object.values(groupPendingActions ?? {}).some((action) => action === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    };
+}
+
 export {
     domainMemberSettingsSelector,
+    selectRestrictedPrimaryPolicyID,
     domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,
@@ -211,6 +255,10 @@ export {
     vacationDelegateSelector,
     accountLockSelector,
     isAdminSelector,
+    selectGroupByID,
+    domainSecurityGroupSettingPendingActionSelector,
+    domainSecurityGroupSettingErrorsSelector,
+    isSecurityGroupPendingDeleteSelector,
 };
 
 export {type DomainSecurityGroupWithID};

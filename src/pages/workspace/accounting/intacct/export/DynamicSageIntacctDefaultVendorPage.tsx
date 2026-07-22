@@ -1,28 +1,37 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors, settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import variables from '@styles/variables';
+
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Connections} from '@src/types/onyx/Policy';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
+// Sage Intacct's default-vendor fields hold a raw vendor ID; sending this empty string clears the default.
+const CLEAR_DEFAULT_VENDOR = '';
 
 function DynamicSageIntacctDefaultVendorPage() {
     const styles = useThemeStyles();
@@ -69,14 +78,21 @@ function DynamicSageIntacctDefaultVendorPage() {
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
     );
 
+    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing when that setting is active.
+    const canClearByReSelecting = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
+
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (value !== defaultVendor) {
+            if (value === defaultVendor) {
+                if (canClearByReSelecting) {
+                    updateSageIntacctDefaultVendor(policyID, settingName, CLEAR_DEFAULT_VENDOR, defaultVendor);
+                }
+            } else {
                 updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             }
             goBack();
         },
-        [defaultVendor, policyID, settingName, goBack],
+        [defaultVendor, policyID, settingName, goBack, canClearByReSelecting],
     );
 
     const listEmptyContent = useMemo(
@@ -99,7 +115,6 @@ function DynamicSageIntacctDefaultVendorPage() {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctDefaultVendorPage"
             data={vendorSelectorOptions ?? []}
-            listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             headerContent={listHeaderComponent}

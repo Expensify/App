@@ -1,26 +1,33 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {useRoute} from '@react-navigation/native';
-import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import {FlashList} from '@shopify/flash-list';
-import type {ReactElement} from 'react';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlatform from '@libs/getPlatform';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import LHNTooltipContextProvider from './LHNTooltipContextProvider';
-import OptionRowLHNData from './OptionRowLHNData';
-import OptionRowRendererComponent from './OptionRowRendererComponent';
+
+import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
+import type {ReactElement} from 'react';
+
+import {useRoute} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {LHNOptionsListProps, RenderItemProps} from './types';
+
+import LHNTooltipContextProvider from './LHNTooltipContextProvider';
+import OptionRowLHNData from './OptionRowLHN';
+import OptionRowRendererComponent from './OptionRowRendererComponent';
 
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 const platform = getPlatform();
@@ -35,7 +42,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const reportAttributes = useReportAttributes();
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const styles = useThemeStyles();
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
@@ -59,21 +65,24 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item, index}: RenderItemProps): ReactElement => {
+        ({item, index}: RenderItemProps): ReactElement | null => {
+            if (!item) {
+                return null;
+            }
             const reportID = item.reportID;
             const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
 
             let invoiceReceiverPolicyID = '-1';
-            if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
+            if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
                 invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
             }
             if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
                 invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
             }
             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
 
             return (
                 <OptionRowLHNData
@@ -85,7 +94,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
-                    conciergeReportID={conciergeReportID}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
@@ -94,12 +102,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 />
             );
         },
-        [reportAttributes, reports, policy, personalDetails, conciergeReportID, optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
+        [reportAttributes, reports, policy, personalDetails, optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
     );
 
     const extraData = useMemo(
-        () => [reports, reportAttributes, policy, personalDetails, conciergeReportID, data.length, optionMode, isOffline],
-        [reports, reportAttributes, policy, personalDetails, conciergeReportID, data.length, optionMode, isOffline],
+        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
+        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -145,6 +153,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route]);
 
+    const savedScrollIndex = getScrollIndex(route);
+    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+
     return (
         <View style={style ?? styles.flex1}>
             <LHNTooltipContextProvider data={data}>
@@ -162,7 +173,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    initialScrollIndex={isWeb ? getScrollIndex(route) : undefined}
+                    initialScrollIndex={initialScrollIndex}
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={250}
                     removeClippedSubviews

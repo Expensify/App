@@ -1,7 +1,8 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {IOUAction} from '@src/CONST';
 import type {
     Beta,
@@ -17,6 +18,8 @@ import type {
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * IMPORTANT: This type is a performance-optimized subset of OptionData.
@@ -120,6 +123,7 @@ type OptionTree = {
     isDisabled: boolean;
     isSelected: boolean;
     pendingAction?: PendingAction;
+    shouldHideSelectionButton?: boolean;
 } & Option;
 
 type PayeePersonalDetails = {
@@ -131,15 +135,6 @@ type PayeePersonalDetails = {
     accountID: number;
     keyForList: string;
     isInteractive: boolean;
-};
-
-type SectionBase = {
-    title: string | undefined;
-    shouldShow: boolean;
-};
-
-type Section = SectionBase & {
-    data: Option[];
 };
 
 type GetValidOptionsSharedConfig = {
@@ -202,6 +197,8 @@ type IsValidReportsConfig = Pick<
     | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
+    currentUserLogin: string;
+    conciergeReportID: string | undefined;
 };
 
 type GetOptionsConfig = {
@@ -211,8 +208,7 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
-    excludeHiddenThreads?: boolean;
-    canShowManagerMcTest?: boolean;
+    excludeHidden?: boolean;
     searchString?: string;
     searchInputValue?: string;
     maxElements?: number;
@@ -223,6 +219,9 @@ type GetOptionsConfig = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
+    isTrackIntentUser?: boolean;
+    /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -305,11 +304,15 @@ type OrderReportOptionsConfig = {
 
 type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
+type OptionsResult = {
+    options: Options;
+    hasMore?: boolean;
+};
+
 export type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
     GetUserToInviteConfig,
-    GetValidOptionsSharedConfig,
     GetValidReportsConfig,
     MemberForList,
     Option,
@@ -324,9 +327,8 @@ export type {
     ReportAndPersonalDetailOptions,
     SearchOption,
     SearchOptionData,
-    Section,
-    SectionBase,
     SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
+    OptionsResult,
 };

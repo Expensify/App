@@ -1,23 +1,29 @@
-import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {validateBankAccount} from '@libs/actions/BankAccounts';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import Enable2FACard from './Enable2FACard';
 
 type BankAccountValidationFormProps = {
@@ -145,7 +151,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
             </View>
             {!requiresTwoFactorAuth && (
                 <View style={[styles.mln5, styles.mrn5, styles.mt3]}>
-                    <Enable2FACard policyID={policyID} />
+                    <Enable2FACard />
                 </View>
             )}
         </FormProvider>

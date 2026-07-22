@@ -1,13 +1,16 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import CONST from '@src/CONST';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
 
 const defaultStyles = styles(defaultTheme);
 
@@ -23,7 +26,6 @@ const story: Meta<typeof NumberWithSymbolForm> = {
 function Template(props: NumberWithSymbolFormProps) {
     return (
         <ScrollView contentContainerStyle={defaultStyles.flexGrow1}>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <NumberWithSymbolFormWithNavigation {...props} />
         </ScrollView>
     );
