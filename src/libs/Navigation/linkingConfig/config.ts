@@ -663,6 +663,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_BANK_ACCOUNT_SELECT]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.path,
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT]:
+                            DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_CONFIGURATION]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]:
                             DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.path,
@@ -2203,10 +2205,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             parse: {
                                 // eslint-disable-next-line
                                 reportID: (reportID: string | undefined) => reportID ?? '',
+                                secureKey: (secureKey: string | undefined) => secureKey ?? '',
                             },
                             stringify: {
                                 // eslint-disable-next-line
                                 reportID: (reportID: string | undefined) => reportID ?? '',
+                                secureKey: (secureKey: string | undefined) => secureKey ?? '',
                             },
                         },
                     },
@@ -2309,6 +2313,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.CATEGORIES]: {
                                     path: ROUTES.WORKSPACE_CATEGORIES.route,
+                                },
+                                [SCREENS.WORKSPACE.VENDORS]: {
+                                    path: ROUTES.WORKSPACE_VENDORS.route,
                                 },
                                 [SCREENS.WORKSPACE.MORE_FEATURES]: {
                                     path: ROUTES.WORKSPACE_MORE_FEATURES.route,
