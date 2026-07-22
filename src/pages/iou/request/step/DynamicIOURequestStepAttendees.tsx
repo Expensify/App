@@ -99,7 +99,7 @@ function DynamicIOURequestStepAttendees({
             }
         }
 
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     }, [
         attendees,
         previousAttendees,
