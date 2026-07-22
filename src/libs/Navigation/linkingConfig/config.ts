@@ -219,6 +219,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.route,
                             exact: true,
