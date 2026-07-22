@@ -4,7 +4,7 @@ import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {
     generateIsEmptyReport,
@@ -73,8 +73,8 @@ const displayNameSignature = (details: PersonalDetails | null): string => JSON.s
 
 const snapshotDisplayNames = (personalDetails: PersonalDetailsList): Record<string, string> => {
     const snapshot: Record<string, string> = {};
-    for (const [key, value] of Object.entries(personalDetails)) {
-        snapshot[key] = displayNameSignature(value);
+    for (const key of Object.keys(personalDetails)) {
+        snapshot[key] = displayNameSignature(personalDetails[key]);
     }
     return snapshot;
 };
@@ -113,8 +113,8 @@ const getDisplayNameChanges = (personalDetails: OnyxEntry<PersonalDetailsList>):
     const changedAccountIDs = new Set<number>();
 
     // Build the new snapshot and compare it against the old one in the same loop.
-    for (const [key, value] of Object.entries(personalDetails)) {
-        const signature = displayNameSignature(value);
+    for (const key of Object.keys(personalDetails)) {
+        const signature = displayNameSignature(personalDetails[key]);
         nextSnapshot[key] = signature;
         if (hadBaseline && signature !== previousDisplayNames[key]) {
             changedAccountIDs.add(Number(key));
@@ -271,7 +271,8 @@ export default createOnyxDerivedValueConfig({
                     }
                 }
                 if (changedPolicyIDs.size > 0) {
-                    for (const [reportKey, report] of Object.entries(reports ?? {})) {
+                    for (const reportKey of Object.keys(reports ?? {})) {
+                        const report = reports?.[reportKey];
                         if (!report) {
                             continue;
                         }
@@ -334,7 +335,8 @@ export default createOnyxDerivedValueConfig({
         // locale change); in that case useIncrementalUpdates is false and the full scan below handles it.
         const personalDetailsChangedReportKeys: string[] = [];
         if (displayNameChanges instanceof Set && useIncrementalUpdates) {
-            for (const [reportKey, report] of Object.entries(reports)) {
+            for (const reportKey of Object.keys(reports)) {
+                const report = reports[reportKey];
                 if (report && reportReferencesAccountIDs(report, displayNameChanges)) {
                     personalDetailsChangedReportKeys.push(reportKey);
                 }
@@ -419,9 +421,13 @@ export default createOnyxDerivedValueConfig({
                 }
                 if (policyTagsUpdates) {
                     const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
-                    const affectedReportKeys = Object.values(reports)
-                        .filter((report) => !!report?.policyID && changedPolicyIDs.has(report.policyID))
-                        .map((report) => `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`);
+                    const affectedReportKeys: string[] = [];
+                    for (const report of Object.values(reports)) {
+                        if (!report?.policyID || !changedPolicyIDs.has(report.policyID)) {
+                            continue;
+                        }
+                        affectedReportKeys.push(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
+                    }
                     dataToIterate.push(...prepareReportKeys(affectedReportKeys));
                 }
             } else {
@@ -562,6 +568,16 @@ export default createOnyxDerivedValueConfig({
             const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
             childReportIDs.push(report.reportID);
             childReportIDsByChat.set(report.chatReportID, childReportIDs);
+
+            // When the child IOU's parent action in the chat is deleted (e.g. another user deleted the request
+            // while an optimistic pay was queued offline), the chat has no actionable surface for the error.
+            // Skip propagation so the parent DM row doesn't show a stale "Fix" for a request that no longer exists.
+            const parentReportAction = report.parentReportActionID
+                ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
+                : undefined;
+            if (isDeletedAction(parentReportAction)) {
+                continue;
+            }
 
             // If this is an IOU report and its calculated attributes have an error,
             // then we need to mark its parent chat report.
