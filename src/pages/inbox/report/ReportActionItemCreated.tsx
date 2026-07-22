@@ -10,9 +10,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
+import Navigation from '@libs/Navigation/Navigation';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 
 import {clearCreateChatError} from '@userActions/Report';
+import deleteReport from '@userActions/Report/DeleteReport';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +40,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -66,7 +69,17 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2, styles.mb2]}
-            onClose={() =>
+            onClose={() => {
+                // A brand-new chat whose server creation failed (e.g. via a failed new-chat expense, see #93542) is
+                // reset to non-optimistic so it can load instead of spinning on an infinite skeleton. But that means
+                // clearCreateChatError would only clear the createChat error and leave the chat + its linked IOU report
+                // orphaned. Dismissing the created row on such a chat should remove it entirely — mirroring the
+                // failed-expense dismiss path — so delete the chat (deleteReport cascades to the IOU report and
+                // transaction thread(s)) and navigate the user out of the now-deleted chat.
+                if (report?.errorFields?.createChat && !reportMetadata?.isOptimisticReport) {
+                    Navigation.goBack(undefined, {afterTransition: () => deleteReport(report.reportID, true)});
+                    return;
+                }
                 clearCreateChatError(
                     report,
                     conciergeReportID,
@@ -77,8 +90,8 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
-                )
-            }
+                );
+            }}
         >
             <View style={[styles.pRelative]}>
                 {/* hasDeferredWriteForReport is non-reactive (reads a module-level Map, not tracked by React).

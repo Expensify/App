@@ -114,4 +114,80 @@ describe('actions/Report/DeleteReport', () => {
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toBeUndefined();
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`)).toBeUndefined();
     });
+
+    it('should clear the report metadata when a report is deleted', async () => {
+        // Given a report that has metadata (e.g. an optimistic report)
+        const reportID = '1';
+        const report = createRandomReport(Number(reportID), undefined);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isOptimisticReport: true});
+
+        // When we delete the report
+        deleteReport(reportID);
+
+        await waitForBatchedUpdates();
+
+        // Then the report metadata should be cleared so nothing (e.g. isOptimisticReport) is left orphaned behind
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`)).toBeUndefined();
+    });
+
+    it('should cascade from a chat report to its linked IOU report, transaction thread, and transaction', async () => {
+        // Given a brand-new chat report linked to an IOU report (via iouReportID and a report preview child action),
+        // an IOU report whose money-request action opens a transaction thread, and that transaction. This mirrors the
+        // failed new-chat expense rollback: dismissing deletes the parent chat, which must cascade to everything below.
+        const chatReportID = '1';
+        const iouReportID = '2';
+        const transactionThreadReportID = '3';
+        const transactionID = '123';
+
+        const chatReport = {
+            ...createRandomReport(Number(chatReportID), undefined),
+            iouReportID,
+        };
+        const iouReport = createRandomReport(Number(iouReportID), undefined);
+        const transactionThreadReport = createRandomReport(Number(transactionThreadReportID), undefined);
+        const transaction = createRandomTransaction(Number(transactionID));
+
+        // Report preview action in the chat linking to the IOU report
+        const reportPreviewAction = {
+            ...createRandomReportAction(100),
+            childReportID: iouReportID,
+        };
+        // Money-request action in the IOU report linking to the transaction thread and transaction
+        const iouAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...createRandomReportAction(200),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: transactionThreadReportID,
+            previousMessage: [],
+            message: [{text: '', html: 'iou', type: 'COMMENT'}],
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: transactionID,
+                IOUDetails: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                },
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[iouAction.reportActionID]: iouAction});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        // When we delete the parent chat report with cascade
+        deleteReport(chatReportID, true);
+
+        await waitForBatchedUpdates();
+
+        // Then the chat, the linked IOU report, the transaction thread, and the transaction are all removed
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`)).toBeUndefined();
+    });
 });

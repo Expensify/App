@@ -265,9 +265,12 @@ function ReportActionItem({
         // When the expense created a brand-new chat that failed to be created on the server, the chat, IOU report and
         // everything created solely for this request are orphaned optimistic shells. Dismissing the error should remove
         // them entirely (see #93542) rather than only clearing the error, so navigate the user out of the now-deleted
-        // chat and delete it — deleteReport cascades to the linked IOU report and the transaction thread(s).
+        // chat and delete it. We delete the parent chat report — deleteReport cascades from the chat down to the linked
+        // IOU report and the transaction thread(s). Deleting the current report here would only remove the IOU report
+        // (this error is dismissed from the expense report, so reportID is the IOU report ID) and leave the chat orphaned.
         if (reportID && report?.errorFields?.createChat) {
-            Navigation.goBack(undefined, {afterTransition: () => deleteReport(reportID, true)});
+            const chatReportIDToDelete = report.chatReportID ?? reportID;
+            Navigation.goBack(undefined, {afterTransition: () => deleteReport(chatReportIDToDelete, true)});
             return;
         }
 
