@@ -74,6 +74,7 @@ import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {isSupportalSessionSelector} from '@selectors/Session';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
@@ -145,7 +146,7 @@ function isSupportAuthToken(): boolean {
 }
 
 function isSupportalSession(): boolean {
-    return isSupportAuthToken() || !!session?.isSupportAuthTokenUsed;
+    return isSupportalSessionSelector(session);
 }
 
 /**
