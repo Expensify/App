@@ -55,6 +55,7 @@ import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportAction
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import useFocusCatchUpTime from '@pages/inbox/report/useFocusCatchUpTime';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
 import variables from '@styles/variables';
@@ -217,6 +218,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
+    // Actions created at or before this time arrived while the screen was blurred (focus-gated
+    // catch-up), so the unread-marker computation and mark-as-read effect must treat them as a
+    // refocus (baseline's focus-keyed path), not as watched-live arrivals
+    const focusedSince = useFocusCatchUpTime();
 
     const reportActionIDs = useMemo(() => {
         return reportActions?.map((action) => action.reportActionID) ?? [];
@@ -360,6 +365,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
+        // Catch-up delivery: these actions arrived while blurred, so this run replicates what the
+        // focus-keyed mark-as-read effect below does at refocus on a live subscription — read only
+        // when watching at the bottom, and never arm `readActionSkipped` (a live subscription's
+        // blurred run returns before arming it, so scrolling down later must not auto-read).
+        const isCatchUp = !!focusedSince && !!lastAction && lastAction.created <= focusedSince;
+
         if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -373,7 +384,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
-            } else {
+            } else if (!isCatchUp) {
                 readActionSkipped.current = true;
             }
         }
@@ -426,6 +437,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return lastIndex > -1 ? lastIndex : undefined;
     }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, reportActions, currentUserAccountID]);
 
+    // Catch-up deliveries must not count as "received live with window focus" — otherwise the
+    // isNewMessage heuristic suppresses the unread marker and the push-down effect below advances
+    // unreadMarkerTime past them, swallowing the marker permanently.
+    const isCatchUpAfterRefocus = !!focusedSince && !!lastAction && lastAction.created <= focusedSince;
+
     /**
      * The reportActionID the unread marker should display above
      */
@@ -438,7 +454,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isScrolledOverThreshold: scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD,
         isOffline,
         isReversed: true,
-        hasWindowFocus: Visibility.hasFocus(),
+        hasWindowFocus: Visibility.hasFocus() && !isCatchUpAfterRefocus,
     });
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
