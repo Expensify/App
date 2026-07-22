@@ -13090,11 +13090,9 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
 }
 
 function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
-    if (report && isInvoiceReport(report)) {
-        const properInvoiceReport = report;
-        properInvoiceReport.chatReportID = report.parentReportID;
-
-        return getInvoiceReportName(properInvoiceReport, translate);
+    const reportForHeader = getReportForHeader(report);
+    if (reportForHeader && isInvoiceReport(reportForHeader)) {
+        return getInvoiceReportName(reportForHeader, translate);
     }
 
     if (action?.reportName) {
