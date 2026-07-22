@@ -227,7 +227,7 @@ describe('ValidateLoginPage', () => {
     });
 
     it('Should redirect to the sign-in page to enter the 2FA code when a validate code is cached', async () => {
-        // Initiating browser: the magic-link attempt stored `credentials.validateCode` and 2FA is
+        // Initiating browser: the security-link attempt stored `credentials.validateCode` and 2FA is
         // required. SignInPage reuses that code to render the authenticator-code stage, so we replace
         // the consumed /v/ route with the sign-in page instead of the dead-end "2FA required" modal.
         await act(async () => {

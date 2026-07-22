@@ -1501,8 +1501,8 @@ const canAnonymousUserAccessRoute = (route: string) => {
         return true;
     }
 
-    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
-    if (isMagicLink) {
+    const isSecurityLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
+    if (isSecurityLink) {
         return true;
     }
 

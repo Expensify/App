@@ -82,7 +82,7 @@ function TravelCVVPage() {
             return;
         }
         // Permanent conditions — set the ref so we never retry auto-navigation.
-        // If CVV is already revealed there's no reason to navigate to the magic
+        // If CVV is already revealed there's no reason to navigate to the validate
         // code screen, and delegates are not allowed to request one. Unlike the
         // transient guards below (offline / locked), these won't change during
         // this mount, so we mark the ref to stop future effect re-runs.
