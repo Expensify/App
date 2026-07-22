@@ -32,7 +32,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -72,6 +72,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             currentUserAccountID: currentUserPersonalDetails?.accountID,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
         });
 
         clearSelectedTransactions(undefined, true);

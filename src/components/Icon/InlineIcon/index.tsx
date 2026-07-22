@@ -1,4 +1,4 @@
-import type {IconSize} from '@components/Icon/utils/resolveIconSize';
+import type IconSize from '@components/Icon/types';
 import ImageSVG from '@components/ImageSVG';
 
 import useStyleUtils from '@hooks/useStyleUtils';

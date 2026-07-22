@@ -1,4 +1,5 @@
 import DateUtils from '@libs/DateUtils';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -62,7 +63,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
@@ -81,7 +81,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
@@ -121,7 +120,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
@@ -148,7 +146,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
@@ -164,7 +161,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         resolve();
@@ -200,7 +196,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -216,7 +211,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -251,7 +245,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -267,7 +260,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -299,7 +291,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -326,7 +317,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -351,7 +341,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -388,7 +377,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -404,7 +392,7 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
         });
 
-        it('uses the explicit personal details list to decide new-member success-data participants instead of the deprecated copy', () => {
+        it('uses new personal details onyx data to decide new-member success-data participants instead of the deprecated copy', () => {
             const policyID = '1';
             const policy = {...createRandomPolicy(Number(policyID))};
 
@@ -413,16 +401,14 @@ describe('actions/PolicyMember', () => {
             const absentMemberEmail = 'absent@example.com';
             const absentMemberAccountID = 8765;
 
-            // The personal details list knows the "present" member but not the "absent" one.
-            const personalDetailsList = {[presentMemberAccountID]: {accountID: presentMemberAccountID, login: presentMemberEmail}};
+            const newPersonalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers([absentMemberEmail], [absentMemberAccountID], TestHelper.formatPhoneNumber);
 
             const {membersChats} = Member.buildAddMembersToWorkspaceOnyxData(
                 {[presentMemberEmail]: presentMemberAccountID, [absentMemberEmail]: absentMemberAccountID},
+                newPersonalDetailsOnyxData,
                 policy,
                 [],
                 CONST.POLICY.ROLE.USER,
-                TestHelper.formatPhoneNumber,
-                personalDetailsList,
                 currentUser,
                 undefined,
             );
@@ -524,7 +510,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -557,7 +542,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -1100,6 +1084,15 @@ describe('actions/PolicyMember', () => {
             // Then it should show the singular member added success message
             expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.pendingMessageKey).toBeUndefined();
+        });
+
+        it('should include a role permission warning when restricted roles are replaced', async () => {
+            const policy = createRandomPolicy(1);
+
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER}], true);
+
+            expect(importFinalModal.pendingMessageKey).toBe('spreadsheet.importMembersRolePermissionWarning');
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -1271,7 +1264,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<typeof invitedEmailsToAccountIDs | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as typeof invitedEmailsToAccountIDs | null | undefined);
@@ -1313,7 +1305,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1350,7 +1341,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1383,7 +1373,6 @@ describe('actions/PolicyMember', () => {
             const savedDraft1 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID1}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1394,7 +1383,6 @@ describe('actions/PolicyMember', () => {
             const savedDraft2 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID2}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1427,7 +1415,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
@@ -1459,7 +1446,6 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value as Record<string, number> | null | undefined);
