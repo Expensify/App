@@ -62,7 +62,7 @@ export default Repack.defineRspackConfig((env) => {
                     include: [path.resolve(__dirname, 'src')],
                     type: 'javascript/auto',
                     use: [
-                        {loader: path.resolve(__dirname, './config/repack/swcLazyImportsLoader.mjs')},
+                        {loader: path.resolve(__dirname, './config/repack/swc-lazy-imports-loader.mjs')},
                         {loader: path.resolve(__dirname, './config/rsbuild/loaders/worklets-loader.mjs')},
                         {
                             loader: path.resolve(__dirname, './config/rsbuild/loaders/oxc-react-compiler-loader.mjs'),
