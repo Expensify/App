@@ -789,7 +789,7 @@ function MenuItem({
             return (
                 <DisplayNames
                     fullTitle={title}
-                    shouldParseFullTitle={shouldRenderTitleAsHTML || shouldParseTitle}
+                    shouldParseFullTitle={!shouldRenderAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
