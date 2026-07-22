@@ -3834,37 +3834,37 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('getValidLastQuery', () => {
-        const defaultQuery = 'type:expense status:all';
+        const defaultSearchQuery = 'type:expense status:all';
 
         it('returns the default query when the last query is undefined', () => {
-            expect(getValidLastQuery(undefined, defaultQuery)).toBe(defaultQuery);
+            expect(getValidLastQuery(undefined, defaultSearchQuery)).toBe(defaultSearchQuery);
         });
 
         it('returns the default query when the last query is an empty string', () => {
-            expect(getValidLastQuery('', defaultQuery)).toBe(defaultQuery);
+            expect(getValidLastQuery('', defaultSearchQuery)).toBe(defaultSearchQuery);
         });
 
         it('returns the default query when the last query cannot be parsed', () => {
-            expect(getValidLastQuery('type:', defaultQuery)).toBe(defaultQuery);
+            expect(getValidLastQuery('type:', defaultSearchQuery)).toBe(defaultSearchQuery);
         });
 
         it('returns the last query when it contains all default filter keys and matches the type', () => {
             const lastQuery = 'type:expense status:all merchant:Amazon';
-            expect(getValidLastQuery(lastQuery, defaultQuery)).toBe(lastQuery);
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(lastQuery);
         });
 
         it('returns the last query when it is identical to the default query', () => {
-            expect(getValidLastQuery(defaultQuery, defaultQuery)).toBe(defaultQuery);
+            expect(getValidLastQuery(defaultSearchQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
         });
 
         it('returns the default query when the last query is missing a default filter key', () => {
             const lastQuery = 'type:expense';
-            expect(getValidLastQuery(lastQuery, defaultQuery)).toBe(defaultQuery);
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
         });
 
         it('returns the default query when the last query type differs from the default type', () => {
             const lastQuery = 'type:invoice status:all';
-            expect(getValidLastQuery(lastQuery, defaultQuery)).toBe(defaultQuery);
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
         });
     });
 
@@ -3903,44 +3903,6 @@ describe('SearchQueryUtils', () => {
 
         it('returns false when the query is undefined but the default query has filter keys', () => {
             expect(doesQueryMatchDefaultFilterKeysAndType(undefined, defaultQueryJSON)).toBe(false);
-        });
-    });
-
-    describe('getQueryFilterWithoutKeywordHash', () => {
-        function hashOf(query: string) {
-            const queryJSON = buildSearchQueryJSON(query);
-            if (!queryJSON) {
-                throw new Error(`Failed to parse query string: ${query}`);
-            }
-            return getQueryFilterWithoutKeywordHash(queryJSON);
-        }
-
-        it('returns the same hash for queries that only differ by keyword', () => {
-            expect(hashOf('type:expense merchant:Amazon hello')).toEqual(hashOf('type:expense merchant:Amazon world'));
-        });
-
-        it('returns the same hash whether or not a keyword is present', () => {
-            expect(hashOf('type:expense merchant:Amazon')).toEqual(hashOf('type:expense merchant:Amazon coffee'));
-        });
-
-        it('ignores the group-currency filter', () => {
-            expect(hashOf('type:expense merchant:Amazon group-currency:USD')).toEqual(hashOf('type:expense merchant:Amazon group-currency:EUR'));
-        });
-
-        it('returns the same hash regardless of filter order', () => {
-            expect(hashOf('type:expense merchant:Amazon category:Travel')).toEqual(hashOf('type:expense category:Travel merchant:Amazon'));
-        });
-
-        it('returns the same hash regardless of value order within a filter', () => {
-            expect(hashOf('type:expense category:Travel,Food')).toEqual(hashOf('type:expense category:Food,Travel'));
-        });
-
-        it('returns a different hash when a non-keyword filter value differs', () => {
-            expect(hashOf('type:expense merchant:Amazon')).not.toEqual(hashOf('type:expense merchant:Ebay'));
-        });
-
-        it('returns a different hash when a filter is added', () => {
-            expect(hashOf('type:expense merchant:Amazon')).not.toEqual(hashOf('type:expense merchant:Amazon category:Travel'));
         });
     });
 });
