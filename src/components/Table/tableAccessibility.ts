@@ -148,28 +148,33 @@ type CellElementProps = {
  * lets a screen reader align cells with their column header (Ctrl+Option/Alt+Up/Down navigation on macOS VoiceOver),
  * which it cannot do otherwise because every row renders as its own grid rather than sharing one table grid, and the
  * leading selection checkbox shifts each following column by one. Wrapper elements (fragments, conditional containers)
- * are traversed transparently so only real cells are numbered, and the counter is shared across the recursion so the
- * numbering is continuous. The default `counter` is created per top-level call, so each row starts again at column 1.
+ * are traversed transparently so only real cells are numbered, and the shared counter keeps the numbering continuous
+ * across the recursion. Numbering restarts at column 1 on each top-level call, so each row is numbered independently.
  */
-function assignCellColumnIndexes(node: React.ReactNode, counter: {current: number} = {current: 1}): React.ReactNode {
-    return React.Children.map(node, (child) => {
-        if (!React.isValidElement<CellElementProps>(child)) {
+function assignCellColumnIndexes(node: React.ReactNode): React.ReactNode {
+    let nextColumnIndex = 1;
+
+    const tagCells = (currentNode: React.ReactNode): React.ReactNode =>
+        React.Children.map(currentNode, (child) => {
+            if (!React.isValidElement<CellElementProps>(child)) {
+                return child;
+            }
+
+            if (child.props.role === CONST.ROLE.CELL) {
+                const columnIndex = nextColumnIndex;
+                nextColumnIndex += 1;
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                return React.cloneElement(child, {'aria-colindex': columnIndex});
+            }
+
+            if (child.props.children != null) {
+                return React.cloneElement(child, undefined, tagCells(child.props.children));
+            }
+
             return child;
-        }
+        });
 
-        if (child.props.role === CONST.ROLE.CELL) {
-            const columnIndex = counter.current;
-            counter.current += 1;
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            return React.cloneElement(child, {'aria-colindex': columnIndex});
-        }
-
-        if (child.props.children != null) {
-            return React.cloneElement(child, undefined, assignCellColumnIndexes(child.props.children, counter));
-        }
-
-        return child;
-    });
+    return tagCells(node);
 }
 
 export {
