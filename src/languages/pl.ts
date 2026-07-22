@@ -518,7 +518,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} z ${total}`,
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
         tryAgain: 'Spróbuj ponownie',
@@ -4419,6 +4418,24 @@ ${amount} dla ${merchant} - ${date}`,
             subtitle: 'Podaj swój numer identyfikacji podatkowej podmiotu prawnego, żebyśmy mogli skonfigurować rozliczenia za podróże w twojej lokalnej walucie.',
             inputLabel: 'NIP podmiotu prawnego',
             error: {required: 'Podaj swój identyfikator podatkowy podmiotu prawnego.'},
+        },
+        nudge: {
+            airfareManual:
+                'Hej! Wiedziałeś, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Następnym razem uniknij zachodu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać pobytami w hotelu bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Hej! Wiedziałeś, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem uniknij zachodu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Hej! Wiedziałeś, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? Następnym razem uniknij zachodu z ręcznym tworzeniem wydatku i po prostu zarezerwuj podróż przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że aplikacja automatycznie przesyła za ciebie paragony? Następnym razem po prostu zarezerwuj podróż przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -8909,6 +8926,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         serverResults: 'Wyniki wyszukiwania',
         searchIn: 'Szukaj w',
         askConcierge: (message: string) => `Zapytaj Concierge: „${message}”`,
+        goTo: ({destination}: {destination: string}) => `Przejdź do ${destination}`,
         searchPlaceholder: 'Wyszukaj coś...',
         suggestions: 'Sugestie',
         suggestionsAvailable: (
