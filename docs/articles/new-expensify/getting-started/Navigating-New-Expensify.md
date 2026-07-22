@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs and primary action buttons. Does not explain the detailed behavior of the Home tab sections.
+description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -191,11 +191,27 @@ If you’re not sure where to go:
 
 ---
 
+## How to jump to a destination using Search
+
+You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+3. Select the **Go to [destination]** result to open it.
+
+Type at least the first three letters of a destination name for its result to appear. Typing **go** or **go to** on its own lists all five top-level destinations in alphabetical order.
+
+---
+
 # FAQ
 
 ## Where are navigation tabs located in Expensify?
 
 On web, navigation tabs appear on the left. On mobile, navigation tabs appear on the bottom.
+
+## Can I use Search to move between sections of Expensify?
+
+Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
 
 ## Where do I manage workspace settings?
 
