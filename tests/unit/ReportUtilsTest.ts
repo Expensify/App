@@ -1214,14 +1214,52 @@ describe('ReportUtils', () => {
             const workspaceChat = LHNTestUtils.getFakeReport();
             workspaceChat.policyID = workspace.id;
 
-            expect(getWorkspaceIcon(workspaceChat, workspace).source).toBe(getDefaultWorkspaceAvatar(workspace.name));
+            expect(getWorkspaceIcon(workspaceChat, translateLocal, workspace).source).toBe(getDefaultWorkspaceAvatar(workspace.name));
 
             // When the user uploads a new avatar
             const newAvatarURL = 'https://example.com';
             workspace.avatarURL = newAvatarURL;
 
             // Then it should return the new avatar
-            expect(getWorkspaceIcon(workspaceChat, workspace).source).toBe(newAvatarURL);
+            expect(getWorkspaceIcon(workspaceChat, translateLocal, workspace).source).toBe(newAvatarURL);
+        });
+
+        it('should use the passed translate to name the workspace when the policy name cannot be resolved', () => {
+            // Given a report whose policy is unavailable and that carries no stored policy name
+            const report = {...LHNTestUtils.getFakeReport(), policyID: 'nonExistentPolicyID1'};
+            // And a custom translate that returns a sentinel for the unavailable-workspace key
+            const customTranslate: LocalizedTranslate = () => 'CUSTOM_UNAVAILABLE_WS';
+
+            // When the workspace icon is built with that translate
+            const icon = getWorkspaceIcon(report, customTranslate);
+
+            // Then the icon name comes from the passed translate, proving it is threaded into getPolicyName
+            expect(icon.name).toBe('CUSTOM_UNAVAILABLE_WS');
+        });
+
+        it('should fall back to the localized "Unavailable workspace" string when using the real translate', () => {
+            // Given a report whose policy is unavailable and that carries no stored policy name
+            const report = {...LHNTestUtils.getFakeReport(), policyID: 'nonExistentPolicyID2'};
+
+            // When the workspace icon is built with the real translate
+            const icon = getWorkspaceIcon(report, translateLocal);
+
+            // Then the name is the localized unavailable-workspace string
+            expect(icon.name).toBe(translateLocal('workspace.common.unavailable'));
+        });
+
+        it('should use the resolved policy name rather than the translate fallback when the policy is available', () => {
+            // Given an available policy and a report pointing at it
+            const policy = LHNTestUtils.getFakePolicy('wsIconAvailableID', 'Available WS');
+            const report = {...LHNTestUtils.getFakeReport(), policyID: policy.id};
+            // And a custom translate that would surface a sentinel if the fallback were used
+            const customTranslate: LocalizedTranslate = () => 'CUSTOM_UNAVAILABLE_WS';
+
+            // When the workspace icon is built with the available policy
+            const icon = getWorkspaceIcon(report, customTranslate, policy);
+
+            // Then the icon uses the real policy name, not the translate fallback
+            expect(icon.name).toBe('Available WS');
         });
     });
 
