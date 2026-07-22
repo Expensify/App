@@ -205,7 +205,6 @@ Onyx.connectWithoutView({
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
     callback: (value) => {
         policies = value;
     },
@@ -245,7 +244,6 @@ Onyx.connectWithoutView({
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SECURITY_GROUP,
-    waitForCollectionCallback: true,
     callback: (value) => {
         securityGroups = value;
     },
