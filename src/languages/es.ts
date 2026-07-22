@@ -469,7 +469,6 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -4314,6 +4313,24 @@ ${amount} para ${merchant} - ${date}`,
         carRental: ' de alquiler de coche',
         nightIn: 'noche en',
         nightsIn: 'noches en',
+        nudge: {
+            airfareManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar estancias de hotel directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar estancias en hoteles directamente en Expensify? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar alquileres de coche directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Hola, ¿sabías que puedes reservar y gestionar coches de alquiler directamente en Expensify? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Hola, ¿sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube automáticamente los recibos por ti? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',
@@ -6300,6 +6317,8 @@ ${amount} para ${merchant} - ${date}`,
                 accountingMismatch: ({part}: {part: string}) =>
                     `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
                 travelAddressMismatch: 'Solo puedes copiar los viajes si cada espacio de trabajo seleccionado tiene una dirección de empresa.',
+                currencyBlockedByBankAccount:
+                    'Solo puedes copiar la divisa si todos los espacios de trabajo seleccionados con una cuenta bancaria conectada usan la divisa del espacio de trabajo de origen.',
             },
             confirmSettings: {
                 title: 'Vamos a asegurarnos de que todo se vea bien.',
@@ -8437,6 +8456,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copió miembros de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `se copió 1 campo de informe desde <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -8769,6 +8789,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         serverResults: 'Resultados de búsqueda',
         searchIn: 'Buscar en',
         askConcierge: (message: string) => `Pregunta a Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Ir a ${destination}`,
         searchPlaceholder: 'Busca algo...',
         suggestions: 'Sugerencias',
         suggestionsAvailable: (
