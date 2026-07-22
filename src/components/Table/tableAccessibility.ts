@@ -4,6 +4,8 @@ import CONST from '@src/CONST';
 
 import type {Role} from 'react-native';
 
+import React from 'react';
+
 import type {SortOrder} from './middlewares/sorting';
 
 /**
@@ -25,6 +27,7 @@ type TableAccessibilityProps = {
     'aria-rowcount'?: number;
     'aria-colcount'?: number;
     'aria-rowindex'?: number;
+    'aria-colindex'?: number;
     'aria-sort'?: 'ascending' | 'descending' | 'none';
     /* eslint-enable @typescript-eslint/naming-convention */
 };
@@ -39,8 +42,9 @@ function shouldUseTableSemantics(shouldUseNarrowTableLayout: boolean): boolean {
 
 /**
  * Props for the element wrapping the whole table. The row count lives on the container because FlashList virtualizes
- * rows, so a screen reader cannot derive the total by walking the DOM. The column count only covers the data columns:
- * the selection checkbox renders in an extra leading grid column, but it is a control rather than a data cell.
+ * rows, so a screen reader cannot derive the total by walking the DOM. `columnCount` includes the leading selection
+ * column when present, so it matches the 1-based `aria-colindex` assigned to headers and cells (the checkbox is
+ * column 1).
  */
 function getTableContainerAccessibilityProps(isEnabled: boolean, label: string | undefined, rowCount: number, columnCount: number): TableAccessibilityProps {
     if (!isEnabled) {
@@ -87,14 +91,20 @@ function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeader
 
 /**
  * Props for a column header, including the direction the column is currently sorted in. `sortOrder` is only read for
- * sortable columns, so non-sortable headers (e.g. the select-all corner) can omit it.
+ * sortable columns, so non-sortable headers (e.g. the select-all corner) can omit it. `columnIndex` is 1-based and has
+ * to be set so a screen reader can align each header with the data cells below it (see `assignCellColumnIndexes`),
+ * because every row renders as its own grid rather than sharing one table grid.
  */
-function getColumnHeaderAccessibilityProps(isEnabled: boolean, isSortable: boolean, isActiveSortColumn: boolean, sortOrder?: SortOrder): TableAccessibilityProps {
+function getColumnHeaderAccessibilityProps(isEnabled: boolean, isSortable: boolean, isActiveSortColumn: boolean, sortOrder?: SortOrder, columnIndex?: number): TableAccessibilityProps {
     if (!isEnabled) {
         return {};
     }
 
     const columnHeaderProps: TableAccessibilityProps = {role: CONST.ROLE.COLUMNHEADER};
+
+    if (columnIndex !== undefined) {
+        columnHeaderProps['aria-colindex'] = columnIndex;
+    }
 
     if (isSortable) {
         if (!isActiveSortColumn) {
@@ -107,13 +117,67 @@ function getColumnHeaderAccessibilityProps(isEnabled: boolean, isSortable: boole
     return columnHeaderProps;
 }
 
-/** Props for a single data cell of a table row. */
-function getCellAccessibilityProps(isEnabled: boolean): TableAccessibilityProps {
+/**
+ * Props for a single data cell of a table row. `columnIndex` is 1-based; it is normally assigned centrally by
+ * `assignCellColumnIndexes` (which counts the selection column), but callers that know their position can pass it.
+ */
+function getCellAccessibilityProps(isEnabled: boolean, columnIndex?: number): TableAccessibilityProps {
     if (!isEnabled) {
         return {};
     }
 
-    return {role: CONST.ROLE.CELL};
+    const cellProps: TableAccessibilityProps = {role: CONST.ROLE.CELL};
+
+    if (columnIndex !== undefined) {
+        cellProps['aria-colindex'] = columnIndex;
+    }
+
+    return cellProps;
 }
 
-export {shouldUseTableSemantics, getTableContainerAccessibilityProps, getRowGroupAccessibilityProps, getRowAccessibilityProps, getColumnHeaderAccessibilityProps, getCellAccessibilityProps};
+/* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
+type CellElementProps = {
+    role?: string;
+    children?: React.ReactNode;
+    'aria-colindex'?: number;
+};
+/* eslint-enable @typescript-eslint/naming-convention */
+
+/**
+ * Clones a row's cell subtree, tagging each `role="cell"` element with a 1-based `aria-colindex` in document order. This
+ * lets a screen reader align cells with their column header (Ctrl+Option/Alt+Up/Down navigation on macOS VoiceOver),
+ * which it cannot do otherwise because every row renders as its own grid rather than sharing one table grid, and the
+ * leading selection checkbox shifts each following column by one. Wrapper elements (fragments, conditional containers)
+ * are traversed transparently so only real cells are numbered, and the counter is shared across the recursion so the
+ * numbering is continuous. The default `counter` is created per top-level call, so each row starts again at column 1.
+ */
+function assignCellColumnIndexes(node: React.ReactNode, counter: {current: number} = {current: 1}): React.ReactNode {
+    return React.Children.map(node, (child) => {
+        if (!React.isValidElement<CellElementProps>(child)) {
+            return child;
+        }
+
+        if (child.props.role === CONST.ROLE.CELL) {
+            const columnIndex = counter.current;
+            counter.current += 1;
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            return React.cloneElement(child, {'aria-colindex': columnIndex});
+        }
+
+        if (child.props.children != null) {
+            return React.cloneElement(child, undefined, assignCellColumnIndexes(child.props.children, counter));
+        }
+
+        return child;
+    });
+}
+
+export {
+    shouldUseTableSemantics,
+    getTableContainerAccessibilityProps,
+    getRowGroupAccessibilityProps,
+    getRowAccessibilityProps,
+    getColumnHeaderAccessibilityProps,
+    getCellAccessibilityProps,
+    assignCellColumnIndexes,
+};

@@ -148,10 +148,10 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             {!shouldUseNarrowTableLayout && (
                 <>
                     {!!selectionEnabled && (
-                        // When semantics apply, this is exposed as a (non-sortable) column header so the header column
-                        // count matches the data rows, which include the selection checkbox cell. The accessibility
-                        // props are empty otherwise, leaving the checkbox's layout unchanged.
-                        <View {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false)}>
+                        // When semantics apply, this is exposed as the first (non-sortable) column header so the header
+                        // column count matches the data rows, which include the selection checkbox cell. The
+                        // accessibility props are empty otherwise, leaving the checkbox's layout unchanged.
+                        <View {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}>
                             <Checkbox
                                 disabled={!hasSelectableRows}
                                 isChecked={isEverySelectableRowSelected}
@@ -162,11 +162,14 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                         </View>
                     )}
 
-                    {columns.map((column) => {
+                    {columns.map((column, index) => {
                         return (
                             <TableHeaderColumn
                                 column={column}
                                 isTableSemanticsEnabled={isTableSemanticsEnabled}
+                                // 1-based, and offset by the leading selection column (column 1) when present, so it
+                                // aligns with the matching data cell's aria-colindex.
+                                columnIndex={index + 1 + (isSelectionCheckboxVisible ? 1 : 0)}
                                 key={column.key}
                             />
                         );
@@ -186,9 +189,11 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({
     column,
     isTableSemanticsEnabled,
+    columnIndex,
 }: {
     column: TableColumn<ColumnKey>;
     isTableSemanticsEnabled: boolean;
+    columnIndex: number;
 }) {
     const theme = useTheme();
     const toggleCount = useRef(0);
@@ -236,12 +241,15 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={tableHeaderStyles}
             onPress={() => toggleSorting(column.key)}
-            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, !!column.sortable, isSortingByColumn, activeSorting.order)}
+            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
             <Text
                 numberOfLines={1}
                 color={theme.textSupporting}
                 style={[styles.lh16, isSortingByColumn ? styles.textMicroBoldSupporting : styles.textMicroSupporting]}
+                // When semantics apply, the columnheader is already named by accessibilityLabel (aria-label), so the
+                // visible label is hidden from assistive tech to avoid the header being announced twice.
+                aria-hidden={isTableSemanticsEnabled ? true : undefined}
             >
                 {column.label}
             </Text>

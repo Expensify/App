@@ -21,7 +21,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import {getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
+import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
@@ -252,24 +252,42 @@ export default function TableRow({
                 onLongPress={handleRowLongPress}
                 {...props}
             >
-                {(state) => (
-                    <Animated.View style={tableRowContentContainerStyles}>
-                        <View style={tableRowContentStyles}>
+                {(state) => {
+                    const rowCells = (
+                        <>
                             {!!isSelectionCheckboxVisible && renderSelectionCheckbox()}
                             {renderChildren(state)}
-                        </View>
+                        </>
+                    );
 
-                        {rowFooter}
+                    return (
+                        // When semantics apply, these two layout wrappers are marked presentational so the cells become
+                        // direct children of the row in the accessibility tree. macOS VoiceOver otherwise sees a generic
+                        // group between the row and its cells and cannot navigate columns (Ctrl+Option+Up/Down).
+                        <Animated.View
+                            style={tableRowContentContainerStyles}
+                            role={isTableSemanticsEnabled ? CONST.ROLE.PRESENTATION : undefined}
+                        >
+                            {/* Each cell is also tagged with a 1-based aria-colindex so the screen reader can align columns across rows. */}
+                            <View
+                                style={tableRowContentStyles}
+                                role={isTableSemanticsEnabled ? CONST.ROLE.PRESENTATION : undefined}
+                            >
+                                {isTableSemanticsEnabled ? assignCellColumnIndexes(rowCells) : rowCells}
+                            </View>
 
-                        {!!offlineWithFeedback?.errors && (
-                            <ErrorMessageRow
-                                errors={offlineWithFeedback.errors}
-                                dismissError={offlineWithFeedback.dismissError}
-                                onDismiss={offlineWithFeedback.onClose}
-                            />
-                        )}
-                    </Animated.View>
-                )}
+                            {rowFooter}
+
+                            {!!offlineWithFeedback?.errors && (
+                                <ErrorMessageRow
+                                    errors={offlineWithFeedback.errors}
+                                    dismissError={offlineWithFeedback.dismissError}
+                                    onDismiss={offlineWithFeedback.onClose}
+                                />
+                            )}
+                        </Animated.View>
+                    );
+                }}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
