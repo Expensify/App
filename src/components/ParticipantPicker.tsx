@@ -1,4 +1,5 @@
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 
@@ -7,6 +8,7 @@ import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import React from 'react';
+import {Platform, StyleSheet, View} from 'react-native';
 
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Modal from './Modal';
@@ -65,6 +67,7 @@ function ParticipantPicker({
     onBackdropPress,
 }: ParticipantPickerProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     const selectedParticipantsWithoutReport = selectedParticipant && !selectedParticipant.reportID ? [selectedParticipant] : CONST.EMPTY_ARRAY;
@@ -91,6 +94,32 @@ function ParticipantPicker({
         return pickerContent;
     }
 
+    const pickerScreen = (
+        <ScreenWrapper
+            includePaddingTop={false}
+            shouldEnableKeyboardAvoidingView={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
+            testID="ParticipantPickerModal"
+        >
+            <HeaderWithBackButton
+                title={translate('iou.chooseRecipient')}
+                shouldShowBackButton
+                onBackButtonPress={onClose}
+            />
+            {pickerContent}
+        </ScreenWrapper>
+    );
+
+    // On iOS, presenting this picker as a native <Modal> while it is embedded inside the create-expense RHP
+    // (itself a modal presentation) deadlocks the main thread - opening the picker and then interacting with the
+    // confirmation freezes the whole app (#96609 / #96550)
+    if (Platform.OS === 'ios') {
+        if (!isVisible) {
+            return null;
+        }
+        return <View style={[StyleSheet.absoluteFill, styles.appBG, {zIndex: 10}]}>{pickerScreen}</View>;
+    }
+
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -100,19 +129,7 @@ function ParticipantPicker({
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <ScreenWrapper
-                includePaddingTop={false}
-                shouldEnableKeyboardAvoidingView={false}
-                enableEdgeToEdgeBottomSafeAreaPadding
-                testID="ParticipantPickerModal"
-            >
-                <HeaderWithBackButton
-                    title={translate('iou.chooseRecipient')}
-                    shouldShowBackButton
-                    onBackButtonPress={onClose}
-                />
-                {pickerContent}
-            </ScreenWrapper>
+            {pickerScreen}
         </Modal>
     );
 }
