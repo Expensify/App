@@ -911,8 +911,7 @@ describe('CardUtils', () => {
                         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: {pending: false},
                         // Gray-zone feed without assigned cards — filtered
                         // cspell:disable-next-line
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This legacy feed key is accepted at runtime but is not modeled by CompanyCardFeed.
-                        ['capitalonecards' as CompanyCardFeed]: {pending: false},
+                        ['capitalonecards' as CompanyCardFeed]: {pending: false}, // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion -- This legacy feed key is accepted at runtime but is not modeled by CompanyCardFeed.
                     },
                     oAuthAccountDetails: {
                         [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
