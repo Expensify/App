@@ -109,6 +109,7 @@ import {
     getParentNavigationSubtitle,
     getParsedComment,
     getParticipantsList,
+    getPayeeName,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
@@ -134,6 +135,7 @@ import {
     getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
+    getUserDetailTooltipText,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
     getWhisperDisplayNames,
@@ -1164,7 +1166,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
@@ -1174,7 +1176,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
@@ -1184,7 +1186,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: {}});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal});
             expect(name).toBe('Fallback Report Name');
         });
     });
@@ -6888,27 +6890,27 @@ describe('ReportUtils', () => {
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show 5 participants name with ellipsis if count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
@@ -6922,7 +6924,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count <= 5 and shouldApplyLimit is true', async () => {
@@ -6934,7 +6936,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count > 5 and shouldApplyLimit is true', async () => {
@@ -6946,7 +6948,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count > 5 and shouldApplyLimit is false', async () => {
@@ -6958,7 +6960,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('Should show participant names if report name is not available', async () => {
@@ -6970,7 +6972,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
         });
     });
@@ -9689,26 +9691,26 @@ describe('ReportUtils', () => {
 
         it('excludes the current user from the report title', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: currentUserAccountID + 2});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal});
             expect(result).not.toContain('CURRENT');
         });
 
         it('limits to a maximum of 5 participants in the title', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: 10});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal});
             expect(result.split(',').length).toBeLessThanOrEqual(5);
         });
 
         it('returns full name if only one participant is present (excluding current user)', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: 1});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal});
             const {displayName} = fakePersonalDetails[1] ?? {};
             expect(result).toEqual(displayName);
         });
 
         it('returns an empty string if there are no participants or all are excluded', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({start: currentUserAccountID - 1, count: 1});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal});
             expect(result).toEqual('');
         });
 
@@ -9719,7 +9721,7 @@ describe('ReportUtils', () => {
             const fourthUser = fakePersonalDetails[4];
 
             const incompleteDetails = {2: secondUser, 4: fourthUser};
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: incompleteDetails, currentUserAccountID});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: incompleteDetails, currentUserAccountID, translate: translateLocal});
             const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
             const resultNames = result.split(', ').sort();
             expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
@@ -16186,6 +16188,33 @@ describe('ReportUtils', () => {
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
                 expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, params));
             });
+
+            it('routes the participant display name through the injected translate function', async () => {
+                const hiddenManagerAccountID = 987654;
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-marker-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    managerID: hiddenManagerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                // A participant with no name resolves to the "hidden" copy, which is produced by the injected translate
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''},
+                });
+
+                // A translate that tags the hidden-participant fallback so we can prove the preview used it
+                const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
+                    path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
+
+                const result = getReportPreviewMessage(translateWithMarker, {reportOrID: iouReport});
+
+                // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+                expect(result).toContain('HiddenParticipantMarker');
+            });
         });
 
         describe('getReportPreviewReportActionMessage (hardcoded English)', () => {
@@ -16207,6 +16236,50 @@ describe('ReportUtils', () => {
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, {reportOrID: report}));
                 expect(result).toContain('owes');
             });
+        });
+    });
+
+    describe('getUserDetailTooltipText', () => {
+        it('routes the display name through the injected translate function', async () => {
+            const hiddenAccountID = 778899;
+            // A participant with no name resolves to the "hidden" copy, which is produced by the injected translate
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''},
+            });
+            await waitForBatchedUpdates();
+
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenTooltipMarker' : translate(CONST.LOCALES.EN, path, ...parameters));
+
+            // The nameless participant resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+            expect(getUserDetailTooltipText(hiddenAccountID, formatPhoneNumber, translateWithMarker)).toBe('HiddenTooltipMarker');
+        });
+
+        it('falls back to the provided display name when the participant has no resolvable name', () => {
+            // accountID 0 short-circuits getDisplayNameForParticipant to '', so the fallback name is returned
+            expect(getUserDetailTooltipText(0, formatPhoneNumber, translateLocal, 'Fallback Name')).toBe('Fallback Name');
+        });
+    });
+
+    describe('getPayeeName', () => {
+        it('routes the payee display name through the injected translate function', async () => {
+            const hiddenPayeeAccountID = 665544;
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'payee-marker-report',
+                participants: {
+                    [hiddenPayeeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            // A payee with no name resolves to the "hidden" copy, which is produced by the injected translate
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [hiddenPayeeAccountID]: {accountID: hiddenPayeeAccountID, login: '', displayName: ''},
+            });
+            await waitForBatchedUpdates();
+
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenPayeeMarker' : translate(CONST.LOCALES.EN, path, ...parameters));
+
+            // The nameless payee resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+            expect(getPayeeName(report, translateWithMarker)).toBe('HiddenPayeeMarker');
         });
     });
 
@@ -18251,6 +18324,22 @@ describe('ReportUtils', () => {
                 report: testReport,
                 policy: testPolicy,
                 policies: [otherPolicy],
+            });
+            expect(result).toBe('Test Policy Name');
+        });
+
+        it('should resolve the name from the policy parameter when the report carries no policy name', () => {
+            // Regression: a draft workspace's expense chat has no policyName/oldPolicyName and the draft policy isn't
+            // persisted, so the explicitly passed policy used to be ignored and "Unavailable workspace" was returned.
+            const reportWithoutPolicyName: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'policy123',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+            const result = getPolicyName({
+                report: reportWithoutPolicyName,
+                policy: testPolicy,
             });
             expect(result).toBe('Test Policy Name');
         });
