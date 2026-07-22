@@ -755,6 +755,8 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
+// TODO: Refactor to use options object parameter to reduce parameter count
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
     chatReport: OnyxEntry<Report>,
