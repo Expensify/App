@@ -216,6 +216,7 @@ export default function TableRow({
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel={accessibilityLabel}
+                id={`table-row-${item.keyForList}`}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
