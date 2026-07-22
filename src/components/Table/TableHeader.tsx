@@ -232,38 +232,67 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         !column.sortable && styles.cursorDefault,
     ];
 
-    return (
-        <PressableWithFeedback
-            accessible
-            accessibilityLabel={column.label}
-            accessibilityRole={isTableSemanticsEnabled ? undefined : 'button'}
-            disabled={!column.sortable}
-            sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
-            style={tableHeaderStyles}
-            onPress={() => toggleSorting(column.key)}
-            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
-        >
+    const label = (
+        <>
             <Text
                 numberOfLines={1}
                 color={theme.textSupporting}
                 style={[styles.lh16, isSortingByColumn ? styles.textMicroBoldSupporting : styles.textMicroSupporting]}
-                // When semantics apply, the columnheader is already named by accessibilityLabel (aria-label), so the
-                // visible label is hidden from assistive tech to avoid the header being announced twice.
+                // The button is already named by accessibilityLabel, so the visible label is hidden from assistive tech
+                // to avoid the header being announced twice (e.g. "Name Name").
                 aria-hidden={isTableSemanticsEnabled ? true : undefined}
             >
                 {column.label}
             </Text>
 
             {isSortingByColumn && (
-                <Icon
-                    additionalStyles={styles.ml1}
-                    width={variables.iconSizeExtraSmall}
-                    height={variables.iconSizeExtraSmall}
-                    src={sortIcon}
-                    fill={theme.icon}
-                />
+                // The sort direction is already conveyed by aria-sort on the columnheader, so the icon is decorative.
+                // Icon's native "hidden" props don't map to the web, so the wrapper hides it from assistive tech there.
+                <View aria-hidden={isTableSemanticsEnabled ? true : undefined}>
+                    <Icon
+                        additionalStyles={styles.ml1}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
+                        src={sortIcon}
+                        fill={theme.icon}
+                    />
+                </View>
             )}
+        </>
+    );
+
+    const sortButton = (
+        <PressableWithFeedback
+            accessible
+            accessibilityLabel={column.label}
+            accessibilityRole="button"
+            disabled={!column.sortable}
+            sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
+            style={
+                isTableSemanticsEnabled
+                    ? [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.flex1, !column.sortable && styles.cursorDefault]
+                    : tableHeaderStyles
+            }
+            onPress={() => toggleSorting(column.key)}
+        >
+            {label}
         </PressableWithFeedback>
+    );
+
+    if (!isTableSemanticsEnabled) {
+        return sortButton;
+    }
+
+    // Table semantics: the columnheader cell carries the ARIA role, sort state and column index, and it wraps a focusable
+    // button (the sort control). Keeping the interactive element separate from the cell means a screen reader focuses and
+    // announces the header once (via the button's accessibilityLabel) instead of re-reading the cell's contents.
+    return (
+        <View
+            style={[column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
+            {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
+        >
+            {sortButton}
+        </View>
     );
 }
 
