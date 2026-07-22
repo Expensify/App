@@ -1,3 +1,8 @@
+import ROUTES from '@src/ROUTES';
+
+import isPublicScreenRoute from './isPublicScreenRoute';
+import normalizePath from './Navigation/helpers/normalizePath';
+
 /**
  * Tracks whether a logged-out user opened a /concierge deep link so the app can
  * route them to Concierge after sign-up/onboarding. sessionStorage keeps the
@@ -113,6 +118,34 @@ function setPendingConciergeDeepLink() {
     setStoredFlag(PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
 }
 
+function getNormalizedRouteWithoutParams(route: string) {
+    const [routeWithoutParams] = normalizePath(route).split(/[?#]/, 1);
+    return routeWithoutParams.replace(/\/$/, '') || '/';
+}
+
+// Keep pending signup deep-link intent consistent across initial URL handling and later Linking URL events.
+function updatePendingConciergeDeepLinkForRoute(route: string, isAuthenticated: boolean) {
+    if (isAuthenticated) {
+        return;
+    }
+
+    const normalizedRoute = getNormalizedRouteWithoutParams(route);
+    const routeForPublicScreen = normalizedRoute === '/' ? '' : normalizedRoute.slice(1);
+
+    if (normalizedRoute === normalizePath(ROUTES.CONCIERGE)) {
+        setPendingConciergeDeepLink();
+    } else if (normalizedRoute === '/') {
+        // Root is an explicit normal signup intent, so it cancels Concierge unless it is a reload replay.
+        setPendingHomeDeepLinkForRoot();
+    } else if (normalizedRoute === normalizePath(ROUTES.HOME)) {
+        // /home can be generated during auth/startup reloads, so keep an existing Concierge intent if one is already stored.
+        setPendingHomeDeepLinkIfNoPendingConcierge();
+    } else if (!isPublicScreenRoute(routeForPublicScreen)) {
+        // A different protected/internal deep link should not inherit an older Concierge redirect.
+        clearPendingConciergeDeepLink();
+    }
+}
+
 function consumePendingHomeDeepLink() {
     const shouldNavigateHome = hasPendingHomeDeepLinkIntent();
     clearPendingHomeDeepLink();
@@ -129,6 +162,7 @@ export {
     setPendingConciergeDeepLink,
     setPendingHomeDeepLinkForRoot,
     setPendingHomeDeepLinkIfNoPendingConcierge,
+    updatePendingConciergeDeepLinkForRoute,
     consumePendingConciergeDeepLink,
     consumePendingHomeDeepLink,
     clearPendingConciergeDeepLink,

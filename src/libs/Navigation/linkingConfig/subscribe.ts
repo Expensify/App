@@ -1,10 +1,9 @@
 import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
-import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink, setPendingHomeDeepLinkIfNoPendingConcierge} from '@libs/PendingConciergeDeepLink';
+import {updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -59,20 +58,13 @@ function getNormalizedPathFromURL(url: string) {
     return (normalizePath(path).replace(/\/$/, '') || '/').toLowerCase();
 }
 
-const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
+const subscribe: NonNullable<LinkingOptions<RootNavigatorParamList>['subscribe']> = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
         const isAuthenticated = hasAuthToken();
         const normalizedPath = getNormalizedPathFromURL(url);
         const route = normalizedPath === '/' ? '' : normalizedPath.slice(1);
         if (!isAuthenticated && isInternalAppURL(url)) {
-            if (normalizedPath === normalizePath(ROUTES.CONCIERGE)) {
-                setPendingConciergeDeepLink();
-            } else if (normalizedPath === '/' || normalizedPath === normalizePath(ROUTES.HOME)) {
-                // URL events can be emitted by navigation restoration, so keep a persisted Concierge intent if one exists.
-                setPendingHomeDeepLinkIfNoPendingConcierge();
-            } else if (!isPublicScreenRoute(route)) {
-                clearPendingConciergeDeepLink();
-            }
+            updatePendingConciergeDeepLinkForRoute(route, isAuthenticated);
         }
 
         // Skip deep links to screens where the user is already focused.

@@ -64,6 +64,11 @@ function getReportIDAfterOnboarding(
     return undefined;
 }
 
+function isConciergeOnboardingVariant(variant: OnboardingRHPVariant | null | undefined) {
+    // These onboarding variants can open Concierge even after the pending /concierge deep-link flag has been cleared.
+    return variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE || variant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
+}
+
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
@@ -76,19 +81,27 @@ function navigateAfterOnboarding(
 ) {
     setDisableDismissOnEscape(false);
 
+    // Resolve signup deep-link intents before onboarding variants, so /concierge wins unless the user explicitly replaced it with /.
+    const shouldNavigateHomeFromDeepLink = consumePendingHomeDeepLink();
+    const shouldNavigateToConciergeFromDeepLink = consumePendingConciergeDeepLink();
+    if (!shouldNavigateHomeFromDeepLink && shouldNavigateToConciergeFromDeepLink) {
+        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
+        return;
+    }
+
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
     const variant = variantOverride ?? onboardingRHPVariant;
-    if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        consumePendingHomeDeepLink();
+    // If the user opened / after /concierge, keep that latest Home intent from being overridden by Concierge-specific onboarding variants.
+    const shouldBlockConciergeOnboardingVariant = shouldNavigateHomeFromDeepLink && isConciergeOnboardingVariant(variant);
+    if (!shouldBlockConciergeOnboardingVariant && isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         return;
     }
 
-    if (shouldOpenRHPVariant(variantOverride)) {
-        consumePendingHomeDeepLink();
+    if (!shouldBlockConciergeOnboardingVariant && shouldOpenRHPVariant(variantOverride)) {
         handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
         return;
     }
@@ -103,12 +116,9 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
-        consumePendingHomeDeepLink();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    } else if (consumePendingHomeDeepLink()) {
+    } else if (shouldNavigateHomeFromDeepLink) {
         Navigation.navigate(ROUTES.HOME);
-    } else if (consumePendingConciergeDeepLink()) {
-        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
     } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME);

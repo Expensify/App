@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
-import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink, setPendingHomeDeepLinkForRoot, setPendingHomeDeepLinkIfNoPendingConcierge} from '@libs/PendingConciergeDeepLink';
+import {updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -452,12 +452,6 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function isConciergeRoute(route: string) {
-    const [routeWithoutParams] = normalizePath(route).split(/[?#]/, 1);
-    const normalizedRoute = routeWithoutParams.replace(/\/$/, '');
-    return normalizedRoute === normalizePath(ROUTES.CONCIERGE);
-}
-
 function openReportFromDeepLink(
     url: string,
     reports: OnyxCollection<Report>,
@@ -503,22 +497,7 @@ function openReportFromDeepLink(
         route = '';
     }
 
-    const normalizedRoute = normalizePath(route);
-    const isRootRoute = !route || normalizedRoute === '/';
-    const isHomeRoute = normalizedRoute === normalizePath(ROUTES.HOME);
-    if (!isAuthenticated) {
-        if (isConciergeRoute(route)) {
-            setPendingConciergeDeepLink();
-        } else if (isRootRoute) {
-            // Root is a normal signup intent, but browser reloads can replay root after a preserved Concierge intent.
-            setPendingHomeDeepLinkForRoot();
-        } else if (isHomeRoute) {
-            // /home can be generated during auth/startup reloads, so keep an existing Concierge intent if one is already stored.
-            setPendingHomeDeepLinkIfNoPendingConcierge();
-        } else if (!isPublicScreenRoute(route)) {
-            clearPendingConciergeDeepLink();
-        }
-    }
+    updatePendingConciergeDeepLinkForRoute(route, isAuthenticated);
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
