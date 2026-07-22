@@ -248,8 +248,6 @@
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
 "../../src/components/Modal/ReanimatedModal/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.clearInteractionHandle"	1
 "../../src/components/Modal/ReanimatedModal/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.createInteractionHandle"	1
-"../../src/components/MoneyReportHeaderActions/MoneyReportHeaderSecondaryActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
-"../../src/components/MoneyReportHeaderActions/MoneyReportHeaderSelectionDropdown.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/MoneyReportHeaderActions/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyReportHeaderPrimaryAction/ApprovePrimaryAction.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyReportHeaderPrimaryAction/ExportPrimaryAction.tsx"	"no-restricted-imports"	1
@@ -257,7 +255,6 @@
 "../../src/components/MoneyReportHeaderPrimaryAction/MarkAsResolvedPrimaryAction.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyReportHeaderPrimaryAction/RemoveHoldPrimaryAction.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyReportHeaderPrimaryAction/ReviewDuplicatesPrimaryAction.tsx"	"no-restricted-imports"	1
-"../../src/components/MoneyReportHeaderPrimaryAction/SubmitPrimaryAction.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/MoneyRequestAmountInput.tsx"	"react-hooks/immutability"	2
 "../../src/components/MoneyRequestConfirmationList.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/MoneyRequestConfirmationList/ConfirmationFooterContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -516,7 +513,6 @@
 "../../src/components/Tooltip/GenericTooltip.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Tooltip/PopoverAnchorTooltip.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Tooltip/PopoverAnchorTooltip.tsx"	"react-hooks/refs"	7
-"../../src/components/TransactionItemRow/DataCells/ChatBubbleCell.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/TransactionItemRow/DataCells/MerchantCell.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TransactionItemRow/EditableCell/usePopoverEditState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UpdateAppModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -578,7 +574,6 @@
 "../../src/hooks/useKeyboardShortcut.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useLazyAsset.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useLazyAsset.ts"	"react-hooks/set-state-in-effect"	1
-"../../src/hooks/useLifecycleActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useListKeyboardNav.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useNativeCamera.ts"	"react-hooks/refs"	1
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
@@ -1164,7 +1159,6 @@
 "../../src/pages/ReimbursementAccount/utils/getSubStepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/ReportSubmitToContent.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/RequireTwoFactorAuthenticationOverlay.tsx"	"no-restricted-imports"	1
 "../../src/pages/RestrictedAction/Workspace/WorkspaceAdminRestrictedAction.tsx"	"no-restricted-imports"	1
 "../../src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction/index.native.tsx"	"no-restricted-imports"	1
