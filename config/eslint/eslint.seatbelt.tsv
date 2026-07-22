@@ -1065,7 +1065,6 @@
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
