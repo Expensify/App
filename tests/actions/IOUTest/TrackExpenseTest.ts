@@ -1297,6 +1297,8 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(draftExpenseChat),
                 isDraftPolicy: true,
+                // The expense chat is a draft, so getTrackExpenseInformation builds the workspace and posts onboarding tasks.
+                isDraftChatReport: true,
                 policyParams: {policy: draftPolicy},
                 // introSelected with no choice yet — the only state in which buildPolicyData adds onboarding tasks
                 introSelected: {},
