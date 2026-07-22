@@ -126,6 +126,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         currentSearchQueryJSON,
         currentDefaultSearchHash,
         currentDefaultSearchQueryString,
+        currentDefaultSearchQueryJSON,
         currentDefaultSearchQueryFilterKeys,
         suggestedSearches,
         shouldResetSearchQuery,

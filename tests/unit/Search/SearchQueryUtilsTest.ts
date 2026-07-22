@@ -26,6 +26,7 @@ import {
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
+    getQueryFilterWithoutKeywordHash,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
@@ -3902,6 +3903,44 @@ describe('SearchQueryUtils', () => {
 
         it('returns false when the query is undefined but the default query has filter keys', () => {
             expect(doesQueryMatchDefaultFilterKeysAndType(undefined, defaultQueryJSON)).toBe(false);
+        });
+    });
+
+    describe('getQueryFilterWithoutKeywordHash', () => {
+        function hashOf(query: string) {
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error(`Failed to parse query string: ${query}`);
+            }
+            return getQueryFilterWithoutKeywordHash(queryJSON);
+        }
+
+        it('returns the same hash for queries that only differ by keyword', () => {
+            expect(hashOf('type:expense merchant:Amazon hello')).toEqual(hashOf('type:expense merchant:Amazon world'));
+        });
+
+        it('returns the same hash whether or not a keyword is present', () => {
+            expect(hashOf('type:expense merchant:Amazon')).toEqual(hashOf('type:expense merchant:Amazon coffee'));
+        });
+
+        it('ignores the group-currency filter', () => {
+            expect(hashOf('type:expense merchant:Amazon group-currency:USD')).toEqual(hashOf('type:expense merchant:Amazon group-currency:EUR'));
+        });
+
+        it('returns the same hash regardless of filter order', () => {
+            expect(hashOf('type:expense merchant:Amazon category:Travel')).toEqual(hashOf('type:expense category:Travel merchant:Amazon'));
+        });
+
+        it('returns the same hash regardless of value order within a filter', () => {
+            expect(hashOf('type:expense category:Travel,Food')).toEqual(hashOf('type:expense category:Food,Travel'));
+        });
+
+        it('returns a different hash when a non-keyword filter value differs', () => {
+            expect(hashOf('type:expense merchant:Amazon')).not.toEqual(hashOf('type:expense merchant:Ebay'));
+        });
+
+        it('returns a different hash when a filter is added', () => {
+            expect(hashOf('type:expense merchant:Amazon')).not.toEqual(hashOf('type:expense merchant:Amazon category:Travel'));
         });
     });
 });

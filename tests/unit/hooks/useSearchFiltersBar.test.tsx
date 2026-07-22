@@ -56,11 +56,18 @@ function mockSearchQueryContext(overrides: Record<string, unknown> = {}) {
     mockUseSearchQueryContext.mockReturnValue({
         currentDefaultSearchQueryString: '',
         currentDefaultSearchQueryFilterKeys: [],
-        currentSearchHash: 0,
-        currentDefaultSearchHash: 0,
+        currentSearchQueryJSON: undefined,
+        currentDefaultSearchQueryJSON: undefined,
         ...overrides,
     });
 }
+
+function buildQueryJSON(flatFilters: SearchQueryJSON['flatFilters']): SearchQueryJSON {
+    return {...queryJSON, flatFilters};
+}
+
+const merchantFilters: SearchQueryJSON['flatFilters'] = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Uber'}]}];
+const categoryFilters: SearchQueryJSON['flatFilters'] = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Travel'}]}];
 
 describe('useSearchFiltersBar', () => {
     beforeEach(() => {
@@ -71,23 +78,29 @@ describe('useSearchFiltersBar', () => {
     });
 
     describe('shouldShowResetFilters', () => {
-        it('is true when the default hash differs from the current hash', () => {
-            mockSearchQueryContext({currentDefaultSearchHash: 1, currentSearchHash: 2});
+        it('is true when the default query filters differ from the current query filters', () => {
+            mockSearchQueryContext({
+                currentDefaultSearchQueryJSON: buildQueryJSON(merchantFilters),
+                currentSearchQueryJSON: buildQueryJSON(categoryFilters),
+            });
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
             expect(result.current.shouldShowResetFilters).toBe(true);
         });
 
-        it('is false when the default hash equals the current hash', () => {
-            mockSearchQueryContext({currentDefaultSearchHash: 5, currentSearchHash: 5});
+        it('is false when the default query filters equal the current query filters', () => {
+            mockSearchQueryContext({
+                currentDefaultSearchQueryJSON: buildQueryJSON(merchantFilters),
+                currentSearchQueryJSON: buildQueryJSON(merchantFilters),
+            });
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
             expect(result.current.shouldShowResetFilters).toBe(false);
         });
 
-        it('falls back to having filters when there is no default hash', () => {
+        it('falls back to having filters when there is no default query JSON', () => {
             mockSearchQueryContext();
             mockMapFiltersFormToLabelValueList.mockReturnValue([{key: 'merchant'}]);
 
@@ -96,7 +109,7 @@ describe('useSearchFiltersBar', () => {
             expect(result.current.shouldShowResetFilters).toBe(true);
         });
 
-        it('is false when there is no default hash and no filters', () => {
+        it('is false when there is no default query JSON and no filters', () => {
             mockSearchQueryContext();
             mockMapFiltersFormToLabelValueList.mockReturnValue([]);
 

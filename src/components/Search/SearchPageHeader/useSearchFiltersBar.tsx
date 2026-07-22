@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getQueryFilterWithoutKeywordHash} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP, getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -144,7 +145,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {currentDefaultSearchQueryString, currentDefaultSearchQueryFilterKeys, currentSearchHash, currentDefaultSearchHash} = useSearchQueryContext();
+    const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryString, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
@@ -215,7 +216,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
-        shouldShowResetFilters: currentDefaultSearchHash ? currentDefaultSearchHash !== currentSearchHash : filters.length > 0,
+        shouldShowResetFilters:
+            currentDefaultSearchQueryJSON && currentSearchQueryJSON
+                ? getQueryFilterWithoutKeywordHash(currentDefaultSearchQueryJSON) !== getQueryFilterWithoutKeywordHash(currentSearchQueryJSON)
+                : filters.length > 0,
         resetFilters,
     };
 }

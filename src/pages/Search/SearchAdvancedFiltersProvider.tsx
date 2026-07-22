@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getQueryFilterWithoutKeywordHash} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +41,7 @@ type SearchAdvancedFiltersProviderProps = {
 
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {currentDefaultSearchQueryString, currentSearchQueryJSON, currentSearchHash, currentDefaultSearchHash} = useSearchQueryContext();
+    const {currentDefaultSearchQueryString, currentDefaultSearchQueryJSON, currentSearchQueryJSON} = useSearchQueryContext();
     const {getUpdatedFilterFormValues, setFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
@@ -68,10 +69,11 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
 
     const searchAdvancedFiltersValue: SearchAdvancedFiltersValue = {
         currentDraftFilters: values,
-        shouldShowResetFilters: currentDefaultSearchHash
-            ? currentSearchHash !== currentDefaultSearchHash
-            : // Show the reset button only if a non-"type" filter is applied.
-              Object.values(searchAdvancedFiltersForm ?? {}).length > 1,
+        shouldShowResetFilters:
+            currentDefaultSearchQueryJSON && currentSearchQueryJSON
+                ? getQueryFilterWithoutKeywordHash(currentDefaultSearchQueryJSON) !== getQueryFilterWithoutKeywordHash(currentSearchQueryJSON)
+                : // Show the reset button only if a non-"type" filter is applied.
+                  Object.values(searchAdvancedFiltersForm ?? {}).length > 1,
     };
 
     const searchAdvancedFiltersActionValue: SearchAdvancedFiltersActionValue = {
