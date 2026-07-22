@@ -8848,7 +8848,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             emptyViolationSnapshotResults: {
                 subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
-                    `Les violations ne sont suivies qu'à partir du ${formattedDate}. Essayez d'ajuster vos filtres de date.`,
+                    `Les violations ne sont suivies qu’à partir du ${formattedDate}. Essayez d’ajuster vos filtres de date.`,
             },
             emptyUnapprovedResults: {
                 title: 'Aucune dépense à approuver',
@@ -8965,9 +8965,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation de voyages consolidée',
             },
             is: 'Est',
-            has: {
-                submittedViolation: 'Violation soumise',
-            },
+            has: {submittedViolation: 'Infraction soumise'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',

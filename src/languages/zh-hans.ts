@@ -8483,9 +8483,7 @@ ${reportName}`,
                 title: '没有可显示的报销记录',
                 subtitle: '没有结果。请尝试调整筛选条件。',
             },
-            emptyViolationSnapshotResults: {
-                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `违规记录仅从${formattedDate}开始追踪。请尝试调整日期筛选条件。`,
-            },
+            emptyViolationSnapshotResults: {subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `违规仅从 ${formattedDate} 起开始记录。请尝试调整您的日期筛选条件。`},
             emptyUnapprovedResults: {
                 title: '没有报销可审批',
                 subtitle: '零报销，最大轻松。干得好！',
@@ -8601,9 +8599,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '合并差旅账单',
             },
             is: '是',
-            has: {
-                submittedViolation: '已提交的违规',
-            },
+            has: {submittedViolation: '已提交违规'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',

@@ -8811,7 +8811,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle: 'Keine Ergebnisse. Bitte passe deine Filter an.',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Verstöße werden nur ab dem ${formattedDate} erfasst. Versuche, deine Datumsfilter anzupassen.`,
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Verstöße werden erst ab dem ${formattedDate} erfasst. Bitte passen Sie Ihre Datumsfilter an.`,
             },
             emptyUnapprovedResults: {
                 title: 'Keine Ausgaben zum Genehmigen',
@@ -8928,9 +8928,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Konsolidierte Reiseabrechnung',
             },
             is: 'Ist',
-            has: {
-                submittedViolation: 'Eingereichter Verstoß',
-            },
+            has: {submittedViolation: 'Eingereichter Verstoß'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Senden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',

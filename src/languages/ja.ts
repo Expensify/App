@@ -8683,7 +8683,7 @@ ${reportName}`,
                 subtitle: '結果がありません。フィルターの条件を調整してください。',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `違反は${formattedDate}以降のみ追跡されます。日付フィルターを調整してみてください。`,
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `違反は ${formattedDate} 以降のみ記録されています。日付フィルターを調整してみてください。`,
             },
             emptyUnapprovedResults: {
                 title: '承認する経費はありません',
@@ -8800,9 +8800,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '出張費の一括請求',
             },
             is: 'は',
-            has: {
-                submittedViolation: '提出された違反',
-            },
+            has: {submittedViolation: '違反を送信しました'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',

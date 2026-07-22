@@ -1000,7 +1000,7 @@ function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string
 
     try {
         const date = violationSnapshotStartedAt.includes(' ') ? toDate(violationSnapshotStartedAt, {timeZone: 'UTC'}) : parse(violationSnapshotStartedAt, 'yyyy-MM-dd', new Date());
-        return formatInTimeZoneWithFallback(date, timeZone, 'MMMM do, yyyy');
+        return formatInTimeZoneWithFallback(date, timeZone, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT);
     } catch (error) {
         Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});
         return '';

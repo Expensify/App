@@ -8752,8 +8752,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
-                    `As violações são rastreadas apenas a partir de ${formattedDate}. Tente ajustar seus filtros de data.`,
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Violações só são registradas a partir de ${formattedDate}. Tente ajustar seus filtros de data.`,
             },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',
@@ -8870,9 +8869,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento de Viagens Consolidado',
             },
             is: 'É',
-            has: {
-                submittedViolation: 'Violação enviada',
-            },
+            has: {submittedViolation: 'Violação enviada'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprovar',

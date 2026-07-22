@@ -8796,7 +8796,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             emptyViolationSnapshotResults: {
                 subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
-                    `Le violazioni vengono tracciate solo dal ${formattedDate} in poi. Prova a modificare i filtri data.`,
+                    `Le violazioni vengono tracciate solo a partire dal ${formattedDate}. Prova a modificare i filtri data.`,
             },
             emptyUnapprovedResults: {
                 title: 'Nessuna spesa da approvare',
@@ -8913,9 +8913,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Fatturazione viaggio consolidata',
             },
             is: 'È',
-            has: {
-                submittedViolation: 'Violazione inviata',
-            },
+            has: {submittedViolation: 'Violazione inviata'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Invia',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approva',

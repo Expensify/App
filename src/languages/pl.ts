@@ -8745,7 +8745,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 subtitle: 'Brak wyników. Spróbuj zmienić filtry.',
             },
             emptyViolationSnapshotResults: {
-                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Naruszenia są śledzone dopiero od ${formattedDate}. Spróbuj dostosować filtry dat.`,
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Naruszenia są śledzone dopiero od ${formattedDate}. Spróbuj zmienić filtry dat.`,
             },
             emptyUnapprovedResults: {
                 title: 'Brak wydatków do zatwierdzenia',
@@ -8862,9 +8862,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Zbiorcze rozliczanie podróży',
             },
             is: 'Jest',
-            has: {
-                submittedViolation: 'Zgłoszone naruszenie',
-            },
+            has: {submittedViolation: 'Zgłoszone naruszenie'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Wyślij',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Zatwierdź',
