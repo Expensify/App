@@ -1,3 +1,4 @@
+// trigger: timing comparison run
 import CONST from '@src/CONST';
 
 type EmptyObject = Record<string, never>;

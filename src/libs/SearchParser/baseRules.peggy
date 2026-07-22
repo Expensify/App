@@ -1,5 +1,6 @@
 // This file includes basic grammar rules that are used in both search parsers.
 // It is not a complete grammar.
+// trigger: timing comparison run
 // Its main purpose is to remove duplicated rules and ensure similar behaviour in parsers.
 //
 // operator: rule to match pre-defined search syntax operators, e.g. !=, >, etc.
