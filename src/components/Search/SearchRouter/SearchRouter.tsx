@@ -163,6 +163,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
+    // Only watch for reports awaiting approval while the router is active as a popover or full-screen page.
     const navigationSuggestions = useNavigationSuggestions(textInputValue, !!isSearchRouterDisplayed || isSearchRouterScreen);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
