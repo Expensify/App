@@ -290,6 +290,7 @@ const WorkspaceConfirmationModalStackNavigator = createModalStackNavigator<Works
     [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceConfirmationPage').default,
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationOwnerSelectorPage').default,
     [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationSuccessPage').default,
+    [SCREENS.WORKSPACE_CONFIRMATION.PLAN_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspacePlanTypeSelectionPage').default,
     [SCREENS.CURRENCY.DYNAMIC_SELECTION]: () => require<ReactComponentModule>('../../../../pages/DynamicWorkspaceCurrencySelectionPage').default,
 });
 
