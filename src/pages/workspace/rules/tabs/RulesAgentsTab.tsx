@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -31,6 +32,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['AgentsIceCream']);
@@ -89,7 +91,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
             contentContainerStyle={[styles.flexGrow1, styles.w100]}
             addBottomSafeAreaPadding
         >
-            <View style={[styles.w100, styles.workspaceSection]}>
+            <View style={[styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <Section
                     isCentralPane
                     renderTitle={renderTitle}
