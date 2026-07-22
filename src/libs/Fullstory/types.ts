@@ -1,7 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
 

@@ -5,7 +5,7 @@
  */
 
 // Import the web implementation directly (Jest resolves index.native.ts by default).
-/* eslint-disable import/extensions */
+
 const {focusFirstInteractiveElement} = require<{
     focusFirstInteractiveElement: (container: HTMLElement | null) => boolean;
 }>('../../src/hooks/useDialogContainerFocus/index.ts');
@@ -18,7 +18,6 @@ const {teardownHadTabNavigation, setupHadTabNavigation} = require<{
     teardownHadTabNavigation: () => void;
     setupHadTabNavigation: () => void;
 }>('../../src/libs/hadTabNavigation.ts');
-/* eslint-enable import/extensions */
 
 setupHadTabNavigation();
 

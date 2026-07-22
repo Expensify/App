@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useAutoNavigateForDeletedLinkedAction from '@pages/inbox/hooks/useAutoNavigateForDeletedLinkedAction';
 
 describe('useAutoNavigateForDeletedLinkedAction', () => {

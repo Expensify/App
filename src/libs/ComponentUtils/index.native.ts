@@ -1,6 +1,8 @@
 import type {Component} from 'react';
 import type {AnimatedRef} from 'react-native-reanimated';
+
 import {dispatchCommand} from 'react-native-reanimated';
+
 import type AccessibilityRoleForm from './types';
 
 const ACCESSIBILITY_ROLE_FORM: AccessibilityRoleForm = 'none';

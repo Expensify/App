@@ -1,10 +1,14 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useUpcomingTravelReservations from '@pages/home/UpcomingTravelSection/useUpcomingTravelReservations';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Pnr, PnrData, PnrTraveler} from '@src/types/onyx/TripData';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 function daysFromNow(days: number, hours = 12): string {

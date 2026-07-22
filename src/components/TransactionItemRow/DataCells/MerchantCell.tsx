@@ -1,17 +1,22 @@
-import React, {useMemo, useRef} from 'react';
-import type {TextInput as RNTextInput} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
 import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
+
+import type {TextInput as RNTextInput} from 'react-native';
+
+import React, {useMemo, useRef} from 'react';
 
 type MerchantOrDescriptionCellProps = {
     merchantOrDescription: string;

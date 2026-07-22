@@ -1,11 +1,16 @@
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
+
+import React, {useMemo} from 'react';
 
 const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER, ANNUAL_VOLUME, APPLICANT_TYPE_ID, TRADE_VOLUME, BUSINESS_CATEGORY} = INPUT_IDS;
 
@@ -40,6 +45,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
     const summaryItems = useMemo(
         () => [
             {
+                id: 'registration-number',
                 title: enableGlobalReimbursementsDraft?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? '',
                 description: translate('businessInfoStep.registrationNumber'),
                 shouldShowRightIcon: true,
@@ -48,6 +54,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
                 },
             },
             {
+                id: 'business-type',
                 title: businessType,
                 description: translate('businessInfoStep.businessType'),
                 shouldShowRightIcon: true,
@@ -56,6 +63,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
                 },
             },
             {
+                id: 'business-category',
                 title: businessCategory,
                 description: translate('businessInfoStep.businessCategory'),
                 shouldShowRightIcon: true,
@@ -64,6 +72,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
                 },
             },
             {
+                id: 'annual-payment-volume',
                 title: paymentVolume,
                 description: translate('businessInfoStep.annualPaymentVolume'),
                 shouldShowRightIcon: true,
@@ -72,6 +81,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
                 },
             },
             {
+                id: 'trade-volume-range',
                 title: tradeVolumeRange,
                 description: translate('businessInfoStep.averageReimbursementAmount'),
                 shouldShowRightIcon: true,

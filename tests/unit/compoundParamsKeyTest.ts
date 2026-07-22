@@ -1,11 +1,11 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
-/* eslint-disable import/extensions */
+
 const {default: compoundParamsKey, normalizeForKey, COMPOUND_KEY_DELIMITER} = require<{
     default: (routeKey: string, params: unknown) => string;
     normalizeForKey: (value: unknown) => unknown;
     COMPOUND_KEY_DELIMITER: string;
 }>('../../src/libs/compoundParamsKey.ts');
-/* eslint-enable import/extensions */
+
 const D = COMPOUND_KEY_DELIMITER;
 
 describe('compoundParamsKey', () => {

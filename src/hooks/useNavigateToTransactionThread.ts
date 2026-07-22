@@ -1,12 +1,16 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
@@ -40,7 +44,7 @@ type NavigateToTransactionThreadParams = {
  * `siblingTransactionIDs` because the data sources differ per screen.
  */
 function useNavigateToTransactionThread() {
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -77,7 +81,7 @@ function useNavigateToTransactionThread() {
         // display prev/next arrows for navigation between expenses.
         setActiveTransactionIDs(siblingTransactionIDs).then(() => {
             if (reportIDToNavigate) {
-                markReportIDAsExpense(reportIDToNavigate);
+                markReportRHPWidth(reportIDToNavigate, 'wide');
             }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
         });

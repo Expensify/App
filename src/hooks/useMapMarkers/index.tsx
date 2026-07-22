@@ -1,10 +1,16 @@
-import React from 'react';
-import type {ReactNode} from 'react';
 import ImageSVG from '@components/ImageSVG';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import type IconAsset from '@src/types/utils/IconAsset';
-import getMapMarkerSize from './getMapMarkerSize';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 import type {MapMarkerType} from './types';
+
+import getMapMarkerSize from './getMapMarkerSize';
 
 function useMapMarkers() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MapStartWaypoint', 'MapStopWaypoint', 'MapWaypoint']);

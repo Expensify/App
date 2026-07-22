@@ -1,16 +1,22 @@
-import React from 'react';
-import {Platform} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import {useIsAgentAccount} from '@libs/SessionUtils';
+
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {Platform} from 'react-native';
+
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
@@ -31,6 +37,9 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    // Agent accounts can't have biometric multifactor authentication, so hide the biometrics test row for them.
+    const isAgentAccount = useIsAgentAccount();
 
     return (
         <>
@@ -102,7 +111,7 @@ function TestToolMenu() {
                     </TestToolRow>
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
-                    <BiometricsTestToolRow />
+                    {!isAgentAccount && <BiometricsTestToolRow />}
                 </>
             )}
 

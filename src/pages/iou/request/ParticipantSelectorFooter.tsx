@@ -1,12 +1,16 @@
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
 
 type ParticipantSelectorFooterProps = {
     /** The type of IOU report — used to exclude the referral banner on invoice flows */
@@ -32,6 +36,9 @@ type ParticipantSelectorFooterProps = {
 
     /** Callback to advance the flow when creating a new workspace (categorize/share) */
     onNewWorkspace: () => void;
+
+    /** Called right before the referral banner navigates — used to dismiss the participant picker overlay so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
 };
 
 function ParticipantSelectorFooter({
@@ -43,6 +50,7 @@ function ParticipantSelectorFooter({
     isDismissedReferralBanner,
     onConfirmSelection,
     onNewWorkspace,
+    onCloseParticipantPicker,
 }: ParticipantSelectorFooterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -55,6 +63,7 @@ function ParticipantSelectorFooter({
                 <ReferralProgramCTA
                     referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE}
                     style={[styles.flexShrink0, !!selectedOptionsLength && !shouldShowSplitBillErrorMessage && styles.mb5]}
+                    onBeforeNavigate={onCloseParticipantPicker}
                 />
             )}
 

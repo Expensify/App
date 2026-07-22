@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
@@ -7,19 +5,32 @@ import DisplayPopup from '@components/Search/FilterDropdowns/DisplayPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
+import getSearchHeaderIconSize from './getSearchHeaderIconSize';
 
 type SearchDisplayDropdownButtonProps = {
     queryJSON: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
     onSort: () => void;
 };
+
+const DISPLAY_POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+} as const;
 
 function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchDisplayDropdownButtonProps) {
     const {translate} = useLocalize();
@@ -44,9 +55,12 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
     );
 
     if (shouldUseNarrowLayout || isMediumScreenWidth) {
+        const iconSize = getSearchHeaderIconSize(isMediumScreenWidth, shouldUseNarrowLayout);
+
         return (
             <FilterPopupButton
                 PopoverComponent={displayPopup}
+                popoverAnchorAlignment={DISPLAY_POPOVER_ANCHOR_ALIGNMENT}
                 renderButton={({ref, onPress}) => (
                     <PressableWithFeedback
                         ref={ref}
@@ -60,8 +74,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
                         <Icon
                             src={expensifyIcons.Gear}
                             fill={theme.icon}
-                            small={shouldUseNarrowLayout}
-                            extraSmall={isMediumScreenWidth}
+                            size={iconSize}
                         />
                     </PressableWithFeedback>
                 )}
@@ -75,6 +88,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
             value={null}
             PopoverComponent={displayPopup}
+            popoverAnchorAlignment={DISPLAY_POPOVER_ANCHOR_ALIGNMENT}
         />
     );
 }

@@ -1,9 +1,13 @@
-import React from 'react';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import ScanRouter from './ScanRouter';
+
+import React from 'react';
+
 import type IOURequestStepScanProps from './types';
+
+import ScanRouter from './ScanRouter';
 
 function IOURequestStepScan({
     report,

@@ -1,11 +1,15 @@
+import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+
 import {Portal} from '@gorhom/portal';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
-import useStyleUtils from '@hooks/useStyleUtils';
+
+import type {AutoCompleteSuggestionsPortalProps} from './types';
+
 import getBottomSuggestionPadding from './getBottomSuggestionPadding';
 import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
-import type {AutoCompleteSuggestionsPortalProps} from './types';
 
 function AutoCompleteSuggestionsPortal<TSuggestion>({
     left = 0,

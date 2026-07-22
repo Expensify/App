@@ -1,54 +1,45 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isSettled, shouldShowMarkAsDone} from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
     getDescription,
     getExchangeRate,
-    getMerchant,
+    getMerchantName,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
     isMerchantMissing,
-    isScanning,
     shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
+import type {TransactionItemRowProps} from './types';
+
 import TransactionItemRowNarrow from './TransactionItemRowNarrow';
 import TransactionItemRowWide from './TransactionItemRowWide';
-import type {TransactionItemRowProps, TransactionWithOptionalSearchFields} from './types';
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
-
-function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
-    const shouldShowMerchant = transactionItem.shouldShowMerchant ?? true;
-
-    let merchant = transactionItem?.formattedMerchant ?? getMerchant(transactionItem);
-
-    if (isScanning(transactionItem) && shouldShowMerchant) {
-        merchant = translate('iou.receiptStatusTitle');
-    }
-
-    const merchantName = StringUtils.getFirstLine(merchant);
-    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? (merchantName ?? '') : '';
-}
 
 function TransactionItemRow({
     transactionItem,
     report,
     policy,
     policyCategories,
+    policyTagLists,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -75,6 +66,7 @@ function TransactionItemRow({
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
+    shouldDisableActionPointerEvents = false,
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
@@ -192,6 +184,7 @@ function TransactionItemRow({
         report,
         policy,
         policyCategories,
+        policyTagLists,
         isSelected,
         shouldShowTooltip,
         dateColumnSize,
@@ -215,6 +208,7 @@ function TransactionItemRow({
         shouldShowErrors,
         shouldHighlightItemWhenSelected,
         isDisabled,
+        shouldDisableActionPointerEvents,
         violations,
         shouldShowBottomBorder,
         onArrowRightPress,
@@ -241,7 +235,7 @@ function TransactionItemRow({
 
     const description = getDescription(transactionItem);
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
-    const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
+    const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards, transactionItem?.feedCountry);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 

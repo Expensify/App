@@ -1,19 +1,26 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import {getAllReportErrors} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
-import {chatReportR14932} from '../../__mocks__/reportData/reports';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type ReportActionName from '../../src/types/onyx/ReportActionName';
+
+import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -745,6 +752,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBeNull();
         });
@@ -756,6 +764,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: 'Hello world!',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -770,6 +779,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -783,6 +793,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -800,6 +811,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -825,6 +837,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -843,6 +856,7 @@ describe('DebugUtils', () => {
                 isReportArchived: isReportArchived.current,
                 doesReportHaveViolations: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -856,6 +870,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -866,6 +881,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -925,6 +941,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -984,6 +1001,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -995,6 +1013,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1302,13 +1321,13 @@ describe('DebugUtils', () => {
                     const MOCK_CHAT_REPORT: Report = {
                         reportID: '1',
                         type: CONST.REPORT.TYPE.CHAT,
-                        ownerAccountID: 12345,
+                        ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_IOU_REPORT: Report = {
                         reportID: '2',
                         type: CONST.REPORT.TYPE.IOU,
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        ownerAccountID: 12345,
+                        ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_CHAT_REPORT_ACTIONS: ReportActions = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1335,7 +1354,7 @@ describe('DebugUtils', () => {
                             message: {
                                 IOUTransactionID: '1',
                             },
-                            actorAccountID: 12345,
+                            actorAccountID: RORY_ACCOUNT_ID,
                         }),
                     };
                     await Onyx.multiSet({
@@ -1349,7 +1368,7 @@ describe('DebugUtils', () => {
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_CHAT_REPORT_ACTIONS,
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2` as const]: MOCK_IOU_REPORT_ACTIONS,
                         [ONYXKEYS.SESSION]: {
-                            accountID: 12345,
+                            accountID: RORY_ACCOUNT_ID,
                         },
                     });
                     const mockTransactions: OnyxCollection<Transaction> = {
@@ -1359,7 +1378,7 @@ describe('DebugUtils', () => {
                             modifiedCreated: '',
                         }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                             MOCK_CHAT_REPORT,
@@ -1440,7 +1459,7 @@ describe('DebugUtils', () => {
                             modifiedCreated: '',
                         }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, mockTransactions, undefined, false, reportErrors, false) ??
                         {};
@@ -1489,7 +1508,7 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
-                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions);
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID);
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
@@ -1528,7 +1547,7 @@ describe('DebugUtils', () => {
                     },
                 };
 
-                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions);
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID);
                 const {reason} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, sharedAllTransactions, undefined, false, reportErrors, false) ??
                     {};

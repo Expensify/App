@@ -1,8 +1,12 @@
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
+
 import {getTransactionViolations} from '@libs/TransactionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {TransactionViolations} from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
@@ -12,6 +16,7 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
 
     const {transactions, violations} = reportID ? (allReportsTransactionsAndViolations?.[reportID] ?? DEFAULT_RETURN_VALUE) : DEFAULT_RETURN_VALUE;
@@ -20,7 +25,8 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
     for (const transactionViolationKey of Object.keys(violations)) {
         const transactionID = transactionViolationKey.split('_').at(1) ?? '';
         const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        filteredViolations[transactionViolationKey] = getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, report, policy) ?? [];
+        filteredViolations[transactionViolationKey] =
+            getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, report, reportOwnerLogin, policy) ?? [];
     }
 
     return {transactions, violations: filteredViolations, isLoaded: allReportsTransactionsAndViolations !== undefined};

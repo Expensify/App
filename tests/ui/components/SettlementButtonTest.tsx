@@ -1,7 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
@@ -11,12 +9,20 @@ import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SettlementButton from '@components/SettlementButton';
 import type SettlementButtonProps from '@components/SettlementButton/types';
+
 import {createWorkspace} from '@libs/actions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList, Beta, LastPaymentMethod, Policy, Report} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -56,6 +62,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),

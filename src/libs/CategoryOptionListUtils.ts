@@ -1,15 +1,19 @@
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import lodashGet from 'lodash/get';
-import lodashSet from 'lodash/set';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import {getDecodedCategoryName, processCategoryNameSegments} from './CategoryUtils';
+
+// eslint-disable-next-line you-dont-need-lodash-underscore/get
+import lodashGet from 'lodash/get';
+import lodashSet from 'lodash/set';
+
 import type {OptionTree} from './OptionsListUtils';
+
+import {getDecodedCategoryName, processCategoryNameSegments} from './CategoryUtils';
 import tokenizedSearch from './tokenizedSearch';
 
 type CategoryTreeSection = Section<OptionTree>;
@@ -58,6 +62,9 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
             const leafName = getDecodedCategoryName(optionName.trim());
             const decodedCategoryName = getDecodedCategoryName(option.name);
             const tooltipText = isChild ? decodedCategoryName : getDecodedCategoryName(searchText);
+            // A non-leaf (parent) row whose parent has no backing category in the options it was handed is a structural
+            // header only, so it should not render a selection control (e.g. the synthesized "Parent" row in the Recent section).
+            const shouldHideSelectionButton = !isChild && !parentOption;
             optionCollection.set(searchText, {
                 text: `${indents}${leafName}`,
                 keyForList: searchText,
@@ -66,6 +73,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
+                ...(shouldHideSelectionButton ? {shouldHideSelectionButton: true} : {}),
             });
         }
     }

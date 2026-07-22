@@ -1,8 +1,12 @@
-import type {ViewStyle} from 'react-native';
-import {Easing} from 'react-native-reanimated';
-import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ViewStyle} from 'react-native';
+import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
+
+import {Easing} from 'react-native-reanimated';
+
 import type {AnimationIn, AnimationOut} from './types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
