@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import SubmitActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/SubmitActionButton';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
@@ -39,12 +40,14 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
     return [value, {status: 'loaded'}];
 }
 
-// Capture the onPress (handleSubmit) handler the button passes to AnimatedSubmitButton so submission can be triggered.
+// Capture the onPress (handleSubmit) handler and the success prop the button passes to AnimatedSubmitButton.
 const mockOnPressHolder: {current?: () => void} = {current: undefined};
+const mockSuccessHolder: {current?: boolean} = {current: undefined};
 jest.mock('@components/AnimatedSubmitButton', () => ({
     __esModule: true,
-    default: (props: {onPress?: () => void}) => {
+    default: (props: {onPress?: () => void; success?: boolean}) => {
         mockOnPressHolder.current = props.onPress;
+        mockSuccessHolder.current = props.success;
         return null;
     },
 }));
@@ -124,6 +127,7 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({__esModule: true, de
 jest.mock('@hooks/useOnyx', () => jest.fn());
 
 const mockedUseOnyx = jest.mocked(useOnyx);
+const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockedSubmitReport = jest.mocked(submitReport);
 const mockedIsSubmitPolicy = jest.mocked(isSubmitPolicy);
 const mockedHasOnlyPendingCardTransactions = jest.mocked(hasOnlyPendingCardTransactions);
@@ -135,7 +139,9 @@ describe('SubmitActionButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockOnPressHolder.current = undefined;
+        mockSuccessHolder.current = undefined;
         mockTransactionViolations = {};
+        mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, email: 'submitter@test.com'} as ReturnType<typeof useCurrentUserPersonalDetails>);
         mockedIsSubmitPolicy.mockReturnValue(false);
         mockedHasOnlyPendingCardTransactions.mockReturnValue(false);
         mockedHasViolations.mockReturnValue(false);
@@ -198,5 +204,19 @@ describe('SubmitActionButton', () => {
         expect(mockedHasViolations.mock.calls.at(-1)?.[1]).toBe(reportViolations);
         expect(mockedHasAnyPendingRTERViolation.mock.calls.at(-1)?.[1]).toBe(reportViolations);
         expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
+    });
+
+    it('renders a green (success) submit button for the report owner', () => {
+        mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: iouReport.ownerAccountID, email: 'owner@test.com'} as ReturnType<typeof useCurrentUserPersonalDetails>);
+        render(<SubmitActionButton />);
+
+        expect(mockSuccessHolder.current).toBe(true);
+    });
+
+    it('renders a gray (non-success) submit button for a workflow approver who does not own the report', () => {
+        mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, email: 'approver@test.com'} as ReturnType<typeof useCurrentUserPersonalDetails>);
+        render(<SubmitActionButton />);
+
+        expect(mockSuccessHolder.current).toBe(false);
     });
 });

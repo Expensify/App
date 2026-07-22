@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isCurrentUserSubmitter, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -127,9 +127,11 @@ function SubmitActionButtonContent() {
         policy,
     });
 
+    const isReportOwner = isCurrentUserSubmitter(iouReport, currentUserAccountID);
+
     return (
         <AnimatedSubmitButton
-            success
+            success={isReportOwner}
             text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={handleSubmit}
