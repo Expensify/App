@@ -7,8 +7,8 @@ import {StyleSheet, View} from 'react-native';
 
 import Text from './Text';
 
-/** Initials height relative to the avatar diameter, matching the generated letter-avatar images. */
-const INITIALS_FONT_SIZE_RATIO = 0.28;
+/** Puts Neue Bold's cap height (0.7em) at 27% of the avatar diameter, matching the generated letter-avatar images. */
+const INITIALS_FONT_SIZE_RATIO = 0.27 / 0.7;
 
 const styles = StyleSheet.create({
     circle: {

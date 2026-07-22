@@ -1,6 +1,9 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -16,7 +19,9 @@ type InlineSystemMessageProps = {
 function InlineSystemMessage({message = ''}: InlineSystemMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation']);
+    const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
     if (!message) {
         return null;
     }
@@ -27,7 +32,7 @@ function InlineSystemMessage({message = ''}: InlineSystemMessageProps) {
                 src={icons.Exclamation}
                 fill={theme.danger}
             />
-            <Text style={styles.inlineSystemMessage}>{message}</Text>
+            <Text style={[styles.inlineSystemMessage, selectableStyle]}>{message}</Text>
         </View>
     );
 }

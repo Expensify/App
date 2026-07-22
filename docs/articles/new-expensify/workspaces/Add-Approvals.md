@@ -6,6 +6,8 @@ keywords: [New Expensify, approvals, report approvals, approving reports, approv
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
 
+**Note:** Workspace Admins and People Admins can enable and configure approval workflows, including default and custom workflows, over-limit approvers, and approver assignment.
+
 Once a member submits a report, it must be approved by each person in their workflow before it can be paid. You can also add an additional approver that is only required when a report exceeds a specific dollar amount.
 
 ---
@@ -128,6 +130,20 @@ Category and Tag approvers are added to the approval chain — they don't replac
 ## Can an employee have more than one approval workflow applied to them?
 
 No. Each employee can only be assigned one approval workflow per workspace.
+
+## Why did adding an approver to one workflow change other members' workflows?
+
+Approval routing is built from per-approver relationships, not separate paths for each submitter. When you place someone *after* an approver in a workflow, you're defining who that approver forwards their approvals to — and that applies to **every** report they approve, not just one submitter's.
+
+For example, if Joe is the first approver for several members and you set up a workflow of **John → Joe → Jane**, you're telling Expensify that "Joe forwards to Jane." Because Joe also approves for other members, their reports will now route to Jane after Joe approves them too.
+
+This is why you may see the following warning when editing a workflow:
+
+> This member already belongs to another approval workflow. Any updates here will reflect there too.
+
+Deleting and recreating the workflow won't change this, because the limitation is tied to the shared approver's forwarding rather than to any one submitter's workflow.
+
+To keep a second-level approver limited to a single submitter, that submitter's first approver must be unique to their chain — that is, not shared as an approver for any other member. If your goal is instead to add an extra review step only when a report exceeds a certain amount, use the workflow-specific over-limit **Additional approver** (set in the **Report amount** field), which applies only to that workflow.
 
 ## How can I assign custom approval workflows to specific members?
 

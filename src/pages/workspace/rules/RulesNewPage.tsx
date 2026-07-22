@@ -32,7 +32,8 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt']);
+    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt', 'AiBot']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -67,16 +68,16 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND}
                         />
                         <MenuItem
-                            icon={illustrations.ReportReceipt}
-                            title={translate('workspace.rules.newRule.applyExpenseDefaults')}
-                            description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
+                            icon={illustrations.Flag}
+                            title={translate('workspace.rules.newRule.flagForReview')}
+                            description={translate('workspace.rules.newRule.flagForReviewDescription')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID))}
                             displayInDefaultIconColor
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
                             wrapperStyle={styles.rulesNewMenuItem}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW}
                         />
                         <MenuItem
                             icon={illustrations.CheckboxText}
@@ -91,17 +92,31 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_REQUIRE_FIELDS}
                         />
                         <MenuItem
-                            icon={illustrations.Flag}
-                            title={translate('workspace.rules.newRule.flagForReview')}
-                            description={translate('workspace.rules.newRule.flagForReviewDescription')}
+                            icon={illustrations.ReportReceipt}
+                            title={translate('workspace.rules.newRule.applyExpenseDefaults')}
+                            description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
                             displayInDefaultIconColor
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
                             wrapperStyle={styles.rulesNewMenuItem}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS}
                         />
+                        {isCustomAgentBetaEnabled && (
+                            <MenuItem
+                                icon={illustrations.AiBot}
+                                title={translate('workspace.rules.newRule.createAgentRule')}
+                                description={translate('workspace.rules.newRule.createAgentRuleDescription')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID))}
+                                displayInDefaultIconColor
+                                iconWidth={variables.iconSizeExtraLarge}
+                                iconHeight={variables.iconSizeExtraLarge}
+                                wrapperStyle={styles.rulesNewMenuItem}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE}
+                            />
+                        )}
                     </View>
                 </ScrollView>
             </ScreenWrapper>

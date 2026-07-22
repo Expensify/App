@@ -12,8 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
@@ -24,6 +23,7 @@ import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -342,20 +342,26 @@ function SuggestionMention({
 
     const getUserMentionOptions = useCallback(
         (searchValue = ''): Mention[] => {
-            const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
-            const shouldWeightDetails = isGroupChat(currentReport) || doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID, conciergeReportID);
+            const shouldWeightDetails = isGroupChat(currentReport) || doesReportBelongToWorkspace(currentReport, policyID, conciergeReportID);
 
             let personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined;
 
             if (!shouldWeightDetails) {
                 personalDetailsParam = personalDetails;
             } else {
+                const isPolicyEmployee = (detail: PersonalDetails): boolean => {
+                    if (!detail.login || detail.accountID === currentUserPersonalDetails.accountID) {
+                        return false;
+                    }
+                    const policyEmployee = policy?.employeeList?.[detail.login];
+                    return !!policyEmployee && isEmptyObject(policyEmployee.errors);
+                };
                 // Smaller weight means higher order in suggestion list
                 const getPersonalDetailsWeight = (detail: PersonalDetails): number => {
                     if (isReportParticipant(detail.accountID, currentReport)) {
                         return 0;
                     }
-                    if (policyEmployeeAccountIDs.includes(detail.accountID)) {
+                    if (isPolicyEmployee(detail)) {
                         return 1;
                     }
                     return 2;
@@ -389,7 +395,7 @@ function SuggestionMention({
                 if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
                     return false;
                 }
-                const displayName = getDisplayNameOrDefault(detail);
+                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate});
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
@@ -416,7 +422,7 @@ function SuggestionMention({
 
             for (const detail of sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length)) {
                 suggestions.push({
-                    text: `${formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login)}`,
+                    text: `${formatLoginPrivateDomain(temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate}), detail?.login)}`,
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
                     handle: detail?.login,
                     icons: [
