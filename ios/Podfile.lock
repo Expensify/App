@@ -205,7 +205,7 @@ PODS:
     - PromisesObjC (~> 2.4)
   - ForkInputMask (7.3.3)
   - FullStory (1.70.1)
-  - fullstory_react-native (1.9.0):
+  - fullstory_react-native (1.10.1):
     - FullStory (~> 1.14)
     - hermes-engine
     - RCTRequired
