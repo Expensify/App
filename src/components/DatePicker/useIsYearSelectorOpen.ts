@@ -2,7 +2,17 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import SCREENS from '@src/SCREENS';
 
+import type {NavigationState} from '@react-navigation/native';
+
 import {findFocusedRoute} from '@react-navigation/native';
+
+/**
+ * Module-level selector kept out of the hook so both React Compilers (Babel and OXC) agree on memoization —
+ * an inline arrow here is memoized by OXC but not Babel, which the compliance check flags as divergent.
+ */
+function selectIsYearSelectorOpen(state: NavigationState | undefined): boolean {
+    return state ? findFocusedRoute(state)?.name === SCREENS.SETTINGS.DYNAMIC_YEAR_SELECTOR : false;
+}
 
 /**
  * Whether the dynamic year-selector route is the currently focused screen.
@@ -13,7 +23,7 @@ import {findFocusedRoute} from '@react-navigation/native';
  * `shouldCloseWhenBrowserNavigationChanged` listener so the `goBack` doesn't tear the host down.
  */
 function useIsYearSelectorOpen(): boolean {
-    return useRootNavigationState((state) => (state ? findFocusedRoute(state)?.name === SCREENS.SETTINGS.DYNAMIC_YEAR_SELECTOR : false));
+    return useRootNavigationState(selectIsYearSelectorOpen);
 }
 
 export default useIsYearSelectorOpen;
