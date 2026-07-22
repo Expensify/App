@@ -519,7 +519,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -4454,6 +4453,24 @@ ${amount} für ${merchant} – ${date}`,
             inputLabel: 'Steuer-ID der juristischen Person',
             error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
         },
+        nudge: {
+            airfareManual:
+                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Hallo! Wussten Sie, dass Sie Hotelübernachtungen direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Wussten Sie schon, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Wussten Sie schon, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     workspace: {
         common: {
@@ -5961,6 +5978,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             deleteFailureMessage: 'Beim Löschen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             categoryName: 'Kategoriename',
             requiresCategory: 'Mitglieder müssen alle Ausgaben kategorisieren',
+            showCategoryGLCodes: 'Sachkonten beim Kategorisieren von Ausgaben anzeigen',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle Ausgaben müssen kategorisiert werden, um nach ${connectionName} exportiert zu werden.`,
             subtitle: 'Verschaffe dir einen besseren Überblick darüber, wofür Geld ausgegeben wird. Verwende unsere Standardkategorien oder füge eigene hinzu.',
             emptyCategories: {
@@ -6476,6 +6494,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
                 travelAddressMismatch: 'Sie können Reisen nur kopieren, wenn jeder ausgewählte Arbeitsbereich eine Unternehmensadresse hat.',
+                currencyBlockedByBankAccount:
+                    'Sie können die Währung nur kopieren, wenn jeder ausgewählte Workspace mit einem verbundenen Bankkonto die Währung des Quell-Workspace verwendet.',
             },
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',
@@ -7796,7 +7816,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 general: 'Allgemein',
                 cardRestrictions: 'Karteneinschränkungen',
                 expenseDefaults: 'Standardausgaben',
-                requireFields: 'Felder erforderlich',
+                requireFields: 'Feldanforderungen',
                 flagForReview: 'Zur Überprüfung markieren',
                 agents: 'Agents',
             },
@@ -7857,9 +7877,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaults: 'Standardspesen übernehmen',
                 applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 flagForReview: 'Zur Überprüfung markieren',
-                flagForReviewDescription: 'Benachrichtigen, wenn Ihre Bedingungen erfüllt sind.',
-                requireFields: 'Felder erforderlich',
-                requireFieldsDescription: 'Belege, Kategorien usw. beim Einreichen.',
+                flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
+                requireFields: 'Feldanforderungen',
+                requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
                 createAgentRule: 'Agentenregel',
                 createAgentRuleDescription: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
             },
@@ -7879,28 +7899,33 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 tableColumnCondition: 'Bedingung',
                 tableColumnRule: 'Regel',
                 findRule: 'Regel finden',
-                typeLabel: 'Felder erforderlich',
                 conditionCategoryIs: (category: string) => `Kategorie ist „${category}"`,
                 requireDescription: 'Beschreibung erforderlich',
                 requireAttendees: 'Teilnehmende verpflichten',
                 requireItemizedReceipt: 'Positionierte Quittung erforderlich',
                 requireItemizedReceiptOver: (amount: string) => `Artikelisierte Quittung über ${amount} erforderlich`,
-                alwaysRequireReceipt: 'Beleg immer erforderlich',
                 requireReceiptOver: (amount: string) => `Beleg ab einem Betrag von ${amount} erforderlich`,
+                requireReceipt: 'Beleg erforderlich',
+                doNotRequireReceipt: 'Beleg nicht erforderlich',
+                doNotRequireItemizedReceipt: 'Keine detaillierte Quittung erforderlich',
             },
             requireFieldsEmptyState: {
                 title: 'Fehlende Details frühzeitig erfassen',
-                subtitle: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden.',
-                cta: 'Erforderlich-Regel erstellen',
+                subtitle: 'Spesenfelder für bestimmte Kategorien vorschreiben oder darauf verzichten.',
+                cta: 'Feldanforderungsregel erstellen',
             },
             requireFieldsRule: {
-                title: 'Felder erforderlich',
-                subtitle: 'Belege, Kategorien usw. beim Einreichen erforderlich machen.',
-                thenWarnMember: 'Dann Mitglied warnen, wenn Felder fehlen:',
+                title: 'Feldanforderungen',
+                subtitle: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
                 itemizedReceipt: 'Aufgeschlüsselte Quittung',
                 saveRule: 'Regel speichern',
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
-                confirmErrorField: 'Bitte wählen Sie mindestens ein erforderliches Feld aus.',
+                requireDirection: 'Erforderlich',
+                doNotRequireDirection: 'Nicht erforderlich',
+                doTheFollowing: 'Führen Sie Folgendes aus:',
+                confirmErrorDoNotRequireField: 'Bitte wählen Sie mindestens ein Feld aus.',
+                receiptDisabledWhenItemizedRequired: 'Belege sind immer erforderlich, wenn auch Einzelbelege erforderlich sind.',
+                itemizedDisabledWhenReceiptWaived: 'Detaillierte Belege sind nicht erforderlich, wenn überhaupt kein Beleg erforderlich ist.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Typ',
@@ -8654,6 +8679,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateDateRangeAllDates: () => `für alle Daten`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `Übersicht von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `Währung von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `Mitglieder von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `1 Berichtsfeld von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
@@ -8975,6 +9001,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         serverResults: 'Suchergebnisse',
         searchIn: 'Suchen in',
         askConcierge: (message: string) => `Frage Concierge „${message}“`,
+        goTo: ({destination}: {destination: string}) => `Gehe zu ${destination}`,
         searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (

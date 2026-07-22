@@ -207,7 +207,6 @@ function init() {
                 if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
-                        waitForCollectionCallback: true,
                         callback: (value, collectionKey) => {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
