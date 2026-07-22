@@ -1,6 +1,5 @@
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 
-import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,7 +46,7 @@ function ReportActions() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
-    const isAppLoadPending = useIsAppLoadPending();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {reportActions} = usePaginatedReportActions(reportIDFromRoute);
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
@@ -66,7 +65,7 @@ function ReportActions() {
     // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
     // before content appeared.
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
-    const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
+    const shouldShowAppLoadSkeleton = !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 
     useMarkOpenReportEndOnSkeleton(report, shouldShowAppLoadSkeleton);
 

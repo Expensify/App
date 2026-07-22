@@ -6,7 +6,6 @@ import WorkspaceListLayout from '@components/WorkspaceListLayout';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,7 +36,7 @@ function DomainsListPage() {
 
     useDocumentTitle(translate('common.domains'));
 
-    const isAppLoadPending = useIsAppLoadPending();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
 
@@ -50,7 +49,7 @@ function DomainsListPage() {
     };
 
     const domainRows: DomainRowData[] = [];
-    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
+    const shouldShowLoadingIndicator = !!isLoadingApp && !isOffline;
 
     if (!isEmptyObject(allDomains)) {
         for (const domain of Object.values(allDomains)) {

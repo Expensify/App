@@ -6,8 +6,6 @@ import type {AnyRequest} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect} from 'react';
-
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -101,38 +99,9 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
     return !!hasPendingPersistedRequest || !!hasPendingOngoingRequest;
 }
 
-// Process-session memory: an OpenApp was seen in the queue this session and its deferred updates (whose
-// finallyData clears IS_LOADING_APP) have not flushed yet. The sequential queue drops the request from
-// PERSISTED_(ONGOING_)REQUESTS before it flushes those held updates, so `hasPendingOpenApp` alone goes
-// false too early and the migrated screens would render cleared/stale data during that window. This latch
-// keeps the gate pending across it. It is NOT a stored flag: a stranded IS_LOADING_APP read from disk on
-// a fresh reload never sets it, because that reload runs ReconnectApp, not OpenApp. Keying on an observed
-// OpenApp rather than HAS_LOADED_APP is what also covers an account switch, where HAS_LOADED_APP is
-// already true but a real OpenApp still fires (see Delegate's atomic reset).
-//
-// This is deliberately module scoped, not a useRef: the observing consumer can unmount while the flush is
-// still in progress (an account switch remounts screens), and a different consumer that mounts during the
-// window must still see the latch. Reading a mutable module value during render is safe here because the
-// only value the render combines it with is the reactive isLoadingApp, and the latch only changes inside
-// the effect below, whose deps are exactly [hasPendingOpenApp, isLoadingApp]: any latch change is therefore
-// accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale read.
-let hasObservedOpenAppFlushPending = false;
-
-/** Whether an OpenApp request or its deferred Onyx updates are pending. */
+/** Whether an OpenApp request is currently in the queue (the initial app load, not background reconnects). */
 function useIsAppLoadPending(): boolean {
-    const hasPendingOpenApp = useIsPendingInternal('appLoad');
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-
-    useEffect(() => {
-        if (hasPendingOpenApp) {
-            hasObservedOpenAppFlushPending = true;
-        } else if (isLoadingApp !== true) {
-            // The flag cleared, so the deferred OpenApp updates flushed: stop covering the window.
-            hasObservedOpenAppFlushPending = false;
-        }
-    }, [hasPendingOpenApp, isLoadingApp]);
-
-    return hasPendingOpenApp || (hasObservedOpenAppFlushPending && isLoadingApp === true);
+    return useIsPendingInternal('appLoad');
 }
 
 /**

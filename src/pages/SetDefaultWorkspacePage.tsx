@@ -7,7 +7,6 @@ import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/typ
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,10 +39,10 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const {translate, localeCompare} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const isAppLoadPending = useIsAppLoadPending();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
+    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const session = useSession();
 
     const selectPolicy = (selectedPolicyID?: string) => {
@@ -104,7 +103,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'SetDefaultWorkspacePage', isLoadingApp: isAppLoadPending}}
+                                reasonAttributes={{context: 'SetDefaultWorkspacePage', isLoadingApp: !!isLoadingApp}}
                             />
                         </View>
                     ) : (

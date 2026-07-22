@@ -9,7 +9,6 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -74,13 +73,13 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
-    const isAppLoadPending = useIsAppLoadPending();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.managerID)}, [report?.managerID]);
-    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
+    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -214,7 +213,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'DynamicReportChangeWorkspacePage', isLoadingApp: isAppLoadPending}}
+                                reasonAttributes={{context: 'DynamicReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
                             />
                         </View>
                     ) : (

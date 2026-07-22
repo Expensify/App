@@ -97,7 +97,7 @@ const mockReport: OnyxTypes.Report = {
 
 type ReportLoadingStateOverrides = Partial<{isLoadingInitialReportActions: boolean; hasOnceLoadedReportActions: boolean}>;
 
-/** Builds the keyed useOnyx mock the orchestrator reads: the report, its loading state and the app-load request queue. */
+/** Builds the keyed useOnyx mock the orchestrator reads: the report, its loading state and IS_LOADING_APP. */
 const setupUseOnyx = (options: {report?: OnyxTypes.Report | undefined; isLoadingApp?: boolean; loadingState?: ReportLoadingStateOverrides} = {}) => {
     // `'report' in options` distinguishes "not passed" (default to mockReport) from an explicit
     // `{report: undefined}` (the report-not-available case) — a destructuring default would swallow the latter.
@@ -105,10 +105,7 @@ const setupUseOnyx = (options: {report?: OnyxTypes.Report | undefined; isLoading
     const isLoadingApp = options.isLoadingApp ?? false;
     const loadingState = options.loadingState ?? {};
     mockUseOnyx.mockImplementation((key: string) => {
-        // ReportActions derives app-load state from the request queue via useIsAppLoadPending, which reads these
-        // queue keys through selectors that resolve to a boolean. Returning that boolean directly mirrors what
-        // useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept for any direct reader.
-        if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+        if (key === ONYXKEYS.IS_LOADING_APP) {
             return [isLoadingApp, {status: 'loaded'}];
         }
         if (key.includes('reportLoadingState')) {

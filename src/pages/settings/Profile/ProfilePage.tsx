@@ -15,7 +15,6 @@ import Section from '@components/Section';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -70,7 +69,7 @@ function ProfilePage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     useDocumentTitle(translate('common.profile'));
-    const isAppLoadPending = useIsAppLoadPending();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
@@ -189,7 +188,7 @@ function ProfilePage() {
 
     const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'ProfilePage.privateSection',
-        isLoadingApp: isAppLoadPending,
+        isLoadingApp: !!isLoadingApp,
     };
 
     return (
@@ -298,7 +297,7 @@ function ProfilePage() {
                             childrenStyles={styles.pt3}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            {isAppLoadPending ? (
+                            {isLoadingApp ? (
                                 <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
                                     <ActivityIndicator
                                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
