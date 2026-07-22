@@ -520,7 +520,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -4454,6 +4453,24 @@ ${amount} für ${merchant} – ${date}`,
             subtitle: 'Geben Sie die Steuer-ID Ihrer juristischen Person ein, damit wir die Reisekostenabrechnung in Ihrer Landeswährung einrichten können.',
             inputLabel: 'Steuer-ID der juristischen Person',
             error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
+        },
+        nudge: {
+            airfareManual:
+                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Hallo! Wussten Sie, dass Sie Hotelübernachtungen direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Wussten Sie schon, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Wussten Sie schon, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -8980,6 +8997,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         serverResults: 'Suchergebnisse',
         searchIn: 'Suchen in',
         askConcierge: (message: string) => `Frage Concierge „${message}“`,
+        goTo: ({destination}: {destination: string}) => `Gehe zu ${destination}`,
         searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (

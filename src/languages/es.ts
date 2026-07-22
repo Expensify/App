@@ -475,7 +475,6 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -4320,6 +4319,24 @@ ${amount} para ${merchant} - ${date}`,
         carRental: ' de alquiler de coche',
         nightIn: 'noche en',
         nightsIn: 'noches en',
+        nudge: {
+            airfareManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar estancias de hotel directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar estancias en hoteles directamente en Expensify? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar alquileres de coche directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Hola, ¿sabías que puedes reservar y gestionar coches de alquiler directamente en Expensify? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Hola, ¿sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                '¡Hola! ¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube automáticamente los recibos por ti? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',
@@ -8780,6 +8797,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         serverResults: 'Resultados de búsqueda',
         searchIn: 'Buscar en',
         askConcierge: (message: string) => `Pregunta a Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Ir a ${destination}`,
         searchPlaceholder: 'Busca algo...',
         suggestions: 'Sugerencias',
         suggestionsAvailable: (

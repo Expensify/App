@@ -284,17 +284,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             screenName: SCREENS.WORKSPACE.MEMBERS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
         },
-    ];
-
-    if (isBetaEnabled(CONST.BETAS.WORKSPACE_ROOMS_PAGE)) {
-        workspaceMenuItems.push({
+        {
             translationKey: 'workspace.common.rooms',
             icon: expensifyIcons.Hashtag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ROOMS.getRoute(policyID)))),
             screenName: SCREENS.WORKSPACE.ROOMS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
-        });
-    }
+        },
+    ];
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {
@@ -319,18 +316,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canReadMoreFeatures) {
-            workspaceMenuItems.push({
-                translationKey: 'workspace.common.receiptPartners',
-                brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                icon: expensifyIcons.Receipt,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECEIPT_PARTNERS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
-            });
-        }
-
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.hr',
@@ -340,6 +325,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 screenName: SCREENS.WORKSPACE.HR,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+            });
+        }
+
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canReadMoreFeatures) {
+            workspaceMenuItems.push({
+                translationKey: 'workspace.common.receiptPartners',
+                brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                icon: expensifyIcons.Receipt,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECEIPT_PARTNERS,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             });
         }
 

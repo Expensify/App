@@ -36,6 +36,7 @@ import {buildSearchQueryJSON, getDateRangeForPreset, getUserFriendlyValue} from 
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -11355,6 +11356,21 @@ describe('getCardDescriptionForSearchTable', () => {
 
     it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
         expect(getCardDescriptionForSearchTable(baseCompanyCard, translateLocal)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
+    });
+});
+
+describe('getMultiSelectFilterOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns only the selectable receipt types, excluding hotel', () => {
+        const options = SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.RECEIPT_TYPE, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
+        expect(options).toEqual([
+            {value: CONST.SEARCH.RECEIPT_TYPE.ERECEIPT, text: 'eReceipt'},
+            {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
+        ]);
+        expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
     });
 });
 
