@@ -13092,7 +13092,10 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
 function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
     const reportForHeader = getReportForHeader(report);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
-        return getInvoiceReportName(reportForHeader, translate);
+        // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
+        // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
+        const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
+        return getInvoiceReportName(invoiceReport, translate);
     }
 
     if (action?.reportName) {
