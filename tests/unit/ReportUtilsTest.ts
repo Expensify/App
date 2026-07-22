@@ -109,6 +109,7 @@ import {
     getParentNavigationSubtitle,
     getParsedComment,
     getParticipantsList,
+    getPayeeName,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
@@ -134,6 +135,7 @@ import {
     getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
+    getUserDetailTooltipText,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
     getWhisperDisplayNames,
@@ -16186,6 +16188,33 @@ describe('ReportUtils', () => {
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
                 expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, params));
             });
+
+            it('routes the participant display name through the injected translate function', async () => {
+                const hiddenManagerAccountID = 987654;
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-marker-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    managerID: hiddenManagerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                // A participant with no name resolves to the "hidden" copy, which is produced by the injected translate
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''},
+                });
+
+                // A translate that tags the hidden-participant fallback so we can prove the preview used it
+                const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
+                    path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
+
+                const result = getReportPreviewMessage(translateWithMarker, {reportOrID: iouReport});
+
+                // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+                expect(result).toContain('HiddenParticipantMarker');
+            });
         });
 
         describe('getReportPreviewReportActionMessage (hardcoded English)', () => {
@@ -16207,6 +16236,50 @@ describe('ReportUtils', () => {
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, {reportOrID: report}));
                 expect(result).toContain('owes');
             });
+        });
+    });
+
+    describe('getUserDetailTooltipText', () => {
+        it('routes the display name through the injected translate function', async () => {
+            const hiddenAccountID = 778899;
+            // A participant with no name resolves to the "hidden" copy, which is produced by the injected translate
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''},
+            });
+            await waitForBatchedUpdates();
+
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenTooltipMarker' : translate(CONST.LOCALES.EN, path, ...parameters));
+
+            // The nameless participant resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+            expect(getUserDetailTooltipText(hiddenAccountID, formatPhoneNumber, translateWithMarker)).toBe('HiddenTooltipMarker');
+        });
+
+        it('falls back to the provided display name when the participant has no resolvable name', () => {
+            // accountID 0 short-circuits getDisplayNameForParticipant to '', so the fallback name is returned
+            expect(getUserDetailTooltipText(0, formatPhoneNumber, translateLocal, 'Fallback Name')).toBe('Fallback Name');
+        });
+    });
+
+    describe('getPayeeName', () => {
+        it('routes the payee display name through the injected translate function', async () => {
+            const hiddenPayeeAccountID = 665544;
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'payee-marker-report',
+                participants: {
+                    [hiddenPayeeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            // A payee with no name resolves to the "hidden" copy, which is produced by the injected translate
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [hiddenPayeeAccountID]: {accountID: hiddenPayeeAccountID, login: '', displayName: ''},
+            });
+            await waitForBatchedUpdates();
+
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenPayeeMarker' : translate(CONST.LOCALES.EN, path, ...parameters));
+
+            // The nameless payee resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+            expect(getPayeeName(report, translateWithMarker)).toBe('HiddenPayeeMarker');
         });
     });
 
