@@ -13,7 +13,9 @@ const APP_VERSION = packageJson.version;
 class CustomVersionFilePlugin {
     apply(compiler: Compiler) {
         compiler.hooks.done.tap(this.constructor.name, () => {
-            const versionPath = path.join(__dirname, '/../../dist/version.json');
+            // Node 26 loads the rsbuild TS config as native ESM, where CommonJS globals like
+            // __dirname don't exist, so resolve the dist directory from the compiler instead.
+            const versionPath = path.join(compiler.outputPath, 'version.json');
 
             fs.promises
                 .mkdir(path.dirname(versionPath), {recursive: true})
