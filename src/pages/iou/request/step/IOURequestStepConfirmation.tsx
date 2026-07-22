@@ -1008,7 +1008,7 @@ function IOURequestStepConfirmation({
                             />
                         )}
                     </SubmitExpenseOrchestrator>
-                    {isNewManualExpenseFlowEnabled && (
+                    {isNewManualExpenseFlowEnabled && isParticipantPickerVisible && (
                         <ParticipantPicker
                             participants={participants}
                             iouType={participantPickerIOUType}
