@@ -8131,7 +8131,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
                 : `actualizó la descripción de este espacio de trabajo a "${newDescription}" (previamente "${oldDescription}")`,
         renamedWorkspaceNameAction: (oldName, newName) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
-        removedFromApprovalWorkflow: (submittersNames) => {
+        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';

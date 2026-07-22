@@ -8160,7 +8160,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         renamedWorkspaceNameAction: (oldName: string, newName: string) => `zaktualizowano nazwę tego obszaru roboczego na „${newName}” (wcześniej „${oldName}”)`,
         updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription ? `ustaw opis tego obszaru roboczego na „${newDescription}”` : `zaktualizowano opis tego workspace’u na „${newDescription}” (wcześniej „${oldDescription}”)`,
-        removedFromApprovalWorkflow: (submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';

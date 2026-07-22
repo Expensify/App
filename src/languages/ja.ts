@@ -8104,7 +8104,7 @@ ${reportName}`,
         renamedWorkspaceNameAction: (oldName: string, newName: string) => `このワークスペースの名前を「${newName}」（以前は「${oldName}」）に更新しました`,
         updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription ? `このワークスペースの説明を「${newDescription}」に設定する` : `このワークスペースの説明を「${newDescription}」（以前は「${oldDescription}」）に更新しました`,
-        removedFromApprovalWorkflow: (submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';

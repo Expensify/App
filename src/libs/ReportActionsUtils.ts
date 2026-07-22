@@ -4046,8 +4046,7 @@ function getUpdatedApprovalRuleMessage(translate: LocalizedTranslate, reportActi
 }
 
 function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, submittersNames: string[]) {
-    // PluralForm reads parameters[0].count; Object.assign keeps the names array and attaches count without a type assertion.
-    return translate('workspaceActions.removedFromApprovalWorkflow', Object.assign([...submittersNames], {count: submittersNames.length}));
+    return translate('workspaceActions.removedFromApprovalWorkflow', {count: submittersNames.length}, submittersNames);
 }
 
 function getActionableCardFraudAlertMessage(

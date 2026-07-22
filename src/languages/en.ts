@@ -8404,7 +8404,7 @@ const translations = {
             !oldDescription
                 ? `set the description of this workspace to "${newDescription}"`
                 : `updated the description of this workspace to "${newDescription}" (previously "${oldDescription}")`,
-        removedFromApprovalWorkflow: (submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';

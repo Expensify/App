@@ -7921,7 +7921,7 @@ ${reportName}`,
         renamedWorkspaceNameAction: (oldName: string, newName: string) => `已将此工作区的名称更新为“${newName}”（原为“${oldName}”）`,
         updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription ? `将此工作区的描述设置为“${newDescription}”` : `已将此工作区的描述更新为“${newDescription}”（之前为“${oldDescription}”）`,
-        removedFromApprovalWorkflow: (submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';

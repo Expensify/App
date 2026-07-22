@@ -8169,7 +8169,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         renamedWorkspaceNameAction: (oldName: string, newName: string) => `atualizou o nome deste workspace para "${newName}" (anteriormente "${oldName}")`,
         updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription ? `definir a descrição deste workspace como "${newDescription}"` : `atualizou a descrição deste workspace para "${newDescription}" (antes "${oldDescription}")`,
-        removedFromApprovalWorkflow: (submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';

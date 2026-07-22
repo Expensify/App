@@ -8259,7 +8259,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             !oldDescription
                 ? `définir la description de cet espace de travail sur « ${newDescription} »`
                 : `a mis à jour la description de cet espace de travail en « ${newDescription} » (auparavant « ${oldDescription} »)`,
-        removedFromApprovalWorkflow: (submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';

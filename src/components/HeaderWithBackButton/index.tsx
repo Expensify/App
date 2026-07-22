@@ -115,8 +115,9 @@ function HeaderWithBackButton({
     );
 
     const middleContent = useMemo(() => {
+        const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
         if (progressBarPercentage) {
-            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text)}` : undefined;
+            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${stepCounterTranslation}` : undefined;
             return (
                 <>
                     {/* Reserves as much space for the middleContent as possible */}
@@ -154,7 +155,7 @@ function HeaderWithBackButton({
         return (
             <Header
                 title={title}
-                subtitle={stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : subtitle}
+                subtitle={stepCounterTranslation ?? subtitle}
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
