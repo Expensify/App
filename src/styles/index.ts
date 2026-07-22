@@ -4612,7 +4612,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
         },
 
-        inboxTabBadge: {
+        tabSelectorBadge: {
             minWidth: 18,
             height: 16,
             marginLeft: 8,
@@ -5617,6 +5617,20 @@ const staticStyles = (theme: ThemeColors) =>
         sortingMachineRulesEmptyStateIllustration: {
             width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
+        agentsRulesEmptyStateIllustration: {
+            width: variables.agentsRulesEmptyStateIllustrationWidth,
+            height: variables.agentsRulesEmptyStateIllustrationHeight,
+        },
+
+        agentRulesErrorRow: {
+            ...spacing.pt2,
+            ...spacing.pb3,
+        },
+
+        agentRulePromptInput: {
+            maxHeight: variables.agentRulePromptInputHeight,
         },
 
         emptyStateSamlIllustration: {
