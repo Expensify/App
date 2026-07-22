@@ -90,6 +90,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
                 onSave={onSave}
                 onBack={() => Navigation.goBack(backToRoute)}
                 backToRoute={backToRoute}
+                shouldSkipFocusRestoreOnSave
             />
         </AccessOrNotFoundWrapper>
     );

@@ -52,19 +52,22 @@ type RuleSelectionBaseProps = {
 
     /** Optional hash for rule not found validation */
     hash?: string;
+
+    /** Set at parents whose Save is `pressOnEnter` so an auto-save selection can't leave the row re-focused and hijack the next Enter. */
+    shouldSkipFocusRestoreOnSave?: boolean;
 };
 
 function resolveBackToRoute(backToRoute: RuleSelectionBackToRoute, selectedValue?: string): Route {
     return typeof backToRoute === 'function' ? backToRoute(selectedValue) : backToRoute;
 }
 
-function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, allowNoneOption = true, hash}: RuleSelectionBaseProps) {
+function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, allowNoneOption = true, hash, shouldSkipFocusRestoreOnSave}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const handleSaveSelection = (value?: string) => {
         onSave(value);
-        Navigation.goBack(resolveBackToRoute(backToRoute, value));
+        Navigation.goBack(resolveBackToRoute(backToRoute, value), {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
     };
 
     return (
@@ -86,6 +89,7 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                         shouldAutoSave
                         shouldNavigateOnSave={false}
                         allowNoneOption={allowNoneOption}
+                        shouldSkipFocusRestoreOnSave={shouldSkipFocusRestoreOnSave}
                     />
                 </View>
             </ScreenWrapper>

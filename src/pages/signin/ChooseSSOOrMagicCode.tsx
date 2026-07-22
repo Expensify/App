@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 
@@ -77,7 +78,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     text={translate('samlSignIn.useMagicCode')}
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
-                        resendValidateCode(credentials?.login);
+                        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, credentials?.login);
                         setIsUsingMagicCode(true);
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.MAGIC_CODE}
