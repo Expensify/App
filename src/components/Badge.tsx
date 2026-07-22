@@ -109,13 +109,18 @@ function Badge({
         <Wrapper
             style={pressable ? wrapperStyles : wrapperStyles({focused: false, hovered: false, isDisabled: false, isScreenReaderActive: false, pressed: false})}
             onPress={onPress}
-            role={pressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-            accessibilityLabel={pressable ? text : undefined}
-            aria-label={!pressable ? text : undefined}
-            accessible={false}
+            role={pressable ? CONST.ROLE.BUTTON : undefined}
+            accessibilityLabel={text}
+            // Make the badge a single accessibility element named by its text. The icon and text are hidden from
+            // assistive tech so a screen reader announces the badge as one item (via accessibilityLabel) instead of
+            // stepping through the icon and text as separate stops.
+            accessible
         >
             {!!icon && (
-                <View style={[!!text && styles.mr1, iconStyles]}>
+                <View
+                    style={[!!text && styles.mr1, iconStyles]}
+                    aria-hidden={!!text || undefined}
+                >
                     <Icon
                         width={iconSize}
                         height={iconSize}
@@ -139,6 +144,7 @@ function Badge({
                         isDeleted ? styles.offlineFeedbackDeleted : {},
                     ]}
                     numberOfLines={1}
+                    aria-hidden
                 >
                     {text}
                 </Text>
