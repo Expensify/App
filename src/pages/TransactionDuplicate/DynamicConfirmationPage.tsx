@@ -11,9 +11,9 @@ import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
@@ -29,13 +29,12 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -47,39 +46,21 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
-function Confirmation() {
+function DynamicConfirmationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path);
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`);
     const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const transactionID = TransactionUtils.getTransactionID(report);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`];
-    const allDuplicateIDs = useMemo(
-        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
-        [transactionViolations],
-    );
-    const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [duplicatedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(
-        policyTags ?? {},
-        transaction,
-        allDuplicates,
-        reviewDuplicatesReport,
-        reviewDuplicates?.transactionID,
-        policy,
-        policyCategories,
-    );
-    const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`);
     const reportAction = Object.values(reportActions ?? {}).find(
@@ -123,7 +104,13 @@ function Confirmation() {
         // Suppress the NotFound guard for the discarded thread the server tears down on merge.
         const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
         setDeleteTransactionNavigateBackUrl(keptReportRoute);
-        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? '', allTransactionViolations});
+        mergeDuplicates({
+            ...mergeParams,
+            ...taxData,
+            currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            allTransactionViolations,
+        });
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
@@ -140,7 +127,12 @@ function Confirmation() {
     }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations]);
 
     const handleResolveDuplicates = useCallback(() => {
-        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations});
+        resolveDuplicates({
+            ...transactionsMergeParams,
+            ...taxData,
+            transactionThreadReportIDMap,
+            allTransactionViolations,
+        });
         Navigation.dismissToSuperWideRHP();
     }, [transactionsMergeParams, taxData, transactionThreadReportIDMap, allTransactionViolations]);
 
@@ -185,14 +177,14 @@ function Confirmation() {
 
     return (
         <ScreenWrapper
-            testID="Confirmation"
+            testID="DynamicConfirmationPage"
             shouldShowOfflineIndicator
         >
             <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.reviewDuplicates')}
-                        onBackButtonPress={goBack}
+                        onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
                     <ScrollView>
                         <View style={[styles.ph5, styles.pb8]}>
@@ -241,4 +233,4 @@ function Confirmation() {
     );
 }
 
-export default Confirmation;
+export default DynamicConfirmationPage;

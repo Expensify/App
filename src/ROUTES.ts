@@ -1125,6 +1125,19 @@ const DYNAMIC_ROUTES = {
         path: 'initial-list-value',
         entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
     },
+    TRANSACTION_DUPLICATE_CONFIRMATION: {
+        path: 'transaction-duplicate-confirmation',
+        entryScreens: [
+            SCREENS.TRANSACTION_DUPLICATE.REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE,
+            SCREENS.TRANSACTION_DUPLICATE.BILLABLE,
+        ],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -3576,11 +3589,6 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review/billable',
 
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/billable` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
-        route: 'r/:threadReportID/duplicates/confirm',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
     },
     MERGE_TRANSACTION_LIST_PAGE: {
         route: 'merge/:transactionID',

@@ -3,7 +3,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -16,6 +16,7 @@ import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils'
 import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
@@ -115,7 +116,7 @@ const getReviewNavigationRoute = (
         return ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo);
     }
 
-    return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(threadReportID, backTo);
+    return createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path, backTo);
 };
 
 type TranslationPathOrText = {

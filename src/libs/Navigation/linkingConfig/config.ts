@@ -1870,10 +1870,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
                             exact: true,
                         },
-                        [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: {
