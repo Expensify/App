@@ -1,22 +1,27 @@
-import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {setDraftInviteAccountID, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
+import React, {useCallback, useEffect} from 'react';
+
 type InviteeNewMemberStepProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WithCurrentUserPersonalDetailsProps & {
-        route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
+        route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
     };
 
 function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: InviteeNewMemberStepProps) {

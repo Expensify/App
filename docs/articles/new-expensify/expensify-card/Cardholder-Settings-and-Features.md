@@ -1,10 +1,22 @@
 ---
 title: Using Your Expensify Card in New Expensify
 description: Learn how to activate, use, and manage your physical and virtual Expensify Card, including Smart Limits, notifications, and troubleshooting.
-keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined, eReceipts]
+keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined, eReceipts, freeze card, unfreeze card, order card, PIN, GBP, EUR]
 ---
 
 Once you receive your Expensify Visa® Commercial Card, you can activate it and start using it immediately. When you use your Expensify Card, expenses are automatically created, and SmartScanned receipts are matched to the corresponding transactions. For most purchases, excluding lodging, Expensify also generates IRS-compliant eReceipts. If your organization doesn't require itemized receipts, you can rely on eReceipts to meet documentation requirements.
+
+---
+
+## How to order your physical Expensify Card
+
+To order a physical Expensify Card, go to **Account > Wallet > Expensify Card** and follow the prompts. 
+
+**Setting and managing a PIN (UK and Europe only):**
+
+If you're on a GBP or EUR card program, you'll be asked to set a 4-digit PIN during the ordering process. You'll need to verify your identity via biometrics or passkey to complete the order.
+
+Once your card arrives, you can manage your PIN — including revealing, changing, or unlocking it — from the card details page. For details, see [Manage Your Expensify Card PIN](/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
 
 ---
 
@@ -30,6 +42,17 @@ If you try to make a purchase that exceeds this limit, the transaction will be d
 
 ---
 
+# View Spend Rules on Your Card
+
+Your workspace admin may set a Spend Rule on your card that approves or declines transactions in real time based on the merchant, spend category, or amount. You can view the rule on your card, but only your admin can change it.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet > Expensify Card**.
+2. Click your Expensify Card to view its Spend Rule summary.
+
+[Learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+
+---
+
 # Enable Notifications
 
 Get real-time alerts for purchases and declines by enabling push notifications.
@@ -49,7 +72,7 @@ Get real-time alerts for purchases and declines by enabling push notifications.
 4. Toggle notifications **On**.
 5. Customize your alert style based on your preferences.
 
-See this guide for more information on [setting up Expensify Card notifications](https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Notifications).
+[Learn how to set up Expensify Card notifications](/articles/new-expensify/expensify-card/Expensify-Card-Notifications).
 
 ---
 
@@ -79,7 +102,9 @@ A virtual card is a secure, flexible way to manage online spending:
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet**.
 2. Click your Expensify Card.
-3. Click **Reveal Details** to view the card number, expiration date, CVV, and billing address.
+3. Click **Reveal** to view the card number, expiration date, CVV, and billing address.
+
+If any of your personal details are missing, you'll be prompted to add them before your card details can be revealed. Click **Add details**, then enter your legal name, date of birth, address, and phone number. After you confirm these details, authenticate to reveal your card. US cardholders confirm with a magic code sent to their email, while UK and EU cardholders confirm with biometrics or a passkey.
 
 ---
 
@@ -92,7 +117,31 @@ A virtual card is a secure, flexible way to manage online spending:
 3. Select your Expensify Card.
 4. Tap **Add to Apple Wallet** or **Add to Google Pay** and follow the prompts.
 
-For more details on adding a card to Apple or Android Pay, see this [guide](https://help.expensify.com/articles/new-expensify/expensify-card/Add-Expensify-Card-to-Apple-or-Google-Pay).
+[Learn how to add an Expensify Card to Apple Pay or Google Pay](/articles/new-expensify/expensify-card/Add-Expensify-Card-to-Apple-or-Google-Pay).
+
+---
+
+# How to freeze or unfreeze your Expensify Card
+
+Need to temporarily pause spending? You can freeze your Expensify Card at any time - without canceling or reissuing it.
+
+Freezing your card:
+- Immediately blocks new purchases on the card
+- Keeps your card number, CVV, and expiration date intact
+- Can be reversed at any time
+
+## To freeze or unfreeze your card
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet > Expensify Card**.
+2. Click your Expensify Card to view its details.
+3. Click **Freeze card** or **Unfreeze card**, depending on the card's current state.
+4. Click **Confirm** in the dialog that appears.
+
+Once frozen:
+- You'll see a **Frozen** badge and a scarf graphic over your card
+- All new transactions will be declined until you unfreeze it
+
+**Note:** If your workspace admin froze the card, you'll need to contact them directly via Expensify Chat to request that they unfreeze it.
 
 ---
 
@@ -100,7 +149,7 @@ For more details on adding a card to Apple or Android Pay, see this [guide](http
 
 ## What if I haven’t received my Expensify Card?
 
-If your physical card hasn't arrived within a week, confirm your mailing address is correct and request a new card. See [this guide](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Expensify-Card#steps-to-request-the-expensify-card) for requesting a new Expensify Card.
+If your physical card hasn't arrived within a week, confirm your mailing address is correct and request a new card. [Learn how to request a new Expensify Card](/articles/expensify-classic/expensify-card/Request-the-Expensify-Card#steps-to-request-the-expensify-card).
 
 ## Why did my card get declined?
 
@@ -110,6 +159,7 @@ Common reasons for Expensify card declines include:
 - **Incorrect details**: Double-check the CVC, ZIP code, and expiration date.
 - **Suspicious activity**: You may need to manually approve flagged transactions from your Home page.
 - **Restricted country**: Transactions are blocked in specific regions due to US sanctions.
+- **Spend Rule restriction**: Your workspace admin may have set a Spend Rule on your card that blocks certain merchants, spend categories, or amounts. When a Spend Rule declines a transaction, you'll receive a notification from Concierge in your workspace chat explaining the reason. [Learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
 ## How do I deactivate my card and request a replacement?
 

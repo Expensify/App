@@ -1,14 +1,19 @@
-import React from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/USD/utils/getValuesForBeneficialOwner';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type ConfirmationUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
+import React from 'react';
+
+type ConfirmationUBOProps = SubPageProps & {beneficialOwnerBeingModifiedID: string};
 
 const UBO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.UBO;
 
@@ -19,10 +24,11 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const values = getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimbursementAccountDraft);
-    const error = reimbursementAccount ? ErrorUtils.getLatestErrorMessage(reimbursementAccount) : '';
+    const error = reimbursementAccount ? getLatestErrorMessage(reimbursementAccount) : '';
 
     const summaryItems = [
         {
+            id: 'legal-name',
             description: translate('beneficialOwnerInfoStep.legalName'),
             title: `${values.firstName} ${values.lastName}`,
             shouldShowRightIcon: true,
@@ -31,6 +37,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
+            id: 'date-of-birth',
             description: translate('common.dob'),
             title: values.dob,
             shouldShowRightIcon: true,
@@ -39,6 +46,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
+            id: 'ssn',
             description: translate('beneficialOwnerInfoStep.last4SSN'),
             title: values.ssnLast4,
             shouldShowRightIcon: true,
@@ -47,6 +55,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
+            id: 'address',
             description: translate('beneficialOwnerInfoStep.address'),
             title: `${values.street}, ${values.city}, ${values.state} ${values.zipCode}`,
             shouldShowRightIcon: true,

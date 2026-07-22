@@ -1,16 +1,18 @@
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-import * as core from '@actions/core';
-import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
 import type {Octokit as OctokitCore} from '@octokit/core';
 import type {graphql} from '@octokit/graphql/dist-types/types';
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
-import {paginateRest} from '@octokit/plugin-paginate-rest';
 import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as core from '@actions/core';
+import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
+import {paginateRest} from '@octokit/plugin-paginate-rest';
 import {throttling} from '@octokit/plugin-throttling';
 import {RequestError} from '@octokit/request-error';
+
 import CONST from './CONST';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
@@ -133,13 +135,13 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers: number[]): Promise<OctokitPR[] | void> {
+    static fetchAllPullRequests(pullRequestNumbers: number[], repo: string = CONST.APP_REPO): Promise<OctokitPR[] | void> {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(
             this.octokit.pulls.list,
             {
                 owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
+                repo,
                 state: 'all',
                 sort: 'created',
                 direction: 'desc',

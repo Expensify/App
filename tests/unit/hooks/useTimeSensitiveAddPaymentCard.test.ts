@@ -1,10 +1,16 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+
 import {shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
+
 import useTimeSensitiveAddPaymentCard from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useHasTeam2025Pricing', () => ({
@@ -78,7 +84,7 @@ describe('useTimeSensitiveAddPaymentCard', () => {
 
             renderHook(() => useTimeSensitiveAddPaymentCard());
 
-            expect(mockedShouldShowTrialEndedUI).toHaveBeenCalledWith(lastDayFreeTrial, userBillingFundID, {}, undefined, undefined, undefined);
+            expect(mockedShouldShowTrialEndedUI).toHaveBeenCalledWith(CONST.DEFAULT_NUMBER_ID, lastDayFreeTrial, userBillingFundID, {}, undefined, undefined, undefined);
         });
     });
 });

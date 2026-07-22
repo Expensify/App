@@ -1,5 +1,3 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ConnectPolicyToQuickBooksDesktopParams,
@@ -10,9 +8,14 @@ import type {
 } from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate extends Partial<Connections['quickbooksDesktop']['config']['export']>>(
     policyID: string,
@@ -86,11 +89,10 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     settingValue: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
     oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
 ) {
-    const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER ? {exporter: settingValue} : {};
-    const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
+    const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER && typeof settingValue === 'string' ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER && typeof oldSettingValue === 'string' ? {exporter: oldSettingValue} : {};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -116,7 +118,6 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -521,6 +522,22 @@ function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue e
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopTravelInvoicingPayableAccount(
+    policyID: string,
+    settingValue: string,
+    oldSettingValue?: Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID'],
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+}
+
 function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exportDate']>(
     policyID: string,
     settingValue: TSettingValue,
@@ -567,6 +584,7 @@ export {
     updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopNonReimbursableBillDefaultVendor,
+    updateQuickbooksDesktopTravelInvoicingPayableAccount,
     updateQuickbooksDesktopShouldAutoCreateVendor,
     updateQuickbooksDesktopNonReimbursableExpensesAccount,
     updateQuickbooksDesktopExpensesExportDestination,

@@ -1,14 +1,21 @@
+import Avatar from '@components/Avatar';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import Avatar from '@components/Avatar';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import SingleSelectListItem from './SingleSelectListItem';
+
 import type {ListItem, SingleSelectListItemProps} from './types';
 
+import SingleSelectListItem from './SingleSelectListItem';
+
 /**
- * SingleSelectWithAvatarListItem extends SingleSelectListItem by adding avatar support.
+ * A SingleSelectListItem that prepends an avatar when icons are provided. Used in pickers
+ * where options have a visual identity (e.g. domain admin selection).
  */
 function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperStyle, ...props}: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -17,7 +24,6 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
     if (!icon) {
         return (
             <SingleSelectListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 item={item}
                 wrapperStyle={wrapperStyle}
@@ -41,7 +47,6 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
 
     return (
         <SingleSelectListItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             item={{...item, leftElement: avatarElement}}
             wrapperStyle={[styles.optionRow, styles.pv0, styles.pv3, styles.w100, wrapperStyle]}

@@ -1,4 +1,5 @@
 import CONFIG from '@src/CONFIG';
+
 import type GetPlaidLinkTokenParameters from './types';
 
 const getPlaidLinkTokenParameters: GetPlaidLinkTokenParameters = () => ({

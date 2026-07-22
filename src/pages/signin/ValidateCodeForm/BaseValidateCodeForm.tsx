@@ -1,36 +1,48 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
+
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
+
 import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
 import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useIsFocused} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type ValidateCodeFormProps from './types';
 
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
@@ -63,6 +75,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
     const [isCountdownRunning, setIsCountdownRunning] = useState(true);
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation']);
 
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
@@ -145,7 +159,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        userActionsResendValidateCode(credentials?.login ?? '');
+        userActionsResendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         countdownRef.current?.resetCountdown();
@@ -402,6 +416,18 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                                 </Text>
                             </PressableWithFeedback>
                         )}
+                    </View>
+                    <View style={[styles.mt5, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.mr3]}>
+                            <Icon
+                                src={expensifyIcons.Exclamation}
+                                fill={theme.icon}
+                                size={CONST.ICON_SIZE.MEDIUM}
+                            />
+                        </View>
+                        <View style={styles.flex1}>
+                            <RenderHTML html={translate('validateCodeForm.avoidScamsMessage')} />
+                        </View>
                     </View>
                 </View>
             )}

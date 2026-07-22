@@ -1,14 +1,25 @@
-import Onyx from 'react-native-onyx';
-import {connectBankAccountWithPlaid} from '@libs/actions/BankAccounts';
+import {clearPersonalBankAccount, connectBankAccountWithPlaid, openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import getOnyxValue from '../utils/getOnyxValue';
+
+import Onyx from 'react-native-onyx';
+
 import type {MockFetch} from '../utils/TestHelper';
+
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => 'settings/wallet'),
+}));
 
 const POLICY_ID = 'policyID123';
 
@@ -107,6 +118,88 @@ describe('actions/BankAccounts', () => {
                     }),
                 );
             });
+        });
+    });
+
+    describe('openPersonalBankAccountSetupView', () => {
+        test('clears existing PERSONAL_BANK_ACCOUNT data when called with no parameters', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+                exitReportID: '123',
+                bankAccountID: 456,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
+
+            openPersonalBankAccountSetupView({});
+            await waitForBatchedUpdates();
+
+            const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+            const formDraft = await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+
+            expect(personalBankAccount).toBeFalsy();
+            expect(formDraft?.setupType).not.toBe(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
+        });
+
+        test('replaces existing data with only the fields passed to the function', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                onSuccessFallbackRoute: ROUTES.SETTINGS_WALLET,
+                bankAccountID: 789,
+            });
+
+            openPersonalBankAccountSetupView({
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+                exitReportID: '999',
+            });
+            await waitForBatchedUpdates();
+
+            const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+
+            expect(personalBankAccount).toEqual({
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+                exitReportID: '999',
+            });
+        });
+
+        test('navigates to the US bank account flow when shouldSetUpUSBankAccount is true', async () => {
+            openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: true});
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+        });
+    });
+
+    describe('clearPersonalBankAccount', () => {
+        test('clears all PERSONAL_BANK_ACCOUNT data when called with no preserved data', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+                exitReportID: '123',
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL});
+
+            clearPersonalBankAccount();
+            await waitForBatchedUpdates();
+
+            const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+            const formDraft = await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+
+            expect(personalBankAccount).toBeFalsy();
+            expect(formDraft?.setupType).not.toBe(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+        });
+
+        test('preserves only the fields passed in preservedData', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+                exitReportID: '123',
+                bankAccountID: 456,
+            });
+
+            clearPersonalBankAccount({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
+            await waitForBatchedUpdates();
+
+            const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+
+            expect(personalBankAccount).toEqual({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
         });
     });
 });

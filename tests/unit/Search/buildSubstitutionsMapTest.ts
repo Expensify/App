@@ -1,10 +1,12 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-// we need "dirty" object key names in these tests
-import type {OnyxCollection} from 'react-native-onyx';
 import {buildSubstitutionsMap} from '@src/components/Search/SearchRouter/buildSubstitutionsMap';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+// we need "dirty" object key names in these tests
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 
 jest.mock('@libs/ReportUtils', () => {
@@ -76,6 +78,17 @@ const cardFeedsMock: OnyxCollection<OnyxTypes.CardFeeds> = {
     },
 };
 
+const policiesMock = {
+    [`${ONYXKEYS.COLLECTION.POLICY}policyA`]: {
+        id: 'policyA',
+        name: 'Test Workspace',
+    },
+    [`${ONYXKEYS.COLLECTION.POLICY}policyB`]: {
+        id: 'policyB',
+        name: 'Test Workspace',
+    },
+} as OnyxCollection<OnyxTypes.Policy>;
+
 describe('buildSubstitutionsMap should return correct substitutions map', () => {
     test('when there were no substitutions', () => {
         const userQuery = 'foo bar';
@@ -116,6 +129,17 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
 
         expect(result).toStrictEqual({
             'from:me': '12345',
+        });
+    });
+
+    test('when query has duplicate workspaces with same display name, build indexed substitution keys', () => {
+        const userQuery = 'policyID:policyA,policyB';
+
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, policiesMock, 12345, translateLocal, {});
+
+        expect(result).toStrictEqual({
+            'policyID:Test Workspace': 'policyA',
+            'policyID:Test Workspace:1': 'policyB',
         });
     });
 });

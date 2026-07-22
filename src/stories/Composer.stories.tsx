@@ -1,18 +1,23 @@
-import type {Meta} from '@storybook/react-webpack5';
-// eslint-disable-next-line no-restricted-imports
-import {ExpensiMark} from 'expensify-common';
-import React, {useState} from 'react';
-import {Image, View} from 'react-native';
 import Composer from '@components/Composer';
 import type {ComposerProps, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import useStyleUtils from '@hooks/useStyleUtils';
-// eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme';
-import {defaultStyles} from '@src/styles';
+
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {Meta} from 'storybook-react-rsbuild';
+
+// eslint-disable-next-line no-restricted-imports
+import {ExpensiMark} from 'expensify-common';
+import React, {useState} from 'react';
+import {Image, View} from 'react-native';
+
+const defaultStyles = styles(defaultTheme);
 
 const ComposerWithNavigation = withNavigationFallback(Composer);
 
@@ -44,7 +49,6 @@ function Default(props: ComposerProps) {
         <View>
             <View style={[defaultStyles.border, defaultStyles.p4]}>
                 <ComposerWithNavigation
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     multiline
                     value={comment}
@@ -68,6 +72,7 @@ function Default(props: ComposerProps) {
                     {!!pastedFile && pastedFile instanceof File && (
                         <View style={defaultStyles.mv3}>
                             <Image
+                                accessibilityIgnoresInvertColors
                                 source={{uri: URL.createObjectURL(pastedFile)}}
                                 resizeMode="contain"
                                 style={StyleUtils.getWidthAndHeightStyle(250, 250)}

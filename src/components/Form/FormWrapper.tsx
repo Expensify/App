@@ -1,27 +1,31 @@
-import React, {useContext, useImperativeHandle, useRef} from 'react';
-import type {ForwardedRef, RefObject} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {Form} from '@src/types/form';
+import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import FormContext from './FormContext';
+
+import type {ForwardedRef, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useContext, useImperativeHandle, useRef} from 'react';
+import {Keyboard, View} from 'react-native';
+
 import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
+
+import FormContext from './FormContext';
 
 type FormWrapperProps = ChildrenProps &
     FormProps & {
@@ -48,6 +52,15 @@ type FormWrapperProps = ChildrenProps &
 
         /** Whether the form is loading */
         isLoading?: boolean;
+
+        /** Whether the fix errors alert should be visible */
+        isAlertVisible?: boolean;
+
+        /** Server side field errors keyed by field name */
+        serverErrorFields?: ErrorFields | null;
+
+        /** Server side error message */
+        serverErrorMessage?: string;
 
         /** If enabled, the content will have a bottom padding equal to account for the safe bottom area inset. */
         addBottomSafeAreaPadding?: boolean;
@@ -89,12 +102,14 @@ function FormWrapper({
     formID,
     shouldUseScrollView = true,
     scrollContextEnabled = false,
-    shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
     enterKeyEventListenerPriority = 1,
     isSubmitDisabled = false,
     shouldRenderFooterAboveSubmit = false,
     isLoading = false,
+    isAlertVisible = false,
+    serverErrorFields,
+    serverErrorMessage,
     shouldScrollToEnd = false,
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
@@ -114,12 +129,8 @@ function FormWrapper({
     const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
-
-    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
-
     const onFixTheErrorsLinkPressed = () => {
-        const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
+        const errorFields = !isEmptyObject(errors) ? errors : (serverErrorFields ?? {});
         const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => key in errorFields);
 
         if (!focusKey) {
@@ -189,9 +200,11 @@ function FormWrapper({
         <FormAlertWithSubmitButton
             buttonText={submitButtonText}
             isDisabled={isSubmitDisabled}
-            isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
-            isLoading={!!formState?.isLoading || isLoading}
-            message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+            isAlertVisible={isAlertVisible}
+            isLoading={isLoading}
+            message={isEmptyObject(serverErrorFields) ? serverErrorMessage : undefined}
+            // FormProvider drives the loading state, so opt out here to delay the spinner until after validations run.
+            shouldShowLoadingImmediatelyOnPress={false}
             onSubmit={onSubmit}
             footerContent={footerContent}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
@@ -222,12 +235,7 @@ function FormWrapper({
                 if (!shouldScrollToEnd) {
                     return;
                 }
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    requestAnimationFrame(() => {
-                        formRef.current?.scrollToEnd({animated: true});
-                    });
-                });
+                formRef.current?.scrollToEnd({animated: true});
             }}
         >
             {children}
@@ -236,6 +244,7 @@ function FormWrapper({
                     key={`fallback-announce-${errorAnnouncementKey}`}
                     style={styles.hiddenElementOutsideOfWindow}
                     role={CONST.ROLE.ALERT}
+                    accessibilityLiveRegion="assertive"
                 >
                     {fallbackAnnouncementMessage}
                 </Text>

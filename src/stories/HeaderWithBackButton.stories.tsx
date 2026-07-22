@@ -1,7 +1,9 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
 
 type HeaderWithBackButtonStory = StoryFn<typeof HeaderWithBackButton>;
 
@@ -16,7 +18,6 @@ const story: Meta<typeof HeaderWithBackButton> = {
 };
 
 function Template(props: HeaderWithBackButtonProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <HeaderWithBackButton {...props} />;
 }
 

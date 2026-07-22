@@ -1,9 +1,3 @@
-import lodashSortBy from 'lodash/sortBy';
-import React, {useMemo} from 'react';
-import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
@@ -11,6 +5,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,16 +13,29 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCardFeedIcon} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+
+import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
+
+import lodashSortBy from 'lodash/sortBy';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
@@ -71,10 +79,7 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
     const {avatarID, useProfileNavigationWrapper, type, name, reportID} = props;
 
     if (!useProfileNavigationWrapper) {
-        return (
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
-        );
+        return <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />;
     }
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
@@ -88,7 +93,8 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
             }
             return Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID), firstLetter));
         }
-        return Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(avatarID), Navigation.getActiveRoute()));
+
+        return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(Number(avatarID))));
     };
 
     return (
@@ -98,7 +104,6 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
             accessibilityRole={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
         </PressableWithoutFocus>
     );
@@ -173,6 +178,10 @@ function ReportActionAvatarSubscript({
     fallbackDisplayName,
     useProfileNavigationWrapper,
     reportID,
+    subscriptCardFeedIconSize = {
+        width: variables.cardAvatarWidth,
+        height: variables.cardAvatarHeight,
+    },
 }: {
     primaryAvatar: IconType;
     secondaryAvatar: IconType;
@@ -181,6 +190,7 @@ function ReportActionAvatarSubscript({
     noRightMarginOnContainer?: boolean;
     subscriptAvatarBorderColor?: ColorValue;
     subscriptCardFeed?: CardFeed;
+    subscriptCardFeedIconSize?: {width: number; height: number};
     fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
     reportID?: string;
@@ -274,15 +284,15 @@ function ReportActionAvatarSubscript({
                         // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),
-                        StyleUtils.getAvatarSubscriptIconContainerStyle(variables.cardAvatarWidth, variables.cardAvatarHeight),
+                        StyleUtils.getAvatarSubscriptIconContainerStyle(subscriptCardFeedIconSize.width, subscriptCardFeedIconSize.height),
                         styles.dFlex,
                         styles.justifyContentCenter,
                     ]}
                 >
                     <Icon
                         src={getCardFeedIcon(subscriptCardFeed, illustrations, companyCardFeedIcons)}
-                        width={variables.cardAvatarWidth}
-                        height={variables.cardAvatarHeight}
+                        width={subscriptCardFeedIconSize.width}
+                        height={subscriptCardFeedIconSize.height}
                         additionalStyles={styles.alignSelfCenter}
                         testID="ReportActionAvatars-Subscript-CardIcon"
                     />

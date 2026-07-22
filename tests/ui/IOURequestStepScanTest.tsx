@@ -1,19 +1,26 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
 import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -53,6 +60,11 @@ jest.mock('@hooks/useFilesValidation', () => {
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
     useCameraFormat: jest.fn(() => null),
+}));
+
+jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({
+    __esModule: true,
+    default: () => ({iouType: 'submit', routeName: 'Money_Request_Create'}),
 }));
 
 function createMinimalReport(reportID: string, policyID: string): Report {
@@ -172,6 +184,34 @@ describe('IOURequestStepScan', () => {
         const POLICY_ID = 'policy-1';
         const TRANSACTION_ID_1 = '101';
 
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <NavigationContainer>
+                        <IOURequestStepScan
+                            route={
+                                {
+                                    key: 'StepScan2',
+                                    name: SCREENS.MONEY_REQUEST.CREATE,
+                                    params: {
+                                        action: CONST.IOU.ACTION.CREATE,
+                                        iouType: CONST.IOU.TYPE.SUBMIT,
+                                        reportID: REPORT_ID,
+                                        transactionID: TRANSACTION_ID_1,
+                                        pageIndex: 0,
+                                    },
+                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['route']
+                            }
+                            navigation={{} as never}
+                        />
+                    </NavigationContainer>
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('multi-scan'));
+        await waitForBatchedUpdates();
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
         transaction1.transactionID = TRANSACTION_ID_1;
@@ -182,36 +222,6 @@ describe('IOURequestStepScan', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
         });
         await waitForBatchedUpdates();
-
-        render(
-            <OnyxListItemProvider>
-                <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStepScan
-                            route={
-                                {
-                                    key: 'StepScan2',
-                                    name: SCREENS.MONEY_REQUEST.STEP_SCAN,
-                                    params: {
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.SUBMIT,
-                                        reportID: REPORT_ID,
-                                        transactionID: TRANSACTION_ID_1,
-                                        pageIndex: 0,
-                                    },
-                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']
-                            }
-                            navigation={{} as never}
-                            isMultiScanEnabled
-                            isStartingScan
-                            setIsMultiScanEnabled={jest.fn()}
-                        />
-                    </NavigationContainer>
-                </LocaleContextProvider>
-            </OnyxListItemProvider>,
-        );
-
-        await waitForBatchedUpdatesWithAct();
 
         expect(triggerFileSelection).not.toBeNull();
 

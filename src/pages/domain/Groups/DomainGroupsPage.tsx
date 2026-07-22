@@ -1,26 +1,41 @@
-import type {DomainSecurityGroupWithID} from '@selectors/Domain';
-import {domainNameSelector, groupsSelector} from '@selectors/Domain';
-import React from 'react';
-import {View} from 'react-native';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import Text from '@components/Text';
+import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
+import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
+
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {hasDomainGroupDetailsErrors} from '@libs/DomainUtils';
+import {getLatestError} from '@libs/ErrorUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
+import {clearGroupCreateError, clearGroupDeleteError} from '@userActions/Domain';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {DomainSecurityGroupWithID} from '@selectors/Domain';
+
+import {defaultSecurityGroupIDSelector, domainNameSelector, groupsSelector, isSecurityGroupPendingDeleteSelector} from '@selectors/Domain';
+import React from 'react';
+import {View} from 'react-native';
 
 type DomainGroupsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.GROUPS>;
 
@@ -28,45 +43,64 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const {domainAccountID} = route.params;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.groups.title');
-
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const [groups = getEmptyArray<DomainSecurityGroupWithID>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
+    const [defaultGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
+    const [pendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
-    const data = groups.map((group) => {
-        return {
-            keyForList: group.id,
-            text: group.details.name ?? '',
-            rightElement: (
-                <View style={styles.flex1}>
-                    <Text
-                        numberOfLines={1}
-                        style={styles.alignSelfStart}
-                    >
-                        {translate('domain.groups.memberCount', {count: Object.keys(group.details.shared).length})}
-                    </Text>
-                </View>
-            ),
-        };
-    });
+    const groupRows: DomainGroupRowData[] = groups
+        .filter((group) => isOffline || !isSecurityGroupPendingDeleteSelector(group.id)(pendingActions))
+        .map((group) => {
+            const isDefault = group.id === defaultGroupID;
+            const groupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`;
+            const groupErrors = domainErrors?.[groupKey];
+            const groupPendingActions = pendingActions?.[groupKey];
+            const groupErrorMessage = getLatestError(groupErrors?.errors);
+            const isFailedCreate = groupPendingActions?.createGroup === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyValueObject(groupErrorMessage);
+            const isPendingDelete = isSecurityGroupPendingDeleteSelector(group.id)(pendingActions);
+            const hasDetailsErrors = hasDomainGroupDetailsErrors(groupErrors) && !isPendingDelete;
 
-    const getCustomListHeader = () => {
-        if (!data || data?.length === 0) {
-            return null;
-        }
+            return {
+                keyForList: group.id,
+                groupID: group.id,
+                name: group.details.name ?? '',
+                memberCount: Object.keys(group.details.shared).length,
+                isDefault,
+                errors: groupErrorMessage,
+                brickRoadIndicator: hasDetailsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: groupPendingActions?.deleteGroup ?? groupPendingActions?.createGroup ?? Object.values(groupPendingActions ?? {}).find(Boolean),
+                disabled: isPendingDelete || isFailedCreate,
+                action: () => Navigation.navigate(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, group.id)),
+                dismissError: () => {
+                    if (groupPendingActions?.createGroup) {
+                        clearGroupCreateError(domainAccountID, group.id);
+                        return;
+                    }
+                    clearGroupDeleteError(domainAccountID, group.id);
+                },
+            };
+        });
 
-        return (
-            <CustomListHeader
-                canSelectMultiple={false}
-                leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('common.members')}
-                shouldDivideEqualWidth
-            />
-        );
-    };
+    const createGroupHeaderButton = (
+        <Button
+            accessibilityLabel={translate('domain.groups.createNewGroupButton')}
+            text={translate('domain.groups.createNewGroupButton')}
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
+            onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
+            icon={icons.Plus}
+            innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+            style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
+            success
+        />
+    );
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -82,16 +116,20 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
-                />
-                <SelectionList
-                    data={data}
-                    ListItem={TableListItem}
-                    onSelectRow={() => null}
-                    customListHeader={getCustomListHeader()}
+                >
+                    {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
+                </HeaderWithBackButton>
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
+
+                <DomainGroupsTable
+                    domainAccountID={domainAccountID}
+                    groups={groupRows}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );
 }
+
+DomainGroupsPage.displayName = 'DomainGroupsPage';
 
 export default DomainGroupsPage;

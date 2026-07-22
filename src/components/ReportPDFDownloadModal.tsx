@@ -1,5 +1,3 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -7,10 +5,16 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {downloadReportPDF} from '@libs/actions/Report';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Header from './Header';
@@ -23,9 +27,13 @@ type ReportPDFDownloadModalProps = {
     reportID: string | undefined;
     isVisible: boolean;
     onClose: () => void;
+    onModalHide?: () => void;
+
+    /** Called when the modal is dismissed while the PDF is still generating (e.g. Submit via PDF retracts the submit). */
+    onCancel?: () => void;
 };
 
-function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloadModalProps) {
+function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCancel}: ReportPDFDownloadModalProps) {
     const shouldAutoDownloadPDF = useRef(false);
 
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`);
@@ -73,9 +81,20 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloa
         context: 'MoneyReportHeader.PDFModal',
     };
 
+    // reportPDFFilename is null while the backend is still generating, 'error' on failure, and the filename on success.
+    // Only treat a dismissal as a cancel while still generating so onCancel (e.g. retract the submit) doesn't fire on
+    // the error/success states, where the submit has already rolled back or completed.
+    const handleDismiss = () => {
+        if (!reportPDFFilename) {
+            onCancel?.();
+        }
+        onClose();
+    };
+
     return (
         <Modal
-            onClose={onClose}
+            onClose={handleDismiss}
+            onModalHide={onModalHide}
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
@@ -105,7 +124,7 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloa
                         style={[styles.mt3, styles.noSelect]}
                         onPress={() => {
                             if (!hasFinishedPDFDownload) {
-                                onClose();
+                                handleDismiss();
                             } else {
                                 downloadReportPDF(reportPDFFilename, reportName, translate, currentUserLogin ?? '', encryptedAuthToken);
                             }
@@ -114,7 +133,7 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloa
                     />
                 </View>
                 <PressableWithFeedback
-                    onPress={onClose}
+                    onPress={handleDismiss}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
                     wrapperStyle={[styles.pAbsolute, styles.r0]}

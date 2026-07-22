@@ -123,3 +123,7 @@ No. Expense Rules apply when expenses are created. They do not automatically upd
 ## What happens if my personal rule conflicts with a Workspace Merchant Rule?
 
 Your Personal Expense Rule takes precedence. Workspace Merchant Rules apply only if no personal rule overrides the expense.
+
+## How do I clear a Category, Tag, or Tax rate value from an Expense Rule?
+
+When you create or edit a rule and open the **Category**, **Tag**, or **Tax rate** field, select **None** to clear the previously selected value. Then click or tap **Save rule**.

@@ -1,23 +1,32 @@
-import type {ListRenderItem} from '@shopify/flash-list';
-import lodashDebounce from 'lodash/debounce';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
 import {getRemovedSkinToneEmoji} from '@libs/EmojiUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+
+import lodashDebounce from 'lodash/debounce';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {AccessibilityInfo, View} from 'react-native';
+
 import type EmojiPickerMenuProps from './types';
+
+import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,6 +51,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         emojiListRef,
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
+    const insets = useSafeAreaInsets();
+    const {paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets);
     const [searchText, setSearchText] = useState('');
 
     const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
@@ -113,7 +124,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
 
     // Stable debounced function that delegates to the latest callback via ref,
     // preventing re-renders from recreating the debounce timer.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     const filterEmojis = useMemo(() => lodashDebounce((text: string) => filterCallbackRef.current?.(text), 300), []);
 
     const scrollToHeader = useCallback(
@@ -198,7 +209,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 listWrapperStyle={[
                     listStyle,
                     {
-                        width: Math.floor(windowWidth),
+                        width: Math.floor(windowWidth - safeAreaPaddingLeft - safeAreaPaddingRight),
                     },
                 ]}
                 ref={emojiListRef}

@@ -1,7 +1,9 @@
+import * as Browser from '@libs/Browser';
+
+import CONST from '@src/CONST';
+
 import type React from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
-import * as Browser from '@libs/Browser';
-import CONST from '@src/CONST';
 
 /**
  * Check if the Enter key was pressed during IME confirmation (i.e. while the text is being composed).
@@ -16,7 +18,6 @@ const isEnterWhileComposition = (event: KeyboardEvent | React.KeyboardEvent): bo
     // On Safari, isComposing returns false on Enter keypress event even for IME confirmation. Although keyCode is deprecated,
     // reading keyCode is the only way available to distinguish Enter keypress event for IME confirmation.
     if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return event.keyCode === 229;
     }
 

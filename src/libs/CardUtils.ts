@@ -1,12 +1,10 @@
-import {format, fromUnixTime, isBefore} from 'date-fns';
-import groupBy from 'lodash/groupBy';
-import lodashSortBy from 'lodash/sortBy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,11 +16,15 @@ import type {
     CardList,
     CompanyCardFeed,
     CurrencyList,
+    Domain,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
+    NestedExpensifyCardSettings,
     PersonalDetailsList,
     Policy,
+    PolicyConnectionName,
     PrivatePersonalDetails,
+    Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {UnassignedCard} from '@src/types/onyx/Card';
@@ -38,14 +40,48 @@ import type {
     CompanyFeeds,
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
+import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {format, fromUnixTime, isBefore, parse} from 'date-fns';
+import groupBy from 'lodash/groupBy';
+import lodashSortBy from 'lodash/sortBy';
+
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
-import {filterObject} from './ObjectUtils';
-import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
+
+/**
+ * Returns the artwork colors (background fill + WCAG-compliant overlay text) for a given feed.
+ * Uses prefix-matching to handle feed names that include a suffix (e.g. "vcf123").
+ */
+function getCardFeedColors(cardFeed: string | undefined): {background: string; text: string} {
+    if (!cardFeed) {
+        return GENERIC_CARD_COLORS;
+    }
+    const feedKey = Object.keys(CARD_FEED_COLORS)
+        .sort((a, b) => b.length - a.length)
+        .find((key) => cardFeed.startsWith(key));
+    return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
+}
+
+/** Returns the background hex color for the card image shown for a given feed. */
+function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).background;
+}
+
+/** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
+function getCardFeedTextColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).text;
+}
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
     'VisaCompanyCardDetailLarge',
@@ -146,13 +182,25 @@ function isExpensifyCard(card?: Card) {
 }
 
 /**
- * Checks if the card supports PIN management features.
+ * Checks if the card is on the UK/EU Expensify card program (feedCountry GB).
+ * The UK/EU program is the only one that supports PIN management features and
+ * requires Strong Customer Authentication (SCA) for revealing card details.
  * @param card - The card to check.
  * @returns boolean
  */
-function supportsPINManagementFeatures(card: Card | undefined): boolean {
-    //  Use of PINs is based on card program. UK/EU (feedCountry GB) are the only program currently that supports these features.
+function isUkEuExpensifyCard(card: Card | undefined): boolean {
     return isExpensifyCard(card) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
+}
+
+/**
+ * Checks whether the user's current location is an offline PIN market —
+ * a region where PINs must be changed at an ATM rather than via the in-app flow.
+ */
+function isOfflinePINMarket(countryByIp: string | undefined): boolean {
+    if (!countryByIp) {
+        return false;
+    }
+    return CONST.EXPENSIFY_CARD.OFFLINE_PIN_MARKETS.includes(countryByIp);
 }
 
 /**
@@ -163,6 +211,9 @@ function supportsPINManagementFeatures(card: Card | undefined): boolean {
 function getCardDescription(card: Card | undefined, translate: LocalizedTranslate) {
     if (!card) {
         return '';
+    }
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.travelInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -180,9 +231,9 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  * @param displayName
  * @returns string in format %<defaultOrCustomCardName> • <lastFourPAN>%.
  */
-function getCardDescriptionForSearchTable(card?: Card, displayName?: string) {
-    if (!card) {
-        return '';
+function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.travelInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -193,18 +244,28 @@ function getCardDescriptionForSearchTable(card?: Card, displayName?: string) {
 }
 
 /**
- * @param transactionCardName
- * @param cardID
- * @param cards
- * @returns company card name
+ * Returns the formatted card name for a company card. Returns an empty string
+ * if the card is not a real card, but a cash expense
  */
-function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
-    if (!cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID])) {
-        return transactionCardName;
-    }
-    const card = cards[cardID];
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList, feedCountry?: string) {
+    const formattedTransactionCardName = transactionCardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : transactionCardName;
+    const card = cardID ? cards?.[cardID] : undefined;
 
-    return card.cardName;
+    // feedCountry travels with the transaction, so a travel card belonging to another member (absent from the viewer's card
+    // list) still shows the localized travel name instead of the server string.
+    if (isTravelCardTransaction(feedCountry, card)) {
+        return translate('cardTransactions.travelInvoicing');
+    }
+
+    if (!card) {
+        return formattedTransactionCardName;
+    }
+
+    if (isExpensifyCard(card)) {
+        return formattedTransactionCardName;
+    }
+
+    return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
@@ -411,6 +472,29 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
     }
 }
 
+/**
+ * Maps an Expensify Card `state` to the translation key for its status label shown in the workspace Expensify Card table.
+ * `Pending order` and `Shipped` are physical-only states, so a virtual card in one of those states has no status to show.
+ * Only recognized states map to a label; any other state (bad data, or an unexpected state that slips through
+ * `filterInactiveCardsForWorkspace`) returns `undefined` so the status renders blank rather than defaulting to `Active`.
+ */
+function getTranslationKeyForCardStatus(state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE> | undefined, isVirtual: boolean): TranslationPaths | undefined {
+    switch (state) {
+        // Pending order and Shipped are physical-only states, so a virtual card in one of them has no meaningful status to show.
+        case CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED:
+            return isVirtual ? undefined : 'workspace.expensifyCard.statusPendingOrder';
+        case CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED:
+            return isVirtual ? undefined : 'workspace.expensifyCard.statusShipped';
+        case CONST.EXPENSIFY_CARD.STATE.OPEN:
+            return 'workspace.expensifyCard.statusActive';
+        case CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED:
+            return 'workspace.expensifyCard.statusInactive';
+        // Any other state (e.g. bad data) has no status to show, so it's left blank rather than defaulting to Active.
+        default:
+            return undefined;
+    }
+}
+
 function maskPin(pin: string | undefined): string {
     if (pin === undefined) {
         return '••••';
@@ -428,31 +512,114 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     );
 }
 
-function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
+function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Partial<Connections>>, connectionName: PolicyConnectionName | undefined): Array<{id: string; name: string}> {
+    if (!connections || !connectionName) {
+        return [];
+    }
+
+    switch (connectionName) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return (connections.quickbooksOnline?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return (connections.xero?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return (connections.netsuite?.options?.data?.payableList ?? []).filter((account) => account.type === '_bank').map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return connections.intacct?.data?.bankAccounts ?? [];
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return (connections.quickbooksDesktop?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        default:
+            return [];
+    }
+}
+
+/**
+ * Resolves the Expensify Card supported countries for a settlement currency, falling back to the hard-coded
+ * list until the backend supplies it via Onyx.
+ */
+function getSupportedCardCountriesForCurrency(supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>, currency?: string): readonly string[] {
+    const byCurrency: Record<string, readonly string[]> = supportedCountriesByCurrency ?? CONST.EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY;
+    return byCurrency[currency ?? ''] ?? [];
+}
+
+function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>, outputCurrency?: string) {
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
+    const supportedCountries = getSupportedCardCountriesForCurrency(supportedCountriesByCurrency, outputCurrency);
     return Object.values(bankAccountsList).filter(
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
             !isBankAccountPartiallySetup(bankAccount?.accountData?.state) &&
             bankAccount?.bankCurrency === outputCurrency &&
-            (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
+            supportedCountries.includes(bankAccount?.bankCountry),
     );
 }
 
-function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
-    const {cardList, ...cards} = cardsList ?? {};
-    return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
+/**
+ * Returns whether any assigned card matches the predicate, skipping the `cardList` bucket of cards that are
+ * still available to assign. Short-circuits on the first match and avoids the intermediate array/object copy
+ * that `{cardList, ...rest}` + `Object.values().some()` would allocate.
+ */
+function hasAssignedCardMatching(cardsList: CardList | undefined, predicate: (card: Card) => boolean): boolean {
+    if (!cardsList) {
+        return false;
+    }
+    for (const key of Object.keys(cardsList)) {
+        if (key === CONST.COMPANY_CARD.CARD_LIST) {
+            continue;
+        }
+        const card = cardsList[key];
+        if (card && predicate(card)) {
+            return true;
+        }
+    }
+    return false;
 }
 
-function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Card[] {
+/**
+ * Runs the callback for each assigned card, skipping the `cardList` bucket of cards that are still available
+ * to assign. Iterates in place without the intermediate array/object copy that `{cardList, ...rest}` +
+ * `Object.values()` would allocate.
+ */
+function forEachAssignedCard(cardsList: CardList | undefined, callback: (card: Card) => void): void {
+    if (!cardsList) {
+        return;
+    }
+    for (const key of Object.keys(cardsList)) {
+        if (key === CONST.COMPANY_CARD.CARD_LIST) {
+            continue;
+        }
+        const card = cardsList[key];
+        if (card) {
+            callback(card);
+        }
+    }
+}
+
+function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
+    const result: Card[] = [];
+    forEachAssignedCard(cardsList, (card) => {
+        if (!card.accountID || !policyMembersAccountIDs.includes(card.accountID)) {
+            return;
+        }
+        result.push(card);
+    });
+    return result;
+}
+
+function sortCardsByCardholderName(
+    cards: Card[],
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocalizedTranslate,
+): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
         const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
-        const aName = getDisplayNameOrDefault(userA);
-        const bName = getDisplayNameOrDefault(userB);
+        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate});
+        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate});
         return localeCompare(aName, bName);
     });
 }
@@ -531,12 +698,23 @@ function isCustomFeed(feed: string | undefined): boolean {
 }
 
 /**
+ * Checks if a feed is a CSV upload feed (ccupload or csv prefix).
+ * Covers both NewDot-created feeds (ccupload*) and Classic-created feeds (csv*).
+ */
+function isCSVUploadFeed(feed: string | undefined): boolean {
+    if (!feed) {
+        return false;
+    }
+    const lowerFeed = feed.toLowerCase();
+    return lowerFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || lowerFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV_CLASSIC);
+}
+
+/**
  * Checks if a feed key represents a CSV feed or Expensify Card.
  * CSV feeds from Classic and Expensify Cards should not count toward the feed limit for Collect plan workspaces.
  */
 function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
-    const lowerFeedKey = feedKey.toLowerCase();
-    return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
+    return isCSVUploadFeed(feedKey) || feedKey === CONST.EXPENSIFY_CARD.BANK;
 }
 
 /**
@@ -620,6 +798,10 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
     );
 }
 
+function hasCompanyCardFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>): boolean {
+    return Object.keys(getCompanyFeeds(cardFeeds, true, true)).length > 0;
+}
+
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
     const cacheKey = feedType ?? '';
     const cached = getBankNameCache.get(cacheKey);
@@ -685,9 +867,14 @@ function getCustomOrFormattedFeedName(
 /**
  * Check if a card feed exists in the card feeds collection.
  */
-function doesCardFeedExist(feed: CompanyCardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
+function doesCardFeedExist(feed: CardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
     if (!feed || !cardFeeds) {
         return false;
+    }
+
+    // Expensify Cards are a native card product, not a third-party feed that can be disconnected
+    if (feed === CONST.EXPENSIFY_CARD.BANK) {
+        return true;
     }
 
     for (const feedData of Object.values(cardFeeds)) {
@@ -724,10 +911,11 @@ function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undef
  */
 function getFeedNameForDisplay(
     translate: LocaleContextProps['translate'],
-    feed: CompanyCardFeed | undefined,
+    feed: CardFeed | undefined,
     cardFeeds: OnyxCollection<CardFeeds> | undefined,
     customFeedName?: string,
     shouldAddCardsSuffix = true,
+    feedCountry?: string,
 ): string {
     // If feed is undefined or cardFeeds is not available, return empty string to avoid showing incorrect state
     if (!feed || !cardFeeds) {
@@ -740,7 +928,12 @@ function getFeedNameForDisplay(
         return translate('workspace.companyCards.deletedFeed');
     }
 
-    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
+    // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
+    if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
+        return translate('search.filters.card.travelInvoicing');
+    }
+
+    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed as CompanyCardFeed);
 
     return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix) ?? '';
 }
@@ -896,22 +1089,24 @@ function getFilteredCardList(
     workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>,
     feedName?: CompanyCardFeedWithDomainID,
 ): UnassignedCard[] {
-    const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
-    const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
+    const customFeedCardsToAssign = list?.[CONST.COMPANY_CARD.CARD_LIST];
+    const assignedCards = new Set<string>();
+    forEachAssignedCard(list, (card) => {
+        if (!card.cardName) {
+            return;
+        }
+        assignedCards.add(card.cardName);
+    });
 
     // Get cards assigned across all workspaces
     const allWorkspaceAssignedCards = new Set<string>();
     for (const workspaceCards of Object.values(workspaceCardFeeds ?? {})) {
-        if (!workspaceCards) {
-            continue;
-        }
-        const {cardList, ...workspaceCardItems} = workspaceCards;
-        for (const card of Object.values(workspaceCardItems)) {
-            if (!card?.cardName) {
-                continue;
+        forEachAssignedCard(workspaceCards, (card) => {
+            if (!card.cardName) {
+                return;
             }
             allWorkspaceAssignedCards.add(card.cardName);
-        }
+        });
     }
 
     // For direct feeds (Plaid/OAuth): displayName === cardIdentifier
@@ -944,6 +1139,18 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
+function getCompanyCardCustomName(
+    cardID: string | number | undefined,
+    sharedCardCustomNames: OnyxEntry<Record<string, string>>,
+    customCardNames: OnyxEntry<Record<string, string>>,
+): string | undefined {
+    if (!cardID) {
+        return undefined;
+    }
+    return sharedCardCustomNames?.[cardID] ?? customCardNames?.[cardID];
+}
+
 /** Returns the date option for a card assignment — CUSTOM when not editing, or the existing option when editing. */
 function getCardAssignmentDateOption(isEditing: boolean | undefined, existingDateOption?: string): ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS> {
     if (!isEditing) {
@@ -968,42 +1175,74 @@ function getCardAssignmentStartDate(isEditing: boolean | undefined, existingStar
     return isEditing ? (existingStartDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)) : format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds, plaidBank?: string) {
+function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsData: CombinedCardFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
 
+    const plaidBankFound =
+        plaidBank &&
+        currentFeeds.find((feed) => {
+            return splitCardFeedWithDomainID(feed as CompanyCardFeedWithDomainID)?.feedName === `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`;
+        });
+
     return {
-        isNewFeedConnected: currentFeeds.length > prevFeeds.length || (plaidBank && currentFeeds.includes(`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`)),
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length || plaidBankFound,
         newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined,
     };
 }
 
-function filterAllInactiveCards(cards: CardList | undefined) {
+/**
+ * Whether a card should be kept by the inactive-card filters. Closed and deactivated cards are excluded;
+ * suspended cards are only kept when frozen, or when `includeDeactivated` is set (workspace card management
+ * views) so admin-zeroed Expensify Cards remain manageable.
+ */
+function isActiveCard(card: Card, includeDeactivated = false): boolean {
+    if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
+        return !!card.nameValuePairs?.frozen || includeDeactivated;
+    }
+    return card.state !== CONST.EXPENSIFY_CARD.STATE.CLOSED && card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
+}
+
+/**
+ * Filters cards by state. Closed and deactivated cards are excluded by default; suspended cards are
+ * only kept when frozen. When `includeDeactivated` is true (workspace card management views), admin-zeroed
+ * Expensify Cards are also kept — these are cards an admin set to a $0 limit, which the backend then
+ * transitions to deactivated/suspended. Admins still need to be able to find and manage them.
+ */
+function filterAllInactiveCards(cards: WorkspaceCardsList | undefined, includeDeactivated = false, includeCardList = false): CardList {
+    const result: CardList = {};
     if (!cards) {
-        return {};
+        return result;
     }
 
-    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
-    const filteredCards = filterObject(cards, (_key, card) => {
-        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
-            // Only include suspended cards that are frozen.
-            return !!card.nameValuePairs?.frozen;
+    for (const key of Object.keys(cards)) {
+        const card = cards[key];
+        if (!card || (key === CONST.COMPANY_CARD.CARD_LIST && !includeCardList)) {
+            continue;
         }
 
-        return !closedStates.has(card.state);
-    });
+        if (key === CONST.COMPANY_CARD.CARD_LIST) {
+            result[key] = card;
+            continue;
+        }
 
-    return filteredCards;
+        if (isActiveCard(card, includeDeactivated)) {
+            result[key] = card;
+        }
+    }
+    return result;
 }
 
 function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
-    const {cardList, ...assignedCards} = cardsList ?? {};
-    const filteredAssignedCards = filterAllInactiveCards(assignedCards);
+    return filterAllInactiveCards(cardsList, false, true) as WorkspaceCardsList;
+}
 
-    return {
-        ...(cardList ? {cardList} : {}),
-        ...filteredAssignedCards,
-    } as WorkspaceCardsList;
+/**
+ * Onyx selector for workspace Expensify Card management pages. Same as `filterInactiveCards`, but also
+ * keeps all suspended cards so admins can view and edit them.
+ */
+function filterInactiveCardsForWorkspace(cardsList: WorkspaceCardsList | undefined) {
+    return filterAllInactiveCards(cardsList, true, true) as WorkspaceCardsList;
 }
 
 function getAllCardsForWorkspace(
@@ -1011,6 +1250,7 @@ function getAllCardsForWorkspace(
     allCardList: OnyxCollection<WorkspaceCardsList>,
     cardFeeds?: CombinedCardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
+    includeDeactivated = false,
 ): CardList {
     const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
@@ -1018,26 +1258,60 @@ function getAllCardsForWorkspace(
         .map((key) => key.split('_').at(-1))
         .filter((id): id is string => !!id);
 
-    for (const [key, values] of Object.entries(allCardList ?? {})) {
+    for (const key of Object.keys(allCardList ?? {})) {
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
-        if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
-            const {cardList: assignableCards, ...assignedCards} = values ?? {};
-            const filteredCards = filterInactiveCards(assignedCards);
-            Object.assign(cards, filteredCards);
+        if (!isWorkspaceAccountCards && !isCompanyDomainCards && !isExpensifyDomainCards) {
+            continue;
         }
+        Object.assign(cards, filterAllInactiveCards(allCardList?.[key], includeDeactivated));
     }
     return cards;
 }
 
 function isSmartLimitEnabled(cardsList: CardList) {
-    const {cardList, ...assignedCards} = cardsList ?? {};
-
-    return Object.values(assignedCards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+    return hasAssignedCardMatching(cardsList, (card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
+
+function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeeds | undefined, csvPrefix: string): number[] {
+    const numbers: number[] = [];
+    for (const key of Object.keys(companyCards ?? {})) {
+        if (!key.startsWith(csvPrefix)) {
+            continue;
+        }
+        const suffix = key.slice(csvPrefix.length);
+        if (!suffix) {
+            continue;
+        }
+        const n = Number.parseInt(suffix, 10);
+        if (!Number.isNaN(n) && n > 0) {
+            numbers.push(n);
+        }
+    }
+    return numbers;
+}
+
+/**
+ * Next available CSV file-import feed (`ccuploadN`) from `settings.companyCards` keys only,
+ * including feeds omitted from {@link getFeedType}'s `CombinedCardFeeds` input.
+ */
+function getCSVFeedType(companyCards: CompanyFeeds | undefined): CompanyCardFeedWithNumber {
+    const csvPrefix = CONST.COMPANY_CARD.FEED_BANK_NAME.CSV;
+    const feedNumbers = [...new Set(collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards, csvPrefix))].sort((a, b) => a - b);
+
+    let firstAvailableNumber = 1;
+    for (const num of feedNumbers) {
+        if (num && num !== firstAvailableNumber) {
+            return `${csvPrefix}${firstAvailableNumber}`;
+        }
+        firstAvailableNumber++;
+    }
+
+    return `${csvPrefix}${firstAvailableNumber}`;
+}
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
@@ -1062,51 +1336,41 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCard
 }
 
 /**
- * Filter out the Expensify cards from the list of cards
- *
- * @param cards the list of cards to filter
- * @returns the list of cards without Expensify cards
- */
-function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
-    if (!cards) {
-        return {};
-    }
-
-    return Object.fromEntries(Object.entries(cards).filter(([key]) => !key.includes(CONST.EXPENSIFY_CARD.BANK)));
-}
-
-/**
- * Takes the list of cards divided by workspaces and feeds and returns the flattened non-Expensify cards related to the provided workspace
- *
- * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
- * @param workspaceAccountID the workspace account id we want to get cards for
- * @param domainIDs the domain ids we want to get cards for
- */
-function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
-    if (!allCardsList) {
-        return;
-    }
-
-    return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        const isWorkspaceAccountCard = key.includes(workspaceAccountID.toString());
-        if (!isWorkspaceAccountCard || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
-            return acc;
-        }
-        const {cardList, ...feedCards} = cards ?? {};
-        const filteredCards = filterInactiveCards(feedCards);
-        Object.assign(acc, filteredCards);
-        return acc;
-    }, {});
-}
-
-/**
  * Check if the card has a broken connection
  *
  * @param card the card to check
  * @returns true if the card has a broken connection, false otherwise
  */
 function isCardConnectionBroken(card: Card): boolean {
+    if (card.pendingFields?.lastScrape) {
+        return false;
+    }
     return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
+}
+
+/**
+ * Check whether a broken card connection has been unresolved long enough that we should stop
+ * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
+ * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
+ *
+ * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
+ * attempts), so for a broken connection its age equals how long the connection has been failing.
+ *
+ * @param card the card to check
+ * @returns true if the connection is broken and has been unresolved for at least the grace period
+ */
+function isBrokenConnectionPastDismissThreshold(card: Card): boolean {
+    if (!isCardConnectionBroken(card) || !card.lastScrape) {
+        return false;
+    }
+    // `card.lastScrape` uses the Expensify DB datetime format (e.g. "2024-11-27 11:00:53"). Parse it explicitly with the
+    // matching format instead of relying on `new Date()`, whose handling of this non-ISO string is not portable across JS
+    // engines — an invalid parse would make the difference NaN, so the comparison would always be false and never dismiss.
+    const lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
+    if (Number.isNaN(lastScrapeDate.getTime())) {
+        return false;
+    }
+    return DateUtils.getDifferenceInDaysFromNow(lastScrapeDate) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
 }
 
 /**
@@ -1149,17 +1413,17 @@ function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): Card
     });
 }
 
-function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): ExpensifyCardSettingsBase | undefined {
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
     }
 
-    const getMergedProgramSettings = (key: CardProgramKey): ExpensifyCardSettingsBase | undefined => {
+    const getMergedProgramSettings = (key: CardProgramKey): NestedExpensifyCardSettings | undefined => {
         const programSettings = cardSettings[key];
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
             // Nested program values take precedence — they are the authoritative source for
             // program-specific fields (e.g. paymentBankAccountID, monthlySettlementDate).
-            return {...cardSettings, ...programSettings} as ExpensifyCardSettingsBase;
+            return {...cardSettings, ...programSettings} as NestedExpensifyCardSettings;
         }
         return undefined;
     };
@@ -1177,8 +1441,104 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
         getMergedProgramSettings(CONST.COUNTRY.US) ??
         getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
         getMergedProgramSettings(CONST.COUNTRY.GB) ??
-        (cardSettings as ExpensifyCardSettingsBase)
+        (cardSettings as NestedExpensifyCardSettings)
     );
+}
+
+/** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
+const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
+
+function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
+    const nested = settings[key];
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+        return nested;
+    }
+    return undefined;
+}
+
+function collectLinkedPolicyIDsFromBase(base: ExpensifyCardSettingsBase | undefined): string[] {
+    if (!base) {
+        return [];
+    }
+    return base.linkedPolicyIDs ?? [];
+}
+
+function dedupePolicyIDsCaseInsensitive(ids: string[]): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const id of ids) {
+        const key = id.toUpperCase();
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(id);
+        }
+    }
+    return result;
+}
+
+/**
+ * Linked workspace IDs from the settings root and US / CURRENT / GB / TRAVEL_US nests.
+ * Deduplicates case-insensitively; keeps API casing for Onyx lookups.
+ */
+function getLinkedPolicyIDsFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string[] | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    const ids: string[] = [...collectLinkedPolicyIDsFromBase(settings as ExpensifyCardSettingsBase)];
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        ids.push(...collectLinkedPolicyIDsFromBase(getNestedExpensifyCardProgramSettings(settings, key)));
+    }
+    if (ids.length === 0) {
+        return undefined;
+    }
+    return dedupePolicyIDsCaseInsensitive(ids);
+}
+
+/** True if `policyID` is in the linked list (case-insensitive). */
+function isPolicyIDInLinkedExpensifyCardPolicyList(linkedPolicyIDs: string[] | undefined, policyID: string): boolean {
+    return !!linkedPolicyIDs?.some((id) => id.toUpperCase() === policyID.toUpperCase());
+}
+
+/** Resolves preferredPolicy from the settings root or the first nested program block that defines it. */
+function getPreferredPolicyFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    if (settings.preferredPolicy) {
+        return settings.preferredPolicy;
+    }
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        const preferred = getNestedExpensifyCardProgramSettings(settings, key)?.preferredPolicy;
+        if (preferred) {
+            return preferred;
+        }
+    }
+    return undefined;
+}
+
+/** Resolves domainName from the settings root or any nested program block that defines it. */
+function getDomainNameFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    if (settings.domainName) {
+        return settings.domainName;
+    }
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        const nestedDomainName = getNestedExpensifyCardProgramSettings(settings, key)?.domainName;
+        if (nestedDomainName) {
+            return nestedDomainName;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Resolves the domain backing a fund (card account). Domains are normally keyed by their account ID,
+ * but as a fallback we scan for a domain whose `accountID` matches the fund.
+ */
+function getDomainByFundID(domains: OnyxCollection<Domain> | undefined, fundID: number): OnyxEntry<Domain> {
+    return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
 }
 
 function isCardPendingIssue(card?: Card) {
@@ -1187,6 +1547,10 @@ function isCardPendingIssue(card?: Card) {
 
 function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+}
+
+function isCardWithCustomZeroLimit(card: Card): boolean {
+    return !!card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0;
 }
 
 /**
@@ -1224,8 +1588,29 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
 }
 
 function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
-    const {cardList, ...assignedCards} = cards ?? {};
-    return Object.values(assignedCards).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
+    return hasAssignedCardMatching(cards, (card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
+}
+
+/**
+ * A virtual Expensify card is actionable for the missing-personal-details flow only when it is active, not expired,
+ * and not a Travel CVV card. This is the same card set that renders the "Add details" CTA in the Wallet list
+ * (PaymentMethodList) and the home time-sensitive section, so all of those surfaces stay in sync.
+ */
+function isActionableVirtualExpensifyCard(card: Card | undefined): boolean {
+    return !!card && isExpensifyCard(card) && !!card.nameValuePairs?.isVirtual && !isTravelCard(card) && !isExpiredCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0);
+}
+
+function hasVirtualExpensifyCardMissingPersonalDetails(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails, isActingAsDelegate?: boolean) {
+    // Delegates can't complete the missing-personal-details flow (it requires the original
+    // account's magic code), so surfacing a brick road in the wallet would be misleading.
+    // Mirrors the same gate applied in useTimeSensitiveCards for the home prompt.
+    if (isActingAsDelegate) {
+        return false;
+    }
+    if (!areAddressAndPersonalDetailsMissing(privatePersonalDetails)) {
+        return false;
+    }
+    return hasAssignedCardMatching(cards, isActionableVirtualExpensifyCard);
 }
 const isCurrencySupportedForECards = (currency?: string) => {
     if (!currency) {
@@ -1244,20 +1629,6 @@ function getFundIdFromSettingsKey(key: string) {
 
     const fundID = Number(fundIDStr);
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
-}
-
-/**
- * Get card which has a broken connection
- *
- * @param feedCards the list of the cards, related to one or several feeds
- * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
- */
-function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExclude?: string): Card | undefined {
-    if (!feedCards || isEmptyObject(feedCards)) {
-        return undefined;
-    }
-
-    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
 }
 
 /** Extract feed from feed with domainID */
@@ -1281,11 +1652,6 @@ function isPersonalCard(card?: Card) {
     return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
 }
 
-type SplitMaskedCardNumberResult = {
-    firstDigits?: string;
-    lastDigits?: string;
-};
-
 /**
  * Split masked card number into first and last digits
  *
@@ -1301,30 +1667,15 @@ function formatMaskedCardName(cardName: string): string {
     return padded.match(/.{1,4}/g)?.join('-') ?? padded;
 }
 
-function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR): SplitMaskedCardNumberResult {
-    if (!cardNumber) {
-        return {
-            firstDigits: undefined,
-            lastDigits: undefined,
-        };
-    }
-    const parts = cardNumber.split(maskChar);
-    return {
-        firstDigits: parts.at(0),
-        lastDigits: parts.at(-1),
-    };
-}
-
 function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number, feedName?: string): boolean {
     if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
 
-    const isDirectFeedType = isDirectFeed(feedName);
-
-    return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
+    for (const key of Object.keys(workspaceCardFeeds)) {
+        const workspaceCards = workspaceCardFeeds[key];
         if (!workspaceCards) {
-            return false;
+            continue;
         }
 
         // Strip the collection prefix and split on the first underscore only,
@@ -1332,33 +1683,39 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
         const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
         const separatorIndex = feedKey.indexOf('_');
         if (separatorIndex === -1) {
-            return false;
+            continue;
         }
 
         const feedDomainID = Number(feedKey.substring(0, separatorIndex));
         const feedBankName = feedKey.substring(separatorIndex + 1);
 
         if (Number.isNaN(feedDomainID) || !feedBankName) {
-            return false;
+            continue;
         }
 
-        // For direct feeds (Plaid/OAuth): check across ALL workspaces that share the same feed name,
-        // because the same Plaid card should not be assignable to multiple workspaces.
-        // For commercial feeds: restrict to the current domain only, because different domains
-        // can legitimately have cards with the same masked display name (e.g., "VISA - 1234").
-        if (isDirectFeedType) {
-            if (feedName && feedBankName !== feedName) {
-                return false;
-            }
-        } else if (feedDomainID !== domainOrWorkspaceAccountID) {
-            return false;
+        // Only flag a card already assigned within the CURRENT workspace/domain (and feed).
+        // Direct feeds (Plaid/OAuth) must NOT be matched across other workspaces: the only
+        // identifier the client has for them is the masked display name (getFilteredCardList
+        // sets cardID = cardName, which CardSelectionStep stores into encryptedCardNumber),
+        // e.g. "CREDIT CARD...6607", which is not unique across accounts. Genuine cross-account
+        // duplicates are rejected server-side by ASSIGN_COMPANY_CARD — the same path Expensify
+        // Classic uses, which is why the identical assignment succeeds there.
+        if (feedDomainID !== domainOrWorkspaceAccountID) {
+            continue;
+        }
+        if (feedName && feedBankName !== feedName) {
+            continue;
         }
 
-        const {cardList, ...assignedCards} = workspaceCards;
-        return Object.values(assignedCards).some(
-            (card) => card && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck),
+        const hasMatchingAssignedCard = hasAssignedCardMatching(
+            workspaceCards,
+            (card) => card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck),
         );
-    });
+        if (hasMatchingAssignedCard) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const getPersonalBankCardDetailsImage = (bank: ValueOf<typeof CONST.PERSONAL_CARDS.BANKS>, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
@@ -1410,7 +1767,8 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
             CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
             (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
             card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
-            (!isExpensifyCard(card) || !isExpiredCard(card)),
+            (!isExpensifyCard(card) || !isExpiredCard(card)) &&
+            (!isExpensifyCard(card) || !isCardWithCustomZeroLimit(card)),
     );
 }
 
@@ -1446,6 +1804,15 @@ function isTravelCard(card: Card | undefined): boolean {
 }
 
 /**
+ * A transaction is on a travel card when the backend stamps its feedCountry, which travels with the transaction so the icon
+ * resolves even for another member's card that isn't in the viewer's own card list. Falls back to the card object for old
+ * cached transactions that predate the feedCountry field.
+ */
+function isTravelCardTransaction(feedCountry: string | undefined, card: Card | undefined): boolean {
+    return feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US || isTravelCard(card);
+}
+
+/**
  * Gets displayable Expensify cards, filtering out inactive cards and grouping combo cards
  * (physical + virtual pairs) so only the physical card is shown per domain.
  *
@@ -1458,16 +1825,25 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     }
 
     const activeCards = filterAllInactiveCards(cardList);
-    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
+    const activeExpensifyCards = Object.values(activeCards).filter(
+        (card) =>
+            isExpensifyCard(card) &&
+            !isExpiredCard(card) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            !isTravelCard(card) &&
+            !isCardWithCustomZeroLimit(card) &&
+            !isCardPendingIssue(card) &&
+            !isCardPendingActivate(card),
+    );
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
     const seenDomains = new Set<string>();
 
     return sortedCards.filter((card) => {
         const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy && !!card.nameValuePairs?.isVirtual;
-        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !isTravelCard(card);
+        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard;
 
-        // Always show non-combo cards (admin-issued virtual, travel cards, or cards without domain)
+        // Always show non-combo cards (admin-issued virtual or cards without domain)
         if (!isComboCard) {
             return true;
         }
@@ -1482,7 +1858,48 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     });
 }
 
-function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+/**
+ * Active, non-Expensify, non-cash cards (employer feed or personal Plaid) that are not flagged
+ * as broken at the card- or feed-level, sorted by cardID ascending.
+ *
+ * No `domainName` dedupe: third-party cards don't share the Expensify "one domain ⇒ one
+ * physical+virtual pair" invariant, so deduping would silently collapse distinct cards.
+ *
+ * `cardFeedErrors` maps are `Record<string, Card>` (presence = broken), so filter with
+ * truthy/falsy — `=== true` would always be false and let broken cards through.
+ */
+function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedErrors: Pick<CardFeedErrors, 'cardsWithBrokenFeedConnection' | 'personalCardsWithBrokenConnection'>): Card[] {
+    if (!cardList) {
+        return [];
+    }
+
+    const {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection} = cardFeedErrors;
+    const cards = Object.values(cardList).filter(
+        (card) =>
+            CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+            !isExpensifyCard(card) &&
+            (!!card.domainName || isPersonalCard(card)) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            !isCardConnectionBroken(card) &&
+            !cardsWithBrokenFeedConnection[card.cardID] &&
+            !personalCardsWithBrokenConnection[card.cardID],
+    );
+
+    // Stable sort by `getAssignedCardSortKey` (constant `2` for all non-Expensify cards),
+    // so the result preserves the cardID-ascending order produced by `Object.values` over
+    // integer-indexed keys.
+    return lodashSortBy(cards, getAssignedCardSortKey);
+}
+
+/**
+ * Determines the currency of the card and/or feed. Data sources are prioritized as follows:
+ * 1. Card currency, if card is passed and has a currency set on it
+ * 2. Feed settings currency, if settings are passed and have a currency
+ * 3. Use USD for US program keys
+ * 4. For UK/EU feeds, determine currency based on card country, defaulting to GBP
+ * 5. Finally, if all else fails, fallback to USD
+ */
+function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
     // If currency is set on the card itself, use it.
     if (card?.nameValuePairs?.currency) {
         return card.nameValuePairs.currency;
@@ -1517,6 +1934,36 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
     return CONST.CURRENCY.USD;
 }
 
+/**
+ * Returns the shared currency for the selected cards when they all match. Returns undefined otherwise.
+ */
+function getSelectedCardsSharedCurrency(cardIDs: string[] | undefined, cardsList: OnyxEntry<WorkspaceCardsList>): string | undefined {
+    if (!cardIDs?.length) {
+        return undefined;
+    }
+
+    const cardsRecord = cardsList ?? {};
+    const currencies = new Set<string>();
+
+    for (const cardID of cardIDs) {
+        const card = cardsRecord[cardID];
+        if (!card) {
+            continue;
+        }
+
+        const currency = card.nameValuePairs?.currency;
+        if (currency) {
+            currencies.add(currency);
+        }
+    }
+
+    if (currencies.size !== 1) {
+        return undefined;
+    }
+
+    return Array.from(currencies).at(0);
+}
+
 function getCardHintText(validFrom: string | undefined, validThru: string | undefined, assigneeTimeZone: SelectedTimezone | undefined, translate: LocalizedTranslate) {
     if (!validFrom || !validThru) {
         return;
@@ -1535,15 +1982,10 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
 
 /**
  * Resolves card-related fields on transactions for report layout display.
- * The search API pre-resolves cardName and isCardFeedDeleted, but local Onyx transactions have raw values.
+ * The search API pre-resolves cardName, but local Onyx transactions have raw values.
  * This ensures the report layout matches the search page.
  */
-function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
-    transactions: T[],
-    cardList: CardList | undefined,
-    cardFeeds: OnyxCollection<CardFeeds> | undefined,
-    translate: LocalizedTranslate,
-): Array<T & {isCardFeedDeleted?: boolean}> {
+function resolveTransactionCardFields<T extends Transaction>(transactions: T[], cardList: CardList | undefined, translate: LocalizedTranslate): Array<T & {isCardFeedDeleted?: boolean}> {
     return transactions.map((transaction) => {
         let updates: Partial<T & {isCardFeedDeleted?: boolean}> = {};
 
@@ -1558,23 +2000,22 @@ function resolveTransactionCardFields<T extends {cardID?: number; cardName?: str
             }
         }
 
-        // Resolve isCardFeedDeleted
-        if (cardFeeds !== undefined) {
-            updates = {...updates, isCardFeedDeleted: !!transaction.bank && !doesCardFeedExist(transaction.bank as CompanyCardFeed, cardFeeds)};
-        }
-
         if (Object.keys(updates).length === 0) {
             return transaction;
         }
+
         return {...transaction, ...updates};
     });
 }
 
 export {
     getAssignedCardSortKey,
+    getCardFeedBackgroundColor,
+    getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
-    supportsPINManagementFeatures,
+    isUkEuExpensifyCard,
+    isOfflinePINMarket,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -1585,6 +2026,7 @@ export {
     getCardDescription,
     getMCardNumberString,
     getTranslationKeyForLimitType,
+    getTranslationKeyForCardStatus,
     maskPin,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
@@ -1593,9 +2035,12 @@ export {
     getBankName,
     isSelectedFeedExpired,
     isTravelCard,
+    isTravelCardTransaction,
     getCompanyFeeds,
+    hasCompanyCardFeeds,
     isPersonalCardBrokenConnection,
     isCustomFeed,
+    isCSVUploadFeed,
     isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
@@ -1611,17 +2056,18 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
     getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,
-    filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
+    getCSVFeedType,
     getFeedType,
-    flattenWorkspaceCardsList,
     isCardConnectionBroken,
+    isBrokenConnectionPastDismissThreshold,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,
@@ -1630,21 +2076,32 @@ export {
     isExpensifyCardFullySetUp,
     getCardSettings,
     getCardProgramKey,
+    getLinkedPolicyIDsFromExpensifyCardSettings,
+    getPreferredPolicyFromExpensifyCardSettings,
+    getDomainNameFromExpensifyCardSettings,
+    getDomainByFundID,
+    isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
+    hasAssignedCardMatching,
+    forEachAssignedCard,
+    isActiveCard,
     filterInactiveCards,
+    filterInactiveCardsForWorkspace,
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardPendingReplace,
+    isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
+    hasVirtualExpensifyCardMissingPersonalDetails,
+    isActionableVirtualExpensifyCard,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
-    isCardPendingReplace,
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
-    getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
     isDirectFeed,
     feedHasCards,
@@ -1653,11 +2110,12 @@ export {
     getCardFeedWithDomainID,
     splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    getSupportedCardCountriesForCurrency,
+    getConnectionBankAccountsForReconciliation,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     formatMaskedCardName,
-    splitMaskedCardNumber,
     isCardAlreadyAssigned,
     getCardDescriptionForSearchTable,
     generateCardID,
@@ -1666,8 +2124,10 @@ export {
     isCardInactive,
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
+    getDisplayableThirdPartyCards,
     isExpiredCard,
-    getCardCurrency,
+    getCardOrFeedCurrency,
+    getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,
 };

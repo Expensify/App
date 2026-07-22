@@ -1,18 +1,25 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {View} from 'react-native';
-import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSubmitAndClose} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
+import {clearPendingExpenseAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportMetadata} from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
     // Whether to show the success state
@@ -33,15 +40,32 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
     // Whether the button should be disabled
     isDisabled?: boolean;
 
-    // The policy ID for the report, used to check approval mode
-    policyID?: string;
+    // Whether this is a DEW submission that needs backend validation before showing "Submitted"
+    isDEWSubmission?: boolean;
+
+    // The report id for which the button is displayed
+    reportID?: string;
+
+    /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
+    isMarkAsDone?: boolean;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel, policyID}: AnimatedSubmitButtonProps) {
+const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
+
+function AnimatedSubmitButton({
+    success,
+    text,
+    onPress,
+    isSubmittingAnimationRunning,
+    onAnimationFinish,
+    isDisabled,
+    sentryLabel,
+    isMarkAsDone,
+    isDEWSubmission,
+    reportID,
+}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [animationPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAnimationRunning = isSubmittingAnimationRunning;
     const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_SUBMITTED_DURATION;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
@@ -51,6 +75,8 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
     const [minWidth, setMinWidth] = useState<number>(0);
     const [isShowingLoading, setIsShowingLoading] = useState(false);
     const viewRef = useRef<HTMLElement | null>(null);
+    const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
+    const isDEWSubmissionComplete = isDEWSubmission && isSubmittingAnimationRunning && !pendingExpenseAction;
 
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),
@@ -96,6 +122,11 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
             return;
         }
 
+        // For DEW submission the animation is controlled by the BE response.
+        if (isDEWSubmission) {
+            return;
+        }
+
         setMinWidth(viewRef.current?.getBoundingClientRect?.().width ?? 0);
         setIsShowingLoading(true);
 
@@ -104,19 +135,30 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         }, CONST.ANIMATION_SUBMIT_LOADING_STATE_DURATION);
 
         return () => clearTimeout(timer);
-    }, [buttonMarginTop, gap, height, isAnimationRunning]);
+    }, [buttonMarginTop, gap, height, isAnimationRunning, isDEWSubmission]);
 
     useEffect(() => {
-        if (!isAnimationRunning || isShowingLoading) {
+        if (!isAnimationRunning || isShowingLoading || (isDEWSubmission && !isDEWSubmissionComplete)) {
             return;
         }
 
         const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_SUBMIT_SUBMITTED_STATE_VISIBLE_DURATION);
 
         return () => clearTimeout(timer);
-    }, [isAnimationRunning, isShowingLoading]);
+    }, [isAnimationRunning, isShowingLoading, isDEWSubmissionComplete, isDEWSubmission]);
 
-    const showLoading = isShowingLoading || (!viewRef.current && isAnimationRunning);
+    useEffect(() => {
+        if (!isAnimationRunning || !isDEWSubmission || pendingExpenseAction !== CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED) {
+            return;
+        }
+        // When pending submission fails we quit to avoid showing submitted animation.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCanShow(false);
+        clearPendingExpenseAction(reportID);
+    }, [isAnimationRunning, pendingExpenseAction, reportID, isDEWSubmission]);
+
+    // eslint-disable-next-line react-hooks/refs
+    const showLoading = isShowingLoading || (isAnimationRunning && (!viewRef.current || (isDEWSubmission && !isDEWSubmissionComplete)));
 
     return (
         <Animated.View style={[containerStyles, {minWidth}]}>
@@ -129,7 +171,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 >
                     <Button
                         success={success}
-                        text={showLoading ? text : translate(isTrackIntentUser && isSubmitAndClose(animationPolicy) ? 'common.markedAsDoneStatus' : 'common.submitted')}
+                        text={showLoading ? text : translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted')}
                         isLoading={showLoading}
                         icon={!showLoading ? icon : undefined}
                         isDisabled

@@ -1,28 +1,36 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
-import getAvailableEuCountries from '@pages/ReimbursementAccount/utils/getAvailableEuCountries';
+
+import getAvailableCardCountryOptions from '@pages/ReimbursementAccount/utils/getAvailableCardCountryOptions';
+
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
@@ -44,14 +52,15 @@ type CountryFullStepProps = {
 };
 
 function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isComingFromExpensifyCard}: CountryFullStepProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {environmentURL} = useEnvironment();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
+    const [showNoPolicyError, setShowNoPolicyError] = useState(false);
 
     const currency =
         reimbursementAccountDraft?.currency ??
@@ -59,12 +68,13 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         reimbursementAccount?.achData?.currency ??
         CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''];
 
-    const shouldAllowChange = currency === CONST.CURRENCY.EUR && !reimbursementAccount?.achData?.accountNumber;
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
+    // GBP maps 1:1 to GB outside the Expensify Card flow, so only unlock the country picker for GBP during card onboarding, where GI is also valid
+    const shouldAllowChange = (currency === CONST.CURRENCY.EUR || (currency === CONST.CURRENCY.GBP && isUkEuCurrencySupported)) && !reimbursementAccount?.achData?.accountNumber;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const currencyMappedToCountry = mapCurrencyToCountry(currency) || countryDefaultValue;
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
-    const countriesSupportedForExpensifyCard = getAvailableEuCountries();
+    const countriesSupportedForExpensifyCard = getAvailableCardCountryOptions(supportedCountriesByCurrency, currency, localeCompare);
 
     const [userSelectedCountry, setUserSelectedCountry] = useState<string>('');
     const selectedCountry = shouldAllowChange ? userSelectedCountry || countryDefaultValue : currencyMappedToCountry;
@@ -76,10 +86,19 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         }
 
         setIsComingFromGlobalReimbursementsFlow(true);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID), {forceReplace: !isSmallScreenWidth});
+        const route = ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        Navigation.dismissModal({
+            afterTransition: () => {
+                Navigation.navigate(route);
+            },
+        });
     };
 
     const handleSubmit = () => {
+        if (currency === CONST.CURRENCY.AUD && !policyID) {
+            setShowNoPolicyError(true);
+            return;
+        }
         if (selectedCountry !== countryDefaultValue) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
         }
@@ -117,6 +136,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                 submitButtonStyles={[styles.mh5, styles.pb0]}
                 isSubmitDisabled={disableSubmit}
                 shouldHideFixErrorsAlert
+                submitFlexEnabled={!showNoPolicyError}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
                 <MenuItemWithTopDescription
@@ -150,6 +170,16 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                     inputID={COUNTRY}
                     shouldSaveDraft={false}
                 />
+                {showNoPolicyError && (
+                    <View style={[styles.flex1, styles.justifyContentEnd, styles.ph5]}>
+                        <FormHelpMessage
+                            style={styles.mt3}
+                            isError
+                            shouldRenderMessageAsHTML
+                            message={translate('countryStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
+                        />
+                    </View>
+                )}
             </FormProvider>
         </InteractiveStepWrapper>
     );

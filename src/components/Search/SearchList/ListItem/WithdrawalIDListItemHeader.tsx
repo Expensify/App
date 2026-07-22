@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -8,6 +6,7 @@ import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import StatusBadge from '@components/StatusBadge';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,15 +14,23 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionWithdrawalIDGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionWithdrawalIDGroupListItemType} from './types';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     /** The withdrawal ID currently being looked at */
@@ -54,7 +61,11 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function WithdrawalIDListItemHeaderImpl({
     withdrawalID: withdrawalIDItem,
     onCheckboxPress,
     isDisabled,
@@ -64,7 +75,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
     columns,
-}: WithdrawalIDListItemHeaderProps<TItem>) {
+}: WithdrawalIDListItemHeaderProps<ListItem>) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -77,7 +88,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const maskedNumber = withdrawalIDItem.accountNumber ? `xx${withdrawalIDItem.accountNumber.slice(-4)}` : '';
     const accountLabel = `${formattedBankName} ${maskedNumber}`;
 
-    const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
+    const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
@@ -102,6 +113,19 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
               })();
 
     const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
+            >
+                <Icon
+                    src={icon}
+                    width={iconSize}
+                    height={iconSize}
+                    additionalStyles={iconStyles}
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT}
@@ -116,7 +140,9 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN, {
+                    isWithdrawnColumnWide: !!withdrawalIDItem.shouldShowYearWithdrawn,
+                })}
             >
                 <TextWithTooltip
                     text={formattedWithdrawalDate}
@@ -154,7 +180,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.TOTAL}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
                     total={withdrawalIDItem.total}
@@ -166,15 +192,16 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pl3, styles.pv1, styles.gap3] : [styles.p4, styles.gap3]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(withdrawalIDItem as ListItem)}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                             isIndeterminate={isIndeterminate}
+                            containerStyle={styles.m0}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -185,7 +212,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 height={iconSize}
                                 additionalStyles={iconStyles}
                             />
-                            <View style={[styles.gapHalf, styles.flexShrink1]}>
+                            <View style={[styles.gap1, styles.flexShrink1]}>
                                 <TextWithTooltip
                                     text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
@@ -194,29 +221,16 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                     {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && (
-                        <>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
-                                <Icon
-                                    src={icon}
-                                    width={iconSize}
-                                    height={iconSize}
-                                    additionalStyles={iconStyles}
-                                />
-                            </View>
-
-                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
-                        </>
-                    )}
+                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
-                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                    <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
                             total={withdrawalIDItem.total}
                             currency={withdrawalIDItem.currency}
@@ -245,6 +259,10 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
             )}
         </View>
     );
+}
+
+function WithdrawalIDListItemHeader<TItem extends ListItem>(props: WithdrawalIDListItemHeaderProps<TItem>) {
+    return <WithdrawalIDListItemHeaderImpl {...(props as WithdrawalIDListItemHeaderProps<ListItem>)} />;
 }
 
 export default WithdrawalIDListItemHeader;

@@ -1,11 +1,12 @@
 import type {ReactNode} from 'react';
+
 import {useEffect, useRef} from 'react';
 import {AccessibilityInfo} from 'react-native';
+
 import type UseAccessibilityAnnouncementOptions from './types';
 
 const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, _options?: UseAccessibilityAnnouncementOptions) {
     const previousAnnouncedMessageRef = useRef('');
     const previousKeyRef = useRef(_options?.announcementKey);
@@ -30,7 +31,6 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
             AccessibilityInfo.announceForAccessibility(message);
         }, DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
 
-        // eslint-disable-next-line consistent-return
         return () => clearTimeout(timeout);
     }, [message, shouldAnnounceMessage, _options?.announcementKey]);
 }

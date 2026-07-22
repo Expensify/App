@@ -3,10 +3,13 @@ import Trie from '@src/libs/Trie';
 describe('Trie', () => {
     it('Test if a node can be found in the Trie', () => {
         const wordTrie = new Trie();
-        wordTrie.add('grinning', {code: '😀'});
-        wordTrie.add('grin', {code: '😁'});
-        wordTrie.add('joy', {code: '😂'});
-        wordTrie.add('rofl', {code: '🤣'});
+        const {node: grinningNode} = wordTrie.getOrCreate('grinning');
+        grinningNode.metaData = {code: '😀'};
+        const {node: grinNode} = wordTrie.getOrCreate('grin');
+        grinNode.metaData = {code: '😁'};
+        const {node: joyNode} = wordTrie.getOrCreate('joy');
+        joyNode.metaData = {code: '😂'};
+        wordTrie.getOrCreate('rofl');
         expect(wordTrie.search('eyes')).toBeNull();
         expect(wordTrie.search('joy')?.metaData).toEqual({code: '😂'});
         expect(wordTrie.search('gRiN')?.metaData).toEqual({code: '😁'});
@@ -14,10 +17,10 @@ describe('Trie', () => {
 
     it('Test finding all leaf nodes starting with a substring', () => {
         const wordTrie = new Trie();
-        wordTrie.add('John', {code: '👨🏿', suggestions: []});
-        wordTrie.add('Robert', {code: '👨🏾', suggestions: []});
-        wordTrie.add('Robertson', {code: '👨🏽', suggestions: []});
-        wordTrie.add('Rock', {code: '👨🏼', suggestions: []});
+        wordTrie.getOrCreate('John').node.metaData = {code: '👨🏿', suggestions: []};
+        wordTrie.getOrCreate('Robert').node.metaData = {code: '👨🏾', suggestions: []};
+        wordTrie.getOrCreate('Robertson').node.metaData = {code: '👨🏽', suggestions: []};
+        wordTrie.getOrCreate('Rock').node.metaData = {code: '👨🏼', suggestions: []};
         const expected = [
             {name: 'robert', metaData: {code: '👨🏾', suggestions: []}},
             {name: 'robertson', metaData: {code: '👨🏽', suggestions: []}},
@@ -29,49 +32,41 @@ describe('Trie', () => {
 
     it('Test finding only the first 5 matching words', () => {
         const wordTrie = new Trie();
-        wordTrie.add('John', {code: '👨🏼', suggestions: []});
-        wordTrie.add('Robert', {code: '👨🏾', suggestions: []});
-        wordTrie.add('Robertson', {code: '👨🏼', suggestions: []});
-        wordTrie.add('Rock', {code: '👨🏽', suggestions: []});
-        wordTrie.add('Rob', {code: '👨🏻', suggestions: []});
-        wordTrie.add('Rocco', {code: '👨🏿', suggestions: []});
-        wordTrie.add('Roger', {code: '👨🏼', suggestions: []});
-        wordTrie.add('Roni', {code: '👨🏻', suggestions: []});
+        wordTrie.getOrCreate('John').node.metaData = {code: '👨🏼', suggestions: []};
+        wordTrie.getOrCreate('Robert').node.metaData = {code: '👨🏾', suggestions: []};
+        wordTrie.getOrCreate('Robertson').node.metaData = {code: '👨🏼', suggestions: []};
+        wordTrie.getOrCreate('Rock').node.metaData = {code: '👨🏽', suggestions: []};
+        wordTrie.getOrCreate('Rob').node.metaData = {code: '👨🏻', suggestions: []};
+        wordTrie.getOrCreate('Rocco').node.metaData = {code: '👨🏿', suggestions: []};
+        wordTrie.getOrCreate('Roger').node.metaData = {code: '👨🏼', suggestions: []};
+        wordTrie.getOrCreate('Roni').node.metaData = {code: '👨🏻', suggestions: []};
         expect(wordTrie.getAllMatchingWords('Ro').length).toBe(5);
     });
 
     it('Test finding a specific number of matching words', () => {
         const wordTrie = new Trie();
         const limit = 7;
-        wordTrie.add('John', {code: '👨🏼', suggestions: []});
-        wordTrie.add('Robert', {code: '👨🏾', suggestions: []});
-        wordTrie.add('Robertson', {code: '👨🏼', suggestions: []});
-        wordTrie.add('Rock', {code: '👨🏽', suggestions: []});
-        wordTrie.add('Rob', {code: '👨🏻', suggestions: []});
-        wordTrie.add('Rocco', {code: '👨🏿', suggestions: []});
-        wordTrie.add('Roger', {code: '👨🏼', suggestions: []});
-        wordTrie.add('Roni', {code: '👨🏻', suggestions: []});
+        wordTrie.getOrCreate('John').node.metaData = {code: '👨🏼', suggestions: []};
+        wordTrie.getOrCreate('Robert').node.metaData = {code: '👨🏾', suggestions: []};
+        wordTrie.getOrCreate('Robertson').node.metaData = {code: '👨🏼', suggestions: []};
+        wordTrie.getOrCreate('Rock').node.metaData = {code: '👨🏽', suggestions: []};
+        wordTrie.getOrCreate('Rob').node.metaData = {code: '👨🏻', suggestions: []};
+        wordTrie.getOrCreate('Rocco').node.metaData = {code: '👨🏿', suggestions: []};
+        wordTrie.getOrCreate('Roger').node.metaData = {code: '👨🏼', suggestions: []};
+        wordTrie.getOrCreate('Roni').node.metaData = {code: '👨🏻', suggestions: []};
         expect(wordTrie.getAllMatchingWords('Ro', limit).length).toBe(limit);
     });
 
-    it('Test throwing an error when try to add an empty word to the Trie.', () => {
+    it('Test throwing an error when try to insert an empty word into the Trie.', () => {
         const wordTrie = new Trie();
         expect(() => {
-            wordTrie.add('');
+            wordTrie.getOrCreate('');
         }).toThrow('Cannot insert empty word into Trie');
     });
 
-    it('Test updating a Trie node', () => {
+    it('Test that getOrCreate returns isNew correctly', () => {
         const wordTrie = new Trie();
-        wordTrie.add('John', {code: '👨🏼'});
-        wordTrie.update('John', {code: '👨🏻'});
-        expect(wordTrie.search('John')?.metaData).toEqual({code: '👨🏻'});
-    });
-
-    it('Test throwing an error when try to update a word that does not exist in the Trie.', () => {
-        const wordTrie = new Trie();
-        expect(() => {
-            wordTrie.update('smile', {});
-        }).toThrow('Word does not exist in the Trie');
+        expect(wordTrie.getOrCreate('smile').isNew).toBe(true);
+        expect(wordTrie.getOrCreate('smile').isNew).toBe(false);
     });
 });

@@ -1,9 +1,11 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ValueOf} from 'type-fest';
+
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -175,6 +177,9 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Weather Onfido setup is complete */
     isOnfidoSetupComplete?: boolean;
 
+    /** Confirmation that the user accepted the ACH terms. The form input key is `acceptTermsAndConditions`; the achData field uses the shorter `acceptTerms`. */
+    acceptTerms?: boolean;
+
     /** Last 4 digits of the account number */
     mask?: string;
 
@@ -220,6 +225,41 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Currency of the bank account */
     currency?: string;
+
+    /** Statuses of additional checks hinting at missing documents user still needs to upload */
+    verifications?: {
+        /** points towards one of external providers */
+        externalApiResponses?: {
+            /** provider name */
+            companyTaxID?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            lexisNexisInstantIDResult?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            requestorIdentityID?: {
+                /** status of check */
+                status: string;
+                /** result with validation errors */
+                apiResult?: {
+                    /** contains validation qualifiers that provide additional details about the identity verification result */
+                    qualifiers: {
+                        /** array of individual validation checks that were flagged during identity verification */
+                        qualifier: Array<{
+                            /** Unique code of the error */
+                            key: string;
+                            /** Message of the error */
+                            message: string;
+                        }>;
+                    };
+                };
+            };
+        };
+    };
 };
 
 /** The step in an reimbursement account's ach data */
@@ -301,4 +341,4 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 export default ReimbursementAccount;
-export type {Corpay, CorpayBeneficialOwner, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {Corpay, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};

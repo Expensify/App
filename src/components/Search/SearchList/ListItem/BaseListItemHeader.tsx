@@ -1,18 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionGroupListItemType} from './types';
 
 /** Base group item type that includes common fields used by simple text-based group headers */
 type BaseGroupListItemType = TransactionGroupListItemType & {
@@ -84,7 +89,11 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function BaseListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BaseListItemHeaderImpl({
     item,
     displayName,
     groupColumnKey,
@@ -97,7 +106,7 @@ function BaseListItemHeader<TItem extends ListItem>({
     isExpanded,
     onDownArrowClick,
     columns,
-}: BaseListItemHeaderProps<TItem>) {
+}: BaseListItemHeaderProps<ListItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -128,7 +137,7 @@ function BaseListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
                     total={item.total}
@@ -140,16 +149,16 @@ function BaseListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pl3, styles.pv1, styles.gap3] : [styles.p4, styles.gap3]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(item as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(item as ListItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            style={isLargeScreenWidth && styles.mr1}
+                            containerStyle={styles.m0}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SELECT_ALL_CHECKBOX}
                         />
                     )}
@@ -166,7 +175,7 @@ function BaseListItemHeader<TItem extends ListItem>({
                     {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
-                    <View style={[styles.flexShrink0, styles.ml2, styles.mr3, styles.gap1]}>
+                    <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
                             total={item.total}
                             currency={item.currency}
@@ -184,5 +193,9 @@ function BaseListItemHeader<TItem extends ListItem>({
     );
 }
 
+function BaseListItemHeader<TItem extends ListItem>(props: BaseListItemHeaderProps<TItem>) {
+    return <BaseListItemHeaderImpl {...(props as BaseListItemHeaderProps<ListItem>)} />;
+}
+
 export default BaseListItemHeader;
-export type {BaseListItemHeaderProps, BaseGroupListItemType};
+export type {BaseListItemHeaderProps};

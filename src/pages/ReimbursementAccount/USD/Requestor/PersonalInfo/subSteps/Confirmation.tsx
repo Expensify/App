@@ -1,18 +1,23 @@
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
+import React, {useMemo} from 'react';
+
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.PERSONAL_INFO;
 
-function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
+function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -24,6 +29,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
 
     const summaryItems = [
         {
+            id: 'legal-name',
             description: translate('personalInfoStep.legalName'),
             title: `${values[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${values[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
             shouldShowRightIcon: true,
@@ -32,6 +38,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
             },
         },
         {
+            id: 'date-of-birth',
             description: translate('common.dob'),
             title: values[PERSONAL_INFO_STEP_KEYS.DOB],
             shouldShowRightIcon: true,
@@ -40,6 +47,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
             },
         },
         {
+            id: 'ssn',
             description: translate('personalInfoStep.last4SSN'),
             title: values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4],
             shouldShowRightIcon: true,
@@ -48,6 +56,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
             },
         },
         {
+            id: 'address',
             description: translate('personalInfoStep.address'),
             title: `${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]}`,
             shouldShowRightIcon: true,

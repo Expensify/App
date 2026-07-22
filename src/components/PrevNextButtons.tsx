@@ -1,11 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
@@ -42,8 +47,8 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isPrevButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
                         src={icons.BackArrow}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
                         fill={theme.icon}
                     />
                 </View>
@@ -61,8 +66,8 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                     <Icon
                         src={icons.ArrowRight}
                         fill={theme.icon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
                     />
                 </View>
             </PressableWithFeedback>

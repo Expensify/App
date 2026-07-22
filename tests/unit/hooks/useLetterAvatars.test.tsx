@@ -1,9 +1,12 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {SvgProps} from 'react-native-svg';
+
 import useLetterAvatars from '@hooks/useLetterAvatars';
-// eslint-disable-next-line no-restricted-syntax -- For mocking
-import * as PresetAvatarCatalog from '@libs/Avatars/PresetAvatarCatalog';
+
+import * as UserAvatarCatalog from '@libs/Avatars/UserAvatarCatalog';
+
+import type {SvgProps} from 'react-native-svg';
+
+import React from 'react';
 
 const mockAvatarComponent: React.FC<SvgProps> = React.memo((props: SvgProps) =>
     React.createElement('svg', {
@@ -19,7 +22,7 @@ describe('useLetterAvatars', () => {
 
     describe('basic functionality', () => {
         it('should return the expected structure', () => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+            jest.spyOn(UserAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars('John'));
 
@@ -33,7 +36,7 @@ describe('useLetterAvatars', () => {
         });
 
         it('should create unique IDs for each avatar variant', () => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+            jest.spyOn(UserAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars('Bob'));
 
@@ -46,7 +49,7 @@ describe('useLetterAvatars', () => {
         });
 
         it('should include the StyledLetterAvatar component in each item', () => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+            jest.spyOn(UserAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars('Charlie'));
 
@@ -64,7 +67,7 @@ describe('useLetterAvatars', () => {
             ['names starting with numbers', '5th Avenue', '-5'],
             ['single character names', 'X', '-'],
         ])('should handle %s', (_, name, expectedChar) => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+            jest.spyOn(UserAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars(name));
 
@@ -80,7 +83,7 @@ describe('useLetterAvatars', () => {
             ['names with only spaces', '   '],
             ['names with only special characters', '!@#$%'],
         ])('should handle %s', (_, name) => {
-            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(null);
+            jest.spyOn(UserAvatarCatalog, 'getLetterAvatar').mockReturnValue(null);
 
             const {result} = renderHook(() => useLetterAvatars(name));
 

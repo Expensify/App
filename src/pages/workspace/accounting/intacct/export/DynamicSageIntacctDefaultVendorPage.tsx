@@ -1,0 +1,134 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
+import type {SelectorType} from '@components/SelectionScreen';
+import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors, settingsPendingAction} from '@libs/PolicyUtils';
+
+import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import variables from '@styles/variables';
+
+import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
+
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Connections} from '@src/types/onyx/Policy';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
+// Sage Intacct's default-vendor fields hold a raw vendor ID; sending this empty string clears the default.
+const CLEAR_DEFAULT_VENDOR = '';
+
+function DynamicSageIntacctDefaultVendorPage() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR>>();
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
+    const {config} = policy?.connections?.intacct ?? {};
+    const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.path);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+
+    const reimbursableMode =
+        route.params.reimbursable ?? (backPath.includes('/reimbursable') ? CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase());
+    const isReimbursable = reimbursableMode === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
+    const goBack = useCallback(() => {
+        Navigation.goBack(backPath);
+    }, [backPath]);
+
+    let defaultVendor;
+    let settingName: keyof Connections['intacct']['config']['export'];
+    if (!isReimbursable) {
+        const {nonReimbursable} = exportConfig ?? {};
+        defaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
+        settingName =
+            nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
+                ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR
+                : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR;
+    } else {
+        const {reimbursableExpenseReportDefaultVendor} = exportConfig ?? {};
+        defaultVendor = reimbursableExpenseReportDefaultVendor;
+        settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
+    }
+
+    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+
+    const listHeaderComponent = useMemo(
+        () => (
+            <View style={[styles.pb2, styles.ph5]}>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription', isReimbursable)}</Text>
+            </View>
+        ),
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
+    );
+
+    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing when that setting is active.
+    const canClearByReSelecting = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
+
+    const updateDefaultVendor = useCallback(
+        ({value}: SelectorType) => {
+            if (value === defaultVendor) {
+                if (canClearByReSelecting) {
+                    updateSageIntacctDefaultVendor(policyID, settingName, CLEAR_DEFAULT_VENDOR, defaultVendor);
+                }
+            } else {
+                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
+            }
+            goBack();
+        },
+        [defaultVendor, policyID, settingName, goBack, canClearByReSelecting],
+    );
+
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={illustrations.Telescope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.sageIntacct.noAccountsFound')}
+                subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10, illustrations.Telescope],
+    );
+
+    return (
+        <SelectionScreen
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName="SageIntacctDefaultVendorPage"
+            data={vendorSelectorOptions ?? []}
+            onSelectRow={updateDefaultVendor}
+            initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
+            headerContent={listHeaderComponent}
+            onBackButtonPress={goBack}
+            title="workspace.sageIntacct.defaultVendor"
+            listEmptyContent={listEmptyContent}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            pendingAction={settingsPendingAction([settingName], config?.pendingFields)}
+            errors={getLatestErrorField(config, settingName)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => clearSageIntacctErrorField(policyID, settingName)}
+        />
+    );
+}
+
+export default DynamicSageIntacctDefaultVendorPage;

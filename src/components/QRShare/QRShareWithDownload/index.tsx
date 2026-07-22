@@ -1,11 +1,16 @@
-import React, {useImperativeHandle, useRef} from 'react';
 import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
 import type {QRShareHandle} from '@components/QRShare/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+
 import fileDownload from '@libs/fileDownload';
-import QRShare from '..';
+
+import React, {useImperativeHandle, useRef} from 'react';
+
 import type {QRShareWithDownloadProps} from './types';
+
+import QRShare from '..';
 
 function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     const {isOffline} = useNetwork();
@@ -17,7 +22,6 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
         () => ({
             download: () =>
                 new Promise((resolve, reject) => {
-                    // eslint-disable-next-line es/no-optional-chaining
                     const svg = qrShareRef.current?.getSvg();
                     if (!svg) {
                         reject();
@@ -33,7 +37,6 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     return (
         <QRShare
             ref={qrShareRef}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             logo={isOffline ? undefined : props.logo}
         />

@@ -1,24 +1,25 @@
-import {format as formatDate} from 'date-fns';
-import React, {createContext, useEffect, useState} from 'react';
-import {importEmojiLocale} from '@assets/emojis';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import DateUtils from '@libs/DateUtils';
-import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import {setLocale} from '@userActions/App';
+
 import CONST from '@src/CONST';
-import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
+import {isSupportedLocale} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {format as formatDate} from 'date-fns';
+import React, {createContext, useEffect, useState} from 'react';
 
 type LocaleContextProviderProps = {
     /** Actual content wrapped by this component */
@@ -107,27 +108,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
         IntlStore.load(localeToApply);
         setLocale(localeToApply, nvpPreferredLocale);
-
-        // For locales without emoji support, fallback on English
-        const normalizedLocale = isFullySupportedLocale(localeToApply) ? localeToApply : CONST.LOCALES.DEFAULT;
-
-        startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
-            name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
-            op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT),
-        });
-
-        importEmojiLocale(normalizedLocale).then(() => {
-            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
-
-            startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
-                name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
-                op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
-                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-            });
-            buildEmojisTrie(normalizedLocale);
-            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD);
-        });
     }, [localeToApply, nvpPreferredLocale]);
 
     // Sync currentLocale from IntlStore after translations finish loading.
@@ -201,4 +181,4 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
 export {LocaleContext, LocaleContextProvider};
 
-export type {Locale, LocaleContextProps, LocalizedTranslate};
+export type {LocaleContextProps, LocalizedTranslate};

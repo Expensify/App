@@ -1,18 +1,18 @@
-import React from 'react';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type ImportTransactionsSpreadsheetPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET>;
 
 function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadsheetPageProps) {
     const {cardID} = route.params ?? {};
-
-    // If cardID is provided, we're adding transactions to an existing card,
-    // otherwise we're creating a new card
-    const backTo = cardID ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS;
+    const backTo = cardID ? undefined : ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS;
 
     return (
         <ImportSpreadsheet

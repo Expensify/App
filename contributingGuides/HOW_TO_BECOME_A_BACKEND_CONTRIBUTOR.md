@@ -1,6 +1,6 @@
 **Overview**
 
-We are hiring an exceptionally strong Backend Engineer with deep expertise in C++ and PHP to join a small, senior, fully-remote engineering team. This is a high-trust, high-ownership environment with minimal process, no standups, and no sprint ceremonies.  
+We are hiring an exceptionally strong Backend Engineer with deep expertise in C++ and PHP to join a small, senior, fully-remote engineering team. This is a high-trust, high-ownership environment with minimal process, no stand-ups, and no sprint ceremonies.  
 
 This role is intentionally designed for engineers who thrive with autonomy, clear ownership, and written communication. You will be highly visible, highly trusted, and expected to operate independently from day one.  
 
@@ -19,7 +19,7 @@ As part of our high-vetting process, all shortlisted candidates will complete a 
 
 - Expert-level proficiency in both C++ and PHP  
 - Clear commitment to C++ and PHP as long-term backend technologies (not stepping stones)  
-- Demonstrated problem-solving ability, validated through a paid C++ and PHP technical challenge  
+- Demonstrated problem-solving ability, validated through a C++ and PHP technical challenge  
 - Strong backend systems thinking (performance, reliability, maintainability)  
 - SQL experience is a plus, but not required
 
@@ -32,13 +32,15 @@ As part of our high-vetting process, all shortlisted candidates will complete a 
 
 **Work Style & Autonomy**
 
-- Thrives without traditional management, standups, or sprint structures  
+- Thrives without traditional management, stand-ups, or sprint structures  
 - Strong self-management, ownership mentality, and bias toward action  
 - Able to operate effectively in a flat, non-hierarchical organization  
 - Comfortable making decisions independently and being accountable for outcomes
 
-**Time Zone & Availability**
+**Hours, Time Zone & Availability**
 
+- Expected Hours: ~40 hours/week
+- Time off: Unpaid and flexible  
 - Must have at least 6 hours of daily overlap with: US Pacific Time (PT) or Central European Time (CET)  
 - Time zone overlap is especially critical during the first 3 months for onboarding and alignment
 

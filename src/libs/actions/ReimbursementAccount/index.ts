@@ -1,14 +1,18 @@
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {ACHData, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import resetNonUSDBankAccount from './resetNonUSDBankAccount';
 import resetUSDBankAccount from './resetUSDBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
-export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './errors';
 
 /**
  * Set the current sub step in first step of adding withdrawal bank account:
@@ -18,10 +22,6 @@ export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './e
  */
 function setBankAccountSubStep(subStep: ReimbursementAccountSubStep | null): Promise<void | void[]> {
     return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
-}
-
-function setBankAccountState(state: string): Promise<void | void[]> {
-    return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {state}});
 }
 
 function hideBankAccountErrors() {
@@ -46,6 +46,28 @@ function clearReimbursementAccount() {
 }
 
 /**
+ * Prepares the app to set up a new bank account by marking the account change, clearing existing data,
+ * and initializing draft with country and currency.
+ * We need to temporarily clear this data to set up new account without disconnecting existing one
+ */
+function prepareNewBankAccountSetup(currency: string) {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
+    clearReimbursementAccount();
+    clearReimbursementAccountDraft();
+    updateReimbursementAccountDraft({
+        country: mapCurrencyToCountry(currency),
+        currency,
+    });
+}
+
+/**
+ * Cancels the change to new bank account
+ */
+function cancelChangingToNewBankAccount() {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, false);
+}
+
+/**
  * Triggers a modal to open allowing the user to reset their bank account
  */
 function requestResetBankAccount() {
@@ -66,6 +88,17 @@ function setReimbursementAccountOptionPressed(optionPressed: ValueOf<typeof CONS
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED, optionPressed);
 }
 
+/**
+ * Clear validation messages from reimbursement account
+ */
+function resetReimbursementAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        errors: null,
+        pendingAction: null,
+        errorFields: null,
+    });
+}
+
 export {
     resetUSDBankAccount,
     resetNonUSDBankAccount,
@@ -76,7 +109,9 @@ export {
     cancelResetBankAccount,
     clearReimbursementAccount,
     clearReimbursementAccountDraft,
-    setBankAccountState,
     setReimbursementAccountOptionPressed,
     updateReimbursementAccount,
+    resetReimbursementAccount,
+    cancelChangingToNewBankAccount,
+    prepareNewBankAccountSetup,
 };

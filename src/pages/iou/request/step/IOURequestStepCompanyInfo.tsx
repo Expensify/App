@@ -1,44 +1,59 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
+import {startTracking} from '@libs/telemetry/submitFollowUpAction';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
-import {getIOURequestPolicyID} from '@userActions/IOU';
+
+import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {sendInvoice} from '@userActions/IOU/SendInvoice';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestCompanyInfoForm';
+
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepCompanyInfoProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO>;
 
 function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepCompanyInfoProps) {
-    const {backTo} = route.params;
+    const {backTo, reportID} = route.params;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
@@ -50,6 +65,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
@@ -78,23 +94,25 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        const isFromGlobalCreate = transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
-        startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
-            name: 'submit-to-destination-visible',
-            op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
-            attributes: {
-                [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
-                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: false,
-                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: !!isFromGlobalCreate,
-                [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.INVOICE,
-                [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'invoice',
+        const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
+        startTracking(
+            {
+                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
+                iouType: CONST.IOU.TYPE.INVOICE,
+                requestType: 'invoice',
+                isFromGlobalCreate: !!isFromGlobalCreate,
+                hasReceipt: false,
             },
-        });
+            {skipSubmitExpenseSpan: true},
+        );
+        reserveSearchChannelIfGlobalCreate(!!isFromGlobalCreate);
+        const invoiceChatReportID = report?.reportID ? undefined : reportID;
         sendInvoice({
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             invoiceChatReport: report,
+            invoiceChatReportID,
             policy,
             policyTagList: policyTags,
             policyCategories,
@@ -102,7 +120,18 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyWebsite,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
-            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+            isFromGlobalCreate,
+            senderPolicyTags: policyTags ?? {},
+            delegateAccountID,
+        });
+        cleanupAndNavigateAfterExpenseCreate({
+            report: undefined,
+            action: CONST.IOU.ACTION.CREATE,
+            draftTransactionIDs,
+            transactionID: transaction?.transactionID,
+            isFromGlobalCreate,
+            optimisticChatReportID: report?.reportID ?? reportID,
+            isInvoice: true,
         });
     };
 

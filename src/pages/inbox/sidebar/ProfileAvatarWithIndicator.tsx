@@ -1,13 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp} from 'react-native';
-import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
 import AvatarWithIndicator from '@components/AvatarWithIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp} from 'react-native';
+import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ProfileAvatarWithIndicatorProps = {
     /** Whether the avatar is selected */
@@ -20,7 +24,7 @@ type ProfileAvatarWithIndicatorProps = {
 function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: ProfileAvatarWithIndicatorProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoading = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     return (
         <OfflineWithFeedback

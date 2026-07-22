@@ -1,23 +1,29 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
+
 import {updateDraftCustomStatus, updateStatusDraftCustomClearAfterDate} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 
@@ -190,7 +196,7 @@ function StatusClearAfterPage() {
         () => (
             <SelectionList
                 data={statusType}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={updateMode}
                 listFooterContent={listFooterContent}
                 confirmButtonOptions={confirmButtonOptions}

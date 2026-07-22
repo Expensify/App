@@ -1,8 +1,7 @@
-import {useCallback, useMemo} from 'react';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {useCallback} from 'react';
+
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
-import useHasEmptyReportsForPolicy from './useHasEmptyReportsForPolicy';
-import useOnyx from './useOnyx';
+import useShouldShowEmptyReportConfirmation from './useShouldShowEmptyReportConfirmation';
 
 type UseConditionalCreateEmptyReportConfirmationParams = {
     /** The policy ID for which the report is being created */
@@ -35,9 +34,7 @@ export default function useConditionalCreateEmptyReportConfirmation({
     onCancel,
     shouldBypassConfirmation = false,
 }: UseConditionalCreateEmptyReportConfirmationParams): UseConditionalCreateEmptyReportConfirmationResult {
-    const hasEmptyReport = useHasEmptyReportsForPolicy(policyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
-    const shouldSkipConfirmation = useMemo(() => shouldBypassConfirmation || hasDismissedEmptyReportsConfirmation === true, [hasDismissedEmptyReportsConfirmation, shouldBypassConfirmation]);
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(policyID, shouldBypassConfirmation);
 
     const handleReportCreationConfirmed = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -54,16 +51,16 @@ export default function useConditionalCreateEmptyReportConfirmation({
     });
 
     const handleCreateReport = useCallback(() => {
-        if (hasEmptyReport && !shouldSkipConfirmation) {
+        if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
             return;
         }
 
         onCreateReport(false);
-    }, [hasEmptyReport, onCreateReport, openCreateReportConfirmation, shouldSkipConfirmation]);
+    }, [shouldShowEmptyReportConfirmation, onCreateReport, openCreateReportConfirmation]);
 
     return {
         handleCreateReport,
-        hasEmptyReport,
+        hasEmptyReport: shouldShowEmptyReportConfirmation,
     };
 }

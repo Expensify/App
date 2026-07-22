@@ -1,19 +1,25 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {SeverityLevel} from '@sentry/react-native';
-import * as Sentry from '@sentry/react-native';
-import {useEffect, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
+
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+
 import {isTransactionStillPending3DSReview} from '@libs/actions/MultifactorAuthentication';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionPending3DSReview} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {SeverityLevel} from '@sentry/react-native';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
+import {useEffect, useMemo} from 'react';
+
 import Navigation, {isMFAFlowScreen} from './Navigation';
 
 function addBreadcrumb(message: string, data?: Record<string, string | number | boolean | undefined>, level: SeverityLevel = 'info'): void {
@@ -116,22 +122,21 @@ function useNavigateTo3DSAuthorizationChallenge() {
             return;
         }
 
-        const doesDeviceSupportAnAllowedAuthenticationMethod =
-            doesDeviceSupportAuthenticationMethod() &&
-            (AuthorizeTransaction.allowedAuthenticationMethods as Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>).includes(deviceVerificationType);
-
-        // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
-        if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
-            Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - device does not support an allowed authentication method', undefined, {
-                transactionID: transactionPending3DSReview.transactionID,
-            });
-            addBreadcrumb('Skipped - device unsupported', {transactionID: transactionPending3DSReview.transactionID}, 'warning');
-            return;
-        }
-
         let cancel = false;
 
         async function maybeNavigateTo3DSChallenge() {
+            const doesDeviceSupportAnAllowedAuthenticationMethod =
+                (await doesDeviceSupportAuthenticationMethod()) &&
+                (AuthorizeTransaction.allowedAuthenticationMethods as Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>).includes(deviceVerificationType);
+
+            // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
+            if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
+                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - device does not support an allowed authentication method', undefined, {
+                    transactionID: transactionPending3DSReview?.transactionID,
+                });
+                addBreadcrumb('Skipped - device unsupported', {transactionID: transactionPending3DSReview?.transactionID}, 'warning');
+                return;
+            }
             // It's actually not possible to reach this return. We're using an arrow function for the body of the effect, which captures the value
             // of transactionPending3DSReview. If the transactionID was undefined when we started the effect, we would've returned above, and if
             // it became undefined between then and now, Onyx will return a whole new object reference, so this effect will still be holding onto
@@ -174,7 +179,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return () => {
             cancel = true;
         };
-    }, [transactionPending3DSReview?.transactionID, doesDeviceSupportAuthenticationMethod, deviceVerificationType, isCurrentlyActingOn3DSChallenge]);
+    }, [transactionPending3DSReview?.transactionID, deviceVerificationType, isCurrentlyActingOn3DSChallenge, doesDeviceSupportAuthenticationMethod]);
 }
 
 export default useNavigateTo3DSAuthorizationChallenge;

@@ -1,16 +1,22 @@
-import {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import {useCurrencyListState} from './useCurrencyList';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useOnyx from './useOnyx';
 
@@ -24,20 +30,6 @@ function policiesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Poli
             continue;
         }
         result[key] = {taxRates: policy.taxRates} as Policy;
-    }
-    return result;
-}
-
-function reportsSelector(reports: OnyxCollection<Report>): OnyxCollection<Report> {
-    if (!reports) {
-        return reports;
-    }
-    const result: OnyxCollection<Report> = {};
-    for (const [key, report] of Object.entries(reports)) {
-        if (!report) {
-            continue;
-        }
-        result[key] = {reportID: report.reportID} as Report;
     }
     return result;
 }
@@ -84,14 +76,18 @@ function policyTagsSelector(tags: OnyxCollection<PolicyTagLists>): OnyxCollectio
 
 const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {currencyList} = useCurrencyListState();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+    // Subscribe to the report collection directly. buildFilterFormValuesFromQuery only does keyed existence
+    // lookups (`in:` filter), so projecting via a selector would just waste an O(n) pass over every report.
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     // Helps to avoid unnecessary recalculations when user open report details screen. React Compiler does not provide same result.
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
@@ -99,11 +95,23 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const {exportedToFilterOptions} = useExportedToFilterOptions();
 
     const formValues = queryJSON
-        ? buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates, exportedToFilterOptions)
+        ? buildFilterFormValuesFromQuery(
+              queryJSON,
+              policyCategories,
+              policyTagsLists,
+              currencyList,
+              personalDetails,
+              allCards,
+              allReports,
+              taxRates,
+              exportedToFilterOptions,
+              currentUserPersonalDetails.accountID,
+              bankAccountList,
+          )
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
 
     return formValues;
 };
 
 export default useFilterFormValues;
-export {policiesSelector, reportsSelector, policyCategoriesSelector, policyTagsSelector};
+export {policiesSelector, policyCategoriesSelector, policyTagsSelector};

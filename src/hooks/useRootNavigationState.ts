@@ -1,7 +1,9 @@
-import type {NavigationState} from '@react-navigation/routers';
-import {useEffect, useRef, useState} from 'react';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
+
+import type {NavigationState} from '@react-navigation/routers';
+
+import {useEffect, useRef, useState} from 'react';
 
 type Selector<T> = (state: NavigationState | undefined) => T;
 
@@ -33,7 +35,8 @@ function useRootNavigationState<T>(selector: Selector<T>): T {
     useEffect(() => {
         const unsubscribe = navigationRef.addListener('state', () => {
             // State from the event data may be incomplete. (defined params but no nested state for the route)
-            setResult(selectorRef.current(navigationRef.getRootState()));
+            const newResult = selectorRef.current(navigationRef.getRootState());
+            setResult((prev) => (Object.is(prev, newResult) ? prev : newResult));
         });
 
         return unsubscribe;

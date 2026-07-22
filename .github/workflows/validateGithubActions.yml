@@ -12,8 +12,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

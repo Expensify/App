@@ -1,6 +1,8 @@
-import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 type TextCellProps = {
     text?: string;
@@ -14,8 +16,8 @@ function TextCell({text = '', isLargeScreenWidth = true}: TextCellProps) {
         <TextWithTooltip
             text={text}
             shouldShowTooltip
-            numberOfLines={2}
-            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter]}
+            numberOfLines={isLargeScreenWidth ? 1 : 2}
+            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, !isLargeScreenWidth && styles.preWrap, styles.justifyContentCenter]}
         />
     );
 }

@@ -28,8 +28,7 @@ jobs:
           fi
 
       - name: Checkout source branch
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ steps.getSourceBranch.outputs.SOURCE_BRANCH }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}

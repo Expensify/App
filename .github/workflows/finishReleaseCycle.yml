@@ -13,8 +13,7 @@ jobs:
       isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -64,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
-            This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval.
+            This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval. (The emoji needs to be the *last* comment before closing)
             Reopening!
 
       - name: Announce failed workflow in Slack

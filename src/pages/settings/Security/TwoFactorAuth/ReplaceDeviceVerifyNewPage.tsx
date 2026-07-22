@@ -1,23 +1,30 @@
-import React, {useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getContactMethod} from '@libs/UserUtils';
+
 import {clearAccountMessages, replaceTwoFactorDevice} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import TwoFactorAuthSecretDisplay from './TwoFactorAuthSecretDisplay';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
@@ -52,15 +59,12 @@ function ReplaceDeviceVerifyNewPage() {
         if (!account || account.twoFactorAuthSecretKey) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.route, {forceReplace: true});
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS, {forceReplace: true});
     }, [account, account?.twoFactorAuthSecretKey]);
 
     const handleInputFocus = () => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                scrollViewRef.current?.scrollToEnd({animated: true});
-            });
+        requestAnimationFrame(() => {
+            scrollViewRef.current?.scrollToEnd({animated: true});
         });
     };
 
@@ -94,9 +98,8 @@ function ReplaceDeviceVerifyNewPage() {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
-                    success
-                    large
-                    text={translate('common.continue')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         if (!formRef.current) {
@@ -104,7 +107,9 @@ function ReplaceDeviceVerifyNewPage() {
                         }
                         formRef.current.validateAndSubmitForm();
                     }}
-                />
+                >
+                    <Button.Text>{translate('common.continue')}</Button.Text>
+                </Button>
             </FixedFooter>
         </TwoFactorAuthWrapper>
     );

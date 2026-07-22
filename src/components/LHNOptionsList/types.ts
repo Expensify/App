@@ -1,12 +1,12 @@
-import type {RefObject} from 'react';
-import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import type {RefObject} from 'react';
+import type {LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -42,18 +42,6 @@ type OptionRowLHNDataProps = {
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
-    /** The onboarding purpose */
-    onboardingPurpose?: OnboardingPurpose;
-
-    /** The onboarding NVP value */
-    onboarding?: OnyxEntry<Onboarding>;
-
-    /** Whether the fullscreen is visible */
-    isFullscreenVisible?: boolean;
-
-    /** Whether the reports split navigator is last */
-    isReportsSplitNavigatorLast: boolean;
-
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
 
@@ -84,32 +72,11 @@ type OptionRowLHNDataProps = {
     /** The derived report attributes for all reports */
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
-    /** Whether to show the educational tooltip for the GBR or RBR */
-    shouldShowRBRorGBRTooltip: boolean;
-
-    /** Whether the screen is focused */
-    isScreenFocused?: boolean;
-
-    /** Function to compare locale strings */
-    localeCompare: LocaleContextProps['localeCompare'];
-
-    /** Function to translate locale strings */
-    translate: LocalizedTranslate;
-
     /** TestID of the row, indicating order */
     testID: number;
-
-    /** The current user's account ID */
-    currentUserAccountID: number;
 };
 
 type OptionRowLHNProps = {
-    /** The ID of the report that the option is for */
-    reportID: string;
-
-    /** The report for this option */
-    report?: Report;
-
     /** Whether this option is currently in focus so we can modify its style */
     isOptionFocused?: boolean;
 
@@ -119,43 +86,18 @@ type OptionRowLHNProps = {
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
 
-    /** Additional style props */
-    style?: StyleProp<TextStyle>;
-
     /** The item that should be rendered */
-    optionItem?: OptionData;
-
-    /** The onboarding purpose */
-    onboardingPurpose?: OnboardingPurpose;
-
-    /** The onboarding NVP value */
-    onboarding?: OnyxEntry<Onboarding>;
-
-    /** Whether the fullscreen is visible */
-    isFullscreenVisible?: boolean;
-
-    /** Whether the reports split navigator is last */
-    isReportsSplitNavigatorLast: boolean;
+    optionItem: OptionData;
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
 
     onLayout?: (event: LayoutChangeEvent) => void;
 
-    /** Whether to show the educational tooltip on the GBR or RBR */
-    shouldShowRBRorGBRTooltip: boolean;
-
-    /** Whether the screen is focused */
-    isScreenFocused?: boolean;
-
     /** The testID of the row */
     testID: number;
-
-    /** The concierge report ID from Onyx */
-    conciergeReportID: OnyxEntry<string>;
-
-    /** Whether the report's policy has approvals disabled (submit and close) */
-    isApprovalDisabledForReport?: boolean;
+    /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
+    isMarkAsDone?: boolean;
 };
 
 type RenderItemProps = {item: Report; index: number};

@@ -1,9 +1,14 @@
-import React, {useMemo} from 'react';
-import type {SvgProps} from 'react-native-svg';
 import ColoredLetterAvatar from '@components/ColoredLetterAvatar';
-import {getLetterAvatar, LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
+
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
+import {getLetterAvatar} from '@libs/Avatars/UserAvatarCatalog';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
+
 import type {AvatarSizeName} from '@styles/utils';
+
+import type {SvgProps} from 'react-native-svg';
+
+import React, {useMemo} from 'react';
 
 /**
  * Represents a single letter avatar item with its unique identifier and styled component.
@@ -73,4 +78,3 @@ function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): Lett
 }
 
 export default useLetterAvatars;
-export type {LetterAvatarItem, LetterAvatarsResult};

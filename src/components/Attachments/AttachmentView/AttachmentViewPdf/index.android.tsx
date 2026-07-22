@@ -1,11 +1,15 @@
+import {useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React, {memo, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
-import {useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import useThemeStyles from '@hooks/useThemeStyles';
-import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
+
 import type AttachmentViewPdfProps from './types';
+
+import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 
 // If the user pans less than this threshold, we'll not enable/disable the pager scroll, since the touch will most probably be a tap.
 // If the user moves their finger more than this threshold in the X direction, we'll enable the pager scroll. Otherwise if in the Y direction, we'll disable it.
@@ -62,7 +66,6 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const Content = useMemo(
         () => (
             <BaseAttachmentViewPdf
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onScaleChanged={(newScale) => {
                     // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,

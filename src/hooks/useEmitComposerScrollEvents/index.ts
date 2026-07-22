@@ -1,6 +1,7 @@
+import CONST from '@src/CONST';
+
 import {useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import CONST from '@src/CONST';
 
 type UseEmitComposerScrollEventsOptions = {
     enabled?: boolean;
@@ -78,16 +79,14 @@ function useEmitComposerScrollEvents(options?: UseEmitComposerScrollEventsOption
             clearTimeout(scrollEndTimeout.current);
         }
 
-        if (lastScrollEvent.current) {
-            scrollEndTimeout.current = setTimeout(() => {
-                if (lastScrollEvent.current !== timestamp) {
-                    return;
-                }
-                // Scroll has ended
-                lastScrollEvent.current = null;
-                onScrollEnd();
-            }, 250);
-        }
+        scrollEndTimeout.current = setTimeout(() => {
+            if (lastScrollEvent.current !== timestamp) {
+                return;
+            }
+            // Scroll has ended
+            lastScrollEvent.current = null;
+            onScrollEnd();
+        }, 250);
 
         lastScrollEvent.current = timestamp;
     };

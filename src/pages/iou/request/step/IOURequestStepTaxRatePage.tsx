@@ -1,31 +1,43 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
+
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
-import {setMoneyRequestTaxRateValues, updateMoneyRequestTaxRate} from '@userActions/IOU';
+
+import {getIOURequestPolicyID, setMoneyRequestTaxRateValues} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestTaxRate} from '@userActions/IOU/UpdateMoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE> & {
     transaction: OnyxEntry<Transaction>;
@@ -47,15 +59,19 @@ function IOURequestStepTaxRatePage({
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
+
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: getIOURequestPolicyID(transaction, report?.policyID ? report : participantReport), action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -64,12 +80,17 @@ function IOURequestStepTaxRatePage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
+    };
+
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
     };
 
     const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
@@ -81,6 +102,7 @@ function IOURequestStepTaxRatePage({
             transactionID: currentTransaction?.transactionID,
             transactionThreadReport: report,
             parentReport,
+            iouReportOwnerLogin,
             taxCode: '',
             taxValue: '',
             taxAmount: 0,
@@ -91,11 +113,13 @@ function IOURequestStepTaxRatePage({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            delegateAccountID,
+            isTrackIntentUser,
         };
 
         if (shouldClearTax && isEditing) {
             updateMoneyRequestTaxRate(updateTaxRateParams);
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
         if (!currentTransaction || !taxes.code || !taxRates) {
@@ -112,26 +136,26 @@ function IOURequestStepTaxRatePage({
                 taxCode: taxes.code,
                 taxValue,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (isEditing) {
             const newTaxCode = taxes.code;
             updateMoneyRequestTaxRate({...updateTaxRateParams, taxCode: newTaxCode, taxValue, taxAmount: convertToBackendAmount(taxAmount ?? 0)});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (taxAmount === undefined) {
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
 
         setMoneyRequestTaxRateValues(currentTransaction.transactionID, {taxCode: taxes?.code ?? '', taxAmount: amountInSmallestCurrencyUnits, taxValue});
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     return (
@@ -154,9 +178,8 @@ function IOURequestStepTaxRatePage({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxRatePageWithWritableReportOrNotFound);
 
 export default IOURequestStepTaxRatePageWithFullTransactionOrNotFound;

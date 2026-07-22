@@ -1,14 +1,20 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Svg, {Path} from 'react-native-svg';
+
 import AttachmentPicker from './AttachmentPicker';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -43,6 +49,25 @@ type ReceiptEmptyStateProps = {
     setReceiptFile?: (files: FileObject[]) => void;
 };
 
+function ReceiptPlaceholderPlusIcon({circleFill, plusFill, size}: {circleFill: string; plusFill: string; size: number}) {
+    return (
+        <Svg
+            viewBox="0 0 28 28"
+            width={size}
+            height={size}
+        >
+            <Path
+                d="M0 14C0 6.268 6.268 0 14 0s14 6.268 14 14-6.268 14-14 14S0 21.732 0 14"
+                fill={circleFill}
+            />
+            <Path
+                d="M15.2 18.2a1.2 1.2 0 1 1-2.4 0v-3h-3a1.2 1.2 0 1 1 0-2.4h3v-3a1.2 1.2 0 1 1 2.4 0v3h3a1.2 1.2 0 1 1 0 2.4h-3z"
+                fill={plusFill}
+            />
+        </Svg>
+    );
+}
+
 // Returns an SVG icon indicating that the user should attach a receipt
 function ReceiptEmptyState({
     onPress,
@@ -59,7 +84,8 @@ function ReceiptEmptyState({
     const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlaceholderPlus', 'Receipt']);
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
+
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFile);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
@@ -112,12 +138,13 @@ function ReceiptEmptyState({
                                     height={variables.eReceiptEmptyIconWidth}
                                 />
                                 {!isThumbnail && (
-                                    <Icon
-                                        src={icons.ReceiptPlaceholderPlus}
-                                        width={variables.avatarSizeSmall}
-                                        height={variables.avatarSizeSmall}
-                                        additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
-                                    />
+                                    <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, {width: variables.avatarSizeSmall, height: variables.avatarSizeSmall}]}>
+                                        <ReceiptPlaceholderPlusIcon
+                                            circleFill={theme.success}
+                                            plusFill={theme.receiptPlaceholderPlus}
+                                            size={variables.avatarSizeSmall}
+                                        />
+                                    </View>
                                 )}
                             </View>
                             {!isThumbnail && isDisplayedInWideRHP && (

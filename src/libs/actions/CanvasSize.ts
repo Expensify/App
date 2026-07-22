@@ -1,7 +1,9 @@
+import * as Browser from '@libs/Browser';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import canvasSize from 'canvas-size';
 import Onyx from 'react-native-onyx';
-import * as Browser from '@libs/Browser';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Calculate the max area of canvas on this specific platform and save it in onyx
@@ -42,9 +44,4 @@ function retrieveMaxCanvasWidth() {
     });
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    retrieveMaxCanvasArea,
-    retrieveMaxCanvasHeight,
-    retrieveMaxCanvasWidth,
-};
+export {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth};

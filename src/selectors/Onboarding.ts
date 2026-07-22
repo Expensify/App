@@ -1,7 +1,9 @@
-import type {OnyxValue} from 'react-native-onyx';
-import CONST from '@src/CONST';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxValue} from 'react-native-onyx';
 
 /**
  * Selector to get the value of hasCompletedGuidedSetupFlow from the Onyx store
@@ -69,21 +71,22 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
 }
 
 /**
- * Selector to check if the onboarding flow is loading
- *
- * `undefined` means the value is not loaded yet
- * `true` means the onboarding flow is loading
- * `false` means the onboarding flow is not loading
+ * Combined selector that derives both the self-tour status and the guided-setup
+ * completion flag from a single NVP_ONBOARDING read, avoiding two subscriptions
+ * to the same key from callers that need both.
  */
-function isOnboardingLoadingSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    return !!onboarding?.isLoading;
+function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean | undefined; hasCompletedGuidedSetupFlow: boolean | undefined} {
+    return {
+        isSelfTourViewed: hasSeenTourSelector(onboarding),
+        hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(onboarding),
+    };
 }
 
 /**
  * Selector to check if the user selected a track-intent onboarding choice
  */
 function isTrackIntentUserSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean {
-    return introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+    return isTrackOnboardingChoice(introSelected?.choice);
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, isOnboardingLoadingSelector, isTrackIntentUserSelector};
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, guidedSetupAndTourStatusSelector, isTrackIntentUserSelector};

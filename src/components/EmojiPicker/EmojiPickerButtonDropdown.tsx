@@ -1,21 +1,26 @@
-import React, {useEffect, useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {EmojiPickerOnModalHide} from '@libs/actions/EmojiPickerAction';
 import {hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor, showEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getButtonState from '@libs/getButtonState';
+
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
@@ -31,11 +36,8 @@ type EmojiPickerButtonDropdownProps = {
     ref?: ForwardedRef<AnimatedTextInputRef>;
 };
 
-function EmojiPickerButtonDropdown(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ref, ...otherProps}: EmojiPickerButtonDropdownProps,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function EmojiPickerButtonDropdown({isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ref, ...otherProps}: EmojiPickerButtonDropdownProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
@@ -78,20 +80,21 @@ function EmojiPickerButtonDropdown(
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>
-                        <Text
-                            style={styles.emojiPickerButtonDropdownIcon}
-                            numberOfLines={1}
-                        >
-                            {
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                value || (
-                                    <Icon
-                                        src={icons.Emoji}
-                                        fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
-                                    />
-                                )
-                            }
-                        </Text>
+                        {value ? (
+                            <Text
+                                style={styles.emojiPickerButtonDropdownIcon}
+                                numberOfLines={1}
+                            >
+                                {value}
+                            </Text>
+                        ) : (
+                            <View style={styles.emojiPickerButtonDropdownIcon}>
+                                <Icon
+                                    src={icons.Emoji}
+                                    fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
+                                />
+                            </View>
+                        )}
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={icons.ArrowRight}

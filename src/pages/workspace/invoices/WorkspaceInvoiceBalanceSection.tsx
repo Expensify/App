@@ -1,11 +1,14 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 type WorkspaceInvoiceBalanceSectionProps = {
     /** The policy ID currently being configured */
@@ -13,6 +16,7 @@ type WorkspaceInvoiceBalanceSectionProps = {
 };
 
 function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSectionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -28,7 +32,7 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
         >
             <MenuItemWithTopDescription
                 description={translate('walletPage.balance')}
-                title={CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, policy?.outputCurrency)}
+                title={convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, policy?.outputCurrency)}
                 titleStyle={styles.textHeadlineH2}
                 interactive={false}
                 wrapperStyle={styles.sectionMenuItemTopDescription}

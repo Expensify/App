@@ -1,20 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
+import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useSpendOverTimeData from './useSpendOverTimeData';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import useSpendOverTimeData, {SPEND_OVER_TIME_STATE} from './useSpendOverTimeData';
 
 function SpendOverTimeSectionContent() {
     const styles = useThemeStyles();
@@ -24,13 +31,9 @@ function SpendOverTimeSectionContent() {
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {query, queryJSON, groupBy, view, sortedData, shouldShowOfflineIndicator, shouldShowErrorIndicator, shouldShowLoadingIndicator} = useSpendOverTimeData();
+    const {query, queryJSON, groupBy, view, sortedData, state} = useSpendOverTimeData();
 
-    if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE) {
-        return null;
-    }
-
-    if (!shouldShowErrorIndicator && sortedData?.length === 0) {
+    if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === SPEND_OVER_TIME_STATE.HIDDEN) {
         return null;
     }
 
@@ -38,21 +41,23 @@ function SpendOverTimeSectionContent() {
         <WidgetContainer
             title={translate('search.spendOverTime')}
             titleRightContent={
-                shouldShowOfflineIndicator || shouldShowLoadingIndicator || shouldShowErrorIndicator ? null : (
-                    <Button
-                        small
-                        text={translate('common.view')}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}))}
-                        iconRight={icons.Expand}
-                        shouldShowRightIcon
-                        textStyles={styles.pb0}
-                        style={styles.widgetItemButton}
-                        isContentCentered
+                state === SPEND_OVER_TIME_STATE.READY ? (
+                    <WidgetHeaderMenu
+                        testID="spendOverTimeOverflowMenu"
+                        sentryLabel="SpendOverTimeOverflowMenu"
+                        menuItems={[
+                            {
+                                text: translate('common.view'),
+                                icon: icons.Expand,
+                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query})),
+                                shouldCallAfterModalHide: true,
+                            },
+                        ]}
                     />
-                )
+                ) : null
             }
         >
-            {shouldShowOfflineIndicator && (
+            {state === SPEND_OVER_TIME_STATE.OFFLINE && (
                 <BlockingView
                     icon={icons.OfflineCloud}
                     iconColor={theme.offline}
@@ -64,7 +69,7 @@ function SpendOverTimeSectionContent() {
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                 />
             )}
-            {shouldShowErrorIndicator && (
+            {state === SPEND_OVER_TIME_STATE.ERROR && (
                 <BlockingView
                     icon={illustrations.BrokenMagnifyingGlass}
                     iconHeight={variables.iconSizeMegaLarge}
@@ -78,14 +83,14 @@ function SpendOverTimeSectionContent() {
                     contentFitImage="contain"
                 />
             )}
-            {!shouldShowOfflineIndicator && !shouldShowErrorIndicator && (
+            {(state === SPEND_OVER_TIME_STATE.LOADING || state === SPEND_OVER_TIME_STATE.READY) && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3]]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
                         data={sortedData ?? []}
-                        isLoading={shouldShowLoadingIndicator}
+                        isLoading={state === SPEND_OVER_TIME_STATE.LOADING}
                     />
                 </View>
             )}

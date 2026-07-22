@@ -1,12 +1,18 @@
 import {act, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
+
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -32,11 +38,11 @@ describe('Sidebar', () => {
     beforeEach(async () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        setHasRadio(true);
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
             // Initialize the network key for OfflineWithFeedback
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -95,7 +101,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 ...reportNameValuePairsCollection,
                                 ...reportCollection,
                                 ...reportAction,
@@ -158,7 +164,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 ...reportNameValuePairsCollection,
                                 ...reportCollection,
                                 ...reportAction,

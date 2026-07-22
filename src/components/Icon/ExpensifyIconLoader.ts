@@ -1,4 +1,5 @@
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import type ExpensifyIcons from './chunks/expensify-icons.chunk';
 
 type ExpensifyIconsChunk = {
@@ -65,7 +66,6 @@ function loadExpensifyIcon(iconName: ExpensifyIconName): {default: IconAsset} | 
             return {default: icon};
         })
         .catch((error) => {
-            // eslint-disable-next-line no-console
             console.error(`Failed to load ExpensifyIcon: ${iconName}`, error);
             throw error;
         });
@@ -82,4 +82,4 @@ function getExpensifyIconsChunk(): ExpensifyIconsChunk | null {
 
 export {loadExpensifyIcon, loadExpensifyIconsChunk, getExpensifyIconsChunk};
 
-export type {ExpensifyIconName, ExpensifyIconsChunk};
+export type {ExpensifyIconName};

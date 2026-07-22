@@ -1,6 +1,8 @@
-import React, {useEffect, useRef} from 'react';
 import FlatList from '@components/FlatList/FlatList';
 import useFlatListScrollKey from '@components/FlatList/hooks/useFlatListScrollKey';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {BaseFlatListWithScrollKeyProps} from './types';
 
 /**
@@ -19,7 +21,7 @@ function BaseFlatListWithScrollKey<T>({ref, ...props}: BaseFlatListWithScrollKey
         onScrollBeginDrag,
         onWheel,
         onTouchStartCapture,
-        ...rest
+        ...restProps
     } = props;
     const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, handleRenderItem, listRef} = useFlatListScrollKey<T>({
         data,
@@ -51,8 +53,7 @@ function BaseFlatListWithScrollKey<T>({ref, ...props}: BaseFlatListWithScrollKey
     return (
         <FlatList
             ref={listRef}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            {...restProps}
             data={displayedData}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             onStartReached={handleStartReached}
@@ -61,8 +62,8 @@ function BaseFlatListWithScrollKey<T>({ref, ...props}: BaseFlatListWithScrollKey
             // Since ListHeaderComponent is always prioritized for rendering before the data,
             // it will be rendered once the data has finished loading.
             // This prevents an unnecessary empty space above the highlighted item.
-            ListHeaderComponent={!isInitialData ? rest.ListHeaderComponent : undefined}
-            contentContainerStyle={!isInitialData ? rest.contentContainerStyle : undefined}
+            ListHeaderComponent={!isInitialData ? restProps.ListHeaderComponent : undefined}
+            contentContainerStyle={!isInitialData ? restProps.contentContainerStyle : undefined}
             onContentSizeChange={(width, height) => onContentSizeChange?.(width, height, isInitialData)}
             onViewableItemsChanged={(info) => {
                 onViewableItemsChanged?.(info);

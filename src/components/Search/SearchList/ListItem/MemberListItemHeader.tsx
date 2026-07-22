@@ -1,21 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionMemberGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionMemberGroupListItemType} from './types';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The member currently being looked at */
@@ -44,9 +49,16 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** The visible columns for the header */
     columns?: SearchColumnType[];
+
+    /** Whether the screen is large */
+    isLargeScreenWidth?: boolean;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function MemberListItemHeaderImpl({
     member: memberItem,
     onCheckboxPress,
     isDisabled,
@@ -56,21 +68,39 @@ function MemberListItemHeader<TItem extends ListItem>({
     isExpanded,
     onDownArrowClick,
     columns,
-}: MemberListItemHeaderProps<TItem>) {
+    isLargeScreenWidth,
+}: MemberListItemHeaderProps<ListItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
-    const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(memberItem));
+    const formattedDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: memberItem, translate}));
     const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
 
     const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
+            >
+                <UserDetailsTooltip accountID={memberItem.accountID}>
+                    <View>
+                        <Avatar
+                            source={memberItem.avatar}
+                            type={CONST.ICON_TYPE_AVATAR}
+                            name={formattedDisplayName}
+                            avatarID={memberItem.accountID}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)}
             >
-                <View style={[styles.gap1, styles.flexShrink1]}>
+                <View style={styles.flexShrink1}>
                     <TextWithTooltip
                         text={formattedDisplayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
@@ -93,7 +123,7 @@ function MemberListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
                     total={memberItem.total}
@@ -105,16 +135,16 @@ function MemberListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pl3, styles.pv1, styles.gap3] : [styles.p4, styles.gap3]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(memberItem as ListItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            style={isLargeScreenWidth && styles.mr1}
+                            containerStyle={styles.m0}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -141,27 +171,10 @@ function MemberListItemHeader<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && (
-                        <>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
-                                <UserDetailsTooltip accountID={memberItem.accountID}>
-                                    <View>
-                                        <Avatar
-                                            source={memberItem.avatar}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                            name={formattedDisplayName}
-                                            avatarID={memberItem.accountID}
-                                        />
-                                    </View>
-                                </UserDetailsTooltip>
-                            </View>
-
-                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
-                        </>
-                    )}
+                    {!!isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
-                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                    <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
                             total={memberItem.total}
                             currency={memberItem.currency}
@@ -177,6 +190,10 @@ function MemberListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     );
+}
+
+function MemberListItemHeader<TItem extends ListItem>(props: MemberListItemHeaderProps<TItem>) {
+    return <MemberListItemHeaderImpl {...(props as MemberListItemHeaderProps<ListItem>)} />;
 }
 
 export default MemberListItemHeader;

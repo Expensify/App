@@ -1,0 +1,83 @@
+import Button from '@components/Button';
+import Text from '@components/Text';
+
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type SpendRuleRestrictionTypeToggleProps = {
+    restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null;
+    onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => void;
+};
+
+function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRuleRestrictionTypeToggleProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const isOffSelected = restrictionAction === null;
+    const isAllowSelected = restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW;
+    const isBlockSelected = restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK;
+
+    const restrictionTypeHelperText = (() => {
+        if (isAllowSelected) {
+            return translate('workspace.rules.spendRules.restrictMerchantsAllowSubtitle');
+        }
+        if (isBlockSelected) {
+            return translate('workspace.rules.spendRules.restrictMerchantsBlockSubtitle');
+        }
+        return translate('workspace.rules.spendRules.restrictMerchantsOffSubtitle');
+    })();
+
+    return (
+        <>
+            <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                <Text style={[styles.flex1, styles.alignSelfCenter]}>{translate('workspace.rules.spendRules.restrictMerchants')}</Text>
+                <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
+                    <Button
+                        text={translate('common.off')}
+                        small
+                        style={styles.ph0}
+                        innerStyles={!isOffSelected ? styles.bgTransparent : undefined}
+                        textStyles={[styles.alignSelfCenter, !isOffSelected ? styles.textSupporting : undefined]}
+                        accessibilityLabel={translate('common.off')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
+                        onPress={() => onSelect(null)}
+                    />
+                    <Button
+                        text={translate('workspace.rules.spendRules.allow')}
+                        success={isAllowSelected}
+                        small
+                        style={styles.ph0}
+                        innerStyles={!isAllowSelected ? styles.bgTransparent : undefined}
+                        textStyles={[styles.alignSelfCenter, !isAllowSelected ? styles.textSupporting : undefined]}
+                        accessibilityLabel={translate('workspace.rules.spendRules.allow')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
+                        onPress={() => onSelect(CONST.SPEND_RULES.ACTION.ALLOW)}
+                    />
+                    <Button
+                        text={translate('workspace.rules.spendRules.block')}
+                        danger={isBlockSelected}
+                        small
+                        style={styles.ph0}
+                        innerStyles={!isBlockSelected ? styles.bgTransparent : undefined}
+                        textStyles={[styles.alignSelfCenter, !isBlockSelected ? styles.textSupporting : undefined]}
+                        accessibilityLabel={translate('workspace.rules.spendRules.block')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
+                        onPress={() => onSelect(CONST.SPEND_RULES.ACTION.BLOCK)}
+                    />
+                </View>
+            </View>
+            <Text style={[styles.mutedNormalTextLabel, styles.pt3]}>{restrictionTypeHelperText}</Text>
+        </>
+    );
+}
+
+SpendRuleRestrictionTypeToggle.displayName = 'SpendRuleRestrictionTypeToggle';
+
+export default SpendRuleRestrictionTypeToggle;

@@ -1,13 +1,18 @@
-import React, {useEffect, useMemo} from 'react';
 import DocusignFullStep from '@components/SubStepForms/DocusignFullStep';
+
 import useOnyx from '@hooks/useOnyx';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useEffect, useMemo} from 'react';
 
 const INPUT_KEYS = {
     PROVIDE_TRUTHFUL_INFORMATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
@@ -37,7 +42,6 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPage
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isFinishingCorpayBankAccountOnboarding || !reimbursementAccount?.isSuccess) {
             return;
         }

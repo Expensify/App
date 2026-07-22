@@ -1,5 +1,7 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import CONST from '@src/CONST';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
 import type Request from './Request';
 import type {AnyOnyxUpdate, AnyRequest} from './Request';
 import type Response from './Response';
@@ -78,7 +80,10 @@ type OnyxUpdatesFromServer<TKey extends OnyxKey> = OnyxUpdatesFromServerBase<TKe
  * @param value - represent the onyx update received from the server
  * @returns boolean indicating if the onyx update received from the server is valid
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+/**
+ *
+ */
 function isValidOnyxUpdateFromServer(value: unknown): value is AnyOnyxUpdatesFromServer {
     if (!value || typeof value !== 'object') {
         return false;

@@ -1,10 +1,14 @@
-import React from 'react';
-import {splitBoxModelStyle} from 'react-native-render-html';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
+
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import FontUtils from '@styles/utils/FontUtils';
+
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React from 'react';
+import {splitBoxModelStyle} from 'react-native-render-html';
 
 type CodeRendererProps = CustomRendererProps<TText | TPhrasing> & {
     /** Key of the element */

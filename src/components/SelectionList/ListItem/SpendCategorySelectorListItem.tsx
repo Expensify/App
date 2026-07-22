@@ -1,10 +1,19 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import BaseListItem from './BaseListItem';
+
+import React from 'react';
+
 import type {ListItem, SpendCategorySelectorListItemProps} from './types';
 
+import BaseListItem from './BaseListItem';
+
+/**
+ * A menu-item row showing a category name under a spend group label. Used in workspace
+ * categories settings to map categories to spend groups.
+ */
 function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: SpendCategorySelectorListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {groupID, categoryID: category} = item;

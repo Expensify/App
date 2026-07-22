@@ -1,5 +1,6 @@
-import type {TNode} from 'react-native-render-html';
 import variables from '@styles/variables';
+
+import type {TNode} from 'react-native-render-html';
 
 type Predicate = (node: TNode) => boolean;
 
@@ -70,11 +71,11 @@ function isChildOfComment(tnode: TNode): boolean {
  * Finding a node with the name 'h1' flags that we are rendering inside an h1 element.
  */
 function isChildOfH1(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'h1');
+    return isChildOfNode(tnode, (node) => node.domNode?.name?.toLowerCase() === 'h1');
 }
 
 function isChildOfTaskTitle(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'task-title');
+    return isChildOfNode(tnode, (node) => node.domNode?.name?.toLowerCase() === 'task-title');
 }
 
 /**
@@ -137,6 +138,28 @@ function isChildOfAlertText(tnode: TNode): boolean {
     return isChildOfTagName(tnode, 'alert-text');
 }
 
+/**
+ * Recursively collects the raw text contents of a code block so it can be copied to the clipboard,
+ * preserving the original line breaks and whitespace.
+ */
+function getCodeBlockText(tnode: TNode): string {
+    // Newlines inside a code block are rendered as void `<br>` tags, which carry no `data`.
+    // Emit a newline for them so the copied text keeps its original formatting.
+    if (tnode.tagName === 'br') {
+        return '\n';
+    }
+
+    if ('data' in tnode && typeof tnode.data === 'string') {
+        return tnode.data;
+    }
+
+    if (!tnode.children) {
+        return '';
+    }
+
+    return tnode.children.map(getCodeBlockText).join('');
+}
+
 export {
     computeEmbeddedMaxWidth,
     isChildOfComment,
@@ -144,11 +167,11 @@ export {
     isDeletedNode,
     isChildOfTaskTitle,
     isChildOfRBR,
-    isCommentTag,
     getFontSizeOfRBRChild,
     isChildOfMutedTextLabel,
     isChildOfLabelText,
     isChildOfMutedTextXS,
     isChildOfMutedTextMicro,
     isChildOfAlertText,
+    getCodeBlockText,
 };

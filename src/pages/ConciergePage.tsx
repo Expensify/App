@@ -1,19 +1,22 @@
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {navigateToConciergeChat} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
-import ScreenWrapper from '@components/ScreenWrapper';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {navigateToConciergeChat} from '@libs/actions/Report';
-import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 /*
  * This is a "utility page", that does this:
@@ -24,7 +27,7 @@ function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -33,7 +36,6 @@ function ConciergePage() {
     useFocusEffect(
         useCallback(() => {
             if (session && 'authToken' in session) {
-                confirmReadyToOpenApp();
                 Navigation.isNavigationReady().then(() => {
                     if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData) {
                         return;

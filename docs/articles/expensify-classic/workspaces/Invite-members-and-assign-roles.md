@@ -63,6 +63,8 @@ The following table shows the permissions available for each role:
 |                                           |                                            | &#10004; Approve all workspace reports    |
 |                                           |                                            | &#10004; Edit workspace settings          |
 
+**Note:** A **Card Admin** role — which lets you delegate Expensify Card and company card management without granting full Workspace Admin access — is available only in New Expensify. To assign or use it, switch to New Expensify. [Learn more](https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members).
+
 ---
 
 # Import a Group of Members
@@ -79,5 +81,5 @@ To add members in bulk:
 3. Match the columns in your spreadsheet with the Expensify data they correspond to. 
 4. Click **Import**. 
 
-**Note:** If you are utilizing the **Advanced Approval** feature, you can specify to whom each member should submit their expense reports and who an approver should send approved reports for the next step in the approval process. If someone is the final
+**Note:** If you are utilizing the **Advanced Approval** feature, you can specify to whom each member should submit their expense reports and who an approver should send approved reports for the next step in the approval process. If you are the final approver, the report becomes **Approved** and is ready for payment.
 

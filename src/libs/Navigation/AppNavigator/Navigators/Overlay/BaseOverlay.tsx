@@ -1,13 +1,17 @@
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {OverlayStylesParams} from '@styles/index';
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import {useCardAnimation} from '@react-navigation/stack';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {OverlayStylesParams} from '@styles/index';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 
 type BaseOverlayProps = {
     /* Callback to close the modal */
@@ -32,6 +36,7 @@ function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.side
     return (
         <Animated.View
             id="BaseOverlay"
+            aria-hidden
             style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>

@@ -1,7 +1,9 @@
 import {useState} from 'react';
 import {NativeModules} from 'react-native';
-import BaseNativePlaidLink from './BaseNativePlaidLink';
+
 import type PlaidLinkProps from './types';
+
+import BaseNativePlaidLink from './BaseNativePlaidLink';
 
 const {AppStateTracker} = NativeModules;
 
@@ -19,7 +21,6 @@ function PlaidLink({onExit = () => {}, ...restProps}: PlaidLinkProps) {
                     onExit();
                 });
             }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
         />
     );

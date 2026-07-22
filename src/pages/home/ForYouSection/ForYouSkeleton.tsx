@@ -1,12 +1,15 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type Props = {
     reasonAttributes: SkeletonSpanReasonAttributes;
@@ -43,7 +46,7 @@ function ForYouSkeleton({reasonAttributes}: Props) {
             const iconY = 12;
             const titleX = iconX + 40 + gap;
             const titleWidth = getTitleSkeletonWidth(args.itemIndex);
-            const buttonWidth = styles.widgetItemButton.minWidth;
+            const buttonWidth = styles.widgetItemButton.minWidth ?? 0;
             const buttonHeight = 28;
             const buttonX = pageWidth - horizontalPadding - buttonWidth;
             const buttonY = (ITEM_HEIGHT - buttonHeight) / 2;

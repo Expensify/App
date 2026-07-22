@@ -1,14 +1,11 @@
 import React from 'react';
-import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
+
 import type {TwoFactorAuthFormProps} from './types';
 
+import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
+
 function TwoFactorAuthForm(props: TwoFactorAuthFormProps) {
-    return (
-        <BaseTwoFactorAuthForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        />
-    );
+    return <BaseTwoFactorAuthForm {...props} />;
 }
 
 export default TwoFactorAuthForm;

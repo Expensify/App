@@ -1,21 +1,27 @@
-import React, {useRef} from 'react';
-import type {InputModeOptions} from 'react-native';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import PatriotActLink from '@components/PatriotActLink';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
+
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+
+import type {InputModeOptions} from 'react-native';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
     ForwardedFSClassProps & {

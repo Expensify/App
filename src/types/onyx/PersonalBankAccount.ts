@@ -1,4 +1,6 @@
+import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of personal bank account */
@@ -29,6 +31,12 @@ type PersonalBankAccount = {
 
     /** If set, continue with the KYC flow after adding a PBA. This specifies the fallback route to use. */
     onSuccessFallbackRoute?: Route;
+
+    /** The bank account ID being updated in the personal info update flow */
+    bankAccountID?: number;
+
+    /** API error stored separately from `errors` to avoid blocking FormProvider resubmission */
+    updateError?: TranslationPaths | null;
 };
 
 export default PersonalBankAccount;

@@ -1,14 +1,19 @@
-import {useFocusEffect} from '@react-navigation/native';
-import type {RefObject} from 'react';
-import {useCallback, useRef} from 'react';
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback, useRef} from 'react';
+
+import useIsInLandscapeMode from './useIsInLandscapeMode';
 
 function useDelayedAutoFocus(ref: RefObject<{focus: () => void} | null>, shouldDelayAutoFocus: boolean) {
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     useFocusEffect(
         useCallback(() => {
-            if (!shouldDelayAutoFocus) {
+            if (!shouldDelayAutoFocus || isInLandscapeMode) {
                 return undefined;
             }
 
@@ -23,7 +28,7 @@ function useDelayedAutoFocus(ref: RefObject<{focus: () => void} | null>, shouldD
                     focusTimeoutRef.current = null;
                 }
             };
-        }, [shouldDelayAutoFocus, ref]),
+        }, [shouldDelayAutoFocus, ref, isInLandscapeMode]),
     );
 }
 

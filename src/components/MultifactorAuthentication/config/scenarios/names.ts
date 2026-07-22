@@ -12,13 +12,14 @@ const SCENARIO_NAMES = {
     AUTHORIZE_TRANSACTION: 'AUTHORIZE-TRANSACTION',
     REVEAL_PIN: 'REVEAL-PIN',
     CHANGE_PIN: 'CHANGE-PIN',
+    SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS: 'SET-PERSONAL-DETAILS-AND-REVEAL-CARD-DETAILS',
 } as const;
 
 /**
  * Prompt identifiers for multifactor authentication scenarios.
  */
 const PROMPT_NAMES = {
-    BIOMETRICS: 'biometrics',
+    BIOMETRICS_HSM: 'biometrics',
     PASSKEYS: 'passkeys',
 } as const;
 

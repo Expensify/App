@@ -1,13 +1,19 @@
-import type {ReactNode} from 'react';
-import React, {Fragment, useState} from 'react';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+
+import React, {Fragment, useState} from 'react';
+
+import type {CurrencyListItem} from './CurrencySelectionList/types';
+
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import CurrencySelectionList from './CurrencySelectionList';
-import type {CurrencyListItem} from './CurrencySelectionList/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';

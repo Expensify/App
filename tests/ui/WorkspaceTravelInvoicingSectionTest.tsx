@@ -1,17 +1,25 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
+
 import {updateGeneralSettings} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -25,7 +33,7 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // We use literal values that match the constants above.
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -57,6 +65,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {
         navigate: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         isTopmostRouteModalScreen: jest.fn(() => false),
     },
 }));
@@ -94,7 +104,7 @@ const mockPolicy: Policy = {
 
 const renderWorkspaceTravelInvoicingSection = () => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <WorkspaceTravelInvoicingSection policyID={POLICY_ID} />
         </ComposeProviders>,
     );
@@ -129,8 +139,8 @@ describe('WorkspaceTravelInvoicingSection', () => {
             // Wait for component to render
             await waitForBatchedUpdatesWithAct();
 
-            // Central Invoicing section should be visible
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            // Travel Invoicing section should be visible
+            expect(screen.getByText('Consolidated Travel Billing')).toBeTruthy();
         });
 
         it('should render sections when paymentBankAccountID is not set', async () => {
@@ -150,7 +160,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Consolidated Travel Billing')).toBeTruthy();
         });
     });
 
@@ -182,7 +192,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Consolidated Travel Billing')).toBeTruthy();
         });
 
         it('should display current travel spend label when configured', async () => {
@@ -443,10 +453,70 @@ describe('WorkspaceTravelInvoicingSection', () => {
             }
             await waitForBatchedUpdatesWithAct();
 
-            expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID);
+            expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID, 5000);
         });
 
-        it('should hide Pay Balance button and show queued message when payment is queued', async () => {
+        it('should hide Pay Balance button and show queued message when settlement is pending', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 15000,
+                        pendingSettlementAmount: 10000,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Pay balance button should not be visible when settlement is pending
+            expect(screen.queryByText('Pay balance')).toBeNull();
+
+            // Current spend should show real balance ($150.00), not $0
+            expect(screen.getByText('$150.00')).toBeTruthy();
+
+            // Queued payment message should show the pending settlement amount
+            expect(screen.getByText('Payment of $100.00 is queued and will be processed soon.')).toBeTruthy();
+        });
+
+        it('should show Pay Balance button when no settlement is pending and balance exists', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 5000,
+                        pendingSettlementAmount: 0,
+                        monthlySettlementDate: new Date(),
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Pay button should be visible
+            expect(screen.getByText('Pay balance')).toBeTruthy();
+
+            // Should show real balance
+            expect(screen.getByText('$50.00')).toBeTruthy();
+
+            // No queued message
+            expect(screen.queryByText(/Payment of .* is queued/)).toBeNull();
+        });
+    });
+
+    describe('Lock icon (outstanding balance)', () => {
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+        it('shows the toggle lock icon when there is an outstanding travel balance', async () => {
+            // Given a configured workspace with an unpaid travel balance
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(cardSettingsKey, {
@@ -456,22 +526,35 @@ describe('WorkspaceTravelInvoicingSection', () => {
                         currentBalance: 5000,
                     },
                 });
-                // Set the manual billing flag to true (payment queued)
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${WORKSPACE_ACCOUNT_ID}`, true);
                 await waitForBatchedUpdatesWithAct();
             });
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
 
-            // Pay balance button should not be visible when payment is queued
-            expect(screen.queryByText('Pay balance')).toBeNull();
+            // The lock stays on the toggle since the feature can't be turned off until the balance is paid
+            expect(screen.getByTestId(CONST.SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
+        });
 
-            // Current spend should show $0.00 (limit also shows $0.00, so use getAllByText)
-            expect(screen.getAllByText('$0.00').length).toBeGreaterThanOrEqual(1);
+        it('does not show the toggle lock icon when the balance is paid', async () => {
+            // Given a configured workspace with no outstanding balance and no pending settlement
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 0,
+                        pendingSettlementAmount: 0,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
 
-            // Queued payment message should be visible with the original amount
-            expect(screen.getByText('Payment of $50.00 is queued and will be processed soon.')).toBeTruthy();
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId(CONST.SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeNull();
         });
     });
 

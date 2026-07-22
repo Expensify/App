@@ -1,8 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import BaseOnboardingPurpose from './BaseOnboardingPurpose';
+
 import type {OnboardingPurposeProps} from './types';
+
+import BaseOnboardingPurpose from './BaseOnboardingPurpose';
 
 function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     // To block android native back button behavior
@@ -21,7 +23,6 @@ function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
         <BaseOnboardingPurpose
             shouldUseNativeStyles
             shouldEnableMaxHeight={false}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

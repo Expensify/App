@@ -1,4 +1,5 @@
 import type {Merge} from 'type-fest';
+
 import type CanUseTouchScreen from './types';
 
 type ExtendedNavigator = Merge<Navigator, {msMaxTouchPoints: number}>;
@@ -22,7 +23,7 @@ const canUseTouchScreen: CanUseTouchScreen = () => {
     } else {
         // Same case as for Navigator - TypeScript thinks that matchMedia is obligatory property of window although it may not be
         const mQ = window.matchMedia?.('(pointer:coarse)');
-        if (mQ && mQ.media === '(pointer:coarse)') {
+        if (mQ?.media === '(pointer:coarse)') {
             hasTouchScreen = !!mQ.matches;
         } else if ('orientation' in window) {
             hasTouchScreen = true; // deprecated, but good fallback

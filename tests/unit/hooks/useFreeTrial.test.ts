@@ -1,12 +1,18 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+
 import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded, getEarlyDiscountInfo, isUserOnFreeTrial, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+
 import useFreeTrial from '@pages/home/FreeTrialSection/useFreeTrial';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useHasTeam2025Pricing', () => ({
@@ -226,7 +232,7 @@ describe('useFreeTrial', () => {
 
             renderHook(() => useFreeTrial());
 
-            expect(mockedShouldShowDiscountBanner).toHaveBeenCalledWith(true, 'team', firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, {});
+            expect(mockedShouldShowDiscountBanner).toHaveBeenCalledWith(CONST.DEFAULT_NUMBER_ID, true, 'team', firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, {});
         });
 
         it('should call calculateRemainingFreeTrialDays with lastDayFreeTrial', async () => {

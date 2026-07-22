@@ -1,15 +1,23 @@
-import React, {useRef} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 import {useSearchRouterActions} from './SearchRouterContext';
 import startSearchPageVisibleSpan from './startSearchPageVisibleSpan';
 
@@ -23,13 +31,10 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     const theme = useTheme();
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterActions();
-    const pressableRef = useRef<View>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     const onPress = () => {
         callFunctionIfActionIsAllowed(() => {
-            pressableRef.current?.blur();
-
             startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
                 name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
                 op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
@@ -40,14 +45,13 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
 
             startSearchPageVisibleSpan();
 
-            openSearchRouter();
+            openSearchRouter(undefined, isSearchTopmostFullScreenRoute());
         })();
     };
 
     return (
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
-                ref={pressableRef}
                 testID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 role={CONST.ROLE.BUTTON}

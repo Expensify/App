@@ -26,7 +26,7 @@ Insights always respect workspace permissions. You will only see data you’re a
 
 You can access Insights on both web and mobile.
 
-1. Click **Reports** in the navigation tabs (on the left on web, or on the bottom on mobile).
+1. Click **Spend** in the navigation tabs (on the left on web, or on the bottom on mobile).
 2. Scroll to **Insights**. 
 3. Select an Insight to open the report.
 
@@ -145,7 +145,7 @@ If you want to build your own grouped report:
 1. Open an Insight as your starting point.
 2. Modify the filters to match your needs.
 3. Adjust the date range if needed.
-4. Click **Save search** to store your custom version.
+4. Click **Save** to store your custom view. 
 
 This allows you to automate recurring analysis without rebuilding the search each time.
 

@@ -1,6 +1,8 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import ConfirmContent from '@components/ConfirmContent';
+
+import React from 'react';
 
 type ButtonProps = {
     success?: boolean;
@@ -15,7 +17,6 @@ const mockButtonSpy = jest.fn<void, [ButtonProps]>();
 jest.mock('@components/Button', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: (props: ButtonProps) => {
             mockButtonSpy(props);

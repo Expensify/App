@@ -1,6 +1,37 @@
+import CONST from '@src/CONST';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
-import type {DomainMemberErrors} from '@src/types/onyx/DomainErrors';
+import type {DomainMemberErrors, DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
+import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {getLatestError} from './ErrorUtils';
+
+/**
+ * Checks if a security group has detail-level errors (shown on the group details page).
+ */
+function hasDomainGroupDetailsErrors(groupErrors: DomainSecurityGroupErrors | undefined): boolean {
+    if (!groupErrors) {
+        return false;
+    }
+    return Object.entries(groupErrors)
+        .filter(([key]) => key !== 'errors')
+        .some(([, value]) => !isEmptyObject(value));
+}
+
+/**
+ * Checks if any domain security group has errors.
+ */
+function hasDomainGroupsErrors(domainErrors?: DomainErrors): boolean {
+    if (!domainErrors) {
+        return false;
+    }
+    return Object.entries(domainErrors)
+        .filter(([key]) => key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX))
+        .some(([, value]) => {
+            const groupErrors = value as DomainSecurityGroupErrors;
+            return !isEmptyObject(groupErrors?.errors) || hasDomainGroupDetailsErrors(groupErrors);
+        });
+}
 
 /**
  * Checks if domain has any errors. Used to determine whether to show a red brick road indicator on domain row.
@@ -10,7 +41,7 @@ function hasDomainErrors(domainErrors?: DomainErrors): boolean {
         return false;
     }
 
-    return !isEmptyObject(domainErrors.errors) || hasDomainAdminsErrors(domainErrors) || hasDomainMembersErrors(domainErrors);
+    return !isEmptyObject(domainErrors.errors) || hasDomainAdminsErrors(domainErrors) || hasDomainMembersErrors(domainErrors) || hasDomainGroupsErrors(domainErrors);
 }
 
 /**
@@ -38,11 +69,56 @@ function hasDomainMembersErrors(domainErrors?: DomainErrors): boolean {
 }
 
 function hasDomainMemberDetailsErrors(memberDetailsErrors: DomainMemberErrors): boolean {
-    return !isEmptyObject(memberDetailsErrors?.vacationDelegateErrors) || !isEmptyObject(memberDetailsErrors?.twoFactorAuthExemptEmailsError);
+    return (
+        !isEmptyObject(memberDetailsErrors?.vacationDelegateErrors) ||
+        !isEmptyObject(memberDetailsErrors?.twoFactorAuthExemptEmailsError) ||
+        !isEmptyObject(memberDetailsErrors?.changeDomainSecurityGroupErrors)
+    );
 }
 
 function hasDomainMembersSettingsErrors(domainErrors?: DomainErrors): boolean {
     return !isEmptyObject(domainErrors?.setTwoFactorAuthRequiredError);
 }
 
-export {hasDomainErrors, hasDomainAdminsSettingsErrors, hasDomainAdminsErrors, hasDomainMembersErrors, hasDomainMemberDetailsErrors, hasDomainMembersSettingsErrors};
+/**
+ * Computes display props for a domain member row by merging errors and pending actions
+ * keyed by both accountID and email, since the backend may store them under either key.
+ * @param accountID - The numeric account ID of the member.
+ * @param domainPendingActions - Pending actions map for all domain members.
+ * @param domainErrors - All domain-level errors from Onyx.
+ * @param email - Optional email of the member; used to look up email-keyed errors and pending actions.
+ * @returns The latest merged error and the active pending action.
+ */
+function getMemberCustomRowProps(accountID: number, domainPendingActions: DomainPendingAction['member'], domainErrors: DomainErrors | undefined, email?: string) {
+    const emailErrors = email ? domainErrors?.memberErrors?.[email] : undefined;
+    const accountIDErrors = domainErrors?.memberErrors?.[accountID];
+    const emailPendingActions = email ? domainPendingActions?.[email] : undefined;
+    const accountIDPendingActions = domainPendingActions?.[accountID];
+
+    const mergedErrors = {
+        ...getLatestError(accountIDErrors?.errors),
+        ...getLatestError(accountIDErrors?.lockAccountErrors),
+        ...getLatestError({...accountIDErrors?.changeDomainSecurityGroupErrors, ...emailErrors?.changeDomainSecurityGroupErrors}),
+        ...getLatestError(emailErrors?.errors),
+        ...getLatestError(accountIDErrors?.vacationDelegateErrors),
+        ...getLatestError(emailErrors?.vacationDelegateErrors),
+        ...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError),
+        ...getLatestError(emailErrors?.twoFactorAuthExemptEmailsError),
+    };
+
+    return {
+        errors: getLatestError(mergedErrors),
+        pendingAction: emailPendingActions?.pendingAction ?? accountIDPendingActions?.pendingAction ?? accountIDPendingActions?.lockAccount ?? emailPendingActions?.changeDomainSecurityGroup,
+    };
+}
+
+export {
+    hasDomainErrors,
+    hasDomainAdminsSettingsErrors,
+    hasDomainAdminsErrors,
+    hasDomainMembersErrors,
+    hasDomainMembersSettingsErrors,
+    hasDomainGroupsErrors,
+    hasDomainGroupDetailsErrors,
+    getMemberCustomRowProps,
+};
