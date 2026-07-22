@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -18,8 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation from '@libs/Navigation/Navigation';
-import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
@@ -36,7 +35,7 @@ import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -79,7 +78,6 @@ function IOURequestStepMerchant({
     const [currentMerchant, setCurrentMerchant] = useState(initialMerchant);
     const [isSaved, setIsSaved] = useState(false);
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
-    const shouldNavigateAfterSaveRef = useRef(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -90,19 +88,7 @@ function IOURequestStepMerchant({
 
     const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
-    const navigateBack = useCallback(() => {
-        Navigation.goBack(backTo);
-    }, [backTo]);
-
-    useEffect(() => {
-        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
-            return;
-        }
-        shouldNavigateAfterSaveRef.current = false;
-        // Only on the save path. The Back button (onBackButtonPress) should still restore focus.
-        skipNextFocusRestore();
-        navigateBack();
-    }, [isSaved, navigateBack]);
+    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
@@ -135,19 +121,19 @@ function IOURequestStepMerchant({
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
             setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            armNavigateBack();
             return;
         }
 
         if (newMerchant === '' && isInvalidMerchantValue(merchant)) {
             setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            armNavigateBack();
             clearMoneyRequestMerchant(transactionID);
             return;
         }
         if (newMerchant === merchant || (newMerchant === '' && isInvalidMerchantValue(merchant))) {
             setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            armNavigateBack();
             return;
         }
         // updateMoneyRequestMerchant's optimisticData already sets merchant on TRANSACTION{id},
@@ -178,7 +164,7 @@ function IOURequestStepMerchant({
             setMoneyRequestMerchant(transactionID, newMerchant, true, hasReceipt(transaction));
         }
         setIsSaved(true);
-        shouldNavigateAfterSaveRef.current = true;
+        armNavigateBack();
     };
 
     useDiscardChangesConfirmation({
