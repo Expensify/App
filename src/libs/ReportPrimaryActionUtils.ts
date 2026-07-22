@@ -531,7 +531,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     if (
-        report.ownerAccountID === currentUserAccountID &&
+        isCurrentUserSubmitter(report, currentUserAccountID) &&
         isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) &&
         !allExpensesHeld
     ) {
