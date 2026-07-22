@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 
@@ -66,7 +67,7 @@ function ChooseSSOOrValidateCode({setIsUsingValidateCode}: ChooseSSOOrValidateCo
 
                 <View style={[styles.mt5]}>
                     <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>
-                        {translate('samlSignIn.orContinueWithMagicCode')}
+                        {translate('samlSignIn.orContinueWithSecurityCode')}
                     </Text>
                 </View>
 
@@ -74,10 +75,10 @@ function ChooseSSOOrValidateCode({setIsUsingValidateCode}: ChooseSSOOrValidateCo
                     isDisabled={isOffline}
                     style={[styles.mv3]}
                     large
-                    text={translate('samlSignIn.useMagicCode')}
+                    text={translate('samlSignIn.useSecurityCode')}
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
-                        resendValidateCode(credentials?.login);
+                        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, credentials?.login);
                         setIsUsingValidateCode(true);
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.VALIDATE_CODE}

@@ -69,7 +69,7 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            descriptionPrimary={translate('contacts.enterMagicCode', primaryContactMethod)}
+            descriptionPrimary={translate('contacts.enterSecurityCode', primaryContactMethod)}
             validateCodeActionErrorField="defaultLogin"
             validateError={defaultLoginError}
             handleSubmitForm={(validateCode) => setContactMethodAsDefault(currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo, true, validateCode)}

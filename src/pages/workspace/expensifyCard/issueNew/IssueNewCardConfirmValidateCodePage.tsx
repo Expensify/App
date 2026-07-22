@@ -85,7 +85,7 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
             <ValidateCodeActionContent
                 isLoading={issueNewCard?.isLoading}
                 title={translate('cardPage.validateCardTitle')}
-                descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
+                descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin)}
                 sendValidateCode={() => requestValidateCodeAction()}
                 validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
                 handleSubmitForm={handleSubmit}
