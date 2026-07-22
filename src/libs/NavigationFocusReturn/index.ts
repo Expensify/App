@@ -1,102 +1,48 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
+import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey';
+import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
+import hasFocusableAttributes from '@libs/focusGuards';
+import {MAX_RESTORE_FRAMES, MOUSE_TRIGGER_TTL_MS, RETURN_HOLD_MS, TRIGGER_MAP_MAX} from '@libs/focusReturnTimings';
+import getHadTabNavigation from '@libs/hadTabNavigation';
+import isEffectivelyVisible from '@libs/isEffectivelyVisible';
+import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
+import Log from '@libs/Log';
+import navigationRef from '@libs/Navigation/navigationRef';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {diffNavigationState} from '@libs/navigationStateDiff';
+import {isProgrammaticFocus} from '@libs/programmaticFocus';
+import restoreFocusWithModality from '@libs/restoreFocusWithModality';
+import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 
-import {findFocusedRoute} from '@react-navigation/core';
+import type {NavigationState} from '@react-navigation/native';
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
 
-import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
-import FOCUSABLE_SELECTOR from './focusableSelector';
-import hasFocusableAttributes from './focusGuards';
-import getHadTabNavigation from './hadTabNavigation';
-import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
-import navigationRef from './Navigation/navigationRef';
-import TransitionTracker from './Navigation/TransitionTracker';
-import {isCycleIdle, Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
+import setFifoEntry from './fifoMap';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
-
-type AnyState = NavigationState | PartialState<NavigationState> | undefined;
-
-type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
 // Fallback is the surrounding trap's launcher, used when primary can't accept focus at restore.
 type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 
-// Bound triggerMap so forward-only PUSH_PARAMS sessions can't pin detached DOM nodes indefinitely.
-const TRIGGER_MAP_MAX = 64;
+const triggerMap = new Map<string, TriggerEntry>();
+const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
 
-let lastInteractiveElement: HTMLElement | null = null;
 // Cross-modality: mouse-click-forward → keyboard-back still needs focus returned (WCAG 2.4.3).
 let lastMouseTrigger: HTMLElement | null = null;
+let lastInteractiveElement: HTMLElement | null = null;
 let lastMouseTriggerAt = 0;
-// A click long before a timer-triggered nav shouldn't get captured as that nav's trigger.
-const MOUSE_TRIGGER_TTL_MS = 3_000;
-const triggerMap = new Map<string, TriggerEntry>();
 
-// Refresh insertion order on re-set so FIFO eviction doesn't drop a recently-active key.
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
-    triggerMap.delete(routeKey);
-    triggerMap.set(routeKey, entry);
-    while (triggerMap.size > TRIGGER_MAP_MAX) {
-        const oldest = triggerMap.keys().next().value;
-        if (oldest === undefined) {
-            break;
-        }
-        triggerMap.delete(oldest);
-    }
+    setFifoEntry(triggerMap, routeKey, entry, TRIGGER_MAP_MAX);
 }
 
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
-let skipNextRestore = false;
 let isRestoringFocus = false;
+let skipNextRestore = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
-
-// Three events for touch/pen/legacy/drag-to-release coverage; handler is idempotent.
-const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
-
-function collectRouteKeys(state: AnyState, out = new Set<string>()): Set<string> {
-    if (!state?.routes) {
-        return out;
-    }
-    for (const route of state.routes) {
-        if (route.key) {
-            out.add(route.key);
-        }
-        if (route.state) {
-            collectRouteKeys(route.state as PartialState<NavigationState>, out);
-        }
-    }
-    return out;
-}
-
-function diffNavigationState(prev: AnyState, next: NavigationState): {action: DiffAction; removedKeys: string[]} {
-    const newFocusedKey = findFocusedRoute(next)?.key;
-    const prevFocusedKey = prev ? findFocusedRoute(prev as NavigationState)?.key : undefined;
-
-    const prevKeys = collectRouteKeys(prev);
-    const newKeys = collectRouteKeys(next);
-    const removedKeys: string[] = [];
-    for (const key of prevKeys) {
-        if (!newKeys.has(key)) {
-            removedKeys.push(key);
-        }
-    }
-
-    let action: DiffAction;
-    if (!prevFocusedKey || !newFocusedKey || prevFocusedKey === newFocusedKey) {
-        action = {type: 'noop'};
-    } else if (prevKeys.has(newFocusedKey) && removedKeys.length > 0) {
-        action = {type: 'backward', restoreKey: newFocusedKey};
-    } else if (!prevKeys.has(newFocusedKey)) {
-        action = {type: 'forward', captureKey: prevFocusedKey};
-    } else {
-        // Key existed, nothing dropped — e.g. top-tab switch with all tabs mounted.
-        action = {type: 'lateral'};
-    }
-
-    return {action, removedKeys};
-}
 
 function captureTriggerForRoute(routeKey: string): void {
     if (typeof document === 'undefined') {
@@ -131,19 +77,47 @@ function captureTriggerForRoute(routeKey: string): void {
     setTriggerEntry(routeKey, {primary: inner});
 }
 
+/** Loose refs to the prior screen's focused element would pin detached DOM nodes; triggerMap already holds the captured copy. */
+function clearTransientCaptures(): void {
+    lastInteractiveElement = null;
+    lastMouseTrigger = null;
+    lastMouseTriggerAt = 0;
+}
+
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
     // Same-key transition is noop in handleStateChange — clear pending restores AND completed-RETURN state here so neither leaks into the next params screen.
+    skipNextRestore = false;
     cancelPendingFocusRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
+    clearTransientCaptures();
 }
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
-    scheduleRestore(compoundParamsKey(routeKey, targetParams));
+    // Honor a one-shot skip on this param-revert too (form-submit goBack can land as PUSH_PARAMS, not a stack pop).
+    const compoundKey = compoundParamsKey(routeKey, targetParams);
+    if (skipNextRestore) {
+        applySkippedRestore(compoundKey);
+        return;
+    }
+    scheduleRestore(compoundKey, {waitForUpcomingTransition: false});
 }
 
-/** Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus. */
+/*
+ * Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row
+ * doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus.
+ */
 function skipNextFocusRestore(): void {
     skipNextRestore = true;
+}
+
+/** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function notifyPressedTrigger(_ref: RefObject<View | null> | null, _identifier?: string): void {}
+
+/** Native-only registry no-op; cross-platform stub. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<View | null>): () => void {
+    return () => {};
 }
 
 /** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
@@ -151,28 +125,19 @@ function isFocusRestoreInProgress(): boolean {
     return isRestoringFocus;
 }
 
-// 'retry' = in DOM but cannot accept focus now; 'gone' = detached, drop the entry.
-type RestorePick = {target: HTMLElement; source: 'primary' | 'fallback'} | 'retry' | 'gone';
-
-function pickRestoreTarget(entry: TriggerEntry): RestorePick {
-    const {primary, fallback} = entry;
-    const primaryInDom = document.contains(primary);
-    const fallbackInDom = !!fallback && document.contains(fallback);
-
-    if (primaryInDom && hasFocusableAttributes(primary)) {
-        return {target: primary, source: 'primary'};
+/* Empty = nothing focusable yet (detached mid-remount, missing attributes); caller's retry budget owns cleanup, not this function. */
+function pickRestoreCandidates(entry: TriggerEntry): HTMLElement[] {
+    const candidates: HTMLElement[] = [];
+    if (document.contains(entry.primary) && hasFocusableAttributes(entry.primary)) {
+        candidates.push(entry.primary);
     }
-    if (fallbackInDom && fallback && hasFocusableAttributes(fallback)) {
-        return {target: fallback, source: 'fallback'};
+    if (entry.fallback && document.contains(entry.fallback) && hasFocusableAttributes(entry.fallback)) {
+        candidates.push(entry.fallback);
     }
-    if (primaryInDom || fallbackInDom) {
-        return 'retry';
-    }
-    return 'gone';
+    return candidates;
 }
 
-// Grace window after a successful restore: vetoes in-flight AUTO/INITIAL, then releases so unrelated later claimers aren't blocked for CYCLE_TIMEOUT_MS.
-const RETURN_HOLD_MS = 500;
+// Distinct from the arbiter's cycle timeout: this hold is target-conditional (suppress AUTO only while the restored target stays focused).
 let returnHoldTimerId: ReturnType<typeof setTimeout> | undefined;
 // Set on successful RETURN; consulted at hold-release time to decide whether to eagerly reset the cycle or defer.
 let lastRestoreTarget: HTMLElement | null = null;
@@ -188,16 +153,8 @@ function shouldSkipAutoFocusDueToExistingFocus(): boolean {
     if (!hasFocusableAttributes(document.activeElement)) {
         return false;
     }
-    if (typeof window !== 'undefined' && document.activeElement instanceof HTMLElement) {
-        // `display` is element-self only — walk ancestors. `visibility` is inherited — self-check suffices.
-        for (let node: HTMLElement | null = document.activeElement; node && node !== document.body; node = node.parentElement) {
-            if (window.getComputedStyle(node).display === 'none') {
-                return false;
-            }
-        }
-        if (window.getComputedStyle(document.activeElement).visibility === 'hidden') {
-            return false;
-        }
+    if (document.activeElement instanceof HTMLElement && !isEffectivelyVisible(document.activeElement)) {
+        return false;
     }
     return true;
 }
@@ -236,7 +193,7 @@ function cancelPendingFocusRestore(): void {
     }
 }
 
-function restoreTriggerForRoute(routeKey: string): boolean {
+function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | null = null): boolean {
     if (typeof document === 'undefined') {
         return false;
     }
@@ -245,17 +202,14 @@ function restoreTriggerForRoute(routeKey: string): boolean {
         return false;
     }
 
-    const pick = pickRestoreTarget(entry);
-    if (pick === 'retry') {
-        return false;
-    }
-    if (pick === 'gone') {
-        triggerMap.delete(routeKey);
+    const candidates = pickRestoreCandidates(entry);
+    if (candidates.length === 0) {
         return false;
     }
 
-    // Idle cycle + non-body focus = user manually focused during the defer; respect it. Held cycle (AUTO mid-defer) = system-driven; preempt per priority (Status → Clear after race).
-    if (isCycleIdle() && document.activeElement && document.activeElement !== document.body && hasFocusableAttributes(document.activeElement)) {
+    const activeNow = document.activeElement;
+    const focusMovedDuringDefer = activeNow !== restoreBaseline;
+    if (isCycleIdle() && activeNow && activeNow !== document.body && hasFocusableAttributes(activeNow) && focusMovedDuringDefer && !isProgrammaticFocus(activeNow)) {
         triggerMap.delete(routeKey);
         return false;
     }
@@ -265,17 +219,11 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     }
 
     // activeElement verification catches silent-focus failures (display:none / visibility:hidden ancestors).
-    const candidates: HTMLElement[] = [pick.target];
-    if (pick.source === 'primary' && entry.fallback && document.contains(entry.fallback) && hasFocusableAttributes(entry.fallback)) {
-        candidates.push(entry.fallback);
-    }
-
-    const focusOptions: FocusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()};
     for (const candidate of candidates) {
         const before = document.activeElement;
         isRestoringFocus = true;
         try {
-            candidate.focus(focusOptions);
+            restoreFocusWithModality(candidate);
         } finally {
             isRestoringFocus = false;
         }
@@ -305,60 +253,63 @@ function cancelPendingRestore(): void {
     pendingRestore = null;
 }
 
-const MAX_RESTORE_ATTEMPTS = 2;
-const RESTORE_RETRY_MS = 50;
-
-function scheduleRestore(routeKey: string): void {
+/** Skip cleanup: cancel in-flight defer + drop the entry so a stale trigger can't be replayed by a later same-key backward. */
+function applySkippedRestore(restoreKey: string): void {
+    skipNextRestore = false;
     cancelPendingRestore();
-    // `cancelled` flag in case a primitive's cancel races a queued callback.
-    let cancelled = false;
-    let attempts = 0;
-    let frameId: number | undefined;
-    let retryTimerId: ReturnType<typeof setTimeout> | undefined;
-    let imHandle: {cancel: () => void} | undefined;
+    triggerMap.delete(restoreKey);
+}
 
-    const attempt = () => {
-        // Defer past the transition so useAutoFocusInput and React Navigation's own focus work settle first.
-        imHandle = TransitionTracker.runAfterTransitions({
-            callback: () => {
-                if (cancelled) {
-                    return;
-                }
-                frameId = requestAnimationFrame(() => {
-                    if (cancelled) {
-                        return;
-                    }
-                    attempts += 1;
-                    const restored = restoreTriggerForRoute(routeKey);
-                    if (restored || !triggerMap.has(routeKey)) {
-                        pendingRestore = null;
-                        return;
-                    }
-                    if (attempts >= MAX_RESTORE_ATTEMPTS) {
-                        triggerMap.delete(routeKey);
-                        pendingRestore = null;
-                        return;
-                    }
-                    retryTimerId = setTimeout(attempt, RESTORE_RETRY_MS);
-                });
-            },
-        });
-    };
+function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: false | 'navigation'}): void {
+    // Baseline: focus present synchronously at back-nav time is pre-existing, not a user action during the defer.
+    const restoreBaseline = typeof document !== 'undefined' ? document.activeElement : null;
+    cancelPendingRestore();
+    let cancelled = false;
+    let rafId: number | undefined;
+    let handle: {cancel: () => void} | undefined;
 
     pendingRestore = {
         cancel: () => {
             cancelled = true;
-            imHandle?.cancel();
-            if (frameId !== undefined) {
-                cancelAnimationFrame(frameId);
-            }
-            if (retryTimerId !== undefined) {
-                clearTimeout(retryTimerId);
+            handle?.cancel();
+            if (rafId !== undefined) {
+                cancelAnimationFrame(rafId);
             }
         },
     };
 
-    attempt();
+    handle = TransitionTracker.runAfterTransitions({
+        // Stack pops dispatch before their transition registers, so they wait for the upcoming one; PUSH_PARAMS emits none, so it opts out to avoid stalling on the timeout.
+        waitForUpcomingTransition,
+        callback: () => {
+            // A miss keeps the entry, so retry; stop once it's restored or removed elsewhere, and drop it ourselves only on exhaustion.
+            let framesLeft = MAX_RESTORE_FRAMES;
+            const attempt = () => {
+                if (cancelled) {
+                    return;
+                }
+                const restored = restoreTriggerForRoute(routeKey, restoreBaseline);
+                if (restored || !triggerMap.has(routeKey)) {
+                    pendingRestore = null;
+                    return;
+                }
+                framesLeft -= 1;
+                if (framesLeft <= 0) {
+                    Log.warn('[NavigationFocusReturn] restore budget exhausted', {routeKey, frames: MAX_RESTORE_FRAMES});
+                    triggerMap.delete(routeKey);
+                    pendingRestore = null;
+                    return;
+                }
+                rafId = requestAnimationFrame(attempt);
+            };
+            // PUSH_PARAMS dispatches pre-commit (from getStateForAction) — defer a frame so the new params render before we focus.
+            if (waitForUpcomingTransition === false) {
+                rafId = requestAnimationFrame(attempt);
+            } else {
+                attempt();
+            }
+        },
+    });
 }
 
 function handleStateChange(newState: NavigationState | undefined): void {
@@ -378,21 +329,19 @@ function handleStateChange(newState: NavigationState | undefined): void {
         skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
-        // Loose refs would pin detached unmounted nodes; triggerMap holds the captured copy.
-        lastInteractiveElement = null;
-        lastMouseTrigger = null;
-        lastMouseTriggerAt = 0;
+        clearTransientCaptures();
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
-            skipNextRestore = false;
-            cancelPendingRestore();
+            applySkippedRestore(action.restoreKey);
         } else {
-            scheduleRestore(action.restoreKey);
+            scheduleRestore(action.restoreKey, {waitForUpcomingTransition: 'navigation'});
         }
     } else if (action.type === 'lateral') {
         skipNextRestore = false;
         // Stale restore would steal focus back on sibling nav.
         cancelPendingRestore();
+    } else if (action.type === 'noop') {
+        skipNextRestore = false;
     }
 
     for (const key of removedKeys) {
@@ -517,16 +466,15 @@ export {
     setupNavigationFocusReturn,
     teardownNavigationFocusReturn,
     handleStateChange,
-    diffNavigationState,
-    collectRouteKeys,
     captureTriggerForRoute,
     restoreTriggerForRoute,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    notifyPressedTrigger,
+    registerPressable,
     isFocusRestoreInProgress,
-    compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
     setLastInteractiveElementForTests,
