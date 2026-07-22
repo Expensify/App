@@ -133,7 +133,7 @@ if (process.env.CAPTURE_METRICS === 'true') {
 
 const repack = {
     ...metro,
-    plugins: metro.plugins.filter((plugin) => !(Array.isArray(plugin) && plugin[0] === 'module-resolver')),
+    plugins: metro.plugins.filter((plugin) => !(Array.isArray(plugin) && plugin[0] === 'module-resolver' && plugin[2] !== 'extra-alias')),
 };
 
 module.exports = (api) => {
