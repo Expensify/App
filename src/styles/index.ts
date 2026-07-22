@@ -946,7 +946,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonCTAIcon: {
-            marginRight: 22,
+            marginRight: 18,
             marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
