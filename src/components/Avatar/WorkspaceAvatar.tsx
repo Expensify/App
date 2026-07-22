@@ -1,14 +1,15 @@
-import useThemeStyles from '@hooks/useThemeStyles';
+import useTheme from '@hooks/useTheme';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {AvatarCommonProps} from './types';
 
 import useWorkspaceAvatarSource from './hooks/useWorkspaceAvatarSource';
-import AvatarBody from './primitives/AvatarBody';
+import AvatarContainer from './primitives/AvatarContainer';
+import AvatarIcon from './primitives/AvatarIcon';
+import AvatarImage from './primitives/AvatarImage';
 
 type WorkspaceAvatarProps = AvatarCommonProps & {
     /** Workspace name. Seeds the default workspace avatar (icon + test ID) used when `source` is missing. */
@@ -19,24 +20,38 @@ type WorkspaceAvatarProps = AvatarCommonProps & {
 };
 
 /** Renders a workspace avatar, falling back to a default icon derived from the workspace name. */
-function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, fill, name, avatarID, testID = 'Avatar'}: WorkspaceAvatarProps) {
-    const styles = useThemeStyles();
+function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, fill, name, avatarID, testID}: WorkspaceAvatarProps) {
+    const theme = useTheme();
     const resolvedAvatar = useWorkspaceAvatarSource({source, name, avatarID});
 
     return (
-        <View
-            style={[containerStyles, styles.pointerEventsNone]}
+        <AvatarContainer
+            containerStyles={containerStyles}
             testID={testID}
         >
-            <AvatarBody
-                resolvedAvatar={resolvedAvatar}
-                size={size}
-                type={CONST.ICON_TYPE_WORKSPACE}
-                fill={fill}
-                imageStyles={imageStyles}
-                iconAdditionalStyles={iconAdditionalStyles}
-            />
-        </View>
+            {resolvedAvatar.variant === 'image' && (
+                <AvatarImage
+                    avatarSource={resolvedAvatar.avatarSource}
+                    size={size}
+                    type={CONST.ICON_TYPE_WORKSPACE}
+                    imageStyles={imageStyles}
+                    imageContainerAdditionalStyles={iconAdditionalStyles}
+                    onImageError={resolvedAvatar.onImageError}
+                />
+            )}
+            {resolvedAvatar.variant === 'icon' && (
+                <AvatarIcon
+                    avatarSource={resolvedAvatar.avatarSource}
+                    size={size}
+                    type={CONST.ICON_TYPE_WORKSPACE}
+                    iconContainerStyles={imageStyles}
+                    iconAdditionalStyles={iconAdditionalStyles}
+                    fallbackAvatarTestID={resolvedAvatar.fallbackAvatarTestID}
+                    iconColors={resolvedAvatar.iconColors}
+                    fill={resolvedAvatar.iconColors?.fill ?? (resolvedAvatar.hasImageError ? theme.offline : fill)}
+                />
+            )}
+        </AvatarContainer>
     );
 }
 

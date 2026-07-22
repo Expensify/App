@@ -1,16 +1,17 @@
-import useThemeStyles from '@hooks/useThemeStyles';
+import useTheme from '@hooks/useTheme';
 
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {AvatarCommonProps} from './types';
 
 import useUserAvatarSource from './hooks/useUserAvatarSource';
-import AvatarBody from './primitives/AvatarBody';
+import AvatarContainer from './primitives/AvatarContainer';
+import AvatarIcon from './primitives/AvatarIcon';
+import AvatarImage from './primitives/AvatarImage';
 import AvatarInitials from './primitives/AvatarInitials';
 
 type UserAvatarProps = AvatarCommonProps & {
@@ -35,36 +36,50 @@ function UserAvatar({
     fallbackIcon,
     fallbackIconTestID = '',
     avatarID,
-    testID = 'Avatar',
+    testID,
 }: UserAvatarProps) {
-    const styles = useThemeStyles();
+    const theme = useTheme();
     const resolvedAvatar = useUserAvatarSource({source, avatarID, fallbackIcon, fallbackIconTestID});
 
     return (
-        <View
-            style={[containerStyles, styles.pointerEventsNone]}
+        <AvatarContainer
+            containerStyles={containerStyles}
             testID={testID}
         >
-            {resolvedAvatar.variant === 'initials' ? (
+            {resolvedAvatar.variant === 'initials' && (
                 <AvatarInitials
                     initials={resolvedAvatar.initials}
                     urlColors={resolvedAvatar.colors}
+                    accountID={typeof avatarID === 'string' ? parseInt(avatarID, 10) : avatarID}
                     size={size}
                     type={CONST.ICON_TYPE_AVATAR}
                     initialsContainerStyles={imageStyles}
                     initialsAdditionalStyles={iconAdditionalStyles}
                 />
-            ) : (
-                <AvatarBody
-                    resolvedAvatar={resolvedAvatar}
+            )}
+            {resolvedAvatar.variant === 'image' && (
+                <AvatarImage
+                    avatarSource={resolvedAvatar.avatarSource}
                     size={size}
                     type={CONST.ICON_TYPE_AVATAR}
-                    fill={fill}
                     imageStyles={imageStyles}
-                    iconAdditionalStyles={iconAdditionalStyles}
+                    imageContainerAdditionalStyles={iconAdditionalStyles}
+                    onImageError={resolvedAvatar.onImageError}
                 />
             )}
-        </View>
+            {resolvedAvatar.variant === 'icon' && (
+                <AvatarIcon
+                    avatarSource={resolvedAvatar.avatarSource}
+                    size={size}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    iconContainerStyles={imageStyles}
+                    iconAdditionalStyles={iconAdditionalStyles}
+                    fallbackAvatarTestID={resolvedAvatar.fallbackAvatarTestID}
+                    iconColors={resolvedAvatar.iconColors}
+                    fill={resolvedAvatar.iconColors?.fill ?? (resolvedAvatar.hasImageError ? theme.offline : fill)}
+                />
+            )}
+        </AvatarContainer>
     );
 }
 
