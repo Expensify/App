@@ -28,6 +28,9 @@ const INSIGHT_STATE = {
     READY: 'ready',
 } as const;
 
+// Minimum number of data points to show an insight.
+const MIN_INSIGHT_DATA_POINTS = 2;
+
 type InsightState = ValueOf<typeof INSIGHT_STATE>;
 
 function getInsightState(isOffline: boolean, searchResults: OnyxEntry<SearchResults>, queryJSON: SearchQueryJSON | undefined, sortedData: GroupedItem[] | undefined): InsightState {
@@ -42,7 +45,7 @@ function getInsightState(isOffline: boolean, searchResults: OnyxEntry<SearchResu
     if (!isDataLoaded) {
         return INSIGHT_STATE.LOADING;
     }
-    if (!sortedData?.length) {
+    if ((sortedData?.length ?? 0) < MIN_INSIGHT_DATA_POINTS) {
         return INSIGHT_STATE.HIDDEN;
     }
     return INSIGHT_STATE.READY;
@@ -115,9 +118,10 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
               ) as GroupedItem[])
             : undefined;
 
-    const state = getInsightState(isOffline, searchResults, queryJSON, sortedData);
+    const state = config ? getInsightState(isOffline, searchResults, queryJSON, sortedData) : INSIGHT_STATE.HIDDEN;
 
     return {
+        config,
         query,
         queryJSON,
         groupBy,
@@ -127,5 +131,5 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     };
 }
 
-export {INSIGHT_STATE, getInsightState};
+export {INSIGHT_STATE, getInsightState, MIN_INSIGHT_DATA_POINTS};
 export default useInsightData;

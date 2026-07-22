@@ -5,29 +5,25 @@ import WidgetContainer from '@components/WidgetContainer';
 
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchKey} from '@libs/SearchUIUtils';
 
 import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import InsightTitleDropdown from './InsightTitleDropdown';
-import useHomeInsightConfigs from './useHomeInsightConfigs';
-import useInsightData, {INSIGHT_STATE} from './useSpendOverTimeData';
+import useHomeInsights from './useHomeInsights';
+import {INSIGHT_STATE} from './useSpendOverTimeData';
 
 function InsightsSectionContent() {
     const styles = useThemeStyles();
@@ -37,21 +33,10 @@ function InsightsSectionContent() {
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const insightConfigs = useHomeInsightConfigs();
-    const [selectedInsightKey = CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
-    // Fall back to the first insight if the persisted key ever points at an option that isn't available.
-    const activeConfig = insightConfigs.find((config) => config.key === selectedInsightKey) ?? insightConfigs.at(0);
+    const {displayed, state, dropdownConfigs, onSelectInsight} = useHomeInsights();
+    const {config, query, queryJSON, groupBy, view, sortedData} = displayed ?? {};
 
-    const {query, queryJSON, groupBy, view, sortedData, state} = useInsightData(activeConfig);
-
-    const handleSelectInsight = (key: SearchKey) => {
-        if (key === selectedInsightKey) {
-            return;
-        }
-        setNameValuePair(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT, key, selectedInsightKey);
-    };
-
-    if (!query || !queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === INSIGHT_STATE.HIDDEN) {
+    if (!config || !query || !queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === INSIGHT_STATE.HIDDEN) {
         return null;
     }
 
@@ -59,9 +44,9 @@ function InsightsSectionContent() {
         <WidgetContainer
             titleContent={
                 <InsightTitleDropdown
-                    configs={insightConfigs}
-                    selectedKey={activeConfig?.key ?? selectedInsightKey}
-                    onSelect={handleSelectInsight}
+                    configs={dropdownConfigs}
+                    selectedKey={config.key}
+                    onSelect={onSelectInsight}
                 />
             }
             titleRightContent={
