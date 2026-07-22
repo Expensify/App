@@ -31,7 +31,18 @@ import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    CardList,
+    MergeTransaction,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    Report,
+    ReportActions,
+    ReportNextStepDeprecated,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
@@ -40,7 +51,6 @@ import Onyx from 'react-native-onyx';
 
 import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 
-import {getPolicyTagsData} from './IOU';
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
@@ -181,6 +191,9 @@ function getTransactionsForMerging({
     cardList?: CardList;
 }) {
     const transactionID = targetTransaction.transactionID;
+    if (!transactionID) {
+        return;
+    }
 
     // Collect/Control workspaces:
     // - Admins and approvers: The list of eligible expenses will only contain the expenses from the report that the admin/approver triggered the merge from. This is intentionally limited since they’ll only be reviewing one report at a time.
@@ -221,6 +234,7 @@ function getOnyxTargetTransactionData({
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     targetTransactionThreadParentReportNextStep,
+    iouReportOwnerLogin,
     policy,
     policyTags,
     policyCategories,
@@ -228,6 +242,7 @@ function getOnyxTargetTransactionData({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     delegateAccountID,
+    reportPolicyTags,
     isTrackIntentUser,
 }: {
     targetTransaction: Transaction;
@@ -236,6 +251,7 @@ function getOnyxTargetTransactionData({
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -243,6 +259,7 @@ function getOnyxTargetTransactionData({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
@@ -279,12 +296,12 @@ function getOnyxTargetTransactionData({
             transactionID: targetTransaction.transactionID,
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
+            iouReportOwnerLogin,
             iouReportNextStep: targetTransactionThreadParentReportNextStep,
             transactionChanges: filteredTransactionChanges,
             policy,
             policyTagList: policyTags,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(targetTransactionThreadParentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             violations: targetTransactionViolations ?? [],
             shouldBuildOptimisticModifiedExpenseReportAction,
@@ -339,6 +356,7 @@ type MergeTransactionRequestParams = {
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -347,6 +365,8 @@ type MergeTransactionRequestParams = {
     isASAPSubmitBetaEnabled: boolean;
     delegateAccountID: number | undefined;
     selfDMReport: OnyxEntry<Report>;
+    selfDMReportActions: OnyxEntry<ReportActions>;
+    reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 };
 /**
@@ -366,6 +386,7 @@ function mergeTransactionRequest({
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     targetTransactionThreadParentReportNextStep,
+    iouReportOwnerLogin,
     allTransactionViolations,
     policy,
     policyTags,
@@ -375,6 +396,8 @@ function mergeTransactionRequest({
     isASAPSubmitBetaEnabled,
     delegateAccountID,
     selfDMReport,
+    selfDMReportActions,
+    reportPolicyTags,
     isTrackIntentUser,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
@@ -410,7 +433,6 @@ function mergeTransactionRequest({
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,
     };
-
     const onyxTargetTransactionData = getOnyxTargetTransactionData({
         targetTransaction,
         targetTransactionViolations: allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
@@ -418,6 +440,7 @@ function mergeTransactionRequest({
         targetTransactionThreadReport,
         targetTransactionThreadParentReport,
         targetTransactionThreadParentReportNextStep,
+        iouReportOwnerLogin,
         policy,
         policyTags,
         policyCategories,
@@ -425,6 +448,7 @@ function mergeTransactionRequest({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         delegateAccountID,
+        reportPolicyTags,
         isTrackIntentUser,
     });
 
@@ -559,7 +583,7 @@ function mergeTransactionRequest({
         // Success data
         sourceTransactionSuccessData.push(...successSourceReportActionData);
     } else {
-        const whisperAction = getTrackExpenseActionableWhisper(sourceTransaction.transactionID, selfDMReportID);
+        const whisperAction = getTrackExpenseActionableWhisper(sourceTransaction.transactionID, selfDMReportID, selfDMReportActions);
         const sourceIouAction = getIOUActionForReportID(selfDMReportID, sourceTransaction.transactionID);
         const actionableWhisperReportActionID = whisperAction?.reportActionID;
 
