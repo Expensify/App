@@ -1842,10 +1842,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
                             exact: true,
                         },
-                        [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT.path,
                         [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.path,
                         [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG.path,
                         [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION.path,

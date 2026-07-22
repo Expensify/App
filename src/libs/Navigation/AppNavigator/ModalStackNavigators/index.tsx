@@ -1169,7 +1169,7 @@ const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNav
 
 const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
     [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Review').default,
-    [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewMerchant').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewMerchantPage').default,
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewCategoryPage').default,
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewTagPage').default,
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewDescriptionPage').default,

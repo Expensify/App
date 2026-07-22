@@ -2555,7 +2555,7 @@ type TransactionDuplicateNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT]: {
         threadReportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;

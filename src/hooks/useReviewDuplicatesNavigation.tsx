@@ -31,7 +31,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const goBack = () => {
         switch (prevScreen) {
             case 'merchant':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT.path));
                 break;
             case 'category':
                 Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.path));
@@ -64,7 +64,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const navigateToNextScreen = () => {
         switch (nextScreen) {
             case 'merchant':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT.path));
                 break;
             case 'category':
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.path));
