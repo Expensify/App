@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
@@ -8,6 +9,7 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
@@ -16,6 +18,7 @@ import {compareDuplicateTransactionFields, getTransactionID} from '@libs/Transac
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -25,9 +28,10 @@ import type {FieldItemType} from './ReviewFields';
 
 import ReviewFields from './ReviewFields';
 
-function ReviewDescription() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION>>();
+function DynamicReviewDescriptionPage() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION>>();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION.path);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
@@ -45,7 +49,7 @@ function ReviewDescription() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
         'description',
         route.params.threadReportID,
@@ -71,10 +75,10 @@ function ReviewDescription() {
     };
 
     return (
-        <ScreenWrapper testID="ReviewDescription">
+        <ScreenWrapper testID="DynamicReviewDescriptionPage">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <ReviewFields<'description'>
                 stepNames={stepNames}
@@ -88,4 +92,4 @@ function ReviewDescription() {
     );
 }
 
-export default ReviewDescription;
+export default DynamicReviewDescriptionPage;
