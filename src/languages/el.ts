@@ -531,6 +531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Δεν βρέθηκαν αποτελέσματα. Δοκιμάστε να προσαρμόσετε τα φίλτρα ή το ερώτημα αναζήτησης σας',
         submitViaPDF: 'Υποβολή μέσω PDF',
         supplier: 'Προμηθευτής',
+        securityCode: 'Κωδικός ασφαλείας',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -718,11 +719,11 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Ανακαλέστε',
             title: 'Πρόσωπο/δακτυλικό αποτύπωμα & passkeys',
             explanation:
-                'Η επαλήθευση μέσω προσώπου/δακτυλικού αποτυπώματος ή passkey είναι ενεργοποιημένη σε μία ή περισσότερες συσκευές. Η ανάκληση πρόσβασης θα απαιτήσει έναν μαγικό κωδικό για την επόμενη επαλήθευση σε αυτήν τη συσκευή.',
-            confirmationPrompt: 'Είστε σίγουροι; Θα χρειαστείτε έναν μαγικό κωδικό για την επόμενη επαλήθευση σε αυτήν τη συσκευή.',
-            confirmationPromptThisDevice: 'Είστε βέβαιοι; Θα χρειαστείτε έναν μαγικό κωδικό για την επόμενη επιβεβαίωση σε αυτήν τη συσκευή.',
-            confirmationPromptMultiple: 'Είστε βέβαιοι; Θα χρειαστείτε έναν μαγικό κωδικό για την επόμενη επαλήθευση σε αυτές τις συσκευές.',
-            confirmationPromptAll: 'Είστε βέβαιοι; Θα χρειαστείτε έναν μαγικό κωδικό για την επόμενη επαλήθευση σε οποιαδήποτε συσκευή.',
+                'Η επαλήθευση με αναγνώριση προσώπου/δακτυλικού αποτυπώματος ή κλειδί πρόσβασης είναι ενεργοποιημένη σε μία ή περισσότερες συσκευές. Η ανάκληση πρόσβασης θα απαιτήσει κωδικό ασφαλείας για την επόμενη επαλήθευση σε αυτήν τη συσκευή.',
+            confirmationPrompt: 'Είστε βέβαιοι; Θα χρειαστείτε έναν κωδικό ασφαλείας για την επόμενη επαλήθευση σε αυτήν τη συσκευή.',
+            confirmationPromptThisDevice: 'Είστε βέβαιοι; Θα χρειαστείτε έναν κωδικό ασφαλείας για την επόμενη επαλήθευση σε αυτήν τη συσκευή.',
+            confirmationPromptMultiple: 'Είστε βέβαιοι; Θα χρειαστείτε έναν κωδικό ασφαλείας για την επόμενη επαλήθευση σε αυτές τις συσκευές.',
+            confirmationPromptAll: 'Είστε βέβαιοι; Θα χρειαστείτε έναν κωδικό ασφαλείας για την επόμενη επαλήθευση σε οποιαδήποτε συσκευή.',
             cta: 'Ανακαλέστε πρόσβαση',
             ctaAll: 'Ανακλήστε όλα',
             noDevices:
@@ -755,7 +756,7 @@ const translations: TranslationDeepObject<typeof en> = {
             έχετε συνδεθεί!
         `),
         successfulSignInDescription: 'Επιστρέψτε στην αρχική σας καρτέλα για να συνεχίσετε.',
-        title: 'Ορίστε ο μαγικός σας κωδικός',
+        title: 'Αυτός είναι ο κωδικός ασφαλείας σας',
         description: Str.dedent(`
             Παρακαλούμε εισαγάγετε τον κωδικό από τη συσκευή
             όπου ζητήθηκε αρχικά
@@ -766,7 +767,7 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         or: ', ή',
         signInHere: 'απλώς συνδεθείτε εδώ',
-        expiredCodeTitle: 'Ο μαγικός κωδικός έληξε',
+        expiredCodeTitle: 'Ο κωδικός ασφαλείας έληξε',
         expiredCodeDescription: 'Επιστρέψτε στην αρχική συσκευή και ζητήστε νέο κωδικό',
         successfulNewCodeRequest: 'Ο κωδικός ζητήθηκε. Παρακαλούμε ελέγξτε τη συσκευή σας.',
         tfaRequiredTitle: Str.dedent(`
@@ -809,6 +810,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enterPassword: 'Παρακαλούμε εισαγάγετε τον κωδικό πρόσβασής σας',
         welcomeNewFace: (login: string) => `${login}, είναι πάντα ωραίο να βλέπουμε ένα καινούργιο πρόσωπο εδώ γύρω!`,
         welcomeEnterMagicCode: (login: string) => `Παρακαλώ εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο ${login}. Θα πρέπει να φτάσει μέσα σε ένα ή δύο λεπτά.`,
+        welcomeEnterSecurityCode: (login: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που εστάλη στο ${login}. Θα πρέπει να φτάσει μέσα σε ένα με δύο λεπτά.`,
     },
     login: {
         hero: {
@@ -823,6 +825,8 @@ const translations: TranslationDeepObject<typeof en> = {
         useMagicCode: 'Χρησιμοποιήστε μαγικό κωδικό',
         launching: 'Εκκίνηση...',
         oneMoment: 'Μισό λεπτό, σας ανακατευθύνουμε στην πύλη μονού σημείου εισόδου της εταιρείας σας.',
+        orContinueWithSecurityCode: 'Μπορείτε επίσης να συνδεθείτε με έναν κωδικό ασφαλείας',
+        useSecurityCode: 'Χρησιμοποιήστε κωδικό ασφαλείας',
     },
     reportActionCompose: {
         dropToUpload: 'Αφήστε εδώ για μεταφόρτωση',
@@ -1233,11 +1237,15 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Παρακαλούμε επιβεβαιώστε τα παρακάτω στοιχεία για τα ${count} νέα μέλη του χώρου εργασίας που θα προστεθούν ως μέρος αυτής της μεταφόρτωσης. Τα υπάρχοντα μέλη δεν θα λάβουν ενημερώσεις ρόλων ή μηνύματα πρόσκλησης.`,
         }),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+        importMerchantRulesSuccessfulDescription: ({rules, duplicates = 0, invalidCategories = 0}: {rules: number; duplicates?: number; invalidCategories?: number}) => {
+            const invalidCategoriesNote =
+                invalidCategories > 0
+                    ? `Παραλείφθηκε το ${invalidCategories === 1 ? '1 κατηγορία ήταν' : `${invalidCategories} κατηγορίες ήταν`} επειδή το ${invalidCategories === 1 ? 'δεν ισχύει' : 'δεν το κάνουν'} υπάρχει σε αυτόν τον χώρο εργασίας.`
+                    : '';
             if (rules === 0) {
-                return 'Δεν προστέθηκαν κανόνες εμπόρων, καθώς όλοι υπάρχουν ήδη.';
+                return `${duplicates > 0 ? 'Δεν προστέθηκαν κανόνες εμπόρων, καθώς υπάρχουν ήδη όλοι.' : 'Δεν έχουν προστεθεί κανόνες εμπόρου.'}${invalidCategoriesNote}`;
             }
-            return rules > 1 ? `Προστέθηκαν ${rules} κανόνες εμπόρου.` : 'Προστέθηκε 1 κανόνας εμπόρου.';
+            return `${rules > 1 ? `Έχουν προστεθεί ${rules} κανόνες εμπόρων.` : 'Προστέθηκε 1 κανόνας εμπόρου.'}${invalidCategoriesNote}`;
         },
         importMerchantRulesRequiredColumns:
             'Ουπς! Πρέπει να αντιστοιχίσετε τουλάχιστον μία στήλη «Ο έμπορος είναι» ή «Ο έμπορος περιέχει», καθώς και τουλάχιστον ένα πεδίο για ενημέρωση. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.',
@@ -2175,8 +2183,8 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: 'Είστε βέβαιοι ότι θέλετε να αφαιρέσετε αυτήν τη μέθοδο επικοινωνίας; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.',
         failedNewContact: 'Αποτυχία προσθήκης αυτής της μεθόδου επικοινωνίας.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Αποτυχία αποστολής νέου μαγικού κωδικού. Παρακαλούμε περιμένετε λίγο και δοκιμάστε ξανά.',
-            validateSecondaryLogin: 'Λανθασμένος ή μη έγκυρος μαγικός κωδικός. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
+            requestContactMethodValidateCode: 'Αποτυχία αποστολής νέου κωδικού ασφαλείας. Παρακαλούμε περιμένετε λίγο και δοκιμάστε ξανά.',
+            validateSecondaryLogin: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
             deleteContactMethod: 'Δεν ήταν δυνατή η διαγραφή της μεθόδου επικοινωνίας. Παρακαλούμε επικοινωνήστε με το Concierge για βοήθεια.',
             setDefaultContactMethod: 'Αποτυχία ορισμού νέας προεπιλεγμένης μεθόδου επικοινωνίας. Παρακαλούμε επικοινωνήστε με το Concierge για βοήθεια.',
             addContactMethod: 'Αποτυχία προσθήκης αυτής της μεθόδου επικοινωνίας. Παρακαλούμε επικοινωνήστε με το Concierge για βοήθεια.',
@@ -2187,6 +2195,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Νέος τρόπος επικοινωνίας',
         goBackContactMethods: 'Επιστρέψτε στις μεθόδους επικοινωνίας',
+        enterSecurityCode: (contactMethod: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod}. Θα πρέπει να φτάσει μέσα σε ένα-δύο λεπτά.`,
     },
     pronouns: {
         coCos: 'Συ / Συν',
@@ -2345,7 +2354,9 @@ const translations: TranslationDeepObject<typeof en> = {
             errors: {
                 incorrectMagicCode: 'Λανθασμένος ή μη έγκυρος μαγικός κωδικός. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
                 fallback: 'Κάτι πήγε στραβά. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+                incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
             },
+            enterSecurityCode: (login: string) => `Για να συνεχίσετε, εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο <strong>${login}</strong>.`,
         },
         mergeSuccess: {
             accountsMerged: 'Οι λογαριασμοί συγχωνεύτηκαν!',
@@ -2761,6 +2772,8 @@ ${amount} για ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreezeSuffix: '. Παρακαλούμε επικοινωνήστε με έναν διαχειριστή για να το ξεπαγώσει.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) =>
             `Αυτή η κάρτα πάγωσε από τον/την ${person}. Παρακαλούμε επικοινωνήστε με έναν διαχειριστή για να την ενεργοποιήσετε ξανά.`,
+        enterSecurityCode: (contactMethod: string) =>
+            `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να δείτε τα στοιχεία της κάρτας σας. Θα πρέπει να φτάσει μέσα σε ένα με δύο λεπτά.`,
     },
     workflowsPage: {
         workflowTitle: 'Δαπάνη',
@@ -3164,7 +3177,10 @@ ${amount} για ${merchant} - ${date}`,
             pleaseFillMagicCode: 'Παρακαλούμε εισαγάγετε τον μαγικό κωδικό σας',
             incorrectMagicCode: 'Λανθασμένος ή μη έγκυρος μαγικός κωδικός. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
             pleaseFillTwoFactorAuth: 'Εισαγάγετε τον κωδικό ελέγχου ταυτότητας δύο παραγόντων σας',
+            pleaseFillSecurityCode: 'Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας σας',
+            incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
         },
+        securityCodeNotReceived: 'Δεν λάβατε κωδικό ασφαλείας;',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Παρακαλούμε συμπληρώστε όλα τα πεδία',
@@ -3265,6 +3281,7 @@ ${amount} για ${merchant} - ${date}`,
         workEmailValidation: {
             title: 'Επαληθεύστε το επαγγελματικό σας email',
             magicCodeSent: (workEmail: string | undefined) => `Παρακαλούμε εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο ${workEmail}. Θα πρέπει να φτάσει σε ένα με δύο λεπτά.`,
+            securityCodeSent: (workEmail: string | undefined) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${workEmail}. Θα πρέπει να φτάσει σε ένα ή δύο λεπτά.`,
         },
         workEmailValidationError: {
             publicEmail: 'Παρακαλούμε εισαγάγετε μια έγκυρη επαγγελματική διεύθυνση email από ιδιωτικό domain, π.χ. mitch@company.com',
@@ -3589,10 +3606,12 @@ ${amount} για ${merchant} - ${date}`,
         linkHasBeenResent: 'Ο σύνδεσμος στάλθηκε ξανά',
         weSentYouMagicSignInLink: (login: string, loginType: string) => `Έστειλα έναν μαγικό σύνδεσμο σύνδεσης στο ${login}. Παρακαλούμε ελέγξτε το ${loginType} σας για να συνδεθείτε.`,
         resendLink: 'Επαναποστολή συνδέσμου',
+        weSentYouSecuritySignInLink: (login: string, loginType: string) =>
+            `Έχω στείλει έναν σύνδεσμο ασφαλούς σύνδεσης στο ${login}. Παρακαλώ ελέγξτε το ${loginType} σας για να συνδεθείτε.`,
     },
     unlinkLoginForm: {
         toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
-            `Για να επαληθεύσετε το ${secondaryLogin}, στείλτε ξανά τον μαγικό κωδικό από τις ρυθμίσεις λογαριασμού του ${primaryLogin}.`,
+            `Για να γίνει επαλήθευση του ${secondaryLogin}, παρακαλούμε να στείλετε ξανά τον κωδικό ασφαλείας από τις ρυθμίσεις λογαριασμού του ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `Αν δεν έχετε πλέον πρόσβαση στο ${primaryLogin}, αποσυνδέστε τους λογαριασμούς σας.`,
         unlink: 'Αποσύνδεση',
         linkSent: 'Ο σύνδεσμος στάλθηκε!',
@@ -3614,7 +3633,7 @@ ${amount} για ${merchant} - ${date}`,
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) =>
             `Δεν ήταν δυνατή η αποστολή SMS μηνυμάτων στο ${login}, οπότε το έχουμε αναστείλει προσωρινά. Δοκιμάστε να επαληθεύσετε τον αριθμό σας:`,
-        validationSuccess: 'Ο αριθμός σας έχει επαληθευτεί! Κάντε κλικ παρακάτω για να στείλετε νέο μαγικό κωδικό σύνδεσης.',
+        validationSuccess: 'Ο αριθμός σας έχει επαληθευτεί! Κάντε κλικ παρακάτω για να στείλετε νέο κωδικό ασφαλούς εισόδου.',
         validationFailed: ({
             timeData,
         }: {
@@ -6117,6 +6136,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Δεν μπορείτε να διαγράψετε ή να απενεργοποιήσετε όλες τις κατηγορίες',
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
+            showCategoryGLCodes: 'Εμφάνιση κωδικών ΓΛ κατά την κατηγοριοποίηση εξόδων',
         },
         moreFeatures: {
             subtitle:
@@ -6622,6 +6642,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 accountingMismatch: ({part}: {part: string}) =>
                     `Μπορείτε να αντιγράψετε το ${part} μόνο αν όλοι οι χώροι εργασίας χρησιμοποιούν το ίδιο λογιστικό σύστημα και την ίδια σύνδεση εταιρείας.`,
                 travelAddressMismatch: 'Μπορείτε να αντιγράψετε ταξίδια μόνο αν κάθε επιλεγμένος χώρος εργασίας έχει εταιρική διεύθυνση.',
+                currencyBlockedByBankAccount:
+                    'Μπορείτε να αντιγράψετε το νόμισμα μόνο αν κάθε επιλεγμένος χώρος εργασίας με συνδεδεμένο τραπεζικό λογαριασμό χρησιμοποιεί το νόμισμα του χώρου εργασίας προέλευσης.',
             },
             confirmSettings: {
                 title: 'Ας βεβαιωθούμε ότι όλα φαίνονται σωστά.',
@@ -7707,7 +7729,7 @@ ${reportName}`,
                 general: 'Γενικά',
                 cardRestrictions: 'Περιορισμοί κάρτας',
                 expenseDefaults: 'Προεπιλογές εξόδων',
-                requireFields: 'Απαίτηση πεδίων',
+                requireFields: 'Απαιτήσεις πεδίου',
                 flagForReview: 'Σημείωση για έλεγχο',
                 agents: 'Πράκτορες',
             },
@@ -7897,9 +7919,9 @@ ${reportName}`,
                 restrictCardSpend: 'Περιορισμός δαπανών κάρτας',
                 restrictCardSpendDescription: 'Μπλοκάρετε ή περιορίστε τις δαπάνες στο σημείο πώλησης',
                 flagForReview: 'Σημείωση για έλεγχο',
-                flagForReviewDescription: 'Ειδοποίηση όταν ικανοποιούνται οι προϋποθέσεις σας.',
-                requireFields: 'Απαίτηση πεδίων',
-                requireFieldsDescription: 'Αποδείξεις, κατηγορίες κ.λπ., κατά την υποβολή.',
+                flagForReviewDescription: 'Ειδοποίηση εγκριτών όταν τα έξοδα υπερβαίνουν τα όρια κατηγορίας',
+                requireFields: 'Απαιτήσεις πεδίου',
+                requireFieldsDescription: 'Απαιτήστε συγκεκριμένα πεδία εξόδων ή παραλείψτε την απαίτησή τους.',
                 applyExpenseDefaults: 'Εφαρμογή προεπιλογών δαπανών',
                 applyExpenseDefaultsDescription: 'Ενημέρωση πεδίων χωρίς να χρειάζεται ο υποβάλλων να κάνει τίποτα',
                 createAgentRule: 'Κανόνας αντιπροσώπου',
@@ -7925,28 +7947,35 @@ ${reportName}`,
                 tableColumnCondition: 'Προϋπόθεση',
                 tableColumnRule: 'Κανόνας',
                 findRule: 'Εύρεση κανόνα',
-                typeLabel: 'Απαίτηση πεδίων',
                 conditionCategoryIs: (category: string) => `Η κατηγορία είναι «${category}»`,
                 requireDescription: 'Απαίτηση περιγραφής',
                 requireAttendees: 'Απαιτήστε συμμετέχοντες',
                 requireItemizedReceipt: 'Απαιτείται αναλυτική απόδειξη',
                 requireItemizedReceiptOver: (amount: string) => `Απαιτείται αναλυτική απόδειξη για ποσά άνω των ${amount}`,
-                alwaysRequireReceipt: 'Να απαιτείται πάντα απόδειξη',
                 requireReceiptOver: (amount: string) => `Απαιτείται απόδειξη για ποσά άνω των ${amount}`,
+                requireReceipt: 'Απαιτείται απόδειξη',
+                doNotRequireReceipt: 'Να μην απαιτείται απόδειξη',
+                doNotRequireItemizedReceipt: 'Να μην απαιτείται αναλυτική απόδειξη',
             },
             requireFieldsEmptyState: {
                 title: 'Εντοπίστε έγκαιρα τα ελλιπή στοιχεία',
-                subtitle: 'Βεβαιωθείτε ότι τα βασικά πεδία έχουν συμπληρωθεί πριν υποβληθούν οι δαπάνες.',
+                subtitle: 'Ορίστε υποχρεωτικά ή προαιρετικά πεδία εξόδων για συγκεκριμένες κατηγορίες.',
                 cta: 'Δημιουργία κανόνα υποχρεωτικού πεδίου',
             },
             requireFieldsRule: {
-                title: 'Απαίτηση πεδίων',
-                subtitle: 'Να απαιτούνται αποδείξεις, κατηγορίες κ.λπ. κατά την υποβολή.',
+                title: 'Απαιτήσεις πεδίου',
+                subtitle: 'Απαιτήστε συγκεκριμένα πεδία εξόδων ή παραλείψτε την απαίτησή τους.',
                 thenWarnMember: 'Στη συνέχεια προειδοποιήστε το μέλος αν λείπουν πεδία:',
                 itemizedReceipt: 'Αναλυτική απόδειξη',
                 saveRule: 'Αποθήκευση κανόνα',
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία.',
                 confirmErrorField: 'Παρακαλούμε επιλέξτε τουλάχιστον ένα πεδίο ως υποχρεωτικό.',
+                requireDirection: 'Απαιτείται',
+                doNotRequireDirection: 'Να μην απαιτείται',
+                doTheFollowing: 'Κάντε τα εξής:',
+                confirmErrorDoNotRequireField: 'Παρακαλώ επιλέξτε τουλάχιστον ένα πεδίο.',
+                receiptDisabledWhenItemizedRequired: 'Οι αποδείξεις απαιτούνται πάντα όταν απαιτούνται επίσης αναλυτικές αποδείξεις.',
+                itemizedDisabledWhenReceiptWaived: 'Δεν απαιτούνται αναλυτικές αποδείξεις εάν δεν απαιτείται καμία απόδειξη.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Τύπος',
@@ -8883,6 +8912,7 @@ ${reportName}`,
             }),
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκαν οι ρυθμίσεις τιμολογίου από το <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκαν οι ρυθμίσεις ταξιδιού από το <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκε το νόμισμα από την πολιτική <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
     },
     roomMembersPage: {
@@ -10270,6 +10300,9 @@ ${reportName}`,
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Ως <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">συνοδοιπόρος</a> για τον/την ${accountOwnerEmail}, δεν έχετε δικαίωμα να εκτελέσετε αυτήν την ενέργεια. Συγγνώμη!`,
         copilotAccess: 'Πρόσβαση στο Copilot',
+        enterSecurityCode: (contactMethod: string) =>
+            `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να προσθέσετε έναν συνοδηγό. Θα πρέπει να φτάσει μέσα σε ένα-δύο λεπτά.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να ενημερώσετε τον συνεργάτη σας.`,
     },
     debug: {
         debug: 'Εντοπισμός σφαλμάτων',
