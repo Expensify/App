@@ -18328,6 +18328,22 @@ describe('ReportUtils', () => {
             expect(result).toBe('Test Policy Name');
         });
 
+        it('should resolve the name from the policy parameter when the report carries no policy name', () => {
+            // Regression: a draft workspace's expense chat has no policyName/oldPolicyName and the draft policy isn't
+            // persisted, so the explicitly passed policy used to be ignored and "Unavailable workspace" was returned.
+            const reportWithoutPolicyName: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'policy123',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+            const result = getPolicyName({
+                report: reportWithoutPolicyName,
+                policy: testPolicy,
+            });
+            expect(result).toBe('Test Policy Name');
+        });
+
         it('should find policy by policyID in the policies array', () => {
             const policies: Policy[] = [
                 {...createRandomPolicy(1), id: 'other1', name: 'Other 1'},
