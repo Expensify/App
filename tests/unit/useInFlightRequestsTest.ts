@@ -38,8 +38,13 @@ describe('useInFlightRequests', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(() => {
-        return Onyx.clear().then(waitForBatchedUpdates);
+    beforeEach(async () => {
+        await Onyx.clear().then(waitForBatchedUpdates);
+        // useIsAppLoadPending keeps a process-session latch (module-level) that survives Onyx.clear.
+        // Render it once against the cleared state so its reset effect runs, isolating each test.
+        const {unmount} = renderHook(() => useIsAppLoadPending());
+        await act(() => waitForBatchedUpdates());
+        unmount();
     });
 
     describe('useIsAppLoadPending', () => {
@@ -93,28 +98,40 @@ describe('useInFlightRequests', () => {
             await waitFor(() => expect(result.current).toBe(false));
         });
 
-        it('waits for the first OpenApp data flush but ignores a loading flag stranded after a completed load', async () => {
+        it('stays pending across the OpenApp flush window even when the app was already loaded (account switch)', async () => {
+            // An account switch preserves HAS_LOADED_APP=true and seeds IS_LOADING_APP=true before firing OpenApp.
+            // The request's data and its IS_LOADING_APP clear are deferred until the queue drains, but the request
+            // itself leaves the queue earlier, so gating on the queue alone (or on HAS_LOADED_APP, already true here)
+            // would drop the skeleton mid-flush and render cleared account data.
             await setHasLoadedApp(true);
             await setIsLoadingApp(true);
-            const {result: strandedResult, unmount: unmountStrandedConsumer} = renderHook(() => useIsAppLoadPending());
-            await act(() => waitForBatchedUpdates());
-            expect(strandedResult.current).toBe(false);
-            unmountStrandedConsumer();
 
-            await setHasLoadedApp(false);
+            // OpenApp observed in the queue.
             await act(() => setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP)]));
             const {result: queuedResult, unmount: unmountQueuedConsumer} = renderHook(() => useIsAppLoadPending());
             await waitFor(() => expect(queuedResult.current).toBe(true));
             unmountQueuedConsumer();
 
+            // Request removed but its deferred updates have not flushed (IS_LOADING_APP still true). A consumer that
+            // mounts now, during the flush window, must still report pending even though HAS_LOADED_APP is true.
             await act(() => setPersistedRequests([]));
             const {result: flushingResult} = renderHook(() => useIsAppLoadPending());
             await act(() => waitForBatchedUpdates());
             expect(flushingResult.current).toBe(true);
 
+            // Deferred updates flush and clear the flag: resolved.
             await act(() => setIsLoadingApp(false));
-            await act(() => setHasLoadedApp(true));
             await waitFor(() => expect(flushingResult.current).toBe(false));
+        });
+
+        it('ignores an IS_LOADING_APP flag stranded on disk when no OpenApp ran this session', async () => {
+            // A fresh reload after an interrupted load: IS_LOADING_APP is stranded true from a previous session,
+            // but this session runs ReconnectApp, not OpenApp, so no OpenApp is ever observed in the queue.
+            await setHasLoadedApp(true);
+            await setIsLoadingApp(true);
+            const {result} = renderHook(() => useIsAppLoadPending());
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
         });
     });
 
