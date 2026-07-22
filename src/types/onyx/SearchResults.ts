@@ -5,7 +5,7 @@ import type {
     TransactionListItemType,
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SearchGroupBy} from '@components/Search/types';
+import type {SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +58,12 @@ type SearchResultsInfo = {
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
+
+    /** The sort by of the current sesarch */
+    sortBy: SearchSortBy;
+
+    /** The sort order of the current search */
+    sortOrder: SortOrder;
 
     /** Explicit terminal lifecycle state of the most recent search request for this snapshot.
      * Optional because snapshots persisted before this field existed (and snapshots written by
