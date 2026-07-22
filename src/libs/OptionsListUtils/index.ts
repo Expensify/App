@@ -1572,9 +1572,9 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *
  * Performance optimization approach:
  * 1. Pre-filters reports using shouldReportBeInOptionList with correct parameters (betas, etc.)
- * 2. Default (`options.isSearching` false): sorts by lastVisibleActionCreated (most recent first), limits to
- *    the top N reports (`maxRecentReports`), then processes only those reports. This avoids processing
- *    thousands of reports while ensuring correct filtering.
+ * 2. Default (`options.isSearching` false): pre-computes each report's sort key once, then uses a heap to
+ *    select the top N reports (`maxRecentReports`) by self-DM status, archived status, and recency. Only
+ *    those reports are processed in step 4, avoiding work on thousands of reports while ensuring correct filtering.
  * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
  *    no `maxRecentReports` cap, so search can include all eligible reports.
  *
@@ -1722,9 +1722,24 @@ function createFilteredOptionList(
         return !!report;
     });
 
-    // Step 2: Sort by lastVisibleActionCreated (most recent first) and limit to top N
-    // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
-    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
+    // Step 2: Select the top N reports by priority (self-DM, then non-archived, then most recent).
+    // In search mode, skip this step and use the full list so every eligible report can be matched.
+    // Otherwise, pre-compute each sort key once so the heap compares cached keys instead of re-running
+    // reportSortComparator on every push/pop.
+    let sortedReports: Report[];
+    if (isSearching) {
+        sortedReports = reportsArray;
+    } else {
+        const decoratedReports = new Array<{key: string; report: Report}>(reportsArray.length);
+        for (let i = 0; i < reportsArray.length; i++) {
+            const report = reportsArray.at(i);
+            if (!report) {
+                continue;
+            }
+            decoratedReports[i] = {key: reportSortComparator(report, privateIsArchivedMap), report};
+        }
+        sortedReports = optionsOrderBy(decoratedReports, (decorated) => decorated.key, maxRecentReports).options.map((decorated) => decorated.report);
+    }
 
     // Step 3: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
