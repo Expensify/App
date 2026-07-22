@@ -61,4 +61,3 @@ function useSearchYearSelector({selectedDateModifier, onRestoreDateModifier}: Us
 }
 
 export default useSearchYearSelector;
-export type {UseSearchYearSelectorParams, UseSearchYearSelectorResult};

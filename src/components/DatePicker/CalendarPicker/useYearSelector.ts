@@ -104,4 +104,3 @@ function useYearSelector({pickerContextID, shouldCloseModalOnYearPickerOpen, onY
 }
 
 export default useYearSelector;
-export type {UseYearSelectorParams, UseYearSelectorResult};
