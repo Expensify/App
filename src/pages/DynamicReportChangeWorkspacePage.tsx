@@ -42,7 +42,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
-import type {DismissedProductTraining, PersonalDetailsList} from '@src/types/onyx';
+import type {DismissedProductTraining} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -79,15 +79,9 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const ownerAccountID = report?.ownerAccountID;
     const managerID = report?.managerID;
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(ownerAccountID)(personalDetailsList),
-    });
-    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => doesPersonalDetailExistSelector(ownerAccountID)(personalDetailsList),
-    });
-    const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(managerID)(personalDetailsList),
-    });
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(ownerAccountID)});
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(ownerAccountID)});
+    const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(managerID)});
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
