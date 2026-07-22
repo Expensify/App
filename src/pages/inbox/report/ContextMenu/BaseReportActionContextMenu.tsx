@@ -66,6 +66,7 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
@@ -187,7 +188,6 @@ function BaseReportActionContextMenu({
         return originalReportActions[reportActionID];
     }, [originalReportActions, reportActionID]);
     const transactionID = getLinkedTransactionID(reportAction);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const unapprovedOriginalID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)
         ? getOriginalMessage(reportAction)?.originalID
@@ -201,15 +201,9 @@ function BaseReportActionContextMenu({
     const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const harvestReportOriginalID = getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID));
-    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${harvestReportOriginalID}`, {});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-
-    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
-    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`);
 
     const sourceID = getSourceIDFromReportAction(reportAction);
 
@@ -250,22 +244,13 @@ function BaseReportActionContextMenu({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
     const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU | undefined)?.IOUTransactionID;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
-    const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
     const delegateAccountID = useDelegateAccountID();
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
@@ -286,8 +271,6 @@ function BaseReportActionContextMenu({
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const memberChangeLogReportActionMessage = isMemberChangeAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
-    const [memberChangeLogRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(`${memberChangeLogReportActionMessage?.reportID}`)}`);
-    const memberChangeLogRoomReportName = deprecatedGetReportName(memberChangeLogRoomReport, reportAttributes) || memberChangeLogReportActionMessage?.roomName;
 
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
@@ -389,6 +372,64 @@ function BaseReportActionContextMenu({
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
+    const getContextMenuPayload = (): ContextMenuActionPayload => {
+        const tryNewDot = OnyxUtils.get(ONYXKEYS.NVP_TRY_NEW_DOT);
+        const introSelected = OnyxUtils.get(ONYXKEYS.NVP_INTRO_SELECTED);
+        const guidedSetupAndTourStatus = guidedSetupAndTourStatusSelector(OnyxUtils.get(ONYXKEYS.NVP_ONBOARDING));
+        const memberChangeLogRoomReport = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(`${memberChangeLogReportActionMessage?.reportID}`)}` as const);
+
+        return {
+            reportActions,
+            childReportActions,
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            reportAction: (reportAction ?? null) as ReportAction,
+            reportID,
+            originalReportID,
+            report,
+            selection,
+            close: () => setShouldKeepOpen(false),
+            transitionActionSheetState,
+            openContextMenu: () => setShouldKeepOpen(true),
+            interceptAnonymousUser,
+            openOverflowMenu,
+            setIsEmojiPickerActive,
+            personalDetails,
+            isHarvestReport,
+            moneyRequestAction,
+            card,
+            originalReport,
+            isTryNewDotNVPDismissed: !!tryNewDot?.classicRedirect?.dismissed,
+            isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+            childReport,
+            movedFromReport: OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}` as const),
+            movedToReport: OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}` as const),
+            getLocalDateFromDatetime,
+            policy: OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const),
+            policyTags: OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}` as const),
+            translate,
+            harvestReport: OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${harvestReportOriginalID}` as const),
+            harvestReportOriginalID,
+            introSelected,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            betas,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+            currentUserAccountID: currentUserPersonalDetails?.accountID,
+            currentUserPersonalDetails,
+            encryptedAuthToken,
+            iouTransaction,
+            iouTransactionViolations: OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}` as const),
+            bankAccountList: OnyxUtils.get(ONYXKEYS.BANK_ACCOUNT_LIST),
+            isOffline,
+            conciergeReportID: OnyxUtils.get(ONYXKEYS.CONCIERGE_REPORT_ID),
+            delegateAccountID,
+            reportAttributes,
+            originalReportOfUnapprovedTransaction,
+            memberChangeLogRoomReportName: deprecatedGetReportName(memberChangeLogRoomReport, reportAttributes) || memberChangeLogReportActionMessage?.roomName,
+        };
+    };
+
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
     return (
@@ -401,66 +442,15 @@ function BaseReportActionContextMenu({
                     >
                         {filteredContextMenuActions.map((contextAction, index) => {
                             const closePopup = !isMini;
-                            const payload: ContextMenuActionPayload = {
-                                reportActions,
-                                childReportActions,
-                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                                reportAction: (reportAction ?? null) as ReportAction,
-                                reportID,
-                                originalReportID,
-                                report,
-                                selection,
-                                close: () => setShouldKeepOpen(false),
-                                transitionActionSheetState,
-                                openContextMenu: () => setShouldKeepOpen(true),
-                                interceptAnonymousUser,
-                                openOverflowMenu,
-                                setIsEmojiPickerActive,
-                                personalDetails,
-                                isHarvestReport,
-                                moneyRequestAction,
-                                card,
-                                originalReport,
-                                isTryNewDotNVPDismissed,
-                                isTrackIntentUser,
-                                childReport,
-                                movedFromReport,
-                                movedToReport,
-                                getLocalDateFromDatetime,
-                                policy,
-                                policyTags,
-                                translate,
-                                harvestReport,
-                                harvestReportOriginalID,
-                                introSelected,
-                                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                                betas,
-                                isDelegateAccessRestricted,
-                                showDelegateNoAccessModal,
-                                currentUserAccountID: currentUserPersonalDetails?.accountID,
-                                currentUserPersonalDetails,
-                                encryptedAuthToken,
-                                iouTransaction,
-                                iouTransactionViolations,
-                                bankAccountList,
-                                isOffline,
-                                conciergeReportID,
-                                delegateAccountID,
-                                reportAttributes,
-                                originalReportOfUnapprovedTransaction,
-                                memberChangeLogRoomReportName,
-                            };
 
                             if ('renderContent' in contextAction) {
-                                return contextAction.renderContent(closePopup, payload);
+                                return contextAction.renderContent(closePopup, getContextMenuPayload());
                             }
 
                             const {textTranslateKey} = contextAction;
                             const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
                             const text =
                                 textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
-                            const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                             const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
                             const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
 
@@ -474,10 +464,18 @@ function BaseReportActionContextMenu({
                                     isMini={isMini}
                                     key={contextAction.textTranslateKey}
                                     onPress={(event) =>
-                                        interceptAnonymousUser(
-                                            () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
-                                            contextAction.isAnonymousAction,
-                                        )
+                                        interceptAnonymousUser(() => {
+                                            const transaction =
+                                                textTranslateKey === 'reportActionContextMenu.copyMessage'
+                                                    ? OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}` as const)
+                                                    : undefined;
+                                            contextAction.onPress?.(closePopup, {
+                                                ...getContextMenuPayload(),
+                                                ...(transaction && {transaction}),
+                                                event,
+                                                ...(isMenuAction ? {anchorRef: threeDotRef} : {}),
+                                            });
+                                        }, contextAction.isAnonymousAction)
                                     }
                                     description={contextAction.getDescription?.(selection) ?? ''}
                                     isAnonymousAction={contextAction.isAnonymousAction}
