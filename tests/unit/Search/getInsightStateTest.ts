@@ -1,6 +1,6 @@
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
-import {getInsightState, INSIGHT_STATE} from '@pages/home/SpendOverTimeSection/useSpendOverTimeData';
+import {getInsightState, INSIGHT_STATE} from '@pages/home/InsightsSection/useInsightData';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';

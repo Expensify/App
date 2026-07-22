@@ -23,7 +23,7 @@ import {View} from 'react-native';
 
 import InsightTitleDropdown from './InsightTitleDropdown';
 import useHomeInsights from './useHomeInsights';
-import {INSIGHT_STATE} from './useSpendOverTimeData';
+import {INSIGHT_STATE} from './useInsightData';
 
 function InsightsSectionContent() {
     const styles = useThemeStyles();

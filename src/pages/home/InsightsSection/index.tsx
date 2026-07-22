@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
-import InsightsSectionContent from './SpendOverTimeSectionContent';
+import InsightsSectionContent from './InsightsSectionContent';
 
 function InsightsSection() {
     const {login} = useCurrentUserPersonalDetails();

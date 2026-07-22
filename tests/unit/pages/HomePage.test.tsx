@@ -87,7 +87,7 @@ jest.mock('@pages/home/ForYouSection', () => mockSection('ForYouSection'));
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
 jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
-jest.mock('@pages/home/SpendOverTimeSection', () => mockSection('InsightsSection'));
+jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
 jest.mock('@pages/home/DiscoverSection', () => mockSection('DiscoverSection'));
 jest.mock('@pages/home/AnnouncementSection', () => mockSection('AnnouncementSection'));
 

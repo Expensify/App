@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import useHomeInsightConfigs from './useHomeInsightConfigs';
-import useInsightData, {INSIGHT_STATE} from './useSpendOverTimeData';
+import useInsightData, {INSIGHT_STATE} from './useInsightData';
 
 type InsightData = ReturnType<typeof useInsightData>;
 
