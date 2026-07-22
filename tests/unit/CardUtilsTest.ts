@@ -40,6 +40,7 @@ import {
     getDefaultExpensifyCardLimitType,
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
+    getDomainByFundID,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
     getFeedNameForDisplay,
@@ -77,6 +78,7 @@ import {
 } from '@src/libs/CardUtils';
 import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
     Card,
@@ -84,6 +86,7 @@ import type {
     CardList,
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
+    Domain,
     ExpensifyCardSettings,
     PersonalDetailsList,
     Policy,
@@ -4416,9 +4419,53 @@ describe('getEligibleBankAccountsForUkEuCard', () => {
                 bankCountry: 'GB',
             },
         };
-        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, 'GBP');
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, {GBP: ['GB', 'GI']}, 'GBP');
         expect(result).toHaveLength(1);
         expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+    });
+
+    it('uses only the supported countries for the workspace settlement currency', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'EUR',
+                bankCountry: 'BE',
+            },
+            '2': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'EUR',
+                bankCountry: 'GB',
+            },
+        };
+        const supportedCountriesByCurrency = {GBP: ['GB', 'GI'], EUR: ['BE', 'DK']};
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, supportedCountriesByCurrency, 'EUR');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.bankCountry).toBe('BE');
+    });
+
+    it('returns no accounts when the settlement currency has no supported-country entry', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+        };
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, {EUR: ['BE', 'DK']}, 'GBP');
+        expect(result).toHaveLength(0);
+    });
+
+    it('falls back to the hard-coded supported countries when the backend list is unavailable', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+        };
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, undefined, 'GBP');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.bankCountry).toBe('GB');
     });
 });
 
@@ -4612,5 +4659,59 @@ describe('getCompanyCardCustomName', () => {
 
     it('returns undefined when neither NVP has a name for the card', () => {
         expect(getCompanyCardCustomName('9999', sharedCardCustomNames, customCardNames)).toBeUndefined();
+    });
+});
+
+describe('getDomainByFundID', () => {
+    const FUND_ID = 767578;
+
+    function makeDomain(accountID: number): Domain {
+        return createMock<Domain>({accountID});
+    }
+
+    it('resolves the domain keyed by `domain_<fundID>`', () => {
+        const domain = makeDomain(FUND_ID);
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}${FUND_ID}`]: domain,
+        };
+        expect(getDomainByFundID(domains, FUND_ID)).toBe(domain);
+    });
+
+    it('falls back to a domain whose `accountID` matches the fund when it is not keyed by the fund ID', () => {
+        const domain = makeDomain(FUND_ID);
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: domain,
+        };
+        expect(getDomainByFundID(domains, FUND_ID)).toBe(domain);
+    });
+
+    it('prefers the domain keyed by `domain_<fundID>` over one that only matches on `accountID`', () => {
+        const keyedDomain = makeDomain(999);
+        const accountIDMatch = makeDomain(FUND_ID);
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}${FUND_ID}`]: keyedDomain,
+            [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: accountIDMatch,
+        };
+        expect(getDomainByFundID(domains, FUND_ID)).toBe(keyedDomain);
+    });
+
+    it('returns undefined when `domains` is undefined', () => {
+        expect(getDomainByFundID(undefined, FUND_ID)).toBeUndefined();
+    });
+
+    it('returns undefined when no domain is keyed by or has an `accountID` matching the fund', () => {
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: makeDomain(1),
+        };
+        expect(getDomainByFundID(domains, FUND_ID)).toBeUndefined();
+    });
+
+    it('ignores undefined entries when scanning for an `accountID` match', () => {
+        const domain = makeDomain(FUND_ID);
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: undefined,
+            [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: domain,
+        };
+        expect(getDomainByFundID(domains, FUND_ID)).toBe(domain);
     });
 });

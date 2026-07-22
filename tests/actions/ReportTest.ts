@@ -973,11 +973,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
+        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (val, key) => {
-                reportActionsReactions[key] = val ?? {};
+            callback: (snapshot) => {
+                reportActionsReactions = snapshot ?? {};
             },
         });
         let reportAction: OnyxTypes.ReportAction | undefined;
@@ -1112,11 +1112,11 @@ describe('actions/Report', () => {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val ?? {}),
         });
-        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
+        let reportActionsReactions: NonNullable<OnyxCollection<OnyxTypes.ReportActionReactions>> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-            callback: (val, key) => {
-                reportActionsReactions[key] = val ?? {};
+            callback: (snapshot) => {
+                reportActionsReactions = snapshot ?? {};
             },
         });
 
@@ -2696,8 +2696,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
-                callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
+                callback: (reports) => {
                     Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
@@ -2721,8 +2720,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
-                callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
+                callback: (reports) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
@@ -2792,8 +2790,7 @@ describe('actions/Report', () => {
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
-                callback: (reports: OnyxCollection<OnyxTypes.Report>) => {
+                callback: (reports) => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
@@ -8061,7 +8058,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: true};
 
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
             expect(result).toBeUndefined();
         });
 
@@ -8071,7 +8068,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8086,7 +8083,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8105,7 +8102,7 @@ describe('actions/Report', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
                 isInviteOnboardingComplete: false,
             };
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toContain(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
@@ -8122,7 +8119,7 @@ describe('actions/Report', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
                 isInviteOnboardingComplete: false,
             };
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeDefined();
             expect(result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING)?.value).toEqual({hasCompletedGuidedSetupFlow: true});
@@ -8134,7 +8131,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeUndefined();
         });
@@ -8148,7 +8145,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, isSelfTourViewed);
 
             expect(result).toBeDefined();
             const guidedSetupData = JSON.parse(result?.guidedSetupData ?? '[]') as Array<{type: string; task?: string; completedTaskReportActionID?: string}>;
@@ -8168,7 +8165,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, true);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, true);
 
             expect(result).toBeUndefined();
         });
@@ -8179,7 +8176,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, false);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, false);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8194,7 +8191,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
 
             expect(result).toBeUndefined();
         });
@@ -9365,6 +9362,7 @@ describe('actions/Report', () => {
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -9431,6 +9429,7 @@ describe('actions/Report', () => {
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -9487,6 +9486,7 @@ describe('actions/Report', () => {
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
             });
             await waitForBatchedUpdates();
 
