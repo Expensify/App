@@ -1,7 +1,5 @@
 import getStateForDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute';
 
-import type {DYNAMIC_ROUTES} from '@src/ROUTES';
-
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     normalizedConfigs: {
         TestNavigator: {
@@ -17,43 +15,27 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
 
 jest.mock('@src/ROUTES', () => ({
     DYNAMIC_ROUTES: {
-        TEST_ROUTE: {
+        VERIFY_ACCOUNT: {
             path: 'test-path',
         },
-        SINGLE_ROUTE: {
+        TWO_FACTOR_AUTH_ROOT: {
             path: 'single-path',
         },
-        UNKNOWN_ROUTE: {
+        TWO_FACTOR_AUTH_VERIFY: {
             path: 'unknown-path',
         },
     },
 }));
 
-type LeafRoute = {
-    name: string;
-    path: string;
-    params?: Record<string, unknown>;
-};
-
-type NestedRoute = {
-    name: string;
-    state: {
-        routes: [RouteNode];
-        index: 0;
-    };
-};
-
-type RouteNode = LeafRoute | NestedRoute;
-
-const KEY_TEST = 'TEST_ROUTE';
-const KEY_SINGLE = 'SINGLE_ROUTE';
-const KEY_UNKNOWN = 'UNKNOWN_ROUTE';
+const KEY_TEST = 'VERIFY_ACCOUNT';
+const KEY_SINGLE = 'TWO_FACTOR_AUTH_ROOT';
+const KEY_UNKNOWN = 'TWO_FACTOR_AUTH_VERIFY';
 
 describe('getStateForDynamicRoute', () => {
     it('should build correctly nested state for multi-level route', () => {
         const path = '/some/path/test-path';
 
-        const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES);
+        const result = getStateForDynamicRoute(path, KEY_TEST);
 
         expect(result).toEqual({
             routes: [
@@ -75,7 +57,7 @@ describe('getStateForDynamicRoute', () => {
 
     it('should build flat state for single-level route', () => {
         const path = '/some/path/single-path';
-        const result = getStateForDynamicRoute(path, KEY_SINGLE as unknown as keyof typeof DYNAMIC_ROUTES);
+        const result = getStateForDynamicRoute(path, KEY_SINGLE);
 
         expect(result).toEqual({
             routes: [
@@ -90,26 +72,26 @@ describe('getStateForDynamicRoute', () => {
     it('should throw error when route configuration is not found', () => {
         const path = '/some/path/unknown';
 
-        expect(() => getStateForDynamicRoute(path, KEY_UNKNOWN as unknown as keyof typeof DYNAMIC_ROUTES)).toThrow("No route configuration found for dynamic route 'UNKNOWN_ROUTE'");
+        expect(() => getStateForDynamicRoute(path, KEY_UNKNOWN)).toThrow("No route configuration found for dynamic route 'TWO_FACTOR_AUTH_VERIFY'");
     });
 
     it('should handle different path format but same structure', () => {
         const path = '/another/different/path/test-path';
-        const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES);
+        const result = getStateForDynamicRoute(path, KEY_TEST);
 
-        const rootRoute = result.routes.at(0) as NestedRoute | undefined;
-        const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
-        expect(leafRoute?.path).toBe(path);
+        const rootRoute = result.routes.at(0);
+        const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
+        expect(leafRoute && 'path' in leafRoute ? leafRoute.path : undefined).toBe(path);
     });
 
     it('should correctly structure state property in parent nodes', () => {
         const path = '/test-path';
-        const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES);
+        const result = getStateForDynamicRoute(path, KEY_TEST);
 
         const parentNode = result.routes.at(0);
         expect(parentNode).toHaveProperty('state');
 
-        const state = (parentNode as NestedRoute).state;
+        const state = parentNode && 'state' in parentNode ? parentNode.state : undefined;
         expect(state?.index).toBe(0);
         expect(Array.isArray(state?.routes)).toBe(true);
     });
@@ -117,62 +99,63 @@ describe('getStateForDynamicRoute', () => {
     it('should inherit parent route params on the leaf node', () => {
         const path = '/r/12345/settings/test-path';
         const parentParams = {reportID: '12345'};
-        const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+        const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
-        const rootRoute = result.routes.at(0) as NestedRoute | undefined;
-        const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
-        expect(leafRoute?.params).toEqual(parentParams);
+        const rootRoute = result.routes.at(0);
+        const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
+        expect(leafRoute && 'params' in leafRoute ? leafRoute.params : undefined).toEqual(parentParams);
     });
 
     it('should not include params on the leaf node when neither parentRouteParams nor query params are provided', () => {
         const path = '/some/path/test-path';
-        const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES);
+        const result = getStateForDynamicRoute(path, KEY_TEST);
 
-        const rootRoute = result.routes.at(0) as NestedRoute | undefined;
-        const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
-        expect(leafRoute?.params).toBeUndefined();
+        const rootRoute = result.routes.at(0);
+        const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
+        expect(leafRoute && 'params' in leafRoute ? leafRoute.params : undefined).toBeUndefined();
     });
 
     it('should merge parent route params with query params', () => {
         const path = '/r/12345/settings/test-path?country=US';
         const parentParams = {reportID: '12345'};
-        const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+        const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
-        const rootRoute = result.routes.at(0) as NestedRoute | undefined;
-        const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
-        expect(leafRoute?.params).toEqual({reportID: '12345', country: 'US'});
+        const rootRoute = result.routes.at(0);
+        const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
+        expect(leafRoute && 'params' in leafRoute ? leafRoute.params : undefined).toEqual({reportID: '12345', country: 'US'});
     });
 
     describe('undefined params are filtered out (optional path params absent)', () => {
         it('does not include the key when an optional path param is undefined', () => {
             const path = '/r/12345/test-path';
             const parentParams = {reportID: '12345', accountID: undefined};
-            const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+            const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
-            const rootRoute = result.routes.at(0) as NestedRoute | undefined;
-            const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
-            expect(leafRoute?.params).toEqual({reportID: '12345'});
-            expect(leafRoute?.params).not.toHaveProperty('accountID');
+            const rootRoute = result.routes.at(0);
+            const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
+            const leafParams = leafRoute && 'params' in leafRoute ? leafRoute.params : undefined;
+            expect(leafParams).toEqual({reportID: '12345'});
+            expect(leafParams).not.toHaveProperty('accountID');
         });
 
         it('returns no params when all parent params are undefined and there are no query params', () => {
             const path = '/r/12345/test-path';
-            const parentParams = {accountID: undefined as unknown as string};
-            const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+            const parentParams = {accountID: undefined};
+            const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
-            const rootRoute = result.routes.at(0) as NestedRoute | undefined;
-            const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
-            expect(leafRoute?.params).toBeUndefined();
+            const rootRoute = result.routes.at(0);
+            const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
+            expect(leafRoute && 'params' in leafRoute ? leafRoute.params : undefined).toBeUndefined();
         });
 
         it('keeps defined params and drops undefined ones in mixed scenario', () => {
             const path = '/r/12345/test-path?country=US';
             const parentParams = {reportID: '12345', extraneous: undefined};
-            const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+            const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
-            const rootRoute = result.routes.at(0) as NestedRoute | undefined;
-            const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
-            expect(leafRoute?.params).toEqual({reportID: '12345', country: 'US'});
+            const rootRoute = result.routes.at(0);
+            const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
+            expect(leafRoute && 'params' in leafRoute ? leafRoute.params : undefined).toEqual({reportID: '12345', country: 'US'});
         });
     });
 });
