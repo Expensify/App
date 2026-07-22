@@ -181,9 +181,9 @@ function ConfirmationFieldList({
                     <Button
                         onPress={() => compactState.setShowMoreFields(true)}
                         size={CONST.BUTTON_SIZE.SMALL}
-                        innerStyles={[styles.hoveredComponentBG, styles.ph4, styles.pv2]}
+                        innerStyles={[styles.hoveredComponentBG, styles.pv2, styles.pl3]}
                     >
-                        <Button.Text style={styles.buttonSmallText}>{translate('common.showMore')}</Button.Text>
+                        <Button.Text>{translate('common.showMore')}</Button.Text>
                         <Button.Icon src={icons.DownArrow} />
                     </Button>
                 </View>
