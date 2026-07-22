@@ -685,58 +685,75 @@ export default createOnyxDerivedValueConfig({
             currentValue?.reports ? {...currentValue.reports} : {},
         );
 
-        // Propagate errors from IOU reports to their parent chat reports.
-        const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        const currentUserEmail = session?.email ?? '';
-        const erroredChildReportIDsByChat = new Map<string, string[]>();
-        const childReportIDsByChat = new Map<string, string[]>();
-        for (const report of Object.values(reports)) {
-            if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
-                continue;
+        // Propagate errors from IOU reports to their parent chat reports. This requires scanning every
+        // report to rebuild the parent/child maps, so on an incremental pass we only pay that cost when
+        // it could actually change something: a report's own error-relevant fields (including a parent
+        // dragged into dataToIterate by one of its children, whose entry gets overwritten with a fresh,
+        // not-yet-propagated computation above) must differ from what was there before. Skipping this is
+        // safe because the aggregation below depends on nothing but needsParentChatErrorPropagation and
+        // brickRoadStatus, keyed only by reports actually present in dataToIterate.
+        const errorRelevantAttributesChanged =
+            !useIncrementalUpdates ||
+            dataToIterate.some((key) => {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                const previous = currentValue?.reports?.[reportID];
+                const next = reportAttributes[reportID];
+                return (previous?.needsParentChatErrorPropagation ?? false) !== (next?.needsParentChatErrorPropagation ?? false) || previous?.brickRoadStatus !== next?.brickRoadStatus;
+            });
+
+        if (errorRelevantAttributesChanged) {
+            const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+            const currentUserEmail = session?.email ?? '';
+            const erroredChildReportIDsByChat = new Map<string, string[]>();
+            const childReportIDsByChat = new Map<string, string[]>();
+            for (const report of Object.values(reports)) {
+                if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
+                    continue;
+                }
+
+                const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
+                childReportIDs.push(report.reportID);
+                childReportIDsByChat.set(report.chatReportID, childReportIDs);
+
+                // If this is an IOU report and its calculated attributes have an error,
+                // then we need to mark its parent chat report.
+                // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
+                // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
+                // we still need to propagate the error up so the parent shows the indicator.
+                const attributes = reportAttributes[report.reportID];
+                if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                    const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
+                    erroredChildReportIDs.push(report.reportID);
+                    erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
+                }
             }
 
-            const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
-            childReportIDs.push(report.reportID);
-            childReportIDsByChat.set(report.chatReportID, childReportIDs);
+            // Apply the error status to the parent chat reports.
+            for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
+                if (!reportAttributes[chatReportID]) {
+                    continue;
+                }
 
-            // If this is an IOU report and its calculated attributes have an error,
-            // then we need to mark its parent chat report.
-            // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
-            // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
-            // we still need to propagate the error up so the parent shows the indicator.
-            const attributes = reportAttributes[report.reportID];
-            if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
-                erroredChildReportIDs.push(report.reportID);
-                erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
+                const chatAttributes = reportAttributes[chatReportID];
+                let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
+
+                actionTargetReportActionID =
+                    getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
+                    getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
+                        needsViolationFix(childReport, policies, transactionViolations, currentUserAccountID, currentUserEmail),
+                    ) ??
+                    getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
+                    actionTargetReportActionID;
+
+                // Clone the entry before mutating — it may be a reference carried over from
+                // currentValue.reports that wasn't recomputed in this incremental run.
+                reportAttributes[chatReportID] = {
+                    ...chatAttributes,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
+                    actionTargetReportActionID,
+                };
             }
-        }
-
-        // Apply the error status to the parent chat reports.
-        for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
-            if (!reportAttributes[chatReportID]) {
-                continue;
-            }
-
-            const chatAttributes = reportAttributes[chatReportID];
-            let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
-
-            actionTargetReportActionID =
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
-                    needsViolationFix(childReport, policies, transactionViolations, currentUserAccountID, currentUserEmail),
-                ) ??
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
-                actionTargetReportActionID;
-
-            // Clone the entry before mutating — it may be a reference carried over from
-            // currentValue.reports that wasn't recomputed in this incremental run.
-            reportAttributes[chatReportID] = {
-                ...chatAttributes,
-                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
-                actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
-                actionTargetReportActionID,
-            };
         }
 
         // A full scan just recomputed every report with the current policies, so the baseline can be

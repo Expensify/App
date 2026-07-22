@@ -26,6 +26,13 @@ jest.mock('@libs/ReportUtils', () => ({
     isArchivedReport: jest.fn(() => false),
     isValidReport: jest.fn(() => true),
     parseReportRouteParams: jest.fn(() => ({reportID: ''})),
+    // Only reached once a report has an RBR reason (see the `reportAttributes compute` — error propagation'
+    // describe block); false keeps that report's own brickRoadStatus as ERROR rather than suppressed.
+    isPolicyExpenseChat: jest.fn(() => false),
+    isPolicyAdmin: jest.fn(() => false),
+    isOpenReport: jest.fn(() => false),
+    isProcessingReport: jest.fn(() => false),
+    hasViolations: jest.fn(() => false),
 }));
 
 jest.mock('@libs/SidebarUtils', () => ({
@@ -584,5 +591,148 @@ describe('reportAttributes compute — policy change code flow', () => {
         // so both pick up the recomputed name instead of keeping their stale seeded value.
         expect(result?.reports.expense1?.reportName).toBe('Test Report');
         expect(result?.reports.chat1?.reportName).toBe('Test Report');
+    });
+
+    describe('parent chat error propagation — skipped when nothing error-relevant changed', () => {
+        // The outer beforeEach calls jest.resetModules() before re-requiring the config, which replaces
+        // this mock with a fresh instance — so the reference must be re-fetched per test, not captured once.
+        const getReasonMock = () =>
+            jest.requireMock<{default: {getReasonAndReportActionThatHasRedBrickRoad: jest.Mock}}>('@libs/SidebarUtils').default.getReasonAndReportActionThatHasRedBrickRoad;
+
+        it('still propagates a new error to the parent chat when a child gains one during an incremental update', () => {
+            const expenseReport: Report = {...createRandomReport(10, undefined), reportID: 'expense1', policyID: 'policy3', chatReportID: 'chat1'};
+            const chatReport: Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chat1', policyID: 'policy3', chatReportID: undefined};
+            const reportsWithChat: OnyxCollection<Report> = {
+                ...reports,
+                [`${ONYXKEYS.COLLECTION.REPORT}expense1`]: expenseReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
+            };
+
+            const existingValue: ReportAttributesDerivedValue = {
+                reports: {
+                    expense1: {reportName: 'Old expense name', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                    chat1: {reportName: 'Old chat name', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                },
+                locale: null,
+            };
+
+            // Only the expense report now has an RBR reason.
+            getReasonMock().mockImplementation((report: Report) => (report.reportID === 'expense1' ? {reportAction: undefined} : undefined));
+
+            const transactionsUpdate: OnyxCollection<Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'expense1'},
+            };
+
+            const args = buildArgs(undefined, reportsWithChat, transactionsUpdate);
+            const result = config.compute(args, {
+                currentValue: existingValue,
+                sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
+            });
+
+            // The skip-propagation optimization must not prevent a genuinely new error from reaching the parent.
+            expect(result?.reports.chat1?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            expect(result?.reports.chat1?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.FIX);
+        });
+
+        it('clears a stale parent error once the only erroring child stops erroring', () => {
+            const expenseReport: Report = {...createRandomReport(10, undefined), reportID: 'expense1', policyID: 'policy3', chatReportID: 'chat1'};
+            const chatReport: Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chat1', policyID: 'policy3', chatReportID: undefined};
+            const reportsWithChat: OnyxCollection<Report> = {
+                ...reports,
+                [`${ONYXKEYS.COLLECTION.REPORT}expense1`]: expenseReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
+            };
+
+            // Simulates the state left behind by a previous pass where expense1 was erroring and had
+            // already propagated ERROR up to chat1.
+            const existingValue: ReportAttributesDerivedValue = {
+                reports: {
+                    expense1: {
+                        reportName: 'Old expense name',
+                        isEmpty: false,
+                        brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                        requiresAttention: false,
+                        reportErrors: {},
+                        needsParentChatErrorPropagation: true,
+                    },
+                    chat1: {
+                        reportName: 'Old chat name',
+                        isEmpty: false,
+                        brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                        actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
+                        requiresAttention: false,
+                        reportErrors: {},
+                    },
+                },
+                locale: null,
+            };
+
+            // getReasonMock defaults to undefined (no RBR reason) for this pass — the violation is resolved.
+            const transactionsUpdate: OnyxCollection<Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'expense1'},
+            };
+
+            const args = buildArgs(undefined, reportsWithChat, transactionsUpdate);
+            const result = config.compute(args, {
+                currentValue: existingValue,
+                sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
+            });
+
+            // expense1 losing its error must be detected (previous vs next differ) so the propagation loop
+            // still runs and correctly clears the now-stale ERROR badge on chat1.
+            expect(result?.reports.expense1?.brickRoadStatus).toBeUndefined();
+            expect(result?.reports.chat1?.brickRoadStatus).toBeUndefined();
+        });
+
+        it('preserves a previously-propagated parent error when an unrelated report changes', () => {
+            const expenseReport: Report = {...createRandomReport(10, undefined), reportID: 'expense1', policyID: 'policy3', chatReportID: 'chat1'};
+            const chatReport: Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chat1', policyID: 'policy3', chatReportID: undefined};
+            const unrelatedReport: Report = {...createRandomReport(12, undefined), reportID: 'unrelated1', policyID: 'policy4', chatReportID: undefined};
+            const reportsWithChat: OnyxCollection<Report> = {
+                ...reports,
+                [`${ONYXKEYS.COLLECTION.REPORT}expense1`]: expenseReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}unrelated1`]: unrelatedReport,
+            };
+
+            const existingValue: ReportAttributesDerivedValue = {
+                reports: {
+                    expense1: {
+                        reportName: 'Old expense name',
+                        isEmpty: false,
+                        brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                        requiresAttention: false,
+                        reportErrors: {},
+                        needsParentChatErrorPropagation: true,
+                    },
+                    chat1: {
+                        reportName: 'Old chat name',
+                        isEmpty: false,
+                        brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                        actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
+                        requiresAttention: false,
+                        reportErrors: {},
+                    },
+                    unrelated1: {reportName: 'Old unrelated name', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                },
+                locale: null,
+            };
+
+            // expense1 would still be erroring if re-evaluated, but this pass only touches unrelated1,
+            // so expense1/chat1 should never even be re-examined.
+            getReasonMock().mockImplementation((report: Report) => (report.reportID === 'expense1' ? {reportAction: undefined} : undefined));
+
+            const args = buildArgs(undefined, reportsWithChat);
+            const result = config.compute(args, {
+                currentValue: existingValue,
+                sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}unrelated1`]: unrelatedReport}},
+            });
+
+            // The unrelated report is recomputed, and the untouched chat1/expense1 keep their prior
+            // propagated ERROR status exactly as it was, confirming the skip didn't drop it.
+            expect(result?.reports.unrelated1?.reportName).toBe('Test Report');
+            expect(result?.reports.chat1?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            expect(result?.reports.expense1?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
     });
 });
