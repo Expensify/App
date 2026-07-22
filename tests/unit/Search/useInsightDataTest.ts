@@ -1,9 +1,15 @@
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
-import {getInsightState, INSIGHT_STATE} from '@pages/home/InsightsSection/useInsightData';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
+
+import {applyLimit, getInsightState, INSIGHT_STATE} from '@pages/home/InsightsSection/useInsightData';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+const HOME_INSIGHT_DATA_POINT_LIMIT = 5;
+
+const suggestedSearches = getSuggestedSearches(123, undefined, true, ['1']);
 
 const queryJSON: SearchQueryJSON = {
     inputQuery: '',
@@ -44,6 +50,34 @@ const makeData = (count: number): GroupedItem[] =>
         formattedMonth: `Month ${i + 1}`,
         sortKey: i,
     }));
+
+describe('applyLimit', () => {
+    it('returns undefined for a missing query', () => {
+        expect(applyLimit(undefined)).toBeUndefined();
+    });
+
+    it('leaves the line chart (spend over time) uncapped', () => {
+        const result = applyLimit(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME].searchQueryJSON);
+        expect(result?.view).toBe(CONST.SEARCH.VIEW.LINE);
+        expect(result?.limit).toBeUndefined();
+    });
+
+    it('caps a bar chart that had no limit (top spenders)', () => {
+        expect(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQueryJSON?.limit).toBeUndefined();
+        expect(applyLimit(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQueryJSON)?.limit).toBe(HOME_INSIGHT_DATA_POINT_LIMIT);
+    });
+
+    it('overrides the wider Spend limit on a bar chart (top categories)', () => {
+        expect(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES].searchQueryJSON?.limit).toBe(CONST.SEARCH.TOP_SEARCH_LIMIT);
+        expect(applyLimit(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES].searchQueryJSON)?.limit).toBe(HOME_INSIGHT_DATA_POINT_LIMIT);
+    });
+
+    it('caps a pie chart (top merchants)', () => {
+        const result = applyLimit(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS].searchQueryJSON);
+        expect(result?.view).toBe(CONST.SEARCH.VIEW.PIE);
+        expect(result?.limit).toBe(HOME_INSIGHT_DATA_POINT_LIMIT);
+    });
+});
 
 describe('getInsightState', () => {
     it('returns OFFLINE when offline with no data', () => {
