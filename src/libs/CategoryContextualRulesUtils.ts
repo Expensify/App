@@ -13,7 +13,12 @@ import type {Policy, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
-import {categoryHasAnyRequireFieldsRule, formatRequireFieldsRuleDescriptions, getRequireFieldsPendingAction, getRequireFieldsRuleDescriptionsForCategory} from './RequireFieldsRulesUtils';
+import {
+    categoryHasAnyRequireFieldsRule,
+    formatRequireFieldsRuleDescriptions,
+    getRequireFieldsPendingActionForCategory,
+    getRequireFieldsRuleDescriptionsForCategory,
+} from './RequireFieldsRulesUtils';
 
 type CategoryContextualRule = {
     key: string;
@@ -85,7 +90,7 @@ function getCategoryContextualRules({
                 key: `require-fields-${categoryName}`,
                 summary,
                 route: ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName),
-                pendingAction: getRequireFieldsPendingAction(category.pendingFields),
+                pendingAction: getRequireFieldsPendingActionForCategory(category),
             });
         }
     }

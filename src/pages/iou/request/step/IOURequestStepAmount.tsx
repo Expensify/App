@@ -182,6 +182,10 @@ function IOURequestStepAmount({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -195,7 +199,7 @@ function IOURequestStepAmount({
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID);
     });
     const participant = participants.at(0);
     const policyTags = useMoneyRequestPolicyTags({
@@ -231,7 +235,7 @@ function IOURequestStepAmount({
             shouldSkipConfirmation,
             isReportArchived,
             currentUserPersonalDetails,
-            navigateBack,
+            navigateBack: saveAndNavigateBack,
             amount,
             paymentMethod,
             isTrackIntentUser,

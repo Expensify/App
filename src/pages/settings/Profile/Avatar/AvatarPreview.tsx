@@ -2,14 +2,17 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -23,10 +26,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {AvatarCaptureHandle} from './AvatarCapture/types';
-
-import AvatarCapture from './AvatarCapture';
-
 type AvatarPreviewProps = {
     /** The selected avatar ID */
     selected: string | undefined;
@@ -34,8 +33,6 @@ type AvatarPreviewProps = {
     isRemoved: boolean;
     /** Callback when the current avatar photo is removed */
     onImageRemoved: () => void;
-    /** The ref to the avatar capture component */
-    avatarCaptureRef: React.RefObject<AvatarCaptureHandle | null>;
     /** The image data */
     imageData: ImageData;
     /** The function to set the error */
@@ -51,29 +48,31 @@ type ImageData = {
     file: File | CustomRNImageManipulatorResult | null;
 };
 
-function AvatarPreview({selected, isRemoved, onImageRemoved, avatarCaptureRef, imageData, setError, openCropper}: AvatarPreviewProps) {
+function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError, openCropper}: AvatarPreviewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.X_LARGE);
+    const {initials} = useLetterAvatars();
+    const selectedLetterScheme = selected && isLetterAvatarSchemeKey(selected) ? LETTER_AVATAR_SCHEMES[selected] : undefined;
 
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     let avatarURL: AvatarSource = '';
     if (selected && USER_AVATARS.isAvatarID(selected)) {
         avatarURL = USER_AVATARS.getLocal(selected) ?? '';
-    } else if (selected) {
-        avatarURL = avatars[selected];
     } else if (imageData.uri) {
         avatarURL = imageData.uri;
     } else if (isRemoved) {
         avatarURL = getDefaultAvatarURL({
             accountID,
             accountEmail: currentUserPersonalDetails?.email,
+            firstName: currentUserPersonalDetails?.firstName,
+            lastName: currentUserPersonalDetails?.lastName,
         });
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
@@ -122,10 +121,15 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, avatarCaptureRef, i
 
     return (
         <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
-            <AvatarCapture
-                ref={avatarCaptureRef}
-                fileName={selected ?? 'avatar'}
-            >
+            {selectedLetterScheme ? (
+                <View style={avatarStyle}>
+                    <UserInitialsAvatar
+                        text={initials}
+                        colors={selectedLetterScheme}
+                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE)}
+                    />
+                </View>
+            ) : (
                 <Avatar
                     containerStyles={avatarStyle}
                     imageStyles={avatarStyle}
@@ -135,7 +139,7 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, avatarCaptureRef, i
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     type={CONST.ICON_TYPE_AVATAR}
                 />
-            </AvatarCapture>
+            )}
             <AttachmentPicker
                 type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
                 shouldValidateImage={false}

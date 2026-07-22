@@ -276,15 +276,38 @@ function IOURequestStepConfirmation({
                 }
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
-                const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
+                // participantsPolicies only holds persisted policies, so fall back to the transaction policy when it's this
+                // participant's workspace — e.g. a freshly created draft workspace ("Submit to my employer" with no existing one).
+                const participantPolicy = (participant.policyID ? participantsPolicies[participant.policyID] : policy) ?? (participant.policyID === policy?.id ? policy : undefined);
                 // Phone contacts always have an optimistic accountID but no reportID; getReportOption
                 // is designed for report-backed participants and discards participant.text, so route
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
+                    : getReportOption(
+                          participant,
+                          privateIsArchived,
+                          participantPolicy,
+                          personalDetails,
+                          conciergeReportID,
+                          reportAttributesDerived,
+                          participantReportDraft,
+                          currentUserPersonalDetails.accountID,
+                      );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, translate],
+        [
+            transaction?.participants,
+            iouType,
+            personalDetails,
+            reportAttributesDerived,
+            privateIsArchivedMap,
+            participantsPolicies,
+            policy,
+            conciergeReportID,
+            reportDrafts,
+            translate,
+            currentUserPersonalDetails.accountID,
+        ],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
@@ -557,8 +580,13 @@ function IOURequestStepConfirmation({
         // Don't pre-insert if the report is already showing - it would push a duplicate route.
         const hasValidDestination = !!destinationReportID && Navigation.getTopmostReportId() !== destinationReportID;
 
-        // The report must be in Onyx so the pre-inserted screen can render immediately.
-        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID;
+        // The report must be in the REPORT collection so the pre-inserted screen can render immediately. A draft-only
+        // report (e.g. the expense chat of a freshly created draft workspace in the zero-workspace "Submit to my
+        // employer" flow) can't render — the report screen only reads COLLECTION.REPORT — so pre-inserting one would
+        // strand the user on an infinite skeleton if they back out before submitting. Passing an empty draft to
+        // getReportOrDraftReport skips its REPORT_DRAFT fallback while keeping the module-cache fallback for
+        // real reports that useOnyx hasn't hydrated yet.
+        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
 
         const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
 
