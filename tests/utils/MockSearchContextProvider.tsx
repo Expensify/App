@@ -38,6 +38,7 @@ function splitState(value: SearchStateContextValue): {
             currentSearchQueryJSON: value.currentSearchQueryJSON,
             currentDefaultSearchHash: value.currentDefaultSearchHash,
             currentDefaultSearchQueryString: value.currentDefaultSearchQueryString,
+            currentDefaultSearchQueryJSON: value.currentDefaultSearchQueryJSON,
             currentDefaultSearchQueryFilterKeys: value.currentDefaultSearchQueryFilterKeys,
             suggestedSearches: value.suggestedSearches,
             shouldResetSearchQuery: value.shouldResetSearchQuery,

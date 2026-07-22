@@ -33,6 +33,7 @@ const mockSearchStateContext = {
     currentSearchQueryJSON: undefined,
     currentDefaultSearchHash: undefined,
     currentDefaultSearchQueryString: undefined,
+    currentDefaultSearchQueryJSON: undefined,
     currentDefaultSearchQueryFilterKeys: new Set(),
     currentSearchResults: undefined,
     currentSelectedTransactionReportID: undefined,
