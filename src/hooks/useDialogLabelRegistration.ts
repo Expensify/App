@@ -3,7 +3,7 @@ import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperS
 
 import type {ReactNode} from 'react';
 
-import {useContext, useEffect} from 'react';
+import {useContext, useId, useLayoutEffect} from 'react';
 
 import useIsScreenFocused from './useIsScreenFocused';
 
@@ -13,18 +13,28 @@ function useDialogLabelRegistration(title: ReactNode) {
     const {pushLabel, popLabel, claimInitialFocus} = useDialogLabelActions();
     const screenWrapperStatus = useContext(ScreenWrapperStatusContext);
     const isFocused = useIsScreenFocused();
+    // Stable DOM id for aria-labelledby → visible title (APG dialog pattern).
+    const titleNativeID = useId();
 
-    useEffect(() => {
-        if (!isInsideDialog || typeof title !== 'string' || !title) {
+    const shouldRegisterLabel = !!isInsideDialog && typeof title === 'string' && !!title;
+
+    // useLayoutEffect so the dialog name is in React state before paint — JAWS virtual buffer misses post-paint setAttribute.
+    useLayoutEffect(() => {
+        if (!shouldRegisterLabel || typeof title !== 'string') {
             return;
         }
-        const id = pushLabel(title);
+        const id = pushLabel(title, titleNativeID);
         return () => popLabel(id);
-    }, [isInsideDialog, title, pushLabel, popLabel]);
+    }, [shouldRegisterLabel, title, titleNativeID, pushLabel, popLabel]);
 
     const isTransitionReady = !!isInsideDialog && !!screenWrapperStatus?.didScreenTransitionEnd && isFocused;
 
-    return {isTransitionReady, claimInitialFocus, containerRef};
+    return {
+        isTransitionReady,
+        claimInitialFocus,
+        containerRef,
+        titleNativeID: shouldRegisterLabel ? titleNativeID : undefined,
+    };
 }
 
 export default useDialogLabelRegistration;

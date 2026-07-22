@@ -1,4 +1,4 @@
-import {DialogLabelProvider} from '@components/DialogLabelContext';
+import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {
     animatedWideRHPWidth,
@@ -118,6 +118,35 @@ const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pag
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
 const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
 
+type RightModalDialogFrameProps = {
+    hasDialogSemantics: boolean;
+    style: React.ComponentProps<typeof Animated.View>['style'];
+    onContainerRef: (node: View | null) => void;
+    children: React.ReactNode;
+};
+
+/**
+ * Applies dialog naming as React props on the RHP container.
+ * Imperative setAttribute('aria-label') is invisible to JAWS's virtual buffer; declarative props are not.
+ */
+function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
+    const {dialogAriaLabel, dialogAriaLabelledBy} = useDialogLabelData();
+
+    return (
+        <Animated.View
+            ref={onContainerRef}
+            role={hasDialogSemantics ? CONST.ROLE.DIALOG : undefined}
+            aria-modal={hasDialogSemantics || undefined}
+            // APG prefers aria-labelledby → visible title; aria-label covers SRs / timing when the id is not resolved yet.
+            aria-labelledby={dialogAriaLabelledBy}
+            aria-label={dialogAriaLabel}
+            style={style}
+        >
+            {children}
+        </Animated.View>
+    );
+}
+
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
@@ -236,13 +265,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 )}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                <Animated.View
-                    ref={setContainerNodeFromRef}
-                    role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
-                    aria-modal={isSmallScreenWidth ? undefined : true}
-                    style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                <DialogLabelProvider
+                    containerNode={containerNode}
+                    hasDialogSemantics={!isSmallScreenWidth}
                 >
-                    <DialogLabelProvider containerNode={containerNode}>
+                    <RightModalDialogFrame
+                        hasDialogSemantics={!isSmallScreenWidth}
+                        onContainerRef={setContainerNodeFromRef}
+                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                    >
                         <Stack.Navigator
                             parentRoute={route}
                             screenOptions={screenOptions}
@@ -480,8 +511,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
                             />
                         </Stack.Navigator>
-                    </DialogLabelProvider>
-                </Animated.View>
+                    </RightModalDialogFrame>
+                </DialogLabelProvider>
                 {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
                 {/* Clicking on these overlays redirects you to the RHP screen below them. */}
                 {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}

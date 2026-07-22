@@ -59,7 +59,7 @@ function Header({
     shouldSkipFocusAfterTransition = false,
 }: HeaderProps) {
     const styles = useThemeStyles();
-    const {isTransitionReady, claimInitialFocus, containerRef} = useDialogLabelRegistration(isScreenHeader ? title : '');
+    const {isTransitionReady, claimInitialFocus, containerRef, titleNativeID} = useDialogLabelRegistration(isScreenHeader ? title : '');
 
     useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus, shouldSkipFocusAfterTransition);
 
@@ -103,6 +103,7 @@ function Header({
                 {typeof title === 'string'
                     ? !!title && (
                           <Text
+                              nativeID={titleNativeID}
                               numberOfLines={numberOfTitleLines}
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
                               accessibilityRole={CONST.ROLE.HEADER}

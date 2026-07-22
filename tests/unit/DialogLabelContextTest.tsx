@@ -7,13 +7,22 @@ import type {PropsWithChildren} from 'react';
 import React from 'react';
 
 let currentContainerNode: HTMLElement | null = null;
+let currentHasDialogSemantics: boolean | undefined;
 
 function wrapper({children}: PropsWithChildren) {
-    return <DialogLabelProvider containerNode={currentContainerNode}>{children}</DialogLabelProvider>;
+    return (
+        <DialogLabelProvider
+            containerNode={currentContainerNode}
+            hasDialogSemantics={currentHasDialogSemantics}
+        >
+            {children}
+        </DialogLabelProvider>
+    );
 }
 
 beforeEach(() => {
     currentContainerNode = null;
+    currentHasDialogSemantics = undefined;
 });
 
 describe('DialogLabelContext', () => {
@@ -22,6 +31,8 @@ describe('DialogLabelContext', () => {
             const {result} = renderHook(() => useDialogLabelData());
 
             expect(result.current.isInsideDialog).toBe(false);
+            expect(result.current.dialogAriaLabel).toBeUndefined();
+            expect(result.current.dialogAriaLabelledBy).toBeUndefined();
         });
 
         it('claimInitialFocus returns false outside provider', () => {
@@ -32,7 +43,15 @@ describe('DialogLabelContext', () => {
     });
 
     describe('inside provider', () => {
-        it('reports isInsideDialog as true only when the container carries dialog semantics (role=dialog or aria-modal)', () => {
+        it('reports isInsideDialog as true when hasDialogSemantics is passed', () => {
+            currentHasDialogSemantics = true;
+
+            const {result} = renderHook(() => useDialogLabelData(), {wrapper});
+
+            expect(result.current.isInsideDialog).toBe(true);
+        });
+
+        it('reports isInsideDialog as true only when the container carries dialog semantics (role=dialog or aria-modal) — DOM observation fallback', () => {
             const dialogNode = document.createElement('div');
             dialogNode.setAttribute('aria-modal', 'true');
             currentContainerNode = dialogNode;
@@ -43,6 +62,7 @@ describe('DialogLabelContext', () => {
         });
 
         it('reports isInsideDialog as false on a narrow-viewport RHP where the container has no dialog role — so useScreenInitialFocus can still land on the back button', () => {
+            currentHasDialogSemantics = false;
             const bareNode = document.createElement('div');
             currentContainerNode = bareNode;
 
@@ -51,32 +71,32 @@ describe('DialogLabelContext', () => {
             expect(result.current.isInsideDialog).toBe(false);
         });
 
-        it('pushLabel sets aria-label on the container element', () => {
-            const mockElement = document.createElement('div');
-            mockElement.setAttribute('aria-modal', 'true');
-            currentContainerNode = mockElement;
+        it('pushLabel exposes dialogAriaLabel and dialogAriaLabelledBy via context (declarative — not DOM setAttribute)', () => {
+            currentHasDialogSemantics = true;
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings');
+                result.current.pushLabel('Settings', 'dialog-title-settings');
             });
 
-            expect(mockElement.getAttribute('aria-label')).toBe('Settings');
+            expect(result.current.dialogAriaLabel).toBe('Settings');
+            expect(result.current.dialogAriaLabelledBy).toBe('dialog-title-settings');
         });
 
-        it('pushLabel does not set aria-label when the container has no dialog semantics', () => {
+        it('pushLabel does not expose a dialog name when the container has no dialog semantics', () => {
+            currentHasDialogSemantics = false;
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
-            const mockElement = document.createElement('div');
-            (result.current.containerRef as {current: unknown}).current = mockElement;
 
             act(() => {
-                result.current.pushLabel('Settings');
+                result.current.pushLabel('Settings', 'dialog-title-settings');
             });
 
-            expect(mockElement.hasAttribute('aria-label')).toBe(false);
+            expect(result.current.dialogAriaLabel).toBeUndefined();
+            expect(result.current.dialogAriaLabelledBy).toBeUndefined();
         });
 
         it('pushLabel is safe when containerRef is not set', () => {
+            currentHasDialogSemantics = true;
             const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
 
             let id = -1;
@@ -87,74 +107,50 @@ describe('DialogLabelContext', () => {
             expect(id).toBeGreaterThanOrEqual(0);
         });
 
-        it('pushLabel does not crash when containerRef.current is a non-DOM object that satisfies `instanceof HTMLElement` but lacks DOM methods (HybridApp native View)', () => {
-            const fakeNativeView: Record<string, unknown> = {};
-            const originalHasInstance = Object.getOwnPropertyDescriptor(HTMLElement, Symbol.hasInstance);
-            Object.defineProperty(HTMLElement, Symbol.hasInstance, {value: (v: unknown) => v === fakeNativeView, configurable: true});
-
-            try {
-                const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
-                (result.current.containerRef as {current: unknown}).current = fakeNativeView;
-
-                expect(() =>
-                    act(() => {
-                        result.current.pushLabel('Settings');
-                    }),
-                ).not.toThrow();
-            } finally {
-                if (originalHasInstance) {
-                    Object.defineProperty(HTMLElement, Symbol.hasInstance, originalHasInstance);
-                } else {
-                    Reflect.deleteProperty(HTMLElement, Symbol.hasInstance);
-                }
-            }
-        });
-
         it('popLabel removes the label and restores the previous one', () => {
-            const mockElement = document.createElement('div');
-            mockElement.setAttribute('aria-modal', 'true');
-            currentContainerNode = mockElement;
+            currentHasDialogSemantics = true;
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             let idA: number;
             let idB: number;
 
             act(() => {
-                idA = result.current.pushLabel('Screen A');
+                idA = result.current.pushLabel('Screen A', 'title-a');
             });
             act(() => {
-                idB = result.current.pushLabel('Screen B');
+                idB = result.current.pushLabel('Screen B', 'title-b');
             });
 
-            expect(mockElement.getAttribute('aria-label')).toBe('Screen B');
+            expect(result.current.dialogAriaLabel).toBe('Screen B');
+            expect(result.current.dialogAriaLabelledBy).toBe('title-b');
 
             act(() => {
                 result.current.popLabel(idB);
             });
 
-            expect(mockElement.getAttribute('aria-label')).toBe('Screen A');
+            expect(result.current.dialogAriaLabel).toBe('Screen A');
+            expect(result.current.dialogAriaLabelledBy).toBe('title-a');
 
             act(() => {
                 result.current.popLabel(idA);
             });
 
-            expect(mockElement.hasAttribute('aria-label')).toBe(false);
+            expect(result.current.dialogAriaLabel).toBeUndefined();
+            expect(result.current.dialogAriaLabelledBy).toBeUndefined();
         });
 
         it('popLabel removes by ID, not by stack position', () => {
-            const mockElement = document.createElement('div');
-            mockElement.setAttribute('aria-modal', 'true');
-            currentContainerNode = mockElement;
+            currentHasDialogSemantics = true;
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             let idA: number;
             let idB: number;
 
             act(() => {
-                idA = result.current.pushLabel('Screen A');
+                idA = result.current.pushLabel('Screen A', 'title-a');
             });
             act(() => {
-                idB = result.current.pushLabel('Screen B');
+                idB = result.current.pushLabel('Screen B', 'title-b');
             });
 
             // Pop the bottom entry (Screen A), not the top
@@ -163,13 +159,14 @@ describe('DialogLabelContext', () => {
             });
 
             // Screen B should still be the active label
-            expect(mockElement.getAttribute('aria-label')).toBe('Screen B');
+            expect(result.current.dialogAriaLabel).toBe('Screen B');
+            expect(result.current.dialogAriaLabelledBy).toBe('title-b');
 
             act(() => {
                 result.current.popLabel(idB);
             });
 
-            expect(mockElement.hasAttribute('aria-label')).toBe(false);
+            expect(result.current.dialogAriaLabel).toBeUndefined();
         });
 
         it('claimInitialFocus returns true on first call, false on subsequent calls', () => {
@@ -196,15 +193,49 @@ describe('DialogLabelContext', () => {
             expect(result.current.claimInitialFocus()).toBe(false);
         });
 
-        it('re-applies aria-label when the container gains dialog semantics on viewport resize (MutationObserver path)', async () => {
+        it('exposes dialogAriaLabel when hasDialogSemantics becomes true after a label was pushed (wide resize)', () => {
+            currentHasDialogSemantics = false;
+            const {result, rerender} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
+
+            act(() => {
+                result.current.pushLabel('Settings', 'title-settings');
+            });
+            expect(result.current.dialogAriaLabel).toBeUndefined();
+
+            currentHasDialogSemantics = true;
+            rerender({children: undefined});
+
+            expect(result.current.isInsideDialog).toBe(true);
+            expect(result.current.dialogAriaLabel).toBe('Settings');
+            expect(result.current.dialogAriaLabelledBy).toBe('title-settings');
+        });
+
+        it('hides dialogAriaLabel when hasDialogSemantics becomes false (wide→narrow resize)', () => {
+            currentHasDialogSemantics = true;
+            const {result, rerender} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
+
+            act(() => {
+                result.current.pushLabel('Settings', 'title-settings');
+            });
+            expect(result.current.dialogAriaLabel).toBe('Settings');
+
+            currentHasDialogSemantics = false;
+            rerender({children: undefined});
+
+            expect(result.current.isInsideDialog).toBe(false);
+            expect(result.current.dialogAriaLabel).toBeUndefined();
+            expect(result.current.dialogAriaLabelledBy).toBeUndefined();
+        });
+
+        it('re-applies naming when the container gains dialog semantics on viewport resize (MutationObserver path)', async () => {
             const mockElement = document.createElement('div');
             currentContainerNode = mockElement;
             const {result, unmount} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings');
+                result.current.pushLabel('Settings', 'title-settings');
             });
-            expect(mockElement.hasAttribute('aria-label')).toBe(false);
+            expect(result.current.dialogAriaLabel).toBeUndefined();
 
             await act(async () => {
                 mockElement.setAttribute('role', 'dialog');
@@ -212,11 +243,12 @@ describe('DialogLabelContext', () => {
                 await Promise.resolve();
             });
 
-            expect(mockElement.getAttribute('aria-label')).toBe('Settings');
+            expect(result.current.dialogAriaLabel).toBe('Settings');
+            expect(result.current.dialogAriaLabelledBy).toBe('title-settings');
             unmount();
         });
 
-        it('removes aria-label when the container loses dialog semantics (wide→narrow resize — symmetric to the narrow→wide path)', async () => {
+        it('hides naming when the container loses dialog semantics (MutationObserver path)', async () => {
             const mockElement = document.createElement('div');
             mockElement.setAttribute('role', 'dialog');
             mockElement.setAttribute('aria-modal', 'true');
@@ -224,9 +256,9 @@ describe('DialogLabelContext', () => {
             const {result, unmount} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings');
+                result.current.pushLabel('Settings', 'title-settings');
             });
-            expect(mockElement.getAttribute('aria-label')).toBe('Settings');
+            expect(result.current.dialogAriaLabel).toBe('Settings');
 
             await act(async () => {
                 mockElement.removeAttribute('role');
@@ -234,7 +266,7 @@ describe('DialogLabelContext', () => {
                 await Promise.resolve();
             });
 
-            expect(mockElement.hasAttribute('aria-label')).toBe(false);
+            expect(result.current.dialogAriaLabel).toBeUndefined();
             unmount();
         });
 
