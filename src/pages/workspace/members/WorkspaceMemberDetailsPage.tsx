@@ -369,6 +369,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 interactive={!isReimburser && canManageSelectedMemberRole}
                                 description={translate('common.role')}
                                 shouldShowRightIcon={!isReimburser && canManageSelectedMemberRole}
+                                pressableTestID="member-role-menu-item"
                                 onPress={() => {
                                     if (
                                         tryNavigateToSubmitWorkspaceUpgrade(
@@ -394,6 +395,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             shouldShowRightIcon={canWriteMembers}
                                             interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
+                                            pressableTestID="member-customField1-menu-item"
                                         />
                                     </OfflineWithFeedback>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
@@ -403,6 +405,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             shouldShowRightIcon={canWriteMembers}
                                             interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
+                                            pressableTestID="member-customField2-menu-item"
                                         />
                                     </OfflineWithFeedback>
                                 </>
@@ -413,6 +416,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 icon={icons.Info}
                                 onPress={navigateToProfile}
                                 shouldShowRightIcon
+                                pressableTestID="member-profile-menu-item"
                             />
                             {memberCards.length > 0 && (
                                 <>
@@ -430,13 +434,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
                                         return (
                                             <OfflineWithFeedback
-                                                key={`${cardTitle ?? ''}_${memberCard.cardID}`}
+                                                key={memberCard.cardID}
                                                 errorRowStyles={styles.ph5}
                                                 errors={memberCard.errors}
                                                 pendingAction={memberCard.pendingAction}
                                             >
                                                 <MenuItem
                                                     key={memberCard.cardID}
+                                                    pressableTestID={`card-${memberCard.cardID}`}
                                                     title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
                                                     badgeText={
