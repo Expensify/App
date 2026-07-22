@@ -2206,7 +2206,7 @@
 "../../tests/unit/pages/inbox/report/ReportActionEditMessageContext.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/pages/inbox/report/ReportActionEditMessageContext.test.tsx"	"no-restricted-imports"	1
 "../../tests/unit/pages/settings/AddAgentAvatarPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/pages/settings/AddAgentPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	11
+"../../tests/unit/pages/settings/AddAgentPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/pages/settings/AgentsListRowTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/pages/settings/EditAgentPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/pages/settings/EditNamePageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
