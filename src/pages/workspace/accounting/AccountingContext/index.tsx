@@ -1,5 +1,7 @@
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -42,6 +44,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
     const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardLists] = useCardsLists();
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -69,6 +73,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
                 undefined,
                 accountingIcons,
+                cardFeeds,
+                cardLists,
             );
 
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
@@ -92,6 +98,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             hasReusablePoliciesConnectedToCertinia,
             hasReusablePoliciesConnectedToRillet,
             accountingIcons,
+            cardFeeds,
+            cardLists,
         ],
     );
 
@@ -144,6 +152,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             undefined,
             undefined,
             accountingIcons,
+            cardFeeds,
+            cardLists,
         )?.setupConnectionFlow;
     };
 

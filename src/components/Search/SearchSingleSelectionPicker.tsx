@@ -5,10 +5,10 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
@@ -31,6 +31,7 @@ type SearchSingleSelectionPickerProps = {
     shouldAutoSave?: boolean;
     shouldShowTextInput?: boolean;
     allowNoneOption?: boolean;
+    shouldSkipFocusRestoreOnSave?: boolean;
 };
 
 function SearchSingleSelectionPicker({
@@ -42,6 +43,7 @@ function SearchSingleSelectionPicker({
     shouldAutoSave,
     shouldShowTextInput = true,
     allowNoneOption = false,
+    shouldSkipFocusRestoreOnSave = false,
 }: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
@@ -53,17 +55,7 @@ function SearchSingleSelectionPicker({
     }, [initiallySelectedItem]);
 
     const searchLower = debouncedSearchTerm?.toLowerCase();
-    const noneItem =
-        allowNoneOption && translate('common.none').toLowerCase().includes(searchLower)
-            ? [
-                  {
-                      text: translate('common.none'),
-                      keyForList: CONST.SEARCH.NONE_OPTION_KEY,
-                      isSelected: !selectedItem?.value,
-                      value: '',
-                  },
-              ]
-            : [];
+    const noneItem = allowNoneOption ? getNoneOption(debouncedSearchTerm, !selectedItem?.value, translate) : [];
 
     const initiallySelectedItemSection =
         initiallySelectedItem?.name.toLowerCase().includes(searchLower) || initiallySelectedItem?.searchableText?.toLowerCase().includes(searchLower)
@@ -110,7 +102,7 @@ function SearchSingleSelectionPicker({
         }
         if (shouldAutoSave) {
             onSaveSelection(item.isSelected ? '' : item.value);
-            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
+            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS, {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
             return;
         }
         if (!item.isSelected) {
@@ -124,7 +116,7 @@ function SearchSingleSelectionPicker({
 
     const applyChanges = () => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS, {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
     };
 
     const footerContent = (
