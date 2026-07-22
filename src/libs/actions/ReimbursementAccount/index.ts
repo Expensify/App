@@ -69,9 +69,9 @@ function clearReimbursementAccountBackup() {
  * We need to temporarily clear this data to set up new account without disconnecting existing one
  */
 function prepareNewBankAccountSetup(currency: string, reimbursementAccountToBackup?: OnyxEntry<ReimbursementAccount>) {
-    // Snapshot the account before clearing it, so it can be restored if the user abandons the change flow. Only a real
-    // account (in-progress or connected) has achData.currentStep; the default/empty account has none, so skip it.
-    if (reimbursementAccountToBackup?.achData?.currentStep) {
+    // Snapshot the account before clearing it, so it can be restored if the user abandons the change flow. Any real
+    // account has achData.bankAccountID; the default/empty account has none, so skip it.
+    if (reimbursementAccountToBackup?.achData?.bankAccountID) {
         Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP, reimbursementAccountToBackup);
     }
     Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
