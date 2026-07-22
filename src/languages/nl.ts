@@ -8558,9 +8558,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de standaarduitgavencategorie voor ‘${mccGroupName}’ gewijzigd in ‘${newCategory}’ (voorheen ‘${oldCategory}’)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `vereiste ${enabled ? 'ingeschakeld' : 'uitgeschakeld'} voor bedrijfskaarttransacties`,
         agentRule: {
-            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `agentregel "${title}" toegevoegd: ${prompt}` : `een agentregel toegevoegd: ${prompt}`),
-            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `agentregel "${title}" bijgewerkt naar: ${prompt}` : `een agentregel bijgewerkt naar: ${prompt}`),
-            deleted: ({title}: {title: string}) => (title ? `agentregel "${title}" verwijderd` : `een agentregel verwijderd`),
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `heeft de agentregel "${title}" toegevoegd: ${prompt}` : `heeft een agentregel toegevoegd: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `heeft de agentregel „${title}” bijgewerkt naar: ${prompt}` : `heeft een agentregel bijgewerkt naar: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `heeft de agentregel '${title}' verwijderd` : 'heeft een agentregel verwijderd'),
         },
         expensifyCardRule: {
             actionVerb: {block: 'geblokkeerd', allow: 'toegestaan'},

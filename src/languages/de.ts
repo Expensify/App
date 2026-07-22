@@ -8605,9 +8605,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `hat die Standardausgabenkategorie für „${mccGroupName}“ in „${newCategory}“ geändert (zuvor „${oldCategory}“)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung für Firmenkartenkäufe`,
         agentRule: {
-            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `Agentenregel "${title}" hinzugefügt: ${prompt}` : `Eine Agentenregel hinzugefügt: ${prompt}`),
-            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `Agentenregel "${title}" aktualisiert auf: ${prompt}` : `Eine Agentenregel aktualisiert auf: ${prompt}`),
-            deleted: ({title}: {title: string}) => (title ? `Agentenregel "${title}" entfernt` : 'Eine Agentenregel entfernt'),
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `hat die Agentenregel „${title}“ hinzugefügt: ${prompt}` : `hat eine Agentenregel hinzugefügt: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `hat die Agentenregel „${title}“ aktualisiert auf: ${prompt}` : `eine Agentenregel aktualisiert zu: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `hat die Agentenregel „${title}“ gelöscht` : 'hat eine Agentenregel gelöscht'),
         },
         expensifyCardRule: {
             actionVerb: {block: 'blockiert', allow: 'erlaubt'},

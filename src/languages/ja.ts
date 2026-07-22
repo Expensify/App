@@ -8478,8 +8478,8 @@ ${reportName}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `エージェントルール「${title}」を追加しました：${prompt}` : `エージェントルールを追加しました：${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>
-                title ? `エージェントルール「${title}」を次のように更新しました：${prompt}` : `エージェントルールを次のように更新しました：${prompt}`,
-            deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : `エージェントルールを削除しました`),
+                title ? `エージェントルール「${title}」を次の内容に更新しました：${prompt}` : `エージェントルールを次の内容に更新しました：${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : 'エージェントルールを削除しました'),
         },
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
