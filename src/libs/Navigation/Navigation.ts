@@ -466,11 +466,11 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     }
 
     // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    const dispatch = (dispatchable: NavigationAction) => {
+    const dispatch = (actionToDispatch: NavigationAction) => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();
         }
-        navigationRef.current?.dispatch(dispatchable);
+        navigationRef.current?.dispatch(actionToDispatch);
     };
 
     // TabRouter does not handle POP or REPLACE (BaseRouter returns null). Switch tabs with jumpTo.
