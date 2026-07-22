@@ -43,7 +43,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getRequireFieldsRuleCategoryRoute} from '@src/ROUTES';
+import ROUTES, {getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
@@ -359,6 +359,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         clearDraftRequireFieldsRule();
 
         if (!isEditing && isRulesRevampEnabled) {
+            if (initialCategoryName) {
+                Navigation.goBack(getWorkspaceCategorySettingsRoute(policyID, initialCategoryName));
+                return;
+            }
+
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.REQUIRE_FIELDS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
             return;

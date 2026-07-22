@@ -63,7 +63,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
             return {name: decodedCategoryName, value: category.name};
         });
 
-    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
+    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, selectedCategoryName);
 
     const onSave = (value?: string) => {
         // Preserve the current draft amount / limit type. Merging from the destination category

@@ -4474,8 +4474,17 @@ function getFlagForReviewRuleAmountRoute(policyID: string, categoryName?: string
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID);
 }
 
+/**
+ * Category Settings destination after creating a Rules Revamp rule from the category RHP.
+ * Built as a concrete path (not createDynamicRoute) so it can be used from ROUTES helpers
+ * without circular imports.
+ */
+function getWorkspaceCategorySettingsRoute(policyID: string, categoryName: string) {
+    return `workspaces/${policyID}/categories/category/${encodeURIComponent(categoryName)}` as const;
+}
+
 export default ROUTES;
-export {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getRequireFieldsRuleCategoryRoute};
+export {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute};
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
 type ReportAddAttachmentRoute = `r/${string}/attachment/add`;

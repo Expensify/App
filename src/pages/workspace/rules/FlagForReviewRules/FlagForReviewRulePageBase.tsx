@@ -30,7 +30,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute} from '@src/ROUTES';
+import ROUTES, {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 
@@ -131,6 +131,11 @@ function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName,
         saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined);
 
         if (!isEditing && isRulesRevampEnabled) {
+            if (initialCategoryName) {
+                Navigation.goBack(getWorkspaceCategorySettingsRoute(policyID, initialCategoryName));
+                return;
+            }
+
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.FLAG_FOR_REVIEW);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
             return;

@@ -54,7 +54,9 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
     const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(draftExpenseLimitType);
     const selectedExpenseLimitType = expenseLimitType ?? draftExpenseLimitType;
 
-    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
+    const backToRoute = isEditing
+        ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName)
+        : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.CATEGORY]);
 
     const expenseLimitTypes = useMemo(
         () =>
