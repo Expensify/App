@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import SearchAdvancedFiltersProvider, {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
@@ -51,8 +52,7 @@ function renderProvider() {
 type QueryContext = {
     currentDefaultSearchQueryString: string;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
-    currentSearchHash: number;
-    currentDefaultSearchHash: number;
+    currentDefaultSearchQueryJSON: SearchQueryJSON | undefined;
 };
 
 function mockOnyxForm(form: Partial<SearchAdvancedFiltersForm> | undefined) {
@@ -63,8 +63,7 @@ function mockQueryContext(context: Partial<QueryContext>) {
     mockUseSearchQueryContext.mockReturnValue({
         currentDefaultSearchQueryString: '',
         currentSearchQueryJSON: undefined,
-        currentSearchHash: 0,
-        currentDefaultSearchHash: 0,
+        currentDefaultSearchQueryJSON: undefined,
         ...context,
     });
 }
@@ -82,45 +81,63 @@ describe('SearchAdvancedFiltersProvider', () => {
     });
 
     describe('shouldShowResetFilters', () => {
-        it('is true when the default hash differs from the current hash', () => {
+        it('is true when the default query filters differ from the current query filters', () => {
             mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-            mockQueryContext({currentDefaultSearchHash: 1, currentSearchHash: 2});
+            mockQueryContext({
+                currentDefaultSearchQueryJSON: buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`),
+                currentSearchQueryJSON: buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon category:Food`),
+            });
 
             const {result} = renderProvider();
 
             expect(result.current.shouldShowResetFilters).toBe(true);
         });
 
-        it('is false when the default hash equals the current hash', () => {
+        it('is false when the default query filters equal the current query filters', () => {
             mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-            mockQueryContext({currentDefaultSearchHash: 5, currentSearchHash: 5});
+            mockQueryContext({
+                currentDefaultSearchQueryJSON: buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`),
+                currentSearchQueryJSON: buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`),
+            });
 
             const {result} = renderProvider();
 
             expect(result.current.shouldShowResetFilters).toBe(false);
         });
 
-        it('falls back to having a non-type filter when there is no default hash', () => {
+        it('is false when the queries differ only by the keyword', () => {
+            mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+            mockQueryContext({
+                currentDefaultSearchQueryJSON: buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`),
+                currentSearchQueryJSON: buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon coffee`),
+            });
+
+            const {result} = renderProvider();
+
+            expect(result.current.shouldShowResetFilters).toBe(false);
+        });
+
+        it('is true when there is no default query JSON and non-type filter is applied', () => {
             mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.EXPENSE, merchant: 'Amazon'});
-            mockQueryContext({currentDefaultSearchHash: 0});
+            mockQueryContext({currentDefaultSearchQueryJSON: undefined});
 
             const {result} = renderProvider();
 
             expect(result.current.shouldShowResetFilters).toBe(true);
         });
 
-        it('is false when there is no default hash and only the type filter is applied', () => {
+        it('is false when there is no default query JSON and only the type filter is applied', () => {
             mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-            mockQueryContext({currentDefaultSearchHash: 0});
+            mockQueryContext({currentDefaultSearchQueryJSON: undefined});
 
             const {result} = renderProvider();
 
             expect(result.current.shouldShowResetFilters).toBe(false);
         });
 
-        it('is false when there is no default hash and no filters', () => {
+        it('is false when there is no default query JSON and no filters', () => {
             mockOnyxForm(undefined);
-            mockQueryContext({currentDefaultSearchHash: 0});
+            mockQueryContext({currentDefaultSearchQueryJSON: undefined});
 
             const {result} = renderProvider();
 

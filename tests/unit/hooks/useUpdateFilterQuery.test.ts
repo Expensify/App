@@ -54,7 +54,7 @@ describe('useUpdateFilterQuery', () => {
             result.current.setFilterQueryParams({type: CONST.SEARCH.DATA_TYPES.INVOICE});
 
             expect(mockResetSearchKey).toHaveBeenCalledTimes(1);
-            expect(mockResetSearchKey).toHaveBeenCalledWith(expect.objectContaining({type: CONST.SEARCH.DATA_TYPES.INVOICE}));
+            expect(mockResetSearchKey).toHaveBeenCalledWith(true, expect.objectContaining({type: CONST.SEARCH.DATA_TYPES.INVOICE}));
         });
 
         it('does not reset the search key when the type is unchanged', () => {
