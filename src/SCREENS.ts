@@ -388,7 +388,7 @@ const SCREENS = {
         DESCRIPTION: 'Transaction_Duplicate_Description',
         TAX_CODE: 'Transaction_Duplicate_Tax_Code',
         REIMBURSABLE: 'Transaction_Duplicate_Reimbursable',
-        BILLABLE: 'Transaction_Duplicate_Billable',
+        DYNAMIC_BILLABLE: 'Dynamic_Transaction_Duplicate_Billable',
         DYNAMIC_CONFIRMATION: 'Dynamic_Transaction_Duplicate_Confirmation',
     },
 

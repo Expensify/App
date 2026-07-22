@@ -1126,7 +1126,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
     },
     TRANSACTION_DUPLICATE_CONFIRMATION: {
-        path: 'transaction-duplicate-confirmation',
+        path: 'confirm',
         entryScreens: [
             SCREENS.TRANSACTION_DUPLICATE.REVIEW,
             SCREENS.TRANSACTION_DUPLICATE.MERCHANT,
@@ -1135,7 +1135,19 @@ const DYNAMIC_ROUTES = {
             SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION,
             SCREENS.TRANSACTION_DUPLICATE.TAX_CODE,
             SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE,
-            SCREENS.TRANSACTION_DUPLICATE.BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+        ],
+    },
+    TRANSACTION_DUPLICATE_REVIEW_BILLABLE: {
+        path: 'billable',
+        entryScreens: [
+            SCREENS.TRANSACTION_DUPLICATE.REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE,
         ],
     },
 } as const satisfies DynamicRoutes;
@@ -3584,11 +3596,6 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review/reimbursable',
 
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/reimbursable` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/billable',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/billable` as const, backTo),
     },
     MERGE_TRANSACTION_LIST_PAGE: {
         route: 'merge/:transactionID',
