@@ -8,8 +8,6 @@ import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
 
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-
 import Onyx from 'react-native-onyx';
 
 import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
@@ -1181,12 +1179,9 @@ describe('ReportActionsUtils', () => {
         };
 
         beforeEach(() => {
-            const updates: OnyxMultiSetInput = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedIOUReportID}`]: {[deletedIOUReportAction.reportActionID]: deletedIOUReportAction},
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activeIOUReportID}`]: {[activeIOUReportAction.reportActionID]: activeIOUReportAction},
-            };
-            Onyx.multiSet(updates);
-            return waitForBatchedUpdates();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedIOUReportID}`, {[deletedIOUReportAction.reportActionID]: deletedIOUReportAction})
+                .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activeIOUReportID}`, {[activeIOUReportAction.reportActionID]: activeIOUReportAction}))
+                .then(waitForBatchedUpdates);
         });
 
         it('should return false for a deleted IOU report action', () => {
@@ -1294,13 +1289,8 @@ describe('ReportActionsUtils', () => {
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
-                    .then(() => {
-                        const updates: OnyxMultiSetInput = {
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action, [action2.reportActionID]: action2},
-                        };
-                        return Onyx.multiSet(updates);
-                    })
+                    .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report))
+                    .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[action.reportActionID]: action, [action2.reportActionID]: action2}))
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
