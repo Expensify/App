@@ -173,7 +173,10 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                         // If the user cancels while the PDF is still generating, discard the submission (retract it back
                         // to draft) so they can resubmit — matching the pre-submit-via-PDF behavior.
                         openPDFDownload({
-                            onCancel: () =>
+                            onCancel: () => {
+                                // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
+                                // back to the Submit button instead of finishing the animation on a report that is open again.
+                                stopAnimation();
                                 retractReport(
                                     moneyRequestReport,
                                     chatReport,
@@ -185,7 +188,8 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                                     nextStep,
                                     delegateEmail,
                                     isTrackIntentUser,
-                                ),
+                                );
+                            },
                         });
                     }
                 },
