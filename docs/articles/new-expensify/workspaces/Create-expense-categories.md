@@ -1,7 +1,7 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories]
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories, show GL codes when categorizing expenses, GL codes in category picker, search categories by GL code]
 internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
 ---
 
@@ -91,7 +91,7 @@ Bulk actions are available using the checkboxes and **Selected** menu.
 
 ## How to add or edit GL codes or payroll codes
 
-Workspaces on the **Control** plan can assign optional **GL codes** and **payroll codes** to each category. These codes are not visible to members but can be exported for accounting purposes.
+Workspaces on the **Control** plan can assign optional **GL codes** and **payroll codes** to each category. These codes are hidden from members by default and can be exported for accounting purposes. If you want members to see GL codes while categorizing expenses, you can turn on **Show GL codes when categorizing expenses**.
 
 To edit these fields:
 
@@ -103,6 +103,27 @@ To edit these fields:
 6. Click **Save**.
 
 ![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/NewExpensify_ManageCategories_2.png){:width="100%"}
+
+---
+
+## How to show GL codes in the category picker
+
+By default, GL codes are hidden from members. On the **Control** plan with **GL codes** enabled, you can turn on **Show GL codes when categorizing expenses** so each category's GL code appears beneath the category name in the category picker. When this setting is on, members can also search the picker by GL code.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Click **More**.
+5. Click **Settings**.
+6. Turn on **Show GL codes when categorizing expenses**.
+
+Categories that have a GL code assigned show it as a second line below the category name; categories without a GL code show only the name. Selecting a category is unaffected—only the raw category name is saved.
+
+<!-- SCREENSHOT:
+Suggestion: The Category picker on an expense with "Show GL codes when categorizing expenses" turned on, showing a category name with its GL code as a muted second line (e.g. Advertising with 4000 below it).
+Location: After the numbered steps in this section.
+Purpose: Confirms to admins what members will actually see in the picker, since the GL code appears as a muted secondary line that is easy to overlook when verifying the setting.
+-->
 
 ---
 
@@ -191,5 +212,5 @@ Alternatively, you can enable tags on the workspace to edit the category directl
 
 ## How can members see GL codes?
 
-GL codes are not visible to members by default. If visibility is required, consider including the GL code in the category name itself.
+GL codes are hidden from members by default. On the **Control** plan with **GL codes** enabled, turn on **Show GL codes when categorizing expenses** in **Workspaces > [Workspace Name] > Categories > More > Settings** to display each category's GL code in the category picker and make the picker searchable by GL code.
 
