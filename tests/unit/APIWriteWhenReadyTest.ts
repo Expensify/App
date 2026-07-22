@@ -264,7 +264,7 @@ describe('API.writeWhenReady', () => {
         expect(cancel).toHaveBeenCalledTimes(1);
     });
 
-    it('calls cancel exactly once (a safe no-op) even when the barrier resolves normally', async () => {
+    it('does not cancel a cancelable barrier that resolves normally', async () => {
         const {barrier, release, cancel} = makeCancelableBarrier();
 
         deferWrite(barrier);
@@ -275,7 +275,8 @@ describe('API.writeWhenReady', () => {
         await flushMicrotasks(pushHappened);
 
         expect(mockPush).toHaveBeenCalledTimes(1);
-        expect(cancel).toHaveBeenCalledTimes(1);
+        // The barrier itself released the write, so it has already settled - there is nothing to cancel.
+        expect(cancel).not.toHaveBeenCalled();
     });
 
     it('honors a custom safetyTimeoutMs', async () => {

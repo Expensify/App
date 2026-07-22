@@ -203,9 +203,10 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
 
 /**
  * A barrier that also exposes a `cancel` to release whatever it is waiting on. `writeWhenReady` calls
- * this once the write has executed, so a barrier still pending at that point (released early via the
- * safety timeout, or because the app backgrounds) doesn't leave a dangling registration. Exposing
- * `cancel` is optional - a plain promise-like works too.
+ * this only when it executes the write before the barrier has settled (released early via the safety
+ * timeout, or because the app backgrounds), so a still-pending barrier doesn't leave a dangling
+ * registration. When the barrier itself releases the write, it has already settled and `cancel` is not
+ * called. Exposing `cancel` is optional - a plain promise-like works too.
  */
 type CancelableBarrier = PromiseLike<unknown> & {cancel: () => void};
 
@@ -385,9 +386,14 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
             try {
                 clearTimeout(safetyTimeoutId);
                 pendingWriteWhenReadyFlushes.delete(flushOnBackground);
-                // Release the barrier if it is still pending (e.g. released early via timeout/background), so
-                // it doesn't leave a dangling registration.
-                cancelBarrier();
+                // Release the barrier only on the early-release paths (safety timeout / app background),
+                // where the barrier may still be pending and would otherwise leave a dangling registration.
+                // On the 'barrier'/'barrierRejected' paths the barrier has already settled, so there is
+                // nothing to cancel - and skipping the call means a custom barrier whose cancel() is unsafe
+                // after settling can never throw here and drop the write.
+                if (reason === 'safetyTimeout' || reason === 'appBackground') {
+                    cancelBarrier();
+                }
 
                 if (reason !== 'barrier') {
                     Log.warn(`[API] writeWhenReady released via "${reason}" - the barrier did not release the write`, {
