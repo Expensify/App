@@ -22,6 +22,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
+    getFilterFormValues,
     getFilterFromQuery,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
@@ -3617,6 +3618,26 @@ describe('SearchQueryUtils', () => {
             expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM)).toBe(false);
             expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)).toBe(false);
             expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY)).toBe(false);
+        });
+    });
+
+    describe('getFilterFormValues', () => {
+        it('sets the base key and clears the negated key when not negated', () => {
+            const result = getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'coffee', false);
+
+            expect(result).toEqual({
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'coffee',
+                [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: undefined,
+            });
+        });
+
+        it('sets the negated key and clears the base key when negated', () => {
+            const result = getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'coffee', true);
+
+            expect(result).toEqual({
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: undefined,
+                [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: 'coffee',
+            });
         });
     });
 
