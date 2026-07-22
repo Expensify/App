@@ -38,6 +38,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {getOptionalNumberProperty, readProperty, requireRecord, requireRecordArrayProperty, requireStringProperty} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
@@ -54,43 +55,7 @@ const TEST_PHONE_NUMBER = '1234567890';
 const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
-type UnknownRecord = Record<string, unknown>;
 type GuidedSetupItem = {task?: string; completedTaskReportActionID?: string};
-
-function requireRecord(value: unknown, label = 'value'): UnknownRecord {
-    if (!isRecord(value)) {
-        throw new Error(`Expected ${label} to be an object`);
-    }
-    return value;
-}
-
-function readProperty(value: unknown, key: string): unknown {
-    return requireRecord(value, `container for ${key}`)[key];
-}
-
-function requireStringProperty(value: unknown, key: string): string {
-    const property = readProperty(value, key);
-    if (typeof property !== 'string') {
-        throw new Error(`Expected ${key} to be a string`);
-    }
-    return property;
-}
-
-function getOptionalNumberProperty(value: unknown, key: string): number | undefined {
-    const property = readProperty(value, key);
-    if (property !== undefined && typeof property !== 'number') {
-        throw new Error(`Expected ${key} to be a number when present`);
-    }
-    return property;
-}
-
-function requireRecordArrayProperty(value: unknown, key: string): UnknownRecord[] {
-    const property = readProperty(value, key);
-    if (!Array.isArray(property) || !property.every(isRecord)) {
-        throw new Error(`Expected ${key} to be an array of objects`);
-    }
-    return property;
-}
 
 function requireCallArgument(call: unknown, index: number): unknown {
     if (!Array.isArray(call) || !(index in call)) {
@@ -99,7 +64,7 @@ function requireCallArgument(call: unknown, index: number): unknown {
     return call.at(index);
 }
 
-function parseJSONRecord(value: unknown): UnknownRecord {
+function parseJSONRecord(value: unknown): Record<string, unknown> {
     if (typeof value !== 'string') {
         throw new Error('Expected JSON payload to be a string');
     }
