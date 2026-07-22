@@ -62,6 +62,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
@@ -79,16 +80,6 @@ jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/actions/Policy/Policy', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Policy/Policy'),
     createWorkspace: jest.fn(() => ({policyID: 'mock-created-policy-id'})),
-}));
-
-const mockVerifyAccountAndResume = jest.fn();
-
-jest.mock('@hooks/useVerifyAccountAndResume', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
-        isUserValidated: true,
-        verifyAccountAndResume: mockVerifyAccountAndResume,
-    })),
 }));
 
 const ACCOUNT_ID = 1;
