@@ -1,18 +1,24 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;

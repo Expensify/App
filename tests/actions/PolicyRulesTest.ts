@@ -1,13 +1,17 @@
-import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {addPolicyAgentRule, clearPolicyAgentRuleErrors, clearPolicyCodingRuleErrors, deletePolicyAgentRule, updatePolicyAgentRule} from '@libs/actions/Policy/Rules';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {AgentRule, CodingRule} from '@src/types/onyx/Policy';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -18,7 +22,6 @@ function getPolicy(policyID: string): Promise<Policy | undefined> {
     return new Promise((resolve) => {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            waitForCollectionCallback: false,
             callback: (policy) => {
                 Onyx.disconnect(connection);
                 resolve(policy);

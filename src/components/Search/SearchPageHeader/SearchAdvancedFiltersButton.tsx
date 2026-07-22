@@ -1,4 +1,3 @@
-import React from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -6,6 +5,7 @@ import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupBut
 import type {ButtonComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SearchAdvancedFiltersPopup from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -13,9 +13,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type SearchAdvancedFiltersButtonProp = {
     queryJSON: SearchQueryJSON;
@@ -39,12 +43,12 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                 style={[styles.searchActionsBar(true)]}
                 hoverStyle={styles.buttonHoveredBG}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
             >
                 <Icon
                     src={expensifyIcons.Filter}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             </PressableWithFeedback>
         );
@@ -64,7 +68,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                   <Icon
                       src={expensifyIcons.Filter}
                       fill={theme.icon}
-                      extraSmall
+                      size={CONST.ICON_SIZE.EXTRA_SMALL}
                   />
               </PressableWithFeedback>
           )

@@ -1,16 +1,20 @@
-import lodashSortBy from 'lodash/sortBy';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccount, BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import lodashSortBy from 'lodash/sortBy';
 
 function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typeof CONST.CORPAY_FIELDS.PAGE_NAME>, CorpayFieldsMap> {
     return (corpayFields?.formFields ?? []).reduce(

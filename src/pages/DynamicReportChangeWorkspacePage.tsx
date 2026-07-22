@@ -1,6 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -8,9 +5,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -20,6 +19,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
+
 import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,14 +36,23 @@ import {
     isWorkspaceEligibleForReportChange,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {DismissedProductTraining} from '@src/types/onyx';
-import NotFoundPage from './ErrorPage/NotFoundPage';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
+import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type DynamicReportChangeWorkspacePageProps = WithReportOrNotFoundProps &
@@ -57,7 +66,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const reportTransactions = useReportTransactions(reportID);
 
     const reportPreviewAction = useParentReportAction(report);
@@ -65,13 +74,13 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.managerID)}, [report?.managerID]);
-    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -83,6 +92,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selectPolicy = (policyID?: string) => {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -99,15 +109,15 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             const invite = moveIOUReportToPolicyAndInviteSubmitter(
                 report,
                 policy,
-                formatPhoneNumber,
                 filteredReportActions,
+                reportPreviewAction,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
                 doesSubmitterPersonalDetailExist ?? false,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
-                moveIOUReportToPolicy(report, policy, false, reportTransactions);
+                moveIOUReportToPolicy(report, policy, reportPreviewAction, false, reportTransactions);
             }
             return;
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -119,7 +129,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 report,
                 parentReport,
                 policy,
-                personalDetails: {[report.ownerAccountID]: {accountID: report.ownerAccountID}},
                 currentUser: {
                     accountID: currentUserPersonalDetails.accountID,
                     displayName: currentUserPersonalDetails.displayName,
@@ -132,11 +141,11 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isChangePolicyTrainingModalDismissed,
                 isASAPSubmitBetaEnabled,
                 employeeList,
-                formatPhoneNumber,
                 isReportLastVisibleArchived,
                 reportNextStep,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
+                isTrackIntentUser,
             });
             return;
         }
@@ -147,6 +156,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             policy,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            ownerLogin: submitterLogin,
             managerLogin,
             hasViolationsParam: hasViolations,
             isChangePolicyTrainingModalDismissed,
@@ -154,6 +164,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportNextStep,
             isReportLastVisibleArchived,
             reportPreviewAction,
+            isTrackIntentUser,
         });
     };
 
@@ -203,7 +214,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'DynamicReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                                reasonAttributes={{context: 'DynamicReportChangeWorkspacePage', isLoadingApp: isAppLoadPending}}
                             />
                         </View>
                     ) : (

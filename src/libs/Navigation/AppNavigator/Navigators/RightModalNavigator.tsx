@@ -1,8 +1,3 @@
-import type {NavigatorScreenParams} from '@react-navigation/native';
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter} from 'react-native';
 import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {
@@ -15,10 +10,12 @@ import {
     useWideRHPActions,
     useWideRHPState,
 } from '@components/WideRHPContextProvider';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
@@ -32,15 +29,28 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import createRightModalNavigator from '@navigation/AppNavigator/createRightModalNavigator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
+
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
+import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {View} from 'react-native';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated, DeviceEventEmitter} from 'react-native';
+
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import Overlay from './Overlay';
 
@@ -111,7 +121,10 @@ const loadSearchSavePage = () => require<ReactComponentModule>('../../../../page
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const containerRef = useRef(null);
+    const [containerNode, setContainerNode] = useState<View | null>(null);
+    const [setContainerNodeFromRef] = useState(() => (node: View | null) => {
+        setContainerNode(node);
+    });
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
     const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
@@ -224,12 +237,12 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
                 <Animated.View
-                    ref={containerRef}
+                    ref={setContainerNodeFromRef}
                     role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
                     aria-modal={isSmallScreenWidth ? undefined : true}
                     style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
                 >
-                    <DialogLabelProvider containerRef={containerRef}>
+                    <DialogLabelProvider containerNode={containerNode}>
                         <Stack.Navigator
                             parentRoute={route}
                             screenOptions={screenOptions}
@@ -262,6 +275,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.DebugModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.AVATAR_CROP}
+                                component={ModalStackNavigators.AvatarCropModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION}
                                 component={ModalStackNavigators.NewReportWorkspaceSelectionModalStackNavigator}
                             />
@@ -292,10 +309,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
                                 component={ModalStackNavigators.ChronosScheduleOOOModalStackNavigator}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT}
-                                component={ModalStackNavigators.ReportVerifyAccountModalStackNavigator}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}

@@ -1,15 +1,21 @@
-import React from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import {updateNetSuiteTravelInvoicingPayableAccount} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import TravelInvoicingPayableAccountSelectPage from '@pages/workspace/accounting/common/TravelInvoicingPayableAccountSelectPage';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 function NetSuiteTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};

@@ -1,15 +1,18 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {EnablePolicyTravelParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function enablePolicyTravel(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {

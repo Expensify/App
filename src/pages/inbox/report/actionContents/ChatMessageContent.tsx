@@ -1,14 +1,13 @@
-import {hasPendingFollowupListSkeletonSelector} from '@selectors/AgentZeroChat';
-import React from 'react';
-import {View} from 'react-native';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getModerationFlagState,
@@ -18,11 +17,18 @@ import {
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
 } from '@libs/ReportActionsUtils';
+
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {hasPendingFollowupListSkeletonSelector} from '@selectors/AgentZeroChat';
+import React from 'react';
+import {View} from 'react-native';
+
 import ChatActionableButtons from './ChatActionableButtons';
 
 type ChatMessageContentProps = {

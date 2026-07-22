@@ -1,14 +1,18 @@
-import Onyx from 'react-native-onyx';
 import {clearPersonalBankAccount, connectBankAccountWithPlaid, openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import getOnyxValue from '../utils/getOnyxValue';
+
+import Onyx from 'react-native-onyx';
+
 import type {MockFetch} from '../utils/TestHelper';
+
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

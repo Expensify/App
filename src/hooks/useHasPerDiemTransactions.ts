@@ -1,8 +1,12 @@
-import {useCallback} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 
 const hasPerDiemTransactionsSelector = (transactions: OnyxCollection<Transaction>, transactionIDs: string[]) => {
@@ -15,13 +19,9 @@ const hasPerDiemTransactionsSelector = (transactions: OnyxCollection<Transaction
 function useHasPerDiemTransactions(transactionIDs: string[]) {
     const selector = useCallback((transactions: OnyxCollection<Transaction>) => hasPerDiemTransactionsSelector(transactions, transactionIDs), [transactionIDs]);
 
-    const [hasPerDiemTransactions] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector,
-        },
-        [selector],
-    );
+    const [hasPerDiemTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector,
+    });
 
     return hasPerDiemTransactions ?? false;
 }

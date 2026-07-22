@@ -1,7 +1,11 @@
-import type {ReactNode} from 'react';
-import React, {useId} from 'react';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ReactNode} from 'react';
+
+import React, {useId} from 'react';
+
 import type TextInputAccessibilityResult from './type';
 
 /**

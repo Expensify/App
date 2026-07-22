@@ -53,6 +53,9 @@ const LETTER_AVATAR_SCHEMES: Record<LetterAvatarSchemeKey, LetterAvatarColorStyl
 /** The schemes as an ordered array. */
 const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = Object.values(LETTER_AVATAR_SCHEMES);
 
+/** The scheme keys as an ordered array. Shares its order with LETTER_AVATAR_COLOR_OPTIONS. */
+const LETTER_AVATAR_COLOR_KEYS: LetterAvatarSchemeKey[] = Object.keys(LETTER_AVATAR_SCHEMES).filter(isLetterAvatarSchemeKey);
+
 /** Used when no color has been picked. */
 const DEFAULT_LETTER_AVATAR_SCHEME: LetterAvatarColorStyle = LETTER_AVATAR_SCHEMES.blue100;
 
@@ -60,5 +63,5 @@ function isLetterAvatarSchemeKey(value: string): value is LetterAvatarSchemeKey 
     return Object.hasOwn(LETTER_AVATAR_SCHEMES, value);
 }
 
-export {LETTER_AVATAR_SCHEMES, LETTER_AVATAR_COLOR_OPTIONS, DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey};
+export {LETTER_AVATAR_SCHEMES, LETTER_AVATAR_COLOR_OPTIONS, LETTER_AVATAR_COLOR_KEYS, DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey};
 export type {LetterAvatarColorStyle, LetterAvatarSchemeKey};

@@ -1,4 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -6,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
@@ -17,18 +17,25 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
+
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
+
 import {updateSelectedFeed} from '@userActions/Card';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
@@ -64,7 +71,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isPlaid = !!plaidToken;
 
-    const url = getCompanyCardBankConnection(policyID, bankName);
+    const url = getCompanyCardBankConnection(policyID, bankName, feed);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;

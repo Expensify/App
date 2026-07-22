@@ -1,5 +1,3 @@
-import {deepEqual} from 'fast-equals';
-import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -10,18 +8,28 @@ import usePrevious from '@hooks/usePrevious';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
 import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalAttendees} from '@libs/TransactionUtils';
+
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Attendee} from '@src/types/onyx/IOU';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {deepEqual} from 'fast-equals';
+import React, {useCallback, useState} from 'react';
+
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
@@ -44,6 +52,9 @@ function IOURequestStepAttendees({
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
@@ -65,6 +76,7 @@ function IOURequestStepAttendees({
                     transactionID,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     attendees,
                     policy,
                     policyTagList: policyTags,
@@ -76,13 +88,15 @@ function IOURequestStepAttendees({
                     parentReportNextStep,
                     isOffline,
                     delegateAccountID,
+                    reportPolicyTags,
+                    isTrackIntentUser,
                 });
             } else {
                 setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             }
         }
 
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
     }, [
         attendees,
         previousAttendees,
@@ -91,6 +105,7 @@ function IOURequestStepAttendees({
         isEditing,
         report,
         parentReport,
+        iouReportOwnerLogin,
         policy,
         policyTags,
         policyCategories,
@@ -101,6 +116,8 @@ function IOURequestStepAttendees({
         parentReportNextStep,
         isOffline,
         delegateAccountID,
+        reportPolicyTags,
+        isTrackIntentUser,
     ]);
 
     const navigateBack = () => {

@@ -1,22 +1,28 @@
-import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateDistanceTaxRate} from '@libs/actions/Policy/DistanceRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getWorkspaceTaxesSettingsName} from '@libs/TransactionUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type PolicyDistanceRateTaxRateEditPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
 

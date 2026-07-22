@@ -1,7 +1,5 @@
-import {randomInt} from 'crypto';
-import Onyx from 'react-native-onyx';
-import {measureFunction} from 'reassure';
 import type PolicyData from '@hooks/usePolicyData/types';
+
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
@@ -11,7 +9,7 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    getReportPreviewMessage,
+    getReportPreviewReportActionMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
     getWorkspaceChats,
@@ -20,10 +18,16 @@ import {
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import {randomInt} from 'crypto';
+import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
+
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -126,7 +130,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, formatPhoneNumber, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, formatPhoneNumber, translateLocal, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
@@ -146,7 +150,7 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewMessage({
+            getReportPreviewReportActionMessage({
                 reportOrID: report,
                 iouReportAction: reportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
@@ -189,6 +193,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: undefined,
                 isReportArchived: false,
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -198,7 +203,7 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getWorkspaceIcon(report, policy));
+        await measureFunction(() => getWorkspaceIcon(report, translateLocal, policy));
     });
 
     test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {

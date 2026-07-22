@@ -1,12 +1,15 @@
-import {useMemo} from 'react';
 import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useMemo} from 'react';
 
 function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | undefined {
     const isInSidePanel = useIsInSidePanel();

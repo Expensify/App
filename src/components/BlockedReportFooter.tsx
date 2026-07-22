@@ -1,6 +1,8 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import Banner from './Banner';
 
 function BlockedReportFooter() {
