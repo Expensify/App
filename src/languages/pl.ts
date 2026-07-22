@@ -4419,6 +4419,24 @@ ${amount} dla ${merchant} - ${date}`,
             inputLabel: 'NIP podmiotu prawnego',
             error: {required: 'Podaj swój identyfikator podatkowy podmiotu prawnego.'},
         },
+        nudge: {
+            airfareManual:
+                'Hej! Wiedziałeś, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Następnym razem uniknij zachodu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać pobytami w hotelu bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Hej! Wiedziałeś, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem uniknij zachodu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Hej! Wiedziałeś, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? Następnym razem uniknij zachodu z ręcznym tworzeniem wydatku i po prostu zarezerwuj podróż przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Cześć! Wiedziałeś, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że aplikacja automatycznie przesyła za ciebie paragony? Następnym razem po prostu zarezerwuj podróż przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     workspace: {
         common: {
@@ -6426,6 +6444,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 accountingMismatch: ({part}: {part: string}) =>
                     `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
                 travelAddressMismatch: 'Podróże możesz skopiować tylko wtedy, gdy każda wybrana przestrzeń robocza ma adres firmy.',
+                currencyBlockedByBankAccount: 'Możesz skopiować walutę tylko wtedy, gdy każde wybrane miejsce pracy z podłączonym kontem bankowym używa waluty miejsca pracy źródłowej.',
             },
             confirmSettings: {
                 title: 'Upewnijmy się, że wszystko wygląda poprawnie.',
@@ -8588,6 +8607,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateDateRangeAllDates: () => `dla wszystkich dat`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano podsumowanie z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano walutę z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano członków z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `skopiowano 1 pole raportu z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
