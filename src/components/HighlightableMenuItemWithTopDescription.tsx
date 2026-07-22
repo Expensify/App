@@ -1,7 +1,10 @@
-import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
+
+import React from 'react';
+
 import type {MenuItemProps} from './MenuItem';
+
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type HighlightableMenuItemWithTopDescriptionProps = MenuItemProps & {

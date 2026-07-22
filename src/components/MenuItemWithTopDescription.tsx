@@ -1,6 +1,8 @@
 import React from 'react';
-import MenuItem from './MenuItem';
+
 import type {MenuItemProps} from './MenuItem';
+
+import MenuItem from './MenuItem';
 
 function MenuItemWithTopDescription({ref, ...props}: MenuItemProps) {
     return (
