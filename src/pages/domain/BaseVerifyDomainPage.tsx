@@ -72,18 +72,18 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
     useFocusEffect(() => {
-        if (!doesDomainExist || domain?.validated || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
+        if (!doesDomainExist || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
     });
 
     useEffect(() => {
-        if (!doesDomainExist || domain?.validated) {
+        if (!doesDomainExist) {
             return;
         }
         resetDomainValidationError(domainAccountID);
-    }, [domainAccountID, doesDomainExist, domain?.validated]);
+    }, [domainAccountID, doesDomainExist]);
 
     const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
     if (isLoadingDomain) {
@@ -96,15 +96,6 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     if (!domain) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
-    }
-
-    if (domain.validated) {
-        return (
-            <NotFoundPage
-                onLinkPress={() => Navigation.dismissModal()}
-                shouldForceFullScreen
-            />
-        );
     }
 
     return (
