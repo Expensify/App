@@ -1884,22 +1884,22 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
-                columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w36)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
-                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w28)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
-                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w28)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
-                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w80)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
                 columnWidth = {...getWidthStyle(variables.w130)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
-                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w130)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
                 columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w102 : variables.w62)};
@@ -1935,7 +1935,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
@@ -1948,10 +1948,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
-                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
-                columnWidth = {...getWidthStyle(variables.w16), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w16)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -1969,10 +1969,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
-                columnWidth = {...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
-                columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
                 columnWidth = {...getWidthStyle(variables.w72)};
