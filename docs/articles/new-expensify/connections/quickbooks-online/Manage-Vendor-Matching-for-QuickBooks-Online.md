@@ -62,6 +62,12 @@ Update the expense with an active vendor to clear the violation.
 
 # FAQ
 
+## Do I have to set a vendor?
+
+No. The Vendor field is optional.
+
+Expensify automatically attempts to match a vendor using your imported QuickBooks Online vendor list. If no match is found, the field can remain blank. When the expense exports, Expensify uses the configured Default vendor. If no default vendor is configured, the expense exports to Credit Card Misc or Debit Card Misc.
+
 ## Who can see the Vendor field on an expense?
 
 Only Workspace Admins can view and edit the **Vendor** field. Members and submitters don't see it.
