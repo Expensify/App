@@ -53,6 +53,7 @@ type SelectPaymentTypeParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
 };
@@ -228,6 +229,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        delegateAccountID,
         isTrackIntentUser,
         ownerLogin,
     } = params;
@@ -265,6 +267,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 ownerLogin,
                 full: true,
                 delegateEmail,
+                delegateAccountID,
                 isTrackIntentUser,
             });
         }

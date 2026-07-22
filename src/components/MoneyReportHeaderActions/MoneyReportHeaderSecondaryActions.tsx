@@ -458,6 +458,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             delegateEmail,
             isTrackIntentUser,
             ownerLogin: submitterLogin,
+            delegateAccountID,
         });
     };
 
