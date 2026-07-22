@@ -87,6 +87,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
     const summaryItems = useMemo(
         () => [
             {
+                id: 'company-name',
                 title: values[COMPANY_NAME],
                 description: translate('businessInfoStep.legalBusinessName'),
                 shouldShowRightIcon: true,
@@ -95,6 +96,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'company-website',
                 title: values[COMPANY_WEBSITE],
                 description: translate('businessInfoStep.companyWebsite'),
                 shouldShowRightIcon: true,
@@ -103,6 +105,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'registration-number',
                 title: values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER],
                 description: translate('businessInfoStep.registrationNumber'),
                 shouldShowRightIcon: true,
@@ -111,6 +114,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'tax-id-ein',
                 title: values[TAX_ID_EIN_NUMBER],
                 description: translate('businessInfoStep.taxIDEIN', values[COMPANY_COUNTRY_CODE]),
                 shouldShowRightIcon: true,
@@ -119,6 +123,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'business-address',
                 title: displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_POSTAL_CODE], values[COMPANY_COUNTRY_CODE]),
                 description: translate('businessInfoStep.businessAddress'),
                 shouldShowRightIcon: true,
@@ -127,6 +132,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'phone-number',
                 title: values[BUSINESS_CONTACT_NUMBER],
                 description: translate('common.phoneNumber'),
                 shouldShowRightIcon: true,
@@ -135,6 +141,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'email',
                 title: values[BUSINESS_CONFIRMATION_EMAIL],
                 description: translate('common.email'),
                 shouldShowRightIcon: true,
@@ -143,6 +150,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'incorporation-type',
                 title: incorporationType,
                 description: translate('businessInfoStep.incorporationTypeName'),
                 shouldShowRightIcon: true,
@@ -153,6 +161,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
             ...(isBusinessTypeRequired
                 ? [
                       {
+                          id: 'business-type',
                           title: businessType,
                           description: translate('businessInfoStep.businessType'),
                           shouldShowRightIcon: true,
@@ -163,6 +172,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                   ]
                 : []),
             {
+                id: 'incorporation-location',
                 title: displayIncorporationLocation(values[FORMATION_INCORPORATION_COUNTRY_CODE], values[FORMATION_INCORPORATION_STATE]),
                 description: translate('businessInfoStep.incorporation'),
                 shouldShowRightIcon: true,
@@ -171,6 +181,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'business-category',
                 title: businessCategory,
                 description: translate('businessInfoStep.businessCategory'),
                 shouldShowRightIcon: true,
@@ -179,6 +190,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'annual-payment-volume',
                 title: paymentVolume,
                 description: translate('businessInfoStep.annualPaymentVolume'),
                 shouldShowRightIcon: true,
@@ -187,6 +199,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 },
             },
             {
+                id: 'trade-volume-range',
                 title: tradeVolumeRange,
                 description: translate('businessInfoStep.averageReimbursementAmount'),
                 shouldShowRightIcon: true,

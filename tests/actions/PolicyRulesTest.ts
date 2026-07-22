@@ -22,7 +22,6 @@ function getPolicy(policyID: string): Promise<Policy | undefined> {
     return new Promise((resolve) => {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            waitForCollectionCallback: false,
             callback: (policy) => {
                 Onyx.disconnect(connection);
                 resolve(policy);
