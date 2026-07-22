@@ -6480,6 +6480,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 accountingMismatch: ({part}: {part: string}) =>
                     `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
                 travelAddressMismatch: 'Puoi copiare i viaggi solo se ogni spazio di lavoro selezionato ha un indirizzo aziendale.',
+                currencyBlockedByBankAccount:
+                    'Puoi copiare la valuta solo se ogni spazio di lavoro selezionato con un conto bancario collegato utilizza la valuta dello spazio di lavoro di origine.',
             },
             confirmSettings: {
                 title: 'Assicuriamoci che sia tutto corretto.',
@@ -8654,6 +8656,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateDateRangeAllDates: () => `per tutte le date`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `panoramica copiata da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato la valuta da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato i membri da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copiato 1 campo del report da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

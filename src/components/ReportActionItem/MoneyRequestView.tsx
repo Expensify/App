@@ -221,8 +221,8 @@ function MoneyRequestView({
     const reportAttributes = useReportAttributes();
 
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
-    let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
-    parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const [parentReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const parentReport = parentReportFromOnyx ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
@@ -560,7 +560,7 @@ function MoneyRequestView({
             name: deprecatedGetReportName(match, reportAttributes) || match.reportName,
         };
     };
-    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
+    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
     const tripRoomReportID = tripRoomInfo?.reportID;
     const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;

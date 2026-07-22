@@ -6493,6 +6493,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
                 travelAddressMismatch: 'Sie können Reisen nur kopieren, wenn jeder ausgewählte Arbeitsbereich eine Unternehmensadresse hat.',
+                currencyBlockedByBankAccount:
+                    'Sie können die Währung nur kopieren, wenn jeder ausgewählte Workspace mit einem verbundenen Bankkonto die Währung des Quell-Workspace verwendet.',
             },
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',
@@ -8671,6 +8673,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateDateRangeAllDates: () => `für alle Daten`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `Übersicht von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `Währung von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `Mitglieder von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `1 Berichtsfeld von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,

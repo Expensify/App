@@ -1778,6 +1778,7 @@ const CONST = {
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                     COPY_OVERVIEW: 'POLICYCHANGELOG_COPY_OVERVIEW',
+                    COPY_CURRENCY: 'POLICYCHANGELOG_COPY_CURRENCY',
                     COPY_EMPLOYEES: 'POLICYCHANGELOG_COPY_EMPLOYEES',
                     COPY_REPORT_FIELDS: 'POLICYCHANGELOG_COPY_REPORT_FIELDS',
                     COPY_ACCOUNTING: 'POLICYCHANGELOG_COPY_ACCOUNTING',
@@ -2515,6 +2516,7 @@ const CONST = {
         SOCKET: 'Issue connecting to database',
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
         ALREADY_CREATED_TRANSACTION: 'Transaction already created.',
+        ALREADY_PAID: 'The request has already been paid',
     },
     NETWORK: {
         METHOD: {

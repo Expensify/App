@@ -6399,6 +6399,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 description: '既存のワークスペースで上書きする設定を選択します。',
                 accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
                 travelAddressMismatch: '出張をコピーできるのは、選択したすべてのワークスペースに会社の住所がある場合のみです。',
+                currencyBlockedByBankAccount:
+                    '通貨をコピーできるのは、選択したワークスペースのうち、銀行口座に接続されているすべてのワークスペースが、元のワークスペースと同じ通貨を使用している場合のみです。',
             },
             confirmSettings: {
                 title: 'すべて正しく表示されているか確認しましょう。',
@@ -8544,6 +8546,7 @@ ${reportName}`,
         customUnitRateDateRangeAllDates: () => `すべての日付に対して`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から概要をコピーしました`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から通貨をコピーしました`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からメンバーをコピーしました`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> からレポート項目を 1 件コピーしました`,

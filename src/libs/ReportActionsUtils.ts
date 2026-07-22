@@ -102,7 +102,6 @@ function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): bo
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;
@@ -132,7 +131,6 @@ Onyx.connect({
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -4756,6 +4754,7 @@ function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
 function isPolicyCopyReportAction(action: OnyxInputOrEntry<ReportAction>): action is ReportAction<PolicyChangeLogCopyReportActionNames> {
     return [
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CURRENCY,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING,

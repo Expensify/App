@@ -6444,6 +6444,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 accountingMismatch: ({part}: {part: string}) =>
                     `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
                 travelAddressMismatch: 'Podróże możesz skopiować tylko wtedy, gdy każda wybrana przestrzeń robocza ma adres firmy.',
+                currencyBlockedByBankAccount: 'Możesz skopiować walutę tylko wtedy, gdy każde wybrane miejsce pracy z podłączonym kontem bankowym używa waluty miejsca pracy źródłowej.',
             },
             confirmSettings: {
                 title: 'Upewnijmy się, że wszystko wygląda poprawnie.',
@@ -8606,6 +8607,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateDateRangeAllDates: () => `dla wszystkich dat`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano podsumowanie z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano walutę z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano członków z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `skopiowano 1 pole raportu z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

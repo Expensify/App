@@ -6455,6 +6455,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
                 accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
                 travelAddressMismatch: 'Você só pode copiar viagens se cada espaço de trabalho selecionado tiver um endereço da empresa.',
+                currencyBlockedByBankAccount:
+                    'Você só pode copiar a moeda se todos os espaços de trabalho selecionados com uma conta bancária conectada usarem a moeda do espaço de trabalho de origem.',
             },
             confirmSettings: {
                 title: 'Vamos garantir que está tudo certo.',
@@ -8613,6 +8615,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateDateRangeAllDates: () => `para todas as datas`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `visão geral copiada de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou a moeda de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copiou membros de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copiou 1 campo de relatório de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

@@ -6317,6 +6317,8 @@ ${amount} para ${merchant} - ${date}`,
                 accountingMismatch: ({part}: {part: string}) =>
                     `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
                 travelAddressMismatch: 'Solo puedes copiar los viajes si cada espacio de trabajo seleccionado tiene una dirección de empresa.',
+                currencyBlockedByBankAccount:
+                    'Solo puedes copiar la divisa si todos los espacios de trabajo seleccionados con una cuenta bancaria conectada usan la divisa del espacio de trabajo de origen.',
             },
             confirmSettings: {
                 title: 'Vamos a asegurarnos de que todo se vea bien.',
@@ -8454,6 +8456,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copió miembros de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `se copió 1 campo de informe desde <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
