@@ -98,5 +98,4 @@ function getCategoryContextualRules({
     return rules;
 }
 
-export {getCategoryContextualRules};
-export type {CategoryContextualRule};
+export default getCategoryContextualRules;

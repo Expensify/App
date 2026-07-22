@@ -23,7 +23,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
-import {getCategoryContextualRules} from '@libs/CategoryContextualRulesUtils';
+import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
 import {
     formatDefaultTaxRateText,
     formatRequireItemizedReceiptsOverText,

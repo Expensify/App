@@ -1,4 +1,4 @@
-import {getCategoryContextualRules} from '@libs/CategoryContextualRulesUtils';
+import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
