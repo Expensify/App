@@ -68,6 +68,8 @@ The **For you** section highlights items that may need your attention like:
 
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
+The “report to submit” to-do only counts reports you own. If you’re an approver who can submit a report on someone else’s behalf, that report won’t appear as a submit to-do on your Home—you can still submit it by opening the report directly.
+
 If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. Once your first to-do appears, the section remains on Home from then on.
 
 After the section has appeared, if there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
@@ -165,6 +167,10 @@ Not directly. Home links you to other parts of Expensify where actions are compl
 ## Why does the For you section sometimes appear empty?
 
 If there are no current financial to-dos, the **For you** section may appear empty. This means there’s nothing that requires action at that time.
+
+## Why don’t I see a submit to-do for a report I can submit on someone’s behalf?
+
+The “report to submit” to-do on Home only counts reports you own. If you’re an approver who can submit a report on the owner’s behalf, it won’t show up as a submit to-do on your Home. You can still submit it by opening the report directly.
 
 ## Why don’t I see the For you section at all?
 
