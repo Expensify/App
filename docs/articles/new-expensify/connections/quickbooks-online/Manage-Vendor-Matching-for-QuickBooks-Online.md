@@ -39,12 +39,7 @@ Workspace Admins can manually select a vendor from the searchable **Vendor** fie
 
 The default vendor is used only when an expense doesn't already have a vendor assigned. If no default vendor is configured, expenses export to **Credit Card Misc** or **Debit Card Misc**.
 
-<!-- SCREENSHOT:
-Suggestion: QuickBooks Online Export settings showing the Export company card expenses as setting and the Default vendor dropdown.
-Location: After "How to set a default vendor for QuickBooks Online company card expenses."
-Purpose: Help admins locate the Default vendor setting.
-WIP: https://github.com/Expensify/Expensify/issues/660973
--->
+![QuickBooks Online Export settings showing the Export company card expenses as setting and the Default vendor dropdown]({{site.url}}/assets/images/qbo-default-vendor.png){:width="100%"}
 
 ## How vendors export to QuickBooks Online
 
