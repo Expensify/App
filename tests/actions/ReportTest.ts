@@ -7,7 +7,7 @@ import type handleWalletStatementNavigationDefault from '@components/WalletState
 
 import useAncestors from '@hooks/useAncestors';
 
-import type {GuidedSetupData} from '@libs/actions/Report';
+import type {GuidedSetupData, TaskForParameters} from '@libs/actions/Report';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
@@ -5632,7 +5632,9 @@ describe('actions/Report', () => {
             const body = requestOptions && typeof requestOptions === 'object' && 'body' in requestOptions ? requestOptions.body : undefined;
             const guidedSetupDataParam = body instanceof FormData ? body.get('guidedSetupData') : null;
             const guidedSetupData = parseGuidedSetupData(typeof guidedSetupDataParam === 'string' ? guidedSetupDataParam : '[]');
-            const viewTourTask = guidedSetupData.find((item) => item.type === 'task' && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+            const viewTourTask = guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
             expect(viewTourTask).toBeDefined();
             if (expectation === 'defined') {
                 expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
@@ -5927,7 +5929,9 @@ describe('actions/Report', () => {
             const body = requestOptions && typeof requestOptions === 'object' && 'body' in requestOptions ? requestOptions.body : undefined;
             const guidedSetupDataParam = body instanceof FormData ? body.get('guidedSetupData') : null;
             const guidedSetupData = parseGuidedSetupData(typeof guidedSetupDataParam === 'string' ? guidedSetupDataParam : '[]');
-            const viewTourTask = guidedSetupData.find((item) => item.type === 'task' && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+            const viewTourTask = guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
             expect(viewTourTask).toBeDefined();
             if (expectation === 'defined') {
                 expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
@@ -8188,7 +8192,9 @@ describe('actions/Report', () => {
 
             expect(result).toBeDefined();
             const guidedSetupData = parseGuidedSetupData(result?.guidedSetupData ?? '[]');
-            const viewTourTask = guidedSetupData.find((item) => item.type === 'task' && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+            const viewTourTask = guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
             expect(viewTourTask).toBeDefined();
 
             if (isSelfTourViewed) {
