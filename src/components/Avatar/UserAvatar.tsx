@@ -15,7 +15,7 @@ import useAvatarLoadError from './hooks/useAvatarLoadError';
 import AvatarContainer from './primitives/AvatarContainer';
 import AvatarIcon from './primitives/AvatarIcon';
 import AvatarImage from './primitives/AvatarImage';
-import AvatarInitials from './primitives/AvatarInitials';
+import AvatarLetter from './primitives/AvatarLetter';
 
 type UserAvatarProps = AvatarCommonProps & {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
@@ -57,14 +57,14 @@ function UserAvatar({
                 containerStyles={containerStyles}
                 testID={testID}
             >
-                <AvatarInitials
+                <AvatarLetter
                     initials={letterAvatar.initials}
                     urlColors={letterAvatar.colors}
                     accountID={accountID}
                     size={size}
                     type={CONST.ICON_TYPE_AVATAR}
-                    initialsContainerStyles={imageStyles}
-                    initialsAdditionalStyles={iconAdditionalStyles}
+                    containerStyles={imageStyles}
+                    containerAdditionalStyles={iconAdditionalStyles}
                 />
             </AvatarContainer>
         );
