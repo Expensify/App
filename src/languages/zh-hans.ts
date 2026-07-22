@@ -514,7 +514,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `第 ${current} 项（共 ${total} 项）`,
         editor: '编辑',
         restrictions: '限制',
         tryAgain: '重试',
@@ -4318,6 +4317,20 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         nightIn: '夜宿',
         nightsIn: '入住晚数',
         taxID: {headline: '输入税号', title: '税号', subtitle: '请输入您法人的税号，以便我们以本地货币为您设置差旅结算。', inputLabel: '法人税号', error: {required: '请输入您的法人税号。'}},
+        nudge: {
+            airfareManual: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理机票。下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareCard:
+                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理航班，而且还能自动帮你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            hotelManual:
+                '嗨！你知道吗，现在你可以直接在 Expensify 预订和管理酒店住宿？下次就不用再手动创建报销，直接通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订就行了 🏨',
+            hotelCard: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 进行预订即可 🏨',
+            carManual: '嗨！你知道吗？你可以直接在 Expensify 里预订和管理租车。下次就不用再手动创建报销，直接通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
+            carCard: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理租车服务。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
+            railManual:
+                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理火车行程。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
+            railCard:
+                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+        },
     },
     workspace: {
         common: {
@@ -8649,6 +8662,7 @@ ${reportName}`,
         serverResults: '搜索结果',
         searchIn: '搜索范围',
         askConcierge: (message: string) => `询问 Concierge“${message}”`,
+        goTo: ({destination}: {destination: string}) => `前往${destination}`,
         searchPlaceholder: '搜索内容...',
         suggestions: '建议',
         suggestionsAvailable: (
