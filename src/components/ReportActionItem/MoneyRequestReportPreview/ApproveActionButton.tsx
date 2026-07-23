@@ -11,8 +11,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import {useReportPreviewActionState} from './MoneyRequestReportPreviewContext';
-import {useReportPreviewData} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActionState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
 import useConfirmApproveReportAction from './useConfirmApproveReportAction';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
