@@ -25,15 +25,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    canCreateTaskInReport,
-    getPayeeName,
-    hasViolations as hasViolationsReportUtils,
-    isPolicyExpenseChat,
-    isReportInGroupPolicy,
-    isReportOwner,
-    temporary_getMoneyRequestOptions,
-} from '@libs/ReportUtils';
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import {canCreateTaskInReport, getPayeeName, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
@@ -53,6 +46,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
@@ -186,6 +180,7 @@ function AttachmentPickerWithMenuItems({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -208,14 +203,17 @@ function AttachmentPickerWithMenuItems({
         policyID: report?.policyID,
         policyName: policy?.name ?? '',
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
-            selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, true, shouldDismissEmptyReportsConfirmation), true),
+            selectOption(
+                () => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, true, shouldDismissEmptyReportsConfirmation),
+                true,
+            ),
     });
 
     const handleCreateReport = () => {
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, true, false);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, true, false);
         }
     };
 
@@ -259,7 +257,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: [
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
-                    text: translate('iou.paySomeone', getPayeeName(report)),
+                    text: translate('iou.paySomeone', getPayeeName(report, translate)),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
                     onSelected: () => {
@@ -327,7 +325,7 @@ function AttachmentPickerWithMenuItems({
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isReportInGroupPolicy(report) || !isReportOwner(report)) {
+        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report)) {
             return [];
         }
 
@@ -340,7 +338,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [icons.Document, handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
+    }, [icons.Document, handleCreateReport, policy?.type, report, selectOption, shouldUseNarrowLayout, translate]);
 
     /**
      * Determines if we can show the task option

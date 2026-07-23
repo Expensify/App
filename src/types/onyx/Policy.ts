@@ -8,6 +8,7 @@ import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxTypes from '.';
+import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
@@ -653,6 +654,18 @@ type XeroTrackingCategory = {
     name: string;
 };
 
+/** Xero supplier contact imported into the workspace. */
+type XeroContact = {
+    /** Contact ID assigned by Xero */
+    id: string;
+
+    /** Display name of the contact */
+    name: string;
+
+    /** Contact's email address */
+    email: string;
+};
+
 /**
  * Data imported from Xero
  *
@@ -661,6 +674,9 @@ type XeroTrackingCategory = {
 type XeroConnectionData = {
     /** Collection of bank accounts */
     bankAccounts: Account[];
+
+    /** Supplier contacts keyed by their Xero contact ID. Undefined until Integration-Server has synced suppliers for the workspace. */
+    contacts?: Record<string, XeroContact>;
 
     /** TODO: Will be handled in another issue */
     countryCode: string;
@@ -789,6 +805,9 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** ID of Xero organization */
         tenantID: string;
+
+        /** Default supplier contact used as a fallback when a non-reimbursable card transaction has no contact set. */
+        defaultVendor?: string;
 
         /** TODO: Will be handled in another issue */
         errors?: OnyxCommon.Errors;
@@ -1804,11 +1823,19 @@ type RilletExport = {
     /**
      * Mapping of card program identifiers to account codes.
      */
-    cardProgramAccounts: Record<string, string>;
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
 
     /** Accounting method used during export. */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
+
+/** Offline feedback key for card program account */
+type RilletExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `RilletCoding`
+ */
+type RilletExportOfflineFeedbackKeys = keyof Omit<RilletExport, 'cardProgramAccounts'> | RilletExportCardProgramAccountsOfflineFeedbackKey;
 
 /**
  * Automatic synchronization settings for Rillet.
@@ -1873,7 +1900,7 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    RilletCodingOfflineFeedbackKeys | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
+    RilletCodingOfflineFeedbackKeys | RilletExportOfflineFeedbackKeys | keyof RilletAutoSync | keyof RilletSync
 >;
 
 /** Gusto connection data */
@@ -2651,7 +2678,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatReportIDAnnounce?: string | number;
 
         /** All the integration connections attached to the policy */
-        connections?: Connections;
+        connections?: Partial<Connections>;
 
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
@@ -2803,9 +2830,13 @@ type PolicyConnectionSyncProgress = {
     result?: HrSyncResult;
 };
 
+/** Workspace types a user can create directly (Team/Corporate/Submit), e.g. when creating a draft workspace on the fly. */
+type CreatableWorkspaceType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+
 export default Policy;
 
 export type {
+    CreatableWorkspaceType,
     AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
@@ -2884,4 +2915,5 @@ export type {
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
+    RilletSubsidiary,
 };

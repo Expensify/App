@@ -31,6 +31,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -80,7 +81,7 @@ function MultifactorAuthenticationValidateCodePage() {
         }
         // Invalid validate code submitted by the user
         if (hasContinuableError) {
-            return translate('validateCodeForm.error.incorrectMagicCode');
+            return translate('validateCodeForm.error.incorrectSecurityCode');
         }
         // Generic account/session error (e.g. stale errors from a previous flow)
         return getLatestErrorMessage(account);
@@ -157,7 +158,7 @@ function MultifactorAuthenticationValidateCodePage() {
             clearValidateCodeActionError('actionVerified');
         }
         addMFABreadcrumb('Validate code resend requested');
-        requestValidateCodeAction();
+        requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY});
         inputRef.current?.clear();
         setInputCode('');
         setFormError({});
@@ -188,12 +189,12 @@ function MultifactorAuthenticationValidateCodePage() {
 
         // Validate input
         if (!inputCode.trim()) {
-            setFormError({inputCode: 'validateCodeForm.error.pleaseFillMagicCode'});
+            setFormError({inputCode: 'validateCodeForm.error.pleaseFillSecurityCode'});
             return;
         }
 
         if (!isValidValidateCode(inputCode)) {
-            setFormError({inputCode: 'validateCodeForm.error.incorrectMagicCode'});
+            setFormError({inputCode: 'validateCodeForm.error.incorrectSecurityCode'});
             return;
         }
 
@@ -224,7 +225,7 @@ function MultifactorAuthenticationValidateCodePage() {
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterMagicCode', contactMethod)}</Text>
+                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterSecurityCode', contactMethod)}</Text>
                 <View style={[styles.mh5]}>
                     <MagicCodeInput
                         autoComplete="one-time-code"
@@ -241,7 +242,7 @@ function MultifactorAuthenticationValidateCodePage() {
                         ref={resendButtonRef}
                         shouldDisableResendCode={shouldDisableResendCode}
                         hasError={hasError}
-                        resendButtonText="validateCodeForm.magicCodeNotReceived"
+                        resendButtonText="validateCodeForm.securityCodeNotReceived"
                         onResendValidationCode={resendValidationCode}
                     />
                 </View>
