@@ -6194,10 +6194,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Belastingen',
                 subtitle: 'Documenteer en vorder in aanmerking komende belastingen terug.',
             },
-            vendors: {
-                title: 'Leveranciers',
-                subtitle: 'Koppel kaartuitgaven aan leveranciers die uit je boekhoudsoftware zijn geïmporteerd.',
-            },
             reportFields: {
                 title: 'Rapportvelden',
                 subtitle: 'Stel aangepaste velden in voor uitgaven.',
@@ -6238,6 +6234,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 defaultHourlyRate: 'Standaard uurtarief',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
+            vendors: {title: 'Leveranciers', subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',

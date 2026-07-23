@@ -6131,10 +6131,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: '税金',
                 subtitle: '対象となる税金を記録して払い戻しを受けましょう。',
             },
-            vendors: {
-                title: 'ベンダー',
-                subtitle: 'カード費用を会計ソフトウェアからインポートしたベンダーと照合します。',
-            },
             reportFields: {
                 title: 'レポート項目',
                 subtitle: '支出用のカスタムフィールドを設定する',
@@ -6175,6 +6171,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 defaultHourlyRate: 'デフォルトの時給率',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
+            vendors: {title: 'ベンダー', subtitle: 'カード経費を、会計ソフトからインポートされた取引先にマッチさせます。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',

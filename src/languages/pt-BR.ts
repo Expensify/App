@@ -6187,10 +6187,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Impostos',
                 subtitle: 'Documente e recupere os impostos elegíveis.',
             },
-            vendors: {
-                title: 'Fornecedores',
-                subtitle: 'Combine despesas de cartão com fornecedores importados do seu software de contabilidade.',
-            },
             reportFields: {
                 title: 'Campos do relatório',
                 subtitle: 'Configure campos personalizados para gastos.',
@@ -6231,6 +6227,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 defaultHourlyRate: 'Taxa horária padrão',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar RH, desconecte primeiro a integração ${integration} deste workspace.`},
+            vendors: {title: 'Fornecedores', subtitle: 'Combine despesas do cartão com fornecedores importados do seu software de contabilidade.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',

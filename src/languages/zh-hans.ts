@@ -5993,10 +5993,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '税费',
                 subtitle: '记录并回收符合条件的税款。',
             },
-            vendors: {
-                title: '供应商',
-                subtitle: '将卡消费与从会计软件导入的供应商进行匹配。',
-            },
             reportFields: {
                 title: '报表字段',
                 subtitle: '为支出设置自定义字段。',
@@ -6036,6 +6032,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 defaultHourlyRate: '默认时薪',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
+            vendors: {title: '供应商', subtitle: '将卡片支出与从您的会计软件导入的供应商进行匹配。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',

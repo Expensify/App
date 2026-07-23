@@ -6175,10 +6175,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Podatki',
                 subtitle: 'Udokumentuj i odzyskaj należne podatki.',
             },
-            vendors: {
-                title: 'Dostawcy',
-                subtitle: 'Dopasuj wydatki kartą do dostawców zaimportowanych z oprogramowania księgowego.',
-            },
             reportFields: {
                 title: 'Pola raportu',
                 subtitle: 'Skonfiguruj niestandardowe pola dla wydatków.',
@@ -6219,6 +6215,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Aby wyłączyć HR, najpierw odłącz ${integration} od tego workspace’a.`},
+            vendors: {title: 'Dostawcy', subtitle: 'Dopasuj wydatki z karty do dostawców zaimportowanych z twojego oprogramowania księgowego.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',

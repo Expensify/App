@@ -6248,10 +6248,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Taxes',
                 subtitle: 'Documentez et récupérez les taxes admissibles.',
             },
-            vendors: {
-                title: 'Fournisseurs',
-                subtitle: 'Associez les dépenses par carte aux fournisseurs importés depuis votre logiciel de comptabilité.',
-            },
             reportFields: {
                 title: 'Champs de note de frais',
                 subtitle: 'Configurer des champs personnalisés pour les dépenses.',
@@ -6292,6 +6288,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
+            vendors: {title: 'Fournisseurs', subtitle: 'Faites correspondre les dépenses par carte aux fournisseurs importés depuis votre logiciel de comptabilité.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',

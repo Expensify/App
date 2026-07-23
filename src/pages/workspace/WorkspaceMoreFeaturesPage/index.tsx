@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -145,6 +146,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const paymentBankAccountID = settings?.paymentBankAccountID;
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+
+    // The Vendors toggle's active state reads policy.connections (via hasVendorFeature), which is
+    // empty on a non-active workspace until a connections-aware read runs. OpenPolicyMoreFeaturesPage
+    // doesn't hydrate the detailed connection config, so prefetch it here (gated on the beta) to keep
+    // the toggle from showing off/non-navigable when the workspace actually supports vendors.
+    usePolicyConnectionsPrefetch(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {

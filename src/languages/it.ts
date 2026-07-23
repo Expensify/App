@@ -6208,10 +6208,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Tasse',
                 subtitle: 'Documenta e recupera le imposte idonee.',
             },
-            vendors: {
-                title: 'Fornitori',
-                subtitle: 'Abbina le spese con carta ai fornitori importati dal tuo software di contabilità.',
-            },
             reportFields: {
                 title: 'Campi del report',
                 subtitle: 'Configura campi personalizzati per le spese.',
@@ -6252,6 +6248,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 defaultHourlyRate: 'Tariffa oraria predefinita',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Per disattivare HR, scollega prima ${integration} da questo workspace.`},
+            vendors: {title: 'Fornitori', subtitle: 'Abbina le spese della carta ai fornitori importati dal tuo software di contabilità.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',

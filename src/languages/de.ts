@@ -6225,10 +6225,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Steuern',
                 subtitle: 'Erfasse und mache erstattungsfähige Steuern geltend.',
             },
-            vendors: {
-                title: 'Lieferanten',
-                subtitle: 'Ordne Kartenausgaben den aus deiner Buchhaltungssoftware importierten Lieferanten zu.',
-            },
             reportFields: {
                 title: 'Berichtsfelder',
                 subtitle: 'Richte benutzerdefinierte Felder für Ausgaben ein.',
@@ -6269,6 +6265,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 defaultHourlyRate: 'Standardstundensatz',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Um HR zu deaktivieren, trennen Sie bitte zuerst ${integration} von diesem Workspace.`},
+            vendors: {title: 'Lieferanten', subtitle: 'Ordnen Sie Kartenausgaben den aus Ihrer Buchhaltungssoftware importierten Lieferanten zu.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
