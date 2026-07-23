@@ -27,7 +27,7 @@ import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListB
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {TabActions, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {Keyboard, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
 
@@ -173,7 +173,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     };
 
     const runAfterKeyboardDismiss = (callback: () => void) => {
-        if (!shouldDismissKeyboardBeforeTabSwitch || !Keyboard.isVisible()) {
+        if (!shouldDismissKeyboardBeforeTabSwitch) {
             callback();
             return;
         }
@@ -199,7 +199,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         }
         const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
         if (!guard || !guard.getHasUnsavedChanges()) {
-            if (!shouldDismissKeyboardBeforeTabSwitch || !Keyboard.isVisible()) {
+            if (!shouldDismissKeyboardBeforeTabSwitch) {
                 return;
             }
 
