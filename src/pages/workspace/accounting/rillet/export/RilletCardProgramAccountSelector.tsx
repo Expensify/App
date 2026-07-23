@@ -7,7 +7,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useSearchResults from '@hooks/useSearchResults';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletCardProgramAccount} from '@libs/actions/connections/Rillet';
@@ -18,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -77,13 +76,7 @@ function RilletCardProgramAccountSelector({
                 keyForList: accountItem.code,
                 isSelected: cardProgramAccountCode === accountItem.code,
             })) ?? [];
-    const filterData = (accountItem: AccountListItem, searchInput: string) => tokenizedSearch([accountItem], searchInput, () => [accountItem.text ?? '', accountItem.value]).length > 0;
-    const [searchValue, setSearchValue, filteredData] = useSearchResults(data, filterData);
-    const textInputOptions = {
-        label: data.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
-        value: searchValue,
-        onChangeText: setSearchValue,
-    };
+    const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
