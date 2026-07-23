@@ -36,7 +36,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
     const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -184,8 +184,13 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             return;
         }
         hasRefetchedPublicRoom.current = true;
-        Report.openReport({reportID, introSelected, betas});
-    }, [isLoadingApp, allReports, introSelected, betas]);
+        Report.openReport({
+            reportID,
+            introSelected,
+            betas,
+            currentUserAccountID: session?.accountID,
+        });
+    }, [isLoadingApp, allReports, introSelected, betas, session?.accountID]);
 
     return null;
 }

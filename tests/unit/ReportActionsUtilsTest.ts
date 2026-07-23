@@ -2366,6 +2366,35 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it('should return false for a whisper targeted to another user when currentUserAccountID is provided', () => {
+            const OTHER_USER_ACCOUNT_ID = 999;
+            const CURRENT_USER_ACCOUNT_ID = 123;
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'secret', type: 'COMMENT', text: 'secret', whisperedTo: [OTHER_USER_ACCOUNT_ID]}],
+                originalMessage: {html: 'secret', whisperedTo: [OTHER_USER_ACCOUNT_ID]},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for a whisper targeted to the current user when currentUserAccountID is provided', () => {
+            const CURRENT_USER_ACCOUNT_ID = 123;
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'secret', type: 'COMMENT', text: 'secret', whisperedTo: [CURRENT_USER_ACCOUNT_ID]}],
+                originalMessage: {html: 'secret', whisperedTo: [CURRENT_USER_ACCOUNT_ID]},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {

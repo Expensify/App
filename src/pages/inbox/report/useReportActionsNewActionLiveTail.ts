@@ -1,3 +1,4 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 
 import type {OpenReportActionParams} from '@libs/actions/Report';
@@ -75,6 +76,7 @@ function useReportActionsNewActionLiveTail({
     prevIsLoadingInitialReportActions,
     reportLoadingState,
 }: UseReportActionsNewActionLiveTailParams) {
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
@@ -107,6 +109,7 @@ function useReportActionsNewActionLiveTail({
                             introSelected,
                             betas,
                             hasReportActions: true,
+                            currentUserAccountID,
                         });
                     }
                     return;

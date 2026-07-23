@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -54,6 +55,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [policyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
@@ -78,7 +80,13 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
                 // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
                 // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
-                openReport({reportID: report.reportID, introSelected, betas, shouldMarkAsRead: false});
+                openReport({
+                    reportID: report.reportID,
+                    introSelected,
+                    betas,
+                    shouldMarkAsRead: false,
+                    currentUserAccountID,
+                });
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
                 return;
             }

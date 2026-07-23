@@ -2382,6 +2382,7 @@ function navigateToAndOpenReport(
             newReportObject: fallbackChat,
             isSelfTourViewed,
             betas,
+            currentUserAccountID,
         });
 
         navigateToReport(fallbackChat.reportID, {shouldDismissModal, ...linkToOptions});
@@ -2418,7 +2419,7 @@ function navigateToAndOpenReport(
     });
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas, currentUserAccountID});
     navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
@@ -2515,6 +2516,7 @@ function navigateToAndOpenReportWithAccountIDs(
             participants,
             personalDetails,
             betas,
+            currentUserAccountID,
         });
 
         navigateToReport(fallbackChat.reportID, {shouldDismissModal: false});
@@ -2551,7 +2553,7 @@ function navigateToAndOpenReportWithAccountIDs(
     });
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, currentUserAccountID});
     navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
@@ -2641,6 +2643,7 @@ function createChildReport(
             isNewThread: true,
             betas,
             isSelfTourViewed,
+            currentUserAccountID,
         });
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
@@ -3576,7 +3579,7 @@ function toggleSubscribeToChildReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow});
+        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, currentUserAccountID});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -3623,6 +3626,7 @@ function toggleSubscribeToChildReport(
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             betas,
+            currentUserAccountID,
         });
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction.reportActionID);
