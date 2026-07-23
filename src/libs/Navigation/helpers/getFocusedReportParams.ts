@@ -100,4 +100,9 @@ function getFocusedReportParams(state: State): FocusedReportParams | undefined {
     return getSearchFullscreenMoneyRequestReportParams(state);
 }
 
+function getFocusedReportId(state: State): string | undefined {
+    return getFocusedReportParams(state)?.reportID;
+}
+
 export default getFocusedReportParams;
+export {getFocusedReportId};
