@@ -45,6 +45,7 @@ import {
     isParticipantP2P,
     isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
+    reportHasRealPolicy,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     shouldShowReceiptEmptyState,
@@ -70,7 +71,14 @@ import {
     isScanRequest,
 } from '@libs/TransactionUtils';
 
-import {getIOURequestPolicyID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {
+    getIOURequestPolicyID,
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTag,
+} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 
@@ -155,7 +163,11 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
-    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal ?? participantReport);
+    // A workspace with submissions (delayed submission) disabled has no autoReporting, so the new flow seeds the
+    // expense onto the self-DM, whose report carries the placeholder '_FAKE_' policy. After selecting that workspace
+    // chat via the in-place "To" picker, the route report is still that self-DM; its fake policyID must not shadow
+    // the selected participant's report, or the workspace expense fields (Category, etc.) never resolve. See #96576.
+    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportHasRealPolicy(reportReal) ? reportReal : (participantReport ?? reportReal));
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
@@ -402,6 +414,16 @@ function IOURequestStepConfirmation({
                             setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
                         }
                         setMoneyRequestCategory(activeTransactionID, '', undefined);
+                        setMoneyRequestTag(activeTransactionID, '');
+                    } else if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
+                        // Switching to a different workspace: the previous workspace's category and tag no longer apply,
+                        // so reset them to the destination workspace's defaults. This mirrors the legacy participants-step
+                        // flow (useParticipantSubmission.goToNextStep), which resets both on every selection.
+                        const destinationPolicy = participantsPolicies[firstParticipant.policyID];
+                        const policyDistance = Object.values(destinationPolicy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+                        const defaultCategory = isDistanceRequest && policyDistance?.defaultCategory ? policyDistance.defaultCategory : '';
+                        setMoneyRequestCategory(activeTransactionID, defaultCategory, destinationPolicy);
+                        setMoneyRequestTag(activeTransactionID, '');
                     }
                 }
             }
@@ -421,6 +443,8 @@ function IOURequestStepConfirmation({
             lastSelectedDistanceRates,
             transaction,
             personalPolicy?.outputCurrency,
+            policyID,
+            participantsPolicies,
         ],
     );
 
@@ -1015,7 +1039,7 @@ function IOURequestStepConfirmation({
                             />
                         )}
                     </SubmitExpenseOrchestrator>
-                    {isNewManualExpenseFlowEnabled && (
+                    {isNewManualExpenseFlowEnabled && isParticipantPickerVisible && (
                         <ParticipantPicker
                             participants={participants}
                             iouType={participantPickerIOUType}
