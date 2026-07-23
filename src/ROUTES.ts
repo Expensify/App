@@ -808,8 +808,12 @@ const DYNAMIC_ROUTES = {
         getRoute: (feed: CompanyCardFeedWithDomainID, cardID: string) => `company-card-details/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
-        path: 'edit/export',
+        path: 'edit/export/:cardID?',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS, SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST],
+
+        // The cardID param is optional because some entry screens e.g. `SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS`
+        // already has the cardID in their path and we don't want to double pass the cardID.
+        getRoute: (cardID?: string) => `edit/export${cardID ? `/${encodeURIComponent(cardID)}` : ''}` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         path: 'assign-card/:feed/:cardID/assignee',
@@ -3222,7 +3226,7 @@ const ROUTES = {
     },
     RULES_REQUIRE_FIELDS_RULE_EDIT: {
         route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/${getRulesRevampRuleEditSegment(categoryName)}` as const,
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}` as const,
     },
     RULES_REQUIRE_FIELDS_RULE_CATEGORY: {
         route: 'workspaces/:policyID/rules/require-fields-rules/new/category',
@@ -3230,7 +3234,7 @@ const ROUTES = {
     },
     RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT: {
         route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName/category',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/${getRulesRevampRuleEditSegment(categoryName)}/category` as const,
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}/category` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_NEW: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
