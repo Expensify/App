@@ -165,13 +165,11 @@ describe('actions/SendInvoice', () => {
             participants: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '123': {
-                    accountID: 123,
                     role: CONST.REPORT.ROLE.MEMBER,
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '456': {
-                    accountID: 456,
                     role: CONST.REPORT.ROLE.MEMBER,
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -179,8 +177,6 @@ describe('actions/SendInvoice', () => {
             invoiceReceiver: {
                 type: 'individual',
                 accountID: 456,
-                displayName: 'Client Company',
-                login: 'client@example.com',
             },
         };
 
