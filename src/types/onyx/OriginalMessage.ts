@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
-import type {AllConnectionName} from './Policy';
+import type {AllConnectionName, CompanyAddress} from './Policy';
 import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
@@ -824,35 +824,9 @@ type OriginalMessagePolicyChangeLog = {
 /** Model of the company address update policy change log message */
 type OriginalMessageCompanyAddressUpdate = {
     /** The new company address */
-    newAddress: {
-        /** Street address */
-        addressStreet?: string;
-        /** Street address line 2 */
-        addressStreet2?: string;
-        /** City */
-        city?: string;
-        /** State */
-        state?: string;
-        /** Zip code */
-        zipCode?: string;
-        /** Country code */
-        country?: string;
-    };
+    newAddress: Partial<CompanyAddress>;
     /** The previous company address */
-    oldAddress?: {
-        /** Street address */
-        addressStreet?: string;
-        /** Street address line 2 */
-        addressStreet2?: string;
-        /** City */
-        city?: string;
-        /** State */
-        state?: string;
-        /** Zip code */
-        zipCode?: string;
-        /** Country code */
-        country?: string;
-    } | null;
+    oldAddress?: Partial<CompanyAddress> | null;
 };
 
 /** Model of the ACH account update policy change log message */
