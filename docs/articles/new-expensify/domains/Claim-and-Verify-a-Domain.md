@@ -17,7 +17,7 @@ Once you've claimed and verified a domain, you can:
 
 To claim a private domain, you must:
 - Be logged in with an email address from that domain
-- Have verified your contact method with a magic code
+- Have verified your contact method with a security code
 
 1. From the left-hand menu, select **Workspaces**, then select the **Domains** tab.
 2. Click **New domain**.
@@ -41,7 +41,7 @@ Each domain is listed in its own row, showing:
 Depending on your email setup:
 
 - **If you're not using an email from that domain**: You'll see an error. You can't claim domains that don't match your email address.
-- **If your email is from that domain but not verified**: You’ll be prompted to verify your login using a magic code.
+- **If your email is from that domain but not verified**: You’ll be prompted to verify your login using a security code.
 - **If the domain is already claimed**: You’ll need to coordinate with an existing admin to request that your role be updated to Domain Admin.
 
 After the domain is successfully claimed, the domain will appear on the **Domains** tab in the **Not verified** state.

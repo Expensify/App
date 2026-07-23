@@ -1,7 +1,7 @@
 ---
 title: Login Troubleshooting
-description: Troubleshoot common login issues — like missing Magic Codes, 2FA lockouts, SSO problems, or blocked emails — and find out who to contact to get back in fast.
-keywords: [New Expensify, Expensify login, can't log in, login help, Magic Code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out, change password, update password, reset password, forgot password, password reset, new password, password change]
+description: Troubleshoot common login issues — like missing security codes, 2FA lockouts, SSO problems, or blocked emails — and find out who to contact to get back in fast.
+keywords: [New Expensify, Expensify login, can't log in, login help, security code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out, change password, update password, reset password, forgot password, password reset, new password, password change]
 ---
 
 # Login troubleshooting
@@ -10,9 +10,9 @@ If you're not able to log into your Expensify account, find your situation below
 
 ---
 
-## Can't receive Magic Code login email
+## Can't receive security code login email
 
-A Magic Code is a one-time login code that Expensify emails you when you try to sign in instead of asking for a password. If you’re not getting the email, your email provider might be blocking or filtering it.
+A security code is a one-time login code that Expensify emails you when you try to sign in instead of asking for a password. If you’re not getting the email, your email provider might be blocking or filtering it.
 
 **Common Cause**
 Your email provider is blocking or filtering messages from Expensify. 
@@ -20,14 +20,14 @@ Your email provider is blocking or filtering messages from Expensify.
 **What you can try**
 - Wait up to **10 minutes** for the email to arrive — delivery can be delayed.
 - Check your **spam**, **junk**, and **trash** folders.
-- Search for **Expensify Magic Code** or concierge@expensify.com.
+- Search for **Expensify security code** or concierge@expensify.com.
 - Add concierge@expensify.com to your email contacts.
-- Click **Didn't receive a magic code?** on the login screen to request the code be sent again. 
+- Click **Didn't receive a security code?** on the login screen to request the code be sent again. 
 - Wait **2–3 minutes** between resend attempts. If you request a new code while one is still being generated, the older one won't work. 
 
 **What won’t help**
 - Clicking "Resend" repeatedly without checking your filters.
-- Logging in with a phone number or backup email. The Magic Code is always sent to the primary login set on the account - not any secondary contact methods. 
+- Logging in with a phone number or backup email. The security code is always sent to the primary login set on the account - not any secondary contact methods. 
 
 **Who to contact**
 - **Using a work email?** Ask your IT team to [allowlist Expensify emails](https://help.expensify.com/articles/expensify-classic/email/How-to-Allowlist-Expensify).
@@ -39,7 +39,7 @@ Your email provider is blocking or filtering messages from Expensify.
 
 ## Locked out by Two-Factor Authentication (2FA) 
 
-Two-factor authentication (2FA) is a feature that adds an extra layer of security to your account, and can be enabled by you on your account or required by a Domain Admin. After entering your Magic Code, you’ll be prompted to enter another code — this one comes from your authenticator app.
+Two-factor authentication (2FA) is a feature that adds an extra layer of security to your account, and can be enabled by you on your account or required by a Domain Admin. After entering your security code, you’ll be prompted to enter another code — this one comes from your authenticator app.
 
 **Common Cause**
 Two-Factor Authentication (2FA) is enabled on your account, but you no longer have access to your authenticator app or recovery codes.
@@ -69,7 +69,7 @@ If your company uses SAML SSO, you'll be redirected to your company's Identity P
 Your company's SAML SSO configuration may have an issue affecting your account or domain
 
 **What you can try**
-- If you see the option "Would you like to sign in with a magic code or Single Sign-On?", choose **Magic Code** to log in with a code instead. 
+- If you see the option "Would you like to sign in with a security code or Single Sign-On?", choose **Use security code** to log in with a code instead. 
 - Double-check your credentials to ensure you are inputting the right details into your Identity Provider login screen. 
 - Log in to another app you access using the same Identity Provider login and see if you experience the same error.
 
