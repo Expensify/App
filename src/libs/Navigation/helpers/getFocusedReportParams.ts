@@ -18,7 +18,7 @@ type FocusedReportParams = {
     reportActionID?: string;
 };
 
-function getReportParamsFromRoute(route: {params?: Record<string, unknown>} | undefined): FocusedReportParams | undefined {
+function getReportParamsFromRoute(route: {params?: unknown} | undefined): FocusedReportParams | undefined {
     const params = route?.params;
     if (!params || typeof params !== 'object' || !('reportID' in params) || typeof params.reportID !== 'string') {
         return;
