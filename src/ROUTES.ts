@@ -3774,6 +3774,10 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}` as const;
         },
     },
+    POLICY_ACCOUNTING_NETSUITE_SETUP: {
+        route: 'workspaces/:policyID/accounting/netsuite/setup/:accountID?',
+        getRoute: (policyID: string, accountID: string) => `workspaces/${policyID}/accounting/netsuite/setup/${accountID}` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'workspaces/:policyID/accounting/netsuite/import',
         getRoute: (policyID: string | undefined) => {

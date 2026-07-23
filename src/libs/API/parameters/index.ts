@@ -21,6 +21,7 @@ export type {default as RevokeDeviceParams} from './RevokeDeviceParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
+export type {default as ConnectPolicyToNetSuiteOAuthParams} from './ConnectPolicyToNetSuiteOAuthParams';
 export type {default as ConnectPolicyToGustoParams} from './ConnectPolicyToGustoParams';
 export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMergeParams';
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';

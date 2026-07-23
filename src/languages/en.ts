@@ -5478,6 +5478,14 @@ const translations = {
                         title: 'Enable SOAP web services',
                         description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *SOAP Web Services*.',
                     },
+                    enableOAuth: {
+                        title: 'Enable OAuth 2.0',
+                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > under *Manage Authentication*, enable *OAuth 2.0*.',
+                    },
+                    enableRestWebServices: {
+                        title: 'Enable REST web services',
+                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > under *SuiteTalk (Web Services)*, enable *REST Web Services*.',
+                    },
                     createAccessToken: {
                         title: 'Create an access token',
                         description:
