@@ -111,8 +111,16 @@ describe('getStateForDynamicRoute', () => {
         const result = getStateForDynamicRoute(path, KEY_TEST);
 
         const rootRoute = result.routes.at(0);
-        const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
-        expect(leafRoute && 'params' in leafRoute ? leafRoute.params : undefined).toBeUndefined();
+        if (!rootRoute || rootRoute.name !== 'Wrapper' || !('state' in rootRoute) || !rootRoute.state) {
+            throw new Error('Expected the dynamic route to contain the Wrapper state');
+        }
+
+        const leafRoute = rootRoute.state.routes.at(0);
+        if (!leafRoute || !('path' in leafRoute) || leafRoute.name !== 'TargetScreen' || leafRoute.path !== path) {
+            throw new Error('Expected the dynamic route to contain the TargetScreen leaf');
+        }
+
+        expect(leafRoute).not.toHaveProperty('params');
     });
 
     it('should merge parent route params with query params', () => {
@@ -144,8 +152,16 @@ describe('getStateForDynamicRoute', () => {
             const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
             const rootRoute = result.routes.at(0);
-            const leafRoute = rootRoute && 'state' in rootRoute && rootRoute.state ? rootRoute.state.routes.at(0) : undefined;
-            expect(leafRoute && 'params' in leafRoute ? leafRoute.params : undefined).toBeUndefined();
+            if (!rootRoute || rootRoute.name !== 'Wrapper' || !('state' in rootRoute) || !rootRoute.state) {
+                throw new Error('Expected the dynamic route to contain the Wrapper state');
+            }
+
+            const leafRoute = rootRoute.state.routes.at(0);
+            if (!leafRoute || !('path' in leafRoute) || leafRoute.name !== 'TargetScreen' || leafRoute.path !== path) {
+                throw new Error('Expected the dynamic route to contain the TargetScreen leaf');
+            }
+
+            expect(leafRoute).not.toHaveProperty('params');
         });
 
         it('keeps defined params and drops undefined ones in mixed scenario', () => {
