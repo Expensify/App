@@ -236,7 +236,6 @@ function HeaderWithBackButton({
 
     return (
         <View
-            accessibilityRole={CONST.ROLE.NONE}
             style={[
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
@@ -250,10 +249,7 @@ function HeaderWithBackButton({
             ]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
-            <View
-                accessibilityRole={CONST.ROLE.NONE}
-                style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}
-            >
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
@@ -301,14 +297,8 @@ function HeaderWithBackButton({
                     />
                 )}
                 {middleContent}
-                <View
-                    accessibilityRole={CONST.ROLE.NONE}
-                    style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}
-                >
-                    <View
-                        accessibilityRole={CONST.ROLE.NONE}
-                        style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}
-                    >
+                <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}
                         {shouldShowDownloadButton &&
                             (!isDownloading ? (
