@@ -339,10 +339,11 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-                if (isDismissed || isParentChatReportDM) {
+                const shouldShowHoldEducationalModal = isReportSubmitter || isParentChatReportDM;
+                const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                if (isDismissed) {
                     changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser);
-                } else if (isReportSubmitter) {
+                } else if (shouldShowHoldEducationalModal) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
                     setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
@@ -607,6 +608,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
+                    isDM={isParentChatReportDM}
                 />
             )}
         </>

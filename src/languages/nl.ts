@@ -1622,8 +1622,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Alleen goedkeuren',
         holdEducationalTitle: 'Moet je deze uitgave aanhouden?',
         whatIsHoldExplain: 'Pauzeren is alsof je een uitgave op “pauze” zet totdat je klaar bent om die in te dienen.',
+        whatIsHoldExplainDM: "Aanhouden is alsof je een uitgave op 'pauze' zet totdat je klaar bent om die te verzenden.",
         holdIsLeftBehind: 'Geblokkeerde uitgaven blijven achter, zelfs als je een volledig rapport indient.',
+        holdIsLeftBehindDM: 'Aangehouden uitgaven worden niet verzonden totdat je de aanhouding opheft.',
         unholdWhenReady: 'Haal de blokkering van de uitgaven wanneer je klaar bent om ze in te dienen.',
+        unholdWhenReadyDM: 'Hef de aanhouding van uitgaven op wanneer je klaar bent om ze te verzenden.',
         changePolicyEducational: {
             title: 'Je hebt dit rapport verplaatst!',
             description: 'Controleer deze onderdelen goed; ze veranderen vaak wanneer rapporten naar een nieuwe workspace worden verplaatst.',

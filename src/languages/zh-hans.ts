@@ -1567,8 +1567,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: '仅批准',
         holdEducationalTitle: '你要暂时保留这笔报销吗？',
         whatIsHoldExplain: '“暂缓”就像对一笔报销按下“暂停键”，直到你准备好提交它。',
+        whatIsHoldExplainDM: '“暂缓”就像对一笔报销按下“暂停键”，直到你准备好发送它。',
         holdIsLeftBehind: '即使您提交整份报表，被暂挂的报销也会被保留在外。',
+        holdIsLeftBehindDM: '被暂缓的报销在你解除暂缓之前不会被发送。',
         unholdWhenReady: '准备报销时，解除报销的暂挂状态。',
+        unholdWhenReadyDM: '准备发送时，解除报销的暂缓状态。',
         changePolicyEducational: {
             title: '你已移动此报表！',
             description: '请仔细检查这些项目，它们在将报表移动到新工作区时往往会发生变化。',

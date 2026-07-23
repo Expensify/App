@@ -1625,8 +1625,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Solo approva',
         holdEducationalTitle: 'Dovresti tenere in sospeso questa spesa?',
         whatIsHoldExplain: 'La funzione “Metti in sospeso” è come premere “pausa” su una spesa finché non sei prontə a inviarla.',
+        whatIsHoldExplainDM: "La funzione 'Metti in sospeso' e come premere 'pausa' su una spesa finche non sei prontə a inviarla.",
         holdIsLeftBehind: 'Le spese in sospeso vengono lasciate indietro anche se invii un intero resoconto.',
+        holdIsLeftBehindDM: 'Le spese in sospeso non verranno inviate finche non rimuovi la sospensione.',
         unholdWhenReady: 'Sblocca le spese quando sei pronto a inviarle.',
+        unholdWhenReadyDM: 'Rimuovi la sospensione dalle spese quando sei prontə a inviarle.',
         changePolicyEducational: {
             title: 'Hai spostato questo report!',
             description: 'Ricontrolla questi elementi, che tendono a cambiare quando si spostano i report in un nuovo workspace.',
