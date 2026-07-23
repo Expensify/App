@@ -175,9 +175,8 @@ describe('reportAttributes compute — policy change code flow', () => {
 
     it('recomputes reports of delivered policies when the stored value has no signature baseline', () => {
         // Reproduces the first policy delivery on a value with no baseline (written by an older app
-        // version, or computed in-session before policies loaded): we cannot tell whether the stored
-        // attributes match these policies, so the delivered policies' reports recompute — exactly like
-        // the pre-signature code did on its first in-session delivery — and the full baseline is recorded.
+        // version, or computed in-session before policies loaded): whether the stored attributes match
+        // these policies is unknown, so the delivered policies' reports recompute and the full baseline is recorded.
         const report3: Report = {...createRandomReport(12, undefined), reportID: 'r3', policyID: 'policyOther', chatReportID: undefined};
         const reportsWithUnrelated: OnyxCollection<Report> = {
             ...reports,
@@ -602,7 +601,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             jest.requireMock<{default: {getReasonAndReportActionThatHasRedBrickRoad: jest.Mock}}>('@libs/SidebarUtils').default.getReasonAndReportActionThatHasRedBrickRoad;
 
         it('still propagates a new error to the parent chat when a child gains one during an incremental update', () => {
-            // parentReportID/parentReportActionID point at a real (non-deleted) preview action — main's
+            // parentReportID/parentReportActionID point at a real (non-deleted) preview action — the
             // isDeletedAction guard treats a report with no resolvable parent action as deleted and skips
             // propagation for it, so the fixture needs one to actually exercise the propagation path below.
             const expenseReport: Report = {
@@ -642,14 +641,14 @@ describe('reportAttributes compute — policy change code flow', () => {
                 sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
             });
 
-            // The skip-propagation optimization must not prevent a genuinely new error from reaching the parent.
+            // Skipping the propagation scan must not prevent a genuinely new error from reaching the parent.
             expect(result?.reports.chat1?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
             expect(result?.reports.chat1?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.FIX);
         });
 
         it('clears a stale parent error once the only erroring child stops erroring', () => {
             // A real (non-deleted) parent action, so the assertion below reflects needsViolationFix
-            // re-evaluating to false rather than main's isDeletedAction guard skipping expense1 outright.
+            // re-evaluating to false rather than the isDeletedAction guard skipping expense1 outright.
             const expenseReport: Report = {
                 ...createRandomReport(10, undefined),
                 reportID: 'expense1',

@@ -70,7 +70,7 @@ type ReportAttributesDerivedValue = {
      */
     locale: string | null;
     /**
-     * Signatures of the policy fields the attributes depend on, keyed by policy Onyx key.
+     * Signatures of each policy's attribute-relevant content, keyed by policy Onyx key.
      * Persisted so a fresh app session can tell real policy changes from the first post-startup merge.
      */
     policySignatures?: Record<string, string>;
