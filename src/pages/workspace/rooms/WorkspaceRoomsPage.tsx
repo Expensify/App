@@ -8,7 +8,6 @@ import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,7 +27,6 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -44,7 +42,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const headerIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
@@ -94,10 +91,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     });
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.WORKSPACE_ROOMS_PAGE)}
-        >
+        <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
                 testID={WorkspaceRoomsPage.displayName}
                 style={[styles.defaultModalContainer]}
