@@ -41,7 +41,9 @@ readonly SEL_NAME_FIELD='label="First name" || label="Full name" || role="textfi
 # apostrophe mismatch (the snapshot classifiers keep both variants instead).
 readonly WAIT_ONBOARDING='role="button" label="Skip" || label="Skip" || label="Something else" || text="your work email" || text="your name"'
 readonly WAIT_LANDED='role="button" label="Search" || text="Welcome"'
-readonly WAIT_MAGIC='text="magic code"'
+# App copy renamed "magic code" to "security code" (welcomeEnterSecurityCode);
+# match both so the fail-fast wall detection survives either wording.
+readonly WAIT_MAGIC='text="magic code" || text="security code"'
 readonly WAIT_JOIN='role="button" label="Join" || label="Join"'
 
 # Set on fatal drive outcomes (return code 2) for the caller to surface.
@@ -143,8 +145,9 @@ snap_onboarding() {
     || snap_has 'Onboarding progress' || snap_has 'connect your work email'
 }
 
-# snap_has is case-insensitive — one variant covers all casings.
-snap_magic_wall() { snap_has 'magic code'; }
+# snap_has is case-insensitive — one variant covers all casings. Current App
+# copy says "security code"; "magic code" kept for older builds.
+snap_magic_wall() { snap_has 'magic code' || snap_has 'security code'; }
 
 snap_landed() {
   snap_onboarding && return 1
