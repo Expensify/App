@@ -101,15 +101,29 @@ describe('CompanyCards RAM-only loading state updates', () => {
         );
     });
 
-    it('openPolicyCompanyCardsPage skips loading state updates when domainOrWorkspaceAccountID is 0', () => {
+    it('openPolicyCompanyCardsPage skips per-domain loading state updates but still tracks IS_LOADING_COMPANY_CARDS_PAGE when domainOrWorkspaceAccountID is 0', () => {
         openPolicyCompanyCardsPage('policy123', CONST.DEFAULT_NUMBER_ID, [], mockTranslate);
 
+        // For member ID '0' the per-domain SHARED_NVP / RAM-only writes are skipped (Onyx discards them),
+        // so only the stable IS_LOADING_COMPANY_CARDS_PAGE flag is written to track the read lifecycle.
         expect(mockRead).toHaveBeenCalledWith(
             READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,
             expect.any(Object),
             expect.objectContaining({
-                optimisticData: [],
-                successData: [],
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}policy123`,
+                        value: true,
+                    },
+                ],
+                successData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}policy123`,
+                        value: false,
+                    },
+                ],
             }),
         );
     });

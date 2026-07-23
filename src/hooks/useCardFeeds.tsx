@@ -25,8 +25,11 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  *     3. Card feeds specific to the given policyID (or `undefined` if unavailable).
  *     4. Card feed status by domain ID.
  *     5. Workspace account ID for the policy.
+ *     6. Effective workspace account ID, which resolves to a linked domain ID when the policy has no workspace account.
  */
-const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID, number] => {
+const useCardFeeds = (
+    policyID: string | undefined,
+): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID, number, number] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -36,6 +39,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
     // This handles domain-based card accounts where no workspace account exists yet.
     let effectiveWorkspaceAccountID = workspaceAccountID;
     if (workspaceAccountID === CONST.DEFAULT_NUMBER_ID && policyID && allFeeds) {
+        const upperPolicyID = policyID.toUpperCase();
         const linkedDomainEntry = Object.entries(allFeeds).find(([onyxKey, feeds]) => {
             const domainID = Number(onyxKey.split('_').at(-1));
             if (!domainID) {
@@ -45,7 +49,10 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
             if (!companyCards) {
                 return false;
             }
-            return Object.values(companyCards).some((feedSettings) => feedSettings?.preferredPolicy === policyID || (feedSettings?.linkedPolicyIDs ?? []).includes(policyID));
+            return Object.values(companyCards).some(
+                (feedSettings) =>
+                    feedSettings?.preferredPolicy === policyID || (feedSettings?.linkedPolicyIDs ?? []).some((linkedPolicyID) => linkedPolicyID?.toUpperCase() === upperPolicyID),
+            );
         });
         if (linkedDomainEntry) {
             effectiveWorkspaceAccountID = Number(linkedDomainEntry[0].split('_').at(-1));
@@ -71,7 +78,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
 
     const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(allFeeds);
 
-    return [workspaceFeeds, allFeedsResult, defaultFeed, workspaceCardFeedsStatus, workspaceAccountID];
+    return [workspaceFeeds, allFeedsResult, defaultFeed, workspaceCardFeedsStatus, workspaceAccountID, effectiveWorkspaceAccountID];
 };
 
 export default useCardFeeds;

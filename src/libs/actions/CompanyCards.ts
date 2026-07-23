@@ -993,57 +993,73 @@ function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: 
 }
 
 function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID: number, emailList: string[], translate: LocaleContextProps['translate']) {
-    // Skip loading state writes when domainOrWorkspaceAccountID is 0 since Onyx discards writes to collection keys with member ID '0'.
+    // Skip per-domain loading state writes when domainOrWorkspaceAccountID is 0 since Onyx discards writes to collection keys with member ID '0'.
+    // The stable IS_LOADING_COMPANY_CARDS_PAGE key (written below) always tracks the read lifecycle so the page can detect it settling even for member ID '0'.
     const onyxLoadingStateUpdates = domainOrWorkspaceAccountID !== CONST.DEFAULT_NUMBER_ID;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = onyxLoadingStateUpdates
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-                  value: {
-                      isLoading: true,
-                      errors: null,
-                  },
-              },
-          ]
-        : [];
+    type CompanyCardsPageLoadingKey =
+        | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+        | typeof ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE
+        | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE;
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE>> =
-        onyxLoadingStateUpdates
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-                      value: {
-                          isLoading: false,
-                      },
-                  },
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
-                      value: {
-                          // RAM-only so background refresh cannot wipe this; gates repeat page skeletons.
-                          hasOnceLoadedPage: true,
-                      },
-                  },
-              ]
-            : [];
+    const optimisticData: Array<OnyxUpdate<CompanyCardsPageLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}${policyID}`,
+            value: true,
+        },
+    ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = onyxLoadingStateUpdates
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-                  value: {
-                      isLoading: false,
-                      errors: {
-                          [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
-                      },
-                  },
-              },
-          ]
-        : [];
+    const successData: Array<OnyxUpdate<CompanyCardsPageLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}${policyID}`,
+            value: false,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<CompanyCardsPageLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}${policyID}`,
+            value: false,
+        },
+    ];
+
+    if (onyxLoadingStateUpdates) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
+            value: {
+                hasOnceLoadedPage: true,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+            value: {
+                isLoading: false,
+                errors: {
+                    [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
+                },
+            },
+        });
+    }
 
     const params: OpenPolicyExpensifyCardsPageParams = {
         policyID,

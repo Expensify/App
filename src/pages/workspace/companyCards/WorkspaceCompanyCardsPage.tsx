@@ -7,11 +7,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {shouldWaitForDomainFeedData} from '@libs/CompanyCardsFeedLoadingUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -22,6 +24,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -48,10 +51,14 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         bankName,
         isFeedPending,
         isFeedAdded,
+        effectiveWorkspaceAccountID = CONST.DEFAULT_NUMBER_ID,
         onyxMetadata: {cardListMetadata},
     } = companyCards;
 
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
+    const [isLoadingCompanyCardsPage] = useOnyx(`${ONYXKEYS.COLLECTION.IS_LOADING_COMPANY_CARDS_PAGE}${policyID}`);
+
+    const baseAccountID = workspaceAccountID === CONST.DEFAULT_NUMBER_ID ? effectiveWorkspaceAccountID : workspaceAccountID;
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(baseAccountID, selectedFeed);
 
     // Use a ref so that changes to the employee list (e.g. after inviting a member) don't
     // recreate the callback and trigger an unnecessary re-fetch that flashes a skeleton loader.
@@ -73,13 +80,54 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
 
+    const [isInitialFeedFetchPending, setIsInitialFeedFetchPending] = useState(false);
+    const [isInitialFeedFetchSettled, setIsInitialFeedFetchSettled] = useState(false);
+
+    // Tracks that we've actually seen this page's read go in-flight, so a stale loading flag left
+    // false by a previously-viewed workspace can't settle the fetch before our own read starts.
+    const hasObservedFeedFetchLoadingRef = useRef(false);
+
     useEffect(() => {
         if (isOffline || hasFeedsLoaded) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the fetch-lifecycle flags with the feed-loading outcome; these must persist across the async fetch window so they can't be derived during render
+            setIsInitialFeedFetchPending(false);
+            if (hasFeedsLoaded) {
+                setIsInitialFeedFetchSettled(true);
+            }
             return;
         }
 
+        setIsInitialFeedFetchPending(true);
         loadPolicyCompanyCardsPage();
     }, [loadPolicyCompanyCardsPage, isOffline, hasFeedsLoaded]);
+
+    useEffect(() => {
+        if (hasFeedsLoaded || domainOrWorkspaceAccountID !== CONST.DEFAULT_NUMBER_ID) {
+            hasObservedFeedFetchLoadingRef.current = false;
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- settles the fetch state once feeds load or the domain account ID resolves; reflects an async outcome that can't be derived during render
+            setIsInitialFeedFetchPending(false);
+            setIsInitialFeedFetchSettled(true);
+            return;
+        }
+
+        // Wait for the OpenPolicyCompanyCardsPage read to actually settle before deciding the domain feed is genuinely
+        // missing, otherwise a false error flashes during slow requests. We only settle once we've seen the read's
+        // loading flag go true (in-flight) and then false (resolved), so a stale flag can't settle us early.
+        if (isLoadingCompanyCardsPage) {
+            hasObservedFeedFetchLoadingRef.current = true;
+            return;
+        }
+
+        if (!isInitialFeedFetchPending || !hasObservedFeedFetchLoadingRef.current) {
+            return;
+        }
+
+        hasObservedFeedFetchLoadingRef.current = false;
+        setIsInitialFeedFetchPending(false);
+        setIsInitialFeedFetchSettled(true);
+    }, [domainOrWorkspaceAccountID, hasFeedsLoaded, isInitialFeedFetchPending, isLoadingCompanyCardsPage]);
+
+    const isWaitingForDomainFeedData = shouldWaitForDomainFeedData(workspaceAccountID, domainOrWorkspaceAccountID, hasFeedsLoaded, isOffline, isInitialFeedFetchSettled);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending || isOffline) {
@@ -116,6 +164,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     policyID={policyID}
                     isPolicyLoaded={!!policy}
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                    isWaitingForDomainFeedData={isWaitingForDomainFeedData}
                     companyCards={companyCards}
                     onAssignCard={assignCard}
                     isAssigningCardDisabled={isAssigningCardDisabled || !canWriteCompanyCards}
