@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeightInLandscapeMode';
 
 import type {RefObject} from 'react';
 
@@ -17,10 +18,12 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useIsInLandscapeMode from './useIsInLandscapeMode';
+import useKeyboardState from './useKeyboardState';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
+import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
 import useViewportOffsetTop from './useViewportOffsetTop';
@@ -60,15 +63,18 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     // Bottom-docked Modal path only; aligns with Popover path that omits modal shell padding chrome
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const isBottomDockedInLandscape = isSmallScreenWidth && isInLandscapeMode;
+    const {keyboardActiveHeight} = useKeyboardState();
+    const {top: topSafeAreaInset} = useSafeAreaInsets();
 
     const submitToPopoverContentHeight = useMemo(() => {
-        if (!isBottomDockedInLandscape) {
+        if (!isInLandscapeMode) {
             return popoverDimensions.height;
         }
 
-        return Math.min(popoverDimensions.height, windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE);
-    }, [isBottomDockedInLandscape, windowHeight]);
+        const contentHeightLandscapeMode = calculateModalHeightInLandscapeMode(windowHeight, topSafeAreaInset, keyboardActiveHeight);
+
+        return Math.min(popoverDimensions.height, contentHeightLandscapeMode);
+    }, [isInLandscapeMode, windowHeight, keyboardActiveHeight, topSafeAreaInset]);
     const anchorRef = useRef<View>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
@@ -227,9 +233,9 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const innerContainerStyle = useMemo(
         () => ({
             ...popoverContainerStyle,
-            ...(isBottomDockedInLandscape ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
+            ...(isInLandscapeMode ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
         }),
-        [popoverContainerStyle, isBottomDockedInLandscape, windowHeight, styles],
+        [popoverContainerStyle, isInLandscapeMode, windowHeight, styles],
     );
 
     const reportSubmitToPopover = useMemo(() => {
@@ -259,7 +265,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.flex1, styles.w100, styles.pt4]}
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.w100, styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -278,7 +284,6 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     }, [
         StyleUtils,
         styles.flexColumn,
-        styles.flex1,
         styles.pt4,
         styles.w100,
         innerContainerStyle,
