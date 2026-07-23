@@ -70,8 +70,7 @@ function PersonalCardUpgradePage() {
     };
 
     const addPersonalCard = () => {
-        Navigation.closeRHPFlow();
-        // TODO navigate to add personal card
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW, {forceReplace: true});
     };
 
     const addCompanyCard = () => {
