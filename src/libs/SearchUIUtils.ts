@@ -629,6 +629,11 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
+    /**
+     * Callers may pass `undefined` for non-CHAT/TASK search types as a perf optimization (see `useSearchSnapshot`).
+     * Only `getReportActionsSections` (CHAT) and `getTaskSections` (TASK) read it — if you consume it in another
+     * branch, remove that gating in the caller first, otherwise it will silently be `undefined`.
+     */
     reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
 };
 
