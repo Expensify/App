@@ -1,5 +1,5 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
@@ -157,8 +157,11 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
                     }}
                     shouldShowBackButton
                 />
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
-                    <FullScreenLoadingIndicator reasonAttributes={{context: 'MultifactorAuthenticationScenarioAuthorizeTransactionPage'}} />
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'MultifactorAuthenticationScenarioAuthorizeTransactionPage'}}
+                    />
                 </View>
             </ScreenWrapper>
         );
