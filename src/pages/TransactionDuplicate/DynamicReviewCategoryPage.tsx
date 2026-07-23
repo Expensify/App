@@ -1,19 +1,23 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -23,10 +27,11 @@ import type {FieldItemType} from './ReviewFields';
 
 import ReviewFields from './ReviewFields';
 
-function ReviewMerchant() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+function DynamicReviewCategoryPage() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY>>();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.path);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -43,48 +48,43 @@ function ReviewMerchant() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
-        Object.keys(compareResult.change ?? {}),
-        'merchant',
-        route.params.threadReportID,
-        route.params.backTo,
-    );
+    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', route.params.reportID, route.params.backTo);
     const options = useMemo(
         () =>
-            compareResult.change.merchant?.map((merchant) =>
-                !merchant
+            compareResult.change.category?.map((category) =>
+                !category
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: merchant,
-                          value: merchant,
+                          text: getDecodedCategoryName(category),
+                          value: category,
                       },
             ),
-        [compareResult.change.merchant, translate],
+        [compareResult.change.category, translate],
     );
 
-    const setMerchant = (data: FieldItemType<'merchant'>) => {
+    const setCategory = (data: FieldItemType<'category'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({merchant: data.value});
+            setReviewDuplicatesKey({category: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
-        <ScreenWrapper testID="ReviewMerchant">
+        <ScreenWrapper testID="DynamicReviewCategoryPage">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
             />
-            <ReviewFields<'merchant'>
+            <ReviewFields<'category'>
                 stepNames={stepNames}
-                label={translate('violations.merchantToKeep')}
+                label={translate('violations.categoryToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={setMerchant}
-                selectedValue={reviewDuplicates?.merchant}
+                onSelectRow={setCategory}
+                selectedValue={reviewDuplicates?.category}
             />
         </ScreenWrapper>
     );
 }
 
-export default ReviewMerchant;
+export default DynamicReviewCategoryPage;
