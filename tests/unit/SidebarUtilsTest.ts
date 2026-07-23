@@ -683,13 +683,20 @@ describe('SidebarUtils', () => {
             const transactionViolations: NonNullable<OnyxCollection<TransactionViolation[]>> = {
                 [transactionViolationsKey]: transactionViolationList,
             };
+            const onyxReports: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
+            };
 
             await act(async () => {
-                await Onyx.set(ONYXKEYS.SESSION, {accountID: 12345});
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-                await Onyx.set(transactionKey, transaction);
-                await Onyx.set(transactionViolationsKey, transactionViolationList);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    ...onyxReports,
+                    [transactionKey]: transaction,
+                    [transactionViolationsKey]: transactionViolationList,
+                });
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -871,6 +878,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORTS = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
             } satisfies ReportCollectionDataSet;
+            const onyxReports: ReportCollectionDataSet = MOCK_REPORTS;
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
                 '1': {
@@ -910,9 +918,11 @@ describe('SidebarUtils', () => {
             };
 
             await act(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}`, MOCK_REPORT_ACTIONS);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}`, MOCK_TRANSACTION);
+                await Onyx.multiSet({
+                    ...onyxReports,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                });
             });
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
@@ -958,6 +968,7 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
                 [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_TRANSACTION_THREAD_REPORT.reportID}` as const]: MOCK_TRANSACTION_THREAD_REPORT,
             } satisfies ReportCollectionDataSet;
+            const onyxReports: ReportCollectionDataSet = MOCK_REPORTS;
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
                 '1': {
@@ -1019,11 +1030,12 @@ describe('SidebarUtils', () => {
             };
 
             await act(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_TRANSACTION_THREAD_REPORT.reportID}`, MOCK_TRANSACTION_THREAD_REPORT);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}`, MOCK_REPORT_ACTIONS);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}`, MOCK_TRANSACTION);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION2.transactionID}`, MOCK_TRANSACTION2);
+                await Onyx.multiSet({
+                    ...onyxReports,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION2.transactionID}` as const]: MOCK_TRANSACTION2,
+                });
             });
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
