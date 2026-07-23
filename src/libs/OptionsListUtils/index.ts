@@ -2197,6 +2197,7 @@ function getUserToInviteOption({
         [optimisticAccountID]: {
             accountID: optimisticAccountID,
             login: searchValue,
+            displayName: searchValue,
         },
     };
     const userToInvite = createOption({
