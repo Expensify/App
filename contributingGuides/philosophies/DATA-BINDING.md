@@ -26,6 +26,8 @@ Returning a promise is the first sign that the rule above this is being broken. 
 ### - Library files that are not connected or associated to any UI SHOULD use `Onyx.connectWithoutView()` to subscribe to changes in Onyx data
 Library files are located in `/src/lib` but excluding the actions in `/src/lib/actions` which have their own rule below.
 
+`Onyx.connectWithoutView()` is not the default, even in a library file: first prefer a pure function that receives the data as parameters, and reach for `Onyx.connectWithoutView()` only when the library genuinely needs to react to Onyx changes outside of render. Never add one just because nearby code uses it. See [Reading Onyx data: `useOnyx` vs `Onyx.connectWithoutView`](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview) for the full rules.
+
 Exclusions:
 - If a library method is used by an action method (like a utility), then follow the rule below for action methods.
 

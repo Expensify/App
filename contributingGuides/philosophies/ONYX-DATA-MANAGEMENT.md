@@ -37,6 +37,27 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
+## Reading Onyx data: `useOnyx` vs `Onyx.connectWithoutView`
+There are three ways to read Onyx data, listed in order of preference. Always reach for the earliest one that fits.
+1. **A pure function** that receives the data it needs as parameters — no Onyx connection at all.
+2. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
+3. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when the two options above genuinely do not fit.
+
+### - Pure functions take precedence over any Onyx connection
+Before adding any Onyx subscription, check whether the code can be a pure function that takes the data it needs as parameters. A pure function needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This rule takes precedence over everything below.
+
+### - Components MUST read Onyx with `useOnyx`, never `Onyx.connectWithoutView`
+Any value used during render belongs in `useOnyx` so the UI updates when the value changes.
+
+### - `Onyx.connectWithoutView` is ONLY for data that is never used during render
+It is appropriate for module-level state in actions/libraries that is read by non-render logic (e.g. event handlers or the `openApp`/`reconnectApp` flows), where `useOnyx` would add rerenders without affecting any View. See `src/libs/actions/App.ts` for examples — each connection there has a comment explaining why render never depends on the value.
+
+### - Existing `Onyx.connectWithoutView` usage is NOT a template to copy
+Do not add a new `Onyx.connectWithoutView` just because nearby code uses it. Justify each new use on its own against the rule above; when in doubt, use a pure function or `useOnyx`.
+
+### - Using `Onyx.connectWithoutView` in a component for performance REQUIRES @frontend-performance approval
+In rare cases a component that subscribes to multiple large collections through `useOnyx` suffers a significant performance regression. Reaching for `Onyx.connectWithoutView` to avoid that is an explicit exception, not a self-serve option: it MUST be approved by the `@frontend-performance` team on Slack, and the PR description MUST link to that discussion.
+
 ## Onyx Derived Values
 
 Derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
