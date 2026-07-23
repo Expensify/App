@@ -180,7 +180,13 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
 
         isTabSwitchPendingRef.current = true;
         KeyboardUtils.dismiss()
+            .catch((error: unknown) => {
+                Log.warn('[OnyxTabNavigator] Failed to dismiss keyboard before tab switch', {error});
+            })
             .then(callback)
+            .catch((error: unknown) => {
+                Log.warn('[OnyxTabNavigator] Failed to run tab switch after keyboard dismiss', {error});
+            })
             .finally(() => {
                 isTabSwitchPendingRef.current = false;
             });
