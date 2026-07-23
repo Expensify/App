@@ -75,7 +75,7 @@ function SearchPage({route}: SearchPageProps) {
     const isCurrentSearchResolved = isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
     let searchResults: SearchResults | undefined;
     if (isCurrentSearchResolved && currentSearchResults?.search && currentSearchResults.data === undefined) {
-        searchResults = {...currentSearchResults, search: currentSearchResults.search, data: {}};
+        searchResults = {...currentSearchResults, data: {}};
     } else if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
