@@ -15,6 +15,7 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {reportHasRealPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasTags} from '@libs/PolicyUtils';
 
@@ -58,7 +59,9 @@ function IOURequestStepCategoryCreate({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
 
-    const policyIdReal = getIOURequestPolicyID(transaction, reportReal);
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
+    // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
+    const policyIdReal = getIOURequestPolicyID(transaction, reportHasRealPolicy(reportReal) ? reportReal : (participantReport ?? reportReal));
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const {policy} = usePolicyForTransaction({
         transaction,

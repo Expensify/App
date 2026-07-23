@@ -505,6 +505,17 @@ function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, 
     return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
 }
 
+/**
+ * Whether a report carries a real workspace policy. The self-DM / personal report uses the placeholder
+ * `CONST.POLICY.ID_FAKE` ('_FAKE_') policyID, which is truthy and would otherwise pass naive `report?.policyID`
+ * checks. Money-request policy resolution must treat it as "no real policy" so a placeholder/stale route report
+ * (e.g. the self-DM a submissions-disabled workspace flow is seeded onto) does not shadow the selected workspace
+ * chat's real policy when picking which report to derive the policyID from. See #96576.
+ */
+function reportHasRealPolicy(report: OnyxEntry<Report>): boolean {
+    return !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
@@ -606,4 +617,5 @@ export {
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,
+    reportHasRealPolicy,
 };
