@@ -1,11 +1,12 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidTaxID} from '@libs/ValidationUtils';
@@ -16,11 +17,13 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 const COMPANY_TAX_ID_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID;
 const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
 function TaxIdBusiness({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
@@ -61,7 +64,14 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubPageProps) {
             context: 'TaxIdBusiness',
             isLoadingReimbursementAccount,
         };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={reasonAttributes}
+                />
+            </View>
+        );
     }
 
     return (
