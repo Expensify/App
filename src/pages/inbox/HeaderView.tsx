@@ -1,5 +1,5 @@
 import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
@@ -249,10 +249,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const joinButton = (
         <Button
-            success
-            text={translate('common.join')}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={join}
-        />
+        >
+            <Button.Text>{translate('common.join')}</Button.Text>
+        </Button>
     );
 
     const renderAdditionalText = () => {

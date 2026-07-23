@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 
@@ -77,24 +77,26 @@ function ParticipantSelectorFooter({
 
             {!!selectedOptionsLength && !isCategorizeOrShareAction && (
                 <Button
-                    success
-                    text={translate('common.next')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onConfirmSelection}
-                    pressOnEnter
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={shouldShowSplitBillErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEXT_BUTTON}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
             )}
             {isCategorizeOrShareAction && (
                 <Button
-                    success
-                    text={translate('workspace.new.newWorkspace')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onNewWorkspace}
-                    pressOnEnter
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEW_WORKSPACE_BUTTON}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('workspace.new.newWorkspace')}</Button.Text>
+                </Button>
             )}
         </>
     );

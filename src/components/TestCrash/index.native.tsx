@@ -1,9 +1,11 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import TestToolRow from '@components/TestToolRow';
 
 import useLocalize from '@hooks/useLocalize';
 
 import testCrash from '@libs/testCrash';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -20,10 +22,11 @@ function TestCrash() {
         <View>
             <TestToolRow title={toolRowTitle}>
                 <Button
-                    small
-                    text={toolRowTitle}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={testCrash}
-                />
+                >
+                    <Button.Text>{toolRowTitle}</Button.Text>
+                </Button>
             </TestToolRow>
         </View>
     );

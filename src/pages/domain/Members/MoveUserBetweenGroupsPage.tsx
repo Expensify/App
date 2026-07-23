@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -67,7 +67,7 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
         setSelectedGroupId(item.value);
     };
 
-    const handleSave = () => {
+    const moveToSelectedGroup = () => {
         if (!selectedGroupId || !domainName || !userSecurityGroup || !memberLogin) {
             return;
         }
@@ -86,6 +86,8 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
         changeDomainSecurityGroup(domainAccountID, domainName, memberLogin, accountID, userSecurityGroup.key, userSecurityGroup.securityGroup, newSecurityGroupKey);
         Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
     };
+
+    const isSaveDisabled = !selectedGroupId || selectedGroupId === currentGroupId || !memberLogin;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -110,13 +112,14 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
                 />
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate('common.save')}
-                        onPress={handleSave}
-                        isDisabled={!selectedGroupId || selectedGroupId === currentGroupId || !memberLogin}
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={moveToSelectedGroup}
+                        isDisabled={isSaveDisabled}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

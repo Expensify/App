@@ -1,9 +1,11 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import FilterComponents from '@components/Search/FilterComponents';
 import type {CommonFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 
 import useLocalize from '@hooks/useLocalize';
+
+import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 
@@ -22,11 +24,12 @@ function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, p
             onChange={setValue}
             footer={
                 <Button
-                    success
-                    large
-                    text={translate('common.confirm')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => onChange(value)}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             }
         />
     );

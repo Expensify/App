@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -168,7 +168,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
-    const handleConfirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
+    const confirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
         if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
             return;
         }
@@ -193,14 +193,15 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     />
                 )}
                 <Button
-                    success
-                    text={translate('common.save')}
-                    onPress={handleConfirmSelection}
-                    pressOnEnter
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={confirmSelection}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={shouldShowErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </>
         );
     };
@@ -306,7 +307,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             onSelectRow={toggleSelection}
             textInputOptions={textInputOptions}
             confirmButtonOptions={{
-                onConfirm: handleConfirmSelection,
+                onConfirm: confirmSelection,
             }}
             footerContent={footerContent}
             isLoadingNewOptions={!!isSearchingForReports}
