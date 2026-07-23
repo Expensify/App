@@ -19,4 +19,3 @@ function getSearchPreInsertNavigation(isFromNativeShortcut: boolean): SearchPreI
 }
 
 export {SEARCH_PRE_INSERT_NAVIGATION, getSearchPreInsertNavigation};
-export type {SearchPreInsertNavigation};
