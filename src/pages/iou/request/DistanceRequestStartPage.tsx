@@ -114,6 +114,7 @@ function DistanceRequestStartPage({
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
         >
             <ScreenWrapper
+                // Keep KAV enabled while the odometer keyboard is closing so the Map tab does not mount in a keyboard-shrunk layout.
                 shouldEnableKeyboardAvoidingView={selectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER || isKeyboardShown}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="DistanceRequestStartPage"
