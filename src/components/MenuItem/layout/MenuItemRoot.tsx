@@ -47,9 +47,6 @@ type MenuItemRootProps = WithSentryLabel & {
     /** Handles what to do when the row loses focus */
     onBlur?: () => void;
 
-    /** Whether the row should be interactive at all */
-    interactive?: boolean;
-
     /** Should we disable this row? */
     disabled?: boolean;
 
@@ -97,7 +94,6 @@ function MenuItemRoot({
     onSecondaryInteraction,
     onFocus,
     onBlur,
-    interactive = true,
     disabled = false,
     focused = false,
     success = false,
@@ -121,6 +117,7 @@ function MenuItemRoot({
     const pressableRef = useRef<View>(null);
     const isCompactMenu = useIsCompactMenu();
     const isCompact = isCompactMenu && !isSmallScreenWidth;
+    const interactive = !!onPress;
 
     useEffect(() => {
         const element = pressableRef.current;
