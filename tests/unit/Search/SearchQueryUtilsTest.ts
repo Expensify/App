@@ -2039,6 +2039,85 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('getQueryFilterWithoutKeywordHash', () => {
+        it('returns the same hash for identical queries', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+        });
+
+        it('ignores keyword filters when computing the hash', () => {
+            const withoutKeyword = buildSearchQueryJSON('type:expense category:travel');
+            const withKeyword = buildSearchQueryJSON('type:expense category:travel hello world');
+
+            if (!withoutKeyword || !withKeyword) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryFilterWithoutKeywordHash(withKeyword)).toEqual(getQueryFilterWithoutKeywordHash(withoutKeyword));
+        });
+
+        it('ignores group-currency filters when computing the hash', () => {
+            const withoutGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category');
+            const withGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
+
+            if (!withoutGroupCurrency || !withGroupCurrency) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryFilterWithoutKeywordHash(withGroupCurrency)).toEqual(getQueryFilterWithoutKeywordHash(withoutGroupCurrency));
+        });
+
+        it('is independent of the order in which filters appear', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+            const queryJSONb = buildSearchQueryJSON('type:expense merchant:Amazon category:travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+        });
+
+        it('is independent of the order of values within a filter', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel,food');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:food,travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+        });
+
+        it('returns different hashes for queries with different filter values', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:food');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).not.toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+        });
+
+        it('returns different hashes for queries with different filter keys', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel');
+            const queryJSONb = buildSearchQueryJSON('type:expense merchant:travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).not.toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+        });
+    });
+
     describe('limit filter parsing', () => {
         it('parses limit value as a number', () => {
             const queryJSON = buildSearchQueryJSON('type:expense limit:25');
