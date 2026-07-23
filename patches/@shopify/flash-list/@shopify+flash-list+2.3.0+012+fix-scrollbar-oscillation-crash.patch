@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-index 12375d9..bfd3c88 100644
+index 12375d9..857c790 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
 @@ -1,4 +1,13 @@
@@ -35,7 +35,7 @@ index 12375d9..bfd3c88 100644
          if (oldBoundedSize !== this.boundedSize ||
              prevHorizontal !== this.horizontal) {
              if (this.layouts.length > 0) {
-@@ -35,6 +52,72 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+@@ -35,6 +52,81 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
              }
          }
      }
@@ -99,6 +99,15 @@ index 12375d9..bfd3c88 100644
 +            return measuredBoundedSize;
 +        }
 +        const smaller = Math.min(distinctSizes[0], distinctSizes[1]);
++        // Only pin while this very frame is measuring the smaller (with-scrollbar) width, so the
++        // pinned value matches current reality. The flips alone can come from separate, already-
++        // finished toggles (e.g. B,A,B,A) while the list currently has no scrollbar; pinning to the
++        // narrow width there would wrongly narrow the rows, and since boundedSize would be unchanged
++        // it schedules no recompute to correct itself. A live ping-pong keeps producing smaller
++        // frames, so this only delays the pin by at most a frame or two.
++        if (size !== smaller) {
++            return measuredBoundedSize;
++        }
 +        this.scrollbarOscillationPair = [
 +            smaller,
 +            Math.max(distinctSizes[0], distinctSizes[1]),
