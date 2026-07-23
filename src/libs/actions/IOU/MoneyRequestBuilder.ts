@@ -1050,6 +1050,29 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 },
             },
         );
+
+        // Reset the newly-created chat/IOU report metadata to non-optimistic on failure, mirroring the success path
+        // (isOptimisticReport: false). Without this the new chat stays isOptimisticReport: true, so `fetchReport` never
+        // calls `openReport` and the chat is stuck on an infinite loading skeleton. The failed expense's red-brick-road
+        // error stays visible; dismissing it then fully removes the orphaned chat and IOU report shells. See #93542.
+        if (isNewChatReport) {
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            });
+        }
+        if (shouldCreateNewMoneyRequestReport) {
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            });
+        }
     }
 
     if (shouldGenerateTransactionThreadReport) {

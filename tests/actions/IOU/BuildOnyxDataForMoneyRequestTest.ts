@@ -475,4 +475,101 @@ describe('buildOnyxDataForMoneyRequest', () => {
             expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBeUndefined();
         });
     });
+
+    describe('failure handling for a brand-new chat', () => {
+        function buildNewChatParams(overrides?: Partial<BuildOnyxDataParams>): BuildOnyxDataParams {
+            return {
+                isNewChatReport: true,
+                shouldCreateNewMoneyRequestReport: true,
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmailParam: CURRENT_USER_EMAIL,
+                hasViolations: false,
+                quickAction: undefined,
+                isSelfDMSplit: false,
+                optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ...overrides,
+            };
+        }
+
+        function findFailureEntry(failureData: ReturnType<typeof buildOnyxDataForMoneyRequest>['failureData'], key: string) {
+            return failureData?.find((entry) => entry.key === key);
+        }
+
+        it('keeps the failed expense visible by MERGE-ing createChat errors onto the new chat and IOU reports instead of deleting them', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
+
+            const chatReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+            const iouReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`);
+
+            expect(chatReportEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((chatReportEntry?.value as Partial<Report>)?.errorFields?.createChat).toBeDefined();
+            expect(iouReportEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((iouReportEntry?.value as Partial<Report>)?.errorFields?.createChat).toBeDefined();
+        });
+
+        it('resets the new chat and IOU report metadata to non-optimistic so the chat is not stuck on an infinite loading skeleton', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
+
+            const chatMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${CHAT_REPORT_ID}`);
+            const iouMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${IOU_REPORT_ID}`);
+
+            expect(chatMetadataEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((chatMetadataEntry?.value as {isOptimisticReport?: boolean})?.isOptimisticReport).toBe(false);
+            expect(iouMetadataEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((iouMetadataEntry?.value as {isOptimisticReport?: boolean})?.isOptimisticReport).toBe(false);
+        });
+
+        it('does not SET any of the new-chat entities to null on failure (rollback happens on dismiss, not on failure)', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
+
+            const keys = [
+                `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`,
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
+                `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`,
+            ];
+
+            for (const key of keys) {
+                const entry = findFailureEntry(failureData, key);
+                expect(entry).toBeDefined();
+                expect(entry?.value).not.toBeNull();
+            }
+        });
+
+        it('does not reset report metadata when the expense is added to an existing chat and IOU report', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(
+                buildNewChatParams({
+                    isNewChatReport: false,
+                    shouldCreateNewMoneyRequestReport: false,
+                }),
+            );
+
+            const chatMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${CHAT_REPORT_ID}`);
+            const iouMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${IOU_REPORT_ID}`);
+
+            expect(chatMetadataEntry).toBeUndefined();
+            expect(iouMetadataEntry).toBeUndefined();
+        });
+
+        it('keeps the standard error-merge behavior when the expense is added to an existing chat and IOU report (retryable)', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(
+                buildNewChatParams({
+                    isNewChatReport: false,
+                    shouldCreateNewMoneyRequestReport: false,
+                }),
+            );
+
+            const chatReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+            const iouReportEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`);
+
+            expect(chatReportEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect(chatReportEntry?.value).not.toBeNull();
+            expect(iouReportEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect(iouReportEntry?.value).not.toBeNull();
+        });
+    });
 });

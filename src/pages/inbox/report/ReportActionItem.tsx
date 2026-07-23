@@ -31,6 +31,7 @@ import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
@@ -65,6 +66,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {expandURLPreview} from '@userActions/Report';
+import deleteReport from '@userActions/Report/DeleteReport';
 import {clearError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -256,6 +258,22 @@ function ReportActionItem({
             cleanUpMoneyRequest(transactionIDToDismiss, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true, iouPolicy);
             return;
         }
+
+        // When the expense created a brand-new chat that failed to be created on the server, the chat, IOU report and
+        // everything created solely for this request are orphaned optimistic shells. Dismissing the error should remove
+        // them entirely (see #93542) rather than only clearing the error, so navigate the user out of the now-deleted
+        // chat and delete it. We delete the parent chat report — deleteReport cascades from the chat down to the linked
+        // IOU report and the transaction thread(s). Deleting the current report here would only remove the IOU report
+        // (this error is dismissed from the expense report, so reportID is the IOU report ID) and leave the chat orphaned.
+        // We key off the parent chat's createChat error — the IOU report also gets `errorFields.createChat` whenever
+        // shouldCreateNewMoneyRequestReport is true (including in existing chats), so gating on the IOU report's error
+        // would wrongly delete an existing server-backed chat when only the new IOU report should be cleaned up.
+        if (reportID && chatReport?.errorFields?.createChat) {
+            const chatReportIDToDelete = report?.chatReportID ?? reportID;
+            Navigation.goBack(undefined, {afterTransition: () => deleteReport(chatReportIDToDelete, true)});
+            return;
+        }
+
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
             navigation.setParams({reportActionID: ''});
         }
