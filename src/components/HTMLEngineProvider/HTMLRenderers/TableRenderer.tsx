@@ -1,11 +1,12 @@
-import ScrollView from '@components/ScrollView';
-
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 
 import {useContext, useMemo} from 'react';
 import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
 import {useContentWidth} from 'react-native-render-html';
 
 import type {CellHorizontalAlignment} from './TableColumnAlignmentContext';
@@ -39,18 +40,20 @@ function TableRenderer({tnode}: CustomRendererProps<TBlock>) {
     // outside a comment. A concrete number is required because a percentage does not resolve inside a horizontal ScrollView.
     const measuredContentWidth = useContext(TableContentWidthContext);
     const fallbackContentWidth = useContentWidth();
-    const minWidth = measuredContentWidth || fallbackContentWidth;
+    const viewportWidth = measuredContentWidth || fallbackContentWidth;
+    const columnsWidth = columnAlignments.length * variables.htmlTableColumnMaxWidth + 2 * variables.tableRowPaddingHorizontal;
+    const contentWidth = Math.max(viewportWidth, columnsWidth);
 
     return (
         <TableColumnAlignmentContext.Provider value={columnAlignments}>
             <ScrollView
                 horizontal
+                shouldActivateOnStart
                 showsHorizontalScrollIndicator={false}
-                style={styles.w100}
-                contentContainerStyle={styles.htmlTableScrollContainerContent}
+                style={{width: viewportWidth}}
+                contentContainerStyle={{width: contentWidth}}
             >
-                {/* The width makes the table fill the available message width; it still grows wider and scrolls horizontally when the columns need more room than that. */}
-                <View style={[styles.htmlTable, {minWidth}]}>
+                <View style={styles.htmlTable}>
                     <TableChildrenRenderer tnode={tnode} />
                 </View>
             </ScrollView>

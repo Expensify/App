@@ -2696,10 +2696,6 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.tableHeaderContentHeight,
         },
 
-        htmlTableScrollContainerContent: {
-            flexGrow: 1,
-        },
-
         htmlTable: {
             marginVertical: 8,
             borderRadius: variables.componentBorderRadius,
@@ -2730,7 +2726,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         htmlTableCell: {
-            flex: 1,
+            // A definite flexBasis (not flex: 1 / basis 0) keeps columns aligned across rows inside the horizontal
+            // ScrollView, where the indefinite main-axis width otherwise collapses each cell to its content width.
+            // flexShrink: 0 stops columns from shrinking to fit the viewport, so a wide table overflows and can be
+            // scrolled horizontally; flexGrow: 1 still lets columns expand to fill the message width when it is wider.
+            flexGrow: 1,
+            flexShrink: 0,
+            flexBasis: variables.htmlTableColumnMaxWidth,
             minWidth: variables.htmlTableColumnMinWidth,
             paddingEnd: 8,
         },
