@@ -1,31 +1,298 @@
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-index af278a3921a..5a42b20b944 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-+++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-@@ -57,6 +57,10 @@ class TextAttributes : public DebugStringConvertible {
-   std::optional<Float> borderRightWidth{};
-   std::optional<Float> borderBottomWidth{};
-   std::optional<Float> borderLeftWidth{};
-+  // Inner padding between the border and the text (resolved from
-+  // paddingLeft/paddingRight, falling back to paddingHorizontal).
-+  std::optional<Float> paddingLeft{};
-+  std::optional<Float> paddingRight{};
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+index 86dd1fc..2be0a2f 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+@@ -127,6 +127,14 @@ public class TextAttributeProps private constructor() {
+   public var borderLeftWidth: Float = Float.NaN
+     private set
  
-   // Font
-   std::string fontFamily{""};
-@@ -168,7 +172,9 @@ struct hash<facebook::react::TextAttributes> {
-         textAttributes.borderTopWidth,
-         textAttributes.borderRightWidth,
-         textAttributes.borderBottomWidth,
--        textAttributes.borderLeftWidth);
-+        textAttributes.borderLeftWidth,
-+        textAttributes.paddingLeft,
-+        textAttributes.paddingRight);
++  // Inner padding between the border and the text (resolved on the C++ side from
++  // paddingLeft/paddingRight, falling back to paddingHorizontal). NaN = unset (0).
++  public var paddingLeft: Float = Float.NaN
++    private set
++
++  public var paddingRight: Float = Float.NaN
++    private set
++
+   public var opacity: Float = Float.NaN
+     private set
+ 
+@@ -447,6 +455,8 @@ public class TextAttributeProps private constructor() {
+     public const val TA_KEY_BORDER_RIGHT_WIDTH: Int = 39
+     public const val TA_KEY_BORDER_BOTTOM_WIDTH: Int = 40
+     public const val TA_KEY_BORDER_LEFT_WIDTH: Int = 41
++    public const val TA_KEY_PADDING_LEFT: Int = 42
++    public const val TA_KEY_PADDING_RIGHT: Int = 43
+ 
+     public const val UNSET: Int = -1
+ 
+@@ -521,6 +531,8 @@ public class TextAttributeProps private constructor() {
+               result.borderBottomWidth = entry.doubleValue.toFloat()
+           TA_KEY_BORDER_LEFT_WIDTH ->
+               result.borderLeftWidth = entry.doubleValue.toFloat()
++          TA_KEY_PADDING_LEFT -> result.paddingLeft = entry.doubleValue.toFloat()
++          TA_KEY_PADDING_RIGHT -> result.paddingRight = entry.doubleValue.toFloat()
+         }
+       }
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index 6ea2bb7..b85d294 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+@@ -8,7 +8,9 @@
+ package com.facebook.react.views.text
+ 
+ import android.content.res.AssetManager
++import android.graphics.Canvas
+ import android.graphics.Color
++import android.graphics.Paint
+ import android.graphics.Typeface
+ import android.os.Build
+ import android.text.BoringLayout
+@@ -21,6 +23,9 @@ import android.text.StaticLayout
+ import android.text.TextDirectionHeuristics
+ import android.text.TextPaint
+ import android.text.TextUtils
++import android.text.style.LeadingMarginSpan
++import android.text.style.LineHeightSpan
++import android.text.style.ReplacementSpan
+ import android.util.LayoutDirection
+ import android.view.Gravity
+ import android.view.View
+@@ -47,6 +52,7 @@ import com.facebook.react.views.text.internal.span.ReactForegroundColorSpan
+ import com.facebook.react.views.text.internal.span.ReactFragmentIndexSpan
+ import com.facebook.react.views.text.internal.span.ReactLinkSpan
+ import com.facebook.react.views.text.internal.span.ReactOpacitySpan
++import com.facebook.react.views.text.internal.span.ReactSpan
+ import com.facebook.react.views.text.internal.span.ReactStrikethroughSpan
+ import com.facebook.react.views.text.internal.span.ReactTagSpan
+ import com.facebook.react.views.text.internal.span.ReactTextPaintHolderSpan
+@@ -62,6 +68,65 @@ import kotlin.math.floor
+ import kotlin.math.max
+ import kotlin.math.min
+ 
++// A LeadingMarginSpan that is also a ReactSpan, so it can be added via SetSpanOperation (whose `what`
++// is typed ReactSpan). Used to reserve leading room for a bordered / inline-code span at a line start.
++// Standard(margin, 0): indent only the first line of the paragraph (rest = 0).
++private class ReactLeadingMarginSpan(margin: Int) : LeadingMarginSpan.Standard(margin, 0), ReactSpan
++
++// A zero-content ReplacementSpan that reserves horizontal advance (real space, so neighbours move)
++// around a bordered / inline-code span — Android has no per-character kern. Draws nothing.
++private class ReactInlinePaddingSpan(private val spacerWidth: Int) :
++    ReplacementSpan(), ReactSpan, LineHeightSpan {
++  override fun getSize(
++      paint: Paint,
++      text: CharSequence?,
++      start: Int,
++      end: Int,
++      fm: Paint.FontMetricsInt?,
++  ): Int {
++    if (fm != null) {
++      fm.ascent = 0
++      fm.descent = 0
++      fm.top = 0
++      fm.bottom = 0
++      fm.leading = 0
++    }
++    return spacerWidth
++  }
++
++  override fun chooseHeight(
++      text: CharSequence,
++      start: Int,
++      end: Int,
++      spanstartv: Int,
++      lineHeight: Int,
++      fm: Paint.FontMetricsInt,
++  ) {
++    for (i in start until end) {
++      val c = text[i]
++      if (c != '\u2060' && c != '\n') {
++        return
++      }
++    }
++    fm.ascent = 0
++    fm.descent = 0
++    fm.top = 0
++    fm.bottom = 0
++  }
++
++  override fun draw(
++      canvas: Canvas,
++      text: CharSequence?,
++      start: Int,
++      end: Int,
++      x: Float,
++      top: Int,
++      y: Int,
++      bottom: Int,
++      paint: Paint,
++  ) {}
++}
++
+ /** Class responsible of creating [Spanned] object for the JS representation of Text */
+ internal object TextLayoutManager {
+ 
+@@ -239,11 +304,57 @@ internal object TextLayoutManager {
+   ) {
+     for (i in 0 until fragments.count) {
+       val fragment = fragments.getMapBuffer(i)
+-      val start = sb.length
+ 
+       val textAttributes =
+           TextAttributeProps.fromMapBuffer(fragment.getMapBuffer(FR_KEY_TEXT_ATTRIBUTES))
+ 
++      // Reserve real advance (so neighbours move) around a bordered / inline-code span by inserting a
++      // zero-content spacer before and after it; Android has no per-character kern. The reserved
++      // advance per side = inner padding + border, into which ReactBackgroundDrawSpan draws (box
++      // extended by padding + half the centered stroke).
++      val leadingBorderDip = textAttributes.borderLeftWidth.takeIf { !it.isNaN() } ?: 0f
++      val trailingBorderDip = textAttributes.borderRightWidth.takeIf { !it.isNaN() } ?: 0f
++      val leadingPaddingDip = textAttributes.paddingLeft.takeIf { !it.isNaN() } ?: 0f
++      val trailingPaddingDip = textAttributes.paddingRight.takeIf { !it.isNaN() } ?: 0f
++      val leadingReserveDip = leadingPaddingDip + leadingBorderDip
++      val trailingReserveDip = trailingPaddingDip + trailingBorderDip
++      // Only reserve advance when this fragment is actually drawn with a custom bordered / background
++      // span (ReactBackgroundDrawSpan) whose fill box is extended by the padding below. Otherwise a
++      // plain padded <Text> (paddingHorizontal with no background/border) would get invisible spacer
++      // advance on top of its normal view padding, shifting/widening its text. This mirrors the span
++      // selection condition further down.
++      val hasBorderRadius = !textAttributes.borderTopLeftRadius.isNaN() ||
++          !textAttributes.borderTopRightRadius.isNaN() ||
++          !textAttributes.borderBottomLeftRadius.isNaN() ||
++          !textAttributes.borderBottomRightRadius.isNaN()
++      val hasBorderWidth = !textAttributes.borderTopWidth.isNaN() ||
++          !textAttributes.borderRightWidth.isNaN() ||
++          !textAttributes.borderBottomWidth.isNaN() ||
++          !textAttributes.borderLeftWidth.isNaN()
++      val hasBorderColor = textAttributes.isBorderTopColorSet ||
++          textAttributes.isBorderRightColorSet ||
++          textAttributes.isBorderBottomColorSet ||
++          textAttributes.isBorderLeftColorSet
++      val drawsCustomBackground = (textAttributes.isBackgroundColorSet || hasBorderColor) &&
++          (hasBorderRadius || hasBorderWidth || hasBorderColor)
++      if (drawsCustomBackground && leadingReserveDip > 0f) {
++        val spacerStart = sb.length
++        sb.append("\u2060")
++        ops.add(
++            0,
++            SetSpanOperation(
++                spacerStart,
++                sb.length,
++                ReactInlinePaddingSpan(PixelUtil.toPixelFromDIP(leadingReserveDip).toInt()),
++            )
++        )
++        // Glue the spacer to the code with a plain WORD JOINER so a line break can't orphan it on the
++        // previous line (leaving a stray box fragment) when the code wraps; they wrap together.
++        sb.append("\u2060")
++      }
++
++      val start = sb.length
++
+       sb.append(
+           TextTransform.apply(fragment.getString(FR_KEY_STRING), textAttributes.textTransform)
+       )
+@@ -312,6 +423,8 @@ internal object TextLayoutManager {
+                 PixelUtil.toPixelFromDIP(textAttributes.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
+                 PixelUtil.toPixelFromDIP(textAttributes.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
+                 PixelUtil.toPixelFromDIP(textAttributes.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(textAttributes.paddingLeft.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(textAttributes.paddingRight.takeIf { r -> !r.isNaN() } ?: 0f),
+             )
+           } else if (textAttributes.isBackgroundColorSet) {
+             textAttributes.backgroundColor?.let { ReactBackgroundColorSpan(it) }
+@@ -386,6 +499,19 @@ internal object TextLayoutManager {
+           ops.add(SetSpanOperation(start, end, ReactTagSpan(reactTag)))
+         }
+       }
++
++      if (drawsCustomBackground && trailingReserveDip > 0f) {
++        val spacerStart = sb.length
++        sb.append("\u2060")
++        ops.add(
++            0,
++            SetSpanOperation(
++                spacerStart,
++                sb.length,
++                ReactInlinePaddingSpan(PixelUtil.toPixelFromDIP(trailingReserveDip).toInt()),
++            )
++        )
++      }
+     }
    }
- };
- } // namespace std
+ 
+@@ -515,6 +641,8 @@ internal object TextLayoutManager {
+                 PixelUtil.toPixelFromDIP(fragment.props.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
+                 PixelUtil.toPixelFromDIP(fragment.props.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
+                 PixelUtil.toPixelFromDIP(fragment.props.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(fragment.props.paddingLeft.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(fragment.props.paddingRight.takeIf { r -> !r.isNaN() } ?: 0f),
+             )
+           } else if (fragment.props.isBackgroundColorSet) {
+             fragment.props.backgroundColor?.let { ReactBackgroundColorSpan(it) }
+@@ -522,6 +650,20 @@ internal object TextLayoutManager {
+             null
+           }
+           spannable.setSpan(bgSpan, start, end, spanFlags)
++
++          // Reserve leading advance (inner padding + border) so a bordered span that begins a line
++          // has room for its left border + padding; first line only.
++          val leadingBorderDip = fragment.props.borderLeftWidth.takeIf { !it.isNaN() } ?: 0f
++          val leadingPaddingDip = fragment.props.paddingLeft.takeIf { !it.isNaN() } ?: 0f
++          val leadingReserveDip = leadingPaddingDip + leadingBorderDip
++          if (leadingReserveDip > 0f && (start == 0 || spannable[start - 1] == '\n')) {
++            spannable.setSpan(
++                ReactLeadingMarginSpan(PixelUtil.toPixelFromDIP(leadingReserveDip).toInt()),
++                start,
++                end,
++                spanFlags,
++            )
++          }
+         }
+ 
+         if (!fragment.props.opacity.isNaN()) {
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+index 80f8d38..2a55063 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+@@ -38,6 +38,9 @@ internal class ReactBackgroundDrawSpan(
+     private val borderRightWidth: Float,
+     private val borderBottomWidth: Float,
+     private val borderLeftWidth: Float,
++    // Inner padding between the border and the text, per side (px).
++    private val paddingLeft: Float = 0f,
++    private val paddingRight: Float = 0f,
+ ) : DrawCommandSpan() {
+ 
+   private val fillPaint =
+@@ -63,7 +66,7 @@ internal class ReactBackgroundDrawSpan(
+     if (start >= end) return
+ 
+     val startLine = layout.getLineForOffset(start)
+-    val endLine = layout.getLineForOffset(end)
++    val endLine = layout.getLineForOffset(end - 1)
+ 
+     for (line in startLine..endLine) {
+       val lineStart = layout.getLineStart(line)
+@@ -99,6 +102,16 @@ internal class ReactBackgroundDrawSpan(
+       val isFirstLine = line == startLine
+       val isLastLine = line == endLine
+ 
++      // Extend the fill box by (inner padding + half the centered stroke) so the border leaves a
++      // `padding`-wide gap between the glyphs and the border, with the stroke's outer edge landing
++      // on the reserved spacer advance (inserted in TextLayoutManager).
++      if (isFirstLine && (borderLeftWidth > 0f || paddingLeft > 0f)) {
++        rectF.left -= paddingLeft + borderLeftWidth * 0.5f
++      }
++      if (isLastLine && (borderRightWidth > 0f || paddingRight > 0f)) {
++        rectF.right += paddingRight + borderRightWidth * 0.5f
++      }
++
+       drawFill(canvas, rectF, isFirstLine, isLastLine)
+       drawBorder(canvas, rectF, isFirstLine, isLastLine)
+     }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
-index eb0d85b4b69..ed36f04509b 100644
+index 5e0034c..f7f210f 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
 @@ -72,6 +72,12 @@ void TextAttributes::apply(TextAttributes textAttributes) {
@@ -74,11 +341,37 @@ index eb0d85b4b69..ed36f04509b 100644
  
        // Font
        debugStringConvertibleItem(
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+index af278a3..5a42b20 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+@@ -57,6 +57,10 @@ class TextAttributes : public DebugStringConvertible {
+   std::optional<Float> borderRightWidth{};
+   std::optional<Float> borderBottomWidth{};
+   std::optional<Float> borderLeftWidth{};
++  // Inner padding between the border and the text (resolved from
++  // paddingLeft/paddingRight, falling back to paddingHorizontal).
++  std::optional<Float> paddingLeft{};
++  std::optional<Float> paddingRight{};
+ 
+   // Font
+   std::string fontFamily{""};
+@@ -168,7 +172,9 @@ struct hash<facebook::react::TextAttributes> {
+         textAttributes.borderTopWidth,
+         textAttributes.borderRightWidth,
+         textAttributes.borderBottomWidth,
+-        textAttributes.borderLeftWidth);
++        textAttributes.borderLeftWidth,
++        textAttributes.paddingLeft,
++        textAttributes.paddingRight);
+   }
+ };
+ } // namespace std
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-index 978eea38d20..1b0beaf9f0b 100644
+index 2bb4073..6dd2aa7 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-@@ -1039,6 +1039,8 @@ constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_WIDTH = 38;
+@@ -1140,6 +1140,8 @@ constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_WIDTH = 38;
  constexpr static MapBuffer::Key TA_KEY_BORDER_RIGHT_WIDTH = 39;
  constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_WIDTH = 40;
  constexpr static MapBuffer::Key TA_KEY_BORDER_LEFT_WIDTH = 41;
@@ -87,7 +380,7 @@ index 978eea38d20..1b0beaf9f0b 100644
  
  // constants for ParagraphAttributes serialization
  constexpr static MapBuffer::Key PA_KEY_MAX_NUMBER_OF_LINES = 0;
-@@ -1308,6 +1310,16 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
+@@ -1409,6 +1411,16 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
            textAttributes.borderLeftWidth.value_or(fallback));
      }
    }
@@ -105,7 +398,7 @@ index 978eea38d20..1b0beaf9f0b 100644
  }
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
-index 73d21c90cfb..aa3c836e7e5 100644
+index 73d21c9..aa3c836 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
 @@ -312,6 +312,32 @@ static TextAttributes convertRawProp(
@@ -171,11 +464,48 @@ index 73d21c90cfb..aa3c836e7e5 100644
  }
  
  #endif
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+index 5a84c01..87af256 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+@@ -246,6 +246,8 @@ TextAttributes BaseTextInputProps::getEffectiveTextAttributes(
+    */
+   result.backgroundColor = clearColor();
+   result.opacity = 1;
++  result.paddingLeft = {};
++  result.paddingRight = {};
+ 
+   return result;
+ }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+index 301bde7..a5677ac 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+@@ -158,6 +158,10 @@ AttributedString AndroidTextInputShadowNode::getAttributedString(
+   // string. Android tries to render shadow of the background alongside the
+   // shadow of the text which results in weird artifacts.
+   childTextAttributes.backgroundColor = HostPlatformColor::UndefinedColor;
++  // Don't propagate the TextInput's view-level padding as text attributes --
++  // they would cause spacer characters to be inserted for every fragment.
++  childTextAttributes.paddingLeft = {};
++  childTextAttributes.paddingRight = {};
+ 
+   auto attributedString = AttributedString{};
+   auto attachments = BaseTextShadowNode::Attachments{};
+@@ -171,6 +175,8 @@ AttributedString AndroidTextInputShadowNode::getAttributedString(
+     auto textAttributes = TextAttributes::defaultTextAttributes();
+     textAttributes.apply(getConcreteProps().textAttributes);
+     textAttributes.fontSizeMultiplier = layoutContext.fontSizeMultiplier;
++    textAttributes.paddingLeft = {};
++    textAttributes.paddingRight = {};
+     auto fragment = AttributedString::Fragment{};
+     fragment.string = getConcreteProps().text;
+     fragment.textAttributes = textAttributes;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index 466efb284d9..892dcb72f62 100644
+index 466efb2..892dcb7 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -220,7 +220,7 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+@@ -220,7 +220,7 @@ inline static CGFloat RCTEffectiveFontSizeMultiplierFromTextAttributes(const Tex
  
          // attrs: @[bgColor, tlR, trR, blR, brR,
          //          topBorderColor, rightBorderColor, bottomBorderColor, leftBorderColor,
@@ -184,7 +514,7 @@ index 466efb284d9..892dcb72f62 100644
          attributes[RCTTextBorderRadiusAttributeName] = @[
            bgColor,
            @(textAttributes.borderTopLeftRadius.value_or(radiusFallback)),
-@@ -235,6 +235,8 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+@@ -235,6 +235,8 @@ inline static CGFloat RCTEffectiveFontSizeMultiplierFromTextAttributes(const Tex
            @(textAttributes.borderRightWidth.value_or(widthFallback)),
            @(textAttributes.borderBottomWidth.value_or(widthFallback)),
            @(textAttributes.borderLeftWidth.value_or(widthFallback)),
@@ -193,7 +523,7 @@ index 466efb284d9..892dcb72f62 100644
          ];
        } else {
          attributes[NSBackgroundColorAttributeName] = bgColor;
-@@ -478,6 +480,71 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
+@@ -478,6 +480,71 @@ void RCTApplyBaselineOffset(NSMutableAttributedString *attributedText)
  
      [nsAttributedString appendAttributedString:nsAttributedStringFragment];
    }
@@ -266,10 +596,10 @@ index 466efb284d9..892dcb72f62 100644
  
    return nsAttributedString;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-index f4b7d39cc7a..60ca85ef2a6 100644
+index b480614..bc903ed 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-@@ -375,6 +375,48 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+@@ -376,6 +376,48 @@ - (TextMeasurement)_measureTextStorage:(NSTextStorage *)textStorage
  
    if (textDidWrap) {
      size.width = textContainer.size.width;
@@ -319,7 +649,7 @@ index f4b7d39cc7a..60ca85ef2a6 100644
  
    if (paragraphAttributes.maximumNumberOfLines != 0) {
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-index c2320fe9792..4faca47e9b9 100644
+index c2320fe..4faca47 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 @@ -9,8 +9,70 @@
@@ -393,7 +723,7 @@ index c2320fe9792..4faca47e9b9 100644
  - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin
  {
    // Let super handle all spans that use NSBackgroundColorAttributeName (no border radius).
-@@ -28,7 +90,7 @@
+@@ -28,7 +90,7 @@ - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origi
  
      // attrs: @[bgColor, tlR, trR, blR, brR,
      //          topBorderColor, rightBorderColor, bottomBorderColor, leftBorderColor,
@@ -402,7 +732,7 @@ index c2320fe9792..4faca47e9b9 100644
      NSArray *attrs = (NSArray *)value;
      UIColor *bgColor = attrs[0];
      CGFloat tl       = [attrs[1] floatValue];
-@@ -49,12 +111,18 @@
+@@ -49,12 +111,18 @@ - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origi
      CGFloat rightW  = [attrs[10] floatValue];
      CGFloat bottomW = [attrs[11] floatValue];
      CGFloat leftW   = [attrs[12] floatValue];
@@ -421,7 +751,7 @@ index c2320fe9792..4faca47e9b9 100644
      __block NSUInteger totalLines = 0;
      [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
                                     usingBlock:^(CGRect r, CGRect u, NSTextContainer *tc, NSRange gr, BOOL *s) {
-@@ -91,6 +159,16 @@
+@@ -91,6 +159,16 @@ - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origi
            ? [self locationForGlyphAtIndex:endGlyph].x          // start of next glyph = tight right edge
            : CGRectGetMaxX(usedRect) - lineRect.origin.x;       // span runs to line end → trailing-ws-trimmed edge
  
@@ -438,7 +768,7 @@ index c2320fe9792..4faca47e9b9 100644
        CGRect spanRect;
        spanRect.origin.x = lineRect.origin.x + startLoc.x + origin.x;
        spanRect.size.width = endX - startLoc.x;
-@@ -116,6 +194,18 @@
+@@ -116,6 +194,18 @@ - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origi
        CGFloat effectiveTR = isLast  ? tr : 0;
        CGFloat effectiveBR = isLast  ? br : 0;
  
@@ -457,333 +787,3 @@ index c2320fe9792..4faca47e9b9 100644
        CGFloat x = CGRectGetMinX(spanRect);
        CGFloat y = CGRectGetMinY(spanRect);
        CGFloat w = CGRectGetWidth(spanRect);
-diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-index 86dd1fc7386..2be0a2fd350 100644
---- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-+++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-@@ -127,6 +127,14 @@ public class TextAttributeProps private constructor() {
-   public var borderLeftWidth: Float = Float.NaN
-     private set
- 
-+  // Inner padding between the border and the text (resolved on the C++ side from
-+  // paddingLeft/paddingRight, falling back to paddingHorizontal). NaN = unset (0).
-+  public var paddingLeft: Float = Float.NaN
-+    private set
-+
-+  public var paddingRight: Float = Float.NaN
-+    private set
-+
-   public var opacity: Float = Float.NaN
-     private set
- 
-@@ -447,6 +455,8 @@ public class TextAttributeProps private constructor() {
-     public const val TA_KEY_BORDER_RIGHT_WIDTH: Int = 39
-     public const val TA_KEY_BORDER_BOTTOM_WIDTH: Int = 40
-     public const val TA_KEY_BORDER_LEFT_WIDTH: Int = 41
-+    public const val TA_KEY_PADDING_LEFT: Int = 42
-+    public const val TA_KEY_PADDING_RIGHT: Int = 43
- 
-     public const val UNSET: Int = -1
- 
-@@ -521,6 +531,8 @@ public class TextAttributeProps private constructor() {
-               result.borderBottomWidth = entry.doubleValue.toFloat()
-           TA_KEY_BORDER_LEFT_WIDTH ->
-               result.borderLeftWidth = entry.doubleValue.toFloat()
-+          TA_KEY_PADDING_LEFT -> result.paddingLeft = entry.doubleValue.toFloat()
-+          TA_KEY_PADDING_RIGHT -> result.paddingRight = entry.doubleValue.toFloat()
-         }
-       }
- 
-diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index e3f19473554..dca0ecb40c2 100644
---- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-+++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-@@ -8,7 +8,9 @@
- package com.facebook.react.views.text
- 
- import android.content.res.AssetManager
-+import android.graphics.Canvas
- import android.graphics.Color
-+import android.graphics.Paint
- import android.graphics.Typeface
- import android.os.Build
- import android.text.BoringLayout
-@@ -21,6 +23,9 @@ import android.text.StaticLayout
- import android.text.TextDirectionHeuristics
- import android.text.TextPaint
- import android.text.TextUtils
-+import android.text.style.LeadingMarginSpan
-+import android.text.style.LineHeightSpan
-+import android.text.style.ReplacementSpan
- import android.util.LayoutDirection
- import android.view.Gravity
- import android.view.View
-@@ -46,6 +51,7 @@ import com.facebook.react.views.text.internal.span.ReactForegroundColorSpan
- import com.facebook.react.views.text.internal.span.ReactFragmentIndexSpan
- import com.facebook.react.views.text.internal.span.ReactLinkSpan
- import com.facebook.react.views.text.internal.span.ReactOpacitySpan
-+import com.facebook.react.views.text.internal.span.ReactSpan
- import com.facebook.react.views.text.internal.span.ReactStrikethroughSpan
- import com.facebook.react.views.text.internal.span.ReactTagSpan
- import com.facebook.react.views.text.internal.span.ReactTextPaintHolderSpan
-@@ -61,6 +67,65 @@ import kotlin.math.floor
- import kotlin.math.max
- import kotlin.math.min
- 
-+// A LeadingMarginSpan that is also a ReactSpan, so it can be added via SetSpanOperation (whose `what`
-+// is typed ReactSpan). Used to reserve leading room for a bordered / inline-code span at a line start.
-+// Standard(margin, 0): indent only the first line of the paragraph (rest = 0).
-+private class ReactLeadingMarginSpan(margin: Int) : LeadingMarginSpan.Standard(margin, 0), ReactSpan
-+
-+// A zero-content ReplacementSpan that reserves horizontal advance (real space, so neighbours move)
-+// around a bordered / inline-code span — Android has no per-character kern. Draws nothing.
-+private class ReactInlinePaddingSpan(private val spacerWidth: Int) :
-+    ReplacementSpan(), ReactSpan, LineHeightSpan {
-+  override fun getSize(
-+      paint: Paint,
-+      text: CharSequence?,
-+      start: Int,
-+      end: Int,
-+      fm: Paint.FontMetricsInt?,
-+  ): Int {
-+    if (fm != null) {
-+      fm.ascent = 0
-+      fm.descent = 0
-+      fm.top = 0
-+      fm.bottom = 0
-+      fm.leading = 0
-+    }
-+    return spacerWidth
-+  }
-+
-+  override fun chooseHeight(
-+      text: CharSequence,
-+      start: Int,
-+      end: Int,
-+      spanstartv: Int,
-+      lineHeight: Int,
-+      fm: Paint.FontMetricsInt,
-+  ) {
-+    for (i in start until end) {
-+      val c = text[i]
-+      if (c != '\u2060' && c != '\n') {
-+        return
-+      }
-+    }
-+    fm.ascent = 0
-+    fm.descent = 0
-+    fm.top = 0
-+    fm.bottom = 0
-+  }
-+
-+  override fun draw(
-+      canvas: Canvas,
-+      text: CharSequence?,
-+      start: Int,
-+      end: Int,
-+      x: Float,
-+      top: Int,
-+      y: Int,
-+      bottom: Int,
-+      paint: Paint,
-+  ) {}
-+}
-+
- /** Class responsible of creating [Spanned] object for the JS representation of Text */
- internal object TextLayoutManager {
- 
-@@ -226,11 +291,57 @@ internal object TextLayoutManager {
-   ) {
-     for (i in 0 until fragments.count) {
-       val fragment = fragments.getMapBuffer(i)
--      val start = sb.length
- 
-       val textAttributes =
-           TextAttributeProps.fromMapBuffer(fragment.getMapBuffer(FR_KEY_TEXT_ATTRIBUTES))
- 
-+      // Reserve real advance (so neighbours move) around a bordered / inline-code span by inserting a
-+      // zero-content spacer before and after it; Android has no per-character kern. The reserved
-+      // advance per side = inner padding + border, into which ReactBackgroundDrawSpan draws (box
-+      // extended by padding + half the centered stroke).
-+      val leadingBorderDip = textAttributes.borderLeftWidth.takeIf { !it.isNaN() } ?: 0f
-+      val trailingBorderDip = textAttributes.borderRightWidth.takeIf { !it.isNaN() } ?: 0f
-+      val leadingPaddingDip = textAttributes.paddingLeft.takeIf { !it.isNaN() } ?: 0f
-+      val trailingPaddingDip = textAttributes.paddingRight.takeIf { !it.isNaN() } ?: 0f
-+      val leadingReserveDip = leadingPaddingDip + leadingBorderDip
-+      val trailingReserveDip = trailingPaddingDip + trailingBorderDip
-+      // Only reserve advance when this fragment is actually drawn with a custom bordered / background
-+      // span (ReactBackgroundDrawSpan) whose fill box is extended by the padding below. Otherwise a
-+      // plain padded <Text> (paddingHorizontal with no background/border) would get invisible spacer
-+      // advance on top of its normal view padding, shifting/widening its text. This mirrors the span
-+      // selection condition further down.
-+      val hasBorderRadius = !textAttributes.borderTopLeftRadius.isNaN() ||
-+          !textAttributes.borderTopRightRadius.isNaN() ||
-+          !textAttributes.borderBottomLeftRadius.isNaN() ||
-+          !textAttributes.borderBottomRightRadius.isNaN()
-+      val hasBorderWidth = !textAttributes.borderTopWidth.isNaN() ||
-+          !textAttributes.borderRightWidth.isNaN() ||
-+          !textAttributes.borderBottomWidth.isNaN() ||
-+          !textAttributes.borderLeftWidth.isNaN()
-+      val hasBorderColor = textAttributes.isBorderTopColorSet ||
-+          textAttributes.isBorderRightColorSet ||
-+          textAttributes.isBorderBottomColorSet ||
-+          textAttributes.isBorderLeftColorSet
-+      val drawsCustomBackground = (textAttributes.isBackgroundColorSet || hasBorderColor) &&
-+          (hasBorderRadius || hasBorderWidth || hasBorderColor)
-+      if (drawsCustomBackground && leadingReserveDip > 0f) {
-+        val spacerStart = sb.length
-+        sb.append("\u2060")
-+        ops.add(
-+            0,
-+            SetSpanOperation(
-+                spacerStart,
-+                sb.length,
-+                ReactInlinePaddingSpan(PixelUtil.toPixelFromDIP(leadingReserveDip).toInt()),
-+            )
-+        )
-+        // Glue the spacer to the code with a plain WORD JOINER so a line break can't orphan it on the
-+        // previous line (leaving a stray box fragment) when the code wraps; they wrap together.
-+        sb.append("\u2060")
-+      }
-+
-+      val start = sb.length
-+
-       sb.append(
-           TextTransform.apply(fragment.getString(FR_KEY_STRING), textAttributes.textTransform)
-       )
-@@ -299,6 +410,8 @@ internal object TextLayoutManager {
-                 PixelUtil.toPixelFromDIP(textAttributes.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
-                 PixelUtil.toPixelFromDIP(textAttributes.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
-                 PixelUtil.toPixelFromDIP(textAttributes.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
-+                PixelUtil.toPixelFromDIP(textAttributes.paddingLeft.takeIf { r -> !r.isNaN() } ?: 0f),
-+                PixelUtil.toPixelFromDIP(textAttributes.paddingRight.takeIf { r -> !r.isNaN() } ?: 0f),
-             )
-           } else if (textAttributes.isBackgroundColorSet) {
-             textAttributes.backgroundColor?.let { ReactBackgroundColorSpan(it) }
-@@ -373,6 +486,19 @@ internal object TextLayoutManager {
-           ops.add(SetSpanOperation(start, end, ReactTagSpan(reactTag)))
-         }
-       }
-+
-+      if (drawsCustomBackground && trailingReserveDip > 0f) {
-+        val spacerStart = sb.length
-+        sb.append("\u2060")
-+        ops.add(
-+            0,
-+            SetSpanOperation(
-+                spacerStart,
-+                sb.length,
-+                ReactInlinePaddingSpan(PixelUtil.toPixelFromDIP(trailingReserveDip).toInt()),
-+            )
-+        )
-+      }
-     }
-   }
- 
-@@ -502,6 +628,8 @@ internal object TextLayoutManager {
-                 PixelUtil.toPixelFromDIP(fragment.props.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
-                 PixelUtil.toPixelFromDIP(fragment.props.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
-                 PixelUtil.toPixelFromDIP(fragment.props.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
-+                PixelUtil.toPixelFromDIP(fragment.props.paddingLeft.takeIf { r -> !r.isNaN() } ?: 0f),
-+                PixelUtil.toPixelFromDIP(fragment.props.paddingRight.takeIf { r -> !r.isNaN() } ?: 0f),
-             )
-           } else if (fragment.props.isBackgroundColorSet) {
-             fragment.props.backgroundColor?.let { ReactBackgroundColorSpan(it) }
-@@ -509,6 +637,20 @@ internal object TextLayoutManager {
-             null
-           }
-           spannable.setSpan(bgSpan, start, end, spanFlags)
-+
-+          // Reserve leading advance (inner padding + border) so a bordered span that begins a line
-+          // has room for its left border + padding; first line only.
-+          val leadingBorderDip = fragment.props.borderLeftWidth.takeIf { !it.isNaN() } ?: 0f
-+          val leadingPaddingDip = fragment.props.paddingLeft.takeIf { !it.isNaN() } ?: 0f
-+          val leadingReserveDip = leadingPaddingDip + leadingBorderDip
-+          if (leadingReserveDip > 0f && (start == 0 || spannable[start - 1] == '\n')) {
-+            spannable.setSpan(
-+                ReactLeadingMarginSpan(PixelUtil.toPixelFromDIP(leadingReserveDip).toInt()),
-+                start,
-+                end,
-+                spanFlags,
-+            )
-+          }
-         }
- 
-         if (!fragment.props.opacity.isNaN()) {
-diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-index 80f8d389475..2a55063d2aa 100644
---- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-+++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-@@ -38,6 +38,9 @@ internal class ReactBackgroundDrawSpan(
-     private val borderRightWidth: Float,
-     private val borderBottomWidth: Float,
-     private val borderLeftWidth: Float,
-+    // Inner padding between the border and the text, per side (px).
-+    private val paddingLeft: Float = 0f,
-+    private val paddingRight: Float = 0f,
- ) : DrawCommandSpan() {
- 
-   private val fillPaint =
-@@ -63,7 +66,7 @@ internal class ReactBackgroundDrawSpan(
-     if (start >= end) return
- 
-     val startLine = layout.getLineForOffset(start)
--    val endLine = layout.getLineForOffset(end)
-+    val endLine = layout.getLineForOffset(end - 1)
- 
-     for (line in startLine..endLine) {
-       val lineStart = layout.getLineStart(line)
-@@ -99,6 +102,16 @@ internal class ReactBackgroundDrawSpan(
-       val isFirstLine = line == startLine
-       val isLastLine = line == endLine
- 
-+      // Extend the fill box by (inner padding + half the centered stroke) so the border leaves a
-+      // `padding`-wide gap between the glyphs and the border, with the stroke's outer edge landing
-+      // on the reserved spacer advance (inserted in TextLayoutManager).
-+      if (isFirstLine && (borderLeftWidth > 0f || paddingLeft > 0f)) {
-+        rectF.left -= paddingLeft + borderLeftWidth * 0.5f
-+      }
-+      if (isLastLine && (borderRightWidth > 0f || paddingRight > 0f)) {
-+        rectF.right += paddingRight + borderRightWidth * 0.5f
-+      }
-+
-       drawFill(canvas, rectF, isFirstLine, isLastLine)
-       drawBorder(canvas, rectF, isFirstLine, isLastLine)
-     }
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
-index 5a84c014434..87af2566b04 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
-+++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
-@@ -246,6 +246,8 @@ TextAttributes BaseTextInputProps::getEffectiveTextAttributes(
-    */
-   result.backgroundColor = clearColor();
-   result.opacity = 1;
-+  result.paddingLeft = {};
-+  result.paddingRight = {};
- 
-   return result;
- }
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
-index 301bde7418c..a5677ac096d 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
-+++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
-@@ -158,6 +158,10 @@ AttributedString AndroidTextInputShadowNode::getAttributedString(
-   // string. Android tries to render shadow of the background alongside the
-   // shadow of the text which results in weird artifacts.
-   childTextAttributes.backgroundColor = HostPlatformColor::UndefinedColor;
-+  // Don't propagate the TextInput's view-level padding as text attributes --
-+  // they would cause spacer characters to be inserted for every fragment.
-+  childTextAttributes.paddingLeft = {};
-+  childTextAttributes.paddingRight = {};
- 
-   auto attributedString = AttributedString{};
-   auto attachments = BaseTextShadowNode::Attachments{};
-@@ -171,6 +175,8 @@ AttributedString AndroidTextInputShadowNode::getAttributedString(
-     auto textAttributes = TextAttributes::defaultTextAttributes();
-     textAttributes.apply(getConcreteProps().textAttributes);
-     textAttributes.fontSizeMultiplier = layoutContext.fontSizeMultiplier;
-+    textAttributes.paddingLeft = {};
-+    textAttributes.paddingRight = {};
-     auto fragment = AttributedString::Fragment{};
-     fragment.string = getConcreteProps().text;
-     fragment.textAttributes = textAttributes;
