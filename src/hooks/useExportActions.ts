@@ -155,10 +155,9 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
         },
         [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
-            text: translate('workspace.common.exportIntegrationSelected', {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                connectionName: connectedIntegrationFallback!,
-            }),
+            // connectedIntegrationFallback is guaranteed when this export option is offered
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            text: translate('workspace.common.exportIntegrationSelected', connectedIntegrationFallback!),
             icon: getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons),
             displayInDefaultIconColor: true,
             additionalIconStyles: styles.integrationIcon,

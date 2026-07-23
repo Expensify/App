@@ -30,7 +30,7 @@ import PopoverMenu from './PopoverMenu';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
-    phraseParam: Record<string, unknown>;
+    phraseArgs: unknown[];
 };
 
 type OpenPickerParams = {
@@ -113,16 +113,16 @@ function AvatarWithImagePicker({
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
-    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseArgs: []});
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
     const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    const setError = (error: TranslationPaths | null, phraseArgs: unknown[] = []) => {
         setErrorData({
             validationError: error,
-            phraseParam,
+            phraseArgs,
         });
     };
 
@@ -132,11 +132,11 @@ function AvatarWithImagePicker({
         }
 
         // Reset the error if the component is no longer focused.
-        setError(null, {});
+        setError(null, []);
     }, [isFocused]);
 
     useEffect(() => {
-        setError(null, {});
+        setError(null, []);
     }, [source, avatarID]);
 
     /**
@@ -146,16 +146,16 @@ function AvatarWithImagePicker({
         validateAvatarImage(image)
             .then((validationResult) => {
                 if (!validationResult.isValid) {
-                    setError(validationResult.errorKey ?? null, validationResult.errorParams ?? {});
+                    setError(validationResult.errorKey ?? null, validationResult.errorArgs ?? []);
                     return;
                 }
 
-                setError(null, {});
+                setError(null);
                 setIsMenuVisible(false);
                 openCropper(image);
             })
             .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', []);
             });
     };
 
@@ -185,7 +185,7 @@ function AvatarWithImagePicker({
                 icon: icons.Trashcan,
                 text: translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
-                    setError(null, {});
+                    setError(null, []);
                     onImageRemoved();
                 },
             });
@@ -291,8 +291,10 @@ function AvatarWithImagePicker({
             {!!errorData.validationError && (
                 <DotIndicatorMessage
                     style={styles.mt6}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                    // `phraseArgs` is an open list but `translate` accepts only the params shape for the
+                    // given key; the cast is safe because callers always pass params matching `validationError`.
+                    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-type-assertion
+                    messages={{0: (translate as (key: TranslationPaths, ...args: unknown[]) => string)(errorData.validationError, ...errorData.phraseArgs)}}
                     type="error"
                 />
             )}

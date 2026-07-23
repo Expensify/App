@@ -148,11 +148,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const integrationNameFromExportMessage = isExported ? getIntegrationNameFromExportMessageUtils(reportActions) : null;
 
     const connectedIntegration = getValidConnectedIntegration(policy);
-    const connectedIntegrationName = connectedIntegration
-        ? translate('workspace.accounting.connectionName', {
-              connectionName: connectedIntegration,
-          })
-        : '';
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 

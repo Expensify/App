@@ -14,7 +14,7 @@ import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
 type ValidationResult = {
     isValid: boolean;
     errorKey?: TranslationPaths;
-    errorParams?: Record<string, unknown>;
+    errorArgs?: unknown[];
 };
 
 /**
@@ -64,7 +64,7 @@ async function isValidResolution(image: FileObject): Promise<boolean> {
  * ```typescript
  * const result = await validateAvatarImage(file);
  * if (!result.isValid) {
- *   showError(result.errorKey, result.errorParams);
+ *   showError(result.errorKey, result.errorArgs);
  * }
  * ```
  */
@@ -73,7 +73,7 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
         return {
             isValid: false,
             errorKey: 'avatarWithImagePicker.notAllowedExtension',
-            errorParams: {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS},
+            errorArgs: [CONST.AVATAR_ALLOWED_EXTENSIONS],
         };
     }
 
@@ -81,7 +81,7 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
         return {
             isValid: false,
             errorKey: 'avatarWithImagePicker.sizeExceeded',
-            errorParams: {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)},
+            errorArgs: [CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)],
         };
     }
 
@@ -91,7 +91,7 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
         return {
             isValid: false,
             errorKey: 'attachmentPicker.errorWhileSelectingCorruptedAttachment',
-            errorParams: {},
+            errorArgs: [],
         };
     }
 
@@ -100,12 +100,7 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
         return {
             isValid: false,
             errorKey: 'avatarWithImagePicker.resolutionConstraints',
-            errorParams: {
-                minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-            },
+            errorArgs: [CONST.AVATAR_MIN_HEIGHT_PX, CONST.AVATAR_MIN_WIDTH_PX, CONST.AVATAR_MAX_HEIGHT_PX, CONST.AVATAR_MAX_WIDTH_PX],
         };
     }
 

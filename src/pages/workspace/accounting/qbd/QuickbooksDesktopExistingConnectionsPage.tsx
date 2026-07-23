@@ -70,12 +70,12 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
             testID="QuickbooksDesktopExistingConnectionsPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD})}
+                title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.QBD)}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>
-                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD})}</Text>
+                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.QBD)}</Text>
                 <MenuItem
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}

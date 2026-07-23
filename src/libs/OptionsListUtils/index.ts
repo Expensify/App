@@ -724,20 +724,31 @@ function getLastMessageTextForReport({
             (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+                lastMessageTextFromReport = translate(
+                    'reportArchiveReasons.accountClosed',
+                    formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate})),
+                );
+                break;
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+                lastMessageTextFromReport = translate(
+                    'reportArchiveReasons.removedFromPolicy',
+                    formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate})),
+                    getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
+                );
+                break;
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
-                lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`, {
-                    displayName: formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate})),
-                    policyName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
-                });
+                lastMessageTextFromReport = translate(
+                    'reportArchiveReasons.policyDeleted',
+                    getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
+                );
                 break;
             }
             case CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED: {
-                lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`);
+                lastMessageTextFromReport = translate('reportArchiveReasons.bookingEndDateHasPassed');
                 break;
             }
             default: {
-                lastMessageTextFromReport = translate(`reportArchiveReasons.default`);
+                lastMessageTextFromReport = translate('reportArchiveReasons.default');
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {

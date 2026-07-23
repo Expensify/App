@@ -36,7 +36,7 @@ type AvatarPreviewProps = {
     /** The image data */
     imageData: ImageData;
     /** The function to set the error */
-    setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
+    setError: (error: TranslationPaths | null, phraseArgs?: unknown[]) => void;
     /** Opens the avatar crop screen for the picked image */
     openCropper: (image: FileObject) => void;
 };
@@ -93,20 +93,20 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
         validateAvatarImage(image)
             .then((validationResult) => {
                 if (!validationResult.isValid) {
-                    setError(validationResult.errorKey ?? null, validationResult.errorParams ?? {});
+                    setError(validationResult.errorKey ?? null, validationResult.errorArgs ?? []);
                     return;
                 }
 
-                setError(null, {});
+                setError(null);
                 openCropper(image);
             })
             .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment');
             });
     };
 
     const clearError = () => {
-        setError(null, {});
+        setError(null);
     };
 
     const {createMenuItems} = useAvatarMenu({

@@ -2421,11 +2421,12 @@ describe('ReportActionsUtils', () => {
 
             const formattedEmail = formatPhoneNumber(email);
             const expectedCustomFieldMessage = translateLocal('report.actions.type.updatedCustomField1', formattedEmail, customFieldNewValue, customFieldOldValue);
-            const expectedRoleMessage = translateLocal('report.actions.type.updateRole', {
-                email: formattedEmail,
-                newRole: translateLocal('workspace.common.roleName', newRole).toLowerCase(),
-                currentRole: translateLocal('workspace.common.roleName', previousRole).toLowerCase(),
-            });
+            const expectedRoleMessage = translateLocal(
+                'report.actions.type.updateRole',
+                formattedEmail,
+                translateLocal('workspace.common.roleName', previousRole).toLowerCase(),
+                translateLocal('workspace.common.roleName', newRole).toLowerCase(),
+            );
 
             const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
             expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
