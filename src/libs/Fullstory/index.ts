@@ -13,7 +13,7 @@ import type {FSPageLike, Fullstory} from './types';
 
 import {getChatFSClass, shouldInitializeFullstory} from './common';
 
-// connectWithoutView is used because this is only for fullstory initialization, not attached to any view
+// Use connectWithoutView because it is only for fullstory initialization
 let fullstorySession: Session = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -146,8 +146,10 @@ const FS: Fullstory = {
     },
 };
 
-OnyxUtils.get(ONYXKEYS.USER_METADATA).then((userMetadata) => {
-    FS.consentAndIdentify(userMetadata, fullstorySession);
+// Use connectWithoutView because it is only for fullstory initialization
+Onyx.connectWithoutView({
+    key: ONYXKEYS.USER_METADATA,
+    callback: (value) => FS.consentAndIdentify(value, fullstorySession),
 });
 
 export default FS;
