@@ -181,6 +181,8 @@ function createTransaction({
                     email: currentUserEmail ?? '',
                 },
                 introSelected,
+                // Deferred: thread the real conciergeChat when this cascade is migrated (#66411).
+                conciergeChat: undefined,
                 quickAction,
                 recentWaypoints,
                 betas,

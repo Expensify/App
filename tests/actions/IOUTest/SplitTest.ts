@@ -2137,6 +2137,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // Create workspace and expense
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
@@ -2362,6 +2363,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
@@ -2940,6 +2942,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
@@ -3117,6 +3120,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: RORY_EMAIL,
             makeMeAdmin: true,
             policyName: "Rory's Workspace",
@@ -3298,6 +3302,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
@@ -3488,6 +3493,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace for Hold Test",
@@ -3753,6 +3759,7 @@ describe('updateSplitTransactions', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
@@ -3887,6 +3894,7 @@ describe('updateSplitTransactions', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
@@ -4023,6 +4031,7 @@ describe('updateSplitTransactions', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
@@ -4169,6 +4178,7 @@ describe('updateSplitTransactions', () => {
 
         const policyID = generatePolicyID();
         createWorkspace({
+            conciergeChat: undefined,
             policyOwnerEmail: CARLOS_EMAIL,
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",

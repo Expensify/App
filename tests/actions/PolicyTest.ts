@@ -91,6 +91,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -893,6 +894,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -926,6 +928,7 @@ describe('actions/Policy', () => {
         it('creates a new workspace when betas are explicitly passed', async () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -961,6 +964,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1001,6 +1005,7 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1029,6 +1034,7 @@ describe('actions/Policy', () => {
 
             (fetch as MockFetch)?.fail?.();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1062,6 +1068,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1092,6 +1099,7 @@ describe('actions/Policy', () => {
         it('create a new workspace with delayed submission set to manually if the onboarding choice is not selected', async () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1123,6 +1131,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1152,6 +1161,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to LOOKING_AROUND
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1181,6 +1191,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1210,6 +1221,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to EMPLOYER
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1239,6 +1251,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to CHAT_SPLIT
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1267,6 +1280,7 @@ describe('actions/Policy', () => {
         it('creates a Submit workspace with ADVANCED approval mode and correct feature flags', async () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1310,6 +1324,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with distance rates feature enabled
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: false,
                 policyName: WORKSPACE_NAME,
@@ -1353,6 +1368,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with isSelfTourViewed set to true
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1390,6 +1406,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with isSelfTourViewed set to false
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1434,6 +1451,7 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1484,6 +1502,7 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1570,6 +1589,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with an adminParticipant
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1611,6 +1631,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with TEST_DRIVE_RECEIVER choice and createWorkspace task
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1666,6 +1687,7 @@ describe('actions/Policy', () => {
             // introSelected.choice is populated but introSelected.createWorkspace is not (Concierge-based flows
             // never set it; MANAGE_TEAM only sets it for the *first* workspace, not subsequent ones).
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1701,6 +1723,7 @@ describe('actions/Policy', () => {
             // When creating a workspace before the user has gone through guided onboarding (introSelected.choice is undefined),
             // the block should run so that onboarding tasks are attached to the new workspace.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1736,6 +1759,7 @@ describe('actions/Policy', () => {
             // Even when introSelected.choice is populated, TEST_DRIVE_RECEIVER must still enter the block via
             // the first disjunct so that the downstream Concierge createWorkspace task gets completed.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1774,6 +1798,7 @@ describe('actions/Policy', () => {
             // so prepareOnboardingOnyxData would normally route to Concierge — and since the mock returns undefined,
             // buildPolicyData should return early without setting guidedSetupData.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1804,6 +1829,7 @@ describe('actions/Policy', () => {
 
         it('should publish a workspace created event if this is their first policy', () => {
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1825,6 +1851,7 @@ describe('actions/Policy', () => {
 
         it('should not publish a workspace created event if this is not their first policy', () => {
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1851,6 +1878,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1884,6 +1912,7 @@ describe('actions/Policy', () => {
             const adminAccountID = 555;
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1925,6 +1954,7 @@ describe('actions/Policy', () => {
 
             // Create two workspaces with the same adminParticipant — each should get a unique expense chat
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: 'Workspace 1',
@@ -1941,6 +1971,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: 'Workspace 2',
@@ -1980,6 +2011,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // Pass explicit GBP currency — this should win over the session user's EUR localCurrencyCode
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
