@@ -240,7 +240,9 @@ describe('PersonalDetailsSelector', () => {
             pronouns: 'they/them',
             timezone: {selected: 'UTC'},
         } as unknown as PersonalDetails;
-        const listWithAvatar = {[accountID]: fullDetails} as unknown as PersonalDetailsList;
+        const listWithAvatar = {
+            [accountID]: fullDetails,
+        } as unknown as PersonalDetailsList;
 
         it('should return only the display detail fields for present account IDs', () => {
             const result = createDisplayDetailsByAccountIDsSelector([accountID])(listWithAvatar);

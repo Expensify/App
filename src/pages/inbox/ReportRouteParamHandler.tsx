@@ -40,8 +40,10 @@ function ReportRouteParamHandler() {
             return;
         }
 
+        // TODO: Pass guidesEmailsByReport map once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
         const lastAccessedReportID = findLastAccessedReport(
             !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            undefined,
             'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
             undefined,
             reportNameValuePairs,

@@ -11,6 +11,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {createGuidesEmailsByReportSelector} from '@selectors/PersonalDetails';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import {useCurrentReportIDState} from './useCurrentReportID';
@@ -47,7 +48,14 @@ type SidebarOrderedReportsActionsContextValue = {
     setStickyReportID: (reportID: string) => void;
 };
 
-type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean; isUnreadReport?: boolean}>;
+type ReportsToDisplayInLHN = Record<
+    string,
+    OnyxTypes.Report & {
+        hasErrorsOtherThanFailedReceipt?: boolean;
+        requiresAttention?: boolean;
+        isUnreadReport?: boolean;
+    }
+>;
 
 const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
     filteredReports: [],
@@ -100,6 +108,16 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const computeGuidesEmailsByReport = useMemo(() => createGuidesEmailsByReportSelector(chatReports), [chatReports]);
+    const guidesEmailsByReportSelector = useCallback(
+        (personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>) => computeGuidesEmailsByReport(personalDetailsList),
+        [computeGuidesEmailsByReport],
+    );
+    const [guidesEmailsByReport] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: guidesEmailsByReportSelector,
+    });
+    const guidesEmailsByReportKey = useMemo(() => JSON.stringify(guidesEmailsByReport ?? {}), [guidesEmailsByReport]);
+    const prevGuidesEmailsByReportKey = usePrevious(guidesEmailsByReportKey);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
@@ -207,7 +225,14 @@ function SidebarOrderedReportsContextProvider({
         // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
         // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
         // reports, recheck only the already-displayed reports with the new reportAttributes.
-        const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+
+        // When guide personal details hydrate after the reports collection, guidesEmailsByReport changes but
+        // getUpdatedReports() returns no report keys. Re-evaluate all reports so domain rooms previously
+        // filtered out can appear in the LHN.
+        if (hasCachedReports && prevGuidesEmailsByReportKey !== undefined && guidesEmailsByReportKey !== prevGuidesEmailsByReportKey) {
+            effectiveUpdatedReports = Object.keys(chatReports ?? {});
+        }
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
         let reportsToDisplay = {};
         if (shouldDoIncrementalUpdate) {
@@ -227,6 +252,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
                 conciergeReportID,
+                guidesEmailsByReport,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -244,6 +270,7 @@ function SidebarOrderedReportsContextProvider({
                 reportNameValuePairs,
                 reportAttributes,
                 conciergeReportID,
+                guidesEmailsByReport,
             });
         }
 
@@ -265,6 +292,9 @@ function SidebarOrderedReportsContextProvider({
         currentUserLogin,
         accountID,
         conciergeReportID,
+        guidesEmailsByReport,
+        guidesEmailsByReportKey,
+        prevGuidesEmailsByReportKey,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.

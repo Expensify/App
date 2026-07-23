@@ -10,7 +10,7 @@ import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {canAccessReport} from '@libs/ReportUtils';
+import {canAccessReport, resolveHasGuidesEmails} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -23,7 +23,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect} from 'react';
+import {hasExpensifyGuidesEmailsSelector} from '@selectors/PersonalDetails';
+import React, {useCallback, useEffect, useMemo} from 'react';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
@@ -55,6 +56,15 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
+    const guidesEmailsSelector = useCallback(
+        (personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>) => hasExpensifyGuidesEmailsSelector(participantAccountIDs)(personalDetailsList),
+        [participantAccountIDs],
+    );
+    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: guidesEmailsSelector,
+    });
+    const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
 
     const parentReportAction = useParentReportAction(report);
     let linkedReportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
@@ -80,7 +90,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const isLoadingReport = isLoadingReportData && !report?.reportID;
     const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
+    const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, resolvedHasGuidesEmails, isReportArchived));
 
     if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {

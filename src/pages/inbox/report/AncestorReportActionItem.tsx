@@ -8,19 +8,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isTripPreview} from '@libs/ReportActionsUtils';
-import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isArchivedReport, navigateToLinkedReportAction} from '@libs/ReportUtils';
+import {
+    canCurrentUserOpenReport,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    isArchivedReport,
+    navigateToLinkedReportAction,
+    resolveHasGuidesEmails,
+} from '@libs/ReportUtils';
 
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import type {Beta, IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+import type {Beta, IntroSelected, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
-import React from 'react';
+import {hasExpensifyGuidesEmailsSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import React, {useCallback, useMemo} from 'react';
 
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
@@ -95,12 +101,23 @@ function AncestorReportActionItem({
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsSelector(report?.ownerAccountID),
+    });
+    const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
+    const guidesEmailsSelector = useCallback(
+        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => hasExpensifyGuidesEmailsSelector(participantAccountIDs)(personalDetailsList),
+        [participantAccountIDs],
+    );
+    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: guidesEmailsSelector,
+    });
+    const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
 
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
-    const canOpenAncestorReport = canCurrentUserOpenReport(report, allBetas, isAncestorReportArchived);
+    const canOpenAncestorReport = canCurrentUserOpenReport(report, allBetas, resolvedHasGuidesEmails, isAncestorReportArchived);
 
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
