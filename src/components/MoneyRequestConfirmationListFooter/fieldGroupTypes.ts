@@ -16,7 +16,6 @@ type DistanceData = {
     distance: number;
     hasRoute: boolean;
     unit: Unit | undefined;
-    rate: number | undefined;
     distanceRateName: string | undefined;
     distanceRateCurrency: string;
     mileageRate: MileageRate;

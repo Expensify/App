@@ -162,7 +162,6 @@ function TransactionDetailsFields({
                     distanceRateName={distanceData.distanceRateName}
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     unit={distanceData.unit}
-                    rate={distanceData.rate}
                     mileageRate={distanceData.mileageRate}
                     expenseDate={distanceData.expenseDate}
                     customUnitRateID={distanceData.customUnitRateID}

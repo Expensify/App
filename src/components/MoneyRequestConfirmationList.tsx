@@ -567,7 +567,6 @@ function MoneyRequestConfirmationList({
                     distance,
                     hasRoute,
                     unit,
-                    rate,
                     distanceRateName: mileageRate.name,
                     distanceRateCurrency: currency,
                     mileageRate,
