@@ -77,7 +77,7 @@ function MenuItemIcon({
     }
 
     return (
-        <View style={[styles.popoverMenuIcon, (isCompact || variant === CONST.MENU_ITEM.ICON_VARIANT.COMPACT) && styles.popoverMenuIconCompact, style]}>
+        <View style={[styles.popoverMenuIcon, (isCompact || variant === CONST.MENU_ITEM.ICON_VARIANT.COMPACT) && styles.wAuto, style]}>
             <Icon
                 contentFit={contentFit}
                 hovered={isHovered}
