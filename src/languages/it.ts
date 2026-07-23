@@ -31,6 +31,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -5953,7 +5954,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             deleteFailureMessage: 'Si è verificato un errore durante l’eliminazione della categoria, riprova per favore',
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
-            showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
             emptyCategories: {
@@ -8816,6 +8816,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 title: 'Nessuna spesa da visualizzare',
                 subtitle: 'Nessun risultato. Prova a modificare i filtri.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Le violazioni vengono tracciate solo a partire dal ${formattedDate}. Prova a modificare i filtri data.`,
+            },
             emptyUnapprovedResults: {
                 title: 'Nessuna spesa da approvare',
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
@@ -8931,6 +8935,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Fatturazione viaggio consolidata',
             },
             is: 'È',
+            has: {submittedViolation: 'Violazione inviata'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Invia',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approva',
