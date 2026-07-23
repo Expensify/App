@@ -34,6 +34,7 @@ import {
     getPerDiemCustomUnit,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
+    hasVendorFeature,
     isControlPolicy,
     isPerDiemEnabled,
     isTimeTrackingEnabled,
@@ -324,6 +325,22 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                            }}
+                        />
+                        <MoreFeatureToggle
+                            icon={illustrations.Luggage}
+                            title={translate('workspace.moreFeatures.vendors.title')}
+                            subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
+                            isActive={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
+                            pendingAction={undefined}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
+                            onToggle={() => {}}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_VENDORS.getRoute(policyID));
                             }}
                         />
                         <MoreFeatureToggle
