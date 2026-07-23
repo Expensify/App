@@ -21,6 +21,7 @@
 #   - android/app/src/main/res/xml/network_security_config_enforce.xml
 #   - android/app/src/main/java/com/expensify/chat/CertificatePinning.kt
 #   - ios/CertificatePinning.swift
+#   - patches/react-native-nitro-fetch+1.5.0.patch
 #   - Mobile-Expensify/Android/res/xml/network_security_config_enforce.xml
 #   - Mobile-Expensify/Android/src/yapl/android/http/ExpensifyCertificatePinner.java
 #   - Mobile-Expensify/iOS/Expensify/ExpensifyAppDelegate.m (TrustKit kTSKPublicKeyHashes)
