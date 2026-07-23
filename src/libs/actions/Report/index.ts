@@ -4672,7 +4672,15 @@ function shouldShowReportActionNotification(
     }
 
     // We don't want to send a local notification if the user preference is daily, mute or hidden.
-    const notificationPreference = getReportNotificationPreference(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+    const reportForPreference = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    let notificationPreference = getReportNotificationPreference(reportForPreference);
+
+    // Expense reports default to HIDDEN, but the user's preference on the parent workspace chat should be respected.
+    if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && isMoneyRequestReport(reportForPreference)) {
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportForPreference?.chatReportID}`];
+        notificationPreference = getReportNotificationPreference(parentReport);
+    }
+
     if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
         Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
