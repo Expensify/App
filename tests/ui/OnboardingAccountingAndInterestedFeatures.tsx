@@ -3,7 +3,6 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import TextInput from '@components/TextInput';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -146,7 +145,7 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
-    it('allows Other without a custom name and completes direct accounting access with fallback features', async () => {
+    it('completes direct accounting access with Other and fallback features', async () => {
         renderAccountingPage();
 
         await waitForBatchedUpdatesWithAct();
@@ -159,23 +158,6 @@ describe('Onboarding interested features and accounting pages', () => {
             expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
                 featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
                 userReportedIntegration: 'other',
-            });
-        });
-    });
-
-    it('saves the custom name when provided for Other', async () => {
-        renderAccountingPage();
-
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
-
-        fireEvent.changeText(screen.UNSAFE_getByType(TextInput), 'Wave');
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        await waitFor(() => {
-            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
-                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
-                userReportedIntegration: 'Wave',
             });
         });
     });

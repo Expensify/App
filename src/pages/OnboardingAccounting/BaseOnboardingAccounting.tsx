@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -135,7 +134,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         initialSelectedIntegration = 'other';
     }
     const [selectedIntegration, setSelectedIntegration] = useState<AccountingOptionKey | undefined>(initialSelectedIntegration);
-    const [otherIntegrationText, setOtherIntegrationText] = useState(isKnownIntegration || !onboardingUserReportedIntegration ? '' : onboardingUserReportedIntegration);
     const [error, setError] = useState('');
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
@@ -191,7 +189,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             return;
         }
 
-        const integrationValue: OnboardingAccounting = selectedIntegration === 'other' ? otherIntegrationText.trim() || selectedIntegration : selectedIntegration;
+        const integrationValue: OnboardingAccounting = selectedIntegration;
         setOnboardingAccountingEnabled(true);
         setOnboardingUserReportedIntegration(integrationValue);
         await completeOnboardingFlow({featuresMap: onboardingFeaturesMap ?? getDefaultOnboardingFeaturesMap(), userReportedIntegration: integrationValue});
@@ -257,18 +255,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 contentContainerStyle={[styles.pt3, styles.pb5]}
             >
                 <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptions.map(renderOption)}</View>
-                {selectedIntegration === 'other' && (
-                    <TextInput
-                        accessibilityLabel={translate('workspace.accounting.other')}
-                        label={translate('workspace.accounting.other')}
-                        value={otherIntegrationText}
-                        onChangeText={(text) => {
-                            setOtherIntegrationText(text);
-                            setError('');
-                        }}
-                        autoFocus
-                    />
-                )}
             </ScrollView>
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 {!!error && (
