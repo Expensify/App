@@ -104,10 +104,16 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
     const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
     const hasRows = filteredAndSortedData.length > 0;
-    const [previousListState, setPreviousListState] = useState({hasRows, shouldRenderStickyHeader});
-    if (previousListState.hasRows !== hasRows || previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader) {
-        setPreviousListState({hasRows, shouldRenderStickyHeader});
+    const [previousHasRows, setPreviousHasRows] = useState(hasRows);
+    if (previousHasRows !== hasRows) {
+        setPreviousHasRows(hasRows);
         setIsListLoaded(false);
+        setHasActivatedStickyHeader(false);
+    }
+
+    const [previousShouldRenderStickyHeader, setPreviousShouldRenderStickyHeader] = useState(shouldRenderStickyHeader);
+    if (previousShouldRenderStickyHeader !== shouldRenderStickyHeader) {
+        setPreviousShouldRenderStickyHeader(shouldRenderStickyHeader);
         setHasActivatedStickyHeader(false);
     }
 

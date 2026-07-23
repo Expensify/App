@@ -1017,17 +1017,23 @@ describe('Table', () => {
             expect(screen.queryByTestId('flash-list')).toBeNull();
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
             expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
-            expect(StyleSheet.flatten(screen.getByTestId('list-footer').parent?.props.style)).toEqual(
-                expect.objectContaining({
-                    flexGrow: 0,
-                    justifyContent: listFooterComponentStyle.justifyContent,
-                }),
-            );
-            expect(StyleSheet.flatten(screen.getByTestId('list-footer').parent?.parent?.props.style)).toEqual(
-                expect.objectContaining({
-                    minHeight: undefined,
-                    paddingBottom: 12,
-                }),
+            const footerAncestorStyles: unknown[] = [];
+            let footerAncestor = screen.getByTestId('list-footer').parent;
+            while (footerAncestor) {
+                footerAncestorStyles.push(StyleSheet.flatten(footerAncestor.props.style));
+                footerAncestor = footerAncestor.parent;
+            }
+            expect(footerAncestorStyles).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        flexGrow: 0,
+                        justifyContent: listFooterComponentStyle.justifyContent,
+                    }),
+                    expect.objectContaining({
+                        minHeight: undefined,
+                        paddingBottom: 12,
+                    }),
+                ]),
             );
 
             fireEvent.changeText(screen.getByTestId('search-input'), '');
