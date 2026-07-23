@@ -68,7 +68,7 @@ No. To proceed with closing your account, you must first set a new Primary Conta
 
 ## How can I close my account if I own a workspace on an Annual subscription?
 
-If you own a workspace on an Annual subscription, you may not be able close your account until the subscription term ends. 
+If you own a workspace on an Annual subscription, you may not be able to close your account until the subscription term ends. 
 
 To close your account: 
 - [Request to cancel your Annual subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Cancel-an-Annual-Subscription#how-to-request-annual-subscription-cancellation) (if eligible), or
