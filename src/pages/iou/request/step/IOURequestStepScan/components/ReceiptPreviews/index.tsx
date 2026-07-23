@@ -92,7 +92,11 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
 
     const renderItem = ({item}: {item: ReceiptWithTransactionID | undefined}) => {
         const placeholderStyle = isInLandscapeMode ? styles.receiptPlaceholderLandscape : styles.receiptPlaceholder;
-        if (!item) {
+        // When multi-scan is disabled the previews strip is collapsed to 0 so nothing is visible, but the FlatList
+        // still mounts one item per draft receipt. Rendering the full <Image> here decodes every draft receipt into
+        // native memory while offscreen, which on iOS can spike into an OOM on a large multi-select (see #93846).
+        // Render only the placeholder until multi-scan is enabled so hidden receipts are never decoded.
+        if (!item || !isMultiScanEnabled) {
             return <View style={placeholderStyle} />;
         }
 
@@ -131,6 +135,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                 <FlatList
                     ref={flatListRef}
                     data={receipts}
+                    extraData={isMultiScanEnabled}
                     horizontal={!isInLandscapeMode}
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={renderItem}
