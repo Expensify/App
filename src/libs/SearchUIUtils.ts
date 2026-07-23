@@ -2637,6 +2637,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
+    /** The personal details of the participants */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
     /** Whether the user has seen the self tour */
     isSelfTourViewed: boolean | undefined;
 
@@ -2661,6 +2664,7 @@ function createAndOpenSearchTransactionThread({
     currentUserLogin,
     currentUserAccountID,
     betas,
+    personalDetails,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     IOUTransactionID,
@@ -2702,6 +2706,7 @@ function createAndOpenSearchTransactionThread({
             iouReportAction: reportActionToPass,
             transaction,
             transactionViolations,
+            personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
         });

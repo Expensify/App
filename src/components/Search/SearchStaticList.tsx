@@ -1,5 +1,5 @@
 import Checkbox from '@components/Checkbox';
-import {useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
@@ -81,6 +81,7 @@ function SearchStaticList({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
+    const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -147,6 +148,7 @@ function SearchStaticList({
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
                 betas: undefined,
+                personalDetails,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 IOUTransactionID: item.reportAction?.childReportID,

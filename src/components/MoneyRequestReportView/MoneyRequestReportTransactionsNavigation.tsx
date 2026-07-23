@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -47,6 +48,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const {markReportRHPWidth} = useWideRHPActions();
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
@@ -141,7 +143,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
         if (nextDescriptor) {
             requestAnimationFrame(() => {
-                const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
+                const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID, personalDetails});
                 markReportRHPWidth(nextReportID, 'wide');
                 requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo})));
             });
@@ -169,6 +171,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     iouReport: nextParentReport,
                     iouReportAction: nextParentReportAction,
                     transaction: nextTransaction,
+                    personalDetails,
                 });
                 navigationParams.reportID = transactionThreadReport?.reportID;
             }
@@ -191,7 +194,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
         if (prevDescriptor) {
             requestAnimationFrame(() => {
-                const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
+                const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID, personalDetails});
                 markReportRHPWidth(prevReportID, 'wide');
                 requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo})));
             });
@@ -219,6 +222,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     iouReport: prevParentReport,
                     iouReportAction: prevParentReportAction,
                     transaction: prevTransaction,
+                    personalDetails,
                 });
                 navigationParams.reportID = transactionThreadReport?.reportID;
             }

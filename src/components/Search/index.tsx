@@ -1,5 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -165,6 +166,7 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
@@ -524,6 +526,7 @@ function Search({
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
                     betas,
+                    personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     IOUTransactionID: item?.reportAction?.childReportID,
@@ -585,6 +588,7 @@ function Search({
                             currentUserLogin: email ?? '',
                             currentUserAccountID: accountID,
                             betas,
+                            personalDetails,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
                             IOUTransactionID: firstTransaction?.reportAction?.childReportID,
@@ -662,6 +666,7 @@ function Search({
             unmarkReportRHPWidth,
             introSelected,
             betas,
+            personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             email,

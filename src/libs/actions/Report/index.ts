@@ -2215,9 +2215,8 @@ type CreateTransactionThreadReportParams = {
     /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
     /** The personal details of the participants */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Whether the user has seen the self tour */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2284,14 +2283,13 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     if (iouReportAction?.actorAccountID && iouReportAction.actorAccountID !== currentUserAccountID) {
         participantAccountIDsForDetails.push(iouReportAction.actorAccountID);
     }
-    const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails, personalDetails ?? allPersonalDetails);
+    const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails, personalDetails);
     const participants = buildParticipantInfoFromLogins(participantLogins);
     openReport({
         reportID: optimisticTransactionThreadReportID,
         introSelected,
         participants,
-        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-        personalDetails: personalDetails ?? allPersonalDetails,
+        personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,

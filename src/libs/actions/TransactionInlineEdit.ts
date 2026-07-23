@@ -271,6 +271,7 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
+            personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
         });

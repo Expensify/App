@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
@@ -53,6 +54,7 @@ function RecentlyAddedSection() {
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -69,7 +71,7 @@ function RecentlyAddedSection() {
         // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
         // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
         // one at a time, only when the user actually navigates to it.
-        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID};
+        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID, personalDetails};
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
