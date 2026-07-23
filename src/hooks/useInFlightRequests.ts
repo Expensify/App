@@ -138,7 +138,7 @@ function useIsAppLoadPending(): boolean {
 }
 
 /**
- * Whether an OpenReport request for the given report is currently in the queue.
+ * Whether an OpenReport request or its deferred Onyx updates are pending for the given report.
  *
  * Accepts `undefined` so callers with an optional reportID don't have to default the ID to a sentinel
  * value: an undefined scope key never matches a real OpenReport request, so it reads as "not loading".

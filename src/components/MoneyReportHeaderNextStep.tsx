@@ -18,8 +18,6 @@ type MoneyReportHeaderNextStepProps = {
  */
 function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const {isOffline} = useNetwork();
-    // The matching OpenReport request starts this lifecycle, and its terminal loading update ends it after
-    // deferred response data is applied.
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const optimisticNextStep = useOptimisticNextStep(reportID);
 

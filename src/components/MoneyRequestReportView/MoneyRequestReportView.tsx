@@ -153,8 +153,6 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    // The matching OpenReport request starts this lifecycle, and its terminal loading update ends it after
-    // deferred response data is applied. `reportLoadingState` is still read for the transaction-wait check below.
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
