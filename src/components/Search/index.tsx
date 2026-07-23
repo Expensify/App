@@ -764,8 +764,7 @@ function Search({
             cancelSubmitFollowUpActionSpan();
         }
         didBailToFallbackState.current = true;
-        onContentReady?.();
-    }, [onContentReady]);
+    }, []);
 
     // When the render bails to an error/empty state, the SelectionList never mounts
     // so its onLayout callback (the primary flush site) never fires. This effect
@@ -773,7 +772,17 @@ function Search({
     // is intentional — we need to check after every render since bail-outs happen
     // in conditional returns that can't trigger state-based effects.
     useEffect(() => {
-        if (!didBailToFallbackState.current || !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!didBailToFallbackState.current) {
+            return;
+        }
+        // Signal overlay readiness here (post-commit) rather than inside
+        // cancelNavigationSpans (render phase). Calling onContentReady during
+        // render updates the parent SearchPage while Search is still rendering,
+        // which triggers React's "Cannot update a component while rendering a
+        // different component" warning. setIsSearchReady is idempotent, so
+        // firing this on every bail-out render is safe.
+        onContentReady?.();
+        if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
         }
         didBailToFallbackState.current = false;
