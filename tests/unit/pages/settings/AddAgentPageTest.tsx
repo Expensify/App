@@ -30,7 +30,7 @@ const mockSetNewAgentAvatarPreset = jest.fn<void, unknown[]>();
 const mockClearNewAgentAvatarDraft = jest.fn<void, unknown[]>();
 let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: string; name: string; type: string}} | undefined;
 let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
-let mockShouldUseNarrowLayout = true;
+let mockIsNarrowLayout = true;
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: (...args: unknown[]) => mockCreateAgent(...args),
@@ -74,7 +74,10 @@ jest.mock('@hooks/useOnyx', () => {
     };
 });
 
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout})));
+jest.mock('@libs/getIsNarrowLayout', () => ({
+    __esModule: true,
+    default: () => mockIsNarrowLayout,
+}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
@@ -177,7 +180,7 @@ describe('AddAgentPage', () => {
         jest.clearAllMocks();
         mockAvatarDraft = undefined;
         mockAvatarDraftStatus = 'loaded';
-        mockShouldUseNarrowLayout = true;
+        mockIsNarrowLayout = true;
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN});
         mockAvatarOnPress = undefined;
     });
@@ -305,7 +308,7 @@ describe('AddAgentPage', () => {
         });
 
         it('opens the DM in the RHP on wide layouts instead of the fullscreen report', () => {
-            mockShouldUseNarrowLayout = false;
+            mockIsNarrowLayout = false;
             renderAddAgentPage({});
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
