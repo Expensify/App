@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem/compound';
+import MenuItem from '@components/MenuItem';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 
@@ -61,7 +61,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
     const hasTrailing = !!item.badgeText || !!item.brickRoadIndicator || !!item.iconRight;
 
     return (
-        <MenuItem
+        <MenuItem.Root
             ref={popoverAnchor}
             style={wrapperStyle}
             onPress={onPress}
@@ -95,7 +95,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
                     </MenuItem.Trailing>
                 )}
             </MenuItem.Row>
-        </MenuItem>
+        </MenuItem.Root>
     );
 }
 

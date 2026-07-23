@@ -1,15 +1,21 @@
 /**
- * MenuItem (compound)
+ * MenuItem — single entry point for both the legacy monolith and the compound API.
  *
- * A composable decomposition of the classic `MenuItem`, following the composition-over-configuration
- * pattern: instead of ~135 props configuring one monolith, the consumer assembles the row from
- * sub-components and interaction state (hover/press/focus/disabled) is shared through context.
+ * The default export is the legacy `MenuItem` (so the ~120 existing `@components/MenuItem`
+ * imports keep working), extended with the compound sub-components following the
+ * composition-over-configuration pattern: instead of ~135 props configuring one monolith,
+ * the consumer assembles the row from sub-components and interaction state
+ * (hover/press/focus/disabled) is shared through context.
+ *
+ * New code should use the compound API. Once the migration is finished the legacy component
+ * will be deleted and only the compound API will remain — the import path and the
+ * `MenuItem.Root` / `MenuItem.*` call sites below will not change.
  *
  * @example Simple navigation row
  * ```tsx
- * import MenuItem from '@components/MenuItem/compound';
+ * import MenuItem from '@components/MenuItem';
  *
- * <MenuItem onPress={onNavigate} accessibilityLabel={translate('common.settings')}>
+ * <MenuItem.Root onPress={onNavigate} accessibilityLabel={translate('common.settings')}>
  *     <MenuItem.Row>
  *         <MenuItem.Icon src={icons.Gear} />
  *         <MenuItem.Content>
@@ -19,12 +25,12 @@
  *             <MenuItem.Chevron />
  *         </MenuItem.Trailing>
  *     </MenuItem.Row>
- * </MenuItem>
+ * </MenuItem.Root>
  * ```
  *
  * @example Field row with a description on top, an error below, and helper text outside the pressable
  * ```tsx
- * <MenuItem onPress={onEdit} accessibilityLabel={`${description}, ${title}`}>
+ * <MenuItem.Root onPress={onEdit} accessibilityLabel={`${description}, ${title}`}>
  *     <MenuItem.Row>
  *         <MenuItem.Content>
  *             <MenuItem.Description>{description}</MenuItem.Description>
@@ -36,7 +42,7 @@
  *         </MenuItem.Trailing>
  *     </MenuItem.Row>
  *     <MenuItem.Error>{errorText}</MenuItem.Error>
- * </MenuItem>
+ * </MenuItem.Root>
  * <MenuItem.HelperText>{helperText}</MenuItem.HelperText>
  * ```
  *
@@ -59,9 +65,13 @@ import MenuItemBrickRoadIndicator from './leaves/trailing/MenuItemBrickRoadIndic
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import MenuItemCopyButton from './leaves/trailing/MenuItemCopyButton';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
+import LegacyMenuItem from './MenuItem';
 import {useMenuItemState} from './MenuItemContext';
 
-const MenuItem = Object.assign(MenuItemRoot, {
+const MenuItem = Object.assign(LegacyMenuItem, {
+    /** The compound root — a pressable row sharing interaction state with the sub-components below */
+    Root: MenuItemRoot,
+
     /** The main horizontal line holding the leading, content and trailing cells */
     Row: MenuItemRow,
 
@@ -113,5 +123,6 @@ const MenuItem = Object.assign(MenuItemRoot, {
 
 export default MenuItem;
 export {useMenuItemState};
+export type {MenuItemBaseProps, MenuItemProps} from './MenuItem';
 export type {MenuItemRootProps} from './layout/MenuItemRoot';
 export type {MenuItemState} from './MenuItemContext';
