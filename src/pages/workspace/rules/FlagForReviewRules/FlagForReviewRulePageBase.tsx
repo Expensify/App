@@ -43,6 +43,8 @@ type FlagForReviewRulePageBaseProps = {
     categoryName?: string;
     /** Pre-scopes the category when creating a rule (e.g. from the category details RHP). */
     initialCategoryName?: string;
+    /** When true, the category field is non-interactive (category-scoped create/edit). */
+    isCategoryLocked?: boolean;
     testID: string;
 };
 
@@ -54,7 +56,7 @@ function getValidationError(form: FlagForReviewRuleForm | null | undefined, tran
     return getFlagForReviewRuleAmountError(form[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) ?? '';
 }
 
-function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName, testID}: FlagForReviewRulePageBaseProps) {
+function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: FlagForReviewRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -65,6 +67,8 @@ function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName,
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'CoinsButton']);
     const isEditing = !!categoryName;
+    const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
+    const canEditCategory = canWriteRules && !isCategoryLocked;
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
@@ -200,10 +204,10 @@ function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName,
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        errorText={canEditCategory && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
+                        onPress={canEditCategory ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
+                        shouldShowRightIcon={canEditCategory}
+                        interactive={canEditCategory}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
@@ -214,7 +218,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName,
                         description={translate('iou.amount')}
                         title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : undefined}
                         errorText={canWriteRules && shouldShowError ? getFlagForReviewRuleAmountError(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, categoryName)) : undefined}
+                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.CoinsButton}

@@ -77,7 +77,7 @@ function getCategoryContextualRules({
         rules.push({
             key: `flag-for-review-${categoryName}`,
             summary: flagSummary,
-            route: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName),
+            route: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName, true),
             pendingAction: category.pendingFields?.maxExpenseAmount,
         });
     }
@@ -89,7 +89,7 @@ function getCategoryContextualRules({
             rules.push({
                 key: `require-fields-${categoryName}`,
                 summary,
-                route: ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName),
+                route: ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName, true),
                 pendingAction: getRequireFieldsPendingActionForCategory(category),
             });
         }
