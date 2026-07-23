@@ -1568,18 +1568,6 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
 };
 
 /**
- * Selects the top N reports for option-list building by self-DM status, archived status, and recency.
- * In search mode, returns the full input list so every eligible report can be matched.
- */
-function selectTopReportsForOptionList(reports: Report[], privateIsArchivedMap: PrivateIsArchivedMap, maxRecentReports: number, isSearching: boolean): Report[] {
-    if (isSearching) {
-        return reports;
-    }
-
-    return optionsOrderBy(reports, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
-}
-
-/**
  * Creates an optimized option list with smart pre-filtering.
  *
  * Performance optimization approach:
@@ -1735,7 +1723,8 @@ function createFilteredOptionList(
     });
 
     // Step 2: Select the top N reports by priority (self-DM, then non-archived, then most recent).
-    const sortedReports = selectTopReportsForOptionList(reportsArray, privateIsArchivedMap, maxRecentReports, isSearching);
+    // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
+    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
 
     // Step 3: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
@@ -1933,7 +1922,7 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
         return {options: [], hasMore};
     }
 
-    // Decorate each option with its comparator key once (Schwartzian transform).
+    // Decorate each option with its comparator key once.
     // The heap then compares precomputed primitives instead of re-running `comparator`
     // on every O(log n) heap comparison, so `comparator` is evaluated exactly once per option.
     type Decorated = {key: number | string; option: T};
@@ -3575,7 +3564,6 @@ export {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    selectTopReportsForOptionList,
     shouldOptionShowTooltip,
     shouldShowLastActorDisplayName,
     shouldUseBoldText,
