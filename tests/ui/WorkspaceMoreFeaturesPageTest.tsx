@@ -45,15 +45,27 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
 
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
+    return function MockReanimatedModal({
+        isVisible,
+        onModalWillHide,
+        onModalHide,
+        children,
+    }: {
+        isVisible: boolean;
+        onModalWillHide?: () => void;
+        onModalHide?: () => void;
+        children: React.ReactNode;
+    }) {
         const wasVisible = useRef<boolean>(isVisible);
 
         useEffect(() => {
             if (wasVisible.current && !isVisible) {
+                // BaseModal records the closing generation during onModalWillHide before accepting onModalHide.
+                onModalWillHide?.();
                 onModalHide?.();
             }
             wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
+        }, [isVisible, onModalHide, onModalWillHide]);
 
         if (!isVisible) {
             return null;

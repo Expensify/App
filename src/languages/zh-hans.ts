@@ -9812,6 +9812,15 @@ ${reportName}`,
             inviteBoss: '准备好后即可邀请你的上司',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '新的管理员角色类型',
+                body: '通过新的卡片、成员和付款管理员角色，为团队分配更精细的权限。',
+                cta: '试用一下',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
         saveSearchTooltip: '<tooltip>在这里<strong>重命名已保存的搜索</strong>！</tooltip>',

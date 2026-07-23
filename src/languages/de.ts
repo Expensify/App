@@ -10195,6 +10195,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Neue Rollentypen für Administratoren',
+                body: 'Gib deinem Team mit neuen Rollen für Karten-, Personen- und Zahlungsadministratoren detailliertere Berechtigungen.',
+                cta: 'Ausprobieren',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',

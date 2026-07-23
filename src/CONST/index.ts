@@ -8286,6 +8286,10 @@ const CONST = {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
         },
+        PRODUCT_MARKETING_WINDOW: {
+            CTA: 'ProductMarketingWindow-CTA',
+            DISMISS: 'ProductMarketingWindow-Dismiss',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',

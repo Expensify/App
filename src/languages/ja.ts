@@ -10041,6 +10041,15 @@ ${reportName}`,
             inviteBoss: '準備ができたら上司を招待しましょう',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '管理者向けの新しい役割タイプ',
+                body: '新しいカード管理者、ユーザー管理者、支払い管理者の役割により、チームによりきめ細かな権限を付与できます。',
+                cta: 'お試しください',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',

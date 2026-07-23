@@ -53,6 +53,7 @@ export default function () {
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
+                isModalCovering: false,
             },
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,

@@ -10229,6 +10229,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nouveaux types de rôles pour les administrateurs',
+                body: 'Accordez à votre équipe des autorisations plus granulaires grâce aux nouveaux rôles d’administrateur des cartes, des personnes et des paiements.',
+                cta: 'Essayer',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',

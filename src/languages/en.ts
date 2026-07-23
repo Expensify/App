@@ -10325,6 +10325,15 @@ const translations = {
             description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'New role types for admins',
+                body: 'Give your team more granular permissions with new card, people, and payments admin roles.',
+                cta: 'Try it out',
+            },
+        },
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668

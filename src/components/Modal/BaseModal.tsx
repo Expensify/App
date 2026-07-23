@@ -21,7 +21,7 @@ import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPa
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
@@ -41,6 +41,7 @@ function BaseModal({
     isVisible,
     onClose,
     shouldSetModalVisibility = true,
+    shouldTreatModalAsCovering,
     onModalHide = () => {},
     type,
     popoverAnchorPosition = {},
@@ -98,6 +99,7 @@ function BaseModal({
 
     // This prop does not have a default value, because React Compiler throws an internal error if this is provided as a default value.
     const shouldApplySidePanelOffset = shouldApplySidePanelOffsetProp ?? type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+    const isModalCovering = shouldTreatModalAsCovering ?? (type !== CONST.MODAL.MODAL_TYPE.POPOVER && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
@@ -108,8 +110,11 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
+    const activeModalGenerationRef = useRef(0);
+    const pendingHideGenerationsRef = useRef<number[]>([]);
     const bottomDockedDismissButtonRef = useRef<View>(null);
     const fallbackModalIdRef = useRef<number | undefined>(undefined);
+    const [coveringModalID] = useState(() => ComposerFocusManager.getId());
     if (fallbackModalIdRef.current === undefined) {
         fallbackModalIdRef.current = ComposerFocusManager.getId();
     }
@@ -130,6 +135,7 @@ function BaseModal({
     const hideModal = useCallback(
         (callHideCallback = true) => {
             shouldCallHideModalOnUnmount.current = false;
+            setModalCovering(coveringModalID, false);
             willAlertModalBecomeVisible(false);
             if (areAllModalsHidden()) {
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
@@ -142,8 +148,16 @@ function BaseModal({
             onModalDidClose();
             ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
+        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId, coveringModalID],
     );
+
+    const handleModalHide = useCallback(() => {
+        const hiddenModalGeneration = pendingHideGenerationsRef.current.shift();
+        if (hiddenModalGeneration === undefined || hiddenModalGeneration !== activeModalGenerationRef.current || isVisible) {
+            return;
+        }
+        hideModal();
+    }, [hideModal, isVisible]);
 
     const handleDismissModal = useCallback(() => {
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
@@ -153,6 +167,7 @@ function BaseModal({
         let removeOnCloseListener: () => void;
         if (isVisible) {
             shouldCallHideModalOnUnmount.current = true;
+            setModalCovering(coveringModalID, isModalCovering);
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             if (onClose) {
@@ -171,7 +186,7 @@ function BaseModal({
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
+    }, [isVisible, wasVisible, onClose, type, isModalCovering, handleDismissModal, coveringModalID]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -327,14 +342,16 @@ function BaseModal({
                         // Note: Escape key on web will trigger onBackButtonPress callback
                         onBackButtonPress={closeTop}
                         onModalShow={handleShowModal}
-                        onModalHide={hideModal}
+                        onModalHide={handleModalHide}
                         onModalWillShow={() => {
+                            activeModalGenerationRef.current += 1;
                             saveFocusState();
                             onModalWillShow?.();
                         }}
                         onModalWillHide={() => {
-                            // Reset willAlertModalBecomeVisible when modal is about to hide
-                            // This ensures it's cleared before any other components check its value
+                            pendingHideGenerationsRef.current.push(activeModalGenerationRef.current);
+                            // Clear the pre-show signal at the start of exit while preserving the semantic
+                            // covering state until hideModal runs after the animation completes.
                             if (areAllModalsHidden()) {
                                 willAlertModalBecomeVisible(false);
                             }

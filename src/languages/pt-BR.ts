@@ -10131,6 +10131,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             inviteBoss: 'Convide seu chefe quando estiver pronto',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Novos tipos de função para administradores',
+                body: 'Dê à sua equipe permissões mais granulares com as novas funções de administrador de cartões, pessoas e pagamentos.',
+                cta: 'Experimente',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
