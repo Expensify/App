@@ -124,6 +124,10 @@ function renderPage() {
     );
 }
 
+function getMenuItemTitles() {
+    return screen.getAllByTestId(/^menu-item-/).flatMap((item) => item.children.filter((child): child is string => typeof child === 'string'));
+}
+
 describe('InitialSettingsPage - agent account', () => {
     const accountID = 123;
 
@@ -199,6 +203,20 @@ describe('InitialSettingsPage - agent account', () => {
             expect(screen.getByTestId('menu-item-Wallet')).toBeDefined();
             expect(screen.getByTestId('menu-item-Preferences')).toBeDefined();
             expect(screen.getByTestId('menu-item-Security')).toBeDefined();
+            expect(getMenuItemTitles()).toEqual([
+                'Profile',
+                'Wallet',
+                'Expense rules',
+                'Preferences',
+                'Copilot',
+                'Security',
+                'Help',
+                "What's new",
+                'About',
+                'Troubleshoot',
+                'Save the world',
+                'Sign out',
+            ]);
         });
     });
 
@@ -211,6 +229,7 @@ describe('InitialSettingsPage - agent account', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Subscription')).toBeDefined();
+            expect(getMenuItemTitles().slice(0, 3)).toEqual(['Profile', 'Subscription', 'Wallet']);
         });
     });
 
@@ -247,6 +266,7 @@ describe('InitialSettingsPage - agent account', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Agents')).toBeDefined();
+            expect(getMenuItemTitles().slice(0, 5)).toEqual(['Profile', 'Wallet', 'Expense rules', 'Agents', 'Preferences']);
         });
     });
 });
