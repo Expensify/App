@@ -17,6 +17,8 @@ type DerivedSourceValues<Deps extends readonly OnyxKey[]> = Partial<{
 type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
     currentValue?: OnyxValue<Key>;
     sourceValues?: DerivedSourceValues<Deps>;
+    isInitialDependencyLoad?: boolean;
+    shouldSkipUpdate?: boolean;
 };
 
 /**
