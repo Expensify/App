@@ -279,10 +279,10 @@ describe('EditAgentPage', () => {
         expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
     });
 
-    it('renders the real agent data when the route accountID is optimistic', () => {
+    it('renders the real agent data when the backend maps the optimistic route accountID', () => {
         mockUseOnyx.mockImplementation((key, options) => {
-            if (key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING) {
-                return [{[TEST_ACCOUNT_ID]: TEST_REAL_ACCOUNT_ID}, {status: 'loaded'}];
+            if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING) {
+                return [TEST_REAL_ACCOUNT_ID, {status: 'loaded'}];
             }
             if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_REAL_ACCOUNT_ID}`) {
                 return [{prompt: 'Real prompt'}, {status: 'loaded'}];
