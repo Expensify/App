@@ -6340,7 +6340,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return an option with isSelfDM and alternateText set
             expect(result.isSelfDM).toBe(true);
@@ -6360,7 +6360,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return an option with invoice room text and alternateText
             expect(result.isInvoiceRoom).toBe(true);
@@ -6382,7 +6382,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return an option with unknownUserDetails data
             expect(result.text).toBe('Unknown User');
@@ -6403,7 +6403,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return an option with workspace name
             expect(result.text).toBe(POLICY.name);
@@ -6432,7 +6432,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getReportDisplayOption with custom personalDetails
-            const result = getReportDisplayOption(report, undefined, customPersonalDetails, undefined, undefined);
+            const result = getReportDisplayOption(report, undefined, customPersonalDetails, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should use the custom personalDetails parameter
             expect(result).toBeDefined();
@@ -6449,7 +6449,7 @@ describe('OptionsListUtils', () => {
             const emptyPersonalDetails: PersonalDetailsList = {};
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, undefined, undefined);
+            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should not throw and return a valid option
             expect(result).toBeDefined();
@@ -6461,7 +6461,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption with undefined report
-            const result = getReportDisplayOption(undefined, undefined, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption(undefined, undefined, personalDetails, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return a valid option (createOption handles undefined)
             expect(result).toBeDefined();
@@ -6900,7 +6900,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6923,7 +6923,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6943,7 +6943,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6967,7 +6967,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6991,7 +6991,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7410,7 +7410,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace Policy');
@@ -7475,7 +7475,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Team Workspace');
@@ -7521,7 +7521,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is empty
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Without Details');
@@ -7567,7 +7567,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is undefined
-            const option = getPolicyExpenseReportOption(participant, undefined, undefined, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, undefined, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Undefined Details');
@@ -7621,15 +7621,54 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const optionSelected = getPolicyExpenseReportOption(participantSelected, undefined, {}, report, undefined);
+            const optionSelected = getPolicyExpenseReportOption(participantSelected, undefined, {}, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // eslint-disable-next-line rulesdir/no-negated-variables
-            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, undefined, {}, report, undefined);
+            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, undefined, {}, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(optionSelected.isSelected).toBe(true);
             expect(optionSelected.selected).toBe(true);
             expect(optionNotSelected.isSelected).toBe(false);
             expect(optionNotSelected.selected).toBe(false);
+        });
+
+        it('should return a valid option when called with different currentUserAccountID values', async () => {
+            const reportID = '210';
+            const testPolicyID = 'policy210';
+            const ownerAccountID = 1001;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Thread Test',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const testPersonalDetails = {
+                [ownerAccountID]: {
+                    accountID: ownerAccountID,
+                    displayName: 'Policy Owner',
+                    login: 'owner@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: true};
+
+            const optionWithCurrentUser = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, CURRENT_USER_ACCOUNT_ID);
+            const optionWithDifferentUser = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, 9999);
+
+            expect(optionWithCurrentUser).toBeDefined();
+            expect(optionWithDifferentUser).toBeDefined();
+            expect(optionWithCurrentUser.reportID).toBe(reportID);
+            expect(optionWithDifferentUser.reportID).toBe(reportID);
         });
     });
 
@@ -7682,7 +7721,7 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const option = getPolicyExpenseReportOption(participant, true, testPersonalDetails, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, true, testPersonalDetails, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.private_isArchived).toBe(true);
@@ -7728,7 +7767,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option?.private_isArchived).toBeUndefined();
@@ -8273,7 +8312,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getReportDisplayOption with chat report
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then the option should be created successfully using the reports collection
             expect(option).toBeDefined();
@@ -8314,7 +8353,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getPolicyExpenseReportOption with report passed directly
-            const option = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, undefined, CURRENT_USER_ACCOUNT_ID);
 
             // Then the option should be created successfully
             expect(option).toBeDefined();
@@ -8805,7 +8844,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const result = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, POLICY);
+            const result = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, POLICY, CURRENT_USER_ACCOUNT_ID);
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
@@ -8834,7 +8873,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const result = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, POLICY);
+            const result = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, POLICY, CURRENT_USER_ACCOUNT_ID);
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });

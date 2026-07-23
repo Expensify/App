@@ -1330,6 +1330,7 @@ function getReportDisplayOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1348,7 +1349,8 @@ function getReportDisplayOption(
         },
         reportAttributesDerived,
         policyTags,
-        visibleReportActionsData,
+        visibleReportActionsData: visibleReportActionsData ?? {},
+        currentUserAccountID,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1380,6 +1382,7 @@ function getPolicyExpenseReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1401,6 +1404,7 @@ function getPolicyExpenseReportOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        currentUserAccountID,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -3160,7 +3164,15 @@ function formatSectionsFromSearchTerm(
                               const expenseReport = getReportByID(participant.reportID);
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                              return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
+                              return getPolicyExpenseReportOption(
+                                  participant,
+                                  privateIsArchived,
+                                  personalDetails,
+                                  expenseReport,
+                                  expenseReportPolicy,
+                                  currentUserAccountID,
+                                  reportAttributesDerived,
+                              );
                           }
                           return getParticipantsOption(participant, personalDetails, translate);
                       })
@@ -3192,7 +3204,15 @@ function formatSectionsFromSearchTerm(
                           const expenseReport = getReportByID(participant.reportID);
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                          return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
+                          return getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              personalDetails,
+                              expenseReport,
+                              expenseReportPolicy,
+                              currentUserAccountID,
+                              reportAttributesDerived,
+                          );
                       }
                       return getParticipantsOption(participant, personalDetails, translate);
                   })
