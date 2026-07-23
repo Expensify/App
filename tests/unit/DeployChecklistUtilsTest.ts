@@ -1,3 +1,4 @@
+import CONST from '@github/libs/CONST';
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
@@ -7,255 +8,18 @@ import GithubUtils from '@github/libs/GithubUtils';
 /* eslint-disable @typescript-eslint/naming-convention */
 import {RequestError} from '@octokit/request-error';
 
+import createMock from '../utils/createMock';
+
 type Octokit = typeof GithubUtils.octokit;
 type OctokitListForRepo = Octokit['issues']['listForRepo'];
-type OctokitListPulls = Octokit['pulls']['list'];
-type OctokitGetPull = Octokit['pulls']['get'];
 type ListForRepoResponse = Awaited<ReturnType<OctokitListForRepo>>;
-type OctokitIssue = Awaited<ReturnType<OctokitListForRepo>>['data'][number];
-type PullRequestSimple = Awaited<ReturnType<OctokitListPulls>>['data'][number];
-type PullRequest = Awaited<ReturnType<OctokitGetPull>>['data'];
-type PullRequestFixture = PullRequestSimple & PullRequest;
-type PullRequestRepository = PullRequestSimple['head']['repo'] & NonNullable<PullRequest['head']['repo']>;
-type PullRequestHead = PullRequestSimple['head'] & PullRequest['head'];
-type PullRequestBase = PullRequestSimple['base'] & PullRequest['base'];
+type OctokitIssue = ListForRepoResponse['data'][number];
+type PullRequest = Exclude<Awaited<ReturnType<typeof GithubUtils.fetchAllPullRequests>>, void>[number];
 
-const pullRequestUser: NonNullable<PullRequestSimple['user']> = {
-    login: 'octocat',
-    id: 1,
-    node_id: '',
-    avatar_url: '',
-    gravatar_id: null,
-    url: '',
-    html_url: '',
-    followers_url: '',
-    following_url: '',
-    gists_url: '',
-    starred_url: '',
-    subscriptions_url: '',
-    organizations_url: '',
-    repos_url: '',
-    events_url: '',
-    received_events_url: '',
-    type: 'User',
-    site_admin: false,
-};
-
-const pullRequestRepository: PullRequestRepository = {
-    id: 1,
-    node_id: '',
-    name: 'Expensify',
-    full_name: 'Expensify/Expensify',
-    license: null,
-    forks: 0,
-    owner: pullRequestUser,
-    private: false,
-    html_url: '',
-    description: null,
-    fork: false,
-    url: '',
-    archive_url: '',
-    assignees_url: '',
-    blobs_url: '',
-    branches_url: '',
-    collaborators_url: '',
-    comments_url: '',
-    commits_url: '',
-    compare_url: '',
-    contents_url: '',
-    contributors_url: '',
-    deployments_url: '',
-    downloads_url: '',
-    events_url: '',
-    forks_url: '',
-    git_commits_url: '',
-    git_refs_url: '',
-    git_tags_url: '',
-    git_url: '',
-    hooks_url: '',
-    issue_comment_url: '',
-    issue_events_url: '',
-    issues_url: '',
-    keys_url: '',
-    labels_url: '',
-    languages_url: '',
-    merges_url: '',
-    milestones_url: '',
-    notifications_url: '',
-    pulls_url: '',
-    releases_url: '',
-    ssh_url: '',
-    stargazers_url: '',
-    statuses_url: '',
-    subscribers_url: '',
-    subscription_url: '',
-    tags_url: '',
-    teams_url: '',
-    trees_url: '',
-    clone_url: '',
-    default_branch: 'main',
-    forks_count: 0,
-    open_issues: 0,
-    open_issues_count: 0,
-    has_downloads: true,
-    has_issues: true,
-    has_projects: true,
-    has_wiki: true,
-    has_pages: true,
-    homepage: null,
-    language: null,
-    archived: false,
-    disabled: false,
-    mirror_url: null,
-    pushed_at: '',
-    size: 0,
-    stargazers_count: 0,
-    svn_url: '',
-    watchers: 0,
-    watchers_count: 0,
-    created_at: '',
-    updated_at: '',
-};
-
-const pullRequestHead: PullRequestHead = {
-    label: 'Expensify:main',
-    ref: 'main',
-    repo: pullRequestRepository,
-    sha: '',
-    user: pullRequestUser,
-};
-
-const pullRequestBase: PullRequestBase = {
-    label: 'Expensify:main',
-    ref: 'main',
-    repo: pullRequestRepository,
-    sha: '',
-    user: pullRequestUser,
-};
-
-const pullRequestLinks: PullRequestSimple['_links'] & PullRequest['_links'] = {
-    comments: {href: ''},
-    commits: {href: ''},
-    statuses: {href: ''},
-    html: {href: ''},
-    issue: {href: ''},
-    review_comments: {href: ''},
-    review_comment: {href: ''},
-    self: {href: ''},
-};
-
-const defaultPullRequest: PullRequestFixture = {
-    url: '',
-    id: 0,
-    node_id: '',
-    html_url: '',
-    diff_url: '',
-    patch_url: '',
-    issue_url: '',
-    commits_url: '',
-    review_comments_url: '',
-    review_comment_url: '',
-    comments_url: '',
-    statuses_url: '',
-    number: 0,
-    state: 'open',
-    locked: false,
-    title: '',
-    user: pullRequestUser,
-    body: null,
-    labels: [],
-    milestone: null,
-    created_at: '',
-    updated_at: '',
-    closed_at: null,
-    merged_at: null,
-    merge_commit_sha: null,
-    assignee: null,
-    assignees: [],
-    requested_reviewers: [],
-    requested_teams: [],
-    head: pullRequestHead,
-    base: pullRequestBase,
-    _links: pullRequestLinks,
-    author_association: 'NONE',
-    auto_merge: null,
-    merged: false,
-    mergeable: null,
-    // cspell:disable-next-line
-    rebaseable: null,
-    mergeable_state: 'unknown',
-    merged_by: null,
-    comments: 0,
-    review_comments: 0,
-    maintainer_can_modify: false,
-    commits: 0,
-    additions: 0,
-    deletions: 0,
-    changed_files: 0,
-};
-
-const createPullRequest = (overrides: Partial<PullRequestFixture>): PullRequestFixture => ({...defaultPullRequest, ...overrides});
-
-const createListPullsResponse = (data: PullRequestSimple[]): Awaited<ReturnType<OctokitListPulls>> => ({
-    data,
-    headers: {},
-    status: 200,
-    url: 'https://api.github.com/repos/Expensify/Expensify/pulls',
-});
-
-const createGetPullResponse = (data: PullRequest): Awaited<ReturnType<OctokitGetPull>> => ({
-    data,
-    headers: {},
-    status: 200,
-    url: 'https://api.github.com/repos/Expensify/Expensify/pulls/1',
-});
-
-const isUnknownArray = (value: unknown): value is unknown[] => Array.isArray(value);
-
-const defaultIssue: OctokitIssue = {
-    id: 0,
-    node_id: '',
-    url: '',
-    repository_url: '',
-    labels_url: '',
-    comments_url: '',
-    events_url: '',
-    html_url: '',
-    number: 0,
-    state: 'open',
-    title: '',
-    body: null,
-    user: null,
-    labels: [],
-    assignee: null,
-    assignees: [],
-    milestone: null,
-    locked: false,
-    comments: 0,
-    closed_at: null,
-    created_at: '',
-    updated_at: '',
-    author_association: 'NONE',
-};
-
-const createIssue = (overrides: Partial<OctokitIssue>): OctokitIssue => ({...defaultIssue, ...overrides});
-
-const createListForRepoResponse = (data: OctokitIssue[]): ListForRepoResponse => ({
-    data,
-    headers: {},
-    status: 200,
-    url: 'https://api.github.com/repos/Expensify/Expensify/issues',
-});
+const createListForRepoResponse = (data: OctokitIssue[]): ListForRepoResponse => createMock<ListForRepoResponse>({data});
 
 const mockListIssues = jest.fn<ReturnType<OctokitListForRepo>, Parameters<OctokitListForRepo>>();
 let listForRepoSpy: jest.SpiedFunction<OctokitListForRepo>;
-type PaginateRequest = (...args: never[]) => Promise<{data: unknown}>;
-type PaginateAdapter = (objectMethod: PaginateRequest, params?: unknown) => Promise<unknown[]>;
-
-const paginateAdapter: PaginateAdapter = async (objectMethod) => {
-    const {data}: {data: unknown} = await objectMethod();
-    return isUnknownArray(data) ? data : [];
-};
 
 beforeAll(() => {
     GithubUtils.initOctokitWithToken('fake_token');
@@ -265,7 +29,6 @@ beforeAll(() => {
     }
 
     listForRepoSpy = jest.spyOn(internalOctokit.rest.issues, 'listForRepo').mockImplementation(mockListIssues);
-    jest.spyOn(internalOctokit, 'paginate').mockImplementation(paginateAdapter);
 });
 
 afterEach(() => {
@@ -275,7 +38,7 @@ afterEach(() => {
 
 describe('DeployChecklistUtils', () => {
     describe('getDeployChecklist', () => {
-        const baseIssue = createIssue({
+        const baseIssue = createMock<OctokitIssue>({
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             title: 'Andrew Test Issue',
             labels: [
@@ -358,7 +121,7 @@ describe('DeployChecklistUtils', () => {
         ];
 
         test('Test finding an open issue with no PRs successfully', () => {
-            const bareIssue = createIssue({
+            const bareIssue = createMock<OctokitIssue>({
                 ...baseIssue,
 
                 body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
@@ -411,7 +174,7 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('Test finding more than one issue', async () => {
-            mockListIssues.mockResolvedValue(createListForRepoResponse([createIssue({number: 1}), createIssue({number: 2})]));
+            mockListIssues.mockResolvedValue(createListForRepoResponse([createMock<OctokitIssue>({number: 1}), createMock<OctokitIssue>({number: 2})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -421,7 +184,7 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('state:open empty + state:all returns closed issue → NoOpenDeployChecklistError', async () => {
-            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createIssue({number: 100, state: 'closed'})]));
+            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 100, state: 'closed'})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -435,7 +198,7 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('state:open empty + state:all returns open issue → fails closed (inconsistency)', async () => {
-            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createIssue({number: 500, state: 'open'})]));
+            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 500, state: 'open'})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -471,7 +234,9 @@ describe('DeployChecklistUtils', () => {
             });
             mockListIssues
                 .mockRejectedValueOnce(err503)
-                .mockResolvedValueOnce(createListForRepoResponse([createIssue({number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''})]));
+                .mockResolvedValueOnce(
+                    createListForRepoResponse([createMock<OctokitIssue>({number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''})]),
+                );
 
             jest.useFakeTimers();
             try {
@@ -507,7 +272,7 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('does not retry on empty result; falls through to state:all cross-check', async () => {
-            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createIssue({number: 200, state: 'closed'})]));
+            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 200, state: 'closed'})]));
             await expect(getDeployChecklist()).rejects.toBeInstanceOf(NoOpenDeployChecklistError);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
@@ -528,7 +293,9 @@ describe('DeployChecklistUtils', () => {
             });
             mockListIssues
                 .mockRejectedValueOnce(err403)
-                .mockResolvedValueOnce(createListForRepoResponse([createIssue({number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''})]));
+                .mockResolvedValueOnce(
+                    createListForRepoResponse([createMock<OctokitIssue>({number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''})]),
+                );
 
             jest.useFakeTimers();
             try {
@@ -547,7 +314,11 @@ describe('DeployChecklistUtils', () => {
             mockListIssues
                 .mockResolvedValueOnce(createListForRepoResponse([]))
                 .mockResolvedValueOnce(
-                    createListForRepoResponse([createIssue({number: 900, state: 'closed'}), createIssue({number: 800, state: 'open'}), createIssue({number: 700, state: 'closed'})]),
+                    createListForRepoResponse([
+                        createMock<OctokitIssue>({number: 900, state: 'closed'}),
+                        createMock<OctokitIssue>({number: 800, state: 'open'}),
+                        createMock<OctokitIssue>({number: 700, state: 'closed'}),
+                    ]),
                 );
             try {
                 await getDeployChecklist();
@@ -565,93 +336,35 @@ describe('DeployChecklistUtils', () => {
 
     describe('generateDeployChecklistBody', () => {
         const mockPRs = [
-            createPullRequest({
-                number: 1,
-                title: 'Test PR 1',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1`,
-                user: pullRequestUser,
-                labels: [],
-            }),
-            createPullRequest({
-                number: 2,
-                title: 'Test PR 2',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/2`,
-                user: pullRequestUser,
-                labels: [],
-            }),
-            createPullRequest({
-                number: 3,
-                title: 'Test PR 3',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`,
-                user: pullRequestUser,
-                labels: [],
-            }),
-            createPullRequest({
-                number: 4,
-                title: '[NO QA] Test No QA PR uppercase',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`,
-                user: pullRequestUser,
-                labels: [],
-            }),
-            createPullRequest({
-                number: 5,
-                title: '[NoQa] Test No QA PR Title Case',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`,
-                user: pullRequestUser,
-                labels: [],
-            }),
-            createPullRequest({
-                number: 6,
-                title: '[Internal QA] Another Test Internal QA PR',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`,
-                user: pullRequestUser,
-                labels: [
-                    {
-                        id: 1234,
-                        node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
-                        url: `https://api.github.com/${process.env.GITHUB_REPOSITORY}/labels/InternalQA`,
-                        name: 'InternalQA',
-                        description: 'An Expensifier needs to test this.',
-                        color: 'f29513',
-                        default: false,
-                    },
-                ],
-                assignees: [],
-            }),
-            createPullRequest({
-                number: 7,
-                title: '[Internal QA] Another Test Internal QA PR',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`,
-                user: pullRequestUser,
-                labels: [
-                    {
-                        id: 1234,
-                        node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
-                        url: `https://api.github.com/${process.env.GITHUB_REPOSITORY}/labels/InternalQA`,
-                        name: 'InternalQA',
-                        description: 'An Expensifier needs to test this.',
-                        color: 'f29513',
-                        default: false,
-                    },
-                ],
-                assignees: [],
-            }),
+            createMock<PullRequest>({number: 1, title: 'Test PR 1', labels: []}),
+            createMock<PullRequest>({number: 2, title: 'Test PR 2', labels: []}),
+            createMock<PullRequest>({number: 3, title: 'Test PR 3', labels: []}),
+            createMock<PullRequest>({number: 4, title: '[NO QA] Test No QA PR uppercase', labels: []}),
+            createMock<PullRequest>({number: 5, title: '[NoQa] Test No QA PR Title Case', labels: []}),
+            createMock<PullRequest>({number: 6, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
+            createMock<PullRequest>({number: 7, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
         ];
-        const mockInternalQaPR = createPullRequest({
-            merged_by: pullRequestUser,
-        });
-        const mockListPulls = jest.fn<ReturnType<OctokitListPulls>, Parameters<OctokitListPulls>>();
-        mockListPulls.mockResolvedValue(createListPullsResponse(mockPRs));
-        const mockGetPull = jest.fn<ReturnType<OctokitGetPull>, Parameters<OctokitGetPull>>();
-        mockGetPull.mockResolvedValue(createGetPullResponse(mockInternalQaPR));
+        const mockPullRequestsByRepo: Record<string, PullRequest[]> = {
+            [CONST.APP_REPO]: mockPRs,
+            [CONST.MOBILE_EXPENSIFY_REPO]: mockPRs,
+        };
+        const mockFetchAllPullRequests = jest.spyOn(GithubUtils, 'fetchAllPullRequests');
+        const mockGetPullRequestMergerLogin = jest.spyOn(GithubUtils, 'getPullRequestMergerLogin');
 
-        beforeAll(() => {
-            const internalOctokit = GithubUtils.internalOctokit;
-            if (!internalOctokit) {
-                throw new Error('Expected GithubUtils to initialize an Octokit client.');
-            }
-            jest.spyOn(internalOctokit.rest.pulls, 'list').mockImplementation(mockListPulls);
-            jest.spyOn(internalOctokit.rest.pulls, 'get').mockImplementation(mockGetPull);
+        beforeEach(() => {
+            mockFetchAllPullRequests.mockImplementation(async (pullRequestNumbers, repo = CONST.APP_REPO) => {
+                const pullRequests = mockPullRequestsByRepo[repo] ?? [];
+                return pullRequests.filter(({number}) => pullRequestNumbers.includes(number));
+            });
+            mockGetPullRequestMergerLogin.mockImplementation(async (pullRequestNumber) => {
+                const pullRequest = mockPRs.find(({number, labels}) => number === pullRequestNumber && labels.some(({name}) => name === CONST.LABELS.INTERNAL_QA));
+                return pullRequest ? 'octocat' : undefined;
+            });
+        });
+
+        afterEach(() => {
+            mockFetchAllPullRequests.mockReset();
+            mockGetPullRequestMergerLogin.mockReset();
         });
 
         const tag = '1.0.2-12';
@@ -715,6 +428,7 @@ describe('DeployChecklistUtils', () => {
             const issue = await generateDeployChecklistBodyAndAssignees({tag, PRList: basePRList, PRListMobileExpensify});
             expect(issue.issueBody).toContain('**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging');
             expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**');
+            expect(mockFetchAllPullRequests).toHaveBeenCalledWith(PRListMobileExpensify, CONST.MOBILE_EXPENSIFY_REPO);
         });
 
         test('Test no Mobile-Expensify compare link without Mobile-Expensify PRs', async () => {
