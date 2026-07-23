@@ -7,7 +7,11 @@ import parseVictorySeriesNode from '@components/HTMLEngineProvider/HTMLRenderers
 import type {TNode} from 'react-native-render-html';
 
 function createNode(tagName: string, attributes: Record<string, string> = {}, children: TNode[] = []): TNode {
-    return {tagName, attributes, children} as unknown as TNode;
+    const node = {tagName, attributes, children, nodeIndex: 0} as unknown as TNode;
+    for (const [index, child] of children.entries()) {
+        Object.assign(child, {parent: node, nodeIndex: index});
+    }
+    return node;
 }
 
 // Each value parses to a non-array (raw string, number, object) that the old `?? []` guard let through.
@@ -40,6 +44,66 @@ describe('victorySeriesParser', () => {
         const node = createNode('victorybar', {data: "[null, 1, {x: 'Jan', y: 10}]"});
         const result = parseVictorySeriesNode(node, null, null);
         expect(Object.keys(result.data ?? {})).toEqual(['Jan']);
+    });
+
+    it('preserves point metadata by series and x value', () => {
+        const node = createNode('victorybar', {data: "[{x: 1, y: 10, label: 'January 2026', currency: 'USD', searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01'}]"});
+        const result = parseVictorySeriesNode(node, null, null);
+        const numberOneKey = 'number:1';
+
+        expect(result.pointMetadata).toEqual({
+            y0: {
+                [numberOneKey]: {
+                    label: 'January 2026',
+                    currency: 'USD',
+                    searchQuery: 'type:expense date>=2026-01-01 date<2026-02-01',
+                },
+            },
+        });
+    });
+
+    it('uses labels attribute as fallback metadata', () => {
+        const node = createNode('victorybar', {
+            data: "[{x: 1, y: 10}, {x: 2, y: 20, label: 'Custom Feb'}]",
+            labels: "['Fallback Jan', 'Fallback Feb']",
+        });
+        const result = parseVictorySeriesNode(node, null, null);
+        const numberOneKey = 'number:1';
+        const numberTwoKey = 'number:2';
+
+        expect(result.pointMetadata).toEqual({
+            y0: {
+                [numberOneKey]: {
+                    label: 'Fallback Jan',
+                },
+                [numberTwoKey]: {
+                    label: 'Custom Feb',
+                },
+            },
+        });
+    });
+
+    it('keeps metadata for separate series with the same x value', () => {
+        const firstNode = createNode('victorybar', {data: "[{x: 1, y: 10, label: 'Current Jan'}]"});
+        const secondNode = createNode('victorybar', {data: "[{x: 1, y: 20, label: 'Prior Jan'}]"});
+        const tree = createNode('victorychart', {}, [firstNode, secondNode]);
+        const result = processVictoryChartTree(tree, null, null);
+        const firstSeriesKey = 'y0-0';
+        const secondSeriesKey = 'y0-1';
+        const numberOneKey = 'number:1';
+
+        expect(result.pointMetadata).toEqual({
+            [firstSeriesKey]: {
+                [numberOneKey]: {
+                    label: 'Current Jan',
+                },
+            },
+            [secondSeriesKey]: {
+                [numberOneKey]: {
+                    label: 'Prior Jan',
+                },
+            },
+        });
     });
 });
 

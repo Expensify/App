@@ -9,7 +9,7 @@ import React from 'react';
 import type {VictoryChartRendererProps} from './types';
 
 import VictoryChartContainer from './components/VictoryChartContainer';
-import VictoryChartContent from './components/VictoryChartContent';
+import VictoryChartInteractiveContent from './components/VictoryChartInteractiveContent';
 import {VictoryChartProvider} from './context/VictoryChartContext';
 import processVictoryChartTree from './parsers/processVictoryChartTree';
 import resolveVictoryChartType from './utils/resolveVictoryChartType';
@@ -40,7 +40,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                 type={type}
             >
                 <VictoryChartContainer>
-                    <VictoryChartContent />
+                    <VictoryChartInteractiveContent />
                 </VictoryChartContainer>
             </VictoryChartProvider>
         </ChartFontsProvider>
