@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletBillPaymentAccount} from '@libs/actions/connections/Rillet';
@@ -50,6 +51,7 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
                 keyForList: accountItem.code,
                 isSelected: billPaymentAccountCode === accountItem.code,
             })) ?? [];
+    const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
@@ -83,7 +85,8 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             shouldBeBlocked={shouldBeBlocked}
             displayName="RilletBillPaymentAccountPage"
             title="workspace.rillet.billPaymentAccount.label"
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={setBillPaymentAccount}
