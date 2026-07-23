@@ -1,7 +1,7 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
@@ -15,11 +15,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
+import {View} from 'react-native';
 
 const COMPANY_INCORPORATION_STATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_STATE_KEY];
@@ -49,7 +51,14 @@ function IncorporationStateBusiness({onNext, isEditing}: SubPageProps) {
             context: 'IncorporationStateBusiness',
             isLoadingReimbursementAccount,
         };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={reasonAttributes}
+                />
+            </View>
+        );
     }
 
     return (
