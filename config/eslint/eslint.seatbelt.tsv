@@ -558,7 +558,6 @@
 "../../src/hooks/useDebouncedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
 "../../src/hooks/useDynamicBackPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useExportActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useFilesValidation.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -939,7 +938,7 @@
 "../../src/libs/actions/ReportLayout.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/RequestConflictUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/ScheduleCall.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	18
+"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Session/index.ts"	"no-restricted-syntax"	9
 "../../src/libs/actions/Session/index.ts"	"rulesdir/no-onyx-connect"	2
