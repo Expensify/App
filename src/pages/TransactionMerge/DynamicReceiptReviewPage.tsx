@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +24,7 @@ import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -34,13 +35,14 @@ import {View} from 'react-native';
 
 import TransactionMergeReceipts from './TransactionMergeReceipts';
 
-type ReceiptReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE>;
+type DynamicReceiptReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE>;
 
-function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
+function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {transactionID, isOnSearch, backTo} = route.params;
+    const {transactionID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT.path);
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({mergeTransaction});
@@ -71,7 +73,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.getRoute(transactionID)));
             return;
         }
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), isOnSearch));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.getRoute(transactionID)));
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
@@ -92,7 +94,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.receiptPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(backTo);
+                        Navigation.goBack(backPath);
                     }}
                 />
                 <ScrollView style={[styles.pv3, styles.ph5]}>
@@ -120,4 +122,4 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     );
 }
 
-export default ReceiptReviewPage;
+export default DynamicReceiptReviewPage;
