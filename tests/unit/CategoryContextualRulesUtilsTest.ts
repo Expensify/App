@@ -2,10 +2,12 @@ import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {PolicyCategory} from '@src/types/onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const policy = {
     ...createRandomPolicy(0),
@@ -14,6 +16,11 @@ const policy = {
 };
 
 describe('getCategoryContextualRules', () => {
+    beforeEach(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
+    });
+
     it('returns an empty list when the category has no Rules Revamp overrides', () => {
         const category: PolicyCategory = {name: 'Travel', enabled: true};
 
@@ -49,7 +56,9 @@ describe('getCategoryContextualRules', () => {
         expect(rules.at(0)?.summary).toContain('flag for review');
         expect(rules.at(0)?.summary).toContain('200');
         expect(rules.at(0)?.route).toContain('flag-for-review-rules/edit/Travel');
+        expect(rules.at(0)?.route).toContain('isCategoryLocked=true');
         expect(rules.at(1)?.summary).toContain('Require description');
         expect(rules.at(1)?.route).toContain('require-fields-rules/edit/Travel');
+        expect(rules.at(1)?.route).toContain('isCategoryLocked=true');
     });
 });
