@@ -199,7 +199,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             });
         }
 
-        if (availableOptions.userToInvite && availableOptions.userToInvite.login !== currentUserEmail) {
+        if (availableOptions.userToInvite) {
             newSections.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
