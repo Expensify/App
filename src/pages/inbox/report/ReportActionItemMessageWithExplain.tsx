@@ -1,11 +1,7 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {openLink} from '@libs/actions/Link';
@@ -21,8 +17,10 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
@@ -46,14 +44,8 @@ type ReportActionItemMessageWithExplainProps = {
  */
 function ReportActionItemMessageWithExplain({message, action, childReport, originalReport}: ReportActionItemMessageWithExplainProps) {
     const {translate} = useLocalize();
-    const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const delegateAccountID = useDelegateAccountID();
-    const personalDetails = usePersonalDetails();
 
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
@@ -61,19 +53,26 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
-            const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
+            const currentUserAccountID = OnyxUtils.get(ONYXKEYS.SESSION)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+            const personalDetails = OnyxUtils.get(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(action?.actorAccountID)], personalDetails);
+            const introSelected = OnyxUtils.get(ONYXKEYS.NVP_INTRO_SELECTED);
+            const isSelfTourViewed = hasSeenTourSelector(OnyxUtils.get(ONYXKEYS.NVP_ONBOARDING));
+            const betas = OnyxUtils.get(ONYXKEYS.BETAS);
+            const delegateEmail = delegateEmailSelector(OnyxUtils.get(ONYXKEYS.ACCOUNT)).toLowerCase();
+            const delegateAccountID = delegateEmail ? Object.values(personalDetails ?? {}).find((detail) => detail?.login?.toLowerCase() === delegateEmail)?.accountID : undefined;
             explain(
                 childReport,
                 originalReport,
                 action,
                 translate,
-                personalDetail.accountID,
+                currentUserAccountID,
                 introSelected,
                 betas,
                 isSelfTourViewed,
                 delegateAccountID,
                 participantsPersonalDetails,
-                personalDetail?.timezone,
+                personalDetails?.[currentUserAccountID]?.timezone,
             );
             return;
         }
