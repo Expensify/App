@@ -18,6 +18,7 @@ import type {
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryTaxParams,
+    SetPolicyShowCategoryGLCodesParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
 } from '@libs/API/parameters';
@@ -31,7 +32,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import {pushTransactionAutoSelectionsOnyxData, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
@@ -40,7 +41,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
-import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
+import type {ApprovalRule, CustomUnit, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -1268,6 +1269,66 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, onyxData);
 }
 
+function setPolicyShowCategoryGLCodes(policyID: string | undefined, showCategoryGLCodes: boolean) {
+    if (!policyID) {
+        return;
+    }
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    showCategoryGLCodes,
+                    errorFields: {
+                        showCategoryGLCodes: null,
+                    },
+                    pendingFields: {
+                        showCategoryGLCodes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errorFields: {
+                        showCategoryGLCodes: null,
+                    },
+                    pendingFields: {
+                        showCategoryGLCodes: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    showCategoryGLCodes: !showCategoryGLCodes,
+                    errorFields: {
+                        showCategoryGLCodes: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
+                    },
+                    pendingFields: {
+                        showCategoryGLCodes: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyShowCategoryGLCodesParams = {
+        policyID,
+        enabled: showCategoryGLCodes,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_SHOW_CATEGORY_GL_CODES, parameters, onyxData);
+}
+
 function clearCategoryErrors(policyID: string, categoryName: string, policyCategories: PolicyCategories = {}) {
     const category = policyCategories?.[categoryName];
 
@@ -1454,7 +1515,7 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
     }
 }
 
-function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCategory: string | undefined, category: string) {
+function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCategory: string | undefined, category: string, customUnit?: CustomUnit) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1504,13 +1565,25 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
         },
     ];
 
-    const params = {
-        policyID,
-        customUnitID,
-        category,
-    };
+    const shouldUpdateCustomUnit = category === '' && customUnit !== undefined;
+    const command = shouldUpdateCustomUnit ? WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT : WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY;
+    const params = shouldUpdateCustomUnit
+        ? {
+              policyID,
+              customUnit: JSON.stringify(
+                  removePendingFieldsFromCustomUnit({
+                      ...customUnit,
+                      defaultCategory: category,
+                  }),
+              ),
+          }
+        : {
+              policyID,
+              customUnitID,
+              category,
+          };
 
-    API.write(WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY, params, {
+    API.write(command, params, {
         optimisticData,
         successData,
         failureData,
@@ -1916,4 +1989,5 @@ export {
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    setPolicyShowCategoryGLCodes,
 };

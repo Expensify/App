@@ -1,5 +1,5 @@
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
-import {filterInactiveCards, getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {filterAllInactiveCards, forEachAssignedCard, getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 
@@ -172,7 +172,8 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        for (const [key, workspaceCardFeedCards] of Object.entries(allWorkspaceCards ?? {})) {
+        const workspaceCards = allWorkspaceCards ?? {};
+        for (const key of Object.keys(workspaceCards)) {
             const keyParts = key.split(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
             const workspaceCardParamParts = keyParts.at(1)?.split('_');
 
@@ -180,10 +181,7 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            const {cardList, ...filteredCards} = filterInactiveCards(workspaceCardFeedCards);
-            for (const card of Object.values(filteredCards)) {
-                addErrorsForCard(card);
-            }
+            forEachAssignedCard(filterAllInactiveCards(workspaceCards[key]), addErrorsForCard);
         }
 
         allFeedsState.shouldShowRBR = getShouldShowRBR(allFeedsState);
