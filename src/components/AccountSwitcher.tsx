@@ -14,7 +14,7 @@ import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
@@ -23,6 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
+import {personalDetailsListSelector, personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -66,12 +67,21 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
+
+    const delegators = account?.delegatedAccess?.delegators ?? [];
+    const [delegateAndDelegatorPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList) => {
+            const delegatePersonalDetails = personalDetailsSelector(loginToAccountIDMap?.[account?.delegatedAccess?.delegate ?? ''])(personalDetailsList);
+            const delegatorsPersonalDetailsList = personalDetailsListSelector(delegators.map((delegator) => loginToAccountIDMap?.[delegator.email]))(personalDetailsList);
+            return {delegatePersonalDetails, delegatorsPersonalDetailsList};
+        },
+    });
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
@@ -171,11 +181,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 return [currentUserMenuItem];
             }
 
-            const delegatePersonalDetails = getPersonalDetailByEmail(delegateEmail);
             const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
 
             return [
-                createBaseMenuItem(delegatePersonalDetails, error, {
+                createBaseMenuItem(delegateAndDelegatorPersonalDetails?.delegatePersonalDetails, error, {
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -200,7 +209,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 .map(({email, role}) => {
                     const errorFields = account?.delegatedAccess?.errorFields ?? {};
                     const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = getPersonalDetailByEmail(email);
+                    const personalDetails = getPersonalDetailsByID(loginToAccountIDMap?.[email], delegateAndDelegatorPersonalDetails?.delegatorsPersonalDetailsList);
                     return createBaseMenuItem(personalDetails, error, {
                         badgeText: translate('delegate.role', {role}),
                         onSelected: () => {

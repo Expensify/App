@@ -7,6 +7,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useGetPersonalDetailsByLogin from '@hooks/useGetPersonalDetailsByLogin';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +21,6 @@ import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import colors from '@styles/theme/colors';
 
@@ -44,7 +44,7 @@ function HelpPage() {
     const isApprovedAccountant = !!account?.isApprovedAccountant;
     const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
     const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
-    const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
+    const guideDetails = useGetPersonalDetailsByLogin(account?.guideDetails?.email);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
