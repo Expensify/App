@@ -982,7 +982,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, transaction, report, bankAccountList);
+                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, transaction, report, bankAccountList, policy);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {

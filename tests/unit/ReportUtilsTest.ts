@@ -537,10 +537,15 @@ describe('ReportUtils', () => {
 
         const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
 
-        const policyWithBank = {
+        const policyWithBank: Policy = {
             ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
             achAccount: {
+                bankAccountID: 1,
                 accountNumber: 'XXXXXXXXXXXX0000',
+                routingNumber: '011401533',
+                addressName: 'Bank Workspace',
+                bankName: 'Test Bank',
+                reimburser: 'reimburser@example.com',
             },
         };
 
@@ -552,7 +557,16 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport, undefined, policyWithBank)).toBe(paidSystemMessage);
+        });
+
+        it('should use the passed policy (not module-level allPolicies) for the ACH bank account last 4 digits', () => {
+            // Given a policy that is NOT seeded in Onyx, passed explicitly as the policy param
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
+
+            // Then the ACH last 4 digits are resolved from the passed policy alone
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport, undefined, policyWithBank)).toBe(paidSystemMessage);
         });
 
         it('should show the bank account from the action accountNumber instead of the policy default', async () => {
@@ -568,7 +582,7 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
 
             // Then the message shows the last 4 digits of that account, not the policy default
-            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, undefined, iouReport)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, undefined, iouReport, undefined, policyWithBank)).toBe(paidSystemMessage);
         });
 
         it('should return received payment when submitter marked payment received', () => {
@@ -598,6 +612,60 @@ describe('ReportUtils', () => {
             };
 
             expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, undefined, iouReport)).toBe(translateLocal('iou.paidElsewhere'));
+        });
+
+        it('should return an empty string for a non-money-request action', () => {
+            const createdAction = {
+                ...createRandomReportAction(47),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            };
+
+            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, undefined, iouReport, undefined, policyWithBank)).toBe('');
+        });
+
+        it('should use the passed policy for the last 4 digits of an automatic VBBA payment', () => {
+            // Given an automatically-paid VBBA action with no accountNumber on the action itself
+            const automaticVBBAAction = {
+                ...reportAction,
+                originalMessage: {...reportAction.originalMessage, automaticAction: true},
+            };
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
+
+            // Then the workspace-rules message resolves the last 4 digits from the passed policy
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, undefined, iouReport, undefined, policyWithBank)).toBe(expected);
+        });
+
+        it('should return the workspace-rules message for an automatic Expensify payment', () => {
+            const automaticExpensifyAction = {
+                ...reportAction,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
+            };
+
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, undefined, iouReport, undefined, policyWithBank)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
+            );
+        });
+
+        it('should return the approved amount when the IOU report is approved', async () => {
+            // Given an approved (not yet settled) expense report and a matching CREATE action
+            const approvedReportID = '9988776655';
+            const approvedReport = {
+                ...createExpenseReport(Number(approvedReportID)),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            const approveIOUAction = {
+                ...createRandomReportAction(48),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: approvedReportID,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 5000, currency: CONST.CURRENCY.USD},
+            };
+            const transaction = {...createRandomTransaction(1), amount: 5000, currency: CONST.CURRENCY.USD, reportID: approvedReportID};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`, approvedReport);
+
+            // Then the display message uses the "approved" copy
+            expect(getIOUReportActionDisplayMessage(translateLocal, approveIOUAction, transaction, approvedReport)).toContain('approved');
         });
     });
 
@@ -16140,6 +16208,29 @@ describe('ReportUtils', () => {
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
         });
+        it('should use the passed policy (not module-level allPolicies) to detect a group policy for an approved report', () => {
+            // Given an approved expense report whose policy is NOT seeded in Onyx
+            const groupPolicy: Policy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.TEAM,
+                name: 'My Group Workspace',
+            };
+            const expenseReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: groupPolicy.id,
+                currency: 'USD',
+            };
+
+            // When we call getReportPreviewMessage passing the policy explicitly
+            const result = getReportPreviewMessage(translateLocal, {reportOrID: expenseReport, policy: groupPolicy});
+
+            // Then the group-policy "approved" branch is taken based on the passed policy alone
+            expect(result).toContain('approved');
+            expect(result).toContain(groupPolicy.name);
+        });
         it('getReportPreviewMessageForCopy should return the expense report name', async () => {
             const report = LHNTestUtils.getFakeReport();
             report.reportName = 'Expense Report 2025-01-15';
@@ -16188,11 +16279,16 @@ describe('ReportUtils', () => {
 
         describe('settled report paid with a business bank account', () => {
             const settledPolicyID = '445';
-            const settledPolicy = {
+            const settledPolicy: Policy = {
                 ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
                 id: settledPolicyID,
                 achAccount: {
+                    bankAccountID: 1,
                     accountNumber: 'XXXXXXXXXXXX0000',
+                    routingNumber: '011401533',
+                    addressName: 'Settled Workspace',
+                    bankName: 'Test Bank',
+                    reimburser: 'reimburser@example.com',
                 },
             };
             const settledReport: Report = {
@@ -16241,7 +16337,7 @@ describe('ReportUtils', () => {
 
             it('matches the localized getReportPreviewMessage output when translated to English', () => {
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction};
+                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, policy: settledPolicy};
 
                 // The hardcoded English copy must not drift from the localized function
                 expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, params));
