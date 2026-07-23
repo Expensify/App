@@ -58,10 +58,15 @@ Yes. Once verified, the reimbursement account can be shared with other workspace
 The verification process can take anywhere from a few business days to several weeks, depending on whether all required documentation is provided when it begins.
 
 ## Why is my employee not receiving the full deposit?
-Some employees may receive a slightly smaller reimbursement than expected when paid into a bank account with a different currency. This happens due to foreign exchange (FX) fees when transmitting payments across borders, or fees charged by the receiving bank. The employee absorbs these fees, while the company sees the full report amount on their statement.
+When a reimbursement is paid into a bank account with a different currency, foreign exchange (FX) fees for transmitting payments across borders, or fees charged by the receiving bank, can make the deposited amount smaller than expected. Who absorbs these fees depends on the **Currency conversion fees** setting in your workspace's **Payments** section:
+
+- **Employee pays** (the default for existing Global Reimbursement setups): the employee absorbs the FX fees, and the company sees the report total on their statement.
+- **Company pays** (the default for new Global Reimbursement setups): the company absorbs the FX fees so the employee receives the full intended amount in their local currency, and the company's business bank account is debited more than the report total.
+
+Learn how to [choose who pays currency conversion fees](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
 
 ## Why is the reimbursement amount different from the expense amount?
-If your workspace and employees use different currencies, the reimbursement amount received by the employee will differ from the original expense amount. Exchange rates set by different providers on different days can cause the final amount to differ slightly from the original expense. Transaction fees may also contribute to this difference.
+If your workspace and employees use different currencies, the reimbursement amount received by the employee can differ from the original expense amount. Exchange rates set by different providers on different days can cause the final amount to differ slightly from the original expense, and transaction fees may also contribute to this difference. When your workspace's **Currency conversion fees** setting is set to **Company pays**, the company absorbs these costs so the employee receives the full intended amount.
 
 If a payment bounces and must be returned to the business bank account, the conversion fee is incurred again. This means the returned payment will be credited to your business bank account for an amount different from the original withdrawal. Track and reconcile these differences using the 'International Reimbursement ID' stored in each report's details.
 
