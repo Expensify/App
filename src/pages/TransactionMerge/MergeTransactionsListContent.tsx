@@ -163,7 +163,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, [
             targetTransactionPolicy,
             sourceTransactionPolicy,
         ]);

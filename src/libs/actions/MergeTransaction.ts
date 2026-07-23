@@ -77,7 +77,6 @@ function setupMergeTransactionDataAndNavigate(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
-    isOnSearch?: boolean,
     policies?: Array<OnyxEntry<Policy>>,
 ) {
     if (!transactions.length || transactions.length > 2) {
@@ -88,7 +87,7 @@ function setupMergeTransactionDataAndNavigate(
         const transaction = transactions.at(0);
         if (transaction) {
             setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST.getRoute(transaction.transactionID)));
             return;
         }
     }

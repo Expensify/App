@@ -1180,7 +1180,7 @@ const TransactionDuplicateStackNavigator = createModalStackNavigator<Transaction
 });
 
 const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactionNavigatorParamList>({
-    [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/MergeTransactionsListPage').default,
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DynamicMergeTransactionsListPage').default,
     [SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DynamicReceiptReviewPage').default,
     [SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DynamicDetailsReviewPage').default,
     [SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DynamicConfirmationPage').default,
