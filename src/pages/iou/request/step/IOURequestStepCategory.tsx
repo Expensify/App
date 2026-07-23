@@ -160,6 +160,10 @@ function IOURequestStepCategory({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateCategory = (category: ListItem) => {
         const categorySearchText = category.searchText ?? '';
         const isSelectedCategory = categorySearchText === categoryForDisplay;
@@ -169,7 +173,7 @@ function IOURequestStepCategory({
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit) {
                 setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
-                navigateBack();
+                saveAndNavigateBack();
                 return;
             }
 
@@ -193,7 +197,7 @@ function IOURequestStepCategory({
                     reportPolicyTags,
                     isTrackIntentUser,
                 });
-                navigateBack();
+                saveAndNavigateBack();
                 return;
             }
         }
@@ -207,7 +211,7 @@ function IOURequestStepCategory({
             return;
         }
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     return (

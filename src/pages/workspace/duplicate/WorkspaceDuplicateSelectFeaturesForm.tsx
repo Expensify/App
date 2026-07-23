@@ -57,12 +57,17 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const totalMembersSelector = useMemo(
+        () => createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login),
+        [policy?.employeeList, policy?.owner, currentUserPersonalDetails.login],
+    );
     const [totalMembers = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login),
+        selector: totalMembersSelector,
     });
     const invoiceCompany = [policy?.invoice?.companyName, policy?.invoice?.companyWebsite].filter(Boolean).join(', ');
+    const invoiceConfigurationTextSelector = useMemo(() => createInvoiceConfigurationTextSelector(translate, invoiceCompany), [translate, invoiceCompany]);
     const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
-        selector: createInvoiceConfigurationTextSelector(translate, invoiceCompany),
+        selector: invoiceConfigurationTextSelector,
     });
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
