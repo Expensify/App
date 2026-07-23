@@ -3,6 +3,7 @@ const {getDefaultConfig: getReactNativeDefaultConfig} = require('@react-native/m
 
 const {mergeConfig} = require('@react-native/metro-config');
 const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
+const {getBundleModeMetroConfig} = require('react-native-worklets/bundleMode');
 const {withSentryConfig} = require('@sentry/react-native/metro');
 const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');
 
@@ -69,6 +70,6 @@ const config = {
     },
 };
 
-const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
+const mergedConfig = getBundleModeMetroConfig(wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config)));
 
 module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);

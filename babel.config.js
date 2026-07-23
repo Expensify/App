@@ -27,6 +27,8 @@ function traceTransformer() {
     };
 }
 
+const isTestEnv = process.env.BABEL_ENV === 'test' || process.env.NODE_ENV === 'test';
+
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
@@ -93,7 +95,27 @@ const metro = {
         ],
         '@babel/plugin-transform-export-namespace-from',
         // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
-        'react-native-worklets/plugin',
+        [
+            'react-native-worklets/plugin',
+            {
+                bundleMode: !isTestEnv,
+                // In Bundle Mode, an import that a worklet captures in its closure becomes a "remote function"
+                // and throws when called synchronously on a Worklet Runtime. The `react-native-live-markdown`
+                // ExpensiMark parser runs on the LiveMarkdownRuntime and directly imports `ExpensiMark`,
+                // `unescapeText` (from `expensify-common/utils`) and `decode` (from `html-entities`) into its
+                // worklets, so those imports must be forwarded to avoid the "Tried to synchronously call a
+                // Remote Function" crash. Their transitive dependencies (expensify-common's `Str`, `punycode`,
+                // `awesome-phonenumber`, html-entities' internals, ...) do NOT need forwarding: metro bundles
+                // the whole `require()` graph onto the Worklet Runtime, so they resolve locally there.
+                // `relativePaths` only needs to cover live-markdown's own `./rangeUtils` (expensify-common and
+                // html-entities resolve to CommonJS, where `relativePaths` forwarding never fires).
+                // See https://docs.swmansion.com/react-native-worklets/docs/bundleMode/importForwarding
+                importForwarding: {
+                    moduleNames: ['expensify-common', 'expensify-common/utils', 'html-entities'],
+                    relativePaths: ['@expensify/react-native-live-markdown'],
+                },
+            },
+        ],
     ],
     env: {
         production: {
