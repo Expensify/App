@@ -110,18 +110,22 @@ function IOURequestStepTaxAmountPage({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (isEditing) {
             if (taxAmountInSmallestCurrencyUnits === getTransactionTaxAmount(currentTransaction, false)) {
-                navigateBack();
+                saveAndNavigateBack();
                 return;
             }
             updateMoneyRequestTaxAmount({
@@ -140,7 +144,7 @@ function IOURequestStepTaxAmountPage({
                 delegateAccountID,
                 isTrackIntentUser,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
@@ -150,7 +154,7 @@ function IOURequestStepTaxAmountPage({
         setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
-            Navigation.goBack(backTo);
+            saveAndNavigateBack();
             return;
         }
 

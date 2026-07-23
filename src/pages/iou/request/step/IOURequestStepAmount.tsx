@@ -81,7 +81,8 @@ function IOURequestStepAmount({
     const iouRequestType = getRequestType(transaction);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
+    const participantPolicyID = transaction?.participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    const policyID = (isTrackExpense ? policyForMovingExpensesID : report?.policyID) ?? participantPolicyID;
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isIouReport = isMoneyRequestReport(report);
@@ -182,6 +183,10 @@ function IOURequestStepAmount({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -231,7 +236,7 @@ function IOURequestStepAmount({
             shouldSkipConfirmation,
             isReportArchived,
             currentUserPersonalDetails,
-            navigateBack,
+            navigateBack: saveAndNavigateBack,
             amount,
             paymentMethod,
             isTrackIntentUser,

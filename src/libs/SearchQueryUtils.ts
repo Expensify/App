@@ -2452,6 +2452,7 @@ export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
+    getQueryHashes,
     isSearchDatePreset,
     getDateRangeForPreset,
     isFilterSupported,
