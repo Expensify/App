@@ -14,8 +14,6 @@ import mergeRefs from '@libs/mergeRefs';
 
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -64,12 +62,6 @@ type MenuItemRootProps = WithSentryLabel & {
     /** Whether the screen containing the row is focused (forwarded to Hoverable) */
     isScreenFocused?: boolean;
 
-    /** The action accepts anonymous users or not */
-    isAnonymousAction?: boolean;
-
-    /** Should check anonymous user in onPress function */
-    shouldCheckActionAllowedOnPress?: boolean;
-
     /** Style variant. `section` gives the row the full-bleed hover look used inside a `Section`
      * (horizontal padding + negative margins), replacing the classic `wrapperStyle={styles.sectionMenuItemTopDescription}`. */
     variant?: MenuItemVariant;
@@ -110,8 +102,6 @@ function MenuItemRoot({
     focused = false,
     success = false,
     isScreenFocused,
-    isAnonymousAction = false,
-    shouldCheckActionAllowedOnPress = true,
     variant = CONST.MENU_ITEM.VARIANT.DEFAULT,
     style,
     wrapperStyle,
@@ -173,7 +163,7 @@ function MenuItemRoot({
             <Hoverable isFocused={isScreenFocused}>
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
-                        onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                        onPress={onPressAction}
                         onSecondaryInteraction={onSecondaryInteraction}
                         wrapperStyle={wrapperStyle}
                         activeOpacity={!interactive ? 1 : variables.pressDimValue}
