@@ -31,7 +31,6 @@ function buildAuthenticateBody(credentials: Credentials): string {
     body.append('shouldRetry', 'false');
     body.append('forceNetworkRequest', 'true');
     body.append('email', credentials.login ?? '');
-    body.append('appversion', appversion);
     body.append('referer', referer);
     body.append('platform', platform);
     body.append('api_setCookie', String(api_setCookie));
