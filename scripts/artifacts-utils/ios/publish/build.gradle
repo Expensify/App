@@ -1,0 +1,82 @@
+apply plugin: 'maven-publish'
+
+def artifactsDir = findProperty('artifactsDir') ?: error('artifactsDir property is required')
+def patchedVersion = findProperty('patchedVersion') ?: error('patchedVersion property is required')
+def patchesHash = findProperty('patchesHash') ?: error('patchesHash property is required')
+def packageName = findProperty('packageName') ?: error('packageName property is required')
+
+configurations.maybeCreate('iosArtifacts')
+
+def coreDebugArtifact = artifacts.add('iosArtifacts', file("${artifactsDir}/reactnative-core-debug.tar.gz")) {
+    type = 'tgz'
+    extension = 'tar.gz'
+    classifier = 'reactnative-core-debug'
+}
+
+def coreReleaseArtifact = artifacts.add('iosArtifacts', file("${artifactsDir}/reactnative-core-release.tar.gz")) {
+    type = 'tgz'
+    extension = 'tar.gz'
+    classifier = 'reactnative-core-release'
+}
+
+def coreDsymDebugArtifact = artifacts.add('iosArtifacts', file("${artifactsDir}/reactnative-core-dSYM-debug.tar.gz")) {
+    type = 'tgz'
+    extension = 'tar.gz'
+    classifier = 'reactnative-core-dSYM-debug'
+}
+
+def coreDsymReleaseArtifact = artifacts.add('iosArtifacts', file("${artifactsDir}/reactnative-core-dSYM-release.tar.gz")) {
+    type = 'tgz'
+    extension = 'tar.gz'
+    classifier = 'reactnative-core-dSYM-release'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = "com.expensify.${packageName}"
+            artifactId = 'react-native-artifacts'
+            version = patchedVersion
+
+            artifact(coreDebugArtifact)
+            artifact(coreReleaseArtifact)
+            artifact(coreDsymDebugArtifact)
+            artifact(coreDsymReleaseArtifact)
+
+            pom {
+                name = 'react-native-artifacts'
+                description = 'Patched React Native iOS prebuilt artifacts for Expensify'
+                url = 'https://github.com/Expensify/App'
+
+                properties = [
+                    'patchesHash': patchesHash,
+                ]
+
+                developers {
+                    developer {
+                        id = 'expensify'
+                        name = 'Expensify'
+                    }
+                }
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://github.com/facebook/react-native/blob/HEAD/LICENSE'
+                        distribution = 'repo'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = 'https://maven.pkg.github.com/Expensify/App'
+            credentials {
+                username = System.getenv('GH_PUBLISH_ACTOR')
+                password = System.getenv('GH_PUBLISH_TOKEN')
+            }
+        }
+    }
+}

@@ -9,7 +9,6 @@ import Log from './Log';
 let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         // Clear the map so removed reports don’t linger
         reportIDToNameMap = {};

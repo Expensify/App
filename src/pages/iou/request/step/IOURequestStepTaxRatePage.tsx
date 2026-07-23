@@ -24,6 +24,7 @@ import {updateMoneyRequestTaxRate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -67,6 +68,7 @@ function IOURequestStepTaxRatePage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
@@ -88,6 +90,10 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
     const currency = getCurrency(currentTransaction);
     const decimals = getCurrencyDecimals(currency);
@@ -97,6 +103,7 @@ function IOURequestStepTaxRatePage({
             transactionID: currentTransaction?.transactionID,
             transactionThreadReport: report,
             parentReport,
+            iouReportOwnerLogin,
             taxCode: '',
             taxValue: '',
             taxAmount: 0,
@@ -114,7 +121,7 @@ function IOURequestStepTaxRatePage({
 
         if (shouldClearTax && isEditing) {
             updateMoneyRequestTaxRate(updateTaxRateParams);
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
         if (!currentTransaction || !taxes.code || !taxRates) {
@@ -131,26 +138,26 @@ function IOURequestStepTaxRatePage({
                 taxCode: taxes.code,
                 taxValue,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (isEditing) {
             const newTaxCode = taxes.code;
             updateMoneyRequestTaxRate({...updateTaxRateParams, taxCode: newTaxCode, taxValue, taxAmount: convertToBackendAmount(taxAmount ?? 0)});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (taxAmount === undefined) {
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
 
         setMoneyRequestTaxRateValues(currentTransaction.transactionID, {taxCode: taxes?.code ?? '', taxAmount: amountInSmallestCurrencyUnits, taxValue});
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     return (
