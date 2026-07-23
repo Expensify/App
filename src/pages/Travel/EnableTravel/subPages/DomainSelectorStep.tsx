@@ -5,7 +5,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setTravelProvisioningDomain} from '@libs/actions/Travel';
@@ -14,9 +13,7 @@ import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/Po
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
@@ -25,10 +22,9 @@ type DomainItem = ListItem & {
     isRecommended: boolean;
 };
 
-function DomainSelectorStep({policy, onNext, resetToPage}: EnableTravelSubPageProps) {
+function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
@@ -47,13 +43,6 @@ function DomainSelectorStep({policy, onNext, resetToPage}: EnableTravelSubPagePr
 
     const handleContinue = () => {
         if (!selectedDomain) {
-            return;
-        }
-        // The verify step normally precedes this one, but subPage is URL-controlled, so like the old standalone
-        // domain-selector page, enforce account validation before proceeding. The verify step auto-advances
-        // forward through the list once the account is validated.
-        if (!isUserValidated) {
-            resetToPage?.(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT);
             return;
         }
         setTravelProvisioningDomain(selectedDomain);
@@ -80,7 +69,7 @@ function DomainSelectorStep({policy, onNext, resetToPage}: EnableTravelSubPagePr
                         style={[styles.w100]}
                         onPress={handleContinue}
                     >
-                        <Button.Text>{translate('common.continue')}</Button.Text>
+                        <Button.Text>{translate('common.next')}</Button.Text>
                     </Button>
                 }
             />

@@ -177,7 +177,7 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
                     />
                 </View>
                 <FormAlertWithSubmitButton
-                    buttonText={translate('common.continue')}
+                    buttonText={translate('common.confirm')}
                     isDisabled={!hasAcceptedTravelTerms}
                     onSubmit={acceptTermsAndOpenTravelDot}
                     message={errorMessage}

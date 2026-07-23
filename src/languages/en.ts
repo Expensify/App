@@ -4479,9 +4479,6 @@ const translations = {
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
-        verifyAccount: {
-            headline: 'Validate account',
-        },
         domainSelector: {
             headline: 'Choose domain',
             title: 'Domain',

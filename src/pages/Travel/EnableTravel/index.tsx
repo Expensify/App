@@ -3,6 +3,8 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -10,10 +12,11 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import EnableTravelContent from './EnableTravelContent';
 
@@ -34,8 +37,22 @@ function EnableTravel({route}: EnableTravelProps) {
     // "loading" (value undefined). Without the gate, the new mount would freeze a freshly recomputed — and
     // wrong — step list and persist it over the real one, shrinking the stepper mid-flow.
     const isMidFlowMount = !!route.params.subPage;
+    const isUserValidated = account?.validated ?? false;
 
-    if (isLoadingOnyxValue(privatePersonalDetailsMetadata, accountMetadata) || (isMidFlowMount && isLoadingOnyxValue(travelProvisioningMetadata))) {
+    // Verify account is a gate in front of the whole stepper, not a numbered step in it: redirect there first
+    // (forceReplace so it doesn't linger in navigation history) whenever the account isn't validated yet,
+    // including on a direct/deep link into a later step, since nothing in this flow should be reachable before
+    // validation. setTravelProvisioningNextStep tells VerifyAccountPage where to forward-navigate back to once
+    // validated, which re-triggers the redirect-to-first-step logic in EnableTravelContent.
+    useEffect(() => {
+        if (isLoadingOnyxValue(accountMetadata) || isUserValidated) {
+            return;
+        }
+        setTravelProvisioningNextStep(ROUTES.TRAVEL_ENABLE.getRoute(policyID));
+        Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, policyID), {forceReplace: true});
+    }, [isUserValidated, accountMetadata, policyID]);
+
+    if (isLoadingOnyxValue(privatePersonalDetailsMetadata, accountMetadata) || !isUserValidated || (isMidFlowMount && isLoadingOnyxValue(travelProvisioningMetadata))) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'EnableTravel'};
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }

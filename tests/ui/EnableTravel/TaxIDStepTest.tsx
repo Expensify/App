@@ -83,7 +83,7 @@ describe('TaxIDStep', () => {
         renderStep();
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.next')));
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -100,7 +100,7 @@ describe('TaxIDStep', () => {
         fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('travel.taxID.inputLabel')), '  DE123456789  ');
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.next')));
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {

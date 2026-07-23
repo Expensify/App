@@ -3,6 +3,7 @@ import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -96,6 +97,10 @@ function setTravelProvisioningDomain(domain: string) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {domain});
 }
 
+function setTravelProvisioningNextStep(nextStepRoute?: Route) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute});
+}
+
 function setTravelProvisioningEnabledSteps(enabledSteps: string[]) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {enabledSteps});
 }
@@ -104,4 +109,12 @@ function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningDomain, setTravelProvisioningEnabledSteps, setTravelProvisioningTaxID};
+export {
+    acceptSpotnanaTerms,
+    cleanupTravelProvisioningSession,
+    requestTravelAccess,
+    setTravelProvisioningDomain,
+    setTravelProvisioningEnabledSteps,
+    setTravelProvisioningNextStep,
+    setTravelProvisioningTaxID,
+};

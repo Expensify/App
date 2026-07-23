@@ -4359,9 +4359,6 @@ ${amount} para ${merchant} - ${date}`,
         errorMessage: 'Algo deu errado. Tente novamente mais tarde.',
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Por favor, <a href="${phoneErrorMethodsRoute}">adicione um e-mail profissional como seu login principal</a> para reservar viagens.</rbr>`,
-        verifyAccount: {
-            headline: 'Validar sua conta',
-        },
         domainSelector: {
             headline: 'Escolher domínio',
             title: 'Domínio',
@@ -4369,7 +4366,7 @@ ${amount} para ${merchant} - ${date}`,
             recommended: 'Recomendado',
         },
         workspaceAddress: {
-            headline: 'Inserir endereço da empresa',
+            headline: 'Insira o endereço comercial',
         },
         domainPermissionInfo: {
             title: 'Domínio',
@@ -4425,7 +4422,7 @@ ${amount} para ${merchant} - ${date}`,
         nightIn: 'noite em',
         nightsIn: 'noites em',
         taxID: {
-            headline: 'Inserir CPF/CNPJ',
+            headline: 'Insira o CPF/CNPJ',
             title: 'CPF/CNPJ',
             subtitle: 'Insira o CNPJ da sua empresa para que possamos configurar a cobrança de viagens na sua moeda local.',
             inputLabel: 'CNPJ da pessoa jurídica',

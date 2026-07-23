@@ -30,12 +30,10 @@ import DomainSelectorStep from './subPages/DomainSelectorStep';
 import LegalNameStep from './subPages/LegalNameStep';
 import TaxIDStep from './subPages/TaxIDStep';
 import TermsStep from './subPages/TermsStep';
-import VerifyAccountStep from './subPages/VerifyAccountStep';
 import WorkspaceAddressStep from './subPages/WorkspaceAddressStep';
 
 const STEP_COMPONENT_BY_PAGE_NAME: Record<string, typeof LegalNameStep> = {
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME]: LegalNameStep,
-    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT]: VerifyAccountStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR]: DomainSelectorStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS]: WorkspaceAddressStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID]: TaxIDStep,
@@ -66,9 +64,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
 
     const isProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
     const adminDomains = getAdminsPrivateEmailDomains(policy);
-    const isUserValidated = account?.validated ?? false;
     const legalNameMissing = areTravelPersonalDetailsMissing(privatePersonalDetails);
-    const needsVerify = !isUserValidated;
     const needsDomainSelector = !isProvisioned && adminDomains.length > 1;
     const needsAddress = !isProvisioned && isEmptyObject(policy?.address);
     const needsTaxID = isNonUSDPolicy(policy) && !isProvisioned && !policy?.travelSettings?.taxID;
@@ -83,12 +79,11 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         return travelProvisioning?.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
     }, [isProvisioned, adminDomains, travelProvisioning?.domain]);
 
+    // Verify account isn't part of this ladder: EnableTravel (the parent screen) redirects to a standalone verify
+    // page before this component ever mounts, so by the time this is consulted, the account is already validated.
     const firstIncompletePrerequisitePageName = useMemo(() => {
         if (legalNameMissing) {
             return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME;
-        }
-        if (needsVerify) {
-            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT;
         }
         if (needsDomainSelector && !travelProvisioning?.domain) {
             return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR;
@@ -100,7 +95,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
             return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID;
         }
         return undefined;
-    }, [legalNameMissing, needsVerify, needsDomainSelector, needsAddress, needsTaxID, travelProvisioning?.domain, travelProvisioning?.taxID]);
+    }, [legalNameMissing, needsDomainSelector, needsAddress, needsTaxID, travelProvisioning?.domain, travelProvisioning?.taxID]);
 
     // Each step of this flow is a separate navigation push (a fresh mount of this component, not an in-place
     // update), and completing a step (e.g. saving the legal name) flips the very Onyx flag that decided whether
@@ -110,6 +105,10 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
     // step list. The flow-entry mount (no subPage param in the URL yet — the one that redirects to the first
     // step) always recomputes and overwrites whatever is persisted, so a stale list left behind by an abandoned
     // session is never trusted; mid-flow mounts reuse the persisted list.
+    //
+    // Verify account isn't part of this list at all — it's a standalone page the parent screen redirects to
+    // before this component ever mounts (see EnableTravel/index.tsx), not a numbered step, so it never occupies
+    // a slot or a progress dot.
     const isFlowEntryMount = !(route.params as {subPage?: string} | undefined)?.subPage;
     const persistedEnabledSteps = travelProvisioning?.enabledSteps;
     const [enabledStepNames] = useState<string[]>(() => {
@@ -119,9 +118,6 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         const nextEnabledStepNames: string[] = [];
         if (legalNameMissing) {
             nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME);
-        }
-        if (needsVerify) {
-            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT);
         }
         if (needsDomainSelector) {
             nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR);

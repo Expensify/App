@@ -4369,9 +4369,6 @@ ${amount} voor ${merchant} - ${date}`,
         departs: 'Vertrekt',
         errorMessage: 'Er is iets misgegaan. Probeer het later opnieuw.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Voeg <a href="${phoneErrorMethodsRoute}">een werkmail toe als je primaire login</a> om reizen te boeken.</rbr>`,
-        verifyAccount: {
-            headline: 'Valideer je account',
-        },
         domainSelector: {
             headline: 'Domein kiezen',
             title: 'Domein',
@@ -4379,7 +4376,7 @@ ${amount} voor ${merchant} - ${date}`,
             recommended: 'Aanbevolen',
         },
         workspaceAddress: {
-            headline: 'Bedrijfsadres invoeren',
+            headline: 'Voer je zakelijke adres in',
         },
         domainPermissionInfo: {
             title: 'Domein',
@@ -4435,7 +4432,7 @@ ${amount} voor ${merchant} - ${date}`,
         nightIn: 'nacht in',
         nightsIn: 'nachten in',
         taxID: {
-            headline: 'Belastingnummer invoeren',
+            headline: 'Voer belastingnummer in',
             title: 'Belastingnummer',
             subtitle: 'Voer het fiscale nummer van je rechtspersoon in zodat we reisfacturatie in je lokale valuta kunnen instellen.',
             inputLabel: 'Belastingnummer rechtspersoon',

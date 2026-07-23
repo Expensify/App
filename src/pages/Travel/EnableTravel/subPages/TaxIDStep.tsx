@@ -42,7 +42,7 @@ function TaxIDStep({onNext}: EnableTravelSubPageProps) {
             formID={ONYXKEYS.FORMS.TRAVEL_LEGAL_ENTITY_TAX_ID_FORM}
             validate={validate}
             onSubmit={handleSubmit}
-            submitButtonText={translate('common.continue')}
+            submitButtonText={translate('common.next')}
             enabledWhenOffline
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('travel.taxID.headline')}</Text>

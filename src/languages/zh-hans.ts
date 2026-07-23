@@ -4244,9 +4244,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         departs: '出发时间',
         errorMessage: '出现问题。请稍后再试。',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>请<a href="${phoneErrorMethodsRoute}">添加一个工作邮箱作为您的主要登录方式</a>以预订差旅。</rbr>`,
-        verifyAccount: {
-            headline: '验证您的账户',
-        },
         domainSelector: {
             headline: '选择域名',
             title: '域名',

@@ -4370,11 +4370,8 @@ ${amount} per ${merchant} - ${date}`,
         departs: 'Partenza',
         errorMessage: 'Si è verificato un errore. Riprova più tardi.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Per prenotare viaggi, <a href="${phoneErrorMethodsRoute}">aggiungi un’email di lavoro come login principale</a>.</rbr>`,
-        verifyAccount: {
-            headline: 'Verifica il tuo account',
-        },
         domainSelector: {
-            headline: 'Scegli un dominio',
+            headline: 'Scegli dominio',
             title: 'Dominio',
             subtitle: 'Scegli un dominio per la configurazione di Expensify Travel.',
             recommended: 'Consigliato',

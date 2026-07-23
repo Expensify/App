@@ -3,7 +3,6 @@ import type {FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCountryCode} from '@libs/CountryUtils';
@@ -12,11 +11,9 @@ import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
 
 import {updateAddress} from '@userActions/Policy/Policy';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
@@ -25,10 +22,9 @@ function toStringValue(value: unknown): string {
     return typeof value === 'string' ? value : '';
 }
 
-function WorkspaceAddressStep({policy, policyID, onNext, resetToPage}: EnableTravelSubPageProps) {
+function WorkspaceAddressStep({policy, policyID, onNext}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const address = policy?.address;
 
     const [currentCountry, setCurrentCountry] = useState<string>(address?.country ?? '');
@@ -70,13 +66,6 @@ function WorkspaceAddressStep({policy, policyID, onNext, resetToPage}: EnableTra
     );
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
-        // The verify step normally precedes this one, but subPage is URL-controlled, so like the old standalone
-        // address page, enforce account validation on submit. The draft values survive the detour, and the verify
-        // step auto-advances forward through the list once the account is validated.
-        if (!isUserValidated) {
-            resetToPage?.(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.VERIFY_ACCOUNT);
-            return;
-        }
         updateAddress(policyID, {
             addressStreet: values.addressLine1?.trim() ?? '',
             addressStreet2: values.addressLine2?.trim() ?? '',
@@ -96,7 +85,7 @@ function WorkspaceAddressStep({policy, policyID, onNext, resetToPage}: EnableTra
             <AddressForm
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
                 onSubmit={handleSubmit}
-                submitButtonText={translate('common.save')}
+                submitButtonText={translate('common.next')}
                 city={city}
                 country={getCountryCode(currentCountry)}
                 onAddressChanged={handleAddressChange}

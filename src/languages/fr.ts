@@ -4399,9 +4399,6 @@ ${amount} pour ${merchant} - ${date}`,
         errorMessage: 'Un problème est survenu. Veuillez réessayer plus tard.',
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Veuillez <a href="${phoneErrorMethodsRoute}">ajouter un e-mail professionnel comme identifiant principal</a> pour réserver un voyage.</rbr>`,
-        verifyAccount: {
-            headline: 'Validez votre compte',
-        },
         domainSelector: {
             headline: 'Choisir un domaine',
             title: 'Domaine',
@@ -4409,7 +4406,7 @@ ${amount} pour ${merchant} - ${date}`,
             recommended: 'Recommandé',
         },
         workspaceAddress: {
-            headline: 'Indiquer l’adresse de l’entreprise',
+            headline: 'Saisissez l’adresse professionnelle',
         },
         domainPermissionInfo: {
             title: 'Domaine',

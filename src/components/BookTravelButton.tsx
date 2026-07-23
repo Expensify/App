@@ -9,7 +9,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -191,7 +191,17 @@ function BookTravelButton({
 
         // Hand off to the enablement stepper, which computes and collects only the steps this workspace still needs.
         cleanupTravelProvisioningSession();
-        Navigation.navigate(ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID)));
+        const enableTravelRoute = ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
+        // EnableTravel's own entry-mount effect would catch this and redirect regardless (it also has to, to
+        // protect a direct/deep link straight into the stepper), but checking here too avoids a visible URL
+        // blink: without this, the button would navigate to the stepper's URL first, then immediately get
+        // replaced with the verify URL a render later.
+        if (!isUserValidated) {
+            setTravelProvisioningNextStep(enableTravelRoute);
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+            return;
+        }
+        Navigation.navigate(enableTravelRoute);
     };
 
     // Auto-resume the booking flow after returning from the missing-personal-details page: when the user saves

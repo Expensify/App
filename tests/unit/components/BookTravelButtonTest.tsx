@@ -5,7 +5,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -43,6 +43,7 @@ jest.mock('@libs/actions/Travel', () => {
         ...actual,
         cleanupTravelProvisioningSession: jest.fn(),
         requestTravelAccess: jest.fn(),
+        setTravelProvisioningNextStep: jest.fn(),
     };
 });
 
@@ -120,7 +121,7 @@ describe('BookTravelButton', () => {
             expect(cleanupTravelProvisioningSession).toHaveBeenCalled();
         });
 
-        it('also navigates an unvalidated admin to the enablement stepper, deferring OTP verification to the stepper itself', async () => {
+        it('routes an unvalidated admin to verify their account first, deferring the stepper until after validation', async () => {
             // Given a provisioned, terms-not-accepted workspace and an admin who has not validated their account
             await seedOnyx(false);
             renderBookTravelButton();
@@ -130,8 +131,12 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then it still routes to the enablement stepper; the stepper's own verify-account step handles OTP
-            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            // Then it routes to verify-account instead of the stepper directly, recording the stepper as where to
+            // forward-navigate back to once validated (this avoids a URL blink from double-navigating through the
+            // stepper, which would otherwise immediately redirect to this same verify-account page anyway)
+            expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, POLICY_ID, ''));
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
         });
     });
 

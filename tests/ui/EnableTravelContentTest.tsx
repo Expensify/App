@@ -122,20 +122,13 @@ describe('EnableTravelContent', () => {
 
         // A single-step flow is not meaningful, so no progress dots should render. Matched by their "Step X of Y"
         // accessible name (from InteractiveStepButton) rather than by role — they're plain buttons, and the page
-        // has other buttons (Continue/Save/back) that a bare role query would also catch.
+        // has other buttons (Next/Confirm/back) that a bare role query would also catch.
         expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(0);
         expect(screen.getByText(TestHelper.translateLocal('travel.termsAndConditions.title'))).toBeTruthy();
     });
 
     it('shows a 2-step progress bar when only the legal name is missing', async () => {
         renderContent(PROVISIONED_POLICY, VALIDATED_ACCOUNT, {});
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(2);
-    });
-
-    it('shows a 2-step progress bar when only account verification is needed', async () => {
-        renderContent(PROVISIONED_POLICY, {validated: false, primaryLogin: 'admin@company.com'}, COMPLETE_PERSONAL_DETAILS);
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(2);
@@ -169,11 +162,11 @@ describe('EnableTravelContent', () => {
                 [ADMIN_DOMAIN_B_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
             },
         };
-        renderContent(policy, {validated: false, primaryLogin: ADMIN_DOMAIN_A_EMAIL}, {});
+        renderContent(policy, {validated: true, primaryLogin: ADMIN_DOMAIN_A_EMAIL}, {});
         await waitForBatchedUpdatesWithAct();
 
-        // legal name, verify account, domain selector, workspace address, tax ID, terms
-        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(6);
+        // legal name, domain selector, workspace address, tax ID, terms (verify account is a pre-stepper gate, not a numbered step)
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(5);
     });
 
     it('freezes the step count across remounts within the same flow session, even after an earlier step is completed', async () => {

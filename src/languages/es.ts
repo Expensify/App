@@ -4259,20 +4259,17 @@ ${amount} para ${merchant} - ${date}`,
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
         phoneError: (phoneErrorMethodsRoute) => `<rbr>Para reservar viajes, <a href="${phoneErrorMethodsRoute}">añade una dirección de correo electrónico de trabajo</a>.</rbr>`,
-        verifyAccount: {
-            headline: 'Validar cuenta',
-        },
         domainSelector: {
-            headline: 'Elige un dominio',
+            headline: 'Elige dominio',
             title: 'Dominio',
             subtitle: 'Elige un dominio para configurar Expensify Travel.',
             recommended: 'Recomendado',
         },
         workspaceAddress: {
-            headline: 'Introduce la dirección de la empresa',
+            headline: 'Introduce la dirección comercial',
         },
         taxID: {
-            headline: 'Introduce el ID fiscal',
+            headline: 'Introduce el NIF',
             title: 'ID fiscal',
             subtitle: 'Introduce el NIF de tu entidad legal para que podamos configurar la facturación de viajes en tu moneda local.',
             inputLabel: 'ID fiscal de la entidad jurídica',
