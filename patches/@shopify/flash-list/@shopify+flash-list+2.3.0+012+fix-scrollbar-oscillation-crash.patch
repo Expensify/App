@@ -1,22 +1,21 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-index 12375d9..857c790 100644
+index 12375d9..7e8293a 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-@@ -1,4 +1,13 @@
+@@ -1,4 +1,12 @@
 +import { Platform } from "react-native";
  import { RVLayoutManager, } from "./LayoutManager";
-+// Recent (rounded) cross-axis sizes kept for scrollbar oscillation detection.
++// How many recent widths we remember while watching for a scrollbar flicker.
 +const BOUNDED_SIZE_HISTORY_LENGTH = 8;
-+// Times the measured size must flip between the two values to count as an oscillation. Three means
-+// it returned to a prior value twice (a real ping-pong) - a one-off scrollbar toggle only flips twice.
++// How many times the width must bounce between the two values before we call it a flicker.
++// Showing and hiding a scrollbar once only bounces twice, so we ask for three.
 +const MIN_OSCILLATION_FLIPS = 3;
-+// Max cross-axis delta (px) treated as a scrollbar-induced oscillation rather than a real resize.
-+// Classic desktop scrollbars are ~15-17px; the headroom covers thicker/zoomed scrollbars.
++// A scrollbar is about 15-17px wide; a width jump this small or smaller is a scrollbar, not a resize.
 +const SCROLLBAR_OSCILLATION_TOLERANCE = 25;
  /**
   * LinearLayoutManager implementation that arranges items in a single row or column.
   * Supports both horizontal and vertical layouts with dynamic item sizing.
-@@ -23,9 +32,17 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+@@ -23,9 +31,15 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
          const prevHorizontal = this.horizontal;
          super.updateLayoutParams(params);
          const oldBoundedSize = this.boundedSize;
@@ -24,10 +23,8 @@ index 12375d9..857c790 100644
 +        const measuredBoundedSize = this.horizontal
              ? params.windowSize.height
              : params.windowSize.width;
-+        // On web a classic (non-overlay) scrollbar appearing/disappearing changes the measured
-+        // cross-axis size by the scrollbar width, which feeds back into layout and toggles the
-+        // scrollbar again: an infinite layout loop that crashes with "Maximum update depth exceeded".
-+        // Native uses overlay scrollbars and never oscillates, so this only runs on web.
++        // On web, a scrollbar showing and hiding can kick off an endless re-layout loop that
++        // crashes the app. Native scrollbars float on top and never do this, so only guard on web.
 +        this.boundedSize =
 +            Platform.OS === "web"
 +                ? this.settleScrollbarOscillation(measuredBoundedSize)
@@ -35,47 +32,34 @@ index 12375d9..857c790 100644
          if (oldBoundedSize !== this.boundedSize ||
              prevHorizontal !== this.horizontal) {
              if (this.layouts.length > 0) {
-@@ -35,6 +52,81 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+@@ -35,6 +49,65 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
              }
          }
      }
 +    /**
-+     * Web only. Breaks the scrollbar <-> layout feedback loop by pinning the cross-axis size once the
-+     * measured size is seen bouncing between two scrollbar-width-apart values.
++     * Web only. Stops the re-layout loop caused by a scrollbar that keeps showing and hiding.
 +     *
-+     * The measured cross-axis size is the scroll viewport's *client* width, which excludes a classic
-+     * scrollbar. So while the loop runs it can only ever report two values: with-scrollbar and
-+     * without. We wait until the history shows exactly those two values, no further apart than a
-+     * scrollbar, having flipped at least three times, and then settle on the smaller one - it already
-+     * accounts for the scrollbar, so items never overflow the client width.
-+     *
-+     * Detection deliberately does not assume the flips alternate on every single pass: the scrollbar
-+     * only toggles once the re-rendered items have been re-measured, which can lag the size change by
-+     * a pass, producing runs like A,A,B,B,A,A. Requiring strict A,B,A,B alternation misses those and
-+     * lets the loop run to the crash.
-+     *
-+     * A real resize is never misread: dragging sweeps through many distinct sizes (more than two), so
-+     * it cannot match. Once settled, any size outside the oscillating pair means a genuine layout
-+     * change, which releases the pin and restarts detection.
-+     * @param measuredBoundedSize Cross-axis size just measured from the DOM
-+     * @returns The size to lay out with
++     * The measured width flips between two values - with the scrollbar and without - a scrollbar's
++     * width apart. Once we've seen it bounce a few times we lock onto the smaller width to end it.
++     * The scrollbar can lag a frame, so the bounce isn't always a clean back-and-forth (A,A,B,B is
++     * fine too). A real resize moves through many different widths and never looks like this.
++     * @param measuredBoundedSize Width we just measured
++     * @returns The width to lay out with
 +     */
 +    settleScrollbarOscillation(measuredBoundedSize) {
 +        var _a;
-+        // Rounded, so the comparisons below are robust against subpixel drift.
++        // Round to whole pixels so tiny subpixel changes don't throw off the checks below.
 +        const size = Math.round(measuredBoundedSize);
 +        const settledPair = this.scrollbarOscillationPair;
 +        if (settledPair) {
-+            // While the scrollbar-reduced (smaller) width keeps being measured the scrollbar is
-+            // still there, so stay pinned and keep the loop broken.
++            // Still measuring the smaller width, so the scrollbar is still there - keep the lock.
 +            if (size === settledPair[0]) {
 +                return settledPair[0];
 +            }
-+            // Any other value means the oscillation is over - the scrollbar is gone (the larger
-+            // no-scrollbar width is back) or a genuine layout change happened. Release the pin at
-+            // once and honor the real size. We must not force the stale smaller width for even one
-+            // more frame: returning the unchanged pinned value schedules no recompute, so a data
-+            // shrink that removes the scrollbar often produces a single pass and would stick.
++            // Any other width means the flicker is over - the scrollbar went away or the layout
++            // really changed - so drop the lock and use the real width. We let go right away instead
++            // of waiting for it to repeat, because the width often updates only once and the rows
++            // would otherwise stay stuck too narrow.
 +            this.scrollbarOscillationPair = undefined;
 +            this.recentBoundedSizes = undefined;
 +        }
@@ -99,12 +83,9 @@ index 12375d9..857c790 100644
 +            return measuredBoundedSize;
 +        }
 +        const smaller = Math.min(distinctSizes[0], distinctSizes[1]);
-+        // Only pin while this very frame is measuring the smaller (with-scrollbar) width, so the
-+        // pinned value matches current reality. The flips alone can come from separate, already-
-+        // finished toggles (e.g. B,A,B,A) while the list currently has no scrollbar; pinning to the
-+        // narrow width there would wrongly narrow the rows, and since boundedSize would be unchanged
-+        // it schedules no recompute to correct itself. A live ping-pong keeps producing smaller
-+        // frames, so this only delays the pin by at most a frame or two.
++        // Only lock while this frame is on the smaller (with-scrollbar) width, so the locked width
++        // matches what's on screen right now. Old bounces can reach three flips even after the
++        // scrollbar is gone, and locking to the narrow width then would leave the rows too narrow.
 +        if (size !== smaller) {
 +            return measuredBoundedSize;
 +        }
