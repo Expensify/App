@@ -2159,7 +2159,11 @@ function moveTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams, 
     const {accountID: currentUserAccountID} = currentUser;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
-    const {isDraftPolicy} = policyParams;
+    // `policy` is a full Onyx object used only for optimistic data — it must not be serialized into the API payload.
+    // FormData turns it into "[object Object]" and non-Blob objects make the request fail on Android (see
+    // validateFormDataParameter), which stamps the failureData "Unexpected error" on the expense preview.
+    const {policy: omittedPolicy, ...policyApiParams} = policyParams;
+    const {isDraftPolicy} = policyApiParams;
     const {
         actionableWhisperReportActionID,
         moneyRequestReportID,
@@ -2194,7 +2198,7 @@ function moveTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams, 
             ...reportInformation,
             linkedTrackedExpenseReportAction: undefined,
         },
-        ...policyParams,
+        ...policyApiParams,
         ...transactionParams,
         modifiedExpenseReportActionID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
