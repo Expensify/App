@@ -98,6 +98,12 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
+                // Test builds skip the onboarding UI entirely; the flag is absent from production env files.
+                // Gate only the auto-entry into onboarding here so unrelated behaviour (e.g. hybrid-app transitions above) is unaffected.
+                if (CONFIG.SKIP_ONBOARDING) {
+                    return;
+                }
+
                 // Explicitly start the onboarding flow when onboarding is not completed.
                 // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
                 // navigate goes through the router where OnboardingGuard would block the navigation.
