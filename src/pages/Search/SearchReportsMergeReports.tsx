@@ -120,7 +120,7 @@ function SearchReportsMergeReports() {
     }, [selectedReports, allReports, destinationReportID, personalDetails, currentSearchQueryJSON?.type]);
 
     const handleConfirm = () => {
-        if (!destinationReportID) {
+        if (!destinationReportID || selectedReports.length < 2) {
             return;
         }
 
@@ -148,10 +148,15 @@ function SearchReportsMergeReports() {
             selfDMReportActions,
         });
 
-        Navigation.goBack(undefined, {
+        Navigation.dismissModal({
             afterTransition: () => {
-                clearSelectedTransactions();
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: destinationReportID}));
+                clearSelectedTransactions(undefined, true);
+                // Wrap navigation in a microtask to avoid a visual glitch on Android.
+                // If we navigate before selection mode has fully exited and the UI has finished rendering,
+                // the report header may briefly display incorrectly.
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: destinationReportID}));
+                });
             },
         });
     };
@@ -180,7 +185,7 @@ function SearchReportsMergeReports() {
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.confirm')}
                         onSubmit={handleConfirm}
-                        isDisabled={!destinationReportID}
+                        isDisabled={!destinationReportID || selectedReports.length < 2}
                         enabledWhenOffline
                     />
                 }
