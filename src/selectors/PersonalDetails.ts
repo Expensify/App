@@ -27,6 +27,16 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
+const personalDetailByLoginSelector =
+    (login: string | undefined) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined => {
+        if (!login) {
+            return undefined;
+        }
+        const lowerLogin = login.toLowerCase();
+        return Object.values(personalDetailsList ?? {}).find((detail) => detail?.login?.toLowerCase() === lowerLogin) ?? undefined;
+    };
+
 const avatarStyleColorSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     accountID ? personalDetailsList?.[accountID]?.avatarStyle?.color : undefined;
 
@@ -159,6 +169,7 @@ export {
     personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
+    personalDetailByLoginSelector,
     personalDetailsLoginsSelector,
     conciergePersonalDetailSelector,
     doesPersonalDetailExistSelector,
