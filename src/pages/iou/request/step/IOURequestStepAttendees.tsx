@@ -20,6 +20,7 @@ import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttende
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
@@ -51,6 +52,8 @@ function IOURequestStepAttendees({
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
@@ -73,6 +76,7 @@ function IOURequestStepAttendees({
                     transactionID,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     attendees,
                     policy,
                     policyTagList: policyTags,
@@ -84,6 +88,7 @@ function IOURequestStepAttendees({
                     parentReportNextStep,
                     isOffline,
                     delegateAccountID,
+                    reportPolicyTags,
                     isTrackIntentUser,
                 });
             } else {
@@ -91,7 +96,7 @@ function IOURequestStepAttendees({
             }
         }
 
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
     }, [
         attendees,
         previousAttendees,
@@ -100,6 +105,7 @@ function IOURequestStepAttendees({
         isEditing,
         report,
         parentReport,
+        iouReportOwnerLogin,
         policy,
         policyTags,
         policyCategories,
@@ -110,6 +116,7 @@ function IOURequestStepAttendees({
         parentReportNextStep,
         isOffline,
         delegateAccountID,
+        reportPolicyTags,
         isTrackIntentUser,
     ]);
 

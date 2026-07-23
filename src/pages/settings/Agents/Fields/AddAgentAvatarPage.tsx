@@ -1,41 +1,49 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
+import useOnyx from '@hooks/useOnyx';
+
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {consumeNavigationToken, getInitialPresetID, getReturnRoute, setPendingAvatar} from '@pages/settings/Agents/pendingAgentAvatarStore';
+import {setNewAgentAvatarPreset, setNewAgentUploadedAvatar} from '@userActions/Agent';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useRef} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import React from 'react';
 
 import type {OnSaveParams} from './EditAgentAvatarPage';
 
 import {EditAgentAvatarContent} from './EditAgentAvatarPage';
 
 function AddAgentAvatarPage() {
-    const didInitRef = useRef(false);
-    const returnRoute = getReturnRoute() ?? ROUTES.SETTINGS_AGENTS_ADD.getRoute();
-
-    useEffect(() => {
-        if (didInitRef.current) {
-            return;
-        }
-        didInitRef.current = true;
-
-        if (consumeNavigationToken()) {
-            return;
-        }
-        Navigation.navigate(returnRoute);
-    }, [returnRoute]);
-
-    const initialPresetID = getInitialPresetID();
+    const navigation = useNavigation();
+    const returnRoute = ROUTES.SETTINGS_AGENTS_ADD.getRoute();
+    const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
+    const initialPresetID = avatarDraft?.customExpensifyAvatarID;
 
     const handleSave = (params: OnSaveParams) => {
-        if ('customExpensifyAvatarID' in params) {
-            setPendingAvatar({type: 'preset', id: params.customExpensifyAvatarID});
-        } else {
-            setPendingAvatar({type: 'file', file: params.file, uri: params.uri});
-        }
-        Navigation.goBack(returnRoute);
+        // Wait for the async draft write to persist before navigating back, so a quick "Create agent" tap doesn't read a stale draft.
+        const savePromise = 'customExpensifyAvatarID' in params ? setNewAgentAvatarPreset(params.customExpensifyAvatarID) : setNewAgentUploadedAvatar(params.file);
+
+        savePromise
+            .catch((error: unknown) => {
+                Log.warn('Failed to persist the new-agent avatar draft', {error});
+            })
+            .finally(() => {
+                // Do not navigate if user already left the screen while promise pending.
+                if (!navigation.isFocused()) {
+                    return;
+                }
+                Navigation.goBack(returnRoute);
+            });
     };
+
+    if (isLoadingOnyxValue(avatarDraftMetadata)) {
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddAgentAvatarPage'}} />;
+    }
 
     return (
         <EditAgentAvatarContent
@@ -46,7 +54,5 @@ function AddAgentAvatarPage() {
         />
     );
 }
-
-AddAgentAvatarPage.displayName = 'AddAgentAvatarPage';
 
 export default AddAgentAvatarPage;
