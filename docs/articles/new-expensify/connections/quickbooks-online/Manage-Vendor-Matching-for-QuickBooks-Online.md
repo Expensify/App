@@ -7,7 +7,7 @@ internalScope: Audience is Workspace Admins using the QuickBooks Online connecti
 
 # Manage Vendor Matching for QuickBooks Online
 
-QuickBooks Online vendor matching lets Workspace Admins review and update the vendor assigned to non-reimbursable company card expenses before they export to QuickBooks Online. Expensify imports your QuickBooks Online vendor list, automatically matches vendors where possible, and lets admins update the **Vendor** field before export. This helps ensure expenses export with the correct vendor instead of requiring manual corrections in QuickBooks Online.
+QuickBooks Online vendor matching lets Workspace Admins review and update the vendor assigned to non-reimbursable company card expenses before they export to QuickBooks Online. Expensify imports your QuickBooks Online vendor list, automatically matches vendors where possible, and lets admins set or update the **Vendor** field before export. This helps ensure expenses export with the correct vendor instead of requiring manual corrections in QuickBooks Online.
 
 ## Who can use QuickBooks Online vendor matching
 
@@ -30,7 +30,7 @@ Whenever a vendor is assigned automatically, Concierge posts a system message on
 
 Workspace Admins can manually select a vendor from the searchable **Vendor** field on an expense at any time. Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
 
-## How to set a default vendor for QuickBooks Online company card expenses
+## How to set a fallback (default) vendor for QuickBooks Online company card expenses
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile), then go to **Workspaces > [workspace name] > Accounting > QuickBooks Online**.
 2. Click **Export**.
@@ -66,10 +66,6 @@ Expensify automatically attempts to match a vendor using your imported QuickBook
 ## Who can see the Vendor field on an expense?
 
 Only Workspace Admins can view and edit the **Vendor** field. Members and submitters don't see it.
-
-## Why don't I see the Vendors tab?
-
-The **Vendors** tab appears automatically when QuickBooks Online is connected and **Credit card** or **Debit card** is selected under **Export company card expenses as**. It can't be enabled or disabled independently.
 
 ## Does manually assigning a vendor stop automatic matching?
 
