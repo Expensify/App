@@ -1,3 +1,4 @@
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchReportsMergeReportsListItem from '@components/Search/SearchList/ListItem/SearchReportsMergeReportsListItem';
@@ -54,7 +55,6 @@ function SearchReportsMergeReports() {
     const {translate} = useLocalize();
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
-    const isMergingRef = useRef(false);
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions ?? {}, selectedReports);
 
@@ -120,14 +120,13 @@ function SearchReportsMergeReports() {
     }, [selectedReports, allReports, destinationReportID, personalDetails, currentSearchQueryJSON?.type]);
 
     const handleConfirm = () => {
-        if (!destinationReportID || isMergingRef.current) {
+        if (!destinationReportID) {
             return;
         }
 
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
         const policyID = destinationReport?.policyID;
         const sourceReportIDs = selectedReports.map((r) => r.reportID).filter((id): id is string => !!id && id !== destinationReportID);
-        isMergingRef.current = true;
 
         mergeReports({
             destinationReportID,
@@ -157,13 +156,6 @@ function SearchReportsMergeReports() {
         });
     };
 
-    const confirmButtonOptions = {
-        showButton: true,
-        text: translate('common.confirm'),
-        onConfirm: handleConfirm,
-        isDisabled: !destinationReportID,
-    };
-
     const onSelection = (item: ListItem) => {
         setDestinationReportID(item.reportID);
     };
@@ -184,7 +176,13 @@ function SearchReportsMergeReports() {
                 isRowMultilineSupported
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
-                confirmButtonOptions={confirmButtonOptions}
+                footerContent={
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('common.confirm')}
+                        onSubmit={handleConfirm}
+                        isDisabled={!destinationReportID}
+                    />
+                }
             />
         </StepScreenWrapper>
     );
