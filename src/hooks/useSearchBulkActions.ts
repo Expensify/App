@@ -108,6 +108,7 @@ import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
+import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useEnvironment from './useEnvironment';
@@ -348,7 +349,7 @@ function getChatReportForBulkPay(
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -361,6 +362,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
+    const delegateAccountID = useDelegateAccountID();
     const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} =
         usePaymentContext();
     const allTransactions = useAllTransactions();
@@ -1118,7 +1120,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(
                         itemReport,
                         adminPolicy,
-                        formatPhoneNumber,
                         policyExpenseChatReportActions,
                         reportPreviewAction,
                         accountID,
@@ -1228,6 +1229,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         additionalOnyxData,
                         shouldPlaySuccessSound: false,
                         chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${payChatReportID}`],
+                        delegateAccountID,
                         isTrackIntentUser,
                     });
                     paidReportCount += 1;
@@ -1256,6 +1258,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
                 paidReportCount += 1;
@@ -1284,7 +1287,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             lastPaymentMethods,
             allTransactions,
             policyIDsWithVBBA,
-            formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
             email,
@@ -1300,6 +1302,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allReportNameValuePairs,
             currentSearchKey,
             searchResults?.data,
+            delegateAccountID,
             isTrackIntentUser,
         ],
     );

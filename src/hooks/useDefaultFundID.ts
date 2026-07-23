@@ -50,13 +50,9 @@ function useDefaultFundID(policyID: string | undefined) {
         [policyID, workspaceAccountID],
     );
 
-    const [domainFundID] = useOnyx(
-        ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS,
-        {
-            selector: getDomainFundID,
-        },
-        [getDomainFundID],
-    );
+    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: getDomainFundID,
+    });
 
     const isFeedPendingDelete = lastSelectedCardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
