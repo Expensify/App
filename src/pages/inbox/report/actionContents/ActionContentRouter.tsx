@@ -25,6 +25,7 @@ import {
     getRenamedAction,
     getReportActionHtml,
     getSettlementAccountLockedMessage,
+    getTravelNudgeMessage,
     getTravelUpdateMessage,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
@@ -356,6 +357,13 @@ function ActionContentRouter({
             </ReportActionItemBasicMessage>
         );
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getTravelNudgeMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
         return (
             <UnreportedTransactionAction
@@ -452,6 +460,7 @@ function ActionContentRouter({
             <IntegrationSyncFailedMessage
                 action={action}
                 policyID={policyID}
+                originalReport={originalReport}
             />
         );
     }

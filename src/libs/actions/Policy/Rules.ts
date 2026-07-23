@@ -1,6 +1,12 @@
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
-import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, ImportMerchantRulesSpreadsheetParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
+import type {
+    AddPolicyAgentRuleParams,
+    DeletePolicyAgentRuleParams,
+    GetAgentRuleSuggestionsParams,
+    ImportMerchantRulesSpreadsheetParams,
+    UpdatePolicyAgentRuleParams,
+} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -123,6 +129,41 @@ function openPolicyRulesPage(policyID: string | undefined) {
 }
 
 /**
+ * Fetches ready-made agent rule suggestions for the add-agent-rule Suggestions tab.
+ */
+function getAgentRuleSuggestions(policyID: string | undefined) {
+    if (!policyID) {
+        Log.warn('Invalid params for getAgentRuleSuggestions', {policyID});
+        return;
+    }
+
+    const params: GetAgentRuleSuggestionsParams = {policyID};
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: false,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS, params, {optimisticData, successData, failureData});
+}
+
+/**
  * Creates or updates a coding rule for the given policy
  * @param policyID - The ID of the policy to create/update the rule for
  * @param form - The form data for the merchant rule
@@ -240,8 +281,9 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
  * Imports coding rules parsed from a spreadsheet into the given policy in bulk
  * @param policyID - The ID of the policy to import the rules into
  * @param rules - Coding rule values keyed by client-generated ruleID
+ * @param invalidCategoryCount - Number of imported categories that don't exist on the policy, reported in the confirmation modal
  */
-async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>): Promise<ImportFinalModal> {
+async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, invalidCategoryCount = 0): Promise<ImportFinalModal> {
     // The API rejects an empty rules object, so fail fast when the spreadsheet produced no importable rules
     if (Object.keys(rules).length === 0) {
         return getImportFailedFinalModal();
@@ -250,7 +292,7 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     const importFinalModal: ImportFinalModal = {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
-        promptKeyParams: {rules: Object.keys(rules).length},
+        promptKeyParams: {rules: Object.keys(rules).length, invalidCategories: invalidCategoryCount},
     };
 
     const parameters: ImportMerchantRulesSpreadsheetParams = {
@@ -631,6 +673,7 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 
 export {
     openPolicyRulesPage,
+    getAgentRuleSuggestions,
     setPolicyCodingRule,
     importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,
