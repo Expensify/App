@@ -40,7 +40,7 @@ After you confirm the deletion:
 
 You must be the workspace owner to delete a Workspace. If your Workspace is on an Annual subscription, you can't delete it until the end of the current subscription term.
 
-To learn more about the Annual subscription committment, see [When You Can Change Your Subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management#when-you-can-change-your-subscription).
+To learn more about the Annual subscription commitment, see [When You Can Change Your Subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management#when-you-can-change-your-subscription).
 
 ## What happens to my expenses after I delete a Workspace?
 
