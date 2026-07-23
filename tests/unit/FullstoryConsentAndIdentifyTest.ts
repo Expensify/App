@@ -105,6 +105,30 @@ describe('Fullstory consentAndIdentify (web)', () => {
         expect(identifySpy).toHaveBeenLastCalledWith({accountID, email, environment: CONST.ENVIRONMENT.PRODUCTION});
     });
 
+    it('does not identify a late-resolving chain when the current user switched to an ineligible account', async () => {
+        // Given an eligible account starts identification, then the user switches to an ineligible account
+        // (its metadata becomes the latest) while the first chain's onReady is still pending.
+        const identifySpy = jest.spyOn(webFS, 'identify').mockImplementation(() => {});
+        const ineligibleAccountID = 999;
+        jest.spyOn(webFS, 'shouldInitialize').mockImplementation((metadata) => metadata?.accountID === accountID);
+        const pendingChain = createDeferred();
+        jest.spyOn(webFS, 'onReady').mockReturnValue(pendingChain.promise);
+        getEnvironmentMock.mockResolvedValue(CONST.ENVIRONMENT.PRODUCTION);
+
+        webFS.consentAndIdentify({accountID, email});
+        await waitForBatchedUpdates();
+        webFS.consentAndIdentify({accountID: ineligibleAccountID});
+        await waitForBatchedUpdates();
+
+        // When the first chain's onReady resolves after the switch
+        pendingChain.resolve();
+        await waitForBatchedUpdates();
+
+        // Then it must not identify the now-current ineligible account
+        expect(identifySpy).not.toHaveBeenCalledWith(expect.objectContaining({accountID: ineligibleAccountID}), expect.anything());
+        expect(identifySpy).not.toHaveBeenCalledWith(expect.objectContaining({accountID: ineligibleAccountID}));
+    });
+
     it('does not mutate the metadata object held by Onyx', async () => {
         jest.spyOn(webFS, 'shouldInitialize').mockReturnValue(true);
         jest.spyOn(webFS, 'identify').mockImplementation(() => {});

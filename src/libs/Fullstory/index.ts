@@ -73,7 +73,10 @@ const FS: Fullstory = {
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
             getEnvironment().then((envName: string) => {
-                if (!FS.shouldInitialize(userMetadata, envName)) {
+                // Gate on the freshest metadata so the eligibility decision and the identity below stay in
+                // sync: if the current user is no longer eligible (e.g. switched to a support or
+                // non-production account while this chain was pending), shut FS down instead of running it.
+                if (!FS.shouldInitialize(latestUserMetadata, envName)) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
                     if (isInitialized()) {
                         FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
@@ -88,10 +91,19 @@ const FS: Fullstory = {
                 }
 
                 FS.onReady().then(() => {
+                    // Re-read the freshest metadata at identify time so an email-less chain that resolves
+                    // late does not clobber a newer, more complete identity. Re-check eligibility against
+                    // that same snapshot, since the current user may have switched to an ineligible account
+                    // while onReady was pending - in that case shut FS down rather than identify it.
+                    const currentUserMetadata = latestUserMetadata;
+                    if (!FS.shouldInitialize(currentUserMetadata, envName)) {
+                        if (isInitialized()) {
+                            FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
+                        }
+                        return;
+                    }
                     FS.consent(true);
-                    // Identify with the freshest metadata rather than the value captured when this chain
-                    // started, so an email-less chain that resolves late does not clobber the identity.
-                    FS.identify({...latestUserMetadata, environment: envName});
+                    FS.identify({...currentUserMetadata, environment: envName});
                 });
             });
         } catch (e) {
