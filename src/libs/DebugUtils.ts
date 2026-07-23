@@ -596,6 +596,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 lastMessageText: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastReadTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                manuallyMarkedUnreadReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastReadSequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMentionedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyAvatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,

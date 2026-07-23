@@ -110,6 +110,7 @@ type ExcludedFields = ValidReportKeys<
         'lastMessageText',
         'lastVisibleActionCreated',
         'lastReadTime',
+        'manuallyMarkedUnreadReportActionID',
         'lastReadSequenceNumber',
         'lastMentionedTime',
         'lastVisibleActionLastModified',
