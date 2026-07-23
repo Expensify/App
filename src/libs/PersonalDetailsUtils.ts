@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -14,9 +14,10 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
+import {getCountryCode} from './CountryUtils';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
-import {parsePhoneNumber} from './PhoneNumber';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
 
@@ -27,11 +28,13 @@ type FirstAndLastName = {
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
+let allPersonalDetailLogins: string[] = [];
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         const personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
+        allPersonalDetailLogins = personalDetails.map((detail) => detail?.login ?? '');
         emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
                 acc[detail.login.toLowerCase()] = detail;
@@ -173,8 +176,9 @@ function getPersonalDetailsByID(accountID: number | undefined, personalDetailsLi
  * @param currentUserAccountID
  * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns - Array of personal detail objects
+ * @deprecated Don't use this. The only usage left is in deprecated NextStepUtils/buildNextStepNew which will be removed later.
  */
-function getPersonalDetailsByIDs({
+function deprecatedGetPersonalDetailsByIDs({
     accountIDs,
     currentUserAccountID,
     shouldChangeUserDisplayName = false,
@@ -203,7 +207,7 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function getPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     if (!accountIDs) {
         return [];
     }
@@ -262,6 +266,10 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
     return emailToPersonalDetailsCache[email.toLowerCase()];
 }
 
+function getAllPersonalDetailLogins(): string[] {
+    return allPersonalDetailLogins;
+}
+
 /**
  * Returns the accountID for a login only when it exists in personal details.
  * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
@@ -290,7 +298,7 @@ function getAccountIDsByLogins(logins: string[]): number[] {
     }, []);
 }
 
-function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string | undefined {
+function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): string | undefined {
     return accountID ? personalDetails?.[accountID]?.login : undefined;
 }
 
@@ -301,7 +309,7 @@ function getLoginByAccountID(accountID: number | undefined, personalDetails: Ony
  * @param personalDetailsList Record of user personal details, indexed by user id
  * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string[] {
+function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): string[] {
     return (
         accountIDs?.reduce((foundLogins: string[], accountID) => {
             const currentLogin = getLoginByAccountID(accountID, personalDetailsList);
@@ -314,20 +322,26 @@ function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetails
 }
 
 /**
+ * @deprecated Don't use this. The only usage left is in deprecated NextStepUtils/buildNextStepNew which will be removed later.
+ */
+function deprecatedGetLoginsByAccountIDs(accountIDs: number[] | undefined): string[] {
+    return getLoginsByAccountIDs(accountIDs, allPersonalDetails);
+}
+
+/**
  * Provided a set of invited logins and optimistic accountIDs. Returns the ones which are not known to the user i.e. they do not exist in the personalDetailsList.
  */
-function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[], personalDetailsList: OnyxEntry<PersonalDetailsList>) {
-    const newAccountIDs: number[] = [];
-    const newLogins: string[] = [];
-    for (const [index, login] of logins.entries()) {
-        const accountID = accountIDs.at(index) ?? -1;
-        if (isEmptyObject(personalDetailsList?.[accountID])) {
-            newAccountIDs.push(accountID);
-            newLogins.push(login);
-        }
-    }
-
-    return {newAccountIDs, newLogins};
+function getNewAccountIDsAndLogins(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>) {
+    return Object.entries(invitedEmailsToAccountIDs ?? {}).reduce(
+        (acc, [login, accountID]) => {
+            if (isEmptyObject(personalDetailsList?.[accountID])) {
+                acc.newAccountIDs.push(accountID);
+                acc.newLogins.push(addSMSDomainIfPhoneNumber(login));
+            }
+            return acc;
+        },
+        {newAccountIDs: [] as number[], newLogins: [] as string[]},
+    );
 }
 
 /**
@@ -568,19 +582,6 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 /**
- * Creates a lookup map from an array of PersonalDetails for O(1) access by accountID.
- * This is useful when you need to look up personal details by accountID multiple times
- * to avoid O(n) .find() calls in loops.
- */
-function createPersonalDetailsLookupByAccountID(details: PersonalDetails[]): Record<number, PersonalDetails> {
-    const map: Record<number, PersonalDetails> = {};
-    for (const detail of details) {
-        map[detail.accountID] = detail;
-    }
-    return map;
-}
-
-/**
  * Checks whether any personal details are missing
  */
 function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -606,7 +607,12 @@ function areAddressAndPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<P
         return true;
     }
     const currentAddress = getCurrentAddress(privatePersonalDetails);
-    return !currentAddress?.street || !currentAddress?.city || !currentAddress?.state || !currentAddress?.zip || !currentAddress?.country;
+    // For US addresses the state is required; non-US addresses use a province (also stored under `state`) that only
+    // recently became required, so legacy non-US users may not have it. This check backs the home/wallet "add details"
+    // prompts, which intentionally ignore a missing state/province for non-US addresses so those legacy users aren't
+    // flagged (the personal-details form still requires it when actually entering details).
+    const isStateMissing = getCountryCode(currentAddress?.country) === CONST.COUNTRY.US && !currentAddress?.state;
+    return !currentAddress?.street || !currentAddress?.city || isStateMissing || !currentAddress?.zip || !currentAddress?.country;
 }
 
 /**
@@ -619,14 +625,18 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByID,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    deprecatedGetPersonalDetailsByIDs,
     getPersonalDetailsByIDs,
-    newGetPersonalDetailsByIDs,
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
+    getAllPersonalDetailLogins,
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    deprecatedGetLoginsByAccountIDs,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     getCurrentAddress,
@@ -645,6 +655,5 @@ export {
     arePersonalDetailsMissing,
     areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
-    createPersonalDetailsLookupByAccountID,
     temporaryGetDisplayNameOrDefault,
 };

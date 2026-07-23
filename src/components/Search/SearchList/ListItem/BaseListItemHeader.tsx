@@ -89,7 +89,11 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function BaseListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BaseListItemHeaderImpl({
     item,
     displayName,
     groupColumnKey,
@@ -102,7 +106,7 @@ function BaseListItemHeader<TItem extends ListItem>({
     isExpanded,
     onDownArrowClick,
     columns,
-}: BaseListItemHeaderProps<TItem>) {
+}: BaseListItemHeaderProps<ListItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -149,7 +153,7 @@ function BaseListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(item as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(item as ListItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}
@@ -187,6 +191,10 @@ function BaseListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     );
+}
+
+function BaseListItemHeader<TItem extends ListItem>(props: BaseListItemHeaderProps<TItem>) {
+    return <BaseListItemHeaderImpl {...(props as BaseListItemHeaderProps<ListItem>)} />;
 }
 
 export default BaseListItemHeader;

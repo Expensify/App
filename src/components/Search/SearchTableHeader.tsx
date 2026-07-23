@@ -275,6 +275,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.status',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS,
+        translationKey: 'common.paidStatus',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
         translationKey: 'common.title',
     },

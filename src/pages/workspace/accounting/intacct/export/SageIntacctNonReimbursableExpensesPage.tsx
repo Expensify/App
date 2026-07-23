@@ -105,7 +105,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 if (!policyID) {
                     return;
                 }
-                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id : '';
+                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0]?.id : '';
                 updateSageIntacctDefaultVendor(
                     policyID,
                     CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
@@ -184,6 +184,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                         case 'accordion':
                             return (
                                 <Accordion
+                                    key="accordion"
                                     isExpanded={item.shouldExpand}
                                     isToggleTriggered={item.shouldAnimateSection}
                                 >

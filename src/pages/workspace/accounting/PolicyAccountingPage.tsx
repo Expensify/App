@@ -17,6 +17,8 @@ import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -118,21 +120,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardLists] = useCardsLists();
 
-    const canUseCertiniaIntegration = isBetaEnabled(CONST.BETAS.CERTINIA) || !!policy?.connections?.financialforce;
     const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
-                    return canUseCertiniaIntegration;
-                }
                 if (name === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
                     return canUseRilletIntegration;
                 }
                 return true;
             }),
-        [canUseCertiniaIntegration, canUseRilletIntegration],
+        [canUseRilletIntegration],
     );
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
@@ -152,7 +152,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     );
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, accountingIntegrations);
-    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy) && !canUseCertiniaIntegration;
+    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy);
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -431,6 +431,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         undefined,
                         undefined,
                         accountingIcons,
+                        cardFeeds,
+                        cardLists,
                     );
                     if (!integrationData) {
                         return undefined;
@@ -513,6 +515,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             undefined,
             isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
             accountingIcons,
+            cardFeeds,
+            cardLists,
         );
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
@@ -547,10 +551,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       wrapperStyle: [styles.sectionMenuItemTopDescription],
                       onPress: integrationData?.onExportPagePress,
                       brickRoadIndicator:
-                          areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) || shouldShowQBOReimbursableExportDestinationAccountError(policy)
+                          areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
+                          shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+                          integrationData?.externalSubscribedExportSettingsHasErrorFields
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                      pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
+                      pendingAction:
+                          settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ?? integrationData?.externalSubscribedExportSettingsPendingAction,
                   },
                   ...(shouldShowCardReconciliationOption && integrationData?.onCardReconciliationPagePress
                       ? [
@@ -630,6 +637,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         translate,
         isBetaEnabled,
         accountingIcons,
+        cardFeeds,
+        cardLists,
         connectionSyncProgress?.stageInProgress,
         icons.Pencil,
         icons.ArrowRight,
@@ -688,6 +697,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     undefined,
                     undefined,
                     accountingIcons,
+                    cardFeeds,
+                    cardLists,
                 );
                 if (!integrationData) {
                     return undefined;
@@ -756,6 +767,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         accountingIcons,
+        cardFeeds,
+        cardLists,
         canWriteAccounting,
         showReadOnlyModal,
     ]);
