@@ -300,7 +300,8 @@ function MoneyRequestReportTransactionList({
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerLoginSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
