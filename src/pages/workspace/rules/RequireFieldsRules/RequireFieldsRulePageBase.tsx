@@ -359,8 +359,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         clearDraftRequireFieldsRule();
 
         if (!isEditing && isRulesRevampEnabled) {
-            if (initialCategoryName) {
-                Navigation.goBack(getWorkspaceCategorySettingsRoute(policyID, initialCategoryName));
+            const savedCategoryName = savedCategory ?? initialCategoryName;
+            if (initialCategoryName && savedCategoryName) {
+                Navigation.goBack(getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
                 return;
             }
 

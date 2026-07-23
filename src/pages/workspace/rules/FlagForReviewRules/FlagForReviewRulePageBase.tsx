@@ -131,8 +131,9 @@ function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName,
         saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined);
 
         if (!isEditing && isRulesRevampEnabled) {
-            if (initialCategoryName) {
-                Navigation.goBack(getWorkspaceCategorySettingsRoute(policyID, initialCategoryName));
+            const savedCategoryName = form[INPUT_IDS.CATEGORY] ?? initialCategoryName;
+            if (initialCategoryName && savedCategoryName) {
+                Navigation.goBack(getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
                 return;
             }
 
