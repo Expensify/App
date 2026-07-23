@@ -383,10 +383,10 @@ function SearchWriteActionsProvider({
                         parentReport: itemParentReport,
                     });
 
-                    // Keep the parent group key and clear the group-selection marker when the group becomes partially selected.
                     if (areItemsGrouped && isGroupedItemArray(filteredData)) {
                         const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
                         const groupKey = selectedTransactions[item.keyForList]?.groupKey ?? parentGroup?.keyForList;
+                        // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
                         if (groupKey) {
                             for (const [key, transaction] of Object.entries(updatedTransactions)) {
                                 if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
@@ -394,6 +394,7 @@ function SearchWriteActionsProvider({
                                 }
                             }
                         }
+                        // If the clicked expense is still selected, keep its parent group key.
                         if (groupKey && updatedTransactions[item.keyForList]) {
                             updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
                         }
