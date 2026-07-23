@@ -32,6 +32,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import {getStringFieldHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getDistanceInMeters} from '@libs/TransactionUtils';
@@ -105,6 +106,7 @@ function IOURequestStepDistanceManual({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
@@ -130,6 +132,7 @@ function IOURequestStepDistanceManual({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -236,6 +239,8 @@ function IOURequestStepDistanceManual({
                     parentReportNextStep,
                     recentWaypoints,
                     delegateAccountID,
+                    reportPolicyTags,
+                    isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
@@ -290,6 +295,7 @@ function IOURequestStepDistanceManual({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            isTrackIntentUser,
             delegateAccountID,
             policyTagList,
         });

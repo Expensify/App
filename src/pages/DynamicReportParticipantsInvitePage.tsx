@@ -22,7 +22,6 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay, isCurrentUserSubmitter, isGroupChat, isGroupChatAdmin, isMoneyRequestReport, isOpenExpenseReport, isPolicyAdmin} from '@libs/ReportUtils';
@@ -31,6 +30,9 @@ import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {newAccountIDsAndLoginsSelector, personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
+import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import reportByIDsSelector from '@selectors/ReportAttributes';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -48,7 +50,9 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [participantLogins = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsLoginsSelector(getParticipantsAccountIDsForDisplay(report, false, true)),
+    });
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const reportID = report.reportID;
     const reportAttributesSelector = useMemo(() => reportByIDsSelector([reportID]), [reportID]);
@@ -66,9 +70,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const excludedUsers: Record<string, boolean> = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
-    const participantsAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true);
-    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs, personalDetailsList);
-    for (const login of loginsByAccountIDs) {
+    for (const login of participantLogins) {
         excludedUsers[login] = true;
     }
 
@@ -134,6 +136,14 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         Navigation.goBack(backPath);
     };
 
+    const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = selectedOptions.reduce((acc, curr) => {
+        const login = curr.login ?? '';
+        const accountID = curr.accountID;
+        acc[login] = accountID;
+        return acc;
+    }, {} as InvitedEmailsToAccountIDs);
+    const [newAccountIDsAndLogins] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs)});
+
     const inviteUsers = () => {
         if (selectedOptions.length === 0) {
             return;
@@ -142,7 +152,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         if (Object.keys(invitedEmailsToAccountIDs).length === 0) {
             return;
         }
-        inviteToGroupChat(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, newAccountIDsAndLogins?.newAccountIDs ?? [], newAccountIDsAndLogins?.newLogins ?? [], formatPhoneNumber);
         goBack();
     };
 

@@ -36,13 +36,30 @@ type PushRowFieldsStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubSt
     pushRowFields: Array<PushRowField<TFormID>>;
 };
 
-function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID, formTitle, pushRowFields, onSubmit, isEditing}: PushRowFieldsStepProps<TFormID>) {
+type PushRowFieldWidened = {
+    inputID: FormOnyxKeys<keyof OnyxFormValuesMapping>;
+    defaultValue: string;
+    options: Record<string, string>;
+    description: string;
+    modalHeaderTitle: string;
+    searchInputTitle: string;
+};
+
+type PushRowFieldsStepPropsWidened = Omit<PushRowFieldsStepProps<keyof OnyxFormValuesMapping>, 'pushRowFields'> & {
+    pushRowFields: PushRowFieldWidened[];
+};
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function PushRowFieldsStepImpl({formID, formTitle, pushRowFields, onSubmit, isEditing}: PushRowFieldsStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const pushRowFieldsIDs = pushRowFields.map((field) => field.inputID);
 
     const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
             return getFieldRequiredErrors(values, pushRowFieldsIDs, translate);
         },
         [pushRowFieldsIDs, translate],
@@ -58,7 +75,7 @@ function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID,
             validate={validate}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{formTitle}</Text>
-            {pushRowFields.map((pushRowField: PushRowField<TFormID>) => (
+            {pushRowFields.map((pushRowField: PushRowFieldWidened) => (
                 <InputWrapper
                     key={pushRowField.inputID as string}
                     InputComponent={PushRowWithModal}
@@ -73,6 +90,10 @@ function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID,
             ))}
         </FormProvider>
     );
+}
+
+function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>(props: PushRowFieldsStepProps<TFormID>) {
+    return <PushRowFieldsStepImpl {...(props as unknown as PushRowFieldsStepPropsWidened)} />;
 }
 
 export default PushRowFieldsStep;

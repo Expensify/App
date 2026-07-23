@@ -285,7 +285,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                     onPress={() => null}
                                     isSplitButton={false}
                                     options={bulkActionsButtonOptions}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                     isDisabled={!selectedMembers.length}
                                 />
                             ) : (
@@ -295,7 +295,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                     text={translate('workspace.invite.member')}
                                     icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                 />
                             )}
                         </View>

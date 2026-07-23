@@ -91,6 +91,9 @@ function PIN({onNext}: CustomSubPageProps) {
             style={[styles.flexGrow1, styles.ph5]}
             scrollContextEnabled={false}
             enabledWhenOffline
+            // The submit handler validates the PIN itself and only flips local step state within the same
+            // screen, so an immediate press spinner would never get reset by external loading or a focus change
+            shouldShowLoadingImmediatelyOnPress={false}
         >
             <View style={[styles.flex1]}>
                 <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>

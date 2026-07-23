@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Attendee} from '@src/types/onyx/IOU';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 
@@ -50,6 +51,8 @@ function IOURequestStepAttendees({
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
@@ -82,6 +85,8 @@ function IOURequestStepAttendees({
                     parentReportNextStep,
                     isOffline,
                     delegateAccountID,
+                    reportPolicyTags,
+                    isTrackIntentUser,
                 });
             } else {
                 setMoneyRequestAttendees(transactionID, attendees, !isEditing);
@@ -107,6 +112,8 @@ function IOURequestStepAttendees({
         parentReportNextStep,
         isOffline,
         delegateAccountID,
+        reportPolicyTags,
+        isTrackIntentUser,
     ]);
 
     const navigateBack = () => {
