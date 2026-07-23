@@ -1222,16 +1222,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellFullHeightHoverTarget: {
-            flex: 1,
-            width: '100%',
-            justifyContent: 'center',
-        },
-
-        transactionItemRowWide: {
-            alignSelf: 'stretch',
-        },
-
         editableCellEditButtonContainer: {
             position: 'absolute',
             top: 0,

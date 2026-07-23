@@ -656,7 +656,7 @@ function TransactionItemRowWide({
     return (
         <>
             <View
-                style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, styles.transactionItemRowWide, bgActiveStyles, styles.mw100, style]}
+                style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, styles.alignSelfStretch, bgActiveStyles, styles.mw100, style]}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
