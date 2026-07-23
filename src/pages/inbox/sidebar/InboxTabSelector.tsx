@@ -50,7 +50,6 @@ function InboxTabSelector() {
                     }
                     setActiveTab(key);
                 }}
-                equalWidth
             />
         </TabSelectorContextProvider>
     );
