@@ -1,5 +1,7 @@
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -59,9 +61,18 @@ function Header({
     shouldSkipFocusAfterTransition = false,
 }: HeaderProps) {
     const styles = useThemeStyles();
-    const {isTransitionReady, claimInitialFocus, containerRef, titleNativeID} = useDialogLabelRegistration(isScreenHeader ? title : '');
+    const {translate} = useLocalize();
+    const {isTransitionReady, claimInitialFocus, containerRef} = useDialogLabelRegistration(isScreenHeader ? title : '');
 
     useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus, shouldSkipFocusAfterTransition);
+
+    const dialogTitle = isScreenHeader && typeof title === 'string' ? title : '';
+    const dialogAnnouncement = dialogTitle ? `${dialogTitle}, ${translate('common.dialogOpened')}` : '';
+    // Polite so JAWS can finish the tab-title "(1) …" (left paren…) before "{title}, dialog" — assertive was cutting it off at "lef".
+    useAccessibilityAnnouncement(dialogAnnouncement, isTransitionReady && !!dialogTitle && !shouldSkipFocusAfterTransition, {
+        shouldAnnounceOnWeb: true,
+        politeness: 'polite',
+    });
 
     const renderedSubtitle = useMemo(
         () => (
@@ -103,7 +114,6 @@ function Header({
                 {typeof title === 'string'
                     ? !!title && (
                           <Text
-                              nativeID={titleNativeID}
                               numberOfLines={numberOfTitleLines}
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
                               accessibilityRole={CONST.ROLE.HEADER}

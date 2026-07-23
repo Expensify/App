@@ -128,18 +128,25 @@ type RightModalDialogFrameProps = {
 /**
  * Applies dialog naming as React props on the RHP container.
  * Imperative setAttribute('aria-label') is invisible to JAWS's virtual buffer; declarative props are not.
+ *
+ * role + aria-modal + aria-label are applied together only once the title is known, so JAWS never
+ * snapshots a nameless dialog. Focusing a nested button first often skips the dialog announcement
+ * (JAWS known issue) — useDialogContainerFocus focuses this container instead.
  */
 function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
-    const {dialogAriaLabel, dialogAriaLabelledBy} = useDialogLabelData();
+    const {dialogAriaLabel} = useDialogLabelData();
+    // Wait for the title so role and name land in the same React commit (JAWS virtual buffer).
+    const isNamedDialog = hasDialogSemantics && !!dialogAriaLabel;
 
     return (
         <Animated.View
             ref={onContainerRef}
-            role={hasDialogSemantics ? CONST.ROLE.DIALOG : undefined}
-            aria-modal={hasDialogSemantics || undefined}
-            // APG prefers aria-labelledby → visible title; aria-label covers SRs / timing when the id is not resolved yet.
-            aria-labelledby={dialogAriaLabelledBy}
-            aria-label={dialogAriaLabel}
+            role={isNamedDialog ? CONST.ROLE.DIALOG : undefined}
+            aria-modal={isNamedDialog || undefined}
+            aria-label={isNamedDialog ? dialogAriaLabel : undefined}
+            accessibilityLabel={isNamedDialog ? dialogAriaLabel : undefined}
+            // So SRs can focus the dialog node itself and announce role + name.
+            tabIndex={isNamedDialog ? -1 : undefined}
             style={style}
         >
             {children}

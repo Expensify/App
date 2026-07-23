@@ -217,6 +217,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'オーナー',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'カレンダーが開きました',
+        dialogOpened: 'ダイアログ',
         send: '送信',
         na: '該当なし',
         noResultsFound: '結果が見つかりません',

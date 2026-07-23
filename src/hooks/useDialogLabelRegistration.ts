@@ -3,18 +3,16 @@ import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperS
 
 import type {ReactNode} from 'react';
 
-import {useContext, useId, useLayoutEffect} from 'react';
+import {useContext, useLayoutEffect} from 'react';
 
 import useIsScreenFocused from './useIsScreenFocused';
 
 /** Registers and manages a dialog label in the DialogLabelContext for the lifetime of the calling component. */
 function useDialogLabelRegistration(title: ReactNode) {
-    const {isInsideDialog, containerRef} = useDialogLabelData();
+    const {isInsideDialog, containerRef, dialogAriaLabel} = useDialogLabelData();
     const {pushLabel, popLabel, claimInitialFocus} = useDialogLabelActions();
     const screenWrapperStatus = useContext(ScreenWrapperStatusContext);
     const isFocused = useIsScreenFocused();
-    // Stable DOM id for aria-labelledby → visible title (APG dialog pattern).
-    const titleNativeID = useId();
 
     const shouldRegisterLabel = !!isInsideDialog && typeof title === 'string' && !!title;
 
@@ -23,17 +21,17 @@ function useDialogLabelRegistration(title: ReactNode) {
         if (!shouldRegisterLabel || typeof title !== 'string') {
             return;
         }
-        const id = pushLabel(title, titleNativeID);
+        const id = pushLabel(title);
         return () => popLabel(id);
-    }, [shouldRegisterLabel, title, titleNativeID, pushLabel, popLabel]);
+    }, [shouldRegisterLabel, title, pushLabel, popLabel]);
 
-    const isTransitionReady = !!isInsideDialog && !!screenWrapperStatus?.didScreenTransitionEnd && isFocused;
+    // Wait for the declarative name so focus lands after role+aria-label exist (same commit) — needed for JAWS.
+    const isTransitionReady = !!isInsideDialog && !!dialogAriaLabel && !!screenWrapperStatus?.didScreenTransitionEnd && isFocused;
 
     return {
         isTransitionReady,
         claimInitialFocus,
         containerRef,
-        titleNativeID: shouldRegisterLabel ? titleNativeID : undefined,
     };
 }
 

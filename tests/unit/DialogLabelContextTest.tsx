@@ -32,7 +32,6 @@ describe('DialogLabelContext', () => {
 
             expect(result.current.isInsideDialog).toBe(false);
             expect(result.current.dialogAriaLabel).toBeUndefined();
-            expect(result.current.dialogAriaLabelledBy).toBeUndefined();
         });
 
         it('claimInitialFocus returns false outside provider', () => {
@@ -71,16 +70,15 @@ describe('DialogLabelContext', () => {
             expect(result.current.isInsideDialog).toBe(false);
         });
 
-        it('pushLabel exposes dialogAriaLabel and dialogAriaLabelledBy via context (declarative — not DOM setAttribute)', () => {
+        it('pushLabel exposes dialogAriaLabel via context (declarative — not DOM setAttribute)', () => {
             currentHasDialogSemantics = true;
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings', 'dialog-title-settings');
+                result.current.pushLabel('Settings');
             });
 
             expect(result.current.dialogAriaLabel).toBe('Settings');
-            expect(result.current.dialogAriaLabelledBy).toBe('dialog-title-settings');
         });
 
         it('pushLabel does not expose a dialog name when the container has no dialog semantics', () => {
@@ -88,11 +86,10 @@ describe('DialogLabelContext', () => {
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings', 'dialog-title-settings');
+                result.current.pushLabel('Settings');
             });
 
             expect(result.current.dialogAriaLabel).toBeUndefined();
-            expect(result.current.dialogAriaLabelledBy).toBeUndefined();
         });
 
         it('pushLabel is safe when containerRef is not set', () => {
@@ -115,28 +112,25 @@ describe('DialogLabelContext', () => {
             let idB: number;
 
             act(() => {
-                idA = result.current.pushLabel('Screen A', 'title-a');
+                idA = result.current.pushLabel('Screen A');
             });
             act(() => {
-                idB = result.current.pushLabel('Screen B', 'title-b');
+                idB = result.current.pushLabel('Screen B');
             });
 
             expect(result.current.dialogAriaLabel).toBe('Screen B');
-            expect(result.current.dialogAriaLabelledBy).toBe('title-b');
 
             act(() => {
                 result.current.popLabel(idB);
             });
 
             expect(result.current.dialogAriaLabel).toBe('Screen A');
-            expect(result.current.dialogAriaLabelledBy).toBe('title-a');
 
             act(() => {
                 result.current.popLabel(idA);
             });
 
             expect(result.current.dialogAriaLabel).toBeUndefined();
-            expect(result.current.dialogAriaLabelledBy).toBeUndefined();
         });
 
         it('popLabel removes by ID, not by stack position', () => {
@@ -147,10 +141,10 @@ describe('DialogLabelContext', () => {
             let idB: number;
 
             act(() => {
-                idA = result.current.pushLabel('Screen A', 'title-a');
+                idA = result.current.pushLabel('Screen A');
             });
             act(() => {
-                idB = result.current.pushLabel('Screen B', 'title-b');
+                idB = result.current.pushLabel('Screen B');
             });
 
             // Pop the bottom entry (Screen A), not the top
@@ -160,7 +154,6 @@ describe('DialogLabelContext', () => {
 
             // Screen B should still be the active label
             expect(result.current.dialogAriaLabel).toBe('Screen B');
-            expect(result.current.dialogAriaLabelledBy).toBe('title-b');
 
             act(() => {
                 result.current.popLabel(idB);
@@ -198,7 +191,7 @@ describe('DialogLabelContext', () => {
             const {result, rerender} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings', 'title-settings');
+                result.current.pushLabel('Settings');
             });
             expect(result.current.dialogAriaLabel).toBeUndefined();
 
@@ -207,7 +200,6 @@ describe('DialogLabelContext', () => {
 
             expect(result.current.isInsideDialog).toBe(true);
             expect(result.current.dialogAriaLabel).toBe('Settings');
-            expect(result.current.dialogAriaLabelledBy).toBe('title-settings');
         });
 
         it('hides dialogAriaLabel when hasDialogSemantics becomes false (wide→narrow resize)', () => {
@@ -215,7 +207,7 @@ describe('DialogLabelContext', () => {
             const {result, rerender} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings', 'title-settings');
+                result.current.pushLabel('Settings');
             });
             expect(result.current.dialogAriaLabel).toBe('Settings');
 
@@ -224,7 +216,6 @@ describe('DialogLabelContext', () => {
 
             expect(result.current.isInsideDialog).toBe(false);
             expect(result.current.dialogAriaLabel).toBeUndefined();
-            expect(result.current.dialogAriaLabelledBy).toBeUndefined();
         });
 
         it('re-applies naming when the container gains dialog semantics on viewport resize (MutationObserver path)', async () => {
@@ -233,7 +224,7 @@ describe('DialogLabelContext', () => {
             const {result, unmount} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings', 'title-settings');
+                result.current.pushLabel('Settings');
             });
             expect(result.current.dialogAriaLabel).toBeUndefined();
 
@@ -244,7 +235,6 @@ describe('DialogLabelContext', () => {
             });
 
             expect(result.current.dialogAriaLabel).toBe('Settings');
-            expect(result.current.dialogAriaLabelledBy).toBe('title-settings');
             unmount();
         });
 
@@ -256,7 +246,7 @@ describe('DialogLabelContext', () => {
             const {result, unmount} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
-                result.current.pushLabel('Settings', 'title-settings');
+                result.current.pushLabel('Settings');
             });
             expect(result.current.dialogAriaLabel).toBe('Settings');
 
