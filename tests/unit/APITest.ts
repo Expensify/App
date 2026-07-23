@@ -1,5 +1,6 @@
 import {initReconnect} from '@libs/actions/Reconnect';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {ApiRequestCommandParameters} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -37,10 +38,14 @@ const MOCK_ENABLE_COMMAND = WRITE_COMMANDS.SET_POLICY_RULES_ENABLED;
 const COMMAND_A = WRITE_COMMANDS.SPLIT_TRANSACTION;
 const COMMAND_B = WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION;
 const COMMAND_C = WRITE_COMMANDS.SET_NAME_VALUE_PAIR;
+const SPLIT_AMOUNT_PARAM = 'splits[0][amount]';
 
-const splitParams = (values: Record<string, string> = {}) => ({transactionID: 'test-transaction', ...values});
-const nameValueParams = (value: string) => ({name: 'test', value, content: value});
-const readParams = (value: string) => ({reportID: value, content: value});
+const splitParams = (amount = 1): ApiRequestCommandParameters[typeof MOCK_COMMAND] => ({
+    transactionID: 'test-transaction',
+    [SPLIT_AMOUNT_PARAM]: amount,
+});
+const nameValueParams = (value: string): ApiRequestCommandParameters[typeof MOCK_COMMAND_THREE] => ({name: 'test', value});
+const readParams = (reportID: string): ApiRequestCommandParameters[typeof MOCK_READ_COMMAND] => ({reportID});
 
 jest.mock('@src/libs/Log');
 
@@ -99,9 +104,9 @@ describe('APITests', () => {
         return Promise.resolve(setHasRadio(false))
             .then(() => {
                 // When API Writes and Reads are called
-                API.write(MOCK_COMMAND_LOWERCASE, splitParams({param1: 'value1'}));
+                API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
                 API.read(MOCK_READ_COMMAND_LOWERCASE, readParams('value2'));
-                API.write(MOCK_COMMAND_LOWERCASE, splitParams({param3: 'value3'}));
+                API.write(MOCK_COMMAND_LOWERCASE, splitParams(3));
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -110,8 +115,8 @@ describe('APITests', () => {
 
                 const persisted = PersistedRequests.getAll();
                 expect(persisted).toEqual([
-                    expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({param1: 'value1'})}),
-                    expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({param3: 'value3'})}),
+                    expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 1})}),
+                    expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 3})}),
                 ]);
 
                 PersistedRequests.clear();
@@ -135,8 +140,8 @@ describe('APITests', () => {
             })
                 .then(() => {
                     // When API Write commands are made
-                    API.write(MOCK_COMMAND_LOWERCASE, splitParams({param1: 'value1'}));
-                    API.write(MOCK_COMMAND_LOWERCASE, splitParams({param2: 'value2'}));
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(2));
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -154,8 +159,8 @@ describe('APITests', () => {
                     // Then `xhr` should be called with expected data, and the persisted queue should be empty
                     expect(xhr).toHaveBeenCalledTimes(2);
                     expect(xhr.mock.calls).toEqual([
-                        expect.arrayContaining([MOCK_COMMAND_LOWERCASE, expect.objectContaining({param1: 'value1'})]),
-                        expect.arrayContaining([MOCK_COMMAND_LOWERCASE, expect.objectContaining({param2: 'value2'})]),
+                        expect.arrayContaining([MOCK_COMMAND_LOWERCASE, expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 1})]),
+                        expect.arrayContaining([MOCK_COMMAND_LOWERCASE, expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 2})]),
                     ]);
 
                     const persisted = PersistedRequests.getAll();
@@ -188,8 +193,8 @@ describe('APITests', () => {
             Promise.resolve(setHasRadio(false))
                 .then(() => {
                     // When API Write commands are made
-                    API.write(MOCK_COMMAND_LOWERCASE, splitParams({param1: 'value1'}));
-                    API.write(MOCK_COMMAND_LOWERCASE, splitParams({param2: 'value2'}));
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(2));
                     return waitForBatchedUpdates();
                 })
 
@@ -206,7 +211,9 @@ describe('APITests', () => {
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     expect(PersistedRequests.getAll().length).toEqual(0);
-                    expect(PersistedRequests.getOngoingRequest()).toEqual(expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({param2: 'value2'})}));
+                    expect(PersistedRequests.getOngoingRequest()).toEqual(
+                        expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 2})}),
+                    );
 
                     // When a request fails it should be retried
                     xhrCalls.at(1)?.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
@@ -215,7 +222,7 @@ describe('APITests', () => {
                 .then(() => {
                     // The ongoingRequest it is moving back to the persistedRequests queue
                     expect(PersistedRequests.getAll().length).toEqual(1);
-                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({param2: 'value2'})})]);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 2})})]);
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
                     return new Promise((resolve) => {
                         setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
@@ -252,7 +259,7 @@ describe('APITests', () => {
             Promise.resolve(setHasRadio(false))
                 .then(() => {
                     // When API Write commands are made
-                    API.write(MOCK_COMMAND_LOWERCASE, splitParams({param1: 'value1'}));
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
                     return waitForNetworkPromises();
                 })
 
@@ -265,7 +272,7 @@ describe('APITests', () => {
 
                     // And we still have 1 persisted request since it failed
                     expect(PersistedRequests.getAll().length).toEqual(1);
-                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({param1: 'value1'})})]);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 1})})]);
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
@@ -278,7 +285,7 @@ describe('APITests', () => {
 
                     // And we still have 1 persisted request since it failed
                     expect(PersistedRequests.getAll().length).toEqual(1);
-                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({param1: 'value1'})})]);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 1})})]);
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
@@ -338,7 +345,7 @@ describe('APITests', () => {
             waitForBatchedUpdates()
                 .then(() => Promise.resolve(setHasRadio(false)))
                 .then(() => {
-                    API.write(MOCK_COMMAND, splitParams({param1: 'value1'}));
+                    API.write(MOCK_COMMAND, splitParams(1));
                     return waitForBatchedUpdates();
                 })
 
@@ -371,13 +378,13 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands and one not persistable
-                API.write(MOCK_COMMAND, splitParams({content: 'value1'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value2'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value3'}));
+                API.write(MOCK_COMMAND, splitParams(1));
+                API.write(MOCK_COMMAND, splitParams(2));
+                API.write(MOCK_COMMAND, splitParams(3));
                 API.read(MOCK_READ_COMMAND, readParams('not-persisted'));
-                API.write(MOCK_COMMAND, splitParams({content: 'value4'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value5'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value6'}));
+                API.write(MOCK_COMMAND, splitParams(4));
+                API.write(MOCK_COMMAND, splitParams(5));
+                API.write(MOCK_COMMAND, splitParams(6));
 
                 return waitForBatchedUpdates();
             })
@@ -387,13 +394,13 @@ describe('APITests', () => {
                 // Then expect all 7 calls to have been made and for the Writes to be made in the order that we made them
                 // The read command would have been made first (and would have failed in real-life)
                 expect(xhr.mock.calls.length).toBe(7);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('not-persisted');
-                expect(xhr.mock.calls.at(1)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(3)?.[1].content).toBe('value3');
-                expect(xhr.mock.calls.at(4)?.[1].content).toBe('value4');
-                expect(xhr.mock.calls.at(5)?.[1].content).toBe('value5');
-                expect(xhr.mock.calls.at(6)?.[1].content).toBe('value6');
+                expect(xhr.mock.calls.at(0)?.[1].reportID).toBe('not-persisted');
+                expect(xhr.mock.calls.at(1)?.[1]['splits[0][amount]']).toBe(1);
+                expect(xhr.mock.calls.at(2)?.[1]['splits[0][amount]']).toBe(2);
+                expect(xhr.mock.calls.at(3)?.[1]['splits[0][amount]']).toBe(3);
+                expect(xhr.mock.calls.at(4)?.[1]['splits[0][amount]']).toBe(4);
+                expect(xhr.mock.calls.at(5)?.[1]['splits[0][amount]']).toBe(5);
+                expect(xhr.mock.calls.at(6)?.[1]['splits[0][amount]']).toBe(6);
             });
     });
 
@@ -408,12 +415,12 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands
-                API.write(MOCK_COMMAND, splitParams({content: 'value1'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value2'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value3'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value4'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value5'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value6'}));
+                API.write(MOCK_COMMAND, splitParams(1));
+                API.write(MOCK_COMMAND, splitParams(2));
+                API.write(MOCK_COMMAND, splitParams(3));
+                API.write(MOCK_COMMAND, splitParams(4));
+                API.write(MOCK_COMMAND, splitParams(5));
+                API.write(MOCK_COMMAND, splitParams(6));
                 return waitForBatchedUpdates();
             })
             .then(() => Promise.resolve(setHasRadio(true)))
@@ -421,18 +428,18 @@ describe('APITests', () => {
             .then(() => {
                 // Then expect only 8 calls to have been made total and for them to be made in the order that we made them despite requiring reauthentication
                 expect(xhr.mock.calls.length).toBe(8);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value1');
+                expect(xhr.mock.calls.at(0)?.[1]['splits[0][amount]']).toBe(1);
 
-                // Our call to Authenticate will not have a "content" field
-                expect(xhr.mock.calls.at(1)?.[1].content).not.toBeDefined();
+                // Our call to Authenticate will not have an "amount" field
+                expect(xhr.mock.calls.at(1)?.[1]['splits[0][amount]']).not.toBeDefined();
 
                 // Rest of the calls have the expected params and are called in sequence
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(3)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(4)?.[1].content).toBe('value3');
-                expect(xhr.mock.calls.at(5)?.[1].content).toBe('value4');
-                expect(xhr.mock.calls.at(6)?.[1].content).toBe('value5');
-                expect(xhr.mock.calls.at(7)?.[1].content).toBe('value6');
+                expect(xhr.mock.calls.at(2)?.[1]['splits[0][amount]']).toBe(1);
+                expect(xhr.mock.calls.at(3)?.[1]['splits[0][amount]']).toBe(2);
+                expect(xhr.mock.calls.at(4)?.[1]['splits[0][amount]']).toBe(3);
+                expect(xhr.mock.calls.at(5)?.[1]['splits[0][amount]']).toBe(4);
+                expect(xhr.mock.calls.at(6)?.[1]['splits[0][amount]']).toBe(5);
+                expect(xhr.mock.calls.at(7)?.[1]['splits[0][amount]']).toBe(6);
             });
     });
 
@@ -536,7 +543,7 @@ describe('APITests', () => {
                 NetworkStore.resetHasReadRequiredDataFromStorage();
 
                 // And queue a Write request while offline
-                API.write(MOCK_COMMAND, splitParams({content: 'value1'}));
+                API.write(MOCK_COMMAND, splitParams());
 
                 // Then we should expect the request to get persisted
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -618,9 +625,9 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 persistable commands and two of them are the same
-                API.write(MOCK_COMMAND, splitParams({content: 'value1'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value2'}));
-                API.write(MOCK_COMMAND, splitParams({content: 'value1'}));
+                API.write(MOCK_COMMAND, splitParams(1));
+                API.write(MOCK_COMMAND, splitParams(2));
+                API.write(MOCK_COMMAND, splitParams(1));
 
                 return waitForBatchedUpdates();
             })
@@ -629,9 +636,9 @@ describe('APITests', () => {
             .then(() => {
                 // Then expect all 3 calls to have been made and for the Writes to be made in the order that we made them
                 expect(xhr.mock.calls.length).toBe(3);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(1)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value1');
+                expect(xhr.mock.calls.at(0)?.[1]['splits[0][amount]']).toBe(1);
+                expect(xhr.mock.calls.at(1)?.[1]['splits[0][amount]']).toBe(2);
+                expect(xhr.mock.calls.at(2)?.[1]['splits[0][amount]']).toBe(1);
             });
     });
 
@@ -663,9 +670,9 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 duplicate persistable commands
-                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams({content: 'value1'}));
-                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams({content: 'value2'}));
-                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams({content: 'value3'}));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams(1));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams(2));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams(3));
                 return waitForBatchedUpdates();
             })
             .then(() => Promise.resolve(setHasRadio(true)))
@@ -673,7 +680,7 @@ describe('APITests', () => {
             .then(() => {
                 // Then expect only 1 call to have been made and for the Writes to be made at the last one that was made
                 expect(xhr.mock.calls.length).toBe(1);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value3');
+                expect(xhr.mock.calls.at(0)?.[1]['splits[0][amount]']).toBe(3);
             });
     });
 
@@ -686,8 +693,8 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 different persistable commands
-                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND_ONE, splitParams({content: 'value1'}));
-                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND_TWO, splitParams({content: 'value2'}));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND_ONE, splitParams(1));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND_TWO, splitParams(2));
                 API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND_THREE, nameValueParams('value3'));
                 return waitForBatchedUpdates();
             })
@@ -696,9 +703,9 @@ describe('APITests', () => {
             .then(() => {
                 // Then expect all 3 calls to have been made and for the Writes to be made in the order that we made them
                 expect(xhr.mock.calls.length).toBe(3);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(1)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value3');
+                expect(xhr.mock.calls.at(0)?.[1]['splits[0][amount]']).toBe(1);
+                expect(xhr.mock.calls.at(1)?.[1]['splits[0][amount]']).toBe(2);
+                expect(xhr.mock.calls.at(2)?.[1].value).toBe('value3');
             });
     });
 
@@ -841,7 +848,7 @@ describe('APITests', () => {
                     if (typeof payload !== 'object' || payload === null) {
                         return false;
                     }
-                    return Reflect.get(payload, 'command') === MOCK_COMMAND;
+                    return 'command' in payload && payload.command === MOCK_COMMAND;
                 });
                 expect(supportalModalSet).toBe(true);
             });
@@ -873,7 +880,7 @@ describe('API.write() persistence guarantees', () => {
             });
 
             try {
-                API.write(MOCK_COMMAND, splitParams({param1: 'value1'}), {
+                API.write(MOCK_COMMAND, splitParams(), {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.SET,
@@ -923,7 +930,7 @@ describe('API.write() persistence guarantees', () => {
                 return originalSet(key, value);
             });
 
-            API.write(MOCK_COMMAND, splitParams({param1: 'value1'})).then(() => {
+            API.write(MOCK_COMMAND, splitParams()).then(() => {
                 writePromiseResolved = true;
             });
 
@@ -981,9 +988,9 @@ describe('API.write() persistence guarantees', () => {
             // Rapidly write two commands while offline — each save() call updates
             // in-memory state immediately then fires Onyx.set (captured, not resolved).
             // save(CommandA): in-memory = [A], Onyx.set([A]) captured
-            API.write(COMMAND_A, splitParams({param1: 'value1'}));
+            API.write(COMMAND_A, splitParams(1));
             // save(CommandB): in-memory = [A, B], Onyx.set([A, B]) captured
-            API.write(COMMAND_B, splitParams({param2: 'value2'}));
+            API.write(COMMAND_B, splitParams(2));
 
             expect(capturedSets).toHaveLength(2);
             expect(PersistedRequests.getAll()).toHaveLength(2);
