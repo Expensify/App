@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -88,7 +89,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -934,13 +935,19 @@ function IOURequestStepConfirmation({
                         </HeaderWithBackButton>
                     )}
                     {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
-                        <FullScreenLoadingIndicator
-                            reasonAttributes={{
-                                context: 'IOURequestStepConfirmation',
-                                isLoading,
-                                isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
-                            }}
-                        />
+                        // This overlay renders on top of the header (the inner one in the standalone RHP route, or the
+                        // parent header/tab bar when embedded on IOURequestStartPage), so per UI-1 use ActivityIndicator
+                        // (the user can still go back) instead of FullScreenLoadingIndicator. Keep the absolute-fill overlay styling.
+                        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={{
+                                    context: 'IOURequestStepConfirmation',
+                                    isLoading,
+                                    isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
+                                }}
+                            />
+                        </View>
                     )}
                     {PDFValidationComponent}
                     <DragAndDropConsumer onDrop={handleDroppingReceipt}>
