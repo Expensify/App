@@ -188,7 +188,7 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate));
+    const formattedTime = DateUtils.getStablePerDiemMerchantDateRange(new Date(startDate), new Date(endDate));
     return `${locationName}, ${formattedTime}`;
 }
 

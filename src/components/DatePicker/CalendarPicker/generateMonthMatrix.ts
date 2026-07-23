@@ -1,5 +1,7 @@
 import DateUtils from '@libs/DateUtils';
 
+import type Locale from '@src/types/onyx/Locale';
+
 import {addDays, format, getDay, getDaysInMonth, startOfMonth} from 'date-fns';
 
 /**
@@ -9,7 +11,7 @@ import {addDays, format, getDay, getDaysInMonth, startOfMonth} from 'date-fns';
  * @param month - The month (0-indexed) for which to generate the month matrix.
  * @returns A 2D array of the month's calendar days, with null values representing days outside the current month.
  */
-export default function generateMonthMatrix(year: number, month: number) {
+export default function generateMonthMatrix(year: number, month: number, locale: Locale) {
     if (year < 0) {
         throw new Error('Year cannot be less than 0');
     }
@@ -21,7 +23,7 @@ export default function generateMonthMatrix(year: number, month: number) {
     }
 
     // Get the week day for the end of week
-    const weekEndsOn = DateUtils.getWeekEndsOn();
+    const weekEndsOn = DateUtils.getWeekEndsOn(locale);
 
     // Get the number of days in the month and the first day of the month
     const firstDayOfMonth = startOfMonth(new Date(year, month, 1));

@@ -18,8 +18,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {format as formatDate} from 'date-fns';
-import React, {createContext, useEffect, useState} from 'react';
+import React, {createContext, useEffect, useSyncExternalStore} from 'react';
 
 type LocaleContextProviderProps = {
     /** Actual content wrapped by this component */
@@ -62,7 +61,7 @@ type LocaleContextProps = {
     formatTravelDate: (datetime: string) => string;
 
     /** The user's preferred locale e.g. 'en', 'es' */
-    preferredLocale: Locale | undefined;
+    preferredLocale: Locale;
 };
 
 type LocalizedTranslate = LocaleContextProps['translate'];
@@ -79,17 +78,17 @@ const LocaleContext = createContext<LocaleContextProps>({
     fromLocaleDigit: () => '',
     localeCompare: () => 0,
     formatTravelDate: () => '',
-    preferredLocale: undefined,
+    preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
+    useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshotVersion, IntlStore.getSnapshotVersion);
+    const currentLocale = IntlStore.getCurrentLocale();
 
     let localeToApply: Locale | undefined;
     if (!isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
@@ -109,22 +108,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         IntlStore.load(localeToApply);
         setLocale(localeToApply, nvpPreferredLocale);
     }, [localeToApply, nvpPreferredLocale]);
-
-    // Sync currentLocale from IntlStore after translations finish loading.
-    // IntlStore.currentLocale is external mutable state that React can't track,
-    // so we use this effect to explicitly update React state when it changes.
-    useEffect(() => {
-        if (areTranslationsLoading) {
-            return;
-        }
-
-        const locale = IntlStore.getCurrentLocale();
-        if (!locale) {
-            return;
-        }
-
-        setCurrentLocale(locale);
-    }, [areTranslationsLoading]);
 
     const selectedTimezone = currentUserPersonalDetails?.timezone?.selected;
     const effectiveTimezone = selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected;
@@ -154,8 +137,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
         const date = new Date(datetime);
-        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
-        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
+        const formattedDate = DateUtils.formatToMediumDate(date, currentLocale);
+        const formattedHour = DateUtils.formatToLocalTime(date, currentLocale);
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };
@@ -175,7 +158,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         preferredLocale: currentLocale,
     };
 
-    // eslint-disable-next-line rulesdir/context-provider-split-values
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 

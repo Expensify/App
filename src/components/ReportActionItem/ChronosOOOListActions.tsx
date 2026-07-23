@@ -27,7 +27,7 @@ type ChronosOOOListActionsProps = {
 function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
     const styles = useThemeStyles();
 
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, preferredLocale} = useLocalize();
 
     const events = getOriginalMessage(action)?.events ?? [];
 
@@ -52,12 +52,12 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                         >
                             <Text style={styles.flexShrink1}>
                                 {event.lengthInDays > 0
-                                    ? translate('chronos.oooEventSummaryFullDay', event.summary, event.lengthInDays, DateUtils.formatToLongDateWithWeekday(end))
+                                    ? translate('chronos.oooEventSummaryFullDay', event.summary, event.lengthInDays, DateUtils.formatToLongDateWithWeekday(end, preferredLocale))
                                     : translate(
                                           'chronos.oooEventSummaryPartialDay',
                                           event.summary,
-                                          `${DateUtils.formatToLocalTime(start)} - ${DateUtils.formatToLocalTime(end)}`,
-                                          DateUtils.formatToLongDateWithWeekday(end),
+                                          `${DateUtils.formatToLocalTime(start, preferredLocale)} - ${DateUtils.formatToLocalTime(end, preferredLocale)}`,
+                                          DateUtils.formatToLongDateWithWeekday(end, preferredLocale),
                                       )}
                             </Text>
                             <Button
