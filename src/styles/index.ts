@@ -27,6 +27,7 @@ import {interpolate} from 'react-native-reanimated';
 import type {ThemeColors} from './theme/types';
 
 import colors from './theme/colors';
+import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
 import addOutlineWidth from './utils/addOutlineWidth';
 import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
@@ -477,14 +478,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         label: {
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         textLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         themeTextColor: {
@@ -493,8 +494,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         mutedTextLabel: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         mutedNormalTextLabel: {
@@ -504,8 +505,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textSmall: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.caption,
         },
 
         textExtraSmall: {
@@ -514,9 +515,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textMicro: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            ...textVariants.caption,
         },
 
         textMicroBold: {
@@ -534,16 +533,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textMicroSupporting: {
+            ...textVariants.caption,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
         },
 
         textSupportingNormal: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            fontSize: fontScale.body,
+            lineHeight: lineHeightScale.body,
         },
 
         textExtraSmallSupporting: {
@@ -562,12 +559,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
         textNormal: {
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.body,
         },
 
         textNormalThemeText: {
             color: theme.text,
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.body,
         },
 
         textLarge: {
@@ -592,13 +589,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textHero: {
-            fontSize: variables.fontSizeHero,
-            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
-            lineHeight: variables.lineHeightHero,
+            ...textVariants.display,
         },
 
         textStrong: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...fontFamilyScale.strong,
         },
 
         fontWeightNormal: {
@@ -606,27 +601,21 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textHeadline: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.headline,
             color: theme.heading,
-            fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH2: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.headline,
             color: theme.heading,
             fontSize: variables.fontSizeH2,
             lineHeight: variables.lineHeightSizeH2,
         },
 
         textHeadlineH1: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.headline,
             color: theme.heading,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeH1,
         },
 
         exportDownloadTitle: {
@@ -4002,9 +3991,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...textVariants.bodyStrong,
             color: theme.text,
         },
 
@@ -6337,9 +6324,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: variables.sectionMargin,
         },
         chartTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...textVariants.bodyStrong,
             color: theme.text,
         },
         chartTooltipWrapper: {
