@@ -19,6 +19,7 @@ import {searchInServer} from '@libs/actions/Report';
 import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -71,14 +72,15 @@ function SearchPage({route}: SearchPageProps) {
 
     const [isSorting, setIsSorting] = useState(false);
 
+    const isCurrentSearchResolved = isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
     let searchResults: SearchResults | undefined;
-    if (currentSearchResults?.data != null || currentSearchResults?.errors) {
+    if (isCurrentSearchResolved && currentSearchResults?.search && currentSearchResults.data === undefined) {
+        searchResults = {...currentSearchResults, data: {}};
+    } else if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
         searchResults = lastNonEmptySearchResults;
     }
-
-    const metadata = searchResults?.search;
 
     useEffect(() => {
         if (shouldUseNarrowLayout) {
@@ -140,7 +142,6 @@ function SearchPage({route}: SearchPageProps) {
                     {shouldUseNarrowLayout ? (
                         <SearchPageNarrow
                             queryJSON={currentSearchQueryJSON}
-                            metadata={metadata}
                             searchResults={searchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}

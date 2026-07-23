@@ -30,11 +30,12 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchRes
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0;
 
-    // Show page-level skeleton when no data has ever arrived for this query,
-    // or when card feeds are still loading for card-grouped searches.
-    // Once data arrives (even empty []), Search mounts and handles its own
-    // loading/empty states internally via shouldShowLoadingState.
-    // When errors are present, let Search mount so it can render FullPageErrorView.
+    // Show page-level skeleton when no data has ever arrived for this query, or when card feeds are still
+    // loading for card-grouped searches. A resolved response that wrote no data is handed to us with `data: {}`
+    // (SearchPage coerces it once the snapshot reaches its terminal state), so `hasNoData` already goes false
+    // and the terminal state does not need a separate check here.
+    // Once data arrives (even empty []), Search mounts and handles its own loading/empty states internally
+    // via shouldShowLoadingState. When errors are present, let Search mount so it can render FullPageErrorView.
     return (hasNoData && !hasErrors) || isCardFeedsLoading;
 }
 

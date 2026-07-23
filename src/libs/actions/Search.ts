@@ -718,19 +718,19 @@ function getOnyxLoadingData(
         Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
     }
 
-    // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so
-    // responses that do carry data stay consistent with the anti-stale isSearchDataLoaded check (which compares
-    // type/hash). On a success response without data, isSearchDataLoaded still resolves to false via its own data/errors gate;
-    // `state` is what marks that case as done once a future PR wires the read side to it. `isLoading` isn't set here
-    // because finallyData always runs right after and already clears it for isSearchAPI. Empty for the non-search
-    // callers of this helper so they don't pay for a meaningless `{search: {}}` merge on the SNAPSHOT key.
+    // successData writes the terminal `loaded` state on any jsonCode 200 resolve, stamping `type` and `hash` so
+    // the terminal state satisfies the anti-stale isSearchDataLoaded check (which matches type/hash) even on a
+    // response that carries no data of its own. isSearchDataLoaded now treats a terminal state as resolved,
+    // so such a response resolves to Search's empty view instead of pinning the skeleton on the data-shape check.
+    // `isLoading` isn't set here because finallyData always runs right after and already clears it for isSearchAPI.
+    // Empty for the non-search callers of this helper so they don't pay for a meaningless `{search: {}}` merge.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = isSearchRequest
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                   value: {
-                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type},
+                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash},
                   },
               },
           ]
@@ -759,7 +759,7 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR, hash}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -1000,8 +1000,16 @@ function search({
     const startRequest = () =>
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
+                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+
+                // Observability for the failure mode this read side converts from an infinite skeleton into an empty
+                // view: a jsonCode 200 that wrote no snapshot data. It used to be invisible (the skeleton just hung),
+                // so log it to keep the no-data resolve case queryable now that it silently resolves.
+                if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
+                    Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
+                }
+
                 if (shouldUpdateLastSearchParams) {
-                    const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
                     const reports = Object.keys(response?.data ?? {})
                         .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
                         .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));

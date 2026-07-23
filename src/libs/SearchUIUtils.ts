@@ -4806,8 +4806,25 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
+/**
+ * Whether a real search request for this snapshot is currently in flight: the search action stamps
+ * `state: loading` optimistically and resolves it to `loaded`/`error`, so `loading` means "not yet resolved".
+ * Prefer this over the legacy `search.isLoading` flag: `state` always reaches a terminal write (success,
+ * failure or the network-catch failureData), so it cannot get pinned by a dropped response the way the flag can.
+ */
+function isSearchPending(searchResults: SearchResults | undefined) {
+    return searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+}
+
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const isDataLoaded = (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && searchResults.search.hash === queryJSON?.hash;
+    const state = searchResults?.search?.state;
+    // A terminal `state` (loaded/error) means the request for this snapshot resolved, even when it wrote no data
+    // (a 200 with no data that used to pin the skeleton forever). It counts as loaded alongside the original
+    // data/errors shape check, still guarded by the type/hash match that rejects a stale snapshot Onyx can
+    // transiently return for the previous query.
+    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
+    const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
+    const isDataLoaded = hasResolved && searchResults?.search?.type === queryJSON?.type && searchResults?.search?.hash === queryJSON?.hash;
 
     return isDataLoaded;
 }
@@ -6519,6 +6536,7 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    isSearchPending,
     getValidGroupBy,
     getTypeOptions,
     getSortByOptions,

@@ -102,6 +102,7 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
         expect(snapshot?.search?.hasResults).toBe(true);
     });
 
@@ -114,6 +115,7 @@ describe('search snapshot terminal state', () => {
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         // finallyData runs after failureData; the error state must survive it.
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
     });
 
     it('reaches a terminal state when a successful response resolves without any snapshot data', async () => {
@@ -125,6 +127,9 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        // The terminal state carries the query hash so the read side can treat it as resolved even though the
+        // response wrote neither data nor its own search metadata.
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
     });
 
     it('resolves the snapshot to error when the request promise rejects, instead of staying loading', async () => {
