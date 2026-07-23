@@ -53,7 +53,9 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsLoginSelector(iouReport?.ownerAccountID),
+    });
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [invoiceReceiverPolicy] = useOnyx(
@@ -113,6 +115,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             full,
             onApproved: startApprovedAnimation,
             delegateEmail,
+            isTrackIntentUser,
         });
     };
 
