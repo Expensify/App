@@ -71,8 +71,12 @@ function getSubmitExpensePreMountDestinationRoute({
     const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
     // Don't pre-insert if the report is already the topmost fullscreen - it would push a duplicate route (extra back press).
     const hasValidDestination = !!destinationReportID && (hasPreInsertedFullscreen || Navigation.getTopmostReportId() !== destinationReportID);
-    // The report must be in Onyx so the pre-inserted screen can render immediately.
-    const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID;
+    // The report must be in the REPORT collection so the pre-inserted screen can render immediately. A draft-only report
+    // (e.g. the expense chat of a freshly created draft workspace in the zero-workspace "Submit to my employer" flow) can't
+    // render - the report screen only reads COLLECTION.REPORT - so pre-inserting one would strand the user on an infinite
+    // skeleton if they back out before submitting. Passing an empty draft to getReportOrDraftReport skips its REPORT_DRAFT
+    // fallback while keeping the module-cache fallback for real reports that useOnyx hasn't hydrated yet.
+    const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
     const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
