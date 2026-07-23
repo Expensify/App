@@ -8,7 +8,7 @@ import type {AnyRequest} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -120,6 +120,9 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
 // accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale read.
 let hasObservedOpenAppFlushPending = false;
 
+// Shared across hook instances so consumers mounting during a deferred flush observe the same lifecycle.
+const reportIDsWithPendingOpenReportFlush = new Set<string>();
+
 /** Whether an OpenApp request or its deferred Onyx updates are pending. */
 function useIsAppLoadPending(): boolean {
     const hasPendingOpenApp = useIsPendingInternal('appLoad');
@@ -154,19 +157,19 @@ function useIsReportLoadPending(reportID: string | undefined): boolean {
 
     // The queue arms this lifecycle, so a loading flag stranded by a previous process cannot gate by itself.
     // Once armed, the terminal flag keeps consumers gated until deferred response updates are flushed.
-    const [trackedReportID, setTrackedReportID] = useState(reportID);
-    const [hasObservedPendingRequest, setHasObservedPendingRequest] = useState(false);
-    const isTrackedReport = trackedReportID === reportID;
-    if (!isTrackedReport) {
-        setTrackedReportID(reportID);
-        setHasObservedPendingRequest(hasPendingRequest);
-    } else if (hasPendingRequest && !hasObservedPendingRequest) {
-        setHasObservedPendingRequest(true);
-    } else if (!hasPendingRequest && isLoadingInitialReportActions !== true && hasObservedPendingRequest) {
-        setHasObservedPendingRequest(false);
-    }
+    useEffect(() => {
+        if (!reportID) {
+            return;
+        }
 
-    return hasPendingRequest || (isTrackedReport && hasObservedPendingRequest && isLoadingInitialReportActions === true);
+        if (hasPendingRequest) {
+            reportIDsWithPendingOpenReportFlush.add(reportID);
+        } else if (isLoadingInitialReportActions !== true) {
+            reportIDsWithPendingOpenReportFlush.delete(reportID);
+        }
+    }, [hasPendingRequest, isLoadingInitialReportActions, reportID]);
+
+    return hasPendingRequest || (!!reportID && reportIDsWithPendingOpenReportFlush.has(reportID) && isLoadingInitialReportActions === true);
 }
 
 /** Whether any request relevant to the top-of-screen loading bar is currently in the queue. */
