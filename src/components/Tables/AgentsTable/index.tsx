@@ -30,7 +30,7 @@ type AgentRowData = TableData & {
     login: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
-    action?: () => void;
+    action: () => void;
     onChatPress: () => void;
     onCopilotPress: () => void;
     dismissError: () => void;
