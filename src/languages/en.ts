@@ -8377,7 +8377,7 @@ const translations = {
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `added the agent rule "${title}": ${prompt}` : `added an agent rule: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
-            deleted: ({title}: {title: string}) => (title ? `deleted the agent rule "${title}"` : 'deleted an agent rule'),
+            deleted: ({title}: {title: string}) => (title ? `removed the agent rule "${title}"` : 'removed an agent rule'),
         },
         expensifyCardRule: {
             actionVerb: {

@@ -8590,7 +8590,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `ha aggiunto la regola dell'agente "${title}": ${prompt}` : `ha aggiunto una regola agente: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>
                 title ? `ha aggiornato la regola dell'agente "${title}" in: ${prompt}` : `ha aggiornato una regola dell'agente in: ${prompt}`,
-            deleted: ({title}: {title: string}) => (title ? `ha eliminato la regola agente "${title}"` : 'ha eliminato una regola agente'),
+            deleted: ({title}: {title: string}) => (title ? `ha rimosso la regola agente "${title}"` : 'ha rimosso una regola agente'),
         },
         expensifyCardRule: {
             actionVerb: {block: 'bloccato', allow: 'consentito'},

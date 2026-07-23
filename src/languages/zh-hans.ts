@@ -8286,7 +8286,7 @@ ${reportName}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `已添加代理规则“${title}”：${prompt}` : `添加了一条代理规则：${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `已将智能体规则“${title}”更新为：${prompt}` : `已将代理规则更新为：${prompt}`),
-            deleted: ({title}: {title: string}) => (title ? `已删除代理规则“${title}”` : '删除了代理规则'),
+            deleted: ({title}: {title: string}) => (title ? `已移除代理规则“${title}”` : '移除了代理规则'),
         },
         expensifyCardRule: {
             actionVerb: {block: '已阻止', allow: '允许'},

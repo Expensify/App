@@ -8608,7 +8608,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `hat die Agentenregel „${title}“ hinzugefügt: ${prompt}` : `hat eine Agentenregel hinzugefügt: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>
                 title ? `hat die Agentenregel „${title}“ aktualisiert auf: ${prompt}` : `eine Agentenregel aktualisiert zu: ${prompt}`,
-            deleted: ({title}: {title: string}) => (title ? `hat die Agentenregel „${title}“ gelöscht` : 'hat eine Agentenregel gelöscht'),
+            deleted: ({title}: {title: string}) => (title ? `hat die Agentenregel „${title}“ entfernt` : 'hat eine Agentenregel entfernt'),
         },
         expensifyCardRule: {
             actionVerb: {block: 'blockiert', allow: 'erlaubt'},
