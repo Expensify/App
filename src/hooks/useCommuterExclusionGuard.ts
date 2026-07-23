@@ -28,7 +28,7 @@ type PoliciesWithCommuterExclusions = Record<string, boolean>;
 
 const policiesWithCommuterExclusionsSelector = (policies: OnyxCollection<Policy>): PoliciesWithCommuterExclusions =>
     Object.values(policies ?? {}).reduce<PoliciesWithCommuterExclusions>((acc, policy) => {
-        if (policy?.id && isCommuterExclusionEnabled(policy)) {
+        if (isCommuterExclusionEnabled(policy)) {
             acc[policy.id] = true;
         }
         return acc;

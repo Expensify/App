@@ -92,11 +92,6 @@ function IOURequestStepDistanceManual({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const reportAttributesDerived = useReportAttributes();
 
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
-        policyID: policy?.id ?? defaultExpensePolicy?.id,
-        isManualDistanceRequest: true,
-    });
-
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
@@ -150,6 +145,10 @@ function IOURequestStepDistanceManual({
         ownerBillingGracePeriodEnd,
         currentUserAccountIDParam,
     );
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id ?? (shouldUseDefaultExpensePolicy ? defaultExpensePolicy?.id : undefined),
+        isManualDistanceRequest: true,
+    });
 
     // to make sure the correct distance amount and unit will be shown we use distance unit
     // from defaultExpensePolicy or current report's policy instead of from transaction and

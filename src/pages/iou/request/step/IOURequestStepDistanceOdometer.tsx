@@ -132,10 +132,6 @@ function IOURequestStepDistanceOdometer({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
-        policyID: policy?.id ?? defaultExpensePolicy?.id,
-        isOdometerDistanceRequest: true,
-    });
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -162,6 +158,10 @@ function IOURequestStepDistanceOdometer({
         () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam),
         [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam],
     );
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id ?? (shouldUseDefaultExpensePolicy ? defaultExpensePolicy?.id : undefined),
+        isOdometerDistanceRequest: true,
+    });
 
     const mileageRate = DistanceRequestUtils.getRate({
         transaction: currentTransaction,
