@@ -4484,11 +4484,22 @@ function getReasonAndReportActionThatRequiresAttention(
     const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
+    const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport(iouReportID);
+    const hasAllExpensesHeld = hasOnlyHeldExpenses(transactions);
+    // An all-held report can't move to its next state, so it isn't a to-do. Keep it only for a report awaiting
+    // approval or payment where the current user placed a hold, since they can remove it. An open report stays
+    // excluded because only its owner can place a hold there, and that owner is the one who submits.
+    const isExcludedForHeldExpenses =
+        hasAllExpensesHeld && (isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(getAllReportActions(iouReportID), transactions, currentUserAccountID));
+
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
     // shouldn't demand attention even when the chat still carries an outstanding-child flag.
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
-    const hasValidIOUAction = ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) && !hasOnlyPendingTransactions;
+    const hasValidIOUAction =
+        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
+        !hasOnlyPendingTransactions &&
+        !isExcludedForHeldExpenses;
 
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
@@ -4713,9 +4724,24 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 /**
  * Check if Report has any held expenses
  */
-function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | undefined): boolean {
+function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | undefined, currentUserAccountID?: number): boolean {
     const holdReportAction = getReportAction(reportID, `${transaction?.comment?.hold ?? ''}`);
-    return isActionCreator(holdReportAction);
+    return isActionCreator(holdReportAction, currentUserAccountID);
+}
+
+/**
+ * Whether the current user placed the hold on at least one of the report's held expenses. Used to keep an
+ * all-held report in that user's to-do queue, since only the person who placed a hold can remove it.
+ */
+function didCurrentUserPlaceHoldOnReportExpense(reportActions: OnyxEntry<ReportActions>, reportTransactions: Transaction[], currentUserAccountID?: number): boolean {
+    return Object.values(reportActions ?? {}).some((action) => {
+        if (!isMoneyRequestAction(action)) {
+            return false;
+        }
+        const transactionID = getOriginalMessage(action)?.IOUTransactionID;
+        const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
+        return !!transaction && isOnHoldTransactionUtils(transaction) && isHoldCreator(transaction, action.childReportID, currentUserAccountID);
+    });
 }
 
 /**
@@ -14015,6 +14041,7 @@ export {
     isGroupChatAdmin,
     isHarvestCreatedExpenseReport,
     isHoldCreator,
+    didCurrentUserPlaceHoldOnReportExpense,
     isIOUOwnedByCurrentUser,
     isIOUReport,
     isIOUReportUsingReport,
