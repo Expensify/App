@@ -31,6 +31,7 @@ import React, {useEffect, useRef, useState} from 'react';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
 
+import {getSearchPreInsertNavigation, SEARCH_PRE_INSERT_NAVIGATION} from './getSearchPreInsertNavigation';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
@@ -238,7 +239,7 @@ function SubmitExpenseOrchestrator({
             setIsConfirming(false);
         };
 
-        if (isFromNativeShortcutOnTransaction) {
+        if (getSearchPreInsertNavigation(isFromNativeShortcutOnTransaction) === SEARCH_PRE_INSERT_NAVIGATION.REVEAL_SEARCH) {
             // Native shortcuts may have a report pre-inserted, so replace it with the search route.
             const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchDataType})});
             Navigation.revealRouteBeforeDismissingModal(searchRoute, {afterTransition});
