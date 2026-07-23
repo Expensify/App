@@ -10,7 +10,6 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {personalDetailsByLoginSelector} from '@selectors/PersonalDetails';
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
