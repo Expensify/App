@@ -218,46 +218,48 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
             const convertedFilesToResize: FileObject[] = [];
             const convertedFiles: FileObject[] = [];
-            await Promise.all(
-                filesToConvert.map(
-                    (file) =>
-                        new Promise<void>((resolve) => {
-                            convertHeicImage(file, {
-                                onSuccess: (convertedFile) => {
-                                    if (validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                                        convertedFilesToResize.push(convertedFile);
-                                        resolve();
-                                        return;
-                                    }
 
-                                    if (!validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                                        collectedErrors.current.push({
-                                            error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
-                                            isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
-                                        });
-                                        resolve();
-                                        return;
-                                    }
+            for (const file of filesToConvert) {
+                // Convert sequentially to avoid the native memory pressure caused by processing multiple HEIC images in parallel.
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise<void>((resolve) => {
+                    convertHeicImage(file, {
+                        onSuccess: (convertedFile) => {
+                            if (validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                                convertedFilesToResize.push(convertedFile);
+                                // Preserve the original index so the resize step can transfer it to the final file.
+                                updateFileOrderMapping(file, convertedFile);
+                                resolve();
+                                return;
+                            }
 
-                                    convertedFiles.push(convertedFile);
-                                    resolve();
-                                },
-                                onError: () => {
-                                    Log.warn('HEIC conversion failed, falling back to original file', {fileName: file.name});
-                                    convertedFiles.push(file);
-                                    resolve();
-                                },
+                            if (!validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                                collectedErrors.current.push({
+                                    error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
+                                    isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                                });
+                                resolve();
+                                return;
+                            }
+
+                            convertedFiles.push(convertedFile);
+                            updateFileOrderMapping(file, convertedFile);
+                            resolve();
+                        },
+                        onError: () => {
+                            Log.warn('HEIC conversion failed, blocking file', {fileName: file.name});
+                            collectedErrors.current.push({
+                                error: CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED,
+                                isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
                             });
-                        }),
-                ),
-            );
+                            resolve();
+                        },
+                    });
+                });
+            }
 
             filesToResize.push(...convertedFilesToResize);
             validNonPdfFiles.push(...convertedFiles);
-
-            for (const [index, convertedFile] of convertedFiles.entries()) {
-                updateFileOrderMapping(filesToConvert.at(index), convertedFile);
-            }
         }
 
         if (filesToResize.length > 0) {
