@@ -5,6 +5,8 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
+import {markAsManuallyExported} from '@libs/actions/Report';
+import {exportToIntegrationOnSearch} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
@@ -245,7 +247,10 @@ jest.mock('@hooks/usePaymentContext', () => {
 
 const REPORT_ID = 'report1';
 const POLICY_ID = 'policy1';
+const REPORT_ID_2 = 'report2';
+const POLICY_ID_2 = 'policy2';
 const NETSUITE_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+const QBO_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.QBO];
 
 const expenseReportQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense-report status:all',
@@ -299,11 +304,11 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 }
 
 /** A complete report as it arrives from the search API (lives in the snapshot, not live Onyx on a fresh load). */
-function makeSnapshotReport(): Report {
+function makeSnapshotReport(reportID: string = REPORT_ID, policyID: string = POLICY_ID): Report {
     return {
         ...createRandomReport(CURRENT_USER_ACCOUNT_ID, undefined),
-        reportID: REPORT_ID,
-        policyID: POLICY_ID,
+        reportID,
+        policyID,
         reportName: 'Approved report',
         type: CONST.REPORT.TYPE.EXPENSE,
         stateNum: CONST.REPORT.STATE_NUM.APPROVED,
@@ -434,5 +439,63 @@ describe('useSearchBulkActions - report export options resolve from the search s
         const subMenuItems = exportOption?.subMenuItems ?? [];
         expect(subMenuItems.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(false);
         expect(subMenuItems.some((item) => item.text === 'workspace.common.markAsExported')).toBe(false);
+    });
+
+    it('offers per-integration export options when reports span workspaces connected to different integrations', async () => {
+        /**
+         * Given: two selected reports on two workspaces connected to different integrations
+         *        (report1 → NetSuite, report2 → QuickBooks Online).
+         *
+         * When: the export bulk-action menu is built.
+         *
+         * Then: instead of hiding all integration options (the previous behavior, which only showed
+         *       them when every selected report shared a single workspace), the menu surfaces one
+         *       "Export to <integration>" option and one "Mark as exported" option per integration,
+         *       and each action is scoped to the reports for that integration.
+         */
+        // A second workspace connected to QBO.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions);
+            expect(subMenuItems?.some((item) => item.text === QBO_FRIENDLY_NAME)).toBe(true);
+        });
+
+        const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions) ?? [];
+
+        // Both integrations' export options are present...
+        expect(subMenuItems.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        expect(subMenuItems.some((item) => item.text === QBO_FRIENDLY_NAME)).toBe(true);
+        // ...along with one "Mark as exported" option per integration.
+        expect(subMenuItems.filter((item) => item.text === 'workspace.common.markAsExported')).toHaveLength(2);
+
+        // Each integration's actions are grouped together: its "Export to <integration>" option is
+        // immediately followed by its own "Mark as exported" option, before the next integration.
+        const integrationOptionTexts = subMenuItems
+            .map((item) => item.text)
+            .filter((text) => text === NETSUITE_FRIENDLY_NAME || text === QBO_FRIENDLY_NAME || text === 'workspace.common.markAsExported');
+        expect(integrationOptionTexts).toEqual([NETSUITE_FRIENDLY_NAME, 'workspace.common.markAsExported', QBO_FRIENDLY_NAME, 'workspace.common.markAsExported']);
+
+        // Each export action is scoped to only the reports for its integration.
+        subMenuItems.find((item) => item.text === QBO_FRIENDLY_NAME)?.onSelected?.();
+        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.QBO, undefined);
+
+        subMenuItems.find((item) => item.text === NETSUITE_FRIENDLY_NAME)?.onSelected?.();
+        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+
+        expect(markAsManuallyExported).not.toHaveBeenCalled();
     });
 });
