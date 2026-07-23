@@ -15,7 +15,7 @@ import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -941,6 +941,17 @@ describe('getExistingTransactionID', () => {
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
             expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('500');
+        });
+
+        it('returns undefined when the picked report is archived', () => {
+            const transaction = makeTransaction('500');
+            const transactionReport = makeOutstandingReport('500');
+            const routeReport = makeRouteReport('100');
+            const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transactionReport.reportID}`]: {private_isArchived: testDate},
+            };
+
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve, reportNameValuePairs})).toBeUndefined();
         });
 
         it('returns undefined when the picked report is non-outstanding and differs from the route (forces a new optimistic IOU)', () => {
