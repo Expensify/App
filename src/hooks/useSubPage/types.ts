@@ -1,5 +1,6 @@
-import type {ComponentType} from 'react';
 import type {Route} from '@src/ROUTES';
+
+import type {ComponentType} from 'react';
 
 type SubPageProps = {
     /** value indicating whether user is editing one of the sub pages */
@@ -47,6 +48,13 @@ type UseSubPageProps<TProps extends SubPageProps, TPageName extends string = str
 
     /** function that returns the route for a given page name and optional action */
     buildRoute: (pageName: TPageName, action?: 'edit') => Route;
+
+    /**
+     * When true, sub page transitions replace the current route instead of pushing a new one.
+     * Required for dynamic routes, where pushing a new instance of the same dynamic screen would
+     * stack duplicate suffixes onto the URL. Defaults to false (push), matching static-route flows.
+     */
+    shouldReplaceRoute?: boolean;
 };
 
 export type {SubPageProps, PageConfig, UseSubPageProps};

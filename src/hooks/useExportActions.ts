@@ -1,9 +1,7 @@
-import type React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchSelectionActions} from '@components/Search/SearchContext';
+
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
@@ -12,13 +10,17 @@ import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/Polic
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {getSecondaryExportReportActions} from '@libs/ReportSecondaryActionUtils';
 import {getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDecisionModal from './useDecisionModal';
 import useExportAgainModal from './useExportAgainModal';
-import useExportDownloadStatusModal from './useExportDownloadStatusModal';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -39,9 +41,6 @@ type UseExportActionsReturn = {
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => void;
     showOfflineModal: () => void;
     showDownloadErrorModal: () => void;
-
-    /** The realtime export status modal for the in-progress template export (or null when none is active). Render it directly in the consumer. */
-    exportDownloadStatusModal: React.JSX.Element | null;
 };
 
 function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsParams): UseExportActionsReturn {
@@ -69,8 +68,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const {showDecisionModal} = useDecisionModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
-    const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(undefined, true));
+    const {trackExport} = useExportDownloadStatus();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Table',
@@ -84,6 +82,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'RilletSquare',
         'GustoSquare',
         'ArrowRight',
     ]);
@@ -259,7 +258,6 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         beginExportWithTemplate,
         showOfflineModal,
         showDownloadErrorModal,
-        exportDownloadStatusModal,
     };
 }
 

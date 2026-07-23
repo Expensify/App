@@ -1,10 +1,13 @@
-import React from 'react';
 import {Item, RadioItem, ScrollableContent, Sub} from '@components/PopoverMenu/v2';
 import {useVideoPopoverMenuActions, useVideoPopoverMenuState} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 function VideoPopoverMenu() {
     const {translate} = useLocalize();

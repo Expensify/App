@@ -1,13 +1,19 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
+
 import DynamicPaymentCardCurrencySelectorPage from '@pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage';
+
 import {setPaymentMethodCurrency} from '@userActions/PaymentMethods';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 type CurrencyOption = {text: string; value: string; keyForList: string; isSelected: boolean};
 

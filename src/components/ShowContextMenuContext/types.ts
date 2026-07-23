@@ -1,7 +1,9 @@
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
+import type {Report, ReportAction} from '@src/types/onyx';
+
 import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import type {Report, ReportAction} from '@src/types/onyx';
 
 type ShowContextMenuStateContextType = {
     anchor: RefObject<ContextMenuAnchor> | null;

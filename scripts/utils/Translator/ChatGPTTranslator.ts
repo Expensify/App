@@ -1,9 +1,12 @@
 import ChatGPTCostEstimator from '@scripts/chatGPTCostEstimator';
+
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+
+import type {StringWithContext} from './types';
+
 import OpenAIUtils from '../OpenAIUtils';
 import {buildTranslationInstructions, buildTranslationRequestInput} from './TranslationPromptUtils';
 import Translator from './Translator';
-import type {StringWithContext} from './types';
 
 /**
  * Represents a translation that failed after all retries.

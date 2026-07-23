@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useStableArrayReference from '@hooks/useStableArrayReference';
 
 describe('useStableArrayReference', () => {

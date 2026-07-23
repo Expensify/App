@@ -1,5 +1,3 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -13,21 +11,28 @@ import MultifactorAuthenticationValidateCodeResendButton from '@components/Multi
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
+
 import {clearAccountMessages} from '@userActions/Session';
 import {clearValidateCodeActionError, requestValidateCodeAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type FormError = {
     inputCode?: TranslationPaths;
@@ -75,7 +80,7 @@ function MultifactorAuthenticationValidateCodePage() {
         }
         // Invalid validate code submitted by the user
         if (hasContinuableError) {
-            return translate('validateCodeForm.error.incorrectMagicCode');
+            return translate('validateCodeForm.error.incorrectSecurityCode');
         }
         // Generic account/session error (e.g. stale errors from a previous flow)
         return getLatestErrorMessage(account);
@@ -183,12 +188,12 @@ function MultifactorAuthenticationValidateCodePage() {
 
         // Validate input
         if (!inputCode.trim()) {
-            setFormError({inputCode: 'validateCodeForm.error.pleaseFillMagicCode'});
+            setFormError({inputCode: 'validateCodeForm.error.pleaseFillSecurityCode'});
             return;
         }
 
         if (!isValidValidateCode(inputCode)) {
-            setFormError({inputCode: 'validateCodeForm.error.incorrectMagicCode'});
+            setFormError({inputCode: 'validateCodeForm.error.incorrectSecurityCode'});
             return;
         }
 
@@ -219,7 +224,7 @@ function MultifactorAuthenticationValidateCodePage() {
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterMagicCode', contactMethod)}</Text>
+                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterSecurityCode', contactMethod)}</Text>
                 <View style={[styles.mh5]}>
                     <MagicCodeInput
                         autoComplete="one-time-code"
@@ -236,7 +241,7 @@ function MultifactorAuthenticationValidateCodePage() {
                         ref={resendButtonRef}
                         shouldDisableResendCode={shouldDisableResendCode}
                         hasError={hasError}
-                        resendButtonText="validateCodeForm.magicCodeNotReceived"
+                        resendButtonText="validateCodeForm.securityCodeNotReceived"
                         onResendValidationCode={resendValidationCode}
                     />
                 </View>

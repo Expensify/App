@@ -1,14 +1,19 @@
-import React, {useEffect, useMemo, useState} from 'react';
 import ScrollView from '@components/ScrollView';
+
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
+
+import type {TabSelectorBaseProps} from './types';
+
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import {useTabSelectorActions, useTabSelectorState} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
-import type {TabSelectorBaseProps} from './types';
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
@@ -17,7 +22,7 @@ import type {TabSelectorBaseProps} from './types';
  * (getOpacity / getBackgroundColor). It is reused by both navigation-based TabSelector and
  * inline tab selectors like SplitExpensePage.
  */
-function TabSelectorBase({
+function TabSelectorBase<K extends string = string>({
     tabs,
     activeTabKey,
     onTabPress = () => {},
@@ -27,7 +32,7 @@ function TabSelectorBase({
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
     contentContainerStyles,
-}: TabSelectorBaseProps) {
+}: TabSelectorBaseProps<K>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 

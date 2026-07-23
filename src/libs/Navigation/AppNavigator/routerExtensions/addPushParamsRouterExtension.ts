@@ -1,11 +1,16 @@
-import {CommonActions} from '@react-navigation/native';
-import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType} from '@react-navigation/native';
 import compoundParamsKey from '@libs/compoundParamsKey';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {GoBackAction, SetParamsAction} from '@libs/Navigation/types';
 import {cancelPendingFocusRestore, notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
+
 import CONST from '@src/CONST';
+
+import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType} from '@react-navigation/native';
+
+import {CommonActions} from '@react-navigation/native';
+
 import type {CustomHistoryEntry, PushParamsActionType, PushParamsRouterAction} from './types';
+
 import {enhanceStateWithHistory} from './utils';
 
 function preserveHistoryForRoutes(oldHistory: CustomHistoryEntry[], routes: Array<{key?: string}>): CustomHistoryEntry[] {

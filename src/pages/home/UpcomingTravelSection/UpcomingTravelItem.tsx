@@ -1,21 +1,27 @@
-import {differenceInCalendarDays} from 'date-fns';
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {formatCancelledDescription, getTripReservationIcon} from '@libs/TripReservationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import {differenceInCalendarDays} from 'date-fns';
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {UpcomingReservation} from './useUpcomingTravelReservations';
 
 type UpcomingTravelItemProps = {

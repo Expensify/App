@@ -1,6 +1,7 @@
-import type {TNode} from 'react-native-render-html';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawShiftedLineSegmentStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawShiftedLineSegmentStyle';
+
+import type {TNode} from 'react-native-render-html';
 
 /**
  * Parse label indicator config from a `<ShiftedLineSegment>` node.

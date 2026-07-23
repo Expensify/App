@@ -1,17 +1,18 @@
-import React from 'react';
-import CommonFilterContent from '@components/Search/FilterComponents/AdvancedFilters/CommonFilterContent';
+import FilterComponents from '@components/Search/FilterComponents';
 import type {CommonFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function CommonFilterContentPopupWrapper({filterKey, value, type, policyIDs, policyIDQuery, onChange}: CommonFilterContentWrapperProps) {
+import React from 'react';
+
+function CommonFilterContentPopupWrapper({filterKey, value, type, policyID, onChange}: CommonFilterContentWrapperProps) {
     const styles = useThemeStyles();
     return (
-        <CommonFilterContent
+        <FilterComponents
             filterKey={filterKey}
             value={value}
             type={type}
-            policyIDs={policyIDs}
-            policyIDQuery={policyIDQuery}
+            policyID={policyID}
             selectionListTextInputStyle={[styles.pb1, styles.pt5]}
             selectionListStyle={{contentContainerStyle: [styles.pv2]}}
             onChange={onChange}

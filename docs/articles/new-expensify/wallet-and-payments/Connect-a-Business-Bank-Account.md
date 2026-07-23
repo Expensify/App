@@ -2,12 +2,12 @@
 title: Connect a US Business Bank Account
 description: Learn how to connect and verify a US business bank account in Expensify for reimbursements, Expensify Card payments, and invoice payouts.
 keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents]
-internalScope: Audience is Workspace Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
+internalScope: Audience is Workspace Admins and Payments Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
 ---
 
 # Connect a US Business Bank Account
 
-You can connect a US business bank account from **Wallet**, or from a Workspace if you are a Workspace Admin. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
+You can connect a US business bank account from **Wallet**, or from a Workspace if you are a Workspace Admin or a Payments Admin. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
 
 This article covers connecting US bank accounts only. If your business bank account is based outside the United States, [learn how to connect an international business bank account](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
@@ -16,7 +16,7 @@ This article covers connecting US bank accounts only. If your business bank acco
 ## Who can connect a US business bank account
 
 - Any member can connect a US business bank account in **Wallet**. 
-- Workspace Admins can connect a business bank account to a Workspace.
+- Workspace Admins and Payments Admins can connect a business bank account to a Workspace.
 - The member who sets up the account and all beneficial owners must have a physical US address, a US photo ID, and a US SSN.
 
 To connect a business bank account, the Workspace must have Workflows enabled. [Learn how to enable Workflows](/articles/new-expensify/workspaces/Workspace-Workflows#enable-workflows).
@@ -62,6 +62,16 @@ If you already have a verified business bank account, you can share it to anothe
 
 ---
 
+## What personal details to enter when connecting your bank account
+
+When you start setup, enter your personal details:
+
+1. **Legal name** — Enter your full legal name exactly as it appears on your ID. Entering a nickname or shortened name can cause verification to fail or be delayed.
+2. **Date of birth** and the **last four digits of your Social Security Number**.
+3. **Home address** — Must be a physical US address. PO boxes and mail drops are not accepted, so you'll need to enter a physical address before you can continue.
+
+---
+
 ## How to verify your identity with a US-issued photo ID
 
 After entering your personal details, complete identity verification:
@@ -77,7 +87,7 @@ Your ID must be issued in the US with an expiration date in the future.
 
 Provide the following company information:
 
-1. **Company address** — Must be a physical US address. PO Boxes or mail drop addresses will be flagged for review and may delay verification.
+1. **Company address** — Must be a physical US address. PO boxes and mail drops are not accepted, so you'll need to enter a physical address before you can continue.
 2. **Tax Identification Number (TIN)** — Assigned by the IRS.
 3. **Company website** — Required to access most Expensify payment features.
 4. **Industry Classification Code** — Find the list of codes at [census.gov/naics](https://www.census.gov/naics/?input=software&year=2022).

@@ -1,8 +1,3 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -13,25 +8,36 @@ import Text from '@components/Text';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {isValidValidateCode} from '@libs/ValidationUtils';
+
 import {clearValidateCodeActionError} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {AccessibilityInfo, View} from 'react-native';
 
 type ValidateCodeFormHandle = {
     focus: () => void;
@@ -299,12 +305,12 @@ function BaseValidateCodeForm({
         clearDefaultValidationCodeError();
         setCanShowError(true);
         if (!validateCode.trim()) {
-            setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
+            setFormError({validateCode: 'validateCodeForm.error.pleaseFillSecurityCode'});
             return;
         }
 
         if (!isValidValidateCode(validateCode)) {
-            setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
+            setFormError({validateCode: 'validateCodeForm.error.incorrectSecurityCode'});
             return;
         }
 
@@ -368,10 +374,10 @@ function BaseValidateCodeForm({
                             hoverDimmingValue={1}
                             pressDimmingValue={0.2}
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                            accessibilityLabel={translate('validateCodeForm.securityCodeNotReceived')}
                             sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                         >
-                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.securityCodeNotReceived')}</Text>
                         </PressableWithFeedback>
                     </View>
                 )}

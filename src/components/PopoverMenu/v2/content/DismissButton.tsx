@@ -1,8 +1,11 @@
-import React from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type DismissButtonProps = {
     onPress: () => void;

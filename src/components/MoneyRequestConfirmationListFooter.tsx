@@ -1,16 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import FormHelpMessage from './FormHelpMessage';
-import ConfirmationFieldsProvider from './MoneyRequestConfirmationFields/Provider';
-import ConfirmationFieldList from './MoneyRequestConfirmationListFooter/ConfirmationFieldList';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {
     AmountDisplay,
     CompactControls,
@@ -23,11 +24,15 @@ import type {
     ToggleHandlers,
     VisibilityFlags,
 } from './MoneyRequestConfirmationListFooter/fieldGroupTypes';
+import type {MeasurableInput} from './SelectionList/SelectionListWithSections/types';
+
+import FormHelpMessage from './FormHelpMessage';
+import ConfirmationFieldsProvider from './MoneyRequestConfirmationFields/Provider';
+import ConfirmationFieldList from './MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import DistanceMapSection from './MoneyRequestConfirmationListFooter/sections/DistanceMapSection';
 import InvoiceSenderSection from './MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
 import PerDiemSection from './MoneyRequestConfirmationListFooter/sections/PerDiemSection';
 import ReceiptSection from './MoneyRequestConfirmationListFooter/sections/ReceiptSection';
-import type {MeasurableInput} from './SelectionList/SelectionListWithSections/types';
 
 const noopSetShowMoreFields = () => {};
 

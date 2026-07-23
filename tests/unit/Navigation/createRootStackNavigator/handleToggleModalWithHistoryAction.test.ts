@@ -1,8 +1,10 @@
-import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 import {handleToggleModalWithHistoryAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import type {ToggleModalWithHistoryActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import type {CustomHistoryEntry} from '@libs/Navigation/AppNavigator/routerExtensions/types';
+
 import CONST from '@src/CONST';
+
+import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 
 type TestState = StackNavigationState<ParamListBase> & {history?: CustomHistoryEntry[]};
 

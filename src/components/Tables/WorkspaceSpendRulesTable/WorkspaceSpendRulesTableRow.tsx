@@ -1,19 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SpendRuleTableItem = TableData & {
     ruleID: string;
@@ -41,21 +46,24 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lock', 'CircleSlash', 'Checkmark']);
     const {processedData} = useTableContext<SpendRuleTableItem>();
 
-    const tableRowItem = processedData.at(rowIndex) ?? item;
-    const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const accessibilityLabel = `${tableRowItem.actionLabel}. ${tableRowItem.cardSummary}. ${tableRowItem.ruleSummary}`;
+    const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const accessibilityLabel = `${item.actionLabel}. ${item.cardSummary}. ${item.ruleSummary}`;
 
     const prevItem = rowIndex > 0 ? processedData.at(rowIndex - 1) : undefined;
     const hasMultipleTypes = processedData.length > 1 && processedData.some((r) => r.isDefault !== processedData.at(0)?.isDefault);
-    const showSectionHeader = hasMultipleTypes && (rowIndex === 0 || !!prevItem?.isDefault !== !!tableRowItem.isDefault);
+    const showSectionHeader = hasMultipleTypes && (rowIndex === 0 || !!prevItem?.isDefault !== !!item.isDefault);
 
-    const lockIcon = tableRowItem.isDefault ? (
-        <Icon
-            src={Expensicons.Lock}
-            width={variables.iconSizeNormal}
-            height={variables.iconSizeNormal}
-            fill={theme.icon}
-        />
+    const lockIcon = item.isDefault ? (
+        <Tooltip text={translate('common.locked')}>
+            <View>
+                <Icon
+                    src={Expensicons.Lock}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    fill={theme.icon}
+                />
+            </View>
+        </Tooltip>
     ) : undefined;
 
     return (
@@ -63,7 +71,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
             {!!showSectionHeader && (
                 <View style={[styles.mh5, styles.pv2, styles.ph3, StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG), rowIndex === 0 ? styles.borderBottom : styles.borderTop]}>
                     <TextWithTooltip
-                        text={tableRowItem.isDefault ? translate('workspace.rules.spendRules.defaultSection') : translate('workspace.rules.spendRules.customRulesSection')}
+                        text={item.isDefault ? translate('workspace.rules.spendRules.defaultSection') : translate('workspace.rules.spendRules.customRulesSection')}
                         style={[styles.textMicroBoldSupporting, styles.lh14]}
                     />
                 </View>
@@ -74,8 +82,11 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                 disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false}}
-                onPress={tableRowItem.action}
+                offlineWithFeedback={{
+                    pendingAction: item.pendingAction,
+                    shouldHideOnDelete: false,
+                }}
+                onPress={item.action}
                 checkboxReplacementElement={lockIcon}
             >
                 {({hovered}) => (
@@ -84,21 +95,23 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                             <View style={[styles.flex1, styles.justifyContentCenter]}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                     <Badge
-                                        text={tableRowItem.actionLabel}
-                                        icon={tableRowItem.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
+                                        text={item.actionLabel}
+                                        icon={item.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
                                         badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(variables.componentSizeNormal)]}
-                                        error={tableRowItem.isBlock}
-                                        success={!tableRowItem.isBlock}
+                                        error={item.isBlock}
+                                        success={!item.isBlock}
                                         isCondensed
                                     />
                                     <TextWithTooltip
-                                        text={tableRowItem.cardSummary}
+                                        shouldShowTooltip
+                                        text={item.cardSummary}
                                         numberOfLines={1}
                                         style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
                                 <TextWithTooltip
-                                    text={tableRowItem.ruleSummary}
+                                    shouldShowTooltip
+                                    text={item.ruleSummary}
                                     numberOfLines={1}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
                                 />
@@ -109,25 +122,27 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                             <>
                                 <View style={[styles.justifyContentCenter]}>
                                     <Badge
-                                        text={tableRowItem.actionLabel}
-                                        icon={tableRowItem.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
+                                        text={item.actionLabel}
+                                        icon={item.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
                                         badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(variables.componentSizeNormal)]}
-                                        error={tableRowItem.isBlock}
-                                        success={!tableRowItem.isBlock}
+                                        error={item.isBlock}
+                                        success={!item.isBlock}
                                         isCondensed
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         numberOfLines={1}
-                                        text={tableRowItem.cardSummary}
+                                        text={item.cardSummary}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         numberOfLines={1}
-                                        text={tableRowItem.ruleSummary}
+                                        text={item.ruleSummary}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                     />
                                 </View>
@@ -137,7 +152,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                         <Icon
                             src={Expensicons.ArrowRight}
                             fill={theme.icon}
-                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || tableRowItem.disabled) && styles.opacitySemiTransparent]}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
                             width={variables.iconSizeNormal}
                             height={variables.iconSizeNormal}
                         />

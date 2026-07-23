@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
+
+import type {ACHDataReimbursementAccount} from '../../src/types/onyx/ReimbursementAccount';
+
 import CONST from '../../src/CONST';
 import {getBankAccountIDAsNumber} from '../../src/libs/ReimbursementAccountUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {ACHDataReimbursementAccount} from '../../src/types/onyx/ReimbursementAccount';
 
 Onyx.init({keys: ONYXKEYS});
 

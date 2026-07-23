@@ -1,4 +1,5 @@
 import * as SentryReact from '@sentry/react';
+
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
 
 /**
