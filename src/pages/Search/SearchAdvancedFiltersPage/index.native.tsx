@@ -1,4 +1,5 @@
 import React from 'react';
+
 import SearchAdvancedFiltersBase from './SearchAdvancedFiltersBase';
 
 function SearchAdvancedFiltersPage() {

@@ -1,8 +1,4 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -11,16 +7,27 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import type {ThemeStyles} from '@styles/index';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 
@@ -141,8 +148,8 @@ function NetSuiteImportCustomFieldPage({
 
             <FixedFooter style={[styles.mtAuto, styles.pt3]}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={!!config?.pendingFields?.[importCustomField]}
                     onPress={() => {
                         if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS) {
@@ -151,8 +158,9 @@ function NetSuiteImportCustomFieldPage({
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(policyID));
                         }
                     }}
-                    text={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`)}
-                />
+                >
+                    <Button.Text>{translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`)}</Button.Text>
+                </Button>
             </FixedFooter>
         </ConnectionLayout>
     );

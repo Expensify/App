@@ -1,6 +1,3 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -11,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -18,26 +16,38 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/SpendRulesUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
 
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {
@@ -75,7 +85,6 @@ function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCar
 }
 
 function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
-    const navigation = useNavigation();
     const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -94,6 +103,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     useFocusEffect(
         useCallback(() => {
@@ -101,7 +111,9 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
-    const goBack = () => navigation.goBack();
+    const goBack = () => Navigation.goBack();
+
+    const saveAndGoBack = () => Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
 
     const {isOffline} = useNetwork({
         onReconnect: () => {
@@ -113,7 +125,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
     const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
-    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare);
+    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate);
 
     const [inputValue, setInputValue, filteredCards] = useSearchResults(eligibleCards, filterCard, sortCards);
 
@@ -183,8 +195,10 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             return;
         }
 
-        updateDraftSpendRule({cardIDs: validSelectedCardIDs});
-        goBack();
+        startWithLoading(() => {
+            updateDraftSpendRule({cardIDs: validSelectedCardIDs});
+            saveAndGoBack();
+        });
     };
 
     const hasCards = listData.length > 0;
@@ -263,6 +277,8 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
                                 onSubmit={handleSave}
+                                isLoading={isLoading}
+                                shouldShowLoadingImmediatelyOnPress={false}
                                 enabledWhenOffline
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                             />

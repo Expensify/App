@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
 import useDefaultFundID from '@hooks/useDefaultFundID';
+
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
     canAccessSubmitWorkspaceFeatures,
+    canMemberAssignRole,
+    canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
@@ -17,8 +19,8 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
-    getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
+    getDefaultChatEnabledPolicy,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getExcludedUsers,
@@ -27,18 +29,22 @@ import {
     getMatchingVendorByID,
     getMatchingVendors,
     getPolicyBrickRoadIndicatorStatus,
-    getPolicyEmployeeAccountIDs,
+    getPolicyByCustomUnitID,
     getRateDisplayValue,
     getSubmitToAccountID,
+    getSubmitToEmail,
     getTagApproverRule,
+    getTagGLCode,
     getTagList,
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    getXeroSupplierByID,
+    getXeroSuppliers,
     hasConfiguredRules,
     hasDependentTags,
     hasDynamicExternalWorkflow,
-    hasEligibleActiveAdminFromWorkspaces,
+    hasEligibleBankAccountShareRecipient,
     hasIndependentTags,
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
@@ -46,19 +52,28 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isMergeHRCompleteSetupNeededSelector,
+    isPerDiemEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isXeroActiveMatchingSource,
+    isXeroVendorMatchingActive,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -321,6 +336,27 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(false);
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(true);
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
+        });
+
+        it('limits People Admin member role management to members and auditors', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+        });
+
+        it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
+            const policy = {
+                ...buildPolicy(CONST.POLICY.ROLE.EDITOR),
+                type: CONST.POLICY.TYPE.SUBMIT,
+            };
+
+            expect(canMemberManageMemberWithRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(false);
         });
     });
 
@@ -1050,6 +1086,26 @@ describe('PolicyUtils', () => {
             expect(result).toBe(adminAccountID);
         });
 
+        it('should return submitsTo email from workspace approval config', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: undefined,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        submitsTo: adminEmail,
+                    },
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+            };
+
+            expect(getSubmitToEmail(policy, report, employeeEmail)).toBe(adminEmail);
+        });
+
         it('should return the default approver', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
@@ -1177,6 +1233,137 @@ describe('PolicyUtils', () => {
             expect(tagList.name).toEqual(expected);
         });
     });
+    describe('getTagGLCode', () => {
+        // Tag lists are intentionally declared out of orderWeight order to verify levels resolve by orderWeight
+        const glCodePolicyTagLists: PolicyTagLists = {
+            Project: {
+                name: 'Project',
+                orderWeight: 1,
+                required: false,
+                tags: {
+                    Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
+                    Internal: {name: 'Internal', enabled: true},
+                },
+            },
+            Department: {
+                name: 'Department',
+                orderWeight: 0,
+                required: false,
+                tags: {
+                    Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                    Marketing: {name: 'Marketing', enabled: true},
+                    'Sales\\:EMEA': {name: 'Sales\\:EMEA', enabled: true, 'GL Code': '"4321"'},
+                },
+            },
+        };
+
+        it('returns empty string when policy tags are undefined or empty', () => {
+            expect(getTagGLCode(undefined, 'Engineering')).toBe('');
+            expect(getTagGLCode({}, 'Engineering')).toBe('');
+        });
+
+        it('returns empty string when the transaction tag is undefined or empty', () => {
+            expect(getTagGLCode(glCodePolicyTagLists, undefined)).toBe('');
+            expect(getTagGLCode(glCodePolicyTagLists, '')).toBe('');
+        });
+
+        it('returns empty string when the tag is missing from the policy or has no GL code', () => {
+            expect(getTagGLCode(glCodePolicyTagLists, 'Nonexistent')).toBe('');
+            expect(getTagGLCode(glCodePolicyTagLists, 'Marketing')).toBe('');
+        });
+
+        it('returns the GL code of a single-level tag', () => {
+            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering')).toBe('1234');
+        });
+
+        it('joins the GL codes of multi-level tags in tag list order', () => {
+            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 5678');
+        });
+
+        it('skips multi-level tag levels without a GL code', () => {
+            expect(getTagGLCode(glCodePolicyTagLists, 'Marketing:Roadshow')).toBe('5678');
+            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Internal')).toBe('1234');
+        });
+
+        it('resolves tags with escaped colons against the matching tag list level and strips double quotes', () => {
+            expect(getTagGLCode(glCodePolicyTagLists, 'Sales\\:EMEA:Roadshow')).toBe('4321, 5678');
+        });
+
+        it('resolves dependent tags by name and parent filter when same-named children exist under different parents', () => {
+            // Same-named child tags of dependent lists are stored under unique record keys,
+            // so they can only be told apart by their parentTagsFilter
+            const dependentPolicyTagLists: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                        Marketing: {name: 'Marketing', enabled: true},
+                    },
+                },
+                Project: {
+                    name: 'Project',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                        'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+                    },
+                },
+            };
+
+            expect(getTagGLCode(dependentPolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 2222');
+            expect(getTagGLCode(dependentPolicyTagLists, 'Marketing:Roadshow')).toBe('1111');
+        });
+
+        it('matches a dependent tag deeper in the hierarchy against the accumulated parent tag path', () => {
+            const deepDependentPolicyTagLists: PolicyTagLists = {
+                State: {
+                    name: 'State',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        California: {name: 'California', enabled: true},
+                    },
+                },
+                City: {
+                    name: 'City',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        'San Francisco': {name: 'San Francisco', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                },
+                District: {
+                    name: 'District',
+                    orderWeight: 2,
+                    required: false,
+                    tags: {
+                        Mission: {name: 'Mission', enabled: true, 'GL Code': '9000', rules: {parentTagsFilter: '^California:San Francisco$'}},
+                        'Mission-1': {name: 'Mission', enabled: true, 'GL Code': '9999', rules: {parentTagsFilter: '^Texas:Austin$'}},
+                    },
+                },
+            };
+
+            expect(getTagGLCode(deepDependentPolicyTagLists, 'California:San Francisco:Mission')).toBe('9000');
+        });
+
+        it('returns the GL code as a string when malformed Onyx data stores it as a number', () => {
+            const tagListsWithNumberGLCode: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
+                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': 1234},
+                    },
+                },
+            };
+            expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
+        });
+    });
     describe('sortWorkspacesBySelected', () => {
         it('should order workspaces with selected workspace first', () => {
             const workspace1 = {policyID: '1', name: 'Workspace 1'};
@@ -1213,41 +1400,6 @@ describe('PolicyUtils', () => {
                 {policyID: '1', name: 'Workspace 1'},
                 {policyID: '2', name: 'Workspace 2'},
             ]);
-        });
-    });
-
-    describe('getPolicyEmployeeAccountIDs', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should return an array of employee accountIDs for the given policy (including current user accountID) if no current user is passed', () => {
-            const policy = {
-                employeeList,
-            };
-            const result = getPolicyEmployeeAccountIDs(policy);
-            expect(result).toEqual([7, 1, 2, 3, 4, 5, 6]);
-        });
-
-        it('should return an array of employee accountIDs for the given policy (excluding current user accountID) if current user is passed', () => {
-            const policy = {
-                employeeList,
-            };
-            const result = getPolicyEmployeeAccountIDs(policy, 5);
-            expect(result).toEqual([7, 1, 2, 3, 4, 6]);
-        });
-
-        it('should return an empty array if no employees are found', () => {
-            const policy = {
-                employeeList: {},
-            };
-            const result = getPolicyEmployeeAccountIDs(policy);
-            expect(result).toEqual([]);
         });
     });
 
@@ -1769,6 +1921,60 @@ describe('PolicyUtils', () => {
             const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
+        it('should allow Payments Admins to share with and receive from members who can manage payments', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                    },
+                },
+            };
+
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.login).toBe(approverEmail);
+        });
+        it('should not return members who cannot manage payments', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
+                    },
+                },
+            };
+
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+
+            expect(result).toHaveLength(0);
+        });
+        it('should not fall back to the current user role when a recipient role is missing', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail},
+                    },
+                },
+            };
+
+            const recipients = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+
+            expect(recipients).toHaveLength(0);
+            expect(hasEligibleRecipient).toBe(false);
+        });
         it('should not return Expensify guide when policy owner is not Expensify team', () => {
             const policies = {
                 '1': {
@@ -1816,7 +2022,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasEligibleActiveAdminFromWorkspaces', () => {
+    describe('hasEligibleBankAccountShareRecipient', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -1837,7 +2043,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
             expect(result).toBe(false);
         });
         it('should return true when there is a non-guide admin', () => {
@@ -1853,7 +2059,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
             expect(result).toBe(true);
         });
         it('should return true when the guide is on an Expensify-owned policy', () => {
@@ -1868,12 +2074,12 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
             expect(result).toBe(true);
         });
     });
 
-    describe('hasEligibleActiveAdminFromWorkspaces', () => {
+    describe('hasEligibleBankAccountShareRecipient', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -1904,7 +2110,24 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, bankAccountID);
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
+            expect(result).toBe(true);
+        });
+        it('should return true when a Payments Admin can share with another payment-capable member', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+
             expect(result).toBe(true);
         });
         it('should return false when the user only joined another workspace as a member', async () => {
@@ -1939,7 +2162,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, bankAccountID);
+            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
             expect(result).toBe(false);
         });
     });
@@ -2439,6 +2662,96 @@ describe('PolicyUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.id).toBe('1');
         });
+
+        it('includes a control policy whose arePerDiemRatesEnabled flag is missing but has an enabled per diem custom unit', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporate: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    // Migrated member: flag never arrived, but the configured custom unit is present
+                    arePerDiemRatesEnabled: undefined,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(1);
+            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined)).toHaveLength(1);
+        });
+
+        it('excludes a control policy where per diem was explicitly disabled even if a custom unit lingers', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporate: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    // Explicit off must be respected, so the lingering custom unit cannot re-enable it
+                    arePerDiemRatesEnabled: false,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
+            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined)).toHaveLength(0);
+        });
+
+        describe('isPerDiemEnabled', () => {
+            it('returns true when arePerDiemRatesEnabled is explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: true, customUnits: {}};
+                expect(isPerDiemEnabled(policy)).toBe(true);
+            });
+
+            it('returns false when arePerDiemRatesEnabled is explicitly false, ignoring the configured custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+
+            it('infers true from an enabled per diem custom unit when the flag is missing', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEnabled(policy)).toBe(true);
+            });
+
+            it('returns false when the flag is missing and the per diem custom unit is disabled', () => {
+                const policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    arePerDiemRatesEnabled: undefined,
+                    customUnits: {ABCDEF: {...perDiemCustomUnit, enabled: false}},
+                };
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+
+            it('returns false when the flag is missing and there is no per diem custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {}};
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+        });
+
+        describe('getPolicyByCustomUnitID', () => {
+            const transactionWithPerDiemUnit: Transaction = {
+                ...createRandomTransaction(0),
+                comment: {customUnit: {customUnitID: 'ABCDEF'}},
+            };
+
+            it('resolves the policy with the matching custom unit when arePerDiemRatesEnabled is missing', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}},
+                };
+                expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)?.id).toBe('1');
+            });
+
+            it('does not resolve a policy where per diem was explicitly disabled', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}},
+                };
+                expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)).toBeUndefined();
+            });
+        });
     });
 
     describe('sortPoliciesByName', () => {
@@ -2476,76 +2789,6 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
-        });
-    });
-
-    describe('getConnectedIntegrationNamesForPolicies', () => {
-        it('returns empty Set when policies is undefined', () => {
-            expect(getConnectedIntegrationNamesForPolicies(undefined)).toEqual(new Set());
-        });
-
-        it('returns empty Set when policies is empty object', () => {
-            expect(getConnectedIntegrationNamesForPolicies({})).toEqual(new Set());
-        });
-
-        it('returns Set with connection name when policy has verified connection', () => {
-            const policyWithXero = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                        lastSync: {isConnected: true},
-                    },
-                }),
-            });
-            const policies: OnyxCollection<Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyWithXero,
-            };
-            expect(getConnectedIntegrationNamesForPolicies(policies)).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
-        });
-
-        it('filters by policyIDs when provided', () => {
-            const policy1WithQBO = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
-                }),
-            });
-            const policy2WithXero = createMock<Policy>({
-                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
-                }),
-            });
-            const policies: OnyxCollection<Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1WithQBO,
-                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2WithXero,
-            };
-            expect(getConnectedIntegrationNamesForPolicies(policies, ['1'])).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.QBO]));
-        });
-
-        it('returns all connection names when policies have different connections', () => {
-            const policy1 = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
-                }),
-            });
-
-            const policy2 = createMock<Policy>({
-                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
-                }),
-            });
-
-            const policies: OnyxCollection<Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
-                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
-            };
-            const result = getConnectedIntegrationNamesForPolicies(policies);
-            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
-            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
-            expect(result.size).toBe(2);
         });
     });
 
@@ -3080,6 +3323,26 @@ describe('PolicyUtils', () => {
                 }),
             });
 
+        // Sentinel for "Xero connected but Integration-Server has not yet synced suppliers"
+        // (i.e. `data.contacts` is undefined on the connection). Distinct from the populated
+        // default so callers can opt into the unsynced state without colliding with the
+        // default-parameter mechanic, which would otherwise replace an explicit `undefined`
+        // with the default contacts list.
+        const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
+        const buildXeroPolicy = (
+            contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}},
+            {isConfigured = true}: {isConfigured?: boolean} = {},
+        ): Policy =>
+            createMock<Policy>({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        config: {isConfigured},
+                        data: contacts === XERO_CONTACTS_UNSYNCED ? {} : {contacts},
+                    },
+                },
+            });
+
         describe('hasVendorFeature', () => {
             it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
@@ -3093,12 +3356,35 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), true)).toBe(true);
             });
 
+            it('returns true when beta is enabled and Xero is connected with isConfigured=true (R4) — no export-destination enum on Xero', () => {
+                expect(hasVendorFeature(buildXeroPolicy(), true)).toBe(true);
+            });
+
+            it('returns true when beta is enabled and Xero is configured but contacts have not synced yet — config-based gate, not data-based', () => {
+                // The matcher itself short-circuits when contacts is undefined (see
+                // ViolationsUtils' inactiveVendor guardrail); hasVendorFeature stays true so the
+                // App still surfaces the UI surfaces (picker, default-supplier row).
+                expect(hasVendorFeature(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), true)).toBe(true);
+            });
+
+            it('returns false when Xero is connected but isConfigured=false (mid-tenant-switch) — mirrors `Xero::hasVendorFeature` PHP gate', () => {
+                // Integration-Server clears `isConfigured` during a Xero tenant switch while the
+                // old tenant's `data.contacts` lingers until the next sync. The PHP-side matcher
+                // is gated off in this window; the App must mirror so the picker doesn't show
+                // stale contacts and the user can't pin a now-invalid externalID.
+                expect(hasVendorFeature(buildXeroPolicy(undefined, {isConfigured: false}), true)).toBe(false);
+            });
+
             it('returns false when beta is disabled, even with Credit Card export configured', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
             });
 
             it('returns false when beta is disabled, even with Intacct CC Charge export configured', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled, even with Xero connected', () => {
+                expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
@@ -3184,6 +3470,24 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(policy)).toEqual(qboVendors);
             });
 
+            it('returns the Xero supplier list normalized from the keyed Record to the shared Vendor shape (R4)', () => {
+                const policy = buildXeroPolicy({
+                    xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'},
+                    xc2: {id: 'xc2', name: 'Other Xero', email: 'other@example.com'},
+                });
+                expect(getMatchingVendors(policy)).toEqual([
+                    {id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@example.com'},
+                    {id: 'xc2', name: 'Other Xero', currency: '', email: 'other@example.com'},
+                ]);
+            });
+
+            it('returns an empty array when Xero is connected but contacts have not synced yet (data.contacts undefined)', () => {
+                // Integration-Server has not yet completed a supplier sync for this workspace.
+                // The matcher must treat the contact list as unknown rather than failing — this
+                // is the same guardrail that prevents inactiveVendor from firing falsely.
+                expect(getMatchingVendors(buildXeroPolicy(XERO_CONTACTS_UNSYNCED))).toEqual([]);
+            });
+
             it('returns an empty array when no supported connection exists', () => {
                 const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
                 expect(getMatchingVendors(policy)).toEqual([]);
@@ -3211,6 +3515,18 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendorByID(policy, 'iv-2')).toEqual({id: 'iv-2', name: 'Other Intacct', currency: '', email: ''});
             });
 
+            it('returns the matching Xero supplier (normalized) when the ID exists in the contacts list (R4)', () => {
+                const policy = buildXeroPolicy({
+                    xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'},
+                    xc2: {id: 'xc2', name: 'Other Xero', email: 'other@example.com'},
+                });
+                expect(getMatchingVendorByID(policy, 'xc2')).toEqual({id: 'xc2', name: 'Other Xero', currency: '', email: 'other@example.com'});
+            });
+
+            it('returns undefined for a Xero supplier ID that is not in the contacts list (inactive-supplier case)', () => {
+                expect(getMatchingVendorByID(buildXeroPolicy(), 'xcMissing')).toBeUndefined();
+            });
+
             it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
                 expect(getMatchingVendorByID(policy, 'v-missing')).toBeUndefined();
@@ -3231,6 +3547,11 @@ describe('PolicyUtils', () => {
             it('resolves an Intacct vendor (normalized) even when the current export mode is no longer Credit Card Charge', () => {
                 const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL, [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]);
                 expect(findVendorByID(policy, 'iv-1')).toEqual({id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''});
+            });
+
+            it('resolves a Xero supplier (normalized) from connections.xero.data.contacts (R4)', () => {
+                const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                expect(findVendorByID(policy, 'xc1')).toEqual({id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@example.com'});
             });
 
             it('prefers the active Intacct integration over stale QBO data when both hold the same vendor ID', () => {
@@ -3301,6 +3622,215 @@ describe('PolicyUtils', () => {
             it('returns undefined when the vendorID is undefined', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
                 expect(findVendorByID(policy, undefined)).toBeUndefined();
+            });
+        });
+
+        describe('getXeroSuppliers (Xero-scoped, R4)', () => {
+            it('returns the Xero supplier list normalized to the shared Vendor shape', () => {
+                const policy = buildXeroPolicy({
+                    xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'},
+                    xc2: {id: 'xc2', name: 'Other Xero', email: 'other@example.com'},
+                });
+                expect(getXeroSuppliers(policy)).toEqual([
+                    {id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@example.com'},
+                    {id: 'xc2', name: 'Other Xero', currency: '', email: 'other@example.com'},
+                ]);
+            });
+
+            it('returns Xero contacts even when QBO is the active matching source (dual-connection state)', () => {
+                // This is the scenario the Xero-scoped helper exists for: a workspace has QBO
+                // actively matching (Credit Card export) AND a Xero connection with synced
+                // contacts. The Xero default-supplier picker must list Xero suppliers, not QBO
+                // vendors, even though `getMatchingVendors` would return QBO here.
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = createMock<Policy>({
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'qbo-active', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                });
+                expect(getXeroSuppliers(policy)).toEqual([{id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@example.com'}]);
+            });
+
+            it('returns an empty array when Xero contacts have not synced yet (data.contacts undefined)', () => {
+                expect(getXeroSuppliers(buildXeroPolicy(XERO_CONTACTS_UNSYNCED))).toEqual([]);
+            });
+
+            it('returns an empty array when Xero is not connected', () => {
+                const policy = {...createRandomPolicy(0), connections: {}};
+                expect(getXeroSuppliers(policy)).toEqual([]);
+            });
+        });
+
+        describe('getXeroSupplierByID (Xero-scoped, R4)', () => {
+            it('returns the matching Xero supplier when the ID exists in the contacts list', () => {
+                const policy = buildXeroPolicy({
+                    xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'},
+                    xc2: {id: 'xc2', name: 'Other Xero', email: 'other@example.com'},
+                });
+                expect(getXeroSupplierByID(policy, 'xc2')).toEqual({id: 'xc2', name: 'Other Xero', currency: '', email: 'other@example.com'});
+            });
+
+            it('returns the Xero supplier even when QBO is connected with a same-ID vendor (dual-connection state)', () => {
+                // Workspace state: Xero is connected with a supplier id `shared`, and QBO is also
+                // connected with a vendor coincidentally named `shared`. The Xero export config
+                // display row must show the Xero supplier name, not the QBO vendor's.
+                const xeroPolicy = buildXeroPolicy({shared: {id: 'shared', name: 'Xero Supplier', email: 'xero@example.com'}});
+                const policy = createMock<Policy>({
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'shared', name: 'QBO Vendor', currency: 'USD'}]},
+                        },
+                    },
+                });
+                expect(getXeroSupplierByID(policy, 'shared')).toEqual({id: 'shared', name: 'Xero Supplier', currency: '', email: 'xero@example.com'});
+            });
+
+            it('returns undefined when the ID is not in the Xero contacts list', () => {
+                expect(getXeroSupplierByID(buildXeroPolicy(), 'xcMissing')).toBeUndefined();
+            });
+
+            it('returns undefined when supplierID is undefined', () => {
+                expect(getXeroSupplierByID(buildXeroPolicy(), undefined)).toBeUndefined();
+            });
+
+            it('returns undefined when Xero contacts have not synced yet', () => {
+                expect(getXeroSupplierByID(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), 'xc1')).toBeUndefined();
+            });
+        });
+
+        describe('isXeroActiveMatchingSource (R4)', () => {
+            it('returns true when only Xero is connected', () => {
+                expect(isXeroActiveMatchingSource(buildXeroPolicy())).toBe(true);
+            });
+
+            it('returns false when QBO is the active matching source even if Xero is also connected', () => {
+                // The exact dual-connection state the helper was introduced for: QBO is in
+                // vendor-matching export mode (CC), and Xero is connected with contacts. The
+                // label flip / picker copy must stay on "Vendor" because the user is actually
+                // seeing QBO vendors via getMatchingVendors' precedence rule.
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = createMock<Policy>({
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                });
+                expect(isXeroActiveMatchingSource(policy)).toBe(false);
+            });
+
+            it('returns false when Intacct is the active matching source even if Xero is also connected', () => {
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = createMock<Policy>({
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                            data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
+                        },
+                    },
+                });
+                expect(isXeroActiveMatchingSource(policy)).toBe(false);
+            });
+
+            it('returns true when QBO is connected but in a non-matching export mode (Vendor Bill) + Xero is connected', () => {
+                // QBO is connected but not in CC/DC mode, so isQBOVendorMatchingActive is false.
+                // Xero is connected, so it takes over as the active source via getMatchingVendors'
+                // fall-through.
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = createMock<Policy>({
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                });
+                expect(isXeroActiveMatchingSource(policy)).toBe(true);
+            });
+
+            it('returns false when Xero is not connected', () => {
+                const policy = {...createRandomPolicy(0), connections: {}};
+                expect(isXeroActiveMatchingSource(policy)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(isXeroActiveMatchingSource(undefined)).toBe(false);
+            });
+        });
+
+        describe('isXeroVendorMatchingActive (R4)', () => {
+            it('returns true when Xero is connected with isConfigured=true', () => {
+                expect(isXeroVendorMatchingActive(buildXeroPolicy())).toBe(true);
+            });
+
+            it('returns false when Xero is connected but isConfigured=false (mid tenant-switch)', () => {
+                // Integration-Server clears isConfigured during a Xero tenant switch while the old
+                // tenant's data.contacts still lingers; the Xero-specific UI surfaces (default
+                // supplier row + picker) must hide so an admin can't persist a defaultVendor from
+                // the prior tenant that flips invalid the moment the new sync completes.
+                expect(isXeroVendorMatchingActive(buildXeroPolicy(undefined, {isConfigured: false}))).toBe(false);
+            });
+
+            it('returns true on a dual-connected workspace where Xero is configured and QBO is the active matching source', () => {
+                // Distinct from isXeroActiveMatchingSource: the supplier-picker page should still be
+                // reachable when Xero is connected & configured, even if QBO is currently driving
+                // vendor matching for the workspace's transactions. The admin needs to manage the
+                // Xero default supplier independently of which integration is "active" right now.
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = createMock<Policy>({
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                });
+                expect(isXeroVendorMatchingActive(policy)).toBe(true);
+            });
+
+            it('returns false on a dual-connected workspace where QBO is active and Xero has isConfigured=false', () => {
+                // The exact case Codex flagged: QBO is the active matching source, but the
+                // Xero-specific picker would still render because the global hasVendorFeature OR's
+                // all integrations. The Xero-scoped gate must return false here so the supplier
+                // picker stays hidden and unreachable until the Xero tenant switch completes.
+                const xeroPolicy = buildXeroPolicy(undefined, {isConfigured: false});
+                const policy = createMock<Policy>({
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                });
+                expect(isXeroVendorMatchingActive(policy)).toBe(false);
+            });
+
+            it('returns false when Xero is not connected', () => {
+                const policy = {...createRandomPolicy(0), connections: {}};
+                expect(isXeroVendorMatchingActive(policy)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(isXeroVendorMatchingActive(undefined)).toBe(false);
             });
         });
     });
@@ -3476,5 +4006,42 @@ describe('arePolicyRulesEnabled', () => {
 
     it('returns false for a team policy even when areRulesEnabled is true', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true})).toBe(false);
+    });
+});
+
+describe('getDefaultChatEnabledPolicy', () => {
+    const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
+    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
+    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
+    const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+
+    it('returns the active policy when it is a Submit workspace, even with multiple eligible workspaces', () => {
+        // Regression: a Submit active policy must be recognized as the report-creation default. Previously
+        // isPaidGroupPolicy excluded it, returning undefined here and wrongly forcing the workspace selector.
+        expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], submitPolicy)).toBe(submitPolicy);
+    });
+
+    it('returns the active policy when it is a paid (Collect/Control) workspace', () => {
+        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], teamPolicy)).toBe(teamPolicy);
+    });
+
+    it('returns the only eligible workspace when the active policy is personal', () => {
+        expect(getDefaultChatEnabledPolicy([submitPolicy], personalPolicy)).toBe(submitPolicy);
+    });
+
+    it('returns undefined when the active policy is not a group policy and there are multiple eligible workspaces', () => {
+        expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], personalPolicy)).toBeUndefined();
+    });
+
+    it('returns undefined when there are no eligible workspaces', () => {
+        expect(getDefaultChatEnabledPolicy([], undefined)).toBeUndefined();
+    });
+
+    it('does not return the active policy when it is not in the eligible list (e.g. Submit beta off), falling back to the eligible workspace', () => {
+        expect(getDefaultChatEnabledPolicy([teamPolicy], submitPolicy)).toBe(teamPolicy);
+    });
+
+    it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
+        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
     });
 });

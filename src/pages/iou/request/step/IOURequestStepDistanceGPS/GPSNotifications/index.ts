@@ -1,5 +1,6 @@
 // Android and iOS only, no-op for other platforms
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {Unit} from '@src/types/onyx/Policy';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

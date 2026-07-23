@@ -1,22 +1,25 @@
-import React, {useState} from 'react';
 import FilterComponents from '@components/Search/FilterComponents';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
+
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import BasePopup from './BasePopup';
+
+import React, {useState} from 'react';
+
 import type {PopoverComponentProps} from './FilterPopupButton';
+
+import BasePopup from './BasePopup';
 
 type CommonPopupProps = {
     filterKey: FilterComponentsProps['filterKey'];
     value: FilterComponentsProps['value'];
     type: FilterComponentsProps['type'];
-    policyIDs: FilterComponentsProps['policyIDs'];
+    policyID: FilterComponentsProps['policyID'];
     label: string;
-    policyIDQuery: string[] | undefined;
     closeOverlay: PopoverComponentProps['closeOverlay'];
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function CommonPopup({filterKey, value: initialValue, type, policyIDs, label, policyIDQuery, updateFilterForm, closeOverlay}: CommonPopupProps) {
+function CommonPopup({filterKey, value: initialValue, type, policyID, label, updateFilterForm, closeOverlay}: CommonPopupProps) {
     const [value, setValue] = useState(initialValue);
 
     const applyChanges = () => {
@@ -34,8 +37,7 @@ function CommonPopup({filterKey, value: initialValue, type, policyIDs, label, po
                 filterKey={filterKey}
                 value={value}
                 type={type}
-                policyIDs={policyIDs}
-                policyIDQuery={policyIDQuery}
+                policyID={policyID}
                 onChange={setValue}
             />
         </BasePopup>

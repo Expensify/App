@@ -30,6 +30,9 @@ describe('Column availability single source of truth', () => {
         // Expense-report (report list) view.
         TABLE_COLUMNS.REIMBURSABLE_TOTAL,
         TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
+        TABLE_COLUMNS.FIRST_APPROVER,
+        TABLE_COLUMNS.FIRST_APPROVED,
+        TABLE_COLUMNS.PAID_STATUS,
         // Grouped search views.
         TABLE_COLUMNS.EXPENSES,
         TABLE_COLUMNS.FEED,
@@ -105,6 +108,7 @@ describe('Column availability single source of truth', () => {
         const reportColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
         const reportLevelColumns = [
             TABLE_COLUMNS.STATUS,
+            TABLE_COLUMNS.PAID_STATUS,
             TABLE_COLUMNS.SUBMITTED,
             TABLE_COLUMNS.APPROVED,
             TABLE_COLUMNS.EXPORTED,

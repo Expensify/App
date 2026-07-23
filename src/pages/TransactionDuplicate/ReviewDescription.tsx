@@ -1,11 +1,11 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,10 +13,16 @@ import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/type
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo} from 'react';
+
 import type {FieldItemType} from './ReviewFields';
+
 import ReviewFields from './ReviewFields';
 
 function ReviewDescription() {

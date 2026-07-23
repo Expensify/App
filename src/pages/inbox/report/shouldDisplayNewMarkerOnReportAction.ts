@@ -1,4 +1,5 @@
 import {isReportActionUnread, isReportPreviewAction, shouldHideNewMarker} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 

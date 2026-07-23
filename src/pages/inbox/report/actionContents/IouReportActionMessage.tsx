@@ -1,13 +1,18 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getLinkedTransactionID, getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 import ReportActionMessageContent from './ReportActionMessageContent';
 
 type IouReportActionMessageProps = {

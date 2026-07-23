@@ -1,16 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     addresses: [

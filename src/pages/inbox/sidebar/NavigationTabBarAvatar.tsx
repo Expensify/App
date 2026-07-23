@@ -1,15 +1,20 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+
 import AvatarWithDelegateAvatar from './AvatarWithDelegateAvatar';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';

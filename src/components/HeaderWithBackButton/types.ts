@@ -1,9 +1,8 @@
-import type {ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+
 import type {Action} from '@hooks/useSingleExecution';
+
 import type {StepCounterParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Report} from '@src/types/onyx';
@@ -11,6 +10,10 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */

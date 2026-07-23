@@ -1,16 +1,25 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
+    __esModule: true,
+    default: (callback: () => void) => callback(),
+}));
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -345,6 +354,8 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -367,6 +378,8 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -389,6 +402,8 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });

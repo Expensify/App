@@ -1,13 +1,10 @@
-import {Str} from 'expensify-common';
-import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,29 +12,40 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
-import {clearSignInData} from '@userActions/Session';
+
+import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {Ref} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+
+import type {InputHandle} from './LoginForm/types';
+import type {SignInPageLayoutRef} from './SignInPageLayout/types';
+import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
+
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
-import type {InputHandle} from './LoginForm/types';
 import {LoginProvider} from './SignInLoginContext';
 import SignInPageLayout from './SignInPageLayout';
-import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import SignUpWelcomeForm from './SignUpWelcomeForm';
 import SMSDeliveryFailurePage from './SMSDeliveryFailurePage';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
-import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type SignInPageProps = {
     ref?: Ref<SignInPageRef>;
@@ -70,6 +78,8 @@ type GetRenderOptionsParams = {
     shouldShowAnotherLoginPageOpenedMessage: boolean;
     credentials: OnyxEntry<Credentials>;
     isAccountValidated?: boolean;
+    isSupportalSession: boolean;
+    isAuthenticatingWithShortLivedToken: boolean;
 };
 
 /**
@@ -92,6 +102,8 @@ function getRenderOptions({
     shouldShowAnotherLoginPageOpenedMessage,
     credentials,
     isAccountValidated,
+    isSupportalSession,
+    isAuthenticatingWithShortLivedToken,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
@@ -99,14 +111,22 @@ function getRenderOptions({
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
     const hasSMSDeliveryFailure = !!account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
-    // True, if the user has SAML required, and we haven't yet initiated SAML for their account
-    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
+    // True, if the user has SAML required, and we haven't yet initiated SAML for their account.
+    // Supportal sessions authenticate with a support auth token and must bypass SAML entirely, so we never
+    // initiate SAML during a supportal session, even when the customer's account has SAML required.
+    // We must NOT (re-)initiate SAML while a short-lived-token redeem is in flight: after the SAML redirect returns to
+    // /transition, LogInWithShortLivedAuthTokenPage navigates HOME while still unauthenticated, remounting SignInPage
+    // with hasInitiatedSAMLLogin reset. If account.isLoading is still optimistically true (slow IdP/network) SAML would
+    // re-fire before the redeem lands -> infinite loop. isAuthenticatingWithShortLivedToken (RAM-only, set for the exact
+    // duration of the redeem) gates that off, independent of the isLoading timing race.
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading && !isSupportalSession && !isAuthenticatingWithShortLivedToken;
+
     const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
     // SSO provider's login page
-    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
+    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading && !isSupportalSession) {
         clearSignInData();
     }
 
@@ -153,6 +173,7 @@ function SignInPage({ref}: SignInPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountValidated = account?.validated;
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -214,6 +235,8 @@ function SignInPage({ref}: SignInPageProps) {
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
         isAccountValidated,
+        isSupportalSession: isSupportalSessionUtils(),
+        isAuthenticatingWithShortLivedToken: !!isAuthenticatingWithShortLivedToken,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -245,8 +268,8 @@ function SignInPage({ref}: SignInPageProps) {
         } else {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = shouldUseNarrowLayout
-                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay)}`
-                : translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay);
+                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterSecurityCode', userLoginToDisplay)}`
+                : translate('welcomeText.welcomeEnterSecurityCode', userLoginToDisplay);
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
@@ -268,6 +291,11 @@ function SignInPage({ref}: SignInPageProps) {
         signInPageLayoutRef.current?.scrollPageToTop();
         loginFormRef.current?.clearDataAndFocus();
     };
+
+    // Read the ref at call time (via a stable callback) instead of during render, so both React
+    // Compilers can memoize this component. LoginForm calls this optionally, so an always-defined
+    // callback that no-ops until the layout ref is attached is equivalent to passing the raw method.
+    const scrollPageToTop = useCallback(() => signInPageLayoutRef.current?.scrollPageToTop(), []);
 
     const navigateBack = () => {
         if (
@@ -310,7 +338,7 @@ function SignInPage({ref}: SignInPageProps) {
                         ref={loginFormRef}
                         isVisible={shouldShowLoginForm}
                         submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
-                        scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
+                        scrollPageToTop={scrollPageToTop}
                     />
                     {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
                     {shouldShowValidateCodeForm && (

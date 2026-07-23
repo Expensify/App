@@ -1,10 +1,13 @@
-import React from 'react';
-import {Circle} from 'react-native-svg';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {Circle} from 'react-native-svg';
 
 type SkeletonViewLinesProps = {
     /** Number of rows to show in Skeleton UI block */

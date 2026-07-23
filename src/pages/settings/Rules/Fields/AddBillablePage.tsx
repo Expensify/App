@@ -1,13 +1,16 @@
-import React from 'react';
 import RuleBooleanBase from '@components/Rule/RuleBooleanBase';
+
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import CONST from '@src/CONST';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
+
+import React from 'react';
 
 type AddBillablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_BILLABLE>;
 
@@ -25,7 +28,7 @@ function AddBillablePage({route}: AddBillablePageProps) {
 
     return (
         <RuleBooleanBase
-            fieldID={CONST.EXPENSE_RULES.FIELDS.BILLABLE}
+            fieldID={EXPENSE_RULE_INPUT_IDS.BILLABLE}
             formID={ONYXKEYS.FORMS.EXPENSE_RULE_FORM}
             titleKey="common.billable"
             onSelect={onSelect}

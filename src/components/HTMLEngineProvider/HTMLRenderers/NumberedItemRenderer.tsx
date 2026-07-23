@@ -1,9 +1,12 @@
+import Text from '@components/Text';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {TNode} from 'react-native-render-html';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {TNode} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
-import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type NumberedItemRendererProps = {tnode: TNode; index: number};
 

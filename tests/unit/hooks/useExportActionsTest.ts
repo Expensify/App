@@ -1,17 +1,15 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {ReactElement} from 'react';
+
 import useExportActions from '@hooks/useExportActions';
-import {clearExportDownload} from '@libs/actions/Export';
+
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
-const mockClearExportDownload = jest.mocked(clearExportDownload);
+const mockTrackExport = jest.fn();
 
 const REPORT_ID = 'report1';
 const POLICY_ID = 'policy1';
 const EXPORT_NAME = 'Test Template';
-
-type ExportDownloadStatusModalProps = {exportID: string; onClose: () => void};
 
 jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => []),
@@ -25,12 +23,12 @@ jest.mock('@libs/actions/Report', () => ({
     markAsManuallyExported: jest.fn(),
 }));
 
-jest.mock('@libs/actions/Export', () => ({
-    clearExportDownload: jest.fn(),
-}));
-
 jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
+}));
+
+jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusContext', () => ({
+    useExportDownloadStatus: () => ({trackExport: mockTrackExport}),
 }));
 
 let mockIsOffline = false;
@@ -74,11 +72,6 @@ jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({
     default: () => ({transactions: {}}),
 }));
 
-const mockClearSelectedTransactions = jest.fn();
-jest.mock('@components/Search/SearchContext', () => ({
-    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
-}));
-
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({login: 'test@example.com', accountID: 1}),
@@ -101,7 +94,7 @@ describe('useExportActions - template export status modal', () => {
         mockIsOffline = false;
     });
 
-    it('queues the export with progress tracking and renders the status modal', () => {
+    it('queues the export with progress tracking', () => {
         const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
         act(() => {
@@ -120,8 +113,7 @@ describe('useExportActions - template export status modal', () => {
             },
             true,
         );
-        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
-        expect(modal?.props.exportID).toBe('mock-export-id');
+        expect(mockTrackExport).toHaveBeenCalledWith('mock-export-id');
     });
 
     it('does not queue the export and shows the offline modal when offline', () => {
@@ -134,23 +126,5 @@ describe('useExportActions - template export status modal', () => {
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
         expect(mockShowDecisionModal).toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).toBeNull();
-    });
-
-    it('clears the export download and hides the modal on close', () => {
-        const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
-
-        act(() => {
-            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], EXPORT_NAME, POLICY_ID);
-        });
-        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
-        expect(modal?.props.exportID).toBe('mock-export-id');
-
-        act(() => {
-            modal?.props.onClose();
-        });
-
-        expect(mockClearExportDownload).toHaveBeenCalledWith('mock-export-id', undefined);
-        expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 });
