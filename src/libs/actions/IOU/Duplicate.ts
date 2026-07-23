@@ -59,27 +59,27 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
+import {getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
-function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
-    const allReportActions = getAllReportActionsFromIOU();
-    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {})?.filter(
-        (reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
-            if (!isMoneyRequestAction(reportAction)) {
-                return false;
-            }
-            const message = getOriginalMessage(reportAction);
-            if (!message?.IOUTransactionID) {
-                return false;
-            }
-            return transactionIDList.includes(message.IOUTransactionID);
-        },
-    );
+function getIOUActionForTransactions(
+    transactionIDList: Array<string | undefined>,
+    iouReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    return Object.values(iouReportActions ?? {})?.filter((reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+        if (!isMoneyRequestAction(reportAction)) {
+            return false;
+        }
+        const message = getOriginalMessage(reportAction);
+        if (!message?.IOUTransactionID) {
+            return false;
+        }
+        return transactionIDList.includes(message.IOUTransactionID);
+    });
 }
 
 type DiscardedSource = {
@@ -174,6 +174,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesParams & {
     taxAmount?: number;
     taxValue?: string;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
@@ -184,6 +185,7 @@ function mergeDuplicates({
     taxAmount,
     taxValue,
     allTransactionViolations,
+    allReportActionsList,
     ...params
 }: MergeDuplicatesFuncParams) {
     const allParams: MergeDuplicatesParams = {...params};
@@ -255,7 +257,7 @@ function mergeDuplicates({
         if (transaction.reimbursable) {
             entry.reimbursableAmount += transaction.amount;
         }
-        entry.actions.push(...getIOUActionForTransactions([id], transaction.reportID));
+        entry.actions.push(...getIOUActionForTransactions([id], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`]));
         sources.set(transaction.reportID, entry);
     }
     const deletedTime = DateUtils.getDBTime();
@@ -312,7 +314,10 @@ function mergeDuplicates({
     const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
 
     const transactionThreadReportID =
-        optimisticTransactionThreadReportID ?? (params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined);
+        optimisticTransactionThreadReportID ??
+        (params.reportID
+            ? getIOUActionForTransactions([params.transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]).at(0)?.childReportID
+            : undefined);
     const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -431,12 +436,14 @@ function resolveDuplicates({
     taxValue,
     transactionThreadReportIDMap,
     allTransactionViolations,
+    allReportActionsList,
     ...params
 }: MergeDuplicatesParams & {
     taxAmount?: number;
     taxValue?: string;
     transactionThreadReportIDMap: Record<string, string | undefined>;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
 }) {
     if (!params.transactionID) {
         return;
@@ -541,7 +548,9 @@ function resolveDuplicates({
         });
     }
 
-    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const transactionThreadReportID = params.reportID
+        ? getIOUActionForTransactions([params.transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]).at(0)?.childReportID
+        : undefined;
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,

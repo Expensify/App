@@ -247,7 +247,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     continue;
                 }
                 const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
+                const originalTransactionIouActions = getIOUActionForTransactions([transactionID], allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
                 const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? originalTransactionIouActions.at(0)?.reportID : undefined;
                 const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
