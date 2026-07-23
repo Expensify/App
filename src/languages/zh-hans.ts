@@ -9061,7 +9061,7 @@ ${reportName}`,
             original: ({formattedDistance}: {formattedDistance: string}) => `原始值：${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `已移除 ${distance} ${unit} 通勤距离`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `根据<a href="${workspaceDistanceSettingsLink}">工作区距离设置</a>，已移除 ${distance} ${unit} 的通勤距离。`,
+                `根据${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">工作区距离设置</a>` : '工作区距离设置'}，已移除 ${distance} ${unit} 的通勤距离。`,
         },
     },
     gps: {

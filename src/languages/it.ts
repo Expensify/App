@@ -9402,7 +9402,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             original: ({formattedDistance}: {formattedDistance: string}) => `Originale: ${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Rimossi ${distance} ${unit} del tragitto casa-lavoro`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `Rimossi ${distance} ${unit} del tragitto casa-lavoro in base alle <a href="${workspaceDistanceSettingsLink}">impostazioni sulla distanza dello spazio di lavoro</a>.`,
+                `Rimossi ${distance} ${unit} del tragitto casa-lavoro in base alle ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">impostazioni sulla distanza dello spazio di lavoro</a>` : 'impostazioni sulla distanza dello spazio di lavoro'}.`,
         },
     },
     gps: {

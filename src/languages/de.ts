@@ -9422,7 +9422,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} für den Arbeitsweg entfernt`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `${distance} ${unit} für den Arbeitsweg basierend auf den <a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Workspaces</a> entfernt.`,
+                `${distance} ${unit} für den Arbeitsweg basierend auf den ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Workspaces</a>` : 'Entfernungseinstellungen des Workspaces'} entfernt.`,
         },
     },
     gps: {

@@ -9374,7 +9374,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             original: ({formattedDistance}: {formattedDistance: string}) => `Origineel: ${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} woon-werkafstand verwijderd`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `${distance} ${unit} woon-werkafstand verwijderd op basis van de <a href="${workspaceDistanceSettingsLink}">afstandsinstellingen van de workspace</a>.`,
+                `${distance} ${unit} woon-werkafstand verwijderd op basis van de ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">afstandsinstellingen van de workspace</a>` : 'afstandsinstellingen van de workspace'}.`,
         },
     },
     gps: {

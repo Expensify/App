@@ -9353,7 +9353,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             original: ({formattedDistance}: {formattedDistance: string}) => `Oryginał: ${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Usunięto ${distance} ${unit} dojazdu`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `Usunięto ${distance} ${unit} dojazdu na podstawie <a href="${workspaceDistanceSettingsLink}">ustawień odległości w przestrzeni roboczej</a>.`,
+                `Usunięto ${distance} ${unit} dojazdu na podstawie ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ustawień odległości w przestrzeni roboczej</a>` : 'ustawień odległości w przestrzeni roboczej'}.`,
         },
     },
     gps: {

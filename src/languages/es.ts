@@ -9661,7 +9661,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Se eliminaron ${distance} ${unit} de trayecto`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `Se eliminaron ${distance} ${unit} de trayecto según la <a href="${workspaceDistanceSettingsLink}">configuración de distancia del espacio de trabajo</a>.`,
+                `Se eliminaron ${distance} ${unit} de trayecto según la ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configuración de distancia del espacio de trabajo</a>` : 'configuración de distancia del espacio de trabajo'}.`,
         },
     },
     reportCardLostOrDamaged: {

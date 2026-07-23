@@ -9362,7 +9362,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} de deslocamento removidos`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `${distance} ${unit} de deslocamento removidos com base nas <a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>.`,
+                `${distance} ${unit} de deslocamento removidos com base nas ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>` : 'configurações de distância do workspace'}.`,
         },
     },
     gps: {

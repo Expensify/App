@@ -9281,7 +9281,7 @@ ${reportName}`,
             original: ({formattedDistance}: {formattedDistance: string}) => `元の値：${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `通勤分の距離 ${distance} ${unit} を削除しました`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `<a href="${workspaceDistanceSettingsLink}">ワークスペースの通勤距離設定</a>に基づき、通勤分としての${unit}を${distance}削除しました。`,
+                `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの通勤距離設定</a>` : 'ワークスペースの通勤距離設定'}に基づき、通勤分としての${unit}を${distance}削除しました。`,
         },
     },
     gps: {

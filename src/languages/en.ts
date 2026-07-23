@@ -9510,7 +9510,7 @@ const translations = {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removed ${distance} commuter ${unit}`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `Removed ${distance} commuter ${unit} based on <a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>.`,
+                `Removed ${distance} commuter ${unit} based on ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>` : 'workspace distance settings'}.`,
         },
         odometer: {
             startReading: 'Start reading',
