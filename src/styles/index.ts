@@ -5273,6 +5273,11 @@ const staticStyles = (theme: ThemeColors) =>
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
         searchPageInputNarrowTouchableWrapper: {height: 46},
 
+        // Compact search inputs that appear above lists/popovers. Matches the smaller
+        // "above the table" search input heights (34 on web/desktop, 46 on mobile).
+        listSearchInputWideWrapper: {height: 34},
+        listSearchInputNarrowWrapper: {height: 46},
+
         walletStaticIllustration: {
             width: 262,
             height: 152,
