@@ -83,7 +83,7 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
+                    {/* Clears stored auto-generated credentials, corrupts the local authToken and fires a request so reauth fails and the user is signed out. Useful for manually testing sign out logic. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
                         <Button
                             small

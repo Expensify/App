@@ -30,10 +30,11 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.ONFIDO_APPLICANT_ID,
     // maskFragileData won't catch this one, since the secret sits in a field named "token"
     ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-    // Both hold the picked image itself in "uri", as a base64 data URL on web. Masking it would only
+    // All three hold the picked image itself in "uri", as a base64 data URL on web. Masking it would only
     // trade a copy of the user's photo for an equally large blob of random characters.
     ONYXKEYS.AVATAR_CROP_DRAFT,
     ONYXKEYS.AVATAR_CROP_RESULT,
+    ONYXKEYS.AGENT_NEW_AVATAR_DRAFT,
     ...Object.values(ONYXKEYS.DERIVED),
 ]);
 
@@ -292,7 +293,6 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
     ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
     ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE,
-    ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH,
     ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
     ONYXKEYS.TRAVEL_INVOICE_STATEMENT,
     ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE,

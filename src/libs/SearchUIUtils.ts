@@ -184,6 +184,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
+    getQueryHashes,
     isFilterNegatable,
     isFilterSupported,
     isSearchDatePreset,
@@ -4808,9 +4809,16 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const isDataLoaded = (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && searchResults.search.hash === queryJSON?.hash;
-
-    return isDataLoaded;
+    return (
+        (searchResults?.data != null || searchResults?.errors != null) &&
+        searchResults.search.type === queryJSON?.type &&
+        searchResults.search.hash ===
+            getQueryHashes({
+                ...queryJSON,
+                sortBy: searchResults.search.sortBy,
+                sortOrder: searchResults.search.sortOrder,
+            }).primaryHash
+    );
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
@@ -5615,7 +5623,7 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
     }
 
     if (filterKey === FILTER_KEYS.RECEIPT_TYPE) {
-        return Object.values(CONST.SEARCH.RECEIPT_TYPE).map((receiptType) => {
+        return CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((receiptType) => {
             const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType));
             return {text: receiptTypeName, value: receiptType};
         });
