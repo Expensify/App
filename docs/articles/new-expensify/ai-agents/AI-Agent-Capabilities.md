@@ -217,4 +217,18 @@ Example phrases for your agent's instructions:
 
 ---
 
-*This reference covers all 16 AI Agent capabilities.*
+## How to write instructions that run the agent on a schedule
+
+Creates, lists, updates, and cancels scheduled jobs so the agent can run a prompt on a recurring cadence — the agent wakes itself and processes the prompt when each job fires.
+
+Example phrases for your agent's instructions:
+- Every Monday, review all open reports and flag any over $500
+- Send a weekly summary of submitted reports to the team
+- On the last day of each month, archive all approved reports
+- Remind me daily to review pending reimbursements
+- What do I currently have scheduled?
+- Cancel the weekly summary job
+
+---
+
+*This reference covers all 17 AI Agent capabilities.*
