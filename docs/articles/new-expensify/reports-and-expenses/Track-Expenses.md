@@ -78,6 +78,10 @@ When you create a tracked expense, Concierge will show an actionable message wit
    - **Submit it to someone** – Send it for approval or reimbursement.
    - **Nothing for now** – Leave it stored for later.
 
+On the Submit plan, the **Submit it to someone** option is replaced by two choices:
+   - **Submit to a friend** – Send the expense to an individual recipient.
+   - **Submit to my employer** – Send the expense to a workspace you can submit to. If you don't have one yet, Expensify creates a Submit workspace for you and adds the expense to it.
+
 If you belong to a workspace, you can also click into the expense to:
    - **Categorize** – Assign to a workspace category.
    - **Share with your accountant** – Give access to financial contacts.
