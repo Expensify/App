@@ -81,7 +81,8 @@ function IOURequestStepAmount({
     const iouRequestType = getRequestType(transaction);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
+    const participantPolicyID = transaction?.participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    const policyID = (isTrackExpense ? policyForMovingExpensesID : report?.policyID) ?? participantPolicyID;
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isIouReport = isMoneyRequestReport(report);

@@ -853,6 +853,7 @@ function MoneyRequestView({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
                 delegateAccountID,
+                reportPolicyTags,
                 isTrackIntentUser,
             });
         });
