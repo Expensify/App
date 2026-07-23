@@ -6136,7 +6136,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Δεν μπορείτε να διαγράψετε ή να απενεργοποιήσετε όλες τις κατηγορίες',
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
-            showCategoryGLCodes: 'Εμφάνιση κωδικών ΓΛ κατά την κατηγοριοποίηση εξόδων',
         },
         moreFeatures: {
             subtitle:
@@ -9056,6 +9055,10 @@ ${reportName}`,
                 title: 'Δεν υπάρχουν δαπάνες για έγκριση',
                 subtitle: 'Μηδενικές δαπάνες. Μέγιστη χαλάρωση. Μπράβο!',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Οι παραβάσεις παρακολουθούνται μόνο από ${formattedDate} και μετά. Δοκιμάστε να προσαρμόσετε τα φίλτρα ημερομηνίας σας.`,
+            },
         },
         columns: 'Στήλες',
         editColumns: 'Επεξεργασία στηλών',
@@ -9177,6 +9180,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Πληρωμή',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Εξαγωγή',
             },
+            has: {submittedViolation: 'Υποβληθείσα παράβαση'},
         },
         display: {
             label: 'Εμφάνιση',
