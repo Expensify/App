@@ -990,10 +990,10 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
+        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
-        WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
@@ -1659,6 +1659,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRAVEL_NUDGE: 'TRAVELNUDGE',
                 TRAVEL_UPDATE: 'TRAVEL_TRIP_ROOM_UPDATE',
                 TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
@@ -1778,6 +1779,7 @@ const CONST = {
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                     COPY_OVERVIEW: 'POLICYCHANGELOG_COPY_OVERVIEW',
+                    COPY_CURRENCY: 'POLICYCHANGELOG_COPY_CURRENCY',
                     COPY_EMPLOYEES: 'POLICYCHANGELOG_COPY_EMPLOYEES',
                     COPY_REPORT_FIELDS: 'POLICYCHANGELOG_COPY_REPORT_FIELDS',
                     COPY_ACCOUNTING: 'POLICYCHANGELOG_COPY_ACCOUNTING',
@@ -2515,6 +2517,7 @@ const CONST = {
         SOCKET: 'Issue connecting to database',
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
         ALREADY_CREATED_TRANSACTION: 'Transaction already created.',
+        ALREADY_PAID: 'The request has already been paid',
     },
     NETWORK: {
         METHOD: {
@@ -4914,6 +4917,10 @@ const CONST = {
         REQUIRE_RECEIPTS_OVER: 'requireReceiptsOver',
         REQUIRE_ITEMIZED_RECEIPTS_OVER: 'requireItemizedReceiptsOver',
     },
+    FIELD_REQUIREMENTS_DIRECTION: {
+        REQUIRE: 'require',
+        DO_NOT_REQUIRE: 'doNotRequire',
+    },
     SPEND_RULES: {
         BADGE_VARIANTS: {
             SUCCESS: 'success',
@@ -5290,6 +5297,8 @@ const CONST = {
         ERROR: 'error',
         TRACK: {
             SUBMIT: 'submit',
+            SUBMIT_TO_FRIEND: 'submitToFriend',
+            SUBMIT_TO_EMPLOYER: 'submitToEmployer',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
@@ -6568,6 +6577,13 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    TRAVEL_NUDGE: {
+        ORIGINATION: {
+            CARD: 'card',
+            MANUAL: 'manual',
+        },
+    },
+
     PNR_STATUS: {
         CANCELLED: 'CANCELLED',
         CANCELLED_STATUS: 'CANCELLED_STATUS',
@@ -6694,6 +6710,8 @@ const CONST = {
             ITEMIZED: 'itemized',
             HOTEL: 'hotel',
         },
+        // Hotel needs historical receipts backfilled with isHotelReservation before it can return results
+        SELECTABLE_RECEIPT_TYPES: ['ereceipt', 'itemized'],
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
@@ -7296,6 +7314,7 @@ const CONST = {
             SEARCH: 'searchItem',
             FIND_ITEM: 'findItem',
             ASK_CONCIERGE: 'askConcierge',
+            NAVIGATE: 'navigate',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',
@@ -8837,6 +8856,7 @@ const CONST = {
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_CATEGORY: 'WorkspaceRules-RequireFieldsRuleCategory',
                 REQUIRE_FIELDS_RULE_FIELD_TOGGLE: 'WorkspaceRules-RequireFieldsRuleFieldToggle',
+                REQUIRE_FIELDS_RULE_DIRECTION_TOGGLE: 'WorkspaceRules-RequireFieldsRuleDirectionToggle',
                 FLAG_FOR_REVIEW_RULE_ITEM: 'WorkspaceRules-FlagForReviewRuleItem',
                 FLAG_FOR_REVIEW_RULE_SAVE: 'WorkspaceRules-FlagForReviewRuleSave',
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
@@ -9167,6 +9187,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'The Expensify Card: Now in the UK & EU',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
+                publishedDate: '2026-07-20',
+            },
+            {
                 title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
@@ -9177,12 +9203,6 @@ const CONST = {
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
                 publishedDate: '2026-06-30',
-            },
-            {
-                title: 'AI agents, Concierge upgrades, and smarter card controls',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
-                publishedDate: '2026-06-24',
             },
         ],
     },

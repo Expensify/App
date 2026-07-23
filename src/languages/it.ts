@@ -119,7 +119,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rotate: 'Ruota',
         zoom: 'Zoom',
         password: 'Password',
-        magicCode: 'Codice magico',
+        securityCode: 'Codice di sicurezza',
         digits: 'cifre',
         twoFactorCode: 'Codice di verifica in due passaggi',
         workspaces: 'Area di lavoro',
@@ -519,7 +519,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} di ${total}`,
         editor: 'Editor',
         restrictions: 'Restrizioni',
         tryAgain: 'Riprova',
@@ -702,15 +701,15 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Volto/impronta digitale e passkey',
             explanation:
-                'La verifica tramite volto/impronta o passkey è attiva su uno o più dispositivi. Revocare l’accesso richiederà un codice magico per la prossima verifica su quel dispositivo.',
-            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su quel dispositivo.',
+                'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. Revocare l’accesso richiederà un codice di sicurezza per la prossima verifica su quel dispositivo.',
+            confirmationPrompt: 'Sei sicuro? Avrai bisogno di un codice di sicurezza per la prossima verifica su quel dispositivo.',
             cta: 'Revoca accesso',
             noDevices:
                 'Non hai alcun dispositivo registrato per il riconoscimento facciale/impronta digitale o la verifica tramite passkey. Se ne registri qualcuno, potrai revocare qui tale accesso.',
             dismiss: 'Ricevuto',
             error: 'Richiesta non riuscita. Riprova più tardi.',
             revoke: 'Revoca',
-            confirmationPromptAll: 'Sei sicuro? Avrai bisogno di un codice magico per la prossima verifica su qualsiasi dispositivo.',
+            confirmationPromptAll: 'Sei sicuro? Ti servirà un codice di sicurezza per la prossima verifica su qualsiasi dispositivo.',
             ctaAll: 'Revoca tutto',
             thisDevice: 'Questo dispositivo',
             otherDevices: (otherDeviceCount?: number) => {
@@ -718,8 +717,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} altro ${otherDeviceCount === 1 ? 'dispositivo' : 'dispositivi'}`;
             },
-            confirmationPromptThisDevice: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su questo dispositivo.',
-            confirmationPromptMultiple: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su quei dispositivi.',
+            confirmationPromptThisDevice: 'Sei sicuro? Avrai bisogno di un codice di sicurezza per la prossima verifica su questo dispositivo.',
+            confirmationPromptMultiple: 'Sei sicuro? Ti servirà un codice di sicurezza per la prossima verifica su quei dispositivi.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo non supportato',
@@ -738,7 +737,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hai effettuato l'accesso!
         `),
         successfulSignInDescription: 'Torna alla scheda originale per continuare.',
-        title: 'Ecco il tuo codice magico',
+        title: 'Ecco il tuo codice di sicurezza',
         description: Str.dedent(`
             Inserisci il codice dal dispositivo
             in cui è stato originariamente richiesto
@@ -749,7 +748,7 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         or: ', oppure',
         signInHere: 'accedi qui',
-        expiredCodeTitle: 'Codice magico scaduto',
+        expiredCodeTitle: 'Codice di sicurezza scaduto',
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: Str.dedent(`
@@ -792,7 +791,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'I tuoi rimborsi arrivano veloci quanto riesci a farti capire.',
         enterPassword: 'Inserisci la tua password',
         welcomeNewFace: (login: string) => `${login}, è sempre un piacere vedere un volto nuovo da queste parti!`,
-        welcomeEnterMagicCode: (login: string) => `Inserisci il codice magico inviato a ${login}. Dovrebbe arrivare entro uno o due minuti.`,
+        welcomeEnterSecurityCode: (login: string) => `Inserisci il codice di sicurezza inviato a ${login}. Dovrebbe arrivare entro uno o due minuti.`,
     },
     login: {
         hero: {
@@ -802,9 +801,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continua ad accedere con single sign-on:',
-        orContinueWithMagicCode: 'Puoi anche accedere con un codice magico',
+        orContinueWithSecurityCode: 'Puoi anche accedere con un codice di sicurezza',
         useSingleSignOn: 'Usa l’accesso Single Sign-On',
-        useMagicCode: 'Usa codice magico',
+        useSecurityCode: 'Usa codice di sicurezza',
         launching: 'Avvio in corso...',
         oneMoment: 'Un momento mentre ti reindirizziamo al portale single sign-on della tua azienda.',
     },
@@ -2115,7 +2114,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Aggiungi più modi per accedere e inviare ricevute a Expensify.<br/><br/>Aggiungi un indirizzo email per inoltrare le ricevute a <a href="mailto:${email}">${email}</a> oppure aggiungi un numero di telefono per inviare ricevute tramite SMS al 47777 (solo numeri statunitensi).`,
         pleaseVerify: 'Verifica questo metodo di contatto.',
         getInTouch: 'Useremo questo metodo per contattarti.',
-        enterMagicCode: (contactMethod: string) => `Inserisci il codice magico inviato a ${contactMethod}. Dovrebbe arrivare entro uno o due minuti.`,
+        enterSecurityCode: (contactMethod: string) => `Inserisci il codice di sicurezza inviato a ${contactMethod}. Dovrebbe arrivare entro uno o due minuti.`,
         setAsDefault: 'Imposta come predefinito',
         yourDefaultContactMethod:
             'Questo è il tuo metodo di contatto predefinito attuale. Prima di poterlo eliminare, devi scegliere un altro metodo di contatto e fare clic su “Imposta come predefinito”.',
@@ -2123,8 +2122,8 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: 'Sei sicuro di voler rimuovere questo metodo di contatto? Questa azione non può essere annullata.',
         failedNewContact: 'Impossibile aggiungere questo metodo di contatto.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Invio di un nuovo codice magico non riuscito. Attendi un momento e riprova.',
-            validateSecondaryLogin: 'Codice magico errato o non valido. Riprova o richiedi un nuovo codice.',
+            requestContactMethodValidateCode: 'Invio di un nuovo codice di sicurezza non riuscito. Attendi un momento e riprova.',
+            validateSecondaryLogin: 'Codice di sicurezza errato o non valido. Riprova oppure richiedi un nuovo codice.',
             deleteContactMethod: 'Impossibile eliminare il metodo di contatto. Contatta Concierge per ricevere aiuto.',
             setDefaultContactMethod: 'Impossibile impostare un nuovo metodo di contatto predefinito. Contatta Concierge per ricevere assistenza.',
             addContactMethod: 'Impossibile aggiungere questo metodo di contatto. Contatta Concierge per assistenza.',
@@ -2288,11 +2287,8 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: 'Sei sicuro di voler unire gli account?',
             lossOfUnsubmittedData: (login: string) => `L’unione dei tuoi account è irreversibile e comporterà la perdita di tutte le spese non inviate per <strong>${login}</strong>.`,
-            enterMagicCode: (login: string) => `Per continuare, inserisci il codice magico inviato a <strong>${login}</strong>.`,
-            errors: {
-                incorrectMagicCode: 'Codice magico errato o non valido. Riprova o richiedi un nuovo codice.',
-                fallback: 'Si è verificato un errore. Riprova più tardi.',
-            },
+            enterSecurityCode: (login: string) => `Per continuare, inserisci il codice di sicurezza inviato a <strong>${login}</strong>.`,
+            errors: {incorrectSecurityCode: 'Codice di sicurezza errato o non valido. Riprova oppure richiedi un nuovo codice.', fallback: 'Si è verificato un errore. Riprova più tardi.'},
         },
         mergeSuccess: {
             accountsMerged: 'Account uniti!',
@@ -2665,8 +2661,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Aggiunto al portafoglio ${platform}`,
         cardDetailsLoadingFailure: 'Si è verificato un errore durante il caricamento dei dettagli della carta. Controlla la connessione a Internet e riprova.',
         validateCardTitle: 'Verifichiamo che sia davvero tu',
-        enterMagicCode: (contactMethod: string) =>
-            `Inserisci il codice magico inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro uno o due minuti.`,
+        enterSecurityCode: (contactMethod: string) =>
+            `Inserisci il codice di sicurezza inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro uno o due minuti.`,
         unexpectedError: 'Si è verificato un errore durante il recupero dei dettagli della tua carta Expensify. Riprova.',
         cardFraudAlert: {
             confirmButtonText: 'Sì, lo voglio',
@@ -3098,7 +3094,7 @@ ${amount} per ${merchant} - ${date}`,
         license: `L’attività di trasmissione di denaro è fornita da ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) in conformità alle sue <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenze</a>.`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: 'Non hai ricevuto un codice magico?',
+        securityCodeNotReceived: 'Non hai ricevuto un codice di sicurezza?',
         avoidScamsMessage:
             '<strong>Evita le truffe. Non condividere il tuo codice con nessuno.</strong> Il nostro team non ti chiamerà, invierà SMS o manderà email per chiederti questo codice.',
         enterAuthenticatorCode: "Inserisci il tuo codice dell'autenticatore",
@@ -3109,8 +3105,8 @@ ${amount} per ${merchant} - ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `Tempo rimanente: ${timeRemaining} ${timeRemaining === 1 ? 'secondo' : 'secondi'}`,
         timeExpiredAnnouncement: 'Il tempo è scaduto',
         error: {
-            pleaseFillMagicCode: 'Inserisci il tuo codice magico',
-            incorrectMagicCode: 'Codice magico errato o non valido. Riprova o richiedi un nuovo codice.',
+            pleaseFillSecurityCode: 'Inserisci il tuo codice di sicurezza',
+            incorrectSecurityCode: 'Codice di sicurezza errato o non valido. Riprova oppure richiedi un nuovo codice.',
             pleaseFillTwoFactorAuth: 'Inserisci il tuo codice di autenticazione a due fattori',
         },
     },
@@ -3210,7 +3206,7 @@ ${amount} per ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Verifica la tua email di lavoro',
-            magicCodeSent: (workEmail: string | undefined) => `Inserisci il codice magico inviato a ${workEmail}. Dovrebbe arrivare tra un minuto o due.`,
+            securityCodeSent: (workEmail: string | undefined) => `Inserisci il codice di sicurezza inviato a ${workEmail}. Dovrebbe arrivare tra uno o due minuti.`,
         },
         workEmailValidationError: {
             publicEmail: 'Inserisci un’email di lavoro valida con dominio privato, ad es. mitch@company.com',
@@ -3537,12 +3533,12 @@ ${amount} per ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Il link è stato reinviato',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `Ho inviato un link magico di accesso a ${login}. Controlla il tuo ${loginType} per accedere.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Ho inviato un link di accesso sicuro a ${login}. Controlla il tuo ${loginType} per accedere.`,
         resendLink: 'Invia di nuovo il link',
     },
     unlinkLoginForm: {
         toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
-            `Per convalidare ${secondaryLogin}, invia nuovamente il codice magico dalle Impostazioni account di ${primaryLogin}.`,
+            `Per convalidare ${secondaryLogin}, per favore reinvia il codice di sicurezza dalle Impostazioni account di ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `Se non hai più accesso a ${primaryLogin}, scollega i tuoi account.`,
         unlink: 'Scollega',
         linkSent: 'Link inviato!',
@@ -3564,7 +3560,7 @@ ${amount} per ${merchant} - ${date}`,
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) =>
             `Non siamo riusciti a recapitare i messaggi SMS a ${login}, quindi lo abbiamo sospeso temporaneamente. Prova a convalidare il tuo numero:`,
-        validationSuccess: 'Il tuo numero è stato convalidato! Fai clic qui sotto per inviare un nuovo codice magico di accesso.',
+        validationSuccess: 'Il tuo numero è stato convalidato! Clicca qui sotto per inviare un nuovo codice di sicurezza per l’accesso.',
         validationFailed: ({
             timeData,
         }: {
@@ -4458,6 +4454,24 @@ ${amount} per ${merchant} - ${date}`,
             subtitle: 'Inserisci il codice fiscale della tua entità legale così possiamo configurare la fatturazione dei viaggi nella tua valuta locale.',
             inputLabel: 'Partita IVA dell’entità legale',
             error: {required: 'Inserisci il codice fiscale/partita IVA della tua entità legale.'},
+        },
+        nudge: {
+            airfareManual:
+                'Ciao! Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Ehi! Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Ciao! Sapevi che puoi prenotare e gestire i tuoi soggiorni in hotel direttamente in Expensify? La prossima volta evita la seccatura di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Ehi! Sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Ehi! Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta evita il fastidio di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Ehi! Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Ehi! Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita il fastidio di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Ciao! Lo sai che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -5960,6 +5974,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             deleteFailureMessage: 'Si è verificato un errore durante l’eliminazione della categoria, riprova per favore',
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
+            showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
             emptyCategories: {
@@ -6484,6 +6499,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 accountingMismatch: ({part}: {part: string}) =>
                     `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
                 travelAddressMismatch: 'Puoi copiare i viaggi solo se ogni spazio di lavoro selezionato ha un indirizzo aziendale.',
+                currencyBlockedByBankAccount:
+                    'Puoi copiare la valuta solo se ogni spazio di lavoro selezionato con un conto bancario collegato utilizza la valuta dello spazio di lavoro di origine.',
             },
             confirmSettings: {
                 title: 'Assicuriamoci che sia tutto corretto.',
@@ -7799,7 +7816,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 general: 'Generale',
                 cardRestrictions: 'Limitazioni carta',
                 expenseDefaults: 'Impostazioni predefinite spese',
-                requireFields: 'Rendi obbligatori i campi',
+                requireFields: 'Requisiti del campo',
                 flagForReview: 'Contrassegna per revisione',
                 agents: 'Agenti',
             },
@@ -7860,9 +7877,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 applyExpenseDefaults: 'Applica impostazioni predefinite spese',
                 applyExpenseDefaultsDescription: 'Aggiorna i campi senza che chi invia debba fare nulla',
                 flagForReview: 'Contrassegna per revisione',
-                flagForReviewDescription: 'Notifica quando le tue condizioni sono soddisfatte.',
-                requireFields: 'Rendi obbligatori i campi',
-                requireFieldsDescription: 'Ricevute, categorie, ecc. durante l’invio.',
+                flagForReviewDescription: 'Avvisa gli approvatori quando le spese superano i limiti di categoria',
+                requireFields: 'Requisiti del campo',
+                requireFieldsDescription: 'Richiedi campi specifici per le spese oppure rinuncia a renderli obbligatori.',
                 createAgentRule: 'Regola agente',
                 createAgentRuleDescription: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno.',
             },
@@ -7882,28 +7899,33 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 tableColumnCondition: 'Condizione',
                 tableColumnRule: 'Regola',
                 findRule: 'Trova regola',
-                typeLabel: 'Rendi obbligatori i campi',
                 conditionCategoryIs: (category: string) => `La categoria è "${category}"`,
                 requireDescription: 'Descrizione obbligatoria',
                 requireAttendees: 'Richiedi partecipanti',
                 requireItemizedReceipt: 'Richiedi ricevuta dettagliata',
                 requireItemizedReceiptOver: (amount: string) => `Richiedi ricevuta dettagliata per importi superiori a ${amount}`,
-                alwaysRequireReceipt: 'Richiedi sempre la ricevuta',
                 requireReceiptOver: (amount: string) => `Richiedi ricevuta sopra ${amount}`,
+                requireReceipt: 'Richiedi ricevuta',
+                doNotRequireReceipt: 'Non richiedere ricevuta',
+                doNotRequireItemizedReceipt: 'Non richiedere ricevuta dettagliata',
             },
             requireFieldsEmptyState: {
                 title: 'Individua subito i dettagli mancanti',
-                subtitle: 'Assicurati che i campi chiave siano compilati prima di inviare le spese.',
-                cta: 'Crea regola di obbligatorietà',
+                subtitle: 'Rendi obbligatori o facoltativi i campi spesa per categorie specifiche.',
+                cta: 'Crea regola di obbligatorietà del campo',
             },
             requireFieldsRule: {
-                title: 'Rendi obbligatori i campi',
-                subtitle: "Richiedi ricevute, categorie, ecc. all'invio.",
-                thenWarnMember: 'Poi avvisa il membro se mancano dei campi:',
+                title: 'Requisiti del campo',
+                subtitle: 'Richiedi campi specifici per le spese oppure rinuncia a renderli obbligatori.',
                 itemizedReceipt: 'Ricevuta dettagliata',
                 saveRule: 'Salva regola',
                 confirmErrorCategory: 'Seleziona una categoria.',
-                confirmErrorField: 'Seleziona almeno un campo da rendere obbligatorio.',
+                requireDirection: 'Richiedi',
+                doNotRequireDirection: 'Non richiedere',
+                doTheFollowing: 'Esegui quanto segue:',
+                confirmErrorDoNotRequireField: 'Seleziona almeno un campo.',
+                receiptDisabledWhenItemizedRequired: 'Le ricevute sono sempre obbligatorie quando sono richieste anche le ricevute con dettaglio.',
+                itemizedDisabledWhenReceiptWaived: 'Le ricevute dettagliate non sono richieste se non è richiesta alcuna ricevuta.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Tipo',
@@ -8658,6 +8680,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateDateRangeAllDates: () => `per tutte le date`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `panoramica copiata da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato la valuta da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato i membri da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copiato 1 campo del report da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -8980,6 +9003,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         serverResults: 'Risultati di ricerca',
         searchIn: 'Cerca in',
         askConcierge: (message: string) => `Chiedi a Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Vai a ${destination}`,
         searchPlaceholder: 'Cerca qualcosa...',
         suggestions: 'Suggerimenti',
         suggestionsAvailable: (
@@ -10043,8 +10067,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         removeCopilotConfirmation: 'Sei sicuro di voler rimuovere questo copilota?',
         changeAccessLevel: 'Modifica livello di accesso',
         makeSureItIsYou: 'Verifichiamo che sia davvero tu',
-        enterMagicCode: (contactMethod: string) => `Inserisci il codice magico inviato a ${contactMethod} per aggiungere un copilota. Dovrebbe arrivare entro uno o due minuti.`,
-        enterMagicCodeUpdate: (contactMethod: string) => `Inserisci il codice magico inviato a ${contactMethod} per aggiornare il tuo copilota.`,
+        enterSecurityCode: (contactMethod: string) => `Inserisci il codice di sicurezza inviato a ${contactMethod} per aggiungere un copilota. Dovrebbe arrivare entro uno o due minuti.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Inserisci il codice di sicurezza inviato a ${contactMethod} per aggiornare il tuo copilota.`,
         notAllowed: 'Non così in fretta...',
         noAccessMessage: Str.dedent(`
             Come copilota, non hai accesso a questa pagina. Spiacente!

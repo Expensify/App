@@ -48,7 +48,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -110,6 +110,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             delegateAccountID,
             isTrackIntentUser,
             sessionEmail: session?.email,
+            formatPhoneNumber,
         });
     }, [
         reportID,
@@ -124,6 +125,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
     ]);
 
     return (
