@@ -177,6 +177,9 @@ type TransactionCustomUnit = {
     /** Custom unit amount */
     quantity?: number | null;
 
+    /** Original custom unit amount - used for GPS expense to store original distance if the trip is trimmed (trimmed distance is stored as quantity) */
+    originalQuantity?: number | null;
+
     /** Name of the custom unit */
     name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
 

@@ -3773,6 +3773,27 @@ const staticStyles = (theme: ThemeColors) =>
             ...cursor.cursorPointer,
         },
 
+        editedStopSliderKnob: {
+            position: 'absolute',
+            height: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.height,
+            width: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width,
+            left: -(CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width / 2),
+            top: -16,
+            ...cursor.cursorPointer,
+        },
+
+        editStopSliderFilled: {
+            backgroundColor: colors.green400,
+            height: '100%',
+            borderRadius: variables.sliderBarHeight / 2,
+        },
+
+        editStopSliderBarContainer: {
+            height: 64,
+            paddingHorizontal: 20,
+            justifyContent: 'center',
+        },
+
         sliderBar: {
             backgroundColor: theme.border,
             height: variables.sliderBarHeight,

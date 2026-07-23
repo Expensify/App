@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates, getTrimmedGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -120,9 +120,11 @@ function IOURequestStepDistanceGPS({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
     const navigateToNextStep = () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
-        const distance = getGPSConvertedDistance(gpsDraftDetails, unit);
+        const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
+        const modifiedDistance = gpsDraftDetails?.modifiedDistance !== undefined ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.modifiedDistance, unit) : undefined;
+        const distanceForDisplay = modifiedDistance ?? originalDistance;
 
-        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distance);
+        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distanceForDisplay, modifiedDistance === undefined ? null : originalDistance);
 
         const waypoints = getGPSWaypoints(gpsDraftDetails);
         const optimisticTransactionID = rand64();
@@ -155,7 +157,8 @@ function IOURequestStepDistanceGPS({
             policyRecentlyUsedCurrencies,
             introSelected,
             gpsCoordinates,
-            gpsDistance: distance,
+            gpsDistance: originalDistance,
+            gpsModifiedDistance: modifiedDistance,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -195,9 +198,9 @@ function IOURequestStepDistanceGPS({
         return stopMapboxToken;
     }, []);
 
-    const waypointMarkers = useGPSWaypointMarkers();
+    const gpsWaypointMarkers = useGPSWaypointMarkers({gpsDraftDetails});
 
-    const directionCoordinates: Coordinate[][] = getGpsPoints(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
+    const directionCoordinates: Coordinate[][] = getTrimmedGpsTrip(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
 
     return (
         <StepScreenWrapper
@@ -215,7 +218,7 @@ function IOURequestStepDistanceGPS({
                         pitchEnabled={false}
                         style={[styles.mapView, styles.mapEditView]}
                         styleURL={CONST.MAPBOX.STYLE_URL}
-                        waypoints={waypointMarkers}
+                        waypoints={gpsWaypointMarkers}
                         directionCoordinates={directionCoordinates}
                         isTrackingGPS={!!gpsDraftDetails?.isTracking}
                     />
@@ -225,6 +228,11 @@ function IOURequestStepDistanceGPS({
                     <Waypoints
                         unit={unit}
                         isInLandscapeMode={isInLandscapeMode}
+                        action={action}
+                        iouType={iouType}
+                        transactionID={transactionID}
+                        reportID={reportID}
+                        backToReport={backToReport}
                     />
 
                     <View style={[styles.gap3, styles.ph5, isInLandscapeMode ? styles.pv3 : styles.pb5]}>

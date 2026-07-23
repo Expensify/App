@@ -305,6 +305,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
+    const originalTransactionDistance = isGPSDistanceRequest ? (transaction?.comment?.customUnit?.originalQuantity ?? transactionDistance) : transactionDistance;
+    const modifiedTransactionDistance = isGPSDistanceRequest && transaction?.comment?.customUnit?.originalQuantity != null ? transactionDistance : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
         ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
@@ -692,6 +694,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+            const originalItemDistance = isGPSDistanceRequest ? (item.comment?.customUnit?.originalQuantity ?? itemDistance) : itemDistance;
+            const modifiedItemDistance = isGPSDistanceRequest && item.comment?.customUnit?.originalQuantity != null ? itemDistance : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
@@ -712,7 +716,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 },
                 transactionParams: {
                     amount: item.amount,
-                    distance: itemDistance,
+                    distance: originalItemDistance,
+                    modifiedDistance: modifiedItemDistance,
                     currency: item.currency,
                     created: item.created,
                     merchant: item.merchant,
@@ -812,7 +817,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             transactionParams: {
                 amount: transaction.amount,
                 comment: trimmedComment,
-                distance: transactionDistance,
+                distance: originalTransactionDistance,
+                modifiedDistance: modifiedTransactionDistance,
                 created: transaction.created,
                 currency: transaction.currency,
                 merchant: transaction.merchant,

@@ -1,29 +1,30 @@
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 
-import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
-import useOnyx from '@hooks/useOnyx';
 
 import {getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
 
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {GpsDraftDetails} from '@src/types/onyx';
+import type {TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
-import type {ReactNode} from 'react';
+type UseGPSWaypointMarkersProps = {
+    gpsDraftDetails: GpsDraftDetails | undefined;
+    trimmedEndPoint?: TrimmedGPSPoint;
+};
 
-function useGPSWaypointMarkers(): WayPoint[] {
-    const getMapMarkerIconComponent = useMapMarkers();
-
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPointProp}: UseGPSWaypointMarkersProps) {
+    const trimmedEndPoint = trimmedEndPointProp ?? gpsDraftDetails?.trimmedEndPoint;
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
 
-    const gpsWaypoints = getGPSWaypoints(gpsDraftDetails);
+    const gpsWaypoints = getGPSWaypoints(gpsDraftDetails, trimmedEndPoint);
     const waypointEntries = Object.entries(gpsWaypoints);
     const lastIndex = waypointEntries.length - 1;
 
     return waypointEntries.flatMap(([key, waypoint], index): WayPoint[] => {
         const isStart = index === 0;
-        const isEnd = index === lastIndex;
+        // End waypoint can only have odd index, as even indexes are start waypoints of trip segments
+        const isEnd = index === lastIndex && index % 2 === 1;
 
         if (isEnd && !isTripStopped) {
             return [];
@@ -40,7 +41,6 @@ function useGPSWaypointMarkers(): WayPoint[] {
             {
                 id: key,
                 coordinate: [waypoint.lng, waypoint.lat],
-                markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
                 markerType,
             },
         ];
