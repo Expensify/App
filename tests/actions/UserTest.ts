@@ -4,6 +4,9 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NewLogin} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -20,20 +23,37 @@ const anyArray: unknown = expect.any(Array);
 const anyObject: unknown = expect.any(Object);
 const anyString: unknown = expect.any(String);
 
-type OnyxUpdate = {key: string; value?: unknown};
+type MakeRequestOnyxData = OnyxData<OnyxKey>;
+type OnyxDataField = keyof Pick<MakeRequestOnyxData, 'optimisticData' | 'successData' | 'failureData'>;
+type MakeRequestOnyxUpdate = NonNullable<MakeRequestOnyxData['optimisticData']>[number];
+type LockAccountOnyxKey =
+    | typeof ONYXKEYS.ACCOUNT
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`;
+type LockAccountOnyxUpdate = Extract<MakeRequestOnyxUpdate, {key: LockAccountOnyxKey}>;
 
-function isOnyxUpdate(value: unknown): value is OnyxUpdate {
-    return typeof value === 'object' && value !== null && 'key' in value && typeof value.key === 'string';
+function isLockAccountOnyxUpdate(update: MakeRequestOnyxUpdate): update is LockAccountOnyxUpdate {
+    const {key} = update;
+    return (
+        key === ONYXKEYS.ACCOUNT ||
+        key.startsWith(ONYXKEYS.COLLECTION.DOMAIN) ||
+        key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS) ||
+        key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ERRORS)
+    );
 }
 
-function getOnyxUpdates(onyxData: unknown, field: 'optimisticData' | 'successData' | 'failureData'): OnyxUpdate[] {
-    if (typeof onyxData !== 'object' || onyxData === null || !(field in onyxData)) {
+function areLockAccountOnyxUpdates(updates: MakeRequestOnyxUpdate[]): updates is LockAccountOnyxUpdate[] {
+    return updates.every(isLockAccountOnyxUpdate);
+}
+
+function getOnyxUpdates(onyxData: MakeRequestOnyxData | undefined, field: OnyxDataField): LockAccountOnyxUpdate[] {
+    const updates = onyxData?.[field];
+    if (!updates) {
         throw new Error(`Expected ${field} in API Onyx data`);
     }
-
-    const updates: unknown = Reflect.get(onyxData, field);
-    if (!Array.isArray(updates) || !updates.every(isOnyxUpdate)) {
-        throw new Error(`Expected ${field} to contain keyed Onyx updates`);
+    if (!areLockAccountOnyxUpdates(updates)) {
+        throw new Error(`Expected ${field} to contain lock account Onyx updates`);
     }
 
     return updates;
@@ -640,7 +660,7 @@ describe('actions/User', () => {
                 UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
-                const onyxData = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
+                const onyxData: MakeRequestOnyxData | undefined = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
 
                 const optimisticAccountUpdate = getOnyxUpdates(onyxData, 'optimisticData').find((update) => update.key === ONYXKEYS.ACCOUNT);
                 expect(optimisticAccountUpdate).toEqual({
@@ -679,7 +699,7 @@ describe('actions/User', () => {
                 UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
-                const onyxData = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
+                const onyxData: MakeRequestOnyxData | undefined = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
 
                 const allUpdates = [...getOnyxUpdates(onyxData, 'optimisticData'), ...getOnyxUpdates(onyxData, 'successData'), ...getOnyxUpdates(onyxData, 'failureData')];
                 const domainUpdates = allUpdates.filter(
@@ -703,7 +723,7 @@ describe('actions/User', () => {
                 UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
                 await waitForBatchedUpdates();
 
-                const onyxData = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
+                const onyxData: MakeRequestOnyxData | undefined = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
                 const optimisticData = getOnyxUpdates(onyxData, 'optimisticData');
                 const failureData = getOnyxUpdates(onyxData, 'failureData');
                 const successData = getOnyxUpdates(onyxData, 'successData');
@@ -767,7 +787,7 @@ describe('actions/User', () => {
                 UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
                 await waitForBatchedUpdates();
 
-                const onyxData = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
+                const onyxData: MakeRequestOnyxData | undefined = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
 
                 const allUpdates = [...getOnyxUpdates(onyxData, 'optimisticData'), ...getOnyxUpdates(onyxData, 'successData'), ...getOnyxUpdates(onyxData, 'failureData')];
                 const accountUpdates = allUpdates.filter((update) => update.key === ONYXKEYS.ACCOUNT);
