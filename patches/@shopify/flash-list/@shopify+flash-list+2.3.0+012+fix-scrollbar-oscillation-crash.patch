@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-index 12375d9..79446f4 100644
+index 12375d9..67c52a0 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-@@ -1,4 +1,13 @@
+@@ -1,4 +1,18 @@
 +import { Platform } from "react-native";
  import { RVLayoutManager, } from "./LayoutManager";
 +// Recent (rounded) cross-axis sizes kept for scrollbar oscillation detection.
@@ -10,13 +10,18 @@ index 12375d9..79446f4 100644
 +// Times the measured size must flip between the two values to count as an oscillation. Three means
 +// it returned to a prior value twice (a real ping-pong) - a one-off scrollbar toggle only flips twice.
 +const MIN_OSCILLATION_FLIPS = 3;
++// Once pinned, the pin holds boundedSize constant, which stops the internal size<->layout loop,
++// so later updateLayoutParams calls come only from genuine external changes. If the no-scrollbar
++// (larger) width is then measured for this many consecutive frames, the scrollbar is really gone
++// (e.g. content was filtered/removed), so we release the pin instead of holding the stale width.
++const PIN_RELEASE_STABLE_FRAMES = 3;
 +// Max cross-axis delta (px) treated as a scrollbar-induced oscillation rather than a real resize.
 +// Classic desktop scrollbars are ~15-17px; the headroom covers thicker/zoomed scrollbars.
 +const SCROLLBAR_OSCILLATION_TOLERANCE = 25;
  /**
   * LinearLayoutManager implementation that arranges items in a single row or column.
   * Supports both horizontal and vertical layouts with dynamic item sizing.
-@@ -23,9 +32,17 @@
+@@ -23,9 +37,17 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
          const prevHorizontal = this.horizontal;
          super.updateLayoutParams(params);
          const oldBoundedSize = this.boundedSize;
@@ -35,10 +40,11 @@ index 12375d9..79446f4 100644
          if (oldBoundedSize !== this.boundedSize ||
              prevHorizontal !== this.horizontal) {
              if (this.layouts.length > 0) {
-@@ -36,6 +53,66 @@
+@@ -35,6 +57,83 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+             }
          }
      }
-     /**
++    /**
 +     * Web only. Breaks the scrollbar <-> layout feedback loop by pinning the cross-axis size once the
 +     * measured size is seen bouncing between two scrollbar-width-apart values.
 +     *
@@ -65,12 +71,29 @@ index 12375d9..79446f4 100644
 +        const size = Math.round(measuredBoundedSize);
 +        const settledPair = this.scrollbarOscillationPair;
 +        if (settledPair) {
-+            if (size === settledPair[0] || size === settledPair[1]) {
-+                return settledPair[0];
++            const smaller = settledPair[0];
++            const larger = settledPair[1];
++            if (size === larger) {
++                // The no-scrollbar width is back. Pinning already stopped the internal loop, so once
++                // this holds for a few frames the scrollbar is genuinely gone - release the pin.
++                this.scrollbarLargerStreak = (this.scrollbarLargerStreak || 0) + 1;
++                if (this.scrollbarLargerStreak >= PIN_RELEASE_STABLE_FRAMES) {
++                    this.scrollbarOscillationPair = undefined;
++                    this.recentBoundedSizes = undefined;
++                    this.scrollbarLargerStreak = 0;
++                    return measuredBoundedSize;
++                }
++                return smaller;
++            }
++            if (size === smaller) {
++                // Still bouncing, or the scrollbar is legitimately needed: stay pinned.
++                this.scrollbarLargerStreak = 0;
++                return smaller;
 +            }
 +            // Outside the pair: a real layout change. Forget the oscillation and start over.
 +            this.scrollbarOscillationPair = undefined;
 +            this.recentBoundedSizes = undefined;
++            this.scrollbarLargerStreak = 0;
 +        }
 +        const history = ((_a = this.recentBoundedSizes) !== null && _a !== void 0 ? _a : (this.recentBoundedSizes = []));
 +        history.push(size);
@@ -98,7 +121,6 @@ index 12375d9..79446f4 100644
 +        ];
 +        return smaller;
 +    }
-+    /**
+     /**
       * Processes layout information for items, updating their dimensions.
       * For horizontal layouts, also normalizes heights of items.
-      * @param layoutInfo Array of layout information for items
