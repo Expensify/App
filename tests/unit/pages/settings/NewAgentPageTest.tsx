@@ -44,7 +44,7 @@ jest.mock('@hooks/useThemeStyles', () =>
 jest.mock('@userActions/Agent', () => ({
     setNewAgentTemplate: jest.fn(() => Promise.resolve()),
     clearNewAgentTemplate: jest.fn(() => Promise.resolve()),
-    getAgenTemplates: jest.fn(),
+    getAgentTemplates: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),

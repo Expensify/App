@@ -371,7 +371,7 @@ function clearNewAgentAvatarDraft() {
 /**
  * Fetches ready-made agent templates.
  */
-function getAgenTemplates() {
+function getAgentTemplates() {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -416,5 +416,5 @@ export {
     setNewAgentUploadedAvatar,
     setNewAgentAvatarPreset,
     clearNewAgentAvatarDraft,
-    getAgenTemplates,
+    getAgentTemplates,
 };

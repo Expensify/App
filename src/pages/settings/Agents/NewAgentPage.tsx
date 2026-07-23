@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {clearNewAgentTemplate, setNewAgentTemplate, getAgenTemplates} from '@userActions/Agent';
+import {clearNewAgentTemplate, setNewAgentTemplate, getAgentTemplates} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -88,7 +88,7 @@ function NewAgentPage({route}: NewAgentPageProps) {
         if (isOffline) {
             return;
         }
-        getAgenTemplates();
+        getAgentTemplates();
     }, [isOffline]);
 
     const handleBuildCustomAgent = () => {
