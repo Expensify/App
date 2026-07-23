@@ -49,14 +49,15 @@ Expenses shared with others, such as expenses submitted on a Workspace, may be r
 
 ## Can I close my account if I have an outstanding balance? 
 
-No. To proceed with closing your account, you must first pay the balance owed. [Learn how to add a payment method](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-update-your-expensify-billing-card).
+No. To proceed with closing your account, you must first pay the balance owed. [Learn how to add a payment method](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Add-or-Update-a-Payment-Card#how-to-add-a-payment-card).
 
 ## Can I close my account if I own workspaces shared with other members?
 
 No. To proceed with closing your account, you must first delete any workspaces shared with other members, or have another Workspace Admin take ownership of them. 
 
-[Learn how to delete a Workspace](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-delete-a-workspace-in-expensify). 
-[Learn how to transfer billing ownership](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-transfer-billing-ownership-in-expensify)).
+ - [Learn how to delete a Workspace](/articles/new-expensify/workspaces/delete-a-workspace)
+ - [Learn how to transfer billing ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership#how-to-transfer-workspace-ownership).
+
 ## Can I close my account if I am the Primary Contact on a domain? 
 No. To proceed with closing your account, you must first set a new Primary Contact on the domain. You can set a new Primary Contact on a domain under **Domain admins > Settings > Primary Contact**. 
 
