@@ -8,6 +8,7 @@ type UseHtmlPaste = (
     isActive?: boolean,
     maxLength?: number, // Maximum length of the text input value after pasting
     preferredSkinTone?: OnyxEntry<number | string>,
+    shouldConvertPlainTextEmojiShortcodes?: boolean,
 ) => void | {
     handlePastePlainText: (event: ClipboardEvent) => void;
 };

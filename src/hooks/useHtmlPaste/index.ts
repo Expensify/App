@@ -96,7 +96,14 @@ const getEmojiReplacementText = (image: HTMLImageElement, preferredSkinTone: Ony
     return '';
 };
 
-const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) => {
+const useHtmlPaste: UseHtmlPaste = (
+    textInputRef,
+    preHtmlPasteCallback,
+    isActive = false,
+    maxLength = CONST.MAX_COMMENT_LENGTH + 1,
+    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
+    shouldConvertPlainTextEmojiShortcodes = false,
+) => {
     /**
      * Set pasted text to clipboard
      * @param {String} text
@@ -176,10 +183,15 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 return;
             }
 
-            // Plain-text paste has no image metadata, so convert shortcodes before inserting.
+            if (!shouldConvertPlainTextEmojiShortcodes) {
+                paste(clipboardText);
+                return;
+            }
+
+            // Composer plain-text paste has no image metadata, so convert shortcodes before inserting.
             paste(convertEmojiShortcodesToUnicode(clipboardText, preferredSkinTone));
         },
-        [paste, preferredSkinTone],
+        [paste, preferredSkinTone, shouldConvertPlainTextEmojiShortcodes],
     );
 
     const handlePaste = useCallback(

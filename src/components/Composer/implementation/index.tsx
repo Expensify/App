@@ -280,7 +280,7 @@ function Composer({
     }, [isComposerFullSize]);
 
     const isActive = useIsFocused();
-    useHtmlPaste(textInputRef, handlePaste, isActive, CONST.MAX_COMMENT_LENGTH + 1, preferredSkinTone);
+    useHtmlPaste(textInputRef, handlePaste, isActive, CONST.MAX_COMMENT_LENGTH + 1, preferredSkinTone, true);
 
     useEffect(() => {
         setIsRendered(true);
