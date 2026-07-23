@@ -8832,6 +8832,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
+            merchant: {equalTo: '等しい', contains: '含む'},
         },
         display: {
             label: '表示',

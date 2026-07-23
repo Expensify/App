@@ -1000,6 +1000,20 @@ const tests = [
 
 const keywordTests = [
     {
+        query: '-merchant*:Uber',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['-merchant*:Uber'],
+            },
+        },
+    },
+    {
         query: '" " "  "', // Multiple whitespaces wrapped in quotes
         expected: {
             type: 'expense',

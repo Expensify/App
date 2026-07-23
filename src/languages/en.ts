@@ -9028,6 +9028,10 @@ const translations = {
                 },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
+            merchant: {
+                equalTo: 'Equal to',
+                contains: 'Contains',
+            },
             card: {
                 expensify: 'Expensify',
                 travelInvoicing: 'Consolidated Travel Billing',
