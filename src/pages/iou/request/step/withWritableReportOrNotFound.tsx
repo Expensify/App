@@ -73,8 +73,60 @@ type MoneyRequestRouteName =
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
+type WithWritableReportOrNotFoundImplProps<TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>> = {
+    WrappedComponent: ComponentType<TProps>;
+    shouldIncludeDeprecatedIOUType: boolean;
+} & Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>;
+
 function dismissMoneyRequestModal() {
     Navigation.dismissModal();
+}
+
+function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>>({
+    WrappedComponent,
+    shouldIncludeDeprecatedIOUType,
+    ...props
+}: WithWritableReportOrNotFoundImplProps<TProps>) {
+    const {route} = props;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+
+    const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
+        .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
+        .includes(route.params?.iouType);
+    const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
+
+    useEffect(() => {
+        if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
+            return;
+        }
+        openReport({reportID: route.params.reportID, introSelected, betas});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    if (isEditing && isLoadingApp) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'withWritableReportOrNotFound',
+            isLoadingApp,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {
+        return <NotFoundPage onBackButtonPress={dismissMoneyRequestModal} />;
+    }
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            report={report}
+            reportDraft={reportDraft}
+        />
+    );
 }
 
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>>(
@@ -82,51 +134,18 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     shouldIncludeDeprecatedIOUType = false,
 ): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>> {
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>) {
-        const {route} = props;
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
-        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
-        const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-        const [betas] = useOnyx(ONYXKEYS.BETAS);
-        const isReportArchived = useReportIsArchived(report?.reportID);
-
-        const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
-            .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
-            .includes(route.params?.iouType);
-        const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
-
-        useEffect(() => {
-            if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
-                return;
-            }
-            openReport({reportID: route.params.reportID, introSelected, betas});
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []);
-
-        if (isEditing && isLoadingApp) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'withWritableReportOrNotFound',
-                isLoadingApp,
-            };
-            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
-        }
-
-        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {
-            return <NotFoundPage onBackButtonPress={dismissMoneyRequestModal} />;
-        }
-
         return (
-            <WrappedComponent
-                {...(props as TProps)}
-                report={report}
-                reportDraft={reportDraft}
+            <WithWritableReportOrNotFoundImpl
+                WrappedComponent={WrappedComponent}
+                shouldIncludeDeprecatedIOUType={shouldIncludeDeprecatedIOUType}
+                {...props}
             />
         );
     }
 
     WithWritableReportOrNotFound.displayName = `withWritableReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return React.memo(WithWritableReportOrNotFound);
+    return WithWritableReportOrNotFound;
 }
 
 export type {WithWritableReportOrNotFoundProps};

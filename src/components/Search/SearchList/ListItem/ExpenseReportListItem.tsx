@@ -193,7 +193,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         return reportItem?.transactions?.some((transaction) => {
             const relevantViolations = (transaction.violations ?? []).filter(
                 (violation) =>
-                    !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations, submitterLogin) &&
+                    !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, submitterLogin, policyForViolations) &&
                     shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transaction),
             );
 
@@ -225,6 +225,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // (parentPolicy ?? snapshot); violations + transactions come from the report's live Onyx data.
     const liveHasVisibleViolations = hasVisibleViolations(
         reportForViolations,
+        submitterLogin,
         reportViolations,
         currentUserDetails.email ?? '',
         currentUserDetails.accountID,
@@ -238,10 +239,11 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const liveViolationsSelector = transactionViolationsByIDsSelector(snapshotTransactionIDs);
     const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: liveViolationsSelector}, [liveViolationsSelector]);
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail} = useReportPaymentContext({
-        reportID: reportItem.reportID,
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            reportID: reportItem.reportID,
+            chatReportPolicyID: chatReport?.policyID,
+        });
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -296,6 +298,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             searchData,
             chatReportActions,
             delegateEmail,
+            delegateAccountID,
             isTrackIntentUser,
         });
     }, [
@@ -335,6 +338,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         nextStep,
         chatReportActions,
         delegateEmail,
+        delegateAccountID,
         isTrackIntentUser,
     ]);
 
@@ -389,6 +393,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const fallbackHasVisibleViolations = liveViolationsForSnapshotTransactions
         ? hasVisibleViolations(
               reportForViolations,
+              submitterLogin,
               liveViolationsForSnapshotTransactions,
               currentUserDetails.email ?? '',
               currentUserDetails.accountID,

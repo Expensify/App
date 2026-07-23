@@ -3,8 +3,10 @@ import TextLink from '@components/TextLink';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExportIntegrationActionFragments, getExportIntegrationMessageHTML, hasReasoning} from '@libs/ReportActionsUtils';
 
@@ -29,7 +31,9 @@ type ExportIntegrationProps = {
 function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`);
+    const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
 
     if (hasReasoning(action)) {
         const message = getExportIntegrationMessageHTML(translate, action);
@@ -52,7 +56,7 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
                     return (
                         <Text
                             key={index}
-                            style={[styles.chatItemMessage, styles.colorMuted]}
+                            style={[styles.chatItemMessage, styles.colorMuted, selectableStyle]}
                         >
                             {fragment.text}{' '}
                         </Text>

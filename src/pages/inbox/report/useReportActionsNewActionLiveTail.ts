@@ -106,6 +106,7 @@ function useReportActionsNewActionLiveTail({
                             reportID,
                             introSelected,
                             betas,
+                            hasReportActions: true,
                         });
                     }
                     return;

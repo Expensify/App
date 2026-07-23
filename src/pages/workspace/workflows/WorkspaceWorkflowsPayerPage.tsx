@@ -118,7 +118,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 continue;
             }
             const isOwner = policy?.owner === details?.login;
-            const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+            const canBePayer = !!policyEmployee.role && canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
             const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || !canBePayer;
             if (shouldSkipMember) {
                 continue;
@@ -241,9 +241,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const isAccountAlreadySharedWithCurrentUser =
             bankAccountInfo?.accountData?.sharees && currentUserPersonalDetails?.login ? bankAccountInfo?.accountData?.sharees.includes(currentUserPersonalDetails?.login) : false;
         const isOwner = policy?.owner === currentUserPersonalDetails?.login;
+        const canCurrentUserManagePayments = canMemberWrite(policy, currentUserPersonalDetails?.login ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
-        // Current user has no right to share (not owner and not a sharee) — show error
-        if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
+        // Current user has no right to share (not owner, payments admin or a sharee) — show error
+        if (!isOwner && !canCurrentUserManagePayments && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
             return;
         }
@@ -278,7 +279,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         isAccountInSetupState;
 
     const totalNumberOfPayerCandidates = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
-        const canBePayer = canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+        const canBePayer = !!policyEmployee.role && canMemberWrite(policy, email, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
         return !isDeletedPolicyEmployee(policyEmployee) && canBePayer;
     });
 

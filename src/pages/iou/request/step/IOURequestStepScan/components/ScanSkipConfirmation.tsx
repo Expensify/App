@@ -108,7 +108,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -227,6 +227,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 policyRecentlyUsedTags: undefined,
                 participantsPolicyTags,
                 delegateAccountID,
+                formatPhoneNumber,
             };
 
             submitWithDismissFirst({

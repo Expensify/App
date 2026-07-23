@@ -31,7 +31,18 @@ import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    CardList,
+    MergeTransaction,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    Report,
+    ReportActions,
+    ReportNextStepDeprecated,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
@@ -180,6 +191,9 @@ function getTransactionsForMerging({
     cardList?: CardList;
 }) {
     const transactionID = targetTransaction.transactionID;
+    if (!transactionID) {
+        return;
+    }
 
     // Collect/Control workspaces:
     // - Admins and approvers: The list of eligible expenses will only contain the expenses from the report that the admin/approver triggered the merge from. This is intentionally limited since they’ll only be reviewing one report at a time.
@@ -220,6 +234,7 @@ function getOnyxTargetTransactionData({
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     targetTransactionThreadParentReportNextStep,
+    iouReportOwnerLogin,
     policy,
     policyTags,
     policyCategories,
@@ -236,6 +251,7 @@ function getOnyxTargetTransactionData({
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -280,6 +296,7 @@ function getOnyxTargetTransactionData({
             transactionID: targetTransaction.transactionID,
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
+            iouReportOwnerLogin,
             iouReportNextStep: targetTransactionThreadParentReportNextStep,
             transactionChanges: filteredTransactionChanges,
             policy,
@@ -339,6 +356,7 @@ type MergeTransactionRequestParams = {
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -347,6 +365,7 @@ type MergeTransactionRequestParams = {
     isASAPSubmitBetaEnabled: boolean;
     delegateAccountID: number | undefined;
     selfDMReport: OnyxEntry<Report>;
+    selfDMReportActions: OnyxEntry<ReportActions>;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 };
@@ -367,6 +386,7 @@ function mergeTransactionRequest({
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     targetTransactionThreadParentReportNextStep,
+    iouReportOwnerLogin,
     allTransactionViolations,
     policy,
     policyTags,
@@ -376,6 +396,7 @@ function mergeTransactionRequest({
     isASAPSubmitBetaEnabled,
     delegateAccountID,
     selfDMReport,
+    selfDMReportActions,
     reportPolicyTags,
     isTrackIntentUser,
 }: MergeTransactionRequestParams) {
@@ -419,6 +440,7 @@ function mergeTransactionRequest({
         targetTransactionThreadReport,
         targetTransactionThreadParentReport,
         targetTransactionThreadParentReportNextStep,
+        iouReportOwnerLogin,
         policy,
         policyTags,
         policyCategories,
@@ -561,7 +583,7 @@ function mergeTransactionRequest({
         // Success data
         sourceTransactionSuccessData.push(...successSourceReportActionData);
     } else {
-        const whisperAction = getTrackExpenseActionableWhisper(sourceTransaction.transactionID, selfDMReportID);
+        const whisperAction = getTrackExpenseActionableWhisper(sourceTransaction.transactionID, selfDMReportID, selfDMReportActions);
         const sourceIouAction = getIOUActionForReportID(selfDMReportID, sourceTransaction.transactionID);
         const actionableWhisperReportActionID = whisperAction?.reportActionID;
 

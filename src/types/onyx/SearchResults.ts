@@ -59,6 +59,18 @@ type SearchResultsInfo = {
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
+    /** Explicit terminal lifecycle state of the most recent search request for this snapshot.
+     * Optional because snapshots persisted before this field existed (and snapshots written by
+     * non-search actions) may not carry it.
+     *
+     * Nothing reads this field yet. The existing isLoading/type/status-based loading and error gates
+     * migrate to read it in a follow-up PR.
+     *
+     * Residual limitation: if the app is killed or reloaded mid-request, no cleanup runs, so `loading` can
+     * still be stranded on disk. The future read side must treat a `loading` state with no in-flight request
+     * as stale. */
+    state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
+
     /** The number of results */
     count?: number;
 
