@@ -647,7 +647,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidation.magicCodeSent', workEmail))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidation.securityCodeSent', workEmail))).toBeOnTheScreen();
         });
 
         unmount();
