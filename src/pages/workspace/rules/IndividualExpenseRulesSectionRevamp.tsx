@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -38,6 +38,8 @@ type BasicRuleMenuItem = {
     action: () => void;
     pendingAction?: PendingAction;
 };
+
+const COLLECT_ALLOWED_RULE_KEYS = new Set(['requireFields', 'billableExpenses']);
 
 function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: IndividualExpenseRulesSectionRevampProps) {
     const {convertToDisplayString} = useCurrencyListActions();
@@ -80,6 +82,21 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const reimbursableModeText = reimbursableModeTextMap[reimbursableMode];
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
     const billableModeText = isBillableTrackingEnabled ? translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`) : '';
+
+    const isCollect = isCollectPolicy(policy);
+    const rulesUpgradeBackTo = ROUTES.WORKSPACE_RULES.getRoute(policyID);
+    const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
+
+    const handleMenuItemPress = (item: BasicRuleMenuItem) => {
+        if (isCollect && !COLLECT_ALLOWED_RULE_KEYS.has(item.key) && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+            return;
+        }
+        item.action();
+    };
+
+    const navigateToRulesControlUpgrade = () => {
+        tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo);
+    };
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
@@ -178,7 +195,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     titleStyle={[styles.ml0, !item.description && styles.colorMuted]}
                     descriptionTextStyle={[styles.ml0, styles.breakWord]}
                     shouldShowRightIcon={canWriteRules}
-                    onPress={item.action}
+                    onPress={() => handleMenuItemPress(item)}
                     interactive={canWriteRules}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
@@ -210,8 +227,9 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     shouldPlaceSubtitleBelowSwitch
                     shouldUseCompactSubtitleSpacing
                     isActive={areEReceiptsEnabled}
-                    disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
-                    showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
+                    disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
+                    showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
+                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
                     onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
                     pendingAction={policy?.pendingFields?.eReceipts}
                     rowIcon={icons.Receipt}
@@ -224,8 +242,9 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     shouldPlaceSubtitleBelowSwitch
                     shouldUseCompactSubtitleSpacing
                     isActive={isAttendeeTrackingEnabledForPolicy}
-                    disabled={!canWriteRules}
-                    showLockIcon={!canWriteRules}
+                    disabled={!canWriteRules || isCollect}
+                    showLockIcon={!canWriteRules || isCollect}
+                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                     rowIcon={icons.Users}
