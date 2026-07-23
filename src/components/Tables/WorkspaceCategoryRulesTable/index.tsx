@@ -38,6 +38,7 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     ruleColumnLabel: string;
     emptyState: TableEmptyStateProps;
     renderRow: (props: TableRenderRowProps<TItem>) => React.ReactElement;
+    typeColumnWidth?: number;
 };
 
 /**
@@ -57,6 +58,7 @@ function WorkspaceCategoryRulesTableImpl({
     ruleColumnLabel,
     emptyState,
     renderRow,
+    typeColumnWidth = variables.tableTypeColumnWidth,
 }: WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>) {
     const {localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -68,7 +70,7 @@ function WorkspaceCategoryRulesTableImpl({
             key: 'type',
             label: typeColumnLabel,
             sortable: true,
-            width: variables.tableTypeColumnWidth,
+            width: typeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
         {key: 'condition', label: conditionColumnLabel, sortable: true},
