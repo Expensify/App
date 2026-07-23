@@ -73,7 +73,7 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
 
-    /** Whether to wait for the keyboard to close before switching tabs */
+    /** Whether to wait for the keyboard to close before switching tabs that share keyboard-avoiding layout */
     shouldDismissKeyboardBeforeTabSwitch?: boolean;
 };
 
@@ -102,6 +102,7 @@ const getTabNames = (children: React.ReactNode): string[] => {
     return result;
 };
 
+// Some tab groups share a keyboard-avoiding layout, so delay tab switching until the keyboard finishes closing to avoid mounting the next tab in a keyboard-shrunk layout.
 const dismissKeyboardBeforeTabSwitch = async (): Promise<void> => {
     let fallbackTimeoutID: ReturnType<typeof setTimeout> | undefined;
 
@@ -180,6 +181,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     // Tab-switch discard guards, keyed by tab name. Tab screens register via `useDiscardChangesConfirmation`.
     const guardsRef = useRef<Map<string, TabSwitchGuard>>(new Map());
     const isDiscardModalOpenRef = useRef(false);
+    // Avoid handling repeated tab presses while a keyboard dismiss is already delaying a tab switch.
     const isTabSwitchPendingRef = useRef(false);
 
     const registerTabGuard: RegisterTabSwitchGuard = (guard) => {
