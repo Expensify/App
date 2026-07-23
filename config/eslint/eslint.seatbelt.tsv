@@ -1939,7 +1939,6 @@
 "../../tests/unit/ContactMethodDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ContextMenuActionsCopyMessageTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/CountryUtils.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
-"../../tests/unit/DateUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	22
 "../../tests/unit/DebugUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/DeeplinkRouteNormalizationTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/unit/DeployChecklistUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	24
