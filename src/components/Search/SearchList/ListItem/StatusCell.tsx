@@ -48,6 +48,7 @@ function StatusCell({stateNum, statusNum, isPending, isDeleted, isSelected}: Sta
                 backgroundColor={backgroundColor}
                 textColor={reportStatusColorStyle.textColor}
                 tooltipText={tooltipText}
+                badgeStyles={styles.alignSelfStart}
             />
         </View>
     );

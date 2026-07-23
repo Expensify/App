@@ -22,7 +22,7 @@ function TotalCell({total, currency, isScanning = false}: TotalCellProps) {
             testID="TotalCell"
             shouldShowTooltip
             text={displayText}
-            style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, styles.textBold, styles.textAlignRight, styles.fontWeightNormal]}
+            style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, styles.textBold, styles.fontWeightNormal]}
         />
     );
 }

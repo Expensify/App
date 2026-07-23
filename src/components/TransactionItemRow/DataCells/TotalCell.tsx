@@ -143,7 +143,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={amountToDisplay}
-            style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink1, styles.textAlignRight]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink1]}
         />
     );
 
@@ -175,9 +175,9 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress MoneyRequestAmountInput's own border and background to avoid visual conflicts.
                     containerStyle={[styles.editableCellInputStyle]}
-                    inputStyle={[styles.textAlignRight, styles.pr0]}
+                    inputStyle={[styles.textAlignLeft, styles.pr0]}
                     touchableInputWrapperStyle={styles.editableCellInputStyle}
-                    scrollViewStyle={[styles.flexRow, styles.justifyContentEnd]}
+                    scrollViewStyle={[styles.flexRow, styles.justifyContentStart]}
                     symbolTextStyle={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
                     negativeSymbolStyle={styles.editableCellSymbolStyle}
                 />
