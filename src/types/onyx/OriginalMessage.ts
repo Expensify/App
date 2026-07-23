@@ -1627,6 +1627,14 @@ type IssueNewCardOriginalMessage = OriginalMessage<
 >;
 
 /**
+ * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
+ */
+type OriginalMessageHomeAddressRequired = {
+    /** ID of the policy whose commuter-exclusion change triggered the prompt */
+    policyID: string;
+};
+
+/**
  * Model of reimbursement director information report action
  */
 type OriginalMessageReimbursementDirectorInformationRequired = {
@@ -1764,6 +1772,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
+    [CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED]: OriginalMessageHomeAddressRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & OldDotOriginalMessageMap &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &

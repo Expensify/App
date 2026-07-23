@@ -1636,6 +1636,7 @@ const CONST = {
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED: 'DIRECTORINFORMATIONREQUIRED',
+                HOME_ADDRESS_REQUIRED: 'HOMEADDRESSREQUIRED',
                 REJECTED: 'REJECTED',
                 REJECTED_TO_SUBMITTER: 'REJECTEDTOSUBMITTER',
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
@@ -4217,7 +4218,7 @@ const CONST = {
         },
         COMMUTER_EXCLUSION_METHOD: {
             FIXED_DISTANCE: 'fixedDistance',
-            // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
+            HOME_AND_OFFICE: 'homeAndOffice',
         },
         // Upper bound for the commuter exclusion fixed distance. Matches the length of the longest road in the world
         COMMUTER_EXCLUSION_MAX_DISTANCE: 19000,

@@ -988,6 +988,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portfel',
             },
             validateAccount: {title: 'Zweryfikuj swoje konto', subtitle: 'Konto', cta: 'Zatwierdź'},
+            addHomeAddress: {
+                title: 'Dodaj adres domowy',
+                subtitle: 'Twój administrator włączył wyłączenia dojazdów dla wydatków odległościowych. Dodaj adres domowy, żebyśmy mogli zastosować je do twoich rozliczeń.',
+                cta: 'Dodaj adres',
+            },
             fixFailedBilling: {title: 'Nie mogliśmy obciążyć zapisanej karty', subtitle: 'Subskrypcja'},
             unlockBankAccount: {
                 workspaceTitle: 'Twoje firmowe konto bankowe zostało zablokowane',
@@ -1250,6 +1255,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Utwórz wydatek czasowy',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Adres domowy jest wymagany',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. ${workspaceName} używa tego adresu do odliczeń za dojazdy do pracy.`
+                    : 'Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. To miejsce pracy wykorzystuje ten adres do odliczeń za dojazdy.',
+            cta: 'Dodaj adres domowy',
+        },
         amount: 'Kwota',
         percent: 'Procent',
         date: 'Data',
@@ -6980,11 +6993,21 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 summaryDisabled: 'Bez wykluczenia dojazdów',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Wyklucz ${distance} ${unit} na zgłoszenie`,
                 optionDisabledTitle: 'Nie wykluczaj dojazdów',
-                optionDisabledHelp: 'Nie zastosowano wyłączenia dojazdów.',
+                optionDisabledHelp: 'Nie usunięto żadnego dojazdu z rozliczeń.',
                 optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
                 optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
                 distanceLabel: 'Dystans',
-                errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.', distanceTooLarge: 'Odległość jest zbyt duża.'},
+                summaryHomeAndOffice: 'Użyj lokalizacji domu i biura',
+                optionHomeAndOfficeTitle: 'Oblicz według domu i biura',
+                optionHomeAndOfficeHelp: 'Użyj adresu domowego członka, jego modelu pracy i przypisania do biura, aby obliczyć wyłączenia z dojazdów.',
+                workspaceAddressRequired: {
+                    title: 'Nie tak szybko…',
+                    promptStart: 'Nie możesz włączyć ustawienia obliczania według domu i biura, dopóki najpierw nie dodasz lokalizacji biura w',
+                    linkText: 'Przegląd',
+                    promptEnd: '.',
+                    cta: 'Jasne',
+                },
+                errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.', invalidAddress: 'Wpisz prawidłowy adres', distanceTooLarge: 'Odległość jest zbyt duża.'},
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',

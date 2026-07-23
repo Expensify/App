@@ -34,6 +34,8 @@ import {useIsAgentAccount} from '@libs/SessionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 
+import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
+
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
@@ -89,6 +91,7 @@ function ProfilePage() {
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const {shouldShowAddHomeAddress: shouldShowAddHomeAddressGBR} = useTimeSensitiveHomeAddress();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
@@ -184,6 +187,7 @@ function ProfilePage() {
             testID: 'address-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
+            brickRoadIndicator: shouldShowAddHomeAddressGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
         },
     ];
 
