@@ -132,15 +132,26 @@
 
 ### [@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch](@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch)
 
-- Reason: Fixes a "Maximum update depth exceeded" (#185) infinite render loop on web with classic (non-overlay) scrollbars — i.e. Windows/Linux Chrome and macOS with "Always show scroll bars". For a vertical list FlashList derives its cross-axis bounded size from `firstChildViewLayout.width` (the scroll viewport's **client** width, which excludes the scrollbar). When the vertical scrollbar toggles, that width steps by the scrollbar size (e.g. 375 ↔ 355); each change re-triggers layout, which changes content height, which toggles the scrollbar again — an infinite loop. This patch breaks the loop inside `LinearLayoutManager.updateLayoutParams` by detecting the scrollbar ping-pong and settling `boundedSize` instead of thrashing it — reserving no width. A change is treated as scrollbar-induced only when all hold, so a real window resize is never misread:
-  1. **Strict alternation**: the last 4 *rounded* cross-axis sizes form a clean `A,B,A,B` (exactly two values, three consecutive flips). A manual drag sweeps through many distinct values and never matches; rounding keeps the equality robust against subpixel drift.
-  2. **Scrollbar-sized delta**: the two values differ by no more than `SCROLLBAR_OSCILLATION_TOLERANCE` (25px — classic scrollbars are ~15–17px, with headroom for thicker/zoomed bars).
+- Reason: Fixes a "Maximum update depth exceeded" (#185) crash, an infinite render loop on web with classic (non-overlay) scrollbars: Windows/Linux Chrome, and macOS with "Always show scroll bars".
 
-  When detected, `boundedSize` settles on the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width.
+  A vertical FlashList takes its width from the scroll viewport's **client** width, which does not include the scrollbar (`firstChildViewLayout.width`, reported through `getLayoutSize().width` and `ViewHolderCollection`'s `fixedContainerSize`). So when the vertical scrollbar shows or hides, that width jumps by the scrollbar's size (e.g. 375 vs 355). Each jump re-runs layout (`ViewHolderCollection`'s `useLayoutEffect([fixedContainerSize])` calls `recyclerViewContext.layout()`), which re-measures, changes the content height, and toggles the scrollbar again. Round and round until React throws #185. The fix lives in `LinearLayoutManager.updateLayoutParams` (`settleScrollbarOscillation`): it spots the scrollbar flicker and locks `boundedSize` instead of letting it thrash, reserving no width.
+
+  Because the width only ever bounces between two values (with the scrollbar and without), we treat a change as a flicker only when all of these hold, so a real window resize is never mistaken for one:
+
+  1. **Only two distinct values** in the last 8 (rounded) widths. A window drag moves through many different widths, so it never matches; rounding ignores subpixel noise.
+  2. **At least three flips** (`MIN_OSCILLATION_FLIPS`) between those two values, i.e. the width keeps coming back to one it already had. A real flicker repeats (`A,B,A,B`); showing a scrollbar just once only flips twice (`A,B,A`) and is ignored; a drag never returns to an old width at all.
+  3. **A scrollbar-sized gap**: the two values are no more than 25px apart (`SCROLLBAR_OSCILLATION_TOLERANCE`; scrollbars are ~15–17px, with room for thicker/zoomed ones).
+  4. **The current width is the smaller (with-scrollbar) one**. The flip count looks at the whole window, so two separate, already-finished flickers (e.g. `B,A,B,A`) can hit the threshold even though the scrollbar is currently gone. Locking to the narrow width then would wrongly shrink the rows, and since the width would not change, nothing would re-run to fix it (stuck until an unrelated resize or remount). Only locking on a smaller-width frame keeps the lock in step with what's on screen; a live flicker keeps producing smaller frames anyway, so this costs at most a frame or two.
+
+  We lock to the **smaller** value, which already leaves room for the scrollbar so rows never overflow. While locked, any width other than that smaller value releases the lock and we use the real width again. That covers both a real resize and the scrollbar genuinely going away (e.g. content is filtered down so the list no longer scrolls). We release on the very first larger width rather than waiting for it to repeat: locking holds `boundedSize` constant, and a shrink that removes the scrollbar often updates the width only once, so waiting would leave the rows stuck narrow.
+
+  Releasing that eagerly cannot restart the crash. Locking already stopped the loop (constant `boundedSize`, so no re-layout), which means any later width comes from a real change. And a wider layout is never taller, so forcing the narrower width can only keep a scrollbar the list already needed: the width settles on the smaller value and stays locked. The larger width comes back only when the content actually shrinks, which is exactly when we want to let go.
+
+  One subtlety: the flicker is not always a clean `A,B,A,B`. The scrollbar only toggles after the re-rendered rows are re-measured, which can lag a frame and give runs like `A,A,B,B`. The original strict `A,B,A,B` check missed those and let the loop run to the crash. That was #95719.
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334
-- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263
-- PR introducing patch: https://github.com/Expensify/App/pull/92520
+- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263, https://github.com/Expensify/App/issues/95719
+- PR introducing patch: https://github.com/Expensify/App/pull/92520 (hardened for #95719)
 
 ### [@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch](@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch)
 
