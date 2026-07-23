@@ -86,6 +86,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const reportID = 'notificationReportID' in params ? params.notificationReportID : params.reportID;
             const [betas] = useOnyx(ONYXKEYS.BETAS);
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
             const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
@@ -107,7 +108,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID, introSelected, betas});
+                openReport({reportID, introSelected, betas, hasReportActions});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, reportID]);
 
