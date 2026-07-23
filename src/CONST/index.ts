@@ -3645,11 +3645,14 @@ const CONST = {
                 MINIMUM_FEE: 0,
             },
         },
+        // Error field used by the magic code prompt shown when changing the phone number protected for card 3DS verification
+        VALIDATE_CODE_ERROR_FIELD: 'walletPhoneNumber',
         ERROR: {
             // If these get updated, we need to update the codes on the Web side too
             SSN: 'ssnError',
             KBA: 'kbaNeeded',
             KYC: 'kycFailed',
+            INCORRECT_MAGIC_CODE: 'incorrectMagicCode',
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',

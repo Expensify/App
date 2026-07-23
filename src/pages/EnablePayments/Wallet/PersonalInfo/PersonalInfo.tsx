@@ -6,13 +6,13 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
-import {parsePhoneNumber} from '@libs/PhoneNumber';
-
+import getWalletPersonalDetailsParams from '@pages/EnablePayments/shared/getWalletPersonalDetailsParams';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
+import useWalletPhoneMagicCode from '@pages/EnablePayments/shared/useWalletPhoneMagicCode';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/Wallet/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
 
-import {setAdditionalDetailsQuestions, updateCurrentStep, updatePersonalDetails} from '@userActions/Wallet';
+import {setAdditionalDetailsQuestions, updateCurrentStep} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
 import type {EnablePaymentsSubPageType} from '@src/CONST';
@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
-import React, {useMemo} from 'react';
+import {useMemo} from 'react';
 
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
@@ -49,21 +49,12 @@ function PersonalInfoPage() {
 
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
+    const {submitPersonalDetails} = useWalletPhoneMagicCode();
+
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
+
     const submit = () => {
-        const personalDetails = {
-            phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
-            legalFirstName: values?.[PERSONAL_INFO_STEP_KEYS.FIRST_NAME] ?? '',
-            legalLastName: values?.[PERSONAL_INFO_STEP_KEYS.LAST_NAME] ?? '',
-            addressStreet: values?.[PERSONAL_INFO_STEP_KEYS.STREET] ?? '',
-            addressCity: values?.[PERSONAL_INFO_STEP_KEYS.CITY] ?? '',
-            addressState: values?.[PERSONAL_INFO_STEP_KEYS.STATE] ?? '',
-            addressZip: values?.[PERSONAL_INFO_STEP_KEYS.ZIP_CODE] ?? '',
-            dob: values?.[PERSONAL_INFO_STEP_KEYS.DOB] ?? '',
-            ssn: values?.[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4] ?? '',
-        };
-        // Attempt to set the personal details
-        updatePersonalDetails(personalDetails);
+        submitPersonalDetails(getWalletPersonalDetailsParams(values));
     };
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);

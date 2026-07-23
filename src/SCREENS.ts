@@ -178,6 +178,7 @@ const SCREENS = {
             IMPORT_TRANSACTIONS_SPREADSHEET: 'Settings_Wallet_Import_Transactions_Spreadsheet',
             TRANSACTIONS_IMPORTED: 'Settings_Wallet_Transactions_Imported',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
+            ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE: 'Settings_Wallet_EnablePayments_ConfirmMagicCode',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             CARD_CHANGE_PIN: 'Settings_Wallet_Card_Change_PIN',
             CARD_CHANGE_PIN_ATM: 'Settings_Wallet_Card_Change_PIN_ATM',
