@@ -1,4 +1,4 @@
-import claimInitialFocus from '@libs/claimInitialFocus';
+import claimInitialFocus, {claimDialogFocus} from '@libs/claimInitialFocus';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
@@ -9,20 +9,43 @@ import {useEffect} from 'react';
 
 import type UseDialogContainerFocus from './types';
 
+/**
+ * Moves focus into an open RHP after the transition.
+ *
+ * Dialog title/role are announced via aria-live (see Header) — not by focusing the heading — so JAWS/NVDA
+ * get a clean "{title}, dialog" without nested "group / and N more items" chrome.
+ *
+ * Still steals focus from the activator into the first interactive control (APG modal). claimInitialFocus's
+ * body-only gate would leave JAWS on the trigger and skip the panel entirely. If the user already moved
+ * focus into the dialog (click/Tab), leave it alone.
+ */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
-    // RHP initial focus is keyboard-only, so the ring is always shown (WCAG 2.4.7).
-    if (!getHadTabNavigation() || !container) {
+    if (!container) {
         return false;
     }
+
+    const activeElement = document.activeElement;
+    if (activeElement instanceof Node && container.contains(activeElement)) {
+        return false;
+    }
+
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
     const target = Array.from(targets).find(hasFocusableAttributes);
-    if (!target) {
+
+    if (container.getAttribute('role') === 'dialog') {
+        const focusTarget = target ?? container;
+        // No ring unless the user is already keyboard-navigating (WCAG 2.4.7).
+        return claimDialogFocus(focusTarget, {focusVisible: getHadTabNavigation()});
+    }
+
+    // Non-dialog screens: keep keyboard-only initial focus.
+    if (!getHadTabNavigation() || !target) {
         return false;
     }
     return claimInitialFocus(target, {focusVisible: true});
 }
 
-/** Focuses the first interactive element inside the dialog after the RHP transition for screen reader announcement. */
+/** Moves focus into the RHP after the transition (dialog name is announced separately via aria-live). */
 const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocusGate, skipDialogContainerFocus = false) => {
     useEffect(() => {
         if (!isReady || skipDialogContainerFocus || !claimInitialFocusGate?.()) {

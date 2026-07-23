@@ -20,4 +20,23 @@ function claimInitialFocus(el: HTMLElement, {focusVisible}: {focusVisible: boole
     return true;
 }
 
+/**
+ * Moves focus into a modal dialog, stealing it from the control that opened the dialog.
+ *
+ * Unlike {@link claimInitialFocus}, this does not require `document.activeElement === body` — APG modal dialogs must
+ * take focus from the trigger. Without that steal, JAWS stays on the activator and never announces the dialog.
+ */
+function claimDialogFocus(el: HTMLElement, {focusVisible}: {focusVisible: boolean}): boolean {
+    if (!tryClaim(Priorities.INITIAL)) {
+        return false;
+    }
+    el.focus({preventScroll: true, focusVisible});
+    if (document.activeElement !== el) {
+        resetCycle();
+        return false;
+    }
+    return true;
+}
+
 export default claimInitialFocus;
+export {claimDialogFocus};

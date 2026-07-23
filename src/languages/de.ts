@@ -218,6 +218,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Inhaber',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'Kalender geöffnet',
+        dialogOpened: 'Dialog',
         send: 'Senden',
         na: 'k. A.',
         noResultsFound: 'Keine Ergebnisse gefunden',

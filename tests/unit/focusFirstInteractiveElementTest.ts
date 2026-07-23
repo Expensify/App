@@ -82,6 +82,72 @@ describe('focusFirstInteractiveElement', () => {
             });
         });
 
+        it('should focus the first interactive control inside a dialog (title is announced via aria-live, not focus)', () => {
+            const activator = document.createElement('button');
+            document.body.appendChild(activator);
+            activator.focus();
+
+            const heading = document.createElement('h1');
+            heading.setAttribute('role', 'heading');
+            heading.tabIndex = -1;
+            heading.textContent = 'App download links';
+            const button = document.createElement('button');
+            const container = createContainer(heading, button);
+            container.setAttribute('role', 'dialog');
+            container.setAttribute('aria-label', 'App download links');
+            container.tabIndex = -1;
+
+            const headingSpy = jest.spyOn(heading, 'focus');
+            const buttonSpy = jest.spyOn(button, 'focus');
+            const containerSpy = jest.spyOn(container, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(buttonSpy).toHaveBeenCalledWith({
+                preventScroll: true,
+                focusVisible: true,
+            });
+            expect(headingSpy).not.toHaveBeenCalled();
+            expect(containerSpy).not.toHaveBeenCalled();
+        });
+
+        it('should not steal focus when the user already focused a control inside the dialog', () => {
+            const firstButton = document.createElement('button');
+            const field = document.createElement('input');
+            const container = createContainer(firstButton, field);
+            container.setAttribute('role', 'dialog');
+            container.setAttribute('aria-label', 'Search');
+            container.tabIndex = -1;
+            field.focus();
+
+            const firstButtonSpy = jest.spyOn(firstButton, 'focus');
+            const fieldSpy = jest.spyOn(field, 'focus');
+            const containerSpy = jest.spyOn(container, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(firstButtonSpy).not.toHaveBeenCalled();
+            expect(containerSpy).not.toHaveBeenCalled();
+            expect(fieldSpy).not.toHaveBeenCalled();
+            expect(document.activeElement).toBe(field);
+        });
+
+        it('should focus the dialog node itself when it has no interactive controls', () => {
+            const activator = document.createElement('button');
+            document.body.appendChild(activator);
+            activator.focus();
+
+            const container = createContainer(document.createElement('div'));
+            container.setAttribute('role', 'dialog');
+            container.setAttribute('aria-label', 'App download links');
+            container.tabIndex = -1;
+            const containerSpy = jest.spyOn(container, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(containerSpy).toHaveBeenCalledWith({
+                preventScroll: true,
+                focusVisible: true,
+            });
+        });
+
         it('should not focus when container is null', () => {
             expect(focusFirstInteractiveElement(null)).toBe(false);
         });
@@ -106,6 +172,27 @@ describe('focusFirstInteractiveElement', () => {
     });
 
     describe('when Tab was NOT used (should skip focus)', () => {
+        it('should still move focus into a dialog after activator Enter/Space (JAWS virtual cursor — no prior Tab)', () => {
+            // Ensure keyboard modality is cleared (prior tests may have pressed Tab).
+            simulateMouse();
+
+            const activator = document.createElement('button');
+            document.body.appendChild(activator);
+            activator.focus();
+
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            container.setAttribute('role', 'dialog');
+            container.setAttribute('aria-label', 'App download links');
+            const buttonSpy = jest.spyOn(button, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(buttonSpy).toHaveBeenCalledWith({
+                preventScroll: true,
+                focusVisible: false,
+            });
+        });
+
         it('should skip after typing', () => {
             simulateTab();
             simulateTyping();
