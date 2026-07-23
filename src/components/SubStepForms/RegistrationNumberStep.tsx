@@ -43,15 +43,13 @@ type RegistrationNumberStepProps<TFormID extends keyof OnyxFormValuesMapping> = 
     shouldDelayAutoFocus?: boolean;
 };
 
-function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
-    formID,
-    onSubmit,
-    inputID,
-    defaultValue,
-    isEditing,
-    country,
-    shouldDelayAutoFocus = false,
-}: RegistrationNumberStepProps<TFormID>) {
+type RegistrationNumberStepPropsWidened = Omit<RegistrationNumberStepProps<keyof OnyxFormValuesMapping>, never>;
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function RegistrationNumberStepImpl({formID, onSubmit, inputID, defaultValue, isEditing, country, shouldDelayAutoFocus = false}: RegistrationNumberStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -64,11 +62,12 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     }, [country]);
 
     const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
             const errors = getFieldRequiredErrors(values, [inputID], translate);
 
-            if (values[inputID] && !isValidRegistrationNumber(values[inputID] as string, country)) {
-                errors[inputID] = translate('businessInfoStep.error.registrationNumber');
+            const registrationNumber = (values as Record<string, unknown>)[inputID as string] as string;
+            if (registrationNumber && !isValidRegistrationNumber(registrationNumber, country)) {
+                (errors as Record<string, string>)[inputID as string] = translate('businessInfoStep.error.registrationNumber');
             }
 
             return errors;
@@ -116,6 +115,10 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
             </View>
         </FormProvider>
     );
+}
+
+function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>(props: RegistrationNumberStepProps<TFormID>) {
+    return <RegistrationNumberStepImpl {...(props as unknown as RegistrationNumberStepPropsWidened)} />;
 }
 
 export default RegistrationNumberStep;

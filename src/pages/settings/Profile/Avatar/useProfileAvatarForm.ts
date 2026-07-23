@@ -2,32 +2,35 @@ import useAvatarCrop from '@hooks/useAvatarCrop';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 
+import {isLetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {isGeneratedLetterAvatarURL} from '@libs/UserAvatarUtils';
 
-import {updateAvatar} from '@userActions/PersonalDetails';
+import {deleteAvatar, updateAvatar, updateAvatarStyle} from '@userActions/PersonalDetails';
 
 import type {TranslationPaths} from '@src/languages/types';
 
-import {useRef, useState} from 'react';
+import {useState} from 'react';
 
-import type {AvatarCaptureHandle} from './AvatarCapture/types';
 import type {ErrorData, ImageData} from './types';
 
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
 /** Owns the profile avatar form state (selection, picked image, validation errors) and the save flow. */
 function useProfileAvatarForm() {
-    const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
+    const [errorData, setErrorData] = useState<ErrorData>({
+        validationError: null,
+        phraseParam: {},
+    });
     const [selected, setSelected] = useState<string | undefined>();
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
-
-    const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
+    const [isRemoved, setIsRemoved] = useState(false);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const isDirty = imageData.uri !== '' || !!selected;
+    const isDirty = imageData.uri !== '' || !!selected || isRemoved;
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => isDirty,
@@ -38,6 +41,7 @@ function useProfileAvatarForm() {
     };
 
     const onImageSelected = (file: File | CustomRNImageManipulatorResult) => {
+        setIsRemoved(false);
         setSelected(undefined);
         setImageData({
             uri: file?.uri ?? '',
@@ -47,15 +51,32 @@ function useProfileAvatarForm() {
         });
     };
 
-    const {openCropper} = useAvatarCrop({buttonLabelKey: 'avatarPage.upload', onCropped: onImageSelected});
+    const {openCropper} = useAvatarCrop({
+        buttonLabelKey: 'avatarPage.upload',
+        onCropped: onImageSelected,
+    });
 
     const onSelectPreset = (id: string) => {
+        setIsRemoved(false);
         setImageData({...EMPTY_FILE});
         setSelected(id);
     };
 
+    const onImageRemoved = () => {
+        setIsRemoved(true);
+        setSelected(undefined);
+        setImageData({...EMPTY_FILE});
+    };
+
     const save = () => {
         suppressDiscardPrompt();
+
+        if (isRemoved) {
+            deleteAvatar(currentUserPersonalDetails);
+            setIsRemoved(false);
+            Navigation.dismissModal();
+            return;
+        }
 
         const previousAvatar = {
             avatar: currentUserPersonalDetails?.avatar,
@@ -84,34 +105,29 @@ function useProfileAvatarForm() {
             return;
         }
 
-        if (!selected || !avatarCaptureRef.current) {
-            suppressDiscardPrompt(false);
+        if (selected && isLetterAvatarSchemeKey(selected)) {
+            const isColorChanged = currentUserPersonalDetails?.avatarStyle?.color !== selected;
+            const hasAvatarImageToClear = !!currentUserPersonalDetails?.avatar && !isGeneratedLetterAvatarURL(currentUserPersonalDetails.avatar);
+            if (isColorChanged || hasAvatarImageToClear) {
+                updateAvatarStyle(selected, currentUserPersonalDetails);
+            }
+            setSelected(undefined);
+            Navigation.dismissModal();
             return;
         }
 
-        avatarCaptureRef.current
-            .capture()
-            ?.then((file) => {
-                updateAvatar(file, previousAvatar);
-                setSelected(undefined);
-                setImageData({...EMPTY_FILE});
-                Navigation.dismissModal();
-            })
-            .catch(() => {
-                suppressDiscardPrompt(false);
-            });
+        suppressDiscardPrompt(false);
     };
 
     return {
         errorData,
         selected,
-        setSelected,
         imageData,
-        setImageData,
-        avatarCaptureRef,
         isDirty,
+        isRemoved,
         setError,
         onSelectPreset,
+        onImageRemoved,
         openCropper,
         save,
     };
