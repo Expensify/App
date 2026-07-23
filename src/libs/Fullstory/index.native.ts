@@ -48,15 +48,18 @@ const FS: Fullstory = {
             // UserMetadata onyx key.
             isFullstoryTrackingEnabled = false;
             getEnvironment().then((envName: string) => {
-                if (!FS.shouldInitialize(userMetadata, envName)) {
+                // Gate and identify on the freshest metadata read at the same point, so the eligibility
+                // decision matches the identity we set. This keeps an email-less chain that resolves late
+                // from clobbering a newer identity, while ensuring a switch to an ineligible account (e.g. a
+                // support or non-production account) is not identified just because an older chain passed.
+                const currentUserMetadata = latestUserMetadata;
+                if (!FS.shouldInitialize(currentUserMetadata, envName)) {
                     return;
                 }
 
                 FullStory.restart();
                 FullStory.consent(true);
-                // Identify with the freshest metadata rather than the value captured when this chain
-                // started, so an email-less chain that resolves late does not clobber the identity.
-                FS.identify(latestUserMetadata, envName);
+                FS.identify(currentUserMetadata, envName);
                 isFullstoryTrackingEnabled = true;
             });
         } catch (e) {
