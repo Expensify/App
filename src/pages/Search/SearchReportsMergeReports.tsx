@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Transaction} from '@src/types/onyx';
 
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 function SearchReportsMergeReports() {
     const {selectedReports} = useSearchSelectionContext();
@@ -181,6 +181,7 @@ function SearchReportsMergeReports() {
                         buttonText={translate('common.confirm')}
                         onSubmit={handleConfirm}
                         isDisabled={!destinationReportID}
+                        enabledWhenOffline
                     />
                 }
             />
