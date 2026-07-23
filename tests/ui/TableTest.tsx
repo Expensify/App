@@ -89,6 +89,12 @@ jest.mock('@components/Icon', () => {
     return MockIcon;
 });
 
+// Table.Row reads the ScreenWrapper transition context, which isn't present in this isolated render
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    __esModule: true,
+    default: () => ({didScreenTransitionEnd: true}),
+}));
+
 // Mock the responsive hook so that we are rendering in web mode
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
@@ -147,6 +153,7 @@ type TestItem = {
     name: string;
     category: string;
     value: number;
+    disabled?: boolean;
 };
 
 type TestColumnKey = 'name' | 'category' | 'value';
@@ -929,6 +936,95 @@ describe('Table', () => {
             // All items should remain visible with whitespace-only search
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.getByTestId('row-2')).toBeTruthy();
+        });
+    });
+
+    describe('row selection (shift+click)', () => {
+        const renderSelectableRow = ({item, index}: ListRenderItemInfo<TestItem>) => (
+            <Table.Row
+                interactive
+                rowIndex={index}
+                disabled={item.disabled}
+                accessibilityLabel={item.name}
+            >
+                <Text testID={`name-${item.id}`}>{item.name}</Text>
+            </Table.Row>
+        );
+
+        function ControlledSelectableTable({data = mockData, initialSelected = []}: {data?: TestItem[]; initialSelected?: string[]}) {
+            const [selectedKeys, setSelectedKeys] = React.useState<string[]>(initialSelected);
+            const props = createDefaultProps();
+            return (
+                <View>
+                    <Text testID="selected-keys">{[...selectedKeys].sort().join(',')}</Text>
+                    <Table<TestItem, TestColumnKey>
+                        data={data}
+                        columns={props.columns}
+                        renderItem={renderSelectableRow}
+                        keyExtractor={props.keyExtractor}
+                        selectionEnabled
+                        selectedKeys={selectedKeys}
+                        onRowSelectionChange={setSelectedKeys}
+                    >
+                        <Table.Header />
+                        <Table.Body />
+                    </Table>
+                </View>
+            );
+        }
+
+        const pressRow = (index: number, shiftKey = false) => {
+            const checkbox = screen.getAllByLabelText('common.select').at(index);
+            if (!checkbox) {
+                throw new Error(`No selectable row at index ${index}`);
+            }
+            fireEvent.press(checkbox, shiftKey ? {shiftKey: true} : undefined);
+        };
+
+        it('should select the range between a clicked anchor and a shift+clicked row', () => {
+            render(<ControlledSelectableTable />);
+
+            pressRow(0);
+            pressRow(3, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3,4$/);
+        });
+
+        it('should move the range endpoint on a consecutive shift+click, deselecting rows that fall out of the range', () => {
+            render(<ControlledSelectableTable />);
+
+            pressRow(0);
+            pressRow(4, true);
+            pressRow(2, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should select from the first selectable row when shift+click is the first action', () => {
+            render(<ControlledSelectableTable />);
+
+            pressRow(2, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should collapse the selection when Select All is followed by a shift+click', () => {
+            render(<ControlledSelectableTable />);
+
+            fireEvent.press(screen.getByLabelText('workspace.common.selectAll'));
+            pressRow(2, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should exclude disabled rows from the range', () => {
+            const dataWithDisabledRow = mockData.map((item, index) => (index === 2 ? {...item, disabled: true} : item));
+            render(<ControlledSelectableTable data={dataWithDisabledRow} />);
+
+            pressRow(0);
+            pressRow(4, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,4,5$/);
         });
     });
 });
