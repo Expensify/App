@@ -104,7 +104,9 @@ function AddAgentPage({route}: AddAgentPageProps) {
             ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, pendingFile.file, pendingFile.uri, policyID)
             : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
-        Navigation.dismissModalWithReport({reportID: optimisticReportID});
+        // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
+        // instead of dismissing to the agents list first and navigating to the DM afterward.
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID));
     };
 
     return (

@@ -50,7 +50,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
-    dismissModalWithReport: jest.fn(),
+    revealRouteBeforeDismissingModal: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -117,7 +117,7 @@ jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
 const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
 const mockSetNavigationToken = jest.mocked(setNavigationToken);
 const mockNavigate = jest.mocked(Navigation.navigate);
-const mockDismissModalWithReport = jest.mocked(Navigation.dismissModalWithReport);
+const mockRevealRouteBeforeDismissingModal = jest.mocked(Navigation.revealRouteBeforeDismissingModal);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
@@ -253,7 +253,7 @@ describe('AddAgentPage', () => {
 
             // The 5th arg (selected preset avatar ID) is randomized on mount, so only assert the args that matter here.
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, expect.anything(), undefined, undefined, undefined);
-            expect(mockDismissModalWithReport).toHaveBeenCalledWith({reportID: OPTIMISTIC_REPORT_ID});
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
         });
 
         it('forwards policyID from route params to createAgent', () => {
@@ -267,7 +267,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, expect.anything(), undefined, undefined, 'POL_42');
-            expect(mockDismissModalWithReport).toHaveBeenCalledWith({reportID: OPTIMISTIC_REPORT_ID});
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
         });
     });
 });
