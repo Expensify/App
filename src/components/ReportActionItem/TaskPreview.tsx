@@ -9,7 +9,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {getHasOutstandingChildTask} from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -44,6 +44,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The ID of the associated policy */
@@ -113,8 +114,6 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskContextReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const parentReport = useParentReport(taskContextReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const hasOutstandingChildTask = useHasOutstandingChildTask(taskContextReport);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(taskContextReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
@@ -187,9 +186,12 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             shouldSelectOnPressEnter
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 updateTaskCheckboxStateForAccessibility(isTaskCompleted);
+                                const delegateEmail = delegateEmailSelector(OnyxUtils.get(ONYXKEYS.ACCOUNT));
                                 if (isTaskCompleted) {
                                     reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
                                 } else {
+                                    const parentReportActions = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskContextReport?.parentReportID}` as const);
+                                    const hasOutstandingChildTask = getHasOutstandingChildTask(taskContextReport, parentReportActions);
                                     completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
                                 }
                             })}
