@@ -1,4 +1,3 @@
-import useGetPersonalDetailsByLogin from '@hooks/useGetPersonalDetailsByLogin';
 import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +10,7 @@ import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUti
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsByLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
@@ -85,7 +85,8 @@ function BaseVacationDelegateSelectionComponent({
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
     const pinnedVacationDelegate = searchValue ? currentVacationDelegate : (initialVacationDelegate ?? '');
-    const pinnedDelegatePersonalDetails = useGetPersonalDetailsByLogin(pinnedVacationDelegate);
+
+    const [pinnedDelegatePersonalDetails] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN, {selector: personalDetailsByLoginSelector(pinnedVacationDelegate)});
 
     const pinnedDelegateOption =
         pinnedVacationDelegate && pinnedDelegatePersonalDetails

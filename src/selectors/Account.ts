@@ -12,6 +12,8 @@ const primaryLoginSelector = (account: OnyxEntry<Account>) => account?.primaryLo
 
 const delegatesSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess?.delegates;
 
+const delegatorsSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess?.delegators;
+
 const requiresTwoFactorAuthSelector = (data: OnyxEntry<Account>) => data?.requiresTwoFactorAuth;
 
 const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.guideDetails;
@@ -28,6 +30,7 @@ export {
     isUserValidatedSelector,
     primaryLoginSelector,
     delegatesSelector,
+    delegatorsSelector,
     requiresTwoFactorAuthSelector,
     accountGuideDetailsSelector,
     mfaCredentialIDsSelector,

@@ -14,7 +14,6 @@ import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
@@ -22,8 +21,9 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {delegateEmailSelector, delegatorsSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
-import {personalDetailsListSelector, personalDetailsSelector} from '@src/selectors/PersonalDetails';
+import {createDisplayDetailsByLoginsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -67,15 +67,11 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
+    const [delegate = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [delegators = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatorsSelector});
 
-    const delegators = account?.delegatedAccess?.delegators ?? [];
-    const [delegateAndDelegatorPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetailsList) => {
-            const delegatePersonalDetails = personalDetailsSelector(loginToAccountIDMap?.[account?.delegatedAccess?.delegate ?? ''])(personalDetailsList);
-            const delegatorsPersonalDetailsList = personalDetailsListSelector(delegators.map((delegator) => loginToAccountIDMap?.[delegator.email]))(personalDetailsList);
-            return {delegatePersonalDetails, delegatorsPersonalDetailsList};
-        },
+    const [displayDetailsByLogin] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN, {
+        selector: createDisplayDetailsByLoginsSelector([delegate, ...delegators.map((delegator) => delegator.email)]),
     });
 
     const buttonRef = useRef<HTMLDivElement>(null);
@@ -83,7 +79,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
     const displayName = currentUserPersonalDetails?.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
@@ -174,17 +170,15 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
 
         if (isActingAsDelegate) {
-            const delegateEmail = account?.delegatedAccess?.delegate ?? '';
-
             // Avoid duplicating the current user in the list when switching accounts
-            if (delegateEmail === currentUserPersonalDetails.login) {
+            if (delegate === currentUserPersonalDetails.login) {
                 return [currentUserMenuItem];
             }
 
             const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
 
             return [
-                createBaseMenuItem(delegateAndDelegatorPersonalDetails?.delegatePersonalDetails, error, {
+                createBaseMenuItem(displayDetailsByLogin?.[delegate], error, {
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -209,7 +203,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 .map(({email, role}) => {
                     const errorFields = account?.delegatedAccess?.errorFields ?? {};
                     const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = getPersonalDetailsByID(loginToAccountIDMap?.[email], delegateAndDelegatorPersonalDetails?.delegatorsPersonalDetailsList);
+                    const personalDetails = displayDetailsByLogin?.[email];
                     return createBaseMenuItem(personalDetails, error, {
                         badgeText: translate('delegate.role', {role}),
                         onSelected: () => {

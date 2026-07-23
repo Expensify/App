@@ -7,7 +7,9 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import {
     createDisplayDetailsByAccountIDsSelector,
+    createDisplayDetailsByLoginsSelector,
     multiPersonalDetailsSelector,
+    personalDetailsByLoginSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
@@ -195,6 +197,32 @@ describe('PersonalDetailsSelector', () => {
         });
     });
 
+    describe('personalDetailsByLoginSelector', () => {
+        const personalDetailsListByLogin = {
+            [personalDetails.login]: personalDetails,
+        } as unknown as Record<string, PersonalDetails>;
+
+        it('should return the personal details for the given login', () => {
+            const result = personalDetailsByLoginSelector(personalDetails.login)(personalDetailsListByLogin);
+            expect(result).toEqual(personalDetails);
+        });
+
+        it('should return undefined if the login is not in the list', () => {
+            const result = personalDetailsByLoginSelector('unknown@user.com')(personalDetailsListByLogin);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined if the login is undefined', () => {
+            const result = personalDetailsByLoginSelector(undefined)(personalDetailsListByLogin);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined if the personalDetailsListByLogin is undefined', () => {
+            const result = personalDetailsByLoginSelector(personalDetails.login)(undefined);
+            expect(result).toBeUndefined();
+        });
+    });
+
     describe('createDisplayDetailsByAccountIDsSelector', () => {
         const fullDetails = {
             accountID,
@@ -236,6 +264,52 @@ describe('PersonalDetailsSelector', () => {
 
         it('should return an empty object when personalDetailsList is undefined', () => {
             const result = createDisplayDetailsByAccountIDsSelector([accountID])(undefined);
+            expect(result).toEqual({});
+        });
+    });
+
+    describe('createDisplayDetailsByLoginsSelector', () => {
+        const login = 'test@user.com';
+        const fullDetails = {
+            accountID,
+            displayName: 'Test User',
+            login,
+            avatar: 'https://example.com/avatar.png',
+            pronouns: 'they/them',
+            timezone: {selected: 'UTC'},
+        } as unknown as PersonalDetails;
+        const listByLogin = {[login]: fullDetails} as unknown as Record<string, PersonalDetails>;
+
+        it('should return only the display detail fields keyed by login for present logins', () => {
+            const result = createDisplayDetailsByLoginsSelector([login])(listByLogin);
+            expect(result).toEqual({
+                [login]: {
+                    accountID,
+                    displayName: 'Test User',
+                    login,
+                    avatar: 'https://example.com/avatar.png',
+                },
+            });
+        });
+
+        it('should not include extra fields beyond accountID, displayName, login, avatar', () => {
+            const result = createDisplayDetailsByLoginsSelector([login])(listByLogin);
+            const keys = Object.keys(result[login] ?? {});
+            expect(keys.sort()).toEqual(['accountID', 'avatar', 'displayName', 'login']);
+        });
+
+        it('should skip logins that are not in the list', () => {
+            const result = createDisplayDetailsByLoginsSelector([login, 'unknown@user.com'])(listByLogin);
+            expect(Object.keys(result)).toEqual([login]);
+        });
+
+        it('should return an empty object for an empty logins array', () => {
+            const result = createDisplayDetailsByLoginsSelector([])(listByLogin);
+            expect(result).toEqual({});
+        });
+
+        it('should return an empty object when personalDetailsListByLogin is undefined', () => {
+            const result = createDisplayDetailsByLoginsSelector([login])(undefined);
             expect(result).toEqual({});
         });
     });
