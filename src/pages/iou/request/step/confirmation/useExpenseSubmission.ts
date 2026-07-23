@@ -196,7 +196,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
     // Permissions
@@ -844,6 +844,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             previousOdometerDraft: odometerDraft,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -922,6 +923,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
+                        formatPhoneNumber,
                     });
                 }
             }
@@ -964,6 +966,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 });
             }
             markSubmitExpenseEnd();
@@ -1003,6 +1006,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 });
             }
             markSubmitExpenseEnd();

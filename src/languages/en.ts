@@ -127,7 +127,7 @@ const translations = {
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
-        magicCode: 'Magic code',
+        securityCode: 'Security code',
         digits: 'digits',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
@@ -379,8 +379,6 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
-        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -740,11 +738,12 @@ const translations = {
         revoke: {
             revoke: 'Revoke',
             title: 'Face/fingerprint & passkeys',
-            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on that device.',
-            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on that device.",
-            confirmationPromptThisDevice: "Are you sure? You'll need a magic code for the next verification on this device.",
-            confirmationPromptMultiple: "Are you sure? You'll need a magic code for the next verification on those devices.",
-            confirmationPromptAll: "Are you sure? You'll need a magic code for the next verification on any device.",
+            explanation:
+                'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a security code for the next verification on that device.',
+            confirmationPrompt: "Are you sure? You'll need a security code for the next verification on that device.",
+            confirmationPromptThisDevice: "Are you sure? You'll need a security code for the next verification on this device.",
+            confirmationPromptMultiple: "Are you sure? You'll need a security code for the next verification on those devices.",
+            confirmationPromptAll: "Are you sure? You'll need a security code for the next verification on any device.",
             cta: 'Revoke access',
             ctaAll: 'Revoke all',
             noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
@@ -776,7 +775,7 @@ const translations = {
             you're signed in!
         `),
         successfulSignInDescription: 'Head back to your original tab to continue.',
-        title: "Here's your magic code",
+        title: "Here's your security code",
         description: Str.dedent(`
             Please enter the code from the device
             where it was originally requested
@@ -787,7 +786,7 @@ const translations = {
         `),
         or: ', or',
         signInHere: 'just sign in here',
-        expiredCodeTitle: 'Magic code expired',
+        expiredCodeTitle: 'Security code expired',
         expiredCodeDescription: 'Go back to the original device and request a new code',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
         tfaRequiredTitle: Str.dedent(`
@@ -831,7 +830,7 @@ const translations = {
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
         welcomeNewFace: (login: string) => `${login}, it's always great to see a new face around here!`,
-        welcomeEnterMagicCode: (login: string) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
+        welcomeEnterSecurityCode: (login: string) => `Please enter the security code sent to ${login}. It should arrive within a minute or two.`,
     },
     login: {
         hero: {
@@ -841,9 +840,9 @@ const translations = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continue logging in with single sign-on:',
-        orContinueWithMagicCode: 'You can also sign in with a magic code',
+        orContinueWithSecurityCode: 'You can also sign in with a security code',
         useSingleSignOn: 'Use single sign-on',
-        useMagicCode: 'Use magic code',
+        useSecurityCode: 'Use security code',
         launching: 'Launching...',
         oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
     },
@@ -1245,11 +1244,15 @@ const translations = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+        importMerchantRulesSuccessfulDescription: ({rules, duplicates = 0, invalidCategories = 0}: {rules: number; duplicates?: number; invalidCategories?: number}) => {
+            const invalidCategoriesNote =
+                invalidCategories > 0
+                    ? ` ${invalidCategories === 1 ? '1 category was' : `${invalidCategories} categories were`} skipped because ${invalidCategories === 1 ? "it doesn't" : "they don't"} exist in this workspace.`
+                    : '';
             if (rules === 0) {
-                return 'No merchant rules have been added, since they all already exist.';
+                return `${duplicates > 0 ? 'No merchant rules have been added, since they all already exist.' : 'No merchant rules have been added.'}${invalidCategoriesNote}`;
             }
-            return rules > 1 ? `${rules} merchant rules have been added.` : '1 merchant rule has been added.';
+            return `${rules > 1 ? `${rules} merchant rules have been added.` : '1 merchant rule has been added.'}${invalidCategoriesNote}`;
         },
         importMerchantRulesRequiredColumns: 'Oops! You must map at least one "Merchant is" or "Merchant contains" column, plus at least one field to update. Please review and try again.',
         importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -2205,7 +2208,7 @@ const translations = {
             `Add more ways to log in and send receipts to Expensify.<br/><br/>Add an email address to forward receipts to <a href="mailto:${email}">${email}</a> or add a phone number to text receipts to 47777 (US numbers only).`,
         pleaseVerify: 'Please verify this contact method.',
         getInTouch: "We'll use this method to contact you.",
-        enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
+        enterSecurityCode: (contactMethod: string) => `Please enter the security code sent to ${contactMethod}. It should arrive within a minute or two.`,
         setAsDefault: 'Set as default',
         yourDefaultContactMethod: "This is your current default contact method. Before you can delete it, you'll need to choose another contact method and click “Set as default”.",
         yourDefaultContactMethodRestrictedSwitch: 'This is your current default contact method. Your company has restricted removing or changing it.',
@@ -2213,8 +2216,8 @@ const translations = {
         removeAreYouSure: "Are you sure you want to remove this contact method? This action can't be undone.",
         failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
-            validateSecondaryLogin: 'Incorrect or invalid magic code. Please try again or request a new code.',
+            requestContactMethodValidateCode: 'Failed to send a new security code. Please wait a bit and try again.',
+            validateSecondaryLogin: 'Incorrect or invalid security code. Please try again or request a new code.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
@@ -2379,9 +2382,9 @@ const translations = {
         accountValidate: {
             confirmMerge: 'Are you sure you want to merge accounts?',
             lossOfUnsubmittedData: (login: string) => `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for <strong>${login}</strong>.`,
-            enterMagicCode: (login: string) => `To continue, please enter the magic code sent to <strong>${login}</strong>.`,
+            enterSecurityCode: (login: string) => `To continue, please enter the security code sent to <strong>${login}</strong>.`,
             errors: {
-                incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
+                incorrectSecurityCode: 'Incorrect or invalid security code. Please try again or request a new code.',
                 fallback: 'Something went wrong. Please try again later.',
             },
         },
@@ -2736,7 +2739,7 @@ const translations = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
-        enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
+        enterSecurityCode: (contactMethod: string) => `Please enter the security code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
         unexpectedError: 'There was an error trying to get your Expensify card details. Please try again.',
         cardFraudAlert: {
             confirmButtonText: 'Yes, I do',
@@ -3170,7 +3173,7 @@ const translations = {
         license: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenses</a>.`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: "Didn't receive a magic code?",
+        securityCodeNotReceived: "Didn't receive a security code?",
         avoidScamsMessage: '<strong>Avoid scams. Do not share your code with anyone.</strong> Our team will never call, text, or email you for this code.',
         enterAuthenticatorCode: 'Please enter your authenticator code',
         enterRecoveryCode: 'Please enter your recovery code',
@@ -3180,8 +3183,8 @@ const translations = {
         timeRemainingAnnouncement: ({timeRemaining}: {timeRemaining: number}) => `Time remaining: ${timeRemaining} ${timeRemaining === 1 ? 'second' : 'seconds'}`,
         timeExpiredAnnouncement: 'The time has expired',
         error: {
-            pleaseFillMagicCode: 'Please enter your magic code',
-            incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
+            pleaseFillSecurityCode: 'Please enter your security code',
+            incorrectSecurityCode: 'Incorrect or invalid security code. Please try again or request a new code.',
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
         },
     },
@@ -3281,7 +3284,7 @@ const translations = {
         },
         workEmailValidation: {
             title: 'Verify your work email',
-            magicCodeSent: (workEmail: string | undefined) => `Please enter the magic code sent to ${workEmail}. It should arrive in a minute or two.`,
+            securityCodeSent: (workEmail: string | undefined) => `Please enter the security code sent to ${workEmail}. It should arrive in a minute or two.`,
         },
         workEmailValidationError: {
             publicEmail: 'Please enter a valid work email from a private domain e.g. mitch@company.com',
@@ -3620,11 +3623,11 @@ const translations = {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `I've sent a security sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
     },
     unlinkLoginForm: {
-        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `To validate ${secondaryLogin}, please resend the security code from the Account Settings of ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `If you no longer have access to ${primaryLogin}, please unlink your accounts.`,
         unlink: 'Unlink',
         linkSent: 'Link sent!',
@@ -3644,7 +3647,7 @@ const translations = {
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
-        validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
+        validationSuccess: 'Your number has been validated! Click below to send a new security sign-in code.',
         validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number} | null}) => {
             if (!timeData) {
                 return 'Please wait a moment before trying again.';
@@ -4536,6 +4539,24 @@ const translations = {
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
+        },
+        nudge: {
+            airfareManual:
+                'Hey there! Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Hey there! Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Hey there! Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Hey there! Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         flightTo: 'Flight to',
         trainTo: 'Train to',
@@ -6029,6 +6050,7 @@ const translations = {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
+            showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
@@ -6562,6 +6584,7 @@ const translations = {
                 description: 'Select the settings to overwrite on your existing workspaces.',
                 accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
                 travelAddressMismatch: 'You can only copy travel if every selected workspace has a company address.',
+                currencyBlockedByBankAccount: "You can only copy currency if every selected workspace with a connected bank account uses the source workspace's currency.",
             },
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',
@@ -7622,7 +7645,7 @@ const translations = {
                 general: 'General',
                 cardRestrictions: 'Card restrictions',
                 expenseDefaults: 'Expense defaults',
-                requireFields: 'Require fields',
+                requireFields: 'Field requirements',
                 flagForReview: 'Flag for review',
                 agents: 'Agents',
             },
@@ -7809,9 +7832,9 @@ const translations = {
                 restrictCardSpend: 'Restrict card spend',
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
-                flagForReviewDescription: 'Notify when your conditions are met.',
-                requireFields: 'Require fields',
-                requireFieldsDescription: 'Receipts, categories, etc, when submitting.',
+                flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
+                requireFields: 'Field requirements',
+                requireFieldsDescription: 'Require specific expense fields or waive requiring them.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
                 createAgentRule: 'Agent rule',
@@ -7837,28 +7860,33 @@ const translations = {
                 tableColumnCondition: 'Condition',
                 tableColumnRule: 'Rule',
                 findRule: 'Find rule',
-                typeLabel: 'Require fields',
                 conditionCategoryIs: (category: string) => `Category is "${category}"`,
                 requireDescription: 'Require description',
                 requireAttendees: 'Require attendees',
+                requireReceipt: 'Require receipt',
                 requireItemizedReceipt: 'Require itemized receipt',
                 requireItemizedReceiptOver: (amount: string) => `Require itemized receipt over ${amount}`,
-                alwaysRequireReceipt: 'Always require receipt',
                 requireReceiptOver: (amount: string) => `Require receipt over ${amount}`,
+                doNotRequireReceipt: "Don't require receipt",
+                doNotRequireItemizedReceipt: "Don't require itemized receipt",
             },
             requireFieldsEmptyState: {
                 title: 'Catch missing details upfront',
-                subtitle: 'Make sure key fields are filled in before expenses are submitted.',
-                cta: 'Create require rule',
+                subtitle: 'Require or waive expense fields for specific categories.',
+                cta: 'Create field requirement rule',
             },
             requireFieldsRule: {
-                title: 'Require fields',
-                subtitle: 'Require receipts, categories, etc, when submitting.',
-                thenWarnMember: 'Then warn member if fields are missing:',
+                title: 'Field requirements',
+                subtitle: 'Require specific expense fields or waive requiring them.',
+                requireDirection: 'Require',
+                doNotRequireDirection: "Don't require",
+                doTheFollowing: 'Do the following:',
                 itemizedReceipt: 'Itemized receipt',
                 saveRule: 'Save rule',
                 confirmErrorCategory: 'Please select a category.',
-                confirmErrorField: 'Please select at least one field to require.',
+                confirmErrorDoNotRequireField: 'Please select at least one field.',
+                receiptDisabledWhenItemizedRequired: 'Receipts are always required when itemized receipts are also required.',
+                itemizedDisabledWhenReceiptWaived: "Itemized receipts aren't required if any receipt also isn't required.",
             },
             flagForReviewTable: {
                 tableColumnType: 'Type',
@@ -8751,6 +8779,7 @@ const translations = {
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copied overview from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copied currency from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copied members from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `copied 1 report field from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -9101,6 +9130,7 @@ const translations = {
         serverResults: 'Search results',
         searchIn: 'Search in',
         askConcierge: (message: string) => `Ask Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Go to ${destination}`,
         searchPlaceholder: 'Search for something...',
         suggestions: 'Suggestions',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
@@ -10153,8 +10183,8 @@ const translations = {
         removeCopilotAccessConfirm: 'Remove access',
         changeAccessLevel: 'Change access level',
         makeSureItIsYou: "Let's make sure it's you",
-        enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,
-        enterMagicCodeUpdate: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
+        enterSecurityCode: (contactMethod: string) => `Please enter the security code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Please enter the security code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
         noAccessMessage: Str.dedent(`
             As a copilot, you don't have access to

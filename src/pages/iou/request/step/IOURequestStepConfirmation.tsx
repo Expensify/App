@@ -22,6 +22,7 @@ import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -220,6 +221,8 @@ function IOURequestStepConfirmation({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
@@ -273,7 +276,9 @@ function IOURequestStepConfirmation({
                 }
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
-                const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
+                // participantsPolicies only holds persisted policies, so fall back to the transaction policy when it's this
+                // participant's workspace — e.g. a freshly created draft workspace ("Submit to my employer" with no existing one).
+                const participantPolicy = (participant.policyID ? participantsPolicies[participant.policyID] : policy) ?? (participant.policyID === policy?.id ? policy : undefined);
                 // Phone contacts always have an optimistic accountID but no reportID; getReportOption
                 // is designed for report-backed participants and discards participant.text, so route
                 // any participant without a reportID to getParticipantsOption instead.
@@ -325,8 +330,8 @@ function IOURequestStepConfirmation({
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
-        return !hasTransactionParticipants && !hasDefaultParticipants && isManualRequest;
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isManualRequest]);
+        return !hasTransactionParticipants && !hasDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isNewManualExpenseFlowEnabled, isManualRequest]);
     const activeTransactionID = transaction?.transactionID;
     const [manuallyOpenedParticipantPickerForTransactionID, setManuallyOpenedParticipantPickerForTransactionID] = useState<string | undefined>();
     const [dismissedAutoOpenParticipantPickerForTransactionID, setDismissedAutoOpenParticipantPickerForTransactionID] = useState<string | undefined>();
@@ -441,7 +446,7 @@ function IOURequestStepConfirmation({
         } else if (firstDefault?.reportID) {
             setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isManualRequest, navigation]);
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
 
     const isPolicyExpenseChat = useMemo(() => {
         const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
@@ -576,8 +581,13 @@ function IOURequestStepConfirmation({
         // Don't pre-insert if the report is already showing - it would push a duplicate route.
         const hasValidDestination = !!destinationReportID && Navigation.getTopmostReportId() !== destinationReportID;
 
-        // The report must be in Onyx so the pre-inserted screen can render immediately.
-        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID;
+        // The report must be in the REPORT collection so the pre-inserted screen can render immediately. A draft-only
+        // report (e.g. the expense chat of a freshly created draft workspace in the zero-workspace "Submit to my
+        // employer" flow) can't render — the report screen only reads COLLECTION.REPORT — so pre-inserting one would
+        // strand the user on an infinite skeleton if they back out before submitting. Passing an empty draft to
+        // getReportOrDraftReport skips its REPORT_DRAFT fallback while keeping the module-cache fallback for
+        // real reports that useOnyx hasn't hydrated yet.
+        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
 
         const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
 
@@ -1006,22 +1016,24 @@ function IOURequestStepConfirmation({
                             />
                         )}
                     </SubmitExpenseOrchestrator>
-                    <ParticipantPicker
-                        participants={participants}
-                        iouType={participantPickerIOUType}
-                        action={action}
-                        isPerDiemRequest={isPerDiemRequest}
-                        isTimeRequest={isTimeRequest}
-                        isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                        shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
-                        onParticipantsAdded={handleParticipantsAdded}
-                        onFinish={closeParticipantPicker}
-                        isVisible={isParticipantPickerVisible}
-                        onClose={closeParticipantPicker}
-                        // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
-                        // matching standard RHP behavior, not just close the stacked participant picker.
-                        onBackdropPress={() => Navigation.dismissModal()}
-                    />
+                    {isNewManualExpenseFlowEnabled && (
+                        <ParticipantPicker
+                            participants={participants}
+                            iouType={participantPickerIOUType}
+                            action={action}
+                            isPerDiemRequest={isPerDiemRequest}
+                            isTimeRequest={isTimeRequest}
+                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
+                            onParticipantsAdded={handleParticipantsAdded}
+                            onFinish={closeParticipantPicker}
+                            isVisible={isParticipantPickerVisible}
+                            onClose={closeParticipantPicker}
+                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
+                            // matching standard RHP behavior, not just close the stacked participant picker.
+                            onBackdropPress={() => Navigation.dismissModal()}
+                        />
+                    )}
                 </View>
             </DragAndDropProvider>
         </ScreenWrapper>
