@@ -2480,6 +2480,9 @@ const CONST = {
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
     },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
+    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
         THROTTLED: 'throttled',
@@ -8451,6 +8454,7 @@ const CONST = {
             REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON: 'Report-ReportActionItemMessageEditCancelButton',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON: 'Report-ReportActionItemMessageEditSaveButton',
             REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON: 'Report-ReportActionItemSingleAvatarButton',
+            CONCIERGE_THINKING_AVATAR_BUTTON: 'Report-ConciergeThinkingAvatarButton',
             REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON: 'Report-ReportActionItemSingleActorButton',
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
