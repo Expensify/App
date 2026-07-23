@@ -1,14 +1,16 @@
-import {write} from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {read, write} from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIsOffline} from '@libs/NetworkState';
+import type * as NetworkStateModule from '@libs/NetworkState';
 import {isRecord} from '@libs/ObjectUtils';
 
-import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
+import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, openAgentsPage, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import type {AnyOnyxData, AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 
@@ -16,12 +18,19 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
+    getIsOffline: jest.fn(() => false),
+}));
 
 const mockWrite = jest.mocked(write);
+const mockRead = jest.mocked(read);
 const mockGoBack = jest.mocked(Navigation.goBack);
+const mockGetIsOffline = jest.mocked(getIsOffline);
 
 type CapturedUpdate = Omit<AnyOnyxUpdate<OnyxKey>, 'value'> & {value?: unknown};
 type WriteOptions = {optimisticData: CapturedUpdate[]; successData: CapturedUpdate[]; failureData: CapturedUpdate[]};
@@ -675,5 +684,80 @@ describe('clearAgentAvatarUpdateError', () => {
         clearAgentAvatarUpdateError(TEST_ACCOUNT_ID);
 
         expect(mergeSpy).toHaveBeenCalledWith(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`, {avatarErrors: null});
+    });
+});
+
+describe('openAgentsPage', () => {
+    const PROMPT_KEY = ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT;
+    let capturedOnyxData: AnyOnyxData | undefined;
+
+    function getReadOnyxData(): {optimisticData: CapturedUpdate[]; finallyData: CapturedUpdate[]} {
+        if (!capturedOnyxData) {
+            throw new Error('read was not called with onyx data');
+        }
+
+        return {
+            optimisticData: capturedOnyxData.optimisticData ?? [],
+            finallyData: capturedOnyxData.finallyData ?? [],
+        };
+    }
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        capturedOnyxData = undefined;
+        mockRead.mockImplementation((_command, _params, onyxData) => {
+            capturedOnyxData = onyxData;
+        });
+        mockGetIsOffline.mockReturnValue(false);
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
+    it('calls read with the OPEN_AGENTS_PAGE command', () => {
+        openAgentsPage();
+
+        expect(mockRead).toHaveBeenCalledWith(READ_COMMANDS.OPEN_AGENTS_PAGE, null, expect.any(Object));
+    });
+
+    it('marks agents as loaded in finallyData', () => {
+        openAgentsPage();
+
+        const {finallyData} = getReadOnyxData();
+        expect(findUpdate(finallyData, ONYXKEYS.ARE_AGENTS_LOADED)?.value).toBe(true);
+    });
+
+    it('clears stale (non-pending) local agent prompt keys optimistically so the response can prune them', async () => {
+        await Onyx.set(`${PROMPT_KEY}1`, {prompt: 'Agent one'});
+        await Onyx.set(`${PROMPT_KEY}2`, {prompt: 'Agent two'});
+        await waitForBatchedUpdates();
+
+        openAgentsPage();
+
+        const {optimisticData} = getReadOnyxData();
+        expect(findUpdate(optimisticData, `${PROMPT_KEY}1`)).toMatchObject({onyxMethod: 'set', value: null});
+        expect(findUpdate(optimisticData, `${PROMPT_KEY}2`)).toMatchObject({onyxMethod: 'set', value: null});
+    });
+
+    it('preserves keys with a pendingAction (in-flight optimistic add/update/delete) so their local state is not dropped', async () => {
+        await Onyx.set(`${PROMPT_KEY}1`, {prompt: 'Confirmed agent'});
+        await Onyx.set(`${PROMPT_KEY}2`, {prompt: 'Being added', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+        await waitForBatchedUpdates();
+
+        openAgentsPage();
+
+        const {optimisticData} = getReadOnyxData();
+        expect(findUpdate(optimisticData, `${PROMPT_KEY}1`)).toMatchObject({onyxMethod: 'set', value: null});
+        expect(findUpdate(optimisticData, `${PROMPT_KEY}2`)).toBeUndefined();
+    });
+
+    it('does not clear any keys while offline, since the read cannot repopulate the table until reconnect', async () => {
+        mockGetIsOffline.mockReturnValue(true);
+        await Onyx.set(`${PROMPT_KEY}1`, {prompt: 'Agent one'});
+        await waitForBatchedUpdates();
+
+        openAgentsPage();
+
+        const {optimisticData} = getReadOnyxData();
+        expect(optimisticData).toHaveLength(0);
     });
 });

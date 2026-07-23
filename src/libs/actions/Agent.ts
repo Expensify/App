@@ -5,6 +5,7 @@ import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIsOffline} from '@libs/NetworkState';
 import {generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -12,15 +13,26 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type AgentPrompt from '@src/types/onyx/AgentPrompt';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+// Snapshot of the locally-stored agent prompt collection, kept up to date so `openAgentsPage` can prune stale keys.
+// Not used during render, so `Onyx.connectWithoutView` is appropriate.
+let allAgentPrompts: OnyxCollection<AgentPrompt> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,
+    callback: (value) => {
+        allAgentPrompts = value ?? {};
+    },
+});
+
 function openAgentsPage() {
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
+    const finallyData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ARE_AGENTS_LOADED,
@@ -28,7 +40,26 @@ function openAgentsPage() {
         },
     ];
 
-    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});
+    // OPEN_AGENTS_PAGE returns the full current set of agents, so any local `sharedNVP_agentPrompt_*` key the
+    // response does not re-populate is stale (e.g. a delete whose success response never landed) and would otherwise
+    // linger and render as a blank row. Clear those keys optimistically so the response repopulates only the agents
+    // that still exist. We skip keys with a `pendingAction` (optimistic add/update/delete in flight): the server has
+    // not confirmed them yet, so clearing them would drop local state the response won't bring back. We also skip the
+    // reset entirely while offline, since the read can't repopulate the table until we reconnect.
+    const optimisticData: AnyOnyxUpdate[] = getIsOffline()
+        ? []
+        : Object.entries(allAgentPrompts ?? {})
+              .filter(([, agentPrompt]) => !agentPrompt?.pendingAction)
+              .map(([key]) => {
+                  const accountID = key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length);
+                  return {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+                      value: null,
+                  };
+              });
+
+    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {optimisticData, finallyData});
 }
 
 function openProfilePage() {
