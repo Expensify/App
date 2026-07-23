@@ -32,9 +32,17 @@ type CenteredModalLayoutProps = {
 
     /** Extra styles merged into the safe-area content wrapper */
     contentStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether the content wrapper should apply the bottom safe-area inset. Disable it when the children
+     * already handle the inset themselves (e.g. FeatureTrainingContent with `shouldUseScrollView`, whose
+     * ScrollView content padding includes it), otherwise the inset is applied twice and renders as an
+     * empty band under the content on devices with a bottom inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function CenteredModalLayout({children, width, height, onBackdropPress, contentStyle}: CenteredModalLayoutProps) {
+function CenteredModalLayout({children, width, height, onBackdropPress, contentStyle, addBottomSafeAreaPadding = true}: CenteredModalLayoutProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -42,7 +50,7 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: !isInLandscapeMode,
+        addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode,
         style: [shouldUseNarrowLayout && styles.pt2, !isInLandscapeMode && styles.pb5, safeAreaHorizontalPadding, contentStyle],
     });
 
