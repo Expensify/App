@@ -34,6 +34,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import {createSidebarReportsCollection, createSidebarTestData} from '../utils/collections/sidebarReports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -90,15 +91,12 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const MOCK_TRANSACTION: Transaction = {
+            const MOCK_TRANSACTION = createMock<Transaction>({
                 transactionID: '1',
                 amount: 10,
                 modifiedAmount: 10,
                 reportID: MOCK_REPORT.reportID,
-                created: '2024-08-08 18:20:44.171',
-                currency: CONST.CURRENCY.USD,
-                merchant: 'merchant',
-            };
+            });
 
             const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
@@ -575,15 +573,12 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const MOCK_TRANSACTION: Transaction = {
+            const MOCK_TRANSACTION = createMock<Transaction>({
                 transactionID: '1',
                 amount: 10,
                 modifiedAmount: 10,
                 reportID: MOCK_REPORT.reportID,
-                created: '2024-08-08 18:20:44.171',
-                currency: CONST.CURRENCY.USD,
-                merchant: 'merchant',
-            };
+            });
 
             const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
@@ -764,25 +759,17 @@ describe('SidebarUtils', () => {
                 } satisfies ReportAction,
             };
             const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: createMock<Transaction>({
                     transactionID: liveTransactionID,
                     amount: 10,
-                    created: '2024-08-08 18:20:44.171',
-                    currency: CONST.CURRENCY.USD,
-                    merchant: 'merchant',
-                    reportID: MOCK_REPORT.reportID,
                     errors: {
-                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR, source: '', filename: 'download.jpeg'},
+                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
                     },
-                },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                }),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: createMock<Transaction>({
                     transactionID: deletedTransactionID,
                     amount: 20,
-                    created: '2024-08-08 18:20:44.171',
-                    currency: CONST.CURRENCY.USD,
-                    merchant: 'merchant',
-                    reportID: MOCK_REPORT.reportID,
-                },
+                }),
             };
 
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
@@ -834,25 +821,17 @@ describe('SidebarUtils', () => {
                 } satisfies ReportAction,
             };
             const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: createMock<Transaction>({
                     transactionID: liveTransactionID,
                     amount: 10,
-                    created: '2024-08-08 18:20:44.171',
-                    currency: CONST.CURRENCY.USD,
-                    merchant: 'merchant',
-                    reportID: MOCK_REPORT.reportID,
                     errors: {
-                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR, source: '', filename: 'download.jpeg'},
+                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
                     },
-                },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                }),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: createMock<Transaction>({
                     transactionID: deletedTransactionID,
                     amount: 20,
-                    created: '2024-08-08 18:20:44.171',
-                    currency: CONST.CURRENCY.USD,
-                    merchant: 'merchant',
-                    reportID: MOCK_REPORT.reportID,
-                },
+                }),
             };
 
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
@@ -1544,13 +1523,9 @@ describe('SidebarUtils', () => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
                         const reportAttributes: Record<string, ReportAttributes> = {
-                            [MOCK_REPORT.reportID]: {
+                            [MOCK_REPORT.reportID]: createMock<ReportAttributes>({
                                 reportName: 'Report (archived)',
-                                isEmpty: false,
-                                brickRoadStatus: undefined,
-                                requiresAttention: false,
-                                reportErrors: {},
-                            },
+                            }),
                         };
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
@@ -1748,13 +1723,9 @@ describe('SidebarUtils', () => {
             };
 
             const reportAttributes: Record<string, ReportAttributes> = {
-                [archivedInvoiceRoom.reportID]: {
+                [archivedInvoiceRoom.reportID]: createMock<ReportAttributes>({
                     reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
-                    isEmpty: false,
-                    brickRoadStatus: undefined,
-                    requiresAttention: false,
-                    reportErrors: {},
-                },
+                }),
             };
 
             const result = SidebarUtils.getWelcomeMessage({
@@ -1922,12 +1893,11 @@ describe('SidebarUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 policyID: 'testPolicy',
             };
-            const MOCK_POLICY: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            const MOCK_POLICY = createMock<Policy>({
                 id: 'testPolicy',
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
-            };
+            });
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -1961,12 +1931,11 @@ describe('SidebarUtils', () => {
                 ownerAccountID: otherUserAccountID,
                 policyID: 'testPolicy',
             };
-            const MOCK_POLICY: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            const MOCK_POLICY = createMock<Policy>({
                 id: 'testPolicy',
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
-            };
+            });
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -2007,12 +1976,11 @@ describe('SidebarUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 policyID: 'testPolicy',
             };
-            const MOCK_POLICY: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            const MOCK_POLICY = createMock<Policy>({
                 id: 'testPolicy',
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
-            };
+            });
 
             await waitForBatchedUpdates();
             await act(async () => {
@@ -2045,13 +2013,12 @@ describe('SidebarUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 policyID: 'testPolicy',
             };
-            const MOCK_POLICY: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            const MOCK_POLICY = createMock<Policy>({
                 id: 'testPolicy',
                 name: 'Test Workspace',
                 description: 'Custom workspace description',
                 type: CONST.POLICY.TYPE.TEAM,
-            };
+            });
 
             await waitForBatchedUpdates();
             await act(async () => {
