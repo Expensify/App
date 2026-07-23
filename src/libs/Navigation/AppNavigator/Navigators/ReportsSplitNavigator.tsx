@@ -95,6 +95,7 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
                 >
                     {(screenProps: ReportScreenProps) => {
                         const ReportScreen = loadReportScreen();
+                        // A split navigator can contain multiple report routes, but the Inbox defer should only apply to the route that mounted with the navigator.
                         const initialReportRouteKey = screenProps.navigation.getState().routes.find((navigatorRoute: NavigationStateRoute) => navigatorRoute.name === SCREENS.REPORT)?.key;
                         return (
                             <ReportScreen

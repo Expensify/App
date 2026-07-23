@@ -16,7 +16,7 @@ function getTabNavigatorRoute(rootState: RootNavigationState) {
     return rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
 }
 
-function getReportsTabStateKey(rootState: RootNavigationState): string | undefined {
+function getTabNavigatorStateKey(rootState: RootNavigationState): string | undefined {
     return getTabNavigatorRoute(rootState)?.state?.key;
 }
 
@@ -43,5 +43,5 @@ function getReusableReportsTabStateKey(
     return tabNavigatorRoute?.state?.key;
 }
 
-export {getReportsTabStateKey};
+export {getTabNavigatorStateKey};
 export default getReusableReportsTabStateKey;

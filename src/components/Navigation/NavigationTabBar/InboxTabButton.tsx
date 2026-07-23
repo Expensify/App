@@ -27,7 +27,7 @@ import {TabActions} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 
 import getLastRoute from './getLastRoute';
-import getReusableReportsTabStateKey, {getReportsTabStateKey} from './getReusableReportsTabStateKey';
+import getReusableReportsTabStateKey, {getTabNavigatorStateKey} from './getReusableReportsTabStateKey';
 import getStringParam from './getStringParam';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
@@ -118,7 +118,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 const reportActionID = getStringParam(lastRoute.params, 'reportActionID');
                 const referrer = getStringParam(lastRoute.params, 'referrer');
                 const backTo = getStringParam(lastRoute.params, 'backTo');
-                const reportsTabStateKey = getReportsTabStateKey(rootState);
+                const tabNavigatorStateKey = getTabNavigatorStateKey(rootState);
                 const reusableReportsTabStateKey = getReusableReportsTabStateKey(rootState, reportID, reportActionID, doesLastReportActionExist);
                 const shouldDeferReportActions = !hasVisitedInboxTab.current;
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo);
@@ -132,7 +132,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     });
                     return;
                 }
-                if (reportsTabStateKey && reportID) {
+                if (tabNavigatorStateKey && reportID) {
                     startOpenReportSpan(reportRoute);
                     navigationRef.dispatch({
                         ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
@@ -145,7 +145,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                                 backTo,
                             },
                         }),
-                        target: reportsTabStateKey,
+                        target: tabNavigatorStateKey,
                     });
                     return;
                 }
@@ -159,13 +159,13 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
             return;
         }
 
-        const reportsTabStateKey = getReportsTabStateKey(navigationRef.getRootState());
-        if (reportsTabStateKey) {
+        const tabNavigatorStateKey = getTabNavigatorStateKey(navigationRef.getRootState());
+        if (tabNavigatorStateKey) {
             navigationRef.dispatch({
                 ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
                     shouldDeferInitialReportActions: true,
                 }),
-                target: reportsTabStateKey,
+                target: tabNavigatorStateKey,
             });
             return;
         }
