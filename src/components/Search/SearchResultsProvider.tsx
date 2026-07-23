@@ -27,8 +27,10 @@ type SearchResultsProviderProps = {
 // Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
 const defaultSearchInfo: SearchResultsInfo = {
     offset: 0,
+    hash: 0,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     hasMoreResults: false,
     hasResults: true,
     isLoading: false,

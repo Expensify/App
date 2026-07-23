@@ -254,7 +254,6 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     similarSearchHash: 12345,
     flatFilters: [],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-    status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
@@ -322,8 +321,10 @@ function makeSearchResults(reports: Report[]): SearchResults {
     return {
         search: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+            hash: 0,
             offset: 0,
+            sortBy: 'date',
+            sortOrder: 'desc',
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,

@@ -1,3 +1,4 @@
+import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
@@ -5,36 +6,44 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
     getValidConnectedIntegration,
     hasAccountingFeatureConnection,
     hasConfiguredRules,
+    hasCustomApprovalWorkflow,
     hasCustomCategories,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
 type GettingStartedItem = {
     key: string;
     label: string;
-    subtitle?: string;
+    subText: string;
     isComplete: boolean;
-    route: Route;
+    route?: Route;
+    isFeatureEnabled?: boolean;
+    onPress?: () => void;
 };
 
 type UseGettingStartedItemsResult = {
@@ -68,6 +77,11 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: hasIssuedExpensifyCardSelector,
     });
+    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => Object.values(transactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)),
+    });
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
@@ -81,19 +95,32 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return {shouldShowSection: true, items: builtItems};
     };
 
-    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        return emptyResult;
-    }
-
-    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)) {
-        return emptyResult;
-    }
-
-    if (!isPolicyAdmin(policy)) {
+    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && intent !== CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
         return emptyResult;
     }
 
     if (!isWithinGettingStartedPeriod(firstDayFreeTrial)) {
+        return emptyResult;
+    }
+
+    // When there is no active paid workspace to run onboarding against (e.g. the user just deleted their only
+    // workspace), keep the section visible with a single actionable step to create one instead of hiding it.
+    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)) {
+        return {
+            shouldShowSection: true,
+            items: [
+                {
+                    key: 'createWorkspace',
+                    label: translate('homePage.gettingStartedSection.createWorkspace'),
+                    subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
+                    isComplete: false,
+                    onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)),
+                },
+            ],
+        };
+    }
+
+    if (!isPolicyAdmin(policy)) {
         return emptyResult;
     }
 
@@ -102,15 +129,50 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     items.push({
         key: 'createWorkspace',
         label: translate('homePage.gettingStartedSection.createWorkspace'),
+        subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
         isComplete: true,
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
+
+    if (intent === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+        // Only surface the categories step while the Categories feature is enabled. Disabling it from the
+        // More features menu hides this step, and re-enabling it brings the step back.
+        if (policy.areCategoriesEnabled) {
+            items.push({
+                key: 'customizeSpendCategories',
+                label: translate('homePage.gettingStartedSection.customizeSpendCategories'),
+                subText: translate('homePage.gettingStartedSection.customizeSpendCategoriesSubText'),
+                isComplete: hasCustomCategories(policyCategories),
+                route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+                isFeatureEnabled: true,
+            });
+        }
+
+        items.push({
+            key: 'createExpense',
+            label: translate('homePage.gettingStartedSection.createExpense'),
+            subText: translate('homePage.gettingStartedSection.createExpenseSubText'),
+            isComplete: hasCreatedExpense,
+            onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
+        });
+
+        items.push({
+            key: 'linkPersonalCard',
+            label: translate('homePage.gettingStartedSection.linkPersonalCard'),
+            subText: translate('homePage.gettingStartedSection.linkPersonalCardSubText'),
+            isComplete: Object.keys(personalCards).length > 0,
+            route: ROUTES.SETTINGS_WALLET,
+        });
+
+        return buildResult(items);
+    }
 
     if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
         if (policy.areCategoriesEnabled) {
             items.push({
                 key: 'customizeCategories',
                 label: translate('homePage.gettingStartedSection.customizeCategories'),
+                subText: translate('homePage.gettingStartedSection.customizeCategoriesSubText'),
                 isComplete: hasCustomCategories(policyCategories),
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             });
@@ -120,6 +182,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             items.push({
                 key: 'linkCompanyCards',
                 label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+                subText: translate('homePage.gettingStartedSection.linkCompanyCardsSubText'),
                 isComplete: hasCompanyCardFeeds(allCardFeeds),
                 route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
             });
@@ -129,6 +192,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'inviteAccountant',
             label: translate('homePage.gettingStartedSection.inviteAccountant'),
+            subText: translate('homePage.gettingStartedSection.inviteAccountantSubText'),
             isComplete: activeMemberCount >= MIN_MEMBERS_FOR_ACCOUNTANT_INVITED,
             route: ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID),
         });
@@ -149,6 +213,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'connectAccounting',
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
+            subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
         });
@@ -156,6 +221,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'customizeCategories',
             label: translate('homePage.gettingStartedSection.customizeCategories'),
+            subText: translate('homePage.gettingStartedSection.customizeCategoriesSubText'),
             isComplete: hasCustomCategories(policyCategories),
             route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
         });
@@ -166,6 +232,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'linkCompanyCards',
             label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+            subText: translate('homePage.gettingStartedSection.linkCompanyCardsSubText'),
             isComplete: hasCompanyCardFeeds(allCardFeeds),
             route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
         });
@@ -175,9 +242,19 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'issueExpensifyCards',
             label: translate('homePage.gettingStartedSection.issueExpensifyCards'),
-            subtitle: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
+            subText: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
             isComplete: hasIssuedExpensifyCard,
             route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
+        });
+    }
+
+    if (policy.areWorkflowsEnabled) {
+        items.push({
+            key: 'configureApprovals',
+            label: translate('homePage.gettingStartedSection.configureApprovals'),
+            subText: translate('homePage.gettingStartedSection.configureApprovalsSubText'),
+            isComplete: hasCustomApprovalWorkflow(policy),
+            route: ROUTES.WORKSPACE_WORKFLOWS.getRoute(activePolicyID),
         });
     }
 
@@ -185,6 +262,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
+            subText: translate('homePage.gettingStartedSection.setupRulesSubText'),
             isComplete: hasConfiguredRules(policy, policyCategories),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });

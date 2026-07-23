@@ -64,7 +64,7 @@ function FullScreenLoadingIndicator({
     }, [shouldUseGoBackButton]);
 
     return (
-        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, style]}>
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100, style]}>
             <View style={styles.w100}>
                 <ActivityIndicator
                     size={iconSize}
