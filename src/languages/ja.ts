@@ -6171,7 +6171,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 defaultHourlyRate: 'デフォルトの時給率',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
-            vendors: {title: 'ベンダー', subtitle: 'カード経費を、会計ソフトからインポートされた取引先にマッチさせます。'},
+            vendors: {title: '取引先', subtitle: 'カード経費を、会計ソフトからインポートされた取引先にマッチさせます。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
