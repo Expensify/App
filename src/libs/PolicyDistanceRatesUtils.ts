@@ -184,7 +184,7 @@ function getRateStatus(rate: Rate): string {
 }
 
 function isCommuterExclusionEnabled(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.areDistanceRatesEnabled && !!policy.commuterExclusions;
+    return !!policy.commuterExclusions;
 }
 
 export {validateRateValue, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus, isCommuterExclusionEnabled};
