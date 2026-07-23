@@ -847,6 +847,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
+            participantsPolicyTags,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -969,6 +970,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();
@@ -1009,6 +1011,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();

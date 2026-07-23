@@ -142,6 +142,8 @@ function makeSearchResultsWithCount(count: number): SearchResults {
             type: 'expense',
             offset: 0,
             hash: 0,
+            sortBy: 'date',
+            sortOrder: 'desc',
             hasMoreResults: false,
             hasResults: count > 0,
             isLoading: false,
@@ -591,7 +593,19 @@ describe('useYourSpendData — third-party cardRows', () => {
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
         // First render: READY snapshot with count > 0 → row produced and total cached.
         setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', offset: 0, hash: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 3, total: 1234, currency: 'USD'},
+            search: {
+                type: 'expense',
+                offset: 0,
+                hash: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: 3,
+                total: 1234,
+                currency: 'USD',
+            },
             data: {},
         });
         const {result, rerender} = renderHook(() => useYourSpendData());
@@ -599,7 +613,19 @@ describe('useYourSpendData — third-party cardRows', () => {
 
         // Search screen wipes count/total/currency on the shared snapshot.
         setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', offset: 0, hash: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: undefined, total: undefined, currency: undefined},
+            search: {
+                type: 'expense',
+                offset: 0,
+                hash: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: undefined,
+                total: undefined,
+                currency: undefined,
+            },
             data: {},
         });
         rerender(undefined);
@@ -631,11 +657,35 @@ describe('useYourSpendData — third-party cardRows', () => {
             ]),
         );
         setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', offset: 0, hash: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 2, total: 500, currency: 'USD'},
+            search: {
+                type: 'expense',
+                offset: 0,
+                hash: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: 2,
+                total: 500,
+                currency: 'USD',
+            },
             data: {},
         });
         setupCardSnapshot(THIRD_PARTY_CARD_ID_2, {
-            search: {type: 'expense', offset: 0, hash: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 3, total: 2200, currency: 'EUR'},
+            search: {
+                type: 'expense',
+                offset: 0,
+                hash: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: 3,
+                total: 2200,
+                currency: 'EUR',
+            },
             data: {},
         });
         const {result} = renderHook(() => useYourSpendData());
