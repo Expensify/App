@@ -82,6 +82,10 @@ type MenuItemRootProps = WithSentryLabel & {
     /** The accessibility role to use for the row */
     role?: Role;
 
+    /** Whether the row is exposed to assistive tech as a single accessibility element. Set `false` to un-group the row
+     * so screen readers can reach nested interactive children (e.g. a trailing button) as their own elements. */
+    isAccessible?: boolean;
+
     /** Whether the row should be focusable with keyboard */
     tabIndex?: 0 | -1;
 
@@ -106,6 +110,7 @@ function MenuItemRoot({
     accessibilityLabel,
     accessibilityHint,
     role = CONST.ROLE.BUTTON,
+    isAccessible = true,
     tabIndex = 0,
     testID,
     sentryLabel,
@@ -186,6 +191,7 @@ function MenuItemRoot({
                         role={interactive ? role : undefined}
                         accessibilityLabel={accessibilityLabel}
                         accessibilityHint={accessibilityHint}
+                        accessible={isAccessible}
                         accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                         tabIndex={interactive ? tabIndex : -1}
                         onFocus={onFocus}
