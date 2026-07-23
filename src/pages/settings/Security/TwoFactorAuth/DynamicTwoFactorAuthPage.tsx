@@ -27,7 +27,7 @@ import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuth
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -78,7 +78,11 @@ function DynamicTwoFactorAuthPage() {
 
         if (isFocused && is2FAEnabled) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
+                // The setup page is only reached with 2FA already enabled by pressing browser Back from the success
+                // page on web (the recovery-codes page stays in history because Download codes uses PUSH). Go back out
+                // of the flow instead of forwarding to the enabled page, which would loop the user straight back to the
+                // success page.
+                Navigation.goBack();
             });
             return;
         }
@@ -108,7 +112,7 @@ function DynamicTwoFactorAuthPage() {
             onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                {!!isUserValidated && (
+                {!!isUserValidated && !is2FAEnabled && (
                     <Section
                         title={translate('twoFactorAuth.keepCodesSafe')}
                         containerStyles={[styles.twoFactorAuthSection]}
@@ -180,7 +184,7 @@ function DynamicTwoFactorAuthPage() {
                             style={[styles.mb3]}
                         />
                     )}
-                    {!!recoveryCodes && (
+                    {!!recoveryCodes && !is2FAEnabled && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
@@ -190,7 +194,7 @@ function DynamicTwoFactorAuthPage() {
                                 setError('');
                                 setCodesAreCopied();
                                 announceStatus(translate('fileDownload.success.title'));
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: !isWeb});
                             }}
                         >
                             <Button.Text>{translate('twoFactorAuth.downloadCodes')}</Button.Text>
