@@ -76,7 +76,21 @@ function RilletCardProgramAccountSelector({
                 keyForList: accountItem.code,
                 isSelected: cardProgramAccountCode === accountItem.code,
             })) ?? [];
-    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+    const {filteredData: filteredUnprocessedData, textInputOptions} = useSelectionListSearch(data);
+    const filteredData = filteredUnprocessedData
+        .sort((a, b) => {
+            if (creditCardAccountCode === a.keyForList) {
+                return -1;
+            }
+            if (creditCardAccountCode === b.keyForList) {
+                return 1;
+            }
+            return 0;
+        })
+        .map((item) => ({
+            ...item,
+            footerContent: creditCardAccountCode === item.keyForList && filteredUnprocessedData.length > 1 ? <View style={[styles.mh5, styles.mv1, styles.borderBottom]} /> : undefined,
+        }));
 
     const headerContent = (
         <View>
