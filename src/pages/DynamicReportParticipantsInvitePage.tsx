@@ -56,9 +56,6 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const reportID = report.reportID;
     const reportAttributesSelector = useMemo(() => reportByIDsSelector([reportID]), [reportID]);
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: reportAttributesSelector,
-    });
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserAccountID = Number(session?.accountID);
