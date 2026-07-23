@@ -7,7 +7,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSections, getSortedSections, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
@@ -32,18 +31,6 @@ const INSIGHT_STATE = {
 // Minimum number of data points to show an insight.
 const MIN_INSIGHT_DATA_POINTS = 2;
 
-// The compact categorical charts only have room for a handful of bars/slices, so cap how many groups
-// we fetch and render. Line charts (spend over time) keep every point. This only affects the widget,
-// the "View" action still opens the uncapped canonical search.
-const HOME_INSIGHT_DATA_POINT_LIMIT = 5;
-
-function applyLimit(queryJSON: SearchQueryJSON | undefined): SearchQueryJSON | undefined {
-    if (!queryJSON || queryJSON.view === CONST.SEARCH.VIEW.LINE) {
-        return queryJSON;
-    }
-    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, limit: HOME_INSIGHT_DATA_POINT_LIMIT})) ?? queryJSON;
-}
-
 type InsightState = ValueOf<typeof INSIGHT_STATE>;
 
 function getInsightState(isOffline: boolean, searchResults: OnyxEntry<SearchResults>, queryJSON: SearchQueryJSON | undefined, sortedData: GroupedItem[] | undefined): InsightState {
@@ -67,7 +54,7 @@ function getInsightState(isOffline: boolean, searchResults: OnyxEntry<SearchResu
 const CHART_VIEWS = new Set<ValueOf<typeof CONST.SEARCH.VIEW>>([CONST.SEARCH.VIEW.BAR, CONST.SEARCH.VIEW.LINE, CONST.SEARCH.VIEW.PIE]);
 
 function useInsightData(config: SearchTypeMenuItem | undefined) {
-    const queryJSON = applyLimit(config?.searchQueryJSON);
+    const queryJSON = config?.searchQueryJSON;
     const query = config?.searchQuery;
     const searchKey = config?.key;
     const {groupBy} = queryJSON ?? {};
@@ -144,5 +131,5 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     };
 }
 
-export {INSIGHT_STATE, getInsightState, applyLimit};
+export {INSIGHT_STATE, getInsightState};
 export default useInsightData;
