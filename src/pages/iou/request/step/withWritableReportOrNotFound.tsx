@@ -89,6 +89,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
 }: WithWritableReportOrNotFoundImplProps<TProps>) {
     const {route} = props;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`, {selector: Boolean});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -104,7 +105,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
         if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas});
+        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
