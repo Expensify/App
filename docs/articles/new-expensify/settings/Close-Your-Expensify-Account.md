@@ -57,9 +57,9 @@ No. To proceed with closing your account, you must first pay the balance owed. [
 
 ## Can I close my account if I own workspaces shared with other members?
 
-No. To proceed with closing your account, you must first delete any workspaces shared with other members, or have another workspace admin take ownership of them. 
+No. To proceed with closing your account, you must first delete any workspaces shared with other members, or have another Workspace Admin take ownership of them. 
 
- - [Learn how to delete a Workspace](/articles/new-expensify/workspaces/delete-a-workspace)
+ - [Learn how to delete a Workspace](/articles/new-expensify/workspaces/Delete-a-Workspace)
  - [Learn how to transfer billing ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership#how-to-transfer-workspace-ownership).
 
 ## Can I close my account if I am the primary contact on a domain?  
