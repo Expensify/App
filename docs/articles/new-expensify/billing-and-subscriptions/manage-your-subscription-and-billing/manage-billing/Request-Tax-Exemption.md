@@ -39,7 +39,7 @@ After your request is approved, sales tax will no longer be applied to future Ex
 
 # FAQ
 
-## How long does tax-exemption review take?
+## How long does tax exemption review take?
 
 Review can take up to 5 business days. Sales tax may continue to apply to bills issued while your request is under review. 
 
