@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -10,9 +11,11 @@ import TextInput from '@components/TextInput';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,6 +23,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE, COLLAPSIBLE_HEADER_OFFSET} from '@pages/settings/Agents/const';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
@@ -29,7 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
-import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
+import type {TextInputKeyPressEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -37,19 +41,25 @@ import {View} from 'react-native';
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
 type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
 
+const BUTTONS_TOP_MARGIN = 20;
+const DISCLAIMER_TOP_MARGIN = 8;
+
 function EditAgentRulePage({
     route: {
         params: {policyID, ruleID},
     },
 }: EditAgentRulePageProps) {
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const shouldUseScrollableLayout = useIsInLandscapeMode();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
+    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !isInLandscapeMode;
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
@@ -106,9 +116,9 @@ function EditAgentRulePage({
         return <NotFoundPage />;
     }
 
-    const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
-        ? [styles.flex1, styles.mnh0, styles.agentRulePromptInput]
-        : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
+    const inputWrapperStyles: StyleProp<ViewStyle> = shouldShrinkPromptInput
+        ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+        : [styles.flex1, shouldUseExpandedRevampFormLayout && [styles.mnh0, styles.agentRulePromptInput]];
 
     return (
         <AccessOrNotFoundWrapper
@@ -121,9 +131,11 @@ function EditAgentRulePage({
                 testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight={shouldUseScrollableLayout || shouldUseExpandedRevampFormLayout}
+                shouldEnableMaxHeight={shouldUseExpandedRevampFormLayout}
             >
-                <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
+                <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET + BUTTONS_TOP_MARGIN + DISCLAIMER_TOP_MARGIN}>
+                    <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
+                </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     ref={formRef}
                     formID={ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM}
@@ -131,19 +143,20 @@ function EditAgentRulePage({
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={shouldUseScrollableLayout}
-                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                    shouldUseScrollView={false}
+                    submitFlexEnabled={false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                     shouldRenderFooterAboveSubmit
+                    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode
                     footerContent={
                         <Button
                             text={translate('workspace.rules.agentRules.deleteRule')}
                             onPress={handleDelete}
-                            style={[styles.mb4]}
+                            style={[isInLandscapeMode ? styles.flex1 : styles.mb4]}
                             large
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
                         />

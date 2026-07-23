@@ -1,3 +1,4 @@
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -7,14 +8,18 @@ import TextInput from '@components/TextInput';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateAgentPrompt} from '@libs/actions/Agent';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
+import {COLLAPSIBLE_HEADER_OFFSET, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,9 +33,12 @@ import {Platform, View} from 'react-native';
 type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>;
 
 function EditPromptPage({route}: EditPromptPageProps) {
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const shouldUseScrollableLayout = useIsInLandscapeMode();
+    const {isKeyboardActive} = useKeyboardState();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
@@ -71,27 +79,28 @@ function EditPromptPage({route}: EditPromptPageProps) {
             testID={EditPromptPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
-            <HeaderWithBackButton
-                title={translate('editAgentPromptPage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET}>
+                <HeaderWithBackButton
+                    title={translate('editAgentPromptPage.title')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+            </CollapsibleHeaderOnKeyboard>
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM}
                 validate={validate}
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.save')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                shouldUseScrollView={false}
+                submitFlexEnabled={false}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 shouldValidateOnChange
                 shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
-                <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PROMPT}
@@ -100,9 +109,8 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
                         multiline
-                        containerStyles={[styles.flex1]}
+                        containerStyles={[styles.h100]}
                         touchableInputWrapperStyle={[styles.flex1]}
-                        textInputContainerStyles={[styles.flex1]}
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>
