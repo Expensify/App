@@ -137,7 +137,7 @@
   Because the measured value is the client width, while the loop runs it can only ever report **two** values: with-scrollbar and without. A size change is treated as scrollbar-induced only when all hold, so a real window resize is never misread:
 
   1. **Exactly two distinct values** among the last 8 *rounded* cross-axis sizes. A manual drag sweeps through many distinct values and never matches; rounding keeps the equality robust against subpixel drift.
-  2. **At least `MIN_OSCILLATION_FLIPS` (2) flips** between them — the size has to keep coming *back* to a value it already had. A drag only ever moves on to fresh values, so it cannot flip.
+  2. **At least `MIN_OSCILLATION_FLIPS` (3) flips** between them — the size has to keep coming *back* to a value it already had, *twice*. Three flips (`A,B,A,B`) means a genuine repeating ping-pong; a **one-off** scrollbar toggle (appear then disappear on a transient content/loading change) only flips twice (`A,B,A`) and so is not latched. A drag only ever moves on to fresh values, so it cannot flip at all.
   3. **Scrollbar-sized delta**: the two values differ by no more than `SCROLLBAR_OSCILLATION_TOLERANCE` (25px — classic scrollbars are ~15–17px, with headroom for thicker/zoomed bars).
 
   When detected, `boundedSize` is pinned to the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width. The pair is latched: while the measured size stays within it the pinned value keeps being used, and the first size *outside* the pair is taken as a genuine layout change, which releases the pin and restarts detection.

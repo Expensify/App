@@ -1,13 +1,15 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-index 12375d9..581068e 100644
+index 12375d9..79446f4 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
 @@ -1,4 +1,13 @@
 +import { Platform } from "react-native";
  import { RVLayoutManager, } from "./LayoutManager";
 +// Recent (rounded) cross-axis sizes kept for scrollbar oscillation detection.
 +const BOUNDED_SIZE_HISTORY_LENGTH = 8;
-+// Number of times the size must flip between the two values before it counts as an oscillation.
-+// A resize drag sweeps through fresh values and never returns to a previous one, so it never flips.
-+const MIN_OSCILLATION_FLIPS = 2;
++// Times the measured size must flip between the two values to count as an oscillation. Three means
++// it returned to a prior value twice (a real ping-pong) - a one-off scrollbar toggle only flips twice.
++const MIN_OSCILLATION_FLIPS = 3;
 +// Max cross-axis delta (px) treated as a scrollbar-induced oscillation rather than a real resize.
 +// Classic desktop scrollbars are ~15-17px; the headroom covers thicker/zoomed scrollbars.
 +const SCROLLBAR_OSCILLATION_TOLERANCE = 25;
@@ -43,7 +45,7 @@ index 12375d9..581068e 100644
 +     * The measured cross-axis size is the scroll viewport's *client* width, which excludes a classic
 +     * scrollbar. So while the loop runs it can only ever report two values: with-scrollbar and
 +     * without. We wait until the history shows exactly those two values, no further apart than a
-+     * scrollbar, having flipped at least twice, and then settle on the smaller one - it already
++     * scrollbar, having flipped at least three times, and then settle on the smaller one - it already
 +     * accounts for the scrollbar, so items never overflow the client width.
 +     *
 +     * Detection deliberately does not assume the flips alternate on every single pass: the scrollbar
