@@ -28,6 +28,7 @@ import {
     setMoneyRequestReimbursable,
     updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU/MoneyRequest';
+import {signalExpenseAddedGrowl} from '@libs/actions/IOU/NavigationHelpers';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
@@ -367,6 +368,10 @@ function SubmitDetailsPage({
                 delegateAccountID,
             });
         }
+        // requestMoney/trackExpense only signal the success growl for the global-create flow; the share extension
+        // isn't flagged as such, so signal it directly here with the created transaction's ID.
+        signalExpenseAddedGrowl(optimisticTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
         cleanupAndNavigateAfterExpenseCreate({
             report: isSelfDM(report) ? report : reportToSubmit,
             action: CONST.IOU.ACTION.CREATE,
