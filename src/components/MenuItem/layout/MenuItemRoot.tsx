@@ -9,6 +9,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import ControlSelection from '@libs/ControlSelection';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 
@@ -110,13 +112,12 @@ function MenuItemRoot({
 }: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const pressableRef = useRef<View>(null);
     const isCompactMenu = useIsCompactMenu();
-    const isCompact = isCompactMenu && !isSmallScreenWidth;
+    const isCompact = isCompactMenu && !shouldUseNarrowLayout;
     const interactive = !!onPress;
 
     useEffect(() => {
@@ -161,6 +162,8 @@ function MenuItemRoot({
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
                         onPress={onPressAction}
+                        onPressIn={() => !!onSecondaryInteraction && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteraction}
                         wrapperStyle={wrapperStyle}
                         activeOpacity={!interactive ? 1 : variables.pressDimValue}
