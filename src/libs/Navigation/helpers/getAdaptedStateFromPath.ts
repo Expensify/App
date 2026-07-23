@@ -1,6 +1,15 @@
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
-import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {
+    RHP_TO_DOMAIN,
+    RHP_TO_HOME,
+    RHP_TO_SEARCH,
+    RHP_TO_SEARCH_DEEPLINK,
+    RHP_TO_SETTINGS,
+    RHP_TO_SIDEBAR,
+    RHP_TO_WORKSPACE,
+    RHP_TO_WORKSPACES_LIST,
+} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getSearchParamFromPath} from '@libs/Url';
@@ -85,7 +94,15 @@ function getSearchScreenNameForRoute(route: NavigationRoute): string {
     return route.name;
 }
 
-function getMatchingFullScreenRoute(route: NavigationRoute) {
+/**
+ * @param route - The (focused) route to find a full screen route for.
+ * @param isDeeplink - Whether the state is being built from a path (deeplink / browser refresh / cold
+ *   load) as opposed to in-app navigation. When true, deeplink-only relations (e.g. RHP_TO_SEARCH_DEEPLINK)
+ *   are also considered so an RHP can get a sensible default fullscreen underneath it. In-app callers
+ *   (linkTo, swapBackgroundTabForRHPTarget) leave this false so the same RHP can open over any fullscreen
+ *   without changing the page currently underneath.
+ */
+function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) {
     const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
 
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
@@ -114,12 +131,15 @@ function getMatchingFullScreenRoute(route: NavigationRoute) {
             return undefined;
         }
         // If not, get the matching full screen route for the back to state.
-        return getMatchingFullScreenRoute(focusedStateForBackToRoute);
+        return getMatchingFullScreenRoute(focusedStateForBackToRoute, isDeeplink);
     }
 
     const routeNameForLookup = getSearchScreenNameForRoute(route);
-    if (RHP_TO_SEARCH[routeNameForLookup]) {
-        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[routeNameForLookup]);
+    // Deeplink-only relations provide a default search screen underneath the RHP when the state is
+    // built from a path. They are ignored for in-app navigation so the RHP can open over any fullscreen.
+    const matchingSearchScreen = RHP_TO_SEARCH[routeNameForLookup] ?? (isDeeplink ? RHP_TO_SEARCH_DEEPLINK[routeNameForLookup] : undefined);
+    if (matchingSearchScreen) {
+        const paramsFromRoute = getParamsFromRoute(matchingSearchScreen);
         const copiedParams = paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : {};
         let queryParam: Record<string, string> = {};
         if (route.path) {
@@ -130,7 +150,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute) {
         }
 
         const searchRoute = {
-            name: RHP_TO_SEARCH[routeNameForLookup],
+            name: matchingSearchScreen,
             params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
         };
         const searchState = getRoutesWithIndex([searchRoute]);
@@ -254,7 +274,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute) {
             }
 
             // Recursively find the matching full screen route for the focused dynamic route
-            return getMatchingFullScreenRoute(focusedRouteUnderDynamicRoute);
+            return getMatchingFullScreenRoute(focusedRouteUnderDynamicRoute, isDeeplink);
         }
     }
 
@@ -350,7 +370,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         }
 
         if (focusedRoute) {
-            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);
+            // getAdaptedState only runs when building navigation state from a path
+            // (deeplink / browser refresh / cold load), so deeplink-only relations apply here.
+            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute, true);
 
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
