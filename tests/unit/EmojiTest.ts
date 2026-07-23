@@ -163,6 +163,10 @@ describe('EmojiTest', () => {
             expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :smile:there')).toBe('Hi 😄 there');
         });
 
+        it('can convert pasted shortcodes without adding a separator', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, false)).toBe('😄');
+        });
+
         it('uses preferred skin tone when converting pasted shortcodes', () => {
             expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :+1:', 2)).toBe('Hi 👍🏽 ');
         });

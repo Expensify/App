@@ -85,7 +85,7 @@ const getEmojiReplacementText = (image: HTMLImageElement, preferredSkinTone: Ony
 
     if (isEmojiImage(image)) {
         // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".
-        const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt, preferredSkinTone);
+        const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt, preferredSkinTone, false);
         if (emojiFromShortcode !== image.alt) {
             return emojiFromShortcode;
         }

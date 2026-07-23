@@ -170,7 +170,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
         act(() => document.dispatchEvent(event));
 
-        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉  *Bold*');
+        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉 *Bold*');
     });
 
     it('converts iOS Safari blob emoji image filenames to Unicode emoji', async () => {
