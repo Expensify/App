@@ -2,8 +2,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,12 +16,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report, ReportActions} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import getLastRoute from './getLastRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
@@ -54,54 +51,18 @@ type InboxTabButtonProps = {
     isWideLayout: boolean;
 };
 
-function doesLastReportExistSelector(report: OnyxEntry<Report>) {
-    return !!report?.reportID;
-}
-
-function makeDoesLastReportActionExistSelector(actionID: string | undefined) {
-    return (reportActions: OnyxEntry<ReportActions>) => {
-        const reportAction = actionID ? reportActions?.[actionID] : undefined;
-        return !!reportAction && !isDeletedAction(reportAction);
-    };
-}
-
 type WideInboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     statusIndicatorColor: string | undefined;
     accessibilityLabel: string;
 };
 
-// The last-viewed report deep link only exists in the wide layout, so the report and report-action
-// Onyx subscriptions live here and are only created when the wide layout is rendered. In the narrow
-// layout tapping Inbox always routes to ROUTES.INBOX, so these subscriptions are never set up.
+// The last-viewed report deep link only exists in the wide layout. In the narrow layout tapping
+// Inbox always routes to ROUTES.INBOX.
 function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLabel}: WideInboxTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
-
-    const lastReportRouteReportID = useRootNavigationState((rootState) => {
-        if (!rootState) {
-            return undefined;
-        }
-        const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
-        return getStringParam(route?.params, 'reportID');
-    });
-
-    const lastReportRouteReportActionID = useRootNavigationState((rootState) => {
-        if (!rootState) {
-            return undefined;
-        }
-        const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
-        return getStringParam(route?.params, 'reportActionID');
-    });
-
-    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
-
-    const doesLastReportActionExistSelector = makeDoesLastReportActionExistSelector(lastReportRouteReportActionID);
-    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector}, [
-        lastReportRouteReportID,
-        lastReportRouteReportActionID,
-    ]);
 
     const navigateToChats = () => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
@@ -110,15 +71,19 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
 
         startNavigateToInboxTabSpan({isWideLayout: true});
 
-        if (doesLastReportExist) {
-            // Fetch route params on-demand to avoid storing the full route object in render-time state
-            const rootState = navigationRef.getRootState();
-            const lastRoute = rootState ? getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT) : undefined;
-            if (lastRoute) {
-                const reportID = getStringParam(lastRoute.params, 'reportID');
+        // Fetch route params on-demand to avoid storing the full route object in render-time state
+        const rootState = navigationRef.getRootState();
+        const lastRoute = rootState ? getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT) : undefined;
+        if (lastRoute) {
+            const reportID = getStringParam(lastRoute.params, 'reportID');
+            const doesLastReportExist = !!OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const)?.reportID;
+            if (doesLastReportExist) {
                 const reportActionID = getStringParam(lastRoute.params, 'reportActionID');
                 const referrer = getStringParam(lastRoute.params, 'referrer');
                 const backTo = getStringParam(lastRoute.params, 'backTo');
+                const reportActions = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const);
+                const reportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
+                const doesLastReportActionExist = !!reportAction && !isDeletedAction(reportAction);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo));
                 return;
             }
