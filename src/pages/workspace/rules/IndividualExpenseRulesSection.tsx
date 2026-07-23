@@ -10,15 +10,9 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {
-    getCashExpenseReimbursableMode,
-    setPolicyAttendeeTrackingEnabled,
-    setPolicyReceiptVisibilityPublic,
-    setPolicyRequireCompanyCardsEnabled,
-    setWorkspaceEReceiptsEnabled,
-} from '@libs/actions/Policy/Policy';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -31,6 +25,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+
+import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
@@ -87,13 +83,6 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
             setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
         },
         [policyID, policy?.isAttendeeTrackingEnabled],
-    );
-
-    const handlePublicReceiptVisibilityToggle = useCallback(
-        (newValue: boolean) => {
-            setPolicyReceiptVisibilityPublic(policyID, newValue, policy?.isReceiptVisibilityPublic);
-        },
-        [policyID, policy?.isReceiptVisibilityPublic],
     );
 
     const maxExpenseAmountNoReceiptText = useMemo(() => {
@@ -222,8 +211,6 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
     const disableRequireCompanyCardToggle = !policy?.areCompanyCardsEnabled && !policy?.areExpensifyCardsEnabled;
 
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
-    const isReceiptVisibilityPublicEnabled = !!policy?.isReceiptVisibilityPublic;
-    const isPublicReceiptVisibilityUnavailable = !isControlPolicy(policy);
 
     return (
         <Section
@@ -303,35 +290,12 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                 />
-                <ToggleSettingOptionRow
-                    title={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
-                    subtitle={translate(
-                        isReceiptVisibilityPublicEnabled
-                            ? 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintEnabled'
-                            : 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintDisabled',
-                    )}
-                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
-                    wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
+                <PublicReceiptVisibilityToggle
+                    policyID={policyID}
+                    canWriteRules={canWriteRules}
+                    withReadOnlyFallback={withReadOnlyFallback}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
-                    isActive={isReceiptVisibilityPublicEnabled}
-                    disabled={!canWriteRules || isPublicReceiptVisibilityUnavailable}
-                    disabledAction={withReadOnlyFallback(
-                        isPublicReceiptVisibilityUnavailable
-                            ? () =>
-                                  Navigation.navigate(
-                                      ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                          policyID,
-                                          CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.alias,
-                                          ROUTES.WORKSPACE_RULES.getRoute(policyID),
-                                      ),
-                                  )
-                            : undefined,
-                    )}
-                    showLockIcon={!canWriteRules || isPublicReceiptVisibilityUnavailable}
-                    onToggle={() => (canWriteRules ? handlePublicReceiptVisibilityToggle(!isReceiptVisibilityPublicEnabled) : undefined)}
-                    pendingAction={policy?.pendingFields?.isReceiptVisibilityPublic}
                 />
             </View>
         </Section>
