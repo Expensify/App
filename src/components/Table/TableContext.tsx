@@ -24,10 +24,10 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Content rendered as the FlashList header so it scrolls with the table rows. */
     headerComponent?: React.ReactElement;
 
-    /** Empty-state element extracted from the table children; rendered by TableBody as a list row when the page header scrolls with the table. */
+    /** Empty-state element extracted from the table children; rendered by TableBody in its page-header empty layout. */
     emptyStateElement?: React.ReactElement;
 
-    /** No-results element extracted from the table children; rendered by TableBody as a list row when the page header scrolls with the table. */
+    /** No-results element extracted from the table children; rendered by TableBody in its page-header empty layout. */
     noResultsStateElement?: React.ReactElement;
 
     /** Reference to the underlying FlashList for programmatic control. */

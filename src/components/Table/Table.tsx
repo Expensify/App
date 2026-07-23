@@ -272,9 +272,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
     const shouldRenderStickyHeader = shouldUseStickyColumnHeader && !(shouldUseNarrowTableLayout && !title);
 
-    // When the page header scrolls inside the list, TableBody renders the table's empty states as
-    // list rows below the header. They are extracted from the direct children here so they don't
-    // render a second time as siblings of the list.
+    // When the page header scrolls with populated rows, TableBody owns the alternate flex layout
+    // used for empty states. They are extracted from the direct children here so they don't render
+    // a second time as siblings of the body.
     const childrenArray = React.Children.toArray(children);
     const emptyStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableEmptyState);
     const noResultsStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableNoResultsState);

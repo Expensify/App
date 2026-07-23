@@ -77,6 +77,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     } = useTableContext<TableData>();
     const {
         ListEmptyComponent,
+        ListFooterComponent,
+        ListFooterComponentStyle,
         ListHeaderComponent,
         contentContainerStyle: listContentContainerStyle,
         getItemType,
@@ -93,7 +95,11 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
-    const {minHeight: contentMinHeight} = StyleSheet.flatten(contentContainerStyle) ?? {};
+    const flattenedListContentContainerStyle = StyleSheet.flatten(listContentContainerStyle);
+    const flattenedContentContainerStyle = StyleSheet.flatten(contentContainerStyle);
+    const listContentContainerStyleWithoutMinHeight = flattenedListContentContainerStyle ? {...flattenedListContentContainerStyle, minHeight: undefined} : undefined;
+    const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
+    const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
     const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
@@ -119,7 +125,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         return () => cancelAnimationFrame(frame);
     }, [hasActivatedStickyHeader, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
 
-    const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent) => {
+    const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent | typeof ListFooterComponent) => {
         if (!component) {
             return null;
         }
@@ -151,13 +157,19 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
     const emptyStateContent =
         tableListMetadata.hasPageHeader && tableListMetadata.isEmptyResult ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
+    const footerElement = renderListComponent(ListFooterComponent);
+    // Footer flex growth is useful below short FlashList rows, but the empty layout already gives
+    // its centered content the remaining space. Disable it here so the two siblings do not split it.
+    const emptyStateFooterStyle = [ListFooterComponentStyle, styles.flexGrow0];
+    // A list minHeight includes its synthetic page-header row. In the empty layout that header is a
+    // separate sibling, so carrying the minHeight over would make the non-scrollable body overflow.
     const emptyStateContainerStyle = [
         styles.flex1,
-        styles.justifyContentCenter,
-        listContentContainerStyle,
+        tableListMetadata.hasPageHeader ? listContentContainerStyleWithoutMinHeight : listContentContainerStyle,
         tableBodyContentContainerStyle,
-        contentContainerStyle,
-        shouldUseNarrowTableLayout &&
+        tableListMetadata.hasPageHeader ? contentContainerStyleWithoutMinHeight : contentContainerStyle,
+        !tableListMetadata.hasPageHeader &&
+            shouldUseNarrowTableLayout &&
             typeof contentMinHeight === 'number' &&
             typeof tableBodyBottomPadding === 'number' && {
                 minHeight: contentMinHeight + tableBodyBottomPadding,
@@ -173,7 +185,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 {...props}
             >
                 {tableListMetadata.hasPageHeader && pageHeaderElement}
-                <View style={emptyStateContainerStyle}>{emptyStateContent}</View>
+                <View style={emptyStateContainerStyle}>
+                    <View style={[styles.flex1, styles.justifyContentCenter]}>{emptyStateContent}</View>
+                    {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
+                </View>
             </View>
         );
     }
@@ -239,6 +254,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListEmptyComponent={ListEmptyComponent}
+                ListFooterComponent={ListFooterComponent}
+                ListFooterComponentStyle={ListFooterComponentStyle}
                 onLoad={handleLoad}
                 stickyHeaderIndices={canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
                 contentContainerStyle={[

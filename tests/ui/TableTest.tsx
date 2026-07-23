@@ -18,6 +18,8 @@ type MockFlashListProps<T> = {
     keyExtractor?: (item: T, index: number) => string;
     ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
     ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
+    ListFooterComponent?: React.ComponentType | React.ReactElement | null;
+    ListFooterComponentStyle?: React.ComponentProps<typeof View>['style'];
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
     onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
     stickyHeaderIndices?: number[];
@@ -148,6 +150,7 @@ jest.mock('@shopify/flash-list', () => {
                                   </RNView>
                               );
                           })}
+                    {!!props.ListFooterComponent && <RNView style={props.ListFooterComponentStyle}>{renderComponent(props.ListFooterComponent)}</RNView>}
                 </RNView>
             );
         },
@@ -169,6 +172,7 @@ jest.mock('@hooks/useLocalize', () =>
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flexGrow1: {},
+        flexGrow0: {flexGrow: 0},
         flex1: {},
         flexColumn: {flexDirection: 'column'},
         flexShrink0: {flexShrink: 0},
@@ -683,6 +687,40 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
+        it('should restore scrollToIndex when rows return after the flex empty-state path', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            const renderTable = (data: TestItem[]) => (
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.EmptyState title="No items yet" />
+                    <Table.Body />
+                </Table>
+            );
+
+            const {rerender} = render(renderTable([]));
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+
+            rerender(renderTable(props.data));
+            const scrollToIndex = tableRef.current?.scrollToIndex;
+            if (!scrollToIndex) {
+                throw new Error('Expected table ref methods to be restored after rows return');
+            }
+
+            act(() => {
+                scrollToIndex({index: 0, animated: false});
+            });
+
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});
+        });
+
         it('should defer sticky table header activation when sticky mode turns back on', () => {
             const props = createDefaultProps();
             const renderTable = (shouldUseStickyColumnHeader: boolean) => (
@@ -860,7 +898,7 @@ describe('Table', () => {
                 </Table>,
             );
 
-            expect(screen.getByTestId('empty-state')).toBeTruthy();
+            expect(screen.getAllByTestId('empty-state')).toHaveLength(1);
             expect(screen.queryByTestId('flash-list')).toBeNull();
             expect(mockFlashListProps).toHaveLength(0);
         });
@@ -942,6 +980,59 @@ describe('Table', () => {
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.queryByTestId('flash-list')).toBeNull();
             expect(mockFlashListProps).toHaveLength(1);
+        });
+
+        it('should preserve a styled list footer without letting it displace the no-results content', () => {
+            const props = createDefaultProps();
+            const listFooterComponentStyle = {flexGrow: 1, justifyContent: 'flex-end' as const};
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={
+                        <>
+                            <Text testID="table-header-component">Page header</Text>
+                            <Table.FilterBar label="Search" />
+                        </>
+                    }
+                    ListFooterComponent={<Text testID="list-footer">Disclaimer</Text>}
+                    ListFooterComponentStyle={listFooterComponentStyle}
+                    shouldUseStickyColumnHeader
+                >
+                    <Table.NoResultsState />
+                    <Table.Body contentContainerStyle={{minHeight: 600, paddingBottom: 12}} />
+                </Table>,
+            );
+
+            expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toEqual(listFooterComponentStyle);
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'no-match-search');
+
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
+            expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
+            expect(StyleSheet.flatten(screen.getByTestId('list-footer').parent?.props.style)).toEqual(
+                expect.objectContaining({
+                    flexGrow: 0,
+                    justifyContent: listFooterComponentStyle.justifyContent,
+                }),
+            );
+            expect(StyleSheet.flatten(screen.getByTestId('list-footer').parent?.parent?.props.style)).toEqual(
+                expect.objectContaining({
+                    minHeight: undefined,
+                    paddingBottom: 12,
+                }),
+            );
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
+
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
         });
 
         it('should render Table.EmptyState as a sibling when no page header is present', () => {
