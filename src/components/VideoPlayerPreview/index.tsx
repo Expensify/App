@@ -1,3 +1,4 @@
+import {useSession} from '@components/OnyxListItemProvider';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
@@ -24,9 +25,10 @@ import type {SourceLoadEventPayload} from 'expo-video';
 import type {GestureResponderEvent} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
+import {areVideoDimensionsValid, cacheVideoDimensions, getAuthenticatedVideoSourceURL, getCachedVideoDimensions, isLocalVideoURL} from './videoDimensionUtils';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoPlayerPreviewProps = {
@@ -64,15 +66,27 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {currentlyPlayingURL, currentRouteReportID} = usePlaybackStateContext();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
     const report = useReportOrReportDraft(reportID);
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
     /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isThumbnail, setIsThumbnail] = useState(true);
-    const [webMeasuredDimensions, setWebMeasuredDimensions] = useState<Dimensions | null>(null);
-    const measuredDimensions = getPlatform() === CONST.PLATFORM.WEB && videoUrl && webMeasuredDimensions ? webMeasuredDimensions : videoDimensions;
+
+    // Uploaded videos are often persisted with 0/0 dimensions, so the real dimensions are measured on web. Seed the state
+    // from the module-level cache so a remount (edit, LHN navigation, refresh) restores the correct orientation immediately.
+    const [webMeasuredDimensions, setWebMeasuredDimensions] = useState<Dimensions | null>(() => getCachedVideoDimensions(videoUrl));
+    const hasValidStoredDimensions = areVideoDimensionsValid(videoDimensions);
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
+    // Stored dimensions win when they are valid; the measured dimensions are only used as a fallback when they are absent (0/0).
+    const measuredDimensions = isWeb && videoUrl && !hasValidStoredDimensions && areVideoDimensionsValid(webMeasuredDimensions) ? webMeasuredDimensions : videoDimensions;
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
+
+    // Probe URL used to measure the video metadata. Server attachments require the auth token, otherwise `onloadedmetadata` never fires.
+    const metadataProbeURL = useMemo(() => getAuthenticatedVideoSourceURL(videoUrl, encryptedAuthToken), [videoUrl, encryptedAuthToken]);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
@@ -80,26 +94,42 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     // While offline, render BaseVideoPlayer instead of the thumbnail so the existing player-level offline state is shown consistently.
     const shouldRenderVideoPlayer = !isDeleted && (isOffline || (!isSmallScreenWidth && !isThumbnail));
 
+    // When the video URL changes, adjust the measured dimensions during render (the recommended pattern for deriving
+    // state from props): restore any cached measurement for the new URL, carry the measurement across the blob -> server
+    // URL swap that happens once an upload completes, or reset otherwise so the probe below can re-measure.
+    const [prevVideoUrl, setPrevVideoUrl] = useState(videoUrl);
+    if (prevVideoUrl !== videoUrl) {
+        setPrevVideoUrl(videoUrl);
+        const cached = getCachedVideoDimensions(videoUrl);
+        if (cached) {
+            setWebMeasuredDimensions(cached);
+        } else if (!hasValidStoredDimensions && areVideoDimensionsValid(webMeasuredDimensions) && isLocalVideoURL(prevVideoUrl) && !isLocalVideoURL(videoUrl)) {
+            // Keep the measurement from the just-completed local upload and persist it under the new server URL.
+            cacheVideoDimensions(videoUrl, webMeasuredDimensions);
+        } else {
+            setWebMeasuredDimensions(null);
+        }
+    }
+
     useEffect(() => {
-        if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
+        if (!videoUrl || !isWeb || hasValidStoredDimensions) {
             return;
         }
         const video = document.createElement('video');
         video.onloadedmetadata = () => {
-            if (video.videoWidth === videoDimensions.width && video.videoHeight === videoDimensions.height) {
+            const dimensions = {width: video.videoWidth, height: video.videoHeight};
+            if (!areVideoDimensionsValid(dimensions)) {
                 return;
             }
-            setWebMeasuredDimensions({
-                width: video.videoWidth,
-                height: video.videoHeight,
-            });
+            cacheVideoDimensions(videoUrl, dimensions);
+            setWebMeasuredDimensions(dimensions);
         };
-        video.src = videoUrl;
+        video.src = metadataProbeURL;
         video.load();
         return () => {
             video.src = '';
         };
-    }, [videoUrl, videoDimensions.width, videoDimensions.height]);
+    }, [videoUrl, isWeb, hasValidStoredDimensions, metadataProbeURL]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
@@ -109,11 +139,16 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const onSourceLoaded = (event: SourceLoadEventPayload) => {
         const track = event.availableVideoTracks.at(0);
 
-        if (!track) {
+        if (!track || hasValidStoredDimensions) {
             return;
         }
 
-        setWebMeasuredDimensions({width: track.size.width, height: track.size.height});
+        const dimensions = {width: track.size.width, height: track.size.height};
+        if (!areVideoDimensionsValid(dimensions)) {
+            return;
+        }
+        cacheVideoDimensions(videoUrl, dimensions);
+        setWebMeasuredDimensions(dimensions);
     };
 
     const handleOnPress = () => {
