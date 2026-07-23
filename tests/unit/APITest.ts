@@ -1,5 +1,5 @@
 import {initReconnect} from '@libs/actions/Reconnect';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {AUTHENTICATION_COMMAND, READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 
 import CONST from '@src/CONST';
@@ -362,7 +362,7 @@ describe('APITests', () => {
                     const [commandName2] = call2;
                     const [commandName3] = call3;
                     expect(commandName1).toBe(MOCK_COMMAND);
-                    expect(commandName2).toBe('Authenticate');
+                    expect(commandName2).toBe(AUTHENTICATION_COMMAND);
                     expect(commandName3).toBe(MOCK_COMMAND);
                 })
         );
@@ -513,7 +513,7 @@ describe('APITests', () => {
 
                 // Third command should be the call to Authenticate
                 const [thirdCommand] = xhr.mock.calls.at(2) ?? [];
-                expect(thirdCommand).toBe('Authenticate');
+                expect(thirdCommand).toBe(AUTHENTICATION_COMMAND);
 
                 const [fourthCommand] = xhr.mock.calls.at(3) ?? [];
                 expect(fourthCommand).toBe(MOCK_COMMAND);
