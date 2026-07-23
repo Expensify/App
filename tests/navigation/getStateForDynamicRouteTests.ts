@@ -1,31 +1,23 @@
 import getStateForDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute';
 
-jest.mock('@libs/Navigation/linkingConfig/config', () => ({
-    normalizedConfigs: {
-        TestNavigator: {
-            path: 'test-path',
-            routeNames: ['Wrapper', 'TargetScreen'],
-        },
-        SingleNavigator: {
-            path: 'single-path',
-            routeNames: ['Root'],
-        },
-    },
-}));
+import type * as Routes from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-jest.mock('@src/ROUTES', () => ({
-    DYNAMIC_ROUTES: {
-        VERIFY_ACCOUNT: {
-            path: 'test-path',
+jest.mock('@libs/Navigation/linkingConfig/config', () => {
+    const {DYNAMIC_ROUTES: actualDynamicRoutes} = jest.requireActual<typeof Routes>('@src/ROUTES');
+    return {
+        normalizedConfigs: {
+            TestNavigator: {
+                path: actualDynamicRoutes.VERIFY_ACCOUNT.path,
+                routeNames: ['Wrapper', 'TargetScreen'],
+            },
+            SingleNavigator: {
+                path: actualDynamicRoutes.TWO_FACTOR_AUTH_ROOT.path,
+                routeNames: ['Root'],
+            },
         },
-        TWO_FACTOR_AUTH_ROOT: {
-            path: 'single-path',
-        },
-        TWO_FACTOR_AUTH_VERIFY: {
-            path: 'unknown-path',
-        },
-    },
-}));
+    };
+});
 
 const KEY_TEST = 'VERIFY_ACCOUNT';
 const KEY_SINGLE = 'TWO_FACTOR_AUTH_ROOT';
@@ -33,7 +25,7 @@ const KEY_UNKNOWN = 'TWO_FACTOR_AUTH_VERIFY';
 
 describe('getStateForDynamicRoute', () => {
     it('should build correctly nested state for multi-level route', () => {
-        const path = '/some/path/test-path';
+        const path = `/some/path/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
 
         const result = getStateForDynamicRoute(path, KEY_TEST);
 
@@ -56,7 +48,7 @@ describe('getStateForDynamicRoute', () => {
     });
 
     it('should build flat state for single-level route', () => {
-        const path = '/some/path/single-path';
+        const path = `/some/path/${DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path}`;
         const result = getStateForDynamicRoute(path, KEY_SINGLE);
 
         expect(result).toEqual({
@@ -70,13 +62,13 @@ describe('getStateForDynamicRoute', () => {
     });
 
     it('should throw error when route configuration is not found', () => {
-        const path = '/some/path/unknown';
+        const path = `/some/path/${DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path}`;
 
         expect(() => getStateForDynamicRoute(path, KEY_UNKNOWN)).toThrow("No route configuration found for dynamic route 'TWO_FACTOR_AUTH_VERIFY'");
     });
 
     it('should handle different path format but same structure', () => {
-        const path = '/another/different/path/test-path';
+        const path = `/another/different/path/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
         const result = getStateForDynamicRoute(path, KEY_TEST);
 
         const rootRoute = result.routes.at(0);
@@ -85,7 +77,7 @@ describe('getStateForDynamicRoute', () => {
     });
 
     it('should correctly structure state property in parent nodes', () => {
-        const path = '/test-path';
+        const path = `/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
         const result = getStateForDynamicRoute(path, KEY_TEST);
 
         const parentNode = result.routes.at(0);
@@ -97,7 +89,7 @@ describe('getStateForDynamicRoute', () => {
     });
 
     it('should inherit parent route params on the leaf node', () => {
-        const path = '/r/12345/settings/test-path';
+        const path = `/r/12345/settings/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
         const parentParams = {reportID: '12345'};
         const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
@@ -107,7 +99,7 @@ describe('getStateForDynamicRoute', () => {
     });
 
     it('should not include params on the leaf node when neither parentRouteParams nor query params are provided', () => {
-        const path = '/some/path/test-path';
+        const path = `/some/path/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
         const result = getStateForDynamicRoute(path, KEY_TEST);
 
         const rootRoute = result.routes.at(0);
@@ -124,7 +116,7 @@ describe('getStateForDynamicRoute', () => {
     });
 
     it('should merge parent route params with query params', () => {
-        const path = '/r/12345/settings/test-path?country=US';
+        const path = `/r/12345/settings/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}?country=US`;
         const parentParams = {reportID: '12345'};
         const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
@@ -135,7 +127,7 @@ describe('getStateForDynamicRoute', () => {
 
     describe('undefined params are filtered out (optional path params absent)', () => {
         it('does not include the key when an optional path param is undefined', () => {
-            const path = '/r/12345/test-path';
+            const path = `/r/12345/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
             const parentParams = {reportID: '12345', accountID: undefined};
             const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
@@ -147,7 +139,7 @@ describe('getStateForDynamicRoute', () => {
         });
 
         it('returns no params when all parent params are undefined and there are no query params', () => {
-            const path = '/r/12345/test-path';
+            const path = `/r/12345/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
             const parentParams = {accountID: undefined};
             const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
@@ -165,7 +157,7 @@ describe('getStateForDynamicRoute', () => {
         });
 
         it('keeps defined params and drops undefined ones in mixed scenario', () => {
-            const path = '/r/12345/test-path?country=US';
+            const path = `/r/12345/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}?country=US`;
             const parentParams = {reportID: '12345', extraneous: undefined};
             const result = getStateForDynamicRoute(path, KEY_TEST, parentParams);
 
