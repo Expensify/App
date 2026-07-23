@@ -10,7 +10,6 @@ import {
     createDisplayDetailsByLoginsSelector,
     multiPersonalDetailsSelector,
     personalDetailsByLoginSelector,
-    personalDetailByLoginSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
@@ -172,41 +171,6 @@ describe('PersonalDetailsSelector', () => {
         it('should return an empty array if none of the accountIDs exist in the list', () => {
             const result = personalDetailsLoginsSelector([888, 999])(multiPersonalDetailsList);
             expect(result).toEqual([]);
-        });
-    });
-
-    describe('personalDetailByLoginSelector', () => {
-        it('should return the personal details for the given login', () => {
-            const result = personalDetailByLoginSelector('test@user.com')(personalDetailsList);
-            expect(result).toEqual(personalDetails);
-        });
-
-        it('should match the login case-insensitively', () => {
-            const result = personalDetailByLoginSelector('TEST@USER.COM')(personalDetailsList);
-            expect(result).toEqual(personalDetails);
-        });
-
-        it('should return undefined if the login is not in the list', () => {
-            const result = personalDetailByLoginSelector('missing@user.com')(personalDetailsList);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined if the login is undefined', () => {
-            const result = personalDetailByLoginSelector(undefined)(personalDetailsList);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined if the personalDetailsList is undefined', () => {
-            const result = personalDetailByLoginSelector('test@user.com')(undefined);
-            expect(result).toBeUndefined();
-        });
-
-        it('should skip null entries in the list', () => {
-            const listWithNull: PersonalDetailsList = {
-                [accountID]: null,
-            };
-            const result = personalDetailByLoginSelector('test@user.com')(listWithNull);
-            expect(result).toBeUndefined();
         });
     });
 
