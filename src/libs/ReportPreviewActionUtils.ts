@@ -7,13 +7,11 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled,
     canMemberWrite,
-    getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isPreferredExporter,
-    isSubmitAndClose,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {hasPendingDEWApprove} from './ReportActionsUtils';
@@ -75,10 +73,7 @@ function canSubmit(
         return false;
     }
 
-    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
-    const isWorkflowApprover = !isSubmitter && !!ownerLogin && !isSubmitAndClose(policy) && currentUserAccountID === getManagerAccountID(policy, ownerLogin);
-    const canBeSubmitter = isSubmitter || isWorkflowApprover;
-    return isExpense && canBeSubmitter && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
+    return isExpense && isSubmitter && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
