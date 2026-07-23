@@ -135,6 +135,8 @@ describe('actions/PolicyRules', () => {
 
             policy = await getPolicy(fakePolicy.id);
             expect(policy?.rules?.agentRules?.[agentRuleID]?.prompt).toBe(newPrompt);
+            // The title stays cleared after success; the regenerated title arrives via a server Onyx update, not successData.
+            expect(policy?.rules?.agentRules?.[agentRuleID]?.title).toBeFalsy();
             expect(policy?.rules?.agentRules?.[agentRuleID]?.pendingAction).toBeFalsy();
             expect(policy?.rules?.agentRules?.[agentRuleID]?.errors).toBeFalsy();
         });
