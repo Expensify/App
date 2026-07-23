@@ -28,20 +28,9 @@ import React, {useEffect, useRef} from 'react';
 
 import getLastRoute from './getLastRoute';
 import getReusableReportsTabStateKey, {getReportsTabStateKey} from './getReusableReportsTabStateKey';
+import getStringParam from './getStringParam';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
-
-function getStringParam(params: unknown, key: string): string | undefined {
-    if (!params || typeof params !== 'object') {
-        return undefined;
-    }
-    for (const [k, v] of Object.entries(params)) {
-        if (k === key && typeof v === 'string') {
-            return v;
-        }
-    }
-    return undefined;
-}
 
 function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
@@ -163,6 +152,11 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 Navigation.navigate(reportRoute);
                 return;
             }
+        }
+
+        if (lastReportRouteReportID) {
+            Navigation.navigate(ROUTES.INBOX);
+            return;
         }
 
         const reportsTabStateKey = getReportsTabStateKey(navigationRef.getRootState());

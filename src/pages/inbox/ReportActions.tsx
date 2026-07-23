@@ -105,7 +105,10 @@ function ReportActions() {
 }
 
 type ReportActionsWithInboxTabDeferredMountProps = {
+    /** The report ID used by the deferred loading skeleton */
     reportID: string | undefined;
+
+    /** Whether to defer mounting report actions during the initial Inbox tab navigation */
     shouldDefer: boolean;
 };
 

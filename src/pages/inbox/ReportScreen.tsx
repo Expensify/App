@@ -51,6 +51,7 @@ import ReportRouteParamHandler from './ReportRouteParamHandler';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
 
 type ReportScreenProps = ReportScreenNavigationProps & {
+    /** Whether to defer mounting report actions during the initial Inbox tab navigation */
     shouldDeferReportActions?: boolean;
 };
 

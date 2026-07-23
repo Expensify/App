@@ -224,6 +224,23 @@ describe('InboxTabButton', () => {
         expect(mockStartOpenReportSpan).not.toHaveBeenCalled();
     });
 
+    it('navigates to Inbox when the previous report no longer exists', () => {
+        mockOnyxEntry = undefined;
+
+        render(
+            <InboxTabButton
+                selectedTab={NAVIGATION_TABS.HOME}
+                isWideLayout
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('inbox-tab-button'));
+
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.INBOX);
+        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(mockStartOpenReportSpan).not.toHaveBeenCalled();
+    });
+
     it('navigates to Inbox when the tab navigator is not ready', () => {
         mockOnyxEntry = undefined;
         mockRootState = undefined;
