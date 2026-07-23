@@ -309,6 +309,9 @@ type AddNewCardFeedData = {
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
 
+    /** Account that owns the CSV feed being edited */
+    domainAccountID?: number;
+
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };

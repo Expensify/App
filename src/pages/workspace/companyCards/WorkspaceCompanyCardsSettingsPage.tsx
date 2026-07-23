@@ -206,6 +206,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                             companyCardLayoutName: selectedFeedData?.customFeedName ?? feedName ?? '',
                                             useAdvancedFields: hadAdvancedFields,
                                             existingInstanceID: selectedFeedData?.uploadLayoutSettings?.instanceID ?? null,
+                                            domainAccountID: domainOrWorkspaceAccountID,
                                         },
                                     });
                                     Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID));

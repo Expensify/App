@@ -42,8 +42,9 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const feedDomainAccountID = addNewCard?.data?.domainAccountID ?? workspaceAccountID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
@@ -189,7 +190,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         setIsImportingTransactions(true);
         const importFinalModal = await importCSVCompanyCards({
             policyID,
-            workspaceAccountID,
+            domainAccountID: feedDomainAccountID,
             layoutName,
             layoutType,
             columnMappings,
