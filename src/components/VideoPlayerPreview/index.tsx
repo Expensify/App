@@ -1,6 +1,8 @@
+import {useSession} from '@components/OnyxListItemProvider';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
+import {addSkipTimeTagToURL} from '@components/VideoPlayer/utils';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
@@ -12,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import getPlatform from '@libs/getPlatform';
 
 import Navigation from '@navigation/Navigation';
@@ -76,12 +79,17 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    const [sourceURL] = useState(() =>
+        videoUrl.includes('blob:') || videoUrl.includes('file:///') ? videoUrl : addSkipTimeTagToURL(addEncryptedAuthTokenToURL(videoUrl, encryptedAuthToken), 0.001),
+    );
 
     // While offline, render BaseVideoPlayer instead of the thumbnail so the existing player-level offline state is shown consistently.
     const shouldRenderVideoPlayer = !isDeleted && (isOffline || (!isSmallScreenWidth && !isThumbnail));
 
     useEffect(() => {
-        if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
+        if (!sourceURL || getPlatform() !== CONST.PLATFORM.WEB) {
             return;
         }
         const video = document.createElement('video');
@@ -94,12 +102,12 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                 height: video.videoHeight,
             });
         };
-        video.src = videoUrl;
+        video.src = sourceURL;
         video.load();
         return () => {
             video.src = '';
         };
-    }, [videoUrl, videoDimensions.width, videoDimensions.height]);
+    }, [sourceURL, videoDimensions.width, videoDimensions.height]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
