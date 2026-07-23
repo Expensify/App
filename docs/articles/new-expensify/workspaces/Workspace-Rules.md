@@ -172,7 +172,7 @@ Available option:
 You can set workspace-wide defaults to automate categorization and tagging. 
 
 - **Default categories** – Auto-assign a category based on the merchant’s MCC (Merchant Category Code). This is configured under **Categories > Settings**, not under Rules. See [Create Expense Categories](/articles/new-expensify/workspaces/Create-expense-categories). 
-- **Billable expenses** – Decide when tagging is required based on whether an expense is marked billable. Set this under **Tags > Settings**.
+- **Billable expenses** – Choose whether expenses can be marked as billable and set the default billable behavior. Set this under **Rules**, in the **Billable expenses** setting. Turn on **Track billable expenses** to allow expenses to be marked billable, then choose the default.
 
 **Note:** Default category and billable settings use general automation logic. If you need consistent, merchant-specific outcomes that apply across all members, use **Workspace Merchant Rules** instead.
 
