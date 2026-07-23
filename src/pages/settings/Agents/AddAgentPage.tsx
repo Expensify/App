@@ -203,7 +203,12 @@ function AddAgentPage({route}: AddAgentPageProps) {
     // avatar's initial state are captured once at mount, so they must see a template that persisted across a refresh.
     // Same-session navigation hits the Onyx cache and skips this, so there's no flash in the common path.
     if (isLoadingOnyxValue(templateMetadata)) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddAgentPage'}} />;
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton
+                reasonAttributes={{context: 'AddAgentPage'}}
+            />
+        );
     }
 
     return (
