@@ -38,6 +38,16 @@ function buildActions(...reportActionIDs: string[]): ReportActions {
     return Object.fromEntries(reportActionIDs.map((id) => [id, buildVisibleComment(id)]));
 }
 
+/** Build an ADD_COMMENT action whispered to specific accounts (visible only to those accounts). */
+function buildWhisperedComment(reportActionID: string, whisperedTo: number[]) {
+    return getFakeReportAction(1, {
+        reportActionID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        message: [{html: 'hey', isDeletedParentAction: false, isEdited: false, text: 'test', type: 'COMMENT', whisperedTo}],
+        originalMessage: {whisperedTo},
+    });
+}
+
 function setReportActions(reportID: string, actions: ReportActions) {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actions);
 }
@@ -141,6 +151,28 @@ describe('VISIBLE_REPORT_ACTIONS reflects deleted report actions', () => {
         await Onyx.clear();
         TestHelper.signInWithTestUser(1, 'test@test.com');
         await waitForBatchedUpdates();
+    });
+
+    it('recomputes visibility on a session change (account switch) even when no report action changed', async () => {
+        // Given report A holds a whisper targeted to account 1, and account 1 is signed in.
+        // (signInWithTestUser in beforeEach signs in accountID 1.)
+        await setReportActions(REPORT_A, {whisper: buildWhisperedComment('whisper', [1])});
+        await waitForBatchedUpdates();
+
+        // The whisper is visible to its target (account 1).
+        const visibleAsTarget = await getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+        expect(visibleAsTarget?.[REPORT_A]?.whisper).toBe(true);
+
+        // When the session switches to a different user (account 2) without touching the report's actions
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 2});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the derived value is recomputed against the new user: the whisper now targets "others" and is hidden.
+        // This only flips if the SESSION delta forces a recompute despite REPORT_ACTIONS being unchanged.
+        const visibleAsOther = await getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+        expect(visibleAsOther?.[REPORT_A]?.whisper).toBe(false);
     });
 
     it('drops a deleted action from the derived value via the incremental delta path', async () => {
