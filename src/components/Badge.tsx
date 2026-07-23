@@ -1,6 +1,8 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getPlatform from '@libs/getPlatform';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -14,6 +16,11 @@ import {View} from 'react-native';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
+
+// Hiding the badge's content from assistive tech is only needed on the web, where `accessible` does not group the
+// children into a single element. On native, `accessible` already announces the badge as one element, and `aria-hidden`
+// would additionally hide the content from queries (e.g. testing-library's getByText).
+const shouldHideBadgeContentFromAssistiveTech = getPlatform() === CONST.PLATFORM.WEB;
 
 type BadgeProps = {
     /** Is Success type */
@@ -109,13 +116,18 @@ function Badge({
         <Wrapper
             style={pressable ? wrapperStyles : wrapperStyles({focused: false, hovered: false, isDisabled: false, isScreenReaderActive: false, pressed: false})}
             onPress={onPress}
-            role={pressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-            accessibilityLabel={pressable ? text : undefined}
-            aria-label={!pressable ? text : undefined}
-            accessible={false}
+            role={pressable ? CONST.ROLE.BUTTON : undefined}
+            accessibilityLabel={text}
+            // Make the badge a single accessibility element named by its text. The icon and text are hidden from
+            // assistive tech so a screen reader announces the badge as one item (via accessibilityLabel) instead of
+            // stepping through the icon and text as separate stops.
+            accessible
         >
             {!!icon && (
-                <View style={[!!text && styles.mr1, iconStyles]}>
+                <View
+                    style={[!!text && styles.mr1, iconStyles]}
+                    aria-hidden={(shouldHideBadgeContentFromAssistiveTech && !!text) || undefined}
+                >
                     <Icon
                         width={iconSize}
                         height={iconSize}
@@ -139,6 +151,7 @@ function Badge({
                         isDeleted ? styles.offlineFeedbackDeleted : {},
                     ]}
                     numberOfLines={1}
+                    aria-hidden={shouldHideBadgeContentFromAssistiveTech || undefined}
                 >
                     {text}
                 </Text>

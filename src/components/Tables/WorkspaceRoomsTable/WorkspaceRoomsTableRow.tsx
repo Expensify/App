@@ -2,6 +2,7 @@ import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -48,6 +49,8 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
     const memberCountSubtitle = translate('domain.groups.memberCount', {count: item.memberCount});
 
     return (
@@ -93,7 +96,10 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
 
                     {!shouldUseNarrowTableLayout && (
                         <>
-                            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <ReportActionAvatars
                                     noRightMarginOnSubscriptContainer
                                     singleAvatarContainerStyle={[styles.mr0]}
@@ -108,11 +114,17 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                                 />
                             </View>
 
-                            <View style={styles.flex1}>
+                            <View
+                                style={styles.flex1}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <Text numberOfLines={1}>{item.memberCount}</Text>
                             </View>
 
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                            <View
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <Icon
                                     src={icons.ArrowRight}
                                     fill={theme.icon}

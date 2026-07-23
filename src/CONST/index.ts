@@ -5996,6 +5996,8 @@ const CONST = {
         TABLE: 'table',
         /** Use for table rows. */
         ROW: 'row',
+        /** Use to group table rows together (e.g. thead/tbody). */
+        ROWGROUP: 'rowgroup',
         /** Use for column header cells in a table. */
         COLUMNHEADER: 'columnheader',
         /** Use for data cells in a table row. */
