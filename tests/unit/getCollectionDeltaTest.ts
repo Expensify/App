@@ -1,5 +1,6 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import getCollectionDelta from '@libs/getCollectionDelta';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 type Item = {v: number};
 

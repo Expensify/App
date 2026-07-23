@@ -1,6 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+
 import useCollectionDelta from '@hooks/useCollectionDelta';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 type Item = {v: number};
 

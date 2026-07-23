@@ -1,6 +1,9 @@
-import {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import getCollectionDelta from '@libs/getCollectionDelta';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import usePrevious from './usePrevious';
 
 /**
