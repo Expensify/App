@@ -167,7 +167,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     setIsMenuVisible(!isMenuVisible);
                     return;
                 }
-                if (selectedItem?.value) {
+                if (selectedItem?.onSelected) {
+                    selectedItem.onSelected();
+                } else if (selectedItem?.value) {
                     onPress(e, selectedItem.value);
                 }
             } else {
@@ -194,6 +196,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (!isSplitButton) {
             setIsMenuVisible(!isMenuVisible);
+        } else if (selectedItem?.onSelected) {
+            // Honor the item's own handler (as the dropdown menu does) so the main split-button press performs the exact
+            // action of the defaulted item — e.g. paying directly with a specific bank account — instead of the generic
+            // value-based path, which would lose the item's context (like a `methodID`) and route through a fallback flow.
+            selectedItem.onSelected();
         } else if (selectedItem?.value) {
             onPress(event, selectedItem.value);
         }

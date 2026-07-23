@@ -29,7 +29,7 @@ import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
-import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin, isPolicyPayer, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -165,10 +165,17 @@ function SettlementButton({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
+    // Any workspace admin can pay, but only the members who can actually access the workspace bank account may see it.
+    // Without this, a non-payer admin is shown (and defaulted to) an account they can't use, and tapping Pay just asks
+    // them to add a new one. The dropdown already scopes itself to `bankAccountList`, which is why it stays correct.
+    // The designated payer/owner keeps seeing the workspace account (from `policy.achAccount`) even when it isn't
+    // enumerated in their `bankAccountList`, so we must not suppress the digits for them.
+    const isReportPayer = isPolicyPayer(policy, email);
+    const policyBankAccountID = policy?.achAccount?.bankAccountID;
+    const canAccessPolicyBankAccount = isReportPayer || (!!policyBankAccountID && !!bankAccountList?.[policyBankAccountID]);
     const hasIntentToPay =
         ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
-            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN ||
-            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+            (canAccessPolicyBankAccount && (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED))) &&
         !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -609,7 +616,7 @@ function SettlementButton({
 
         // Handle bank account payments first (expense reports require bank account, never wallet)
         if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || (hasIntentToPay && isExpenseReport)) && !!policy?.achAccount) {
-            if (policy?.achAccount?.accountNumber) {
+            if (canAccessPolicyBankAccount && policy?.achAccount?.accountNumber) {
                 secondaryTextRaw = translate('paymentMethodList.bankAccountLastFour', policy?.achAccount?.accountNumber?.slice(-4));
             } else if (bankAccountToDisplay?.accountData?.accountNumber) {
                 secondaryTextRaw = translate('paymentMethodList.bankAccountLastFour', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4));

@@ -730,7 +730,9 @@ function computeReportNameBasedOnReportAction(
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
-        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+        // Prefer the account stored on the action: the payer is not always the workspace payer, so the policy's
+        // ACH account can belong to a different bank account than the one the report was actually paid with.
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
