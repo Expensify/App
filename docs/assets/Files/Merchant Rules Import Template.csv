@@ -1,0 +1,3 @@
+Merchant name,Match Type,Update Merchant,Update Category,Update Tag,Update Tax,Update Description,Update Reimbursable,Update Billable
+Target#1234,matches exactly,Target,Supplies,Downtown,,For office supplies.,No,
+Pizza,contains,,Meals and Entertainment,,,Pizza party,Yes,
