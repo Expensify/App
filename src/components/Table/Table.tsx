@@ -1,6 +1,8 @@
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -11,18 +13,22 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
+import type {ReactElement} from 'react';
 
 import React, {useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
+import {getTableListMetadata} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
+import TableEmptyState from './TableEmptyStates/TableEmptyState';
+import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 
 /**
  * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
@@ -38,6 +44,7 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
     tableMethods: TableMethods<ColumnKey, FilterKey>,
     listRef: React.RefObject<FlashListRef<DataType> | null>,
     getProcessedData: () => Array<TableRow<DataType>>,
+    listDataRowOffset: number,
 ): TableHandle<DataType, ColumnKey, FilterKey> {
     return new Proxy(tableMethods, {
         get: (target, property) => {
@@ -47,6 +54,17 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
 
             if (property === 'getProcessedData') {
                 return getProcessedData;
+            }
+
+            if (property === 'scrollToIndex') {
+                const scrollToIndex = listRef.current?.scrollToIndex;
+                if (listDataRowOffset === 0 || !scrollToIndex) {
+                    return scrollToIndex;
+                }
+
+                return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
+                    scrollToIndex({...params, index: params.index + listDataRowOffset});
+                };
             }
 
             return listRef.current?.[property as keyof FlashListRef<DataType>];
@@ -186,6 +204,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInSearch,
     initialSortColumn,
     narrowLayoutSortColumn,
+    headerComponent,
+    shouldUseStickyColumnHeader = false,
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
@@ -234,6 +254,12 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
+    const searchBarMountCountRef = useRef(0);
+
+    // Keeps the table search input visible above the keyboard when it is focused inside the
+    // scrolling list (native only; the web variant of the hook is a no-op).
+    const {isKeyboardShown} = useKeyboardState();
+    const {containerRef: listContainerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
@@ -243,14 +269,35 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...highlightingMethods,
     };
 
+    const originalDataLength = data?.length ?? 0;
+    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
+    const shouldRenderStickyHeader = shouldUseStickyColumnHeader && !(shouldUseNarrowTableLayout && !title);
+
+    // When the page header scrolls with populated rows, TableBody owns the alternate flex layout
+    // used for empty states. They are extracted from the direct children here so they don't render
+    // a second time as siblings of the body.
+    const childrenArray = React.Children.toArray(children);
+    const emptyStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableEmptyState);
+    const noResultsStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableNoResultsState);
+
+    const tableListMetadata = getTableListMetadata({
+        headerComponent,
+        listHeaderComponent: listProps.ListHeaderComponent,
+        listEmptyComponent: listProps.ListEmptyComponent,
+        hasEmptyStateContent: !!emptyStateElement,
+        processedData,
+        isEmptyResult,
+        shouldRenderStickyHeader,
+    });
+    const renderedChildren = tableListMetadata.hasPageHeader
+        ? childrenArray.filter((child) => !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState)))
+        : children;
+
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
      */
-    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData));
-
-    const originalDataLength = data?.length ?? 0;
-    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
+    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata.listDataRowOffset));
 
     const handleMobileSelectionPress = () => {
         turnOnMobileSelectionMode();
@@ -264,7 +311,14 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
+        headerComponent,
+        emptyStateElement,
+        noResultsStateElement,
         listRef,
+        searchBarMountCountRef,
+        listContainerRef,
+        trackScrollOffset,
+        scrollInputIntoView,
         listProps,
         processedData,
         originalDataLength,
@@ -276,6 +330,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         tableMethods,
         hasActiveFilters,
         hasSearchString: hasActiveSearchString,
+        shouldRenderStickyHeader,
+        tableListMetadata,
         isEmptyResult,
         shouldUseNarrowTableLayout,
         selectionEnabled,
@@ -286,7 +342,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            {children}
+            {renderedChildren}
 
             <Modal
                 shouldPreventScrollOnFocus

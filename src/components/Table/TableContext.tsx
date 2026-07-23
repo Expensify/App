@@ -1,7 +1,11 @@
+import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {FlashListRef} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 
 import React, {createContext, useContext} from 'react';
 
+import type {TableListMetadata} from './buildTableListData';
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
@@ -17,8 +21,26 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The title of the table when shown on smaller screens. */
     title?: string;
 
+    /** Content rendered as the FlashList header so it scrolls with the table rows. */
+    headerComponent?: React.ReactElement;
+
+    /** Empty-state element extracted from the table children; rendered by TableBody in its page-header empty layout. */
+    emptyStateElement?: React.ReactElement;
+
+    /** No-results element extracted from the table children; rendered by TableBody in its page-header empty layout. */
+    noResultsStateElement?: React.ReactElement;
+
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
+
+    /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
+    listContainerRef: React.RefObject<View | null>;
+
+    /** Tracks the list scroll offset for the focused-input scroll helper; wired into the list's onScroll. */
+    trackScrollOffset: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Scrolls the table list so the given input stays visible above the keyboard (no-op on web). */
+    scrollInputIntoView: (input: MeasurableInput) => void;
 
     /** FlashList props passed through from the Table component. */
     listProps: SharedListProps<DataType>;
@@ -50,6 +72,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Currently active search string. */
     activeSearchString: string;
 
+    /** Tracks mounted search bars so relocating the page header does not clear an active search. */
+    searchBarMountCountRef: React.RefObject<number>;
+
     /** Methods exposed by the Table component for programmatic control. */
     tableMethods: TableMethods<ColumnKey, FilterKey>;
 
@@ -58,6 +83,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Whether search string is not empty. */
     hasSearchString: boolean;
+
+    /** Whether the table header is rendered as a sticky FlashList item. */
+    shouldRenderStickyHeader: boolean;
+
+    /** Synthetic row metadata shared by the FlashList data and table ref methods. */
+    tableListMetadata: TableListMetadata;
 
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
@@ -74,6 +105,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
     listRef: React.createRef(),
+    listContainerRef: React.createRef(),
+    trackScrollOffset: () => {},
+    scrollInputIntoView: () => {},
     processedData: [],
     originalDataLength: 0,
     columns: [],
@@ -83,11 +117,22 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
         order: 'asc',
     },
     activeSearchString: '',
+    searchBarMountCountRef: {current: 0},
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,
     listProps: {} as SharedListProps<TableData>,
     hasActiveFilters: false,
     hasSearchString: false,
+    shouldRenderStickyHeader: false,
+    tableListMetadata: {
+        hasPageHeader: false,
+        shouldRenderStickyHeader: false,
+        shouldRenderSyntheticEmptyRow: false,
+        isEmptyResult: false,
+        syntheticRowsBeforeData: 0,
+        stickyTableHeaderIndex: 0,
+        listDataRowOffset: 0,
+    },
     isEmptyResult: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,

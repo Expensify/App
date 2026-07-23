@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type TableNoResultsStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia' | 'title' | 'subtitle'> & {
     headerMedia?: IconAsset;
@@ -20,23 +21,29 @@ type TableNoResultsStateProps = Omit<GenericEmptyStateComponentProps, 'headerMed
 export default function TableNoResultsState(emptyStateProps: TableNoResultsStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isEmptyResult} = useTableContext();
+    const {isEmptyResult, tableListMetadata} = useTableContext();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
     if (!isEmptyResult) {
         return null;
     }
 
-    return (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                headerMedia={illustrations.EmptyShelves}
-                headerContentStyles={styles.emptyShelvesIllustration}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                title={translate('common.noResultsFound')}
-                subtitle={translate('common.noResultsFoundSubtitle')}
-                {...emptyStateProps}
-            />
-        </ScrollView>
+    const content = (
+        <GenericEmptyStateComponent
+            headerMedia={illustrations.EmptyShelves}
+            headerContentStyles={styles.emptyShelvesIllustration}
+            headerStyles={styles.emptyStateCardIllustrationContainer}
+            title={translate('common.noResultsFound')}
+            subtitle={translate('common.noResultsFoundSubtitle')}
+            {...emptyStateProps}
+        />
     );
+
+    // TableBody owns the page-header flex layout and centers this content in the remaining space,
+    // so the no-results state does not need a nested ScrollView.
+    if (tableListMetadata.hasPageHeader) {
+        return <View style={styles.flexShrink0}>{content}</View>;
+    }
+
+    return <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>{content}</ScrollView>;
 }

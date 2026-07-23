@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -24,9 +24,10 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
-export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceTaxesTableProps) {
+export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent}: WorkspaceTaxesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -80,6 +81,9 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={taxes}
@@ -94,10 +98,10 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             selectedKeys={selectedKeys}
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );

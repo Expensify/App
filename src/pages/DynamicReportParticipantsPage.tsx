@@ -249,38 +249,38 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                     }}
                     subtitle={StringUtils.lineBreaksToSpaces(deprecatedGetReportName(report, reportAttributes))}
                 />
-                <View style={[styles.pl5, styles.pr5]}>
-                    {isGroupChat && (
-                        <View style={styles.w100}>
-                            {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
-                                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                    shouldAlwaysShowDropdownMenu
-                                    pressOnEnter
-                                    customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                                    size={CONST.BUTTON_SIZE.MEDIUM}
-                                    onPress={() => null}
-                                    isSplitButton={false}
-                                    options={bulkActionsButtonOptions}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                                    isDisabled={!selectedMembers.length}
-                                />
-                            ) : (
-                                <Button
-                                    success
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
-                                    text={translate('workspace.invite.member')}
-                                    icon={icons.Plus}
-                                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                                />
-                            )}
-                        </View>
-                    )}
-                </View>
                 <View style={[styles.w100, styles.flex1]}>
                     <ReportParticipantsTable
                         ref={tableRef}
+                        headerComponent={
+                            isGroupChat ? (
+                                <View style={[styles.pl5, styles.pr5, styles.w100]}>
+                                    {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+                                        <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                            shouldAlwaysShowDropdownMenu
+                                            pressOnEnter
+                                            customText={translate('workspace.common.selected', {count: selectedMembers.length})}
+                                            size={CONST.BUTTON_SIZE.MEDIUM}
+                                            onPress={() => null}
+                                            isSplitButton={false}
+                                            options={bulkActionsButtonOptions}
+                                            style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                                            isDisabled={!selectedMembers.length}
+                                        />
+                                    ) : (
+                                        <Button
+                                            success
+                                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
+                                            text={translate('workspace.invite.member')}
+                                            icon={icons.Plus}
+                                            innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                                            style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                                        />
+                                    )}
+                                </View>
+                            ) : undefined
+                        }
                         members={participants}
                         isGroupChat={isGroupChat}
                         selectionEnabled={isCurrentUserGroupChatAdmin}

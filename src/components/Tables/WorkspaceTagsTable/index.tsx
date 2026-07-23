@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
@@ -55,6 +55,7 @@ type WorkspaceTagsTableProps = {
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     emptyState: TableEmptyStateProps;
+    headerComponent?: React.ReactElement;
 };
 
 export default function WorkspaceTagsTable({
@@ -67,6 +68,7 @@ export default function WorkspaceTagsTable({
     hasDependentTags,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
+    headerComponent,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -199,6 +201,9 @@ export default function WorkspaceTagsTable({
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.tags.findTag')} />;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={tags}
@@ -212,11 +217,11 @@ export default function WorkspaceTagsTable({
             selectedKeys={selectedKeys}
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={translate('workspace.tags.findTag')} />
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );

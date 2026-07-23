@@ -33,6 +33,7 @@
  *
  * See README.md in this directory for full documentation.
  */
+import composeTableHeaderComponent from './composeTableHeaderComponent';
 import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableContext from './TableContext';
@@ -83,4 +84,5 @@ const Table = Object.assign(TableComponent, {
 });
 
 export default Table;
+export {composeTableHeaderComponent};
 export type * from './types';

@@ -417,16 +417,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {hasVisibleSubRates && subtitleContent}
-                        <WorkspacePerDiemTable
-                            perDiemData={perDiemRows}
-                            selectionEnabled={canWritePerDiem}
-                            selectedKeys={selectedSubRateKeys}
-                            onRowSelectionChange={setSelectedSubRateKeys}
-                            emptyState={emptyState}
-                        />
-                    </>
+                    <WorkspacePerDiemTable
+                        perDiemData={perDiemRows}
+                        selectionEnabled={canWritePerDiem}
+                        selectedKeys={selectedSubRateKeys}
+                        onRowSelectionChange={setSelectedSubRateKeys}
+                        headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
+                        emptyState={emptyState}
+                    />
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

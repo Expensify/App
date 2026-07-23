@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type TableEmptyStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia'> & {
     headerMedia?: IconAsset | undefined;
@@ -17,7 +18,7 @@ type TableEmptyStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia'>
 
 export default function TableEmptyState({children, ...emptyStateProps}: TableEmptyStateProps) {
     const styles = useThemeStyles();
-    const {originalDataLength} = useTableContext();
+    const {originalDataLength, tableListMetadata} = useTableContext();
     // We default the empty state to the default folders illustration, but passed props override it
     const genericIllustration = useGenericEmptyStateIllustration();
 
@@ -25,15 +26,23 @@ export default function TableEmptyState({children, ...emptyStateProps}: TableEmp
         return null;
     }
 
-    return (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+    const content = (
+        <>
             <GenericEmptyStateComponent
                 {...genericIllustration}
                 {...emptyStateProps}
             />
             {children}
-        </ScrollView>
+        </>
     );
+
+    // TableBody owns the page-header flex layout and centers this content in the remaining space,
+    // so the empty state does not need a nested ScrollView.
+    if (tableListMetadata.hasPageHeader) {
+        return <View style={styles.flexShrink0}>{content}</View>;
+    }
+
+    return <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>{content}</ScrollView>;
 }
 
 export type {TableEmptyStateProps};

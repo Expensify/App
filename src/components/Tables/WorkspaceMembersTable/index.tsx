@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -49,6 +49,7 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
@@ -71,6 +72,7 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     members,
     onRowSelectionChange,
+    headerComponent,
 }: WorkspaceMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -313,6 +315,7 @@ export default function WorkspaceMembersTable({
             />
         );
     };
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, <Table.FilterBar label={translate('workspace.people.findMember')} />);
 
     return (
         <Table
@@ -330,10 +333,10 @@ export default function WorkspaceMembersTable({
             isItemInSearch={isTableItemInSearch}
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={translate('workspace.people.findMember')} />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );

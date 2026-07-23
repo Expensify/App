@@ -1,17 +1,22 @@
+import Text from '@components/Text';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 
+import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
 import {useTableContext} from './TableContext';
+import TableHeader from './TableHeader';
 
 /**
  * Props for the TableBody component.
@@ -21,8 +26,13 @@ type TableBodyProps = ViewProps & {
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
+type TableBodyListProps = TableBodyProps & {
+    /** Message shown when the filtered table is empty. */
+    emptyMessage: string;
+};
+
 /**
- * Renders the table body using FlashList.
+ * Renders the table body using FlashList when data rows are present.
  *
  * This component consumes the Table context to access processed data and FlashList props.
  * It automatically handles empty states, including a special "no results found" message
@@ -49,62 +59,207 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
+function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const [isListLoaded, setIsListLoaded] = useState(false);
+    const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const {
         processedData: filteredAndSortedData,
-        activeSearchString,
         listProps,
         listRef,
+        listContainerRef,
+        trackScrollOffset,
         shouldUseNarrowTableLayout,
-        hasActiveFilters,
-        hasSearchString,
-        isEmptyResult,
-        originalDataLength,
-    } = useTableContext<DataType>();
-    const {contentContainerStyle: listContentContainerStyle, ListEmptyComponent, ListHeaderComponent, ...restListProps} = listProps ?? {};
+        headerComponent,
+        emptyStateElement,
+        noResultsStateElement,
+        tableListMetadata,
+    } = useTableContext<TableData>();
+    const {
+        ListEmptyComponent,
+        ListFooterComponent,
+        ListFooterComponentStyle,
+        ListHeaderComponent,
+        contentContainerStyle: listContentContainerStyle,
+        getItemType,
+        keyExtractor,
+        onLoad,
+        onScroll,
+        renderItem,
+        stickyHeaderIndices,
+        ...restListProps
+    } = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
-    const {minHeight: contentMinHeight} = StyleSheet.flatten(contentContainerStyle) ?? {};
+    const flattenedListContentContainerStyle = StyleSheet.flatten(listContentContainerStyle);
+    const flattenedContentContainerStyle = StyleSheet.flatten(contentContainerStyle);
+    const listContentContainerStyleWithoutMinHeight = flattenedListContentContainerStyle ? {...flattenedListContentContainerStyle, minHeight: undefined} : undefined;
+    const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
+    const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
-    // Determine the message based on what caused the empty result
-    const getEmptyMessage = () => {
-        if (hasSearchString) {
-            return translate('common.noResultsFoundMatching', activeSearchString);
+    const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
+    const hasRows = filteredAndSortedData.length > 0;
+    const [previousHasRows, setPreviousHasRows] = useState(hasRows);
+    if (previousHasRows !== hasRows) {
+        setPreviousHasRows(hasRows);
+        setIsListLoaded(false);
+        setHasActivatedStickyHeader(false);
+    }
+
+    const [previousShouldRenderStickyHeader, setPreviousShouldRenderStickyHeader] = useState(shouldRenderStickyHeader);
+    if (previousShouldRenderStickyHeader !== shouldRenderStickyHeader) {
+        setPreviousShouldRenderStickyHeader(shouldRenderStickyHeader);
+        setHasActivatedStickyHeader(false);
+    }
+
+    useEffect(() => {
+        if (!tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
+            return undefined;
         }
-        if (hasActiveFilters) {
-            return translate('common.noResultsFound');
+
+        const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
+        return () => cancelAnimationFrame(frame);
+    }, [hasActivatedStickyHeader, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
+
+    const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent | typeof ListFooterComponent) => {
+        if (!component) {
+            return null;
         }
-        return '';
+
+        if (React.isValidElement(component)) {
+            return component;
+        }
+
+        return React.createElement(component);
     };
 
-    const message = getEmptyMessage();
+    const pageHeaderElement = (
+        <View>
+            {renderListComponent(ListHeaderComponent)}
+            {headerComponent}
+        </View>
+    );
 
-    useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
+    const EmptyResultComponent = (
+        <View style={[styles.ph5, styles.pt3, styles.pb5]}>
+            <Text
+                style={[styles.textNormal, styles.colorMuted]}
+                aria-hidden
+            >
+                {emptyMessage}
+            </Text>
+        </View>
+    );
 
-    if ((isEmptyResult || !originalDataLength) && !ListEmptyComponent && !ListHeaderComponent) {
-        return null;
+    const emptyStateContent =
+        tableListMetadata.hasPageHeader && tableListMetadata.isEmptyResult ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
+    const footerElement = renderListComponent(ListFooterComponent);
+    // Footer flex growth is useful below short FlashList rows, but the empty layout already gives
+    // its centered content the remaining space. Disable it here so the two siblings do not split it.
+    const emptyStateFooterStyle = [ListFooterComponentStyle, styles.flexGrow0];
+    // A list minHeight includes its synthetic page-header row. In the empty layout that header is a
+    // separate sibling, so carrying the minHeight over would make the non-scrollable body overflow.
+    const emptyStateContainerStyle = [
+        styles.flex1,
+        tableListMetadata.hasPageHeader ? listContentContainerStyleWithoutMinHeight : listContentContainerStyle,
+        tableBodyContentContainerStyle,
+        tableListMetadata.hasPageHeader ? contentContainerStyleWithoutMinHeight : contentContainerStyle,
+        !tableListMetadata.hasPageHeader &&
+            shouldUseNarrowTableLayout &&
+            typeof contentMinHeight === 'number' &&
+            typeof tableBodyBottomPadding === 'number' && {
+                minHeight: contentMinHeight + tableBodyBottomPadding,
+            },
+    ];
+
+    if (!hasRows) {
+        return (
+            <View
+                ref={listContainerRef}
+                style={[styles.flex1, styles.mnh0, styles.flexColumn, style]}
+                onLayout={onLayout}
+                {...props}
+            >
+                {tableListMetadata.hasPageHeader && pageHeaderElement}
+                <View style={emptyStateContainerStyle}>
+                    <View style={[styles.flex1, styles.justifyContentCenter]}>{emptyStateContent}</View>
+                    {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
+                </View>
+            </View>
+        );
     }
+
+    const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
+    const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
+    const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
+
+    const handleLoad: NonNullable<typeof onLoad> = (info) => {
+        setIsListLoaded(true);
+        onLoad?.(info);
+    };
+
+    const renderListItem = (info: ListRenderItemInfo<TableData>) => {
+        const rowKind = getSyntheticRowKind(info.index, tableListMetadata);
+
+        switch (rowKind) {
+            case 'pageHeader':
+                return pageHeaderElement;
+            case 'tableHeader':
+                return <TableHeader isStickyListHeader />;
+            case 'emptyResult':
+                return noResultsStateElement ?? EmptyResultComponent;
+            case 'listEmpty':
+                return emptyStateElement ?? renderListComponent(ListEmptyComponent);
+            case 'data':
+            default:
+                return renderItem?.({...info, index: getDataIndex(info.index, tableListMetadata)}) ?? null;
+        }
+    };
+
+    const keyExtractorForList = (item: TableData, index: number) => {
+        const rowKind = getSyntheticRowKind(index, tableListMetadata);
+
+        if (rowKind !== 'data') {
+            return item.keyForList;
+        }
+
+        return keyExtractor?.(item, getDataIndex(index, tableListMetadata)) ?? item.keyForList;
+    };
+
+    const getItemTypeForList = (item: TableData, index: number, extraData: unknown) => {
+        const rowKind = getSyntheticRowKind(index, tableListMetadata);
+
+        if (rowKind !== 'data') {
+            return item.keyForList;
+        }
+
+        return getItemType?.(item, getDataIndex(index, tableListMetadata), extraData);
+    };
 
     return (
         <View
+            ref={listContainerRef}
             style={[styles.flex1, styles.mnh0, style]}
+            onLayout={onLayout}
             {...props}
         >
-            <FlashList<DataType>
+            <FlashList<TableData>
                 ref={listRef}
-                data={filteredAndSortedData}
+                data={listData}
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
+                ListEmptyComponent={ListEmptyComponent}
+                ListFooterComponent={ListFooterComponent}
+                ListFooterComponentStyle={ListFooterComponentStyle}
+                onLoad={handleLoad}
+                stickyHeaderIndices={canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
                 contentContainerStyle={[
-                    filteredAndSortedData.length === 0 && styles.flexGrow1,
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
@@ -113,11 +268,46 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                         typeof tableBodyBottomPadding === 'number' && {minHeight: contentMinHeight + tableBodyBottomPadding},
                 ]}
                 keyboardShouldPersistTaps="handled"
-                ListHeaderComponent={ListHeaderComponent}
-                ListEmptyComponent={ListEmptyComponent}
+                renderItem={renderListItem}
+                keyExtractor={keyExtractorForList}
+                getItemType={getItemTypeForList}
+                onScroll={(event) => {
+                    trackScrollOffset(event);
+                    onScroll?.(event);
+                }}
                 {...restListProps}
             />
         </View>
+    );
+}
+
+function TableBody(props: TableBodyProps) {
+    const {translate} = useLocalize();
+    const {activeSearchString, hasActiveFilters, hasSearchString, isEmptyResult, listProps, originalDataLength, tableListMetadata} = useTableContext<TableData>();
+    const {ListEmptyComponent} = listProps ?? {};
+    let emptyMessage = '';
+
+    if (hasSearchString) {
+        emptyMessage = translate('common.noResultsFoundMatching', activeSearchString);
+    } else if (hasActiveFilters) {
+        emptyMessage = translate('common.noResultsFound');
+    }
+
+    useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult, activeSearchString);
+
+    // Tables without a scrolling page header keep the default contract: an empty table renders
+    // nothing here so the declarative Table.EmptyState/Table.NoResultsState siblings take over.
+    // With a page header (or a ListEmptyComponent) the body must stay mounted even when empty,
+    // otherwise the header (tabs, buttons, search) or the empty view would disappear with the rows.
+    if (!tableListMetadata.hasPageHeader && (isEmptyResult || !originalDataLength) && !ListEmptyComponent) {
+        return null;
+    }
+
+    return (
+        <TableBodyList
+            emptyMessage={emptyMessage}
+            {...props}
+        />
     );
 }
 

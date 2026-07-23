@@ -10,7 +10,6 @@ import type {TableHandle} from '@components/Table';
 import type {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -111,7 +110,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const textInputRef = useRef<BaseTextInputRef>(null);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -187,6 +185,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             memberName: formatPhoneNumber(getPersonalDetailsByID(firstSelectedEmployeeAccountID, personalDetails)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
+
     /**
      * Get members for the current workspace
      */
@@ -272,12 +271,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            onModalHide: () => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef.current.focus();
-            },
         }).then(({action}) => {
             if (action !== ModalActions.CONFIRM) {
                 return;
@@ -745,6 +738,21 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    let tableHeaderComponent: React.ReactElement | undefined;
+    if (data.length > 0) {
+        tableHeaderComponent = shouldUseNarrowLayout ? (
+            <View style={[styles.pr5]}>{getHeaderContent()}</View>
+        ) : (
+            <>
+                {!!headerMessage && (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                    </View>
+                )}
+                {getHeaderContent()}
+            </>
+        );
+    }
 
     return (
         <WorkspacePageWithSections
@@ -780,8 +788,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
 
-                    {shouldUseNarrowLayout && data.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
-                    {!shouldUseNarrowLayout && (
+                    {!shouldUseNarrowLayout && data.length === 0 && (
                         <>
                             {!!headerMessage && (
                                 <View style={[styles.ph5, styles.pb5]}>
@@ -801,6 +808,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         onRowSelectionChange={setSelectedEmployees}
+                        headerComponent={tableHeaderComponent}
                     />
                 </>
             )}

@@ -232,14 +232,18 @@ function AgentsPage() {
             >
                 {!shouldDisplayButtonsInSeparateLine && headerButtons}
             </HeaderWithBackButton>
-            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
-            {hasAgents && (
-                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                    <RenderHTML html={translate('agentsPage.subtitle')} />
-                </View>
-            )}
             <AgentsTable
                 agents={agents}
+                headerComponent={
+                    <>
+                        {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
+                        {hasAgents && (
+                            <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+                                <RenderHTML html={translate('agentsPage.subtitle')} />
+                            </View>
+                        )}
+                    </>
+                }
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}

@@ -28,7 +28,9 @@ function TableSearchBar({label}: TableSearchBarProps) {
 
     const {
         activeSearchString,
+        searchBarMountCountRef,
         shouldUseNarrowTableLayout,
+        scrollInputIntoView,
         onSearchStringChange,
         tableMethods: {updateSearchString},
     } = useTableContext();
@@ -44,10 +46,21 @@ function TableSearchBar({label}: TableSearchBarProps) {
     }, [hasActiveSearchString]);
 
     useEffect(() => {
-        return () => updateSearchString('');
-        // We only want the cleanup to run on unmount to reset the search state
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        searchBarMountCountRef.current += 1;
+
+        return () => {
+            searchBarMountCountRef.current -= 1;
+            // The page header relocates between FlashList and the flex empty layout. Let its
+            // replacement mount before deciding that the search bar was actually removed.
+            queueMicrotask(() => {
+                if (searchBarMountCountRef.current !== 0) {
+                    return;
+                }
+
+                updateSearchString('');
+            });
+        };
+    }, [searchBarMountCountRef, updateSearchString]);
 
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);
@@ -81,7 +94,11 @@ function TableSearchBar({label}: TableSearchBarProps) {
             clearButtonStyle={shouldUseNarrowTableLayout ? undefined : styles.mr0}
             clearButtonIconSize={shouldUseNarrowTableLayout ? undefined : variables.iconSizeSmall}
             onBlur={() => setInputFocused(false)}
-            onFocus={() => setInputFocused(true)}
+            onFocus={() => {
+                setInputFocused(true);
+                // Keep the input visible above the keyboard when it is focused inside the scrolling table list.
+                scrollInputIntoView(inputRef.current);
+            }}
             onChangeText={handleSearchStringChange}
         />
     );

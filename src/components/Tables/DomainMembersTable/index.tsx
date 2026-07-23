@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
@@ -42,6 +42,7 @@ type DomainMembersTableProps = {
     shouldShowGroupColumn: boolean;
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
+    headerComponent?: React.ReactElement;
 };
 
 /**
@@ -79,6 +80,7 @@ export default function DomainMembersTable({
     shouldShowGroupColumn,
     filterConfig,
     isItemInFilter,
+    headerComponent,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -137,6 +139,9 @@ export default function DomainMembersTable({
         />
     );
 
+    const shouldShowTableControls = !isEmpty;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, shouldShowTableControls ? <Table.FilterBar label={translate('domain.members.findMember')} /> : undefined);
+
     return (
         <Table
             ref={tableRef}
@@ -153,6 +158,8 @@ export default function DomainMembersTable({
             onRowSelectionChange={onRowSelectionChange}
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
             {!isEmpty && (
                 <DomainMembersGroupFilterSync
@@ -161,9 +168,7 @@ export default function DomainMembersTable({
                 />
             )}
 
-            <Table.FilterBar label={translate('domain.members.findMember')} />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );
