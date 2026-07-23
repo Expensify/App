@@ -8561,7 +8561,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `heeft de agentregel "${title}" toegevoegd: ${prompt}` : `heeft een agentregel toegevoegd: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>
                 title ? `heeft de agentregel „${title}” bijgewerkt naar: ${prompt}` : `heeft een agentregel bijgewerkt naar: ${prompt}`,
-            deleted: ({title}: {title: string}) => (title ? `heeft de agentregel '${title}' verwijderd` : 'heeft een agentregel verwijderd'),
+            deleted: ({title}: {title: string}) => (title ? `heeft de agentregel ‘${title}’ verwijderd` : 'heeft een agentregel verwijderd'),
         },
         expensifyCardRule: {
             actionVerb: {block: 'geblokkeerd', allow: 'toegestaan'},

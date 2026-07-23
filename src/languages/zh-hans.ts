@@ -8284,9 +8284,9 @@ ${reportName}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 公司商务卡消费要求`,
         agentRule: {
-            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `已添加代理规则“${title}”：${prompt}` : `添加了一条代理规则：${prompt}`),
-            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `已将智能体规则“${title}”更新为：${prompt}` : `已将代理规则更新为：${prompt}`),
-            deleted: ({title}: {title: string}) => (title ? `已移除代理规则“${title}”` : '移除了代理规则'),
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `已添加代理规则“${title}”：${prompt}` : `已添加代理规则：${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `已将代理规则“${title}”更新为：${prompt}` : `已将代理规则更新为：${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `已移除代理规则“${title}”` : '已移除代理规则'),
         },
         expensifyCardRule: {
             actionVerb: {block: '已阻止', allow: '允许'},
