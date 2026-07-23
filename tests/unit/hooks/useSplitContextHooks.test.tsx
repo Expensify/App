@@ -231,7 +231,6 @@ describe('Split context hooks', () => {
             expect(result.current).toEqual(DEFAULT_STATE);
             expect(result.current.continuableError).toBeUndefined();
             expect(result.current.validateCode).toBeUndefined();
-            expect(result.current.softPromptApproved).toBe(false);
             expect(result.current.isFlowComplete).toBe(false);
         });
 
@@ -264,28 +263,6 @@ describe('Split context hooks', () => {
             });
 
             expect(result.current.state.validateCode).toBe('123456');
-        });
-
-        it('dispatch handles SET_SOFT_PROMPT_APPROVED', () => {
-            function wrapper({children}: PropsWithChildren) {
-                return <MultifactorAuthenticationStateProvider>{children}</MultifactorAuthenticationStateProvider>;
-            }
-
-            const {result} = renderHook(
-                () => ({
-                    state: useMultifactorAuthenticationState(),
-                    actions: useMultifactorAuthenticationActions(),
-                }),
-                {wrapper},
-            );
-
-            expect(result.current.state.softPromptApproved).toBe(false);
-
-            act(() => {
-                result.current.actions.dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
-            });
-
-            expect(result.current.state.softPromptApproved).toBe(true);
         });
 
         it('dispatch handles SET_FLOW_COMPLETE', () => {
@@ -323,11 +300,11 @@ describe('Split context hooks', () => {
 
             act(() => {
                 result.current.actions.dispatch({type: 'SET_VALIDATE_CODE', payload: '999'});
-                result.current.actions.dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
+                result.current.actions.dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: true});
             });
 
             expect(result.current.state.validateCode).toBe('999');
-            expect(result.current.state.softPromptApproved).toBe(true);
+            expect(result.current.state.isRegistrationComplete).toBe(true);
 
             act(() => {
                 result.current.actions.dispatch({type: 'RESET'});

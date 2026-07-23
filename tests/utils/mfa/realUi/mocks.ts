@@ -1,6 +1,6 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
-import type {ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
+import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -12,8 +12,8 @@ import {fromPromise} from 'xstate';
 
 type CapturedCallback = () => void;
 type NavigationTransitionOverrides = Pick<typeof Navigation, 'runAfterTransition' | 'runAfterUpcomingTransition'>;
-type PendingValidateDevice = {
-    resolve: (result: MFAResult) => void;
+type PendingCall<TOutput> = {
+    resolve: (output: TOutput) => void;
     reject: (error: Error) => void;
 };
 
@@ -50,41 +50,52 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
     areLocalCredentialsKnownToServer: () => Promise.resolve(false),
 };
 
-let pendingValidateDeviceCall: PendingValidateDevice | undefined;
+/**
+ * Builds a controlled deferred mock for one invoked machine actor. Each machine invocation parks a
+ * pending promise that the test settles later through `resolve` or `reject`, at the exact path step
+ * where the machine expects the actor outcome.
+ */
+function createControlledActor<TOutput, TInput>(actorID: string) {
+    let pendingCall: PendingCall<TOutput> | undefined;
 
-function takePendingValidateDeviceCall(): PendingValidateDevice {
-    const pendingCall = pendingValidateDeviceCall;
-    pendingValidateDeviceCall = undefined;
-    if (!pendingCall) {
-        throw new Error('No pending validateDevice call is available.');
+    function takePendingCall(): PendingCall<TOutput> {
+        const call = pendingCall;
+        pendingCall = undefined;
+        if (!call) {
+            throw new Error(`No pending ${actorID} call is available.`);
+        }
+        return call;
     }
-    return pendingCall;
+
+    return {
+        actor: fromPromise<TOutput, TInput>(
+            () =>
+                new Promise<TOutput>((resolve, reject) => {
+                    pendingCall = {resolve, reject};
+                }),
+        ),
+        resolve: (output: TOutput) => takePendingCall().resolve(output),
+        reject: () => takePendingCall().reject(new Error(`Mock ${actorID} actor rejected for this path`)),
+        reset: () => {
+            pendingCall = undefined;
+        },
+    };
 }
 
-function resolveValidateDevice(result: MFAResult) {
-    takePendingValidateDeviceCall().resolve(result);
-}
-
-function rejectValidateDevice() {
-    takePendingValidateDeviceCall().reject(new Error('Mock validateDevice actor rejected for this path'));
-}
+const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInput>('validateDevice');
+const readHasAcceptedSoftPromptControl = createControlledActor<boolean, ReadHasAcceptedSoftPromptInput>('readHasAcceptedSoftPrompt');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
-    pendingValidateDeviceCall = undefined;
+    validateDeviceControl.reset();
+    readHasAcceptedSoftPromptControl.reset();
 }
-
-const validateDeviceMock = fromPromise<MFAResult, ValidateDeviceInput>(
-    () =>
-        new Promise<MFAResult>((resolve, reject) => {
-            pendingValidateDeviceCall = {resolve, reject};
-        }),
-);
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
 function mfaActorsMock() {
     const actors = {
-        validateDevice: validateDeviceMock,
+        validateDevice: validateDeviceControl.actor,
+        readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -142,4 +153,4 @@ function navigationMock() {
     };
 }
 
-export {pendingModalClose, resolveValidateDevice, rejectValidateDevice, resetMfaUiMocks, mfaActorsMock, biometricsHookMock, renderHtmlMock, syncHistoryMock, navigationMock};
+export {pendingModalClose, validateDeviceControl, readHasAcceptedSoftPromptControl, resetMfaUiMocks, mfaActorsMock, biometricsHookMock, renderHtmlMock, syncHistoryMock, navigationMock};

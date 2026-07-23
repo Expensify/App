@@ -7,15 +7,24 @@ import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigat
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import type {SnapshotFrom} from 'xstate';
 
-import getWalkedPaths, {isAutoDrivenEvent, VALIDATE_DEVICE_DONE_EVENT_TYPE, VALIDATE_DEVICE_ERROR_EVENT_TYPE} from 'tests/utils/mfa/flowPaths';
+import Onyx from 'react-native-onyx';
+import {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
+import getWalkedPaths, {
+    isAutoDrivenEvent,
+    READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
+    READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE,
+    VALIDATE_DEVICE_DONE_EVENT_TYPE,
+    VALIDATE_DEVICE_ERROR_EVENT_TYPE,
+} from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
-import {pendingModalClose, rejectValidateDevice, resetMfaUiMocks, resolveValidateDevice} from 'tests/utils/mfa/realUi/mocks';
+import {pendingModalClose, readHasAcceptedSoftPromptControl, resetMfaUiMocks, validateDeviceControl} from 'tests/utils/mfa/realUi/mocks';
 import {translateLocal} from 'tests/utils/TestHelper';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
@@ -58,15 +67,17 @@ type MfaEventExecutorStep<Type extends MfaEventType> = {event: {type: Type}};
 type MfaEventExecutors = {
     [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
 };
-type ValidateDeviceActorEventExecutors = {
+type MfaActorEventExecutors = {
     [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step: {event: {type: typeof VALIDATE_DEVICE_DONE_EVENT_TYPE; output: MFAResult}}) => Promise<void>;
     [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => Promise<void>;
+    [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step: {event: {type: typeof READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE; output: boolean}}) => Promise<void>;
+    [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => Promise<void>;
 };
 
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 
 function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
-    return event.type === 'INIT' && 'scenarioName' in event && 'scenario' in event && 'payload' in event;
+    return event.type === 'INIT' && 'accountID' in event && 'scenarioName' in event && 'scenario' in event && 'payload' in event;
 }
 
 /**
@@ -77,7 +88,7 @@ function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
  */
 /* eslint-disable @typescript-eslint/naming-convention -- keys mirror the machine's event type union. */
 function createMfaEventExecutors(executeScenario: ExecuteScenario) {
-    const settleValidateDevice = async (settle: () => void) => {
+    const settleActor = async (settle: () => void) => {
         await act(async () => settle());
     };
 
@@ -109,9 +120,15 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             act(() => pendingModalClose.run());
             await waitForBatchedUpdatesWithAct();
         },
-        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleValidateDevice(() => resolveValidateDevice(step.event.output)),
-        [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleValidateDevice(rejectValidateDevice),
-    } satisfies MfaEventExecutors & ValidateDeviceActorEventExecutors;
+        SOFT_PROMPT_APPROVED: async () => {
+            fireEvent.press(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON));
+            await waitForBatchedUpdatesWithAct();
+        },
+        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleActor(() => validateDeviceControl.resolve(step.event.output)),
+        [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleActor(validateDeviceControl.reject),
+        [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(step.event.output)),
+        [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
+    } satisfies MfaEventExecutors & MfaActorEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -126,6 +143,25 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(state.context.accountID).toBeDefined();
+            expect(state.context.error).toBeUndefined();
+        },
+        // The biometrics copy is expected because the jest-expo haste config resolves the operations
+        // module to its native variant, which verifies with HSM-backed biometrics.
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
+            expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('multifactorAuthentication.verifyYourself.biometrics'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('multifactorAuthentication.enableQuickVerification.biometrics'))).toBeOnTheScreen();
+            expect(state.context.error).toBeUndefined();
+            expect(state.context.softPromptApproved).toBe(false);
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
@@ -180,9 +216,17 @@ const walkedPathTestCases = walkedPaths.map((path) => ({
 describe('the real MFA modal matches the machine at every step of every generated path', () => {
     // The navigation buffer is deliberately not reset here. The machine resets it when it enters
     // `closed`, which also runs when each test's fresh actor starts, so a reset here would hide a
-    // machine that stopped doing that cleanup.
-    beforeEach(() => {
+    // machine that stopped doing that cleanup. Onyx is cleared because approving the soft prompt
+    // persists the acceptance, and no path may depend on what an earlier path stored. The session
+    // account is then seeded because the MFA context rejects a flow start while the account is
+    // still the hydration placeholder.
+    beforeEach(async () => {
         resetMfaUiMocks();
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID});
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     afterEach(() => {

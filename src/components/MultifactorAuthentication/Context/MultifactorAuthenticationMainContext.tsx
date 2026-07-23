@@ -10,17 +10,13 @@ import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthenti
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInspectedMachine from '@hooks/useInspectedMachine';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 
 import getPlatform from '@libs/getPlatform';
-
-import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
-import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
 import React from 'react';
 
 import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
@@ -40,7 +36,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {isOffline} = useNetwork();
     const platform = getPlatform();
     const biometrics = useBiometrics();
-    const [hasEverAcceptedSoftPrompt = false] = useOnyx(getDeviceBiometricsOnyxKey(accountID), {selector: hasAcceptedSoftPromptSelector});
 
     const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
@@ -50,7 +45,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             hasLocalCredentials,
-            hasEverAcceptedSoftPrompt,
         };
     };
 
@@ -67,6 +61,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
+        // The flow captures the account at INIT and keeps it for per-account device state, so a
+        // session that has not hydrated yet must not start a flow keyed to the placeholder account.
+        if (accountID === CONST.DEFAULT_NUMBER_ID) {
+            addMFABreadcrumb('Flow rejected: account not initialized', {scenario: scenarioName}, 'warning');
+            return;
+        }
+
         const startCredentialsState = await captureCredentialsState();
 
         addMFABreadcrumb('Flow started', {
@@ -74,18 +75,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             hasPayload: params !== undefined && Object.keys(params).length > 0,
             platform,
             isOffline,
-            hasAcceptedSoftPrompt: startCredentialsState.hasEverAcceptedSoftPrompt,
             serverHasAnyCredentials: startCredentialsState.hasServerCredentials,
         });
         trackMFAFlowStart({scenario: scenarioName, isOffline, credentialsState: startCredentialsState});
 
         const scenario = getScenarioConfig(scenarioName);
 
-        send({type: 'INIT', scenarioName, scenario, payload: params && Object.keys(params).length > 0 ? params : undefined});
+        send({type: 'INIT', accountID, scenarioName, scenario, payload: params && Object.keys(params).length > 0 ? params : undefined});
     };
 
     const closeModal = () => send({type: 'CLOSE_MODAL'});
     const notifyModalClosed = () => send({type: 'MODAL_CLOSED'});
+    const approveSoftPrompt = () => send({type: 'SOFT_PROMPT_APPROVED'});
 
     // There is no cancel-confirmation dialog yet, so every cancel path closes the modal directly.
     const requestCancel = () => send({type: 'CLOSE_MODAL'});
@@ -100,6 +101,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         state,
         closeModal,
         notifyModalClosed,
+        approveSoftPrompt,
         requestCancel,
         hideCancelConfirm,
         confirmCancel,

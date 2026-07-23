@@ -2,45 +2,37 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LoadingIndicator from '@components/LoadingIndicator';
-import {useMultifactorAuthenticationActions, usePromptContent} from '@components/MultifactorAuthentication/Context';
+import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {markHasAcceptedSoftPrompt} from '@libs/actions/MultifactorAuthentication';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
 
-import variables from '@styles/variables';
-
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationModalNavigatorParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
 
+/**
+ * The machine routes here only when the account has not accepted the soft prompt on this device,
+ * so the copy is static and the confirm button is always available.
+ */
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {requestCancel, state} = useMultifactorAuthenticationInternal();
-    const {dispatch} = useMultifactorAuthenticationActions();
+    const {requestCancel, approveSoftPrompt, state} = useMultifactorAuthenticationInternal();
     const {isCancelConfirmVisible} = state;
-    const {accountID} = useCurrentUserPersonalDetails();
 
-    const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
+    const {illustration, title, subtitle} = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
     const interceptFocusTrapEscape = useMFACancelOnEscape();
-
-    const onConfirm = () => {
-        markHasAcceptedSoftPrompt(accountID);
-        dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
-    };
 
     return (
         <ScreenWrapper
@@ -66,18 +58,13 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     subtitle={subtitle}
                 />
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                    {shouldDisplayConfirmButton ? (
-                        <Button
-                            success
-                            large
-                            onPress={onConfirm}
-                            text={translate('common.buttonConfirm')}
-                        />
-                    ) : (
-                        <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
-                            <LoadingIndicator iconSize={28} />
-                        </View>
-                    )}
+                    <Button
+                        success
+                        large
+                        onPress={approveSoftPrompt}
+                        text={translate('common.buttonConfirm')}
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.PROMPT_CONFIRM_BUTTON}
+                    />
                 </FixedFooter>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

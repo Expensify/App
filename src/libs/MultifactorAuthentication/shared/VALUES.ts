@@ -221,6 +221,9 @@ const MFA_STATE = {
     CLOSING: 'closing',
     PREPARING: 'preparing',
     VALIDATING_DEVICE: 'validatingDevice',
+    CHECKING_SOFT_PROMPT_ACCEPTANCE: 'checkingSoftPromptAcceptance',
+    PROMPT: 'prompt',
+    AWAITING_SOFT_PROMPT: 'awaitingSoftPrompt',
     OUTCOME: 'outcome',
     RESOLVING_OUTCOME: 'resolvingOutcome',
     SUCCESS: 'success',
@@ -319,6 +322,7 @@ const SHARED_VALUES = {
         MODAL_BACKDROP: 'MultifactorAuthenticationModalBackdrop',
         OUTCOME_SCREEN: 'MultifactorAuthenticationOutcomeScreen',
         OUTCOME_CONFIRM_BUTTON: 'MultifactorAuthenticationOutcomeConfirmButton',
+        PROMPT_CONFIRM_BUTTON: 'MultifactorAuthenticationPromptConfirmButton',
     },
 } as const;
 

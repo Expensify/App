@@ -22,9 +22,6 @@ type MultifactorAuthenticationState = {
     /** Challenge received from backend for authorization (full object with allowCredentials, rpId, challenge) */
     authorizationChallenge: AuthenticationChallenge | undefined;
 
-    /** Whether user approved the soft prompt for biometric setup */
-    softPromptApproved: boolean;
-
     /** Whether registration step has been completed */
     isRegistrationComplete: boolean;
 
@@ -46,7 +43,6 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     validateCode: undefined,
     registrationChallenge: undefined,
     authorizationChallenge: undefined,
-    softPromptApproved: false,
     isRegistrationComplete: false,
     isAuthorizationComplete: false,
     isFlowComplete: false,

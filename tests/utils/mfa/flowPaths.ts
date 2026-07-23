@@ -63,6 +63,7 @@ const MFA_GRAPH_EVENT_FIXTURES = {
     INIT: [createInitEvent()],
     CLOSE_MODAL: [{type: 'CLOSE_MODAL'}],
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
+    SOFT_PROMPT_APPROVED: [{type: 'SOFT_PROMPT_APPROVED'}],
 } satisfies MfaEventFixtures;
 
 function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
@@ -93,25 +94,32 @@ const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
             error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, 'Graph-traversal device-check enrollment refusal'),
         },
     ],
+    readHasAcceptedSoftPrompt: [false, true],
 } satisfies MfaActorDoneOutputFixtures;
 
 function hasActorDoneOutputFixtures(actorId: string): actorId is keyof typeof MFA_ACTOR_DONE_OUTPUT_FIXTURES {
     return Object.hasOwn(MFA_ACTOR_DONE_OUTPUT_FIXTURES, actorId);
 }
 
-const INIT_STEP_EVENT_TYPE = 'xstate.init';
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
 const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
 const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevice`;
 const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice`;
+const READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
+const READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
 
 type PathSteps = ReadonlyArray<{event: {type: string}}>;
 
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
 
+/**
+ * Tells whether this event happens without a user gesture. Every event that XState synthesizes,
+ * such as actor completion or a delayed transition firing, carries the `xstate.` prefix, and none
+ * of them corresponds to a gesture, so the prefix check matches exactly the framework events.
+ */
 function isAutoDrivenEvent(eventType: string): boolean {
-    return eventType === INIT_STEP_EVENT_TYPE || eventType.startsWith(ACTOR_DONE_EVENT_PREFIX) || eventType.startsWith(ACTOR_ERROR_EVENT_PREFIX);
+    return eventType.startsWith('xstate.');
 }
 
 /**
@@ -193,4 +201,12 @@ function getWalkedPaths() {
 }
 
 export default getWalkedPaths;
-export {getDrivingJourneyPaths, getMfaShortestPaths, isAutoDrivenEvent, VALIDATE_DEVICE_DONE_EVENT_TYPE, VALIDATE_DEVICE_ERROR_EVENT_TYPE};
+export {
+    getDrivingJourneyPaths,
+    getMfaShortestPaths,
+    isAutoDrivenEvent,
+    READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
+    READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE,
+    VALIDATE_DEVICE_DONE_EVENT_TYPE,
+    VALIDATE_DEVICE_ERROR_EVENT_TYPE,
+};
