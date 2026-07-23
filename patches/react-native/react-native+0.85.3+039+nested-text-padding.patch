@@ -495,7 +495,7 @@ index 86dd1fc7386..2be0a2fd350 100644
        }
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index e3f19473554..55c4e22aeab 100644
+index e3f19473554..dca0ecb40c2 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 @@ -8,7 +8,9 @@
@@ -508,16 +508,17 @@ index e3f19473554..55c4e22aeab 100644
  import android.graphics.Typeface
  import android.os.Build
  import android.text.BoringLayout
-@@ -21,6 +23,8 @@ import android.text.StaticLayout
+@@ -21,6 +23,9 @@ import android.text.StaticLayout
  import android.text.TextDirectionHeuristics
  import android.text.TextPaint
  import android.text.TextUtils
 +import android.text.style.LeadingMarginSpan
++import android.text.style.LineHeightSpan
 +import android.text.style.ReplacementSpan
  import android.util.LayoutDirection
  import android.view.Gravity
  import android.view.View
-@@ -46,6 +50,7 @@ import com.facebook.react.views.text.internal.span.ReactForegroundColorSpan
+@@ -46,6 +51,7 @@ import com.facebook.react.views.text.internal.span.ReactForegroundColorSpan
  import com.facebook.react.views.text.internal.span.ReactFragmentIndexSpan
  import com.facebook.react.views.text.internal.span.ReactLinkSpan
  import com.facebook.react.views.text.internal.span.ReactOpacitySpan
@@ -525,7 +526,7 @@ index e3f19473554..55c4e22aeab 100644
  import com.facebook.react.views.text.internal.span.ReactStrikethroughSpan
  import com.facebook.react.views.text.internal.span.ReactTagSpan
  import com.facebook.react.views.text.internal.span.ReactTextPaintHolderSpan
-@@ -61,6 +66,35 @@ import kotlin.math.floor
+@@ -61,6 +67,65 @@ import kotlin.math.floor
  import kotlin.math.max
  import kotlin.math.min
  
@@ -536,14 +537,44 @@ index e3f19473554..55c4e22aeab 100644
 +
 +// A zero-content ReplacementSpan that reserves horizontal advance (real space, so neighbours move)
 +// around a bordered / inline-code span — Android has no per-character kern. Draws nothing.
-+private class ReactInlinePaddingSpan(private val spacerWidth: Int) : ReplacementSpan(), ReactSpan {
++private class ReactInlinePaddingSpan(private val spacerWidth: Int) :
++    ReplacementSpan(), ReactSpan, LineHeightSpan {
 +  override fun getSize(
 +      paint: Paint,
 +      text: CharSequence?,
 +      start: Int,
 +      end: Int,
 +      fm: Paint.FontMetricsInt?,
-+  ): Int = spacerWidth
++  ): Int {
++    if (fm != null) {
++      fm.ascent = 0
++      fm.descent = 0
++      fm.top = 0
++      fm.bottom = 0
++      fm.leading = 0
++    }
++    return spacerWidth
++  }
++
++  override fun chooseHeight(
++      text: CharSequence,
++      start: Int,
++      end: Int,
++      spanstartv: Int,
++      lineHeight: Int,
++      fm: Paint.FontMetricsInt,
++  ) {
++    for (i in start until end) {
++      val c = text[i]
++      if (c != '\u2060' && c != '\n') {
++        return
++      }
++    }
++    fm.ascent = 0
++    fm.descent = 0
++    fm.top = 0
++    fm.bottom = 0
++  }
 +
 +  override fun draw(
 +      canvas: Canvas,
@@ -561,7 +592,7 @@ index e3f19473554..55c4e22aeab 100644
  /** Class responsible of creating [Spanned] object for the JS representation of Text */
  internal object TextLayoutManager {
  
-@@ -226,11 +260,56 @@ internal object TextLayoutManager {
+@@ -226,11 +291,57 @@ internal object TextLayoutManager {
    ) {
      for (i in 0 until fragments.count) {
        val fragment = fragments.getMapBuffer(i)
@@ -603,6 +634,7 @@ index e3f19473554..55c4e22aeab 100644
 +        val spacerStart = sb.length
 +        sb.append("\u2060")
 +        ops.add(
++            0,
 +            SetSpanOperation(
 +                spacerStart,
 +                sb.length,
@@ -619,7 +651,7 @@ index e3f19473554..55c4e22aeab 100644
        sb.append(
            TextTransform.apply(fragment.getString(FR_KEY_STRING), textAttributes.textTransform)
        )
-@@ -299,6 +378,8 @@ internal object TextLayoutManager {
+@@ -299,6 +410,8 @@ internal object TextLayoutManager {
                  PixelUtil.toPixelFromDIP(textAttributes.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
                  PixelUtil.toPixelFromDIP(textAttributes.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
                  PixelUtil.toPixelFromDIP(textAttributes.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
@@ -628,7 +660,7 @@ index e3f19473554..55c4e22aeab 100644
              )
            } else if (textAttributes.isBackgroundColorSet) {
              textAttributes.backgroundColor?.let { ReactBackgroundColorSpan(it) }
-@@ -373,6 +454,18 @@ internal object TextLayoutManager {
+@@ -373,6 +486,19 @@ internal object TextLayoutManager {
            ops.add(SetSpanOperation(start, end, ReactTagSpan(reactTag)))
          }
        }
@@ -637,6 +669,7 @@ index e3f19473554..55c4e22aeab 100644
 +        val spacerStart = sb.length
 +        sb.append("\u2060")
 +        ops.add(
++            0,
 +            SetSpanOperation(
 +                spacerStart,
 +                sb.length,
@@ -647,7 +680,7 @@ index e3f19473554..55c4e22aeab 100644
      }
    }
  
-@@ -502,6 +595,8 @@ internal object TextLayoutManager {
+@@ -502,6 +628,8 @@ internal object TextLayoutManager {
                  PixelUtil.toPixelFromDIP(fragment.props.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
                  PixelUtil.toPixelFromDIP(fragment.props.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
                  PixelUtil.toPixelFromDIP(fragment.props.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
@@ -656,7 +689,7 @@ index e3f19473554..55c4e22aeab 100644
              )
            } else if (fragment.props.isBackgroundColorSet) {
              fragment.props.backgroundColor?.let { ReactBackgroundColorSpan(it) }
-@@ -509,6 +604,20 @@ internal object TextLayoutManager {
+@@ -509,6 +637,20 @@ internal object TextLayoutManager {
              null
            }
            spannable.setSpan(bgSpan, start, end, spanFlags)
@@ -678,7 +711,7 @@ index e3f19473554..55c4e22aeab 100644
  
          if (!fragment.props.opacity.isNaN()) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-index 80f8d389475..5c188dc9330 100644
+index 80f8d389475..2a55063d2aa 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 @@ -38,6 +38,9 @@ internal class ReactBackgroundDrawSpan(
@@ -691,6 +724,15 @@ index 80f8d389475..5c188dc9330 100644
  ) : DrawCommandSpan() {
  
    private val fillPaint =
+@@ -63,7 +66,7 @@ internal class ReactBackgroundDrawSpan(
+     if (start >= end) return
+ 
+     val startLine = layout.getLineForOffset(start)
+-    val endLine = layout.getLineForOffset(end)
++    val endLine = layout.getLineForOffset(end - 1)
+ 
+     for (line in startLine..endLine) {
+       val lineStart = layout.getLineStart(line)
 @@ -99,6 +102,16 @@ internal class ReactBackgroundDrawSpan(
        val isFirstLine = line == startLine
        val isLastLine = line == endLine
