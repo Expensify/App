@@ -21,40 +21,15 @@ type ReimbursementQueuedAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.R
 
 type WaitingReportPaymentData = {
     reportID: string;
-    chatReportID?: string;
-    chatIOUReportID?: string;
 };
 
-function getLatestReimbursementQueuedAction(
-    reportID: string,
-    chatReportID: string | undefined,
-    chatIOUReportID: string | undefined,
-    allReportActions: OnyxCollection<ReportActions>,
-): ReimbursementQueuedAction | undefined {
+function getLatestReimbursementQueuedAction(reportID: string, allReportActions: OnyxCollection<ReportActions>): ReimbursementQueuedAction | undefined {
     let latestAction: ReimbursementQueuedAction | undefined;
-    const seenActionIDs = new Set<string>();
-    const actionCollections = [
-        {actions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`], isChatActionCollection: false},
-        {actions: chatReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] : undefined, isChatActionCollection: true},
-    ];
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
 
-    for (const {actions, isChatActionCollection} of actionCollections) {
-        for (const action of Object.values(actions ?? {})) {
-            if (!isReimbursementQueuedAction(action)) {
-                continue;
-            }
-            const isCorrelatedByChildReportID = action.childReportID === reportID;
-            const isCorrelatedByCollection = !action.childReportID && (!isChatActionCollection || chatIOUReportID === reportID);
-            if (!isCorrelatedByChildReportID && !isCorrelatedByCollection) {
-                continue;
-            }
-            if (seenActionIDs.has(action.reportActionID)) {
-                continue;
-            }
-            seenActionIDs.add(action.reportActionID);
-            if (!latestAction || isNewerReportAction(action, latestAction)) {
-                latestAction = action;
-            }
+    for (const action of Object.values(reportActions ?? {})) {
+        if (isReimbursementQueuedAction(action) && (!latestAction || isNewerReportAction(action, latestAction))) {
+            latestAction = action;
         }
     }
 
@@ -68,8 +43,6 @@ function useTimeSensitiveAddBankAccount() {
             .filter((report): report is Report => !!report?.reportID && report.isWaitingOnBankAccount === true && report.ownerAccountID === accountID)
             .map((report) => ({
                 reportID: report.reportID,
-                chatReportID: report.chatReportID,
-                chatIOUReportID: report.chatReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`]?.iouReportID : undefined,
             }));
     const [waitingReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: waitingReportsSelector});
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -82,7 +55,7 @@ function useTimeSensitiveAddBankAccount() {
         }
 
         return (waitingReports ?? []).some((report) => {
-            const queuedAction = getLatestReimbursementQueuedAction(report.reportID, report.chatReportID, report.chatIOUReportID, allReportActions);
+            const queuedAction = getLatestReimbursementQueuedAction(report.reportID, allReportActions);
             return !!queuedAction && getMissingPaymentMethodForQueuedPayment(userWalletTierName, queuedAction, bankAccountList) === 'bankAccount';
         });
     };

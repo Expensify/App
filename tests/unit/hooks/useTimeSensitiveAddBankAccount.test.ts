@@ -13,21 +13,12 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const ACCOUNT_ID = 1;
 const OTHER_ACCOUNT_ID = 2;
 const REPORT_ID = '1';
-const CHAT_REPORT_ID = '2';
 
-function makeWaitingReport(reportID: string, ownerAccountID = ACCOUNT_ID, chatReportID = CHAT_REPORT_ID): Report {
+function makeWaitingReport(reportID: string, ownerAccountID = ACCOUNT_ID): Report {
     return {
         reportID,
         ownerAccountID,
-        chatReportID,
         isWaitingOnBankAccount: true,
-    } as Report;
-}
-
-function makeChatReport(iouReportID: string): Report {
-    return {
-        reportID: CHAT_REPORT_ID,
-        iouReportID,
     } as Report;
 }
 
@@ -35,13 +26,11 @@ function makeQueuedAction(
     reportActionID: string,
     paymentType: typeof CONST.IOU.PAYMENT_TYPE.VBBA | typeof CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
     created: string,
-    childReportID?: string,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
     return {
         reportActionID,
         actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
         created,
-        childReportID,
         originalMessage: {paymentType},
     };
 }
@@ -131,37 +120,11 @@ describe('useTimeSensitiveAddBankAccount', () => {
         expect(result.current.shouldShowAddBankAccount).toBe(false);
     });
 
-    it("uses a parent-chat action without a childReportID only when the chat's IOU report matches", async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, makeWaitingReport(REPORT_ID));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, makeChatReport('anotherReport'));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {
-            action1: makeQueuedAction('action1', CONST.IOU.PAYMENT_TYPE.VBBA, '2026-07-20 10:00:00.000'),
-        });
-        const {result} = renderHook(() => useTimeSensitiveAddBankAccount());
-
-        expect(result.current.shouldShowAddBankAccount).toBe(false);
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, makeChatReport(REPORT_ID));
-
-        await waitFor(() => expect(result.current.shouldShowAddBankAccount).toBe(true));
-    });
-
-    it('uses a parent-chat action whose childReportID matches the waiting report', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, makeWaitingReport(REPORT_ID));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {
-            action1: makeQueuedAction('action1', CONST.IOU.PAYMENT_TYPE.VBBA, '2026-07-20 10:00:00.000', REPORT_ID),
-        });
-
-        const {result} = renderHook(() => useTimeSensitiveAddBankAccount());
-
-        expect(result.current.shouldShowAddBankAccount).toBe(true);
-    });
-
     it('continues past a Wallet wait when another report is waiting for a bank account', async () => {
         const secondReportID = '3';
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
             [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: makeWaitingReport(REPORT_ID),
-            [`${ONYXKEYS.COLLECTION.REPORT}${secondReportID}`]: makeWaitingReport(secondReportID, ACCOUNT_ID, '4'),
+            [`${ONYXKEYS.COLLECTION.REPORT}${secondReportID}`]: makeWaitingReport(secondReportID),
         });
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: {
