@@ -826,8 +826,8 @@ const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
 // Specify how long between each check for missing PONG events
 const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
 
-// Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
-const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
+// Specify how long before a PING event is considered to be missing a PONG event, at which point the socket is presumed dead
+const SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 function pingPusher() {
     if (getIsOffline()) {
@@ -866,15 +866,20 @@ function checkForLatePongReplies() {
     Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
     const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
 
-    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then record it in the logs
-    if (timeSinceLastPongReceived > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so going offline`);
+    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, the socket is presumed dead
+    // (HTTP still works since the client is not offline) so reconnect Pusher
+    if (timeSinceLastPongReceived > SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so the socket is presumed dead and Pusher is being reconnected`);
 
-        // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
-        lastPingSentTimestamp = Date.now();
+        // Reset the pingpong state so that the fresh socket gets a clean grace period, and keep pongHasBeenMissed set
+        // until a PONG arrives so we only reconnect once per episode
+        const now = Date.now();
+        lastPingSentTimestamp = now;
+        lastPongReceivedTimestamp = now;
         pongHasBeenMissed = true;
+        Pusher.reconnect();
     } else {
-        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
+        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so the socket is presumed alive`);
     }
 }
 
