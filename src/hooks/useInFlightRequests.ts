@@ -1,7 +1,9 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {AnyRequest} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -118,6 +120,9 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
 // accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale read.
 let hasObservedOpenAppFlushPending = false;
 
+// Shared across hook instances so consumers mounting during a deferred flush observe the same lifecycle.
+const reportIDsWithPendingOpenReportFlush = new Set<string>();
+
 /** Whether an OpenApp request or its deferred Onyx updates are pending. */
 function useIsAppLoadPending(): boolean {
     const hasPendingOpenApp = useIsPendingInternal('appLoad');
@@ -136,13 +141,35 @@ function useIsAppLoadPending(): boolean {
 }
 
 /**
- * Whether an OpenReport request for the given report is currently in the queue.
+ * Whether an OpenReport request or its deferred Onyx updates are pending for the given report.
  *
- * Do not call this inside list-item render paths (e.g. per row in a list): every call opens two Onyx
+ * Accepts `undefined` so callers with an optional reportID don't have to default the ID to a sentinel
+ * value: an undefined scope key never matches a real OpenReport request, so it reads as "not loading".
+ *
+ * Do not call this inside list-item render paths (e.g. per row in a list): every call opens three Onyx
  * subscriptions. Lift it to the screen level and pass the result down instead.
  */
-function useIsReportLoadPending(reportID: string): boolean {
-    return useIsPendingInternal('reportLoad', reportID);
+function useIsReportLoadPending(reportID: string | undefined): boolean {
+    const hasPendingRequest = useIsPendingInternal('reportLoad', reportID);
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+
+    // The queue arms this lifecycle, so a loading flag stranded by a previous process cannot gate by itself.
+    // Once armed, the terminal flag keeps consumers gated until deferred response updates are flushed.
+    useEffect(() => {
+        if (!reportID) {
+            return;
+        }
+
+        if (hasPendingRequest) {
+            reportIDsWithPendingOpenReportFlush.add(reportID);
+        } else if (isLoadingInitialReportActions !== true) {
+            reportIDsWithPendingOpenReportFlush.delete(reportID);
+        }
+    }, [hasPendingRequest, isLoadingInitialReportActions, reportID]);
+
+    return hasPendingRequest || (!!reportID && reportIDsWithPendingOpenReportFlush.has(reportID) && isLoadingInitialReportActions === true);
 }
 
 /** Whether any request relevant to the top-of-screen loading bar is currently in the queue. */

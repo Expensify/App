@@ -6,7 +6,7 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
-import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -155,7 +155,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);
