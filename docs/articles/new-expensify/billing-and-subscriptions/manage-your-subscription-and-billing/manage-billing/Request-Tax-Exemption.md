@@ -31,6 +31,8 @@ Your documentation should include your VAT number (or RUT if your organization i
 3. Click **Tax exempt status**.
 4. A chat with Concierge will open automatically. Tell Concierge that your organization is tax-exempt and attach a PDF of your tax-exempt documentation.
 
+![The Subscription settings page with the "Tax exempt status" option highlighted]({{site.url}}/assets/images/ExpensiHelp-Request-Tax-Exemption.png){:width="100%"}
+
 ## What happens after you request tax exemption
 
 Expensify reviews your documentation and contacts you if additional information is required. Once your request has been processed, Concierge will send you a message to confirm your account has tax exempt status.
