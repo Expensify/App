@@ -16,7 +16,7 @@ import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-type UserLetterAvatarProps = AvatarPrimitivesCommonProps & {
+type AvatarLetterProps = AvatarPrimitivesCommonProps & {
     /** Initials parsed from the generated letter-avatar URL */
     initials: string;
 
@@ -33,7 +33,7 @@ type UserLetterAvatarProps = AvatarPrimitivesCommonProps & {
     containerAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
-function AvatarLetter({initials, urlColors, accountID, size, type, containerStyles, containerAdditionalStyles: initialsAdditionalStyles}: UserLetterAvatarProps) {
+function AvatarLetter({initials, urlColors, accountID, size, type, containerStyles, containerAdditionalStyles: initialsAdditionalStyles}: AvatarLetterProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const avatarSize = StyleUtils.getAvatarSize(size);
