@@ -1,7 +1,6 @@
 import type {ComposerRef} from '@components/Composer/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
@@ -17,6 +16,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFuncLeading} from 'lodash';
 import type React from 'react';
+
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 type UseEditMessageProps = {
     /** The report ID */
@@ -41,8 +42,6 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
     const {email} = useCurrentUserPersonalDetails();
     const actionOwnerReportID = originalReportID ?? reportID;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
@@ -87,6 +86,8 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
         submitEdit();
 
+        const originalReport = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}` as const);
+        const personalDetails = OnyxUtils.get(ONYXKEYS.PERSONAL_DETAILS_LIST);
         editReportComment(originalReport, reportAction, trimmedNewDraft, isOriginalReportArchived, email ?? '', personalDetails, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }

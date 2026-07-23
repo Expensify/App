@@ -76,13 +76,13 @@ import type {SuggestionsRef} from './ReportActionCompose';
 
 import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
 import getCursorPosition from './getCursorPosition';
+import getLastEditableAction from './getLastEditableAction';
 import getScrollPosition from './getScrollPosition';
 import getUpdatedSyncSelection from './getUpdatedSyncSelection';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
 import useEditComposerToggle from './useEditComposerToggle';
-import useLastEditableAction from './useLastEditableAction';
 
 type SyncSelection = {
     position: number;
@@ -250,7 +250,6 @@ function ComposerWithSuggestions({
     // Fullstory
     forwardedFSClass,
 }: ComposerWithSuggestionsProps) {
-    const lastReportAction = useLastEditableAction(reportID);
     const route = useRoute();
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
@@ -631,6 +630,7 @@ function ComposerWithSuggestions({
             const isEmptyComment = !valueRef.current || !!valueRef.current.match(CONST.REGEX.EMPTY_COMMENT);
             if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && selection.start <= 0 && isEmptyComment && !includeChronos) {
                 webEvent.preventDefault();
+                const lastReportAction = getLastEditableAction(reportID, route.name);
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
                     saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
@@ -680,7 +680,7 @@ function ComposerWithSuggestions({
             selection.end,
             includeChronos,
             onEnterKeyPress,
-            lastReportAction,
+            route.name,
             reportID,
             updateComment,
             setCurrentEditMessageSelection,

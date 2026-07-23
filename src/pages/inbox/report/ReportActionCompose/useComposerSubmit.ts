@@ -1,8 +1,6 @@
-import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
-import useOnyx from '@hooks/useOnyx';
 
 import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
@@ -10,7 +8,7 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getAllPersonalDetailLogins, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {isConciergeChatReport} from '@libs/ReportUtils';
+import {getAncestors, isConciergeChatReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 import {generateAccountID} from '@libs/UserUtils';
@@ -27,9 +25,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
-import useComposerReportData from './useComposerReportData';
+import getComposerReportData from './getComposerReportData';
 import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
@@ -37,9 +36,6 @@ function useComposerSubmit(reportID: string) {
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
     const route = useRoute();
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
     const {composerRef, attachmentFileRef, textRef} = useComposerMeta();
@@ -48,12 +44,6 @@ function useComposerSubmit(reportID: string) {
     const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useActionListContext();
-
-    const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
-    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
-
-    const reportAncestors = useAncestors(report);
-    const targetReportAncestors = useAncestors(targetReport);
 
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
@@ -72,6 +62,14 @@ function useComposerSubmit(reportID: string) {
         if (!draftMessageTrimmed && !attachmentFileRef.current) {
             return;
         }
+
+        const {report, effectiveTransactionThreadReportID} = getComposerReportData(reportID);
+        const targetReport = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}` as const);
+        const conciergeReportID = OnyxUtils.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const reportCollection = OnyxUtils.getCachedCollection(ONYXKEYS.COLLECTION.REPORT);
+        const reportDraftCollection = OnyxUtils.getCachedCollection(ONYXKEYS.COLLECTION.REPORT_DRAFT);
+        const reportActionsCollection = OnyxUtils.getCachedCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+        const targetReportAncestors = getAncestors(targetReport, reportCollection, reportDraftCollection, reportActionsCollection);
 
         // A new user message supersedes any Concierge processing indicator from a prior turn (e.g. a persisted
         // "...is working on your chat" while a human is handling it). Clear it optimistically so it disappears
@@ -145,8 +143,8 @@ function useComposerSubmit(reportID: string) {
                     assigneeChatReport,
                     policyID: report?.policyID,
                     isCreatedUsingMarkdown: true,
-                    quickAction,
-                    ancestors: reportAncestors,
+                    quickAction: OnyxUtils.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE),
+                    ancestors: getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection),
                     taskCreatorAndAssigneeDetails,
                 });
                 return;
@@ -187,7 +185,7 @@ function useComposerSubmit(reportID: string) {
             return;
         }
 
-        if (isComposerFullSize) {
+        if (OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}` as const)) {
             setIsComposerFullSize(reportID, false);
         }
 
