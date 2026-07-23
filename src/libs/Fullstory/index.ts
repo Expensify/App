@@ -7,7 +7,6 @@ import type {Session} from '@src/types/onyx';
 
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {FSPageLike, Fullstory} from './types';
 
