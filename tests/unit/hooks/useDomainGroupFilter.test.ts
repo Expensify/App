@@ -94,10 +94,10 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.shouldShowGroupColumn).toBe(true);
         });
 
-        it('should include all security groups when multiple groups exist', async () => {
+        it('should sort security groups alphabetically by name in the filter options', async () => {
             const domain = buildDomain({
-                '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
+                '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
 
@@ -107,6 +107,7 @@ describe('useDomainGroupFilter', () => {
                 expect(result.current.filterConfig?.group.options).toHaveLength(2);
             });
 
+            expect(result.current.filterConfig?.group.filterType).toBe(CONST.TABLES.FILTER_TYPE.MULTI_SELECT);
             expect(result.current.filterConfig?.group.options.at(0)).toEqual({
                 label: 'Engineering',
                 value: '1',
@@ -124,7 +125,7 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.isItemInFilter).toBeUndefined();
         });
 
-        it('should allow all members through when the group filter is cleared', async () => {
+        it('should allow all members through when no groups are selected', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
@@ -141,7 +142,7 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.isItemInFilter?.(buildMemberRow(999), [])).toBe(true);
         });
 
-        it('should filter members to the selected group', async () => {
+        it('should filter members to a single selected group', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
@@ -159,7 +160,25 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.isItemInFilter?.(buildMemberRow(300), ['1'])).toBe(false);
         });
 
-        it('should allow all members when the selected group is not found', async () => {
+        it('should show the union of members when multiple groups are selected', async () => {
+            const domain = buildDomain({
+                '1': {members: {'100': 'read'}, name: 'Engineering'},
+                '2': {members: {'200': 'read'}, name: 'Marketing'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+
+            await waitFor(() => {
+                expect(result.current.isItemInFilter).toBeDefined();
+            });
+
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), ['1', '2'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(200), ['1', '2'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(999), ['1', '2'])).toBe(false);
+        });
+
+        it('should exclude members when the selected group is not found', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read'}, name: 'Group 1'},
                 '2': {members: {'200': 'read'}, name: 'Group 2'},
@@ -172,8 +191,8 @@ describe('useDomainGroupFilter', () => {
                 expect(result.current.isItemInFilter).toBeDefined();
             });
 
-            expect(result.current.isItemInFilter?.(buildMemberRow(100), ['doesNotExist'])).toBe(true);
-            expect(result.current.isItemInFilter?.(buildMemberRow(999), ['doesNotExist'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), ['doesNotExist'])).toBe(false);
+            expect(result.current.isItemInFilter?.(buildMemberRow(999), ['doesNotExist'])).toBe(false);
         });
     });
 
