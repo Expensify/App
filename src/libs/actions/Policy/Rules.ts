@@ -479,7 +479,7 @@ function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: strin
     API.write(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, parameters, onyxData);
 }
 
-function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string) {
+function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string, previousTitle?: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for updatePolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
@@ -497,6 +497,9 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
                         agentRules: {
                             [agentRuleID]: {
                                 prompt,
+                                // Clear the stale title so the list falls back to the new prompt until the server
+                                // returns the regenerated title.
+                                title: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                         },
@@ -529,6 +532,7 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
                         agentRules: {
                             [agentRuleID]: {
                                 prompt: previousPrompt,
+                                title: previousTitle ?? null,
                                 pendingAction: null,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },

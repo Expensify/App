@@ -76,7 +76,7 @@ function EditAgentRulePage({
         const newPrompt = values[INPUT_IDS.PROMPT];
         const previousPrompt = agentRule?.prompt ?? '';
         if (newPrompt !== previousPrompt) {
-            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title);
         }
         Navigation.goBack();
     };
