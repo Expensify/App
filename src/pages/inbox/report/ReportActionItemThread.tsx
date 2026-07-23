@@ -1,11 +1,8 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToAndOpenChildReport} from '@libs/actions/Report';
@@ -21,6 +18,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 type ReportActionItemThreadProps = {
     /** The current report */
@@ -44,13 +42,7 @@ type ReportActionItemThreadProps = {
 
 function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInteraction, isEditingInline, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, datetimeToCalendarTime} = useLocalize();
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const personalDetails = usePersonalDetails();
 
     const numberOfReplies = reportAction.childVisibleActionCount ?? 0;
     const accountIDs =
@@ -66,14 +58,22 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
     const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
+    const handleOnPress = () => {
+        const currentUserAccountID = OnyxUtils.get(ONYXKEYS.SESSION)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const childReport = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}` as const);
+        const introSelected = OnyxUtils.get(ONYXKEYS.NVP_INTRO_SELECTED);
+        const isSelfTourViewed = hasSeenTourSelector(OnyxUtils.get(ONYXKEYS.NVP_ONBOARDING));
+        const betas = OnyxUtils.get(ONYXKEYS.BETAS);
+        const personalDetails = OnyxUtils.get(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
+        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
+    };
+
     return (
         <View style={wrapperStyle}>
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
-                    onPress={() => {
-                        const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
-                        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
-                    }}
+                    onPress={handleOnPress}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={`${numberOfReplies} ${replyText}`}
                     onSecondaryInteraction={onSecondaryInteraction}
