@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
@@ -210,8 +210,8 @@ function IOURequestStepTag({
                     {isPolicyAdmin(policy) && (
                         <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                             <Button
-                                large
-                                success
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                variant="success"
                                 style={[styles.w100]}
                                 onPress={() =>
                                     Navigation.navigate(
@@ -221,10 +221,11 @@ function IOURequestStepTag({
                                         ),
                                     )
                                 }
-                                text={translate('workspace.tags.editTags')}
-                                pressOnEnter
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_TAGS_BUTTON}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text>{translate('workspace.tags.editTags')}</Button.Text>
+                            </Button>
                         </FixedFooter>
                     )}
                 </View>

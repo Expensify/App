@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
@@ -114,16 +114,16 @@ function DistanceMapTabContent({
                         />
                     )}
                     <Button
-                        success
-                        allowBubble
-                        pressOnEnter
-                        large
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                         onPress={submitWaypoints}
-                        text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MAP_NEXT_BUTTON}
-                    />
+                    >
+                        <Button.KeyboardShortcut allowBubble />
+                        <Button.Text>{buttonText}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </View>

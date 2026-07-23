@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -61,17 +61,16 @@ function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manu
             accessibilityLabel={`${translate('common.distance')} (${translate(`common.${distanceUnit}`)})`}
             footer={
                 <Button
-                    success
-                    allowBubble={false}
-                    pressOnEnter
-                    medium={isExtraSmallScreenHeight}
-                    large={!isExtraSmallScreenHeight}
+                    variant="success"
+                    size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, canUseTouchScreen() ? styles.mt5 : styles.mt0]}
                     onPress={onSubmit}
-                    text={translate('common.save')}
                     testID="next-button"
                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MANUAL_NEXT_BUTTON}
-                />
+                >
+                    <Button.KeyboardShortcut allowBubble={false} />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             }
         />
     );

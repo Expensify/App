@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -21,6 +21,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -106,13 +107,14 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
                 </ScrollView>
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        text={translate('common.continue')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleContinue}
                         style={styles.mt5}
                         isDisabled={!mergeTransaction?.receipt}
-                    />
+                    >
+                        <Button.Text>{translate('common.continue')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </FullPageNotFoundView>
         </ScreenWrapper>
