@@ -80,9 +80,9 @@ function NewAgentPage({route}: NewAgentPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
     const {data: templates, isLoading} = useSuggestedAgents();
 
-    const hasNoTemplates = templates.length === 0;
-    const shouldShowLoadingIndicator = isLoading && hasNoTemplates && !isOffline;
-    const shouldShowEmptyState = hasNoTemplates && (!isLoading || isOffline);
+    const hasTemplates = templates.length > 0;
+    const shouldShowLoadingIndicator = isLoading && !hasTemplates && !isOffline;
+    const shouldShowEmptyState = !hasTemplates && (!isLoading || isOffline);
 
     useEffect(() => {
         if (isOffline) {
