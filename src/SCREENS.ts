@@ -311,6 +311,7 @@ const SCREENS = {
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
         EXPENSE_REPORT: 'ExpenseReport',
+        AGENT_REPORT: 'AgentReport',
         MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
         CHRONOS_SCHEDULE_OOO: 'Chronos_Schedule_OOO',
         AVATAR_CROP: 'AvatarCrop',

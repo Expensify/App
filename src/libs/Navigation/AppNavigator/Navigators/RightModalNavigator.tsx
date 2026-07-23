@@ -460,6 +460,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 }}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.AGENT_REPORT}
+                                getComponent={loadRHPReportScreen}
+                                options={(props) => {
+                                    const options = modalStackScreenOptions(props);
+                                    return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                }}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
                                 getComponent={loadSearchMoneyRequestReportPage}
                                 options={(props) => {
