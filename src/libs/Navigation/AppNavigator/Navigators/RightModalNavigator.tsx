@@ -119,9 +119,16 @@ const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('..
 const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
 
 type RightModalDialogFrameProps = {
+    /** Whether the RHP container should carry dialog semantics (role=dialog + aria-modal) — true on wide layout. */
     hasDialogSemantics: boolean;
+
+    /** Animated style applied to the RHP container. */
     style: React.ComponentProps<typeof Animated.View>['style'];
+
+    /** Callback ref for the container node so the provider can observe node identity changes. */
     onContainerRef: (node: View | null) => void;
+
+    /** RHP stack navigator rendered inside the dialog frame. */
     children: React.ReactNode;
 };
 
