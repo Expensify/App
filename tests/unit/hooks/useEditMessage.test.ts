@@ -102,7 +102,6 @@ describe('useEditMessage', () => {
 
         const props: HookProps = {
             reportID: report.reportID,
-            originalReportID: report.reportID,
             reportAction,
             debouncedCommentMaxLengthValidation: makeDebouncedValidator({flushResult: true}),
             composerRef: {current: {blur: jest.fn()} as never},

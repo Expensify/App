@@ -1,10 +1,10 @@
 import type {ComposerRef} from '@components/Composer/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
 import {clearAllReportActionDrafts, editReportComment} from '@libs/actions/Report';
+import {isArchivedReport} from '@libs/ReportUtils';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
@@ -19,11 +19,11 @@ import type React from 'react';
 
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
+import getOriginalReportIDSync from './getOriginalReportIDSync';
+
 type UseEditMessageProps = {
     /** The report ID */
     reportID: string | undefined;
-    /** The original report ID */
-    originalReportID: string | undefined;
     /** The report action */
     reportAction: OnyxTypes.ReportAction | null | undefined;
     /** Whether to scroll to the last message */
@@ -37,12 +37,10 @@ type UseEditMessageProps = {
 /**
  * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
  */
-function useEditMessage({reportID, originalReportID, reportAction, shouldScrollToLastMessage = false, debouncedCommentMaxLengthValidation, composerRef}: UseEditMessageProps) {
+function useEditMessage({reportID, reportAction, shouldScrollToLastMessage = false, debouncedCommentMaxLengthValidation, composerRef}: UseEditMessageProps) {
     const reportScrollManager = useReportScrollManager();
 
     const {email} = useCurrentUserPersonalDetails();
-    const actionOwnerReportID = originalReportID ?? reportID;
-    const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -66,6 +64,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
      * the new content.
      */
     function publishDraft(draftMessage: string) {
+        console.log('publishDraft', draftMessage);
         if (!reportAction) {
             return;
         }
@@ -77,6 +76,8 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
         const trimmedNewDraft = draftMessage.trim();
 
+        const actionOwnerReportID = getOriginalReportIDSync(reportID, reportAction) ?? reportID;
+
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             composerRef.current?.blur();
@@ -87,6 +88,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
         submitEdit();
 
         const originalReport = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}` as const);
+        const isOriginalReportArchived = !!isArchivedReport(OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${actionOwnerReportID}` as const));
         const personalDetails = OnyxUtils.get(ONYXKEYS.PERSONAL_DETAILS_LIST);
         editReportComment(originalReport, reportAction, trimmedNewDraft, isOriginalReportArchived, email ?? '', personalDetails, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();

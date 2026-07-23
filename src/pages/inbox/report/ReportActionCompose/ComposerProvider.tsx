@@ -1,5 +1,4 @@
 import useOnyx from '@hooks/useOnyx';
-import useOriginalReportID from '@hooks/useOriginalReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -98,11 +97,8 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         debouncedCommentMaxLengthValidation.flush();
     }
 
-    const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
-
     const {publishDraft, deleteDraft} = useEditMessage({
         reportID: editingReportID ?? undefined,
-        originalReportID,
         reportAction: editingReportAction,
         shouldScrollToLastMessage: false,
         debouncedCommentMaxLengthValidation,

@@ -257,7 +257,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     const {publishDraft, deleteDraft} = useEditMessage({
         reportID,
-        originalReportID,
         reportAction: action,
         shouldScrollToLastMessage: index === 0,
         debouncedCommentMaxLengthValidation,
