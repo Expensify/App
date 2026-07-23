@@ -1,6 +1,6 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -246,7 +246,15 @@ function IOURequestStartPage({
         // receipt) until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that
         // stale scan draft does throwaway work (scan loader, reading the receipt blob and a heavy first render) that
         // is immediately discarded once the reset lands. Wait for the reset so the manual confirmation mounts once.
-        manualTabContent = <FullScreenLoadingIndicator reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}} />;
+        // The header and tab bar remain visible above this loader, so per UI-1 use ActivityIndicator (users can still go back) instead of FullScreenLoadingIndicator.
+        manualTabContent = (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
+                />
+            </View>
+        );
     } else {
         manualTabContent = (
             <IOURequestStepConfirmation
