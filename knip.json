@@ -6,7 +6,7 @@
                 "wdyr.ts",
                 "src/App.tsx",
                 "src/HybridAppHandler.tsx",
-                "scripts/**/*.{js,ts}",
+                "scripts/**/*.{js,mjs,ts}",
                 "web/proxy.ts",
                 "config/rsbuild/**/*.{js,mjs,cjs,ts}",
                 ".github/scripts/**/*.ts",
@@ -52,6 +52,7 @@
     },
     "ignoreDependencies": [
         "@expensify/react-native-hybrid-app",
+        "focus-trap",
         "group-ib-fp",
         "react-native-image-size",
         "react-native-picker-select",

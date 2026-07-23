@@ -186,6 +186,7 @@ const WRITE_COMMANDS = {
     CREATE_POLICY_TAG: 'CreatePolicyTag',
     RENAME_POLICY_TAG: 'RenamePolicyTag',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
+    SET_POLICY_SHOW_CATEGORY_GL_CODES: 'SetPolicyShowCategoryGLCodes',
     UPDATE_POLICY_CATEGORY_PAYROLL_CODE: 'UpdatePolicyCategoryPayrollCode',
     UPDATE_POLICY_CATEGORY_GL_CODE: 'UpdatePolicyCategoryGLCode',
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
@@ -511,6 +512,8 @@ const WRITE_COMMANDS = {
     UPDATE_RILLET_DEFAULT_VENDOR: 'UpdateRilletDefaultVendor',
     UPDATE_RILLET_EXPORT_DATE: 'UpdateRilletExportDate',
     UPDATE_RILLET_EXPORTER: 'UpdateRilletExporter',
+    UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS: 'UpdateRilletExportToMultipleAccounts',
+    UPDATE_RILLET_CARD_PROGRAM_ACCOUNT: 'UpdateRilletCardProgramAccount',
     UPDATE_RILLET_AUTO_SYNC: 'UpdateRilletAutoSync',
     UPDATE_RILLET_ACCOUNTING_METHOD: 'UpdateRilletAccountingMethod',
     UPDATE_RILLET_SYNC_REIMBURSED_REPORTS: 'UpdateRilletSyncReimbursedReports',
@@ -602,6 +605,7 @@ const WRITE_COMMANDS = {
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     DELETE_APP_REPORT: 'DeleteAppReport',
+    MERGE_REPORTS: 'MergeReports',
     SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION: 'SaveCorpayOnboardingDirectorInformation',
     ASK_FOR_CORPAY_SIGNER_INFORMATION: 'AskForCorpaySignerInformation',
     SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION: 'SendReminderForCorpaySignerInformation',
@@ -653,6 +657,7 @@ const WRITE_COMMANDS = {
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
     UPGRADE_SUBMIT: 'UpgradeSubmit',
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
+    JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -822,6 +827,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EXPORT_REPORTS_TO_PDF]: Parameters.ExportReportsToPDFParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
+    [WRITE_COMMANDS.SET_POLICY_SHOW_CATEGORY_GL_CODES]: Parameters.SetPolicyShowCategoryGLCodesParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
     [WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE]: Parameters.UpdatePolicyCategoryPayrollCodeParams;
     [WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE]: Parameters.UpdatePolicyCategoryGLCodeParams;
@@ -1082,6 +1088,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
     [WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS]: Parameters.UploadUserKYBDocsParams;
+    [WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK]: Parameters.JoinReportViaSecureLinkParams;
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
@@ -1133,6 +1140,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_RILLET_DEFAULT_VENDOR]: Parameters.UpdateRilletDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_RILLET_EXPORT_DATE]: Parameters.UpdateRilletExportDateParams;
     [WRITE_COMMANDS.UPDATE_RILLET_EXPORTER]: Parameters.UpdateRilletExporterParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateRilletExportToMultipleAccountsParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_CARD_PROGRAM_ACCOUNT]: Parameters.UpdateRilletCardProgramAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_AUTO_SYNC]: Parameters.UpdateRilletAutoSyncParams;
     [WRITE_COMMANDS.UPDATE_RILLET_ACCOUNTING_METHOD]: Parameters.UpdateRilletAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateRilletSyncReimbursedReportsParams;
@@ -1276,6 +1285,7 @@ type WriteCommandParameters = {
     // Dismiss Product Training
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
     [WRITE_COMMANDS.DELETE_APP_REPORT]: Parameters.DeleteAppReportParams;
+    [WRITE_COMMANDS.MERGE_REPORTS]: Parameters.MergeReportsParams;
 
     // Merge accounts API
     [WRITE_COMMANDS.GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE]: Parameters.GetValidateCodeForAccountMergeParams;
@@ -1425,6 +1435,7 @@ const READ_COMMANDS = {
     GET_SAML_SETTINGS: 'GetSAMLSettings',
     GET_DUPLICATE_TRANSACTION_DETAILS: 'GetDuplicateTransactionDetails',
     GET_TRANSACTIONS_MATCHING_CODING_RULE: 'GetTransactionsMatchingCodingRule',
+    GET_AGENT_RULE_SUGGESTIONS: 'GetAgentRuleSuggestions',
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     OPEN_AGENTS_PAGE: 'OpenAgentsPage',
     OPEN_PROFILE_PAGE: 'OpenProfilePage',
@@ -1530,6 +1541,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_DOMAIN_PAGE]: Parameters.OpenDomainPageParams;
     [READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS]: Parameters.GetDuplicateTransactionDetailsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE]: Parameters.GetTransactionsMatchingCodingRuleParams;
+    [READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS]: Parameters.GetAgentRuleSuggestionsParams;
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
     [READ_COMMANDS.OPEN_AGENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_PROFILE_PAGE]: null;
@@ -1541,6 +1553,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
     IMPORT_CATEGORIES_SPREADSHEET: 'ImportCategoriesSpreadsheet',
     IMPORT_MEMBERS_SPREADSHEET: 'ImportMembersSpreadsheet',
+    IMPORT_MERCHANT_RULES_SPREADSHEET: 'ImportMerchantRulesSpreadsheet',
     IMPORT_PER_DIEM_RATES: 'ImportPerDiemRates',
     IMPORT_TAGS_SPREADSHEET: 'ImportTagsSpreadsheet',
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
@@ -1586,6 +1599,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET]: Parameters.ImportMembersSpreadsheetParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MERCHANT_RULES_SPREADSHEET]: Parameters.ImportMerchantRulesSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_PER_DIEM_RATES]: Parameters.ImportPerDiemRatesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_TAGS_SPREADSHEET]: Parameters.ImportTagsSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;

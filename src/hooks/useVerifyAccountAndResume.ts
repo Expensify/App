@@ -11,13 +11,15 @@ import {useEffect, useEffectEvent, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
+type ResumePayload = (() => void) | undefined;
+
 /**
  * Returns a trigger that sends an unvalidated user to the verify-account (magic code) screen and,
  * once they validate there, calls `onResume` with the payload the trigger stored.
  */
-function useVerifyAccountAndResume<TPayload>(onResume: (payload: TPayload) => void) {
+function useVerifyAccountAndResume(onResume: (payload: ResumePayload) => void) {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
-    const [pendingAction, setPendingAction] = useState<{payload: TPayload; verifyAccountPath: string} | null>(null);
+    const [pendingAction, setPendingAction] = useState<{payload: ResumePayload; verifyAccountPath: string} | null>(null);
 
     // Effect event, so the resume runs the latest `onResume` (a press-time closure would see pre-validation state).
     const resumeAction = useEffectEvent(onResume);
@@ -52,7 +54,7 @@ function useVerifyAccountAndResume<TPayload>(onResume: (payload: TPayload) => vo
         return () => handle.cancel();
     }, [isUserValidated, pendingAction]);
 
-    const verifyAccountAndResume = (payload: TPayload) => {
+    const verifyAccountAndResume = (payload: ResumePayload) => {
         const verifyAccountRoute = createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
         const [verifyAccountPath] = splitPathAndQuery(verifyAccountRoute);
         setPendingAction(verifyAccountPath ? {payload, verifyAccountPath} : null);

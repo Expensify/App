@@ -56,7 +56,6 @@ import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-o
 import PendingTravel from '@assets/images/pending-travel.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
-import ArmWithCardPos from '@assets/images/product-illustrations/arm_with_card_pos.svg';
 import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
@@ -73,6 +72,7 @@ import Hands from '@assets/images/product-illustrations/home-illustration-hands.
 import SortingMachine from '@assets/images/product-illustrations/illustration-sorting-machine.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
+import AgentsIceCream from '@assets/images/product-illustrations/illustration_agents-ice-cream.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
@@ -271,7 +271,6 @@ const Illustrations = {
 
     // Product Illustrations
     Abracadabra,
-    ArmWithCardPos,
     BigVault,
     BrokenCompanyCardBankConnection,
     BrokenMagnifyingGlass,
@@ -303,6 +302,7 @@ const Illustrations = {
     QuestionMark,
     SmartScan,
     SortingMachine,
+    AgentsIceCream,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
