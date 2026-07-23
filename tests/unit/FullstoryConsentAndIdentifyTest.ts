@@ -5,6 +5,8 @@ import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
 import type UserMetadata from '@src/types/onyx/UserMetadata';
 
+import {FullStory as FullStoryBrowser, isInitialized} from '@fullstory/browser';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Environment/getEnvironment', () => ({
@@ -63,6 +65,8 @@ function createDeferred<T = void>() {
 afterEach(() => {
     jest.restoreAllMocks();
     getEnvironmentMock.mockReset();
+    // restoreAllMocks does not reset module-factory mocks, so put isInitialized back to its default.
+    jest.mocked(isInitialized).mockReturnValue(false);
 });
 
 describe('Fullstory consentAndIdentify (web)', () => {
@@ -114,6 +118,10 @@ describe('Fullstory consentAndIdentify (web)', () => {
         const pendingChain = createDeferred();
         jest.spyOn(webFS, 'onReady').mockReturnValue(pendingChain.promise);
         getEnvironmentMock.mockResolvedValue(CONST.ENVIRONMENT.PRODUCTION);
+        // FS is already running (e.g. from the eligible account), so the ineligible switch must shut it down.
+        jest.mocked(isInitialized).mockReturnValue(true);
+        const fullStoryMock = jest.mocked(FullStoryBrowser);
+        fullStoryMock.mockClear();
 
         webFS.consentAndIdentify({accountID, email});
         await waitForBatchedUpdates();
@@ -124,9 +132,10 @@ describe('Fullstory consentAndIdentify (web)', () => {
         pendingChain.resolve();
         await waitForBatchedUpdates();
 
-        // Then it must not identify the now-current ineligible account
+        // Then it must not identify the now-current ineligible account, and it must shut FS down instead
         expect(identifySpy).not.toHaveBeenCalledWith(expect.objectContaining({accountID: ineligibleAccountID}), expect.anything());
         expect(identifySpy).not.toHaveBeenCalledWith(expect.objectContaining({accountID: ineligibleAccountID}));
+        expect(fullStoryMock).toHaveBeenCalledWith(CONST.FULLSTORY.OPERATION.SHUTDOWN);
     });
 
     it('does not mutate the metadata object held by Onyx', async () => {
