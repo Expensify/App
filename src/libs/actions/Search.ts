@@ -20,7 +20,7 @@ import type {
     ReportExportParams,
     SubmitReportParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -876,6 +876,19 @@ function openSearchCardFiltersPage() {
     ];
 
     read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+}
+
+type ParseExpenseFiltersResult = {success: true; searchURL: string; humanReadableSummary: string} | {success: false; message: string};
+
+function parseExpenseFilters(nlQuery: string, policyID?: string): Promise<ParseExpenseFiltersResult | undefined> {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS, {nlQuery, policyID, today}).then((response) => {
+        if (response?.success === true && response.searchURL) {
+            return {success: true, searchURL: response.searchURL, humanReadableSummary: response.humanReadableSummary ?? ''} as const;
+        }
+        return {success: false, message: response?.message ?? ''} as const;
+    });
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -1905,6 +1918,7 @@ export {
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
+    parseExpenseFilters,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,

@@ -8961,6 +8961,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Bezahlen',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
+            describeSearch: {
+                title: 'Beschreiben Sie Ihre Suche',
+                inputLabel: 'Ihre Suche',
+                description: 'Beschreiben Sie in einfachem Englisch, wonach Sie suchen, zum Beispiel „meals over $50 last month“.',
+                buttonText: 'Filter erstellen',
+            },
         },
         display: {
             label: 'Anzeige',

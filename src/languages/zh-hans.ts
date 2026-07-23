@@ -8616,6 +8616,12 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
+            describeSearch: {
+                title: '描述你的搜索',
+                inputLabel: '你的搜索',
+                description: '请用简单的英文描述你要查找的内容，例如："meals over $50 last month（上个月超过 50 美元的餐饮）"。',
+                buttonText: '创建筛选条件',
+            },
         },
         display: {
             label: '显示',

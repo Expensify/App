@@ -8832,6 +8832,12 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
+            describeSearch: {
+                title: '検索内容を入力してください',
+                inputLabel: '検索結果',
+                description: '「先月50ドルを超えた食事代」のように、探したい内容を平易な英語で入力してください。',
+                buttonText: 'フィルターを作成',
+            },
         },
         display: {
             label: '表示',

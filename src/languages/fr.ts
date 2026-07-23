@@ -8997,6 +8997,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Payer',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
+            describeSearch: {
+                title: 'Décrivez votre recherche',
+                inputLabel: 'Votre recherche',
+                description: 'Décrivez en anglais simple ce que vous recherchez, par exemple « repas de plus de 50 $ le mois dernier ».',
+                buttonText: 'Créer des filtres',
+            },
         },
         display: {
             label: 'Affichage',

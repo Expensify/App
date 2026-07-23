@@ -8893,6 +8893,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Zapłać',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
+            describeSearch: {
+                title: 'Opisz swoje wyszukiwanie',
+                inputLabel: 'Twoje wyszukiwanie',
+                description: 'Użyj prostego angielskiego, żeby opisać, czego szukasz, na przykład „meals over $50 last month“.',
+                buttonText: 'Utwórz filtry',
+            },
         },
         display: {
             label: 'Wyświetl',

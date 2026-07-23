@@ -1993,6 +1993,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.route,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIBE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIBE,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: ROUTES.SEARCH_SAVE,
