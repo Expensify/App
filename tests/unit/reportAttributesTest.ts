@@ -3,6 +3,7 @@ import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/re
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -186,6 +187,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         expect(result?.reports).toHaveProperty('r1');
@@ -213,6 +215,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(policies, reportsWithUnrelated), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         // r1/r2 reference the loaded policies → recomputed (default mock name).
@@ -247,6 +250,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         config.compute(buildArgs({[`${ONYXKEYS.COLLECTION.POLICY}senderPolicy`]: senderPolicy}, invoiceReports), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}senderPolicy`]: senderPolicy}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         const existingValue: ReportAttributesDerivedValue = {
@@ -265,6 +269,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(bothPolicies, invoiceReports), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}receiverPolicy`]: receiverPolicy}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         // Both the room (own invoiceReceiver) and the child (receiver read from its parent room) recompute.
@@ -277,6 +282,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         const policy1Changed = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
@@ -299,6 +305,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed} as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         // r1 (policy1 changed) should be recomputed with new name
@@ -312,6 +319,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         const policy1WithNameChange = {...policy1, name: 'New Policy Name'} as unknown as Policy;
@@ -331,6 +339,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithNameChange} as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
         // No tracked fields changed → return currentValue unchanged
