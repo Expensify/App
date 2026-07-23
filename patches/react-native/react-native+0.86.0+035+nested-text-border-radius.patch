@@ -1,16 +1,16 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
-index 7aebe92..b61c20b 100644
+index a23e1d3..11a7151 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
-@@ -53,6 +53,7 @@ import com.facebook.react.uimanager.style.BorderRadiusProp;
+@@ -46,6 +46,7 @@ import com.facebook.react.uimanager.style.BorderRadiusProp;
  import com.facebook.react.uimanager.style.BorderStyle;
  import com.facebook.react.uimanager.style.LogicalEdge;
  import com.facebook.react.uimanager.style.Overflow;
 +import com.facebook.react.views.text.internal.span.DrawCommandSpan;
  import com.facebook.react.views.text.internal.span.ReactFragmentIndexSpan;
  import com.facebook.react.views.text.internal.span.ReactTagSpan;
- import com.facebook.react.views.text.internal.span.TextInlineViewPlaceholderSpan;
-@@ -370,6 +371,27 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
+ import com.facebook.yoga.YogaMeasureMode;
+@@ -212,6 +213,27 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
          BackgroundStyleApplicator.clipToPaddingBox(this, canvas);
        }
  
@@ -88,10 +88,10 @@ index 45c8bec..8406652 100644
        }
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index b75b617..ec6b8de 100644
+index eacec69..cf09164 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-@@ -40,6 +40,7 @@ import com.facebook.react.views.text.internal.span.CustomLineHeightSpan
+@@ -41,6 +41,7 @@ import com.facebook.react.views.text.internal.span.CustomLineHeightSpan
  import com.facebook.react.views.text.internal.span.CustomStyleSpan
  import com.facebook.react.views.text.internal.span.ReactAbsoluteSizeSpan
  import com.facebook.react.views.text.internal.span.ReactBackgroundColorSpan
@@ -99,7 +99,7 @@ index b75b617..ec6b8de 100644
  import com.facebook.react.views.text.internal.span.ReactClickableSpan
  import com.facebook.react.views.text.internal.span.ReactForegroundColorSpan
  import com.facebook.react.views.text.internal.span.ReactFragmentIndexSpan
-@@ -269,7 +270,23 @@ internal object TextLayoutManager {
+@@ -282,7 +283,23 @@ internal object TextLayoutManager {
          }
          if (textAttributes.isBackgroundColorSet) {
            textAttributes.backgroundColor
@@ -124,7 +124,7 @@ index b75b617..ec6b8de 100644
                ?.let { SetSpanOperation(start, end, it) }
                ?.let { ops.add(it) }
          }
-@@ -438,12 +455,25 @@ internal object TextLayoutManager {
+@@ -451,12 +468,25 @@ internal object TextLayoutManager {
          }
  
          if (fragment.props.isBackgroundColorSet) {
@@ -158,7 +158,7 @@ index b75b617..ec6b8de 100644
          if (!fragment.props.opacity.isNaN()) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 new file mode 100644
-index 0000000..5f5e392
+index 0000000..326b049
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 @@ -0,0 +1,117 @@
@@ -280,7 +280,7 @@ index 0000000..5f5e392
 +  }
 +}
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
-index 9cf89bf..6eb899f 100644
+index 69ea8c8..f63e2aa 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
 @@ -27,6 +27,21 @@ void TextAttributes::apply(TextAttributes textAttributes) {
@@ -389,10 +389,10 @@ index b664524..2eaa3bc 100644
  };
  } // namespace std
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-index 5635a69..ad8f927 100644
+index 331e201..8277d40 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-@@ -1027,6 +1027,10 @@ constexpr static MapBuffer::Key TA_KEY_ROLE = 26;
+@@ -1128,6 +1128,10 @@ constexpr static MapBuffer::Key TA_KEY_ROLE = 26;
  constexpr static MapBuffer::Key TA_KEY_TEXT_TRANSFORM = 27;
  constexpr static MapBuffer::Key TA_KEY_ALIGNMENT_VERTICAL = 28;
  constexpr static MapBuffer::Key TA_KEY_MAX_FONT_SIZE_MULTIPLIER = 29;
@@ -403,7 +403,7 @@ index 5635a69..ad8f927 100644
  
  // constants for ParagraphAttributes serialization
  constexpr static MapBuffer::Key PA_KEY_MAX_NUMBER_OF_LINES = 0;
-@@ -1231,6 +1235,28 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
+@@ -1332,6 +1336,28 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
    if (textAttributes.role.has_value()) {
      builder.putInt(TA_KEY_ROLE, static_cast<int32_t>(*textAttributes.role));
    }
@@ -553,7 +553,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmana
 index f96a049..585e06e 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -183,8 +183,30 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+@@ -183,8 +183,30 @@ inline static CGFloat RCTEffectiveFontSizeMultiplierFromTextAttributes(const Tex
      attributes[NSForegroundColorAttributeName] = effectiveForegroundColor;
    }
  
@@ -587,7 +587,7 @@ index f96a049..585e06e 100644
  
    // Kerning
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-index 5fed44e..f4b7d39 100644
+index ac55304..b480614 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 @@ -8,6 +8,7 @@
@@ -598,7 +598,7 @@ index 5fed44e..f4b7d39 100644
  
  #import <React/NSTextStorage+FontScaling.h>
  #import <React/RCTUtils.h>
-@@ -232,7 +233,7 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+@@ -233,7 +234,7 @@ - (NSTextStorage *)_textStorageAndLayoutManagerWithAttributesString:(NSAttribute
        : NSLineBreakByClipping;
    textContainer.maximumNumberOfLines = paragraphAttributes.maximumNumberOfLines;
  
@@ -609,7 +609,7 @@ index 5fed44e..f4b7d39 100644
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h
 new file mode 100644
-index 0000000..3ca52ac
+index 0000000..72c1606
 --- /dev/null
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h
 @@ -0,0 +1,23 @@
@@ -638,7 +638,7 @@ index 0000000..3ca52ac
 +NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 new file mode 100644
-index 0000000..de879555fcff8965cbae03765ff445258880db95
+index 0000000..de87955
 --- /dev/null
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 @@ -0,0 +1,132 @@
