@@ -1,6 +1,7 @@
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
@@ -20,6 +21,7 @@ const {AppStateTracker} = NativeModules;
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     useEffect(() => {
         OnfidoSDK.start({
@@ -108,7 +110,13 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return <FullscreenLoadingIndicator reasonAttributes={{context: 'Onfido'}} />;
+    return (
+        <ActivityIndicator
+            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+            style={styles.flex1}
+            reasonAttributes={{context: 'Onfido'}}
+        />
+    );
 }
 
 export default Onfido;
