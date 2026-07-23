@@ -28,7 +28,7 @@ If a billing issue exists, the Workspace owner will see:
 
 The notification remains visible until the billing issue is resolved.
 
-![TAccount > Subscription showing the red billing-issue banner explaining the payment failure]({{site.url}}/assets/images/ExpensiHelp-Fix-a-Billing-Issue.png){:width="100%"}
+![Account > Subscription showing the red billing-issue banner explaining the payment failure]({{site.url}}/assets/images/ExpensiHelp-Fix-a-Billing-Issue.png){:width="100%"}
 
 ## How to fix a billing issue
 
