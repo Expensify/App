@@ -1,5 +1,9 @@
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 
@@ -8,6 +12,7 @@ import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -37,6 +42,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
+    const {isOffline} = useNetwork();
     const [pendingPolicyID, setPendingPolicyID] = useState<string>();
     const [pendingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${pendingPolicyID}`);
 
@@ -93,6 +99,14 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         return () => cancelAnimationFrame(frame);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingPolicy, pendingPolicyID]);
+
+    if (pendingPolicyID) {
+        if (isOffline) {
+            return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+        }
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'IOURequestStepPerDiemWorkspace', pendingPolicyID};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
 
     return (
         <BaseRequestStepWorkspace
