@@ -2626,9 +2626,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
 
-        /** Whether to show category GL codes when selecting a category */
-        showCategoryGLCodes?: boolean;
-
         /**
          * Policy Receipt Partners
          */
@@ -2937,4 +2934,5 @@ export type {
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
+    RilletSubsidiary,
 };
