@@ -110,6 +110,7 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard}
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
+import memoize from './memoize';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import {hasKey} from './ObjectUtils';
@@ -629,6 +630,11 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
+    /**
+     * Callers may pass `undefined` for non-CHAT/TASK search types as a perf optimization (see `useSearchSnapshot`).
+     * Only `getReportActionsSections` (CHAT) and `getTaskSections` (TASK) read it — if you consume it in another
+     * branch, remove that gating in the caller first, otherwise it will silently be `undefined`.
+     */
     reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
 };
 
@@ -2786,6 +2792,17 @@ function getReportActionsSections(
 }
 
 /**
+ * Merges the global personal details list with the search snapshot's one (snapshot entries win).
+ * Memoized by input references: both lists are referentially stable across the getSections recomputes
+ * of a single user action (e.g. PAY), so the expensive spread of two large objects runs once per
+ * actual data change instead of once per recompute.
+ */
+const mergePersonalDetailsLists = memoize(
+    (onyxList: OnyxTypes.PersonalDetailsList | undefined, dataList: OnyxTypes.PersonalDetailsList | undefined): OnyxTypes.PersonalDetailsList => ({...onyxList, ...dataList}),
+    {maxSize: 1, equality: 'shallow', monitoringName: 'SearchUIUtils.mergePersonalDetailsLists'},
+);
+
+/**
  * @private
  * Organizes data into List Sections grouped by report for display, for the TransactionGroupListItemType of Search Results.
  *
@@ -2834,7 +2851,7 @@ function getReportSections({
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
-    const mergedPersonalDetails = {...(onyxPersonalDetailsList ?? {}), ...(data.personalDetailsList ?? {})};
+    const mergedPersonalDetails = mergePersonalDetailsLists(onyxPersonalDetailsList, data.personalDetailsList);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
