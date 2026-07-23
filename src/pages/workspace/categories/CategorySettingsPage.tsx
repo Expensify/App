@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -554,18 +553,14 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     key={rule.key}
                                     pendingAction={rule.pendingAction}
                                 >
-                                    <Tooltip text={rule.summary}>
-                                        <View>
-                                            <MenuItem
-                                                icon={expensifyIcons.Bolt}
-                                                title={rule.summary}
-                                                numberOfLinesTitle={2}
-                                                shouldShowBasicTitle
-                                                onPress={() => Navigation.navigate(rule.route)}
-                                                shouldShowRightIcon
-                                            />
-                                        </View>
-                                    </Tooltip>
+                                    <MenuItem
+                                        icon={expensifyIcons.Bolt}
+                                        title={rule.summary}
+                                        numberOfLinesTitle={2}
+                                        shouldShowBasicTitle
+                                        onPress={() => Navigation.navigate(rule.route)}
+                                        shouldShowRightIcon
+                                    />
                                 </OfflineWithFeedback>
                             ))}
                             {canWriteRules && (
