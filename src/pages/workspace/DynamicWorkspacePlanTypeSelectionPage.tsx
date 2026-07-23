@@ -42,7 +42,7 @@ function DynamicWorkspacePlanTypeSelectionPage() {
     // uses to keep the initially selected row in sync with what the form shows.
     const planType = workspaceConfirmationFormDraft?.planType ?? getDefaultWorkspacePlanType(policies);
 
-    const handleBackPress = () => {
+    const goBack = () => {
         Navigation.goBack(backPath);
     };
 
@@ -54,7 +54,7 @@ function DynamicWorkspacePlanTypeSelectionPage() {
         isSelected: policyType === planType,
     }));
 
-    const handleSelect = (option: PlanTypeItem) => {
+    const savePlanType = (option: PlanTypeItem) => {
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM, {[INPUT_IDS.PLAN_TYPE]: option.value});
         // After selecting, don't restore focus to the plan menu item on the confirmation page —
         // a focused button suppresses the form's submit-on-Enter, so the next Enter would re-open this
@@ -66,13 +66,13 @@ function DynamicWorkspacePlanTypeSelectionPage() {
         <ScreenWrapper testID="DynamicWorkspacePlanTypeSelectionPage">
             <HeaderWithBackButton
                 title={translate('workspace.common.planType')}
-                onBackButtonPress={handleBackPress}
+                onBackButtonPress={goBack}
             />
             <Text style={[styles.ph5, styles.pb4, styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.planTypePage.description')}</Text>
             <SelectionList
                 data={planTypeOptions}
                 ListItem={SingleSelectListItem}
-                onSelectRow={handleSelect}
+                onSelectRow={savePlanType}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={planTypeOptions.find((option) => option.isSelected)?.keyForList}
                 addBottomSafeAreaPadding
