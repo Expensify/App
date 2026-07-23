@@ -110,6 +110,26 @@ describe('focusFirstInteractiveElement', () => {
             expect(containerSpy).not.toHaveBeenCalled();
         });
 
+        it('should not steal focus when the user already focused a control inside the dialog', () => {
+            const firstButton = document.createElement('button');
+            const field = document.createElement('input');
+            const container = createContainer(firstButton, field);
+            container.setAttribute('role', 'dialog');
+            container.setAttribute('aria-label', 'Search');
+            container.tabIndex = -1;
+            field.focus();
+
+            const firstButtonSpy = jest.spyOn(firstButton, 'focus');
+            const fieldSpy = jest.spyOn(field, 'focus');
+            const containerSpy = jest.spyOn(container, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(firstButtonSpy).not.toHaveBeenCalled();
+            expect(containerSpy).not.toHaveBeenCalled();
+            expect(fieldSpy).not.toHaveBeenCalled();
+            expect(document.activeElement).toBe(field);
+        });
+
         it('should focus the dialog node itself when it has no interactive controls', () => {
             const activator = document.createElement('button');
             document.body.appendChild(activator);

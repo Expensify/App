@@ -12,14 +12,20 @@ import type UseDialogContainerFocus from './types';
 /**
  * Moves focus into an open RHP after the transition.
  *
- * Dialog title/role are announced via aria-live (see Header) — not by focusing the heading — so JAWS/VoiceOver
+ * Dialog title/role are announced via aria-live (see Header) — not by focusing the heading — so JAWS/NVDA
  * get a clean "{title}, dialog" without nested "group / and N more items" chrome.
  *
  * Still steals focus from the activator into the first interactive control (APG modal). claimInitialFocus's
- * body-only gate would leave JAWS on the trigger and skip the panel entirely.
+ * body-only gate would leave JAWS on the trigger and skip the panel entirely. If the user already moved
+ * focus into the dialog (click/Tab), leave it alone.
  */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!container) {
+        return false;
+    }
+
+    const activeElement = document.activeElement;
+    if (activeElement instanceof Node && container.contains(activeElement)) {
         return false;
     }
 

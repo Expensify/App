@@ -129,24 +129,23 @@ type RightModalDialogFrameProps = {
  * Applies dialog naming as React props on the RHP container.
  * Imperative setAttribute('aria-label') is invisible to JAWS's virtual buffer; declarative props are not.
  *
- * role + aria-modal + aria-label are applied together only once the title is known, so JAWS never
- * snapshots a nameless dialog. Focusing a nested button first often skips the dialog announcement
- * (JAWS known issue) — useDialogContainerFocus focuses this container instead.
+ * Wide RHPs always keep role=dialog + aria-modal (including untitled routes like SEARCH_REPORT).
+ * aria-label is applied only once the visible title is registered so JAWS can announce a named dialog;
+ * Header also announces "{title}, dialog" via a polite live region when the title is ready.
  */
 function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
     const {dialogAriaLabel} = useDialogLabelData();
-    // Wait for the title so role and name land in the same React commit (JAWS virtual buffer).
-    const isNamedDialog = hasDialogSemantics && !!dialogAriaLabel;
+    const hasName = !!dialogAriaLabel;
 
     return (
         <Animated.View
             ref={onContainerRef}
-            role={isNamedDialog ? CONST.ROLE.DIALOG : undefined}
-            aria-modal={isNamedDialog || undefined}
-            aria-label={isNamedDialog ? dialogAriaLabel : undefined}
-            accessibilityLabel={isNamedDialog ? dialogAriaLabel : undefined}
-            // So SRs can focus the dialog node itself and announce role + name.
-            tabIndex={isNamedDialog ? -1 : undefined}
+            role={hasDialogSemantics ? CONST.ROLE.DIALOG : undefined}
+            aria-modal={hasDialogSemantics || undefined}
+            aria-label={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
+            accessibilityLabel={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
+            // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
+            tabIndex={hasDialogSemantics ? -1 : undefined}
             style={style}
         >
             {children}
