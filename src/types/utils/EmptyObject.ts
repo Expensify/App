@@ -1,6 +1,7 @@
 // trigger: timing comparison run
 // trigger
 // trigger
+// trigger: setupNode merge (Linux non-hybrid sticky-disk path)
 import CONST from '@src/CONST';
 
 type EmptyObject = Record<string, never>;

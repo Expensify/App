@@ -19,7 +19,7 @@ jobs:
           ref: ${{ inputs.REF || github.sha }}
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNodeStickyDisk
+        uses: ./.github/actions/composite/setupNode
 
       - name: Create or update deploy checklist
         run: npx bun scripts/createOrUpdateDeployChecklist.ts

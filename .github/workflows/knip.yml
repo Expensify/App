@@ -30,7 +30,7 @@ jobs:
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNodeStickyDisk
+        uses: ./.github/actions/composite/setupNode
 
       - name: Run knip on PR
         run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-pr.json

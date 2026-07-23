@@ -192,7 +192,7 @@ jobs:
           fi
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNodeStickyDisk
+        uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 

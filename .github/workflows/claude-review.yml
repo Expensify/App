@@ -51,7 +51,7 @@ jobs:
 
       - name: Setup Node
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
-        uses: ./.github/actions/composite/setupNodeStickyDisk
+        uses: ./.github/actions/composite/setupNode
 
       - name: Filter paths
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'

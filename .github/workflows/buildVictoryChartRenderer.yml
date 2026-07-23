@@ -30,7 +30,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNodeStickyDisk
+        uses: ./.github/actions/composite/setupNode
 
       - name: Build victory-chart-renderer Linux x64 binary
         run: npm run server:vcr:build:linux
