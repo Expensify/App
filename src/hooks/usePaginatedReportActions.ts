@@ -48,13 +48,9 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         [hasWriteAccess, nonEmptyStringReportID],
     );
 
-    const [sortedAllReportActions] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`,
-        {
-            selector: getSortedAllReportActionsSelector,
-        },
-        [getSortedAllReportActionsSelector],
-    );
+    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
+        selector: getSortedAllReportActionsSelector,
+    });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
     // Default (regular inbox chats): snapshot lastReadTime at first render via a ref — production behavior.

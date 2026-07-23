@@ -12,9 +12,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {IconSize} from './utils/resolveIconSize';
-
-import resolveIconSize from './utils/resolveIconSize';
+import type IconSize from './types';
 
 type IconProps = {
     /** The asset to render. */
@@ -31,30 +29,6 @@ type IconProps = {
 
     /** Preset icon size. */
     size?: IconSize;
-
-    /**
-     * @deprecated Use `size={CONST.ICON_SIZE.EXTRA_SMALL}` instead.
-     * Renders an extra small icon.
-     */
-    extraSmall?: boolean;
-
-    /**
-     * @deprecated Use `size={CONST.ICON_SIZE.SMALL}` instead.
-     * Renders a small icon.
-     */
-    small?: boolean;
-
-    /**
-     * @deprecated Use `size={CONST.ICON_SIZE.MEDIUM}` instead.
-     * Renders a medium icon.
-     */
-    medium?: boolean;
-
-    /**
-     * @deprecated Use `size={CONST.ICON_SIZE.LARGE}` instead.
-     * Renders a large icon.
-     */
-    large?: boolean;
 
     /** Whether the icon is hovered. */
     hovered?: boolean;
@@ -85,14 +59,6 @@ function Icon({
     height = variables.iconSizeNormal,
     fill = undefined,
     size,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
-    extraSmall = false,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
-    small = false,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
-    large = false,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility adapter for legacy size boolean props
-    medium = false,
     additionalStyles = [],
     hovered = false,
     pressed = false,
@@ -107,8 +73,7 @@ function Icon({
         return null;
     }
 
-    const resolvedSize = resolveIconSize(size, extraSmall, small, medium, large);
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(resolvedSize, width, height, isButtonIcon);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(size, width, height, isButtonIcon);
     const hasLabel = !!accessibilityLabel;
 
     return (

@@ -93,7 +93,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         batchSize: 100,
         enablePagination: true,
         isSearching,
-        betas,
     });
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);

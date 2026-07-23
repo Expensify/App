@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -206,11 +206,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                         />
                     )}
                     <Button
-                        success
-                        large
-                        text={translate('common.save')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={onSave}
-                    />
+                    >
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

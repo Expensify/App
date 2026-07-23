@@ -24,6 +24,7 @@ import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userAction
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -36,10 +37,9 @@ type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 const updateDisplayName = (
     values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserAccountID: number,
-    currentUserEmail: string,
+    currentUserPersonalDetails: CurrentUserPersonalDetails,
 ) => {
-    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, currentUserAccountID, currentUserEmail);
+    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, currentUserPersonalDetails);
     Navigation.goBack();
 };
 
@@ -98,7 +98,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
-                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber, currentUserDetails?.accountID, currentUserDetails?.email ?? '')}
+                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber, currentUserPersonalDetails)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur

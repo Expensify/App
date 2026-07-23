@@ -305,12 +305,12 @@ function BaseValidateCodeForm({
         clearDefaultValidationCodeError();
         setCanShowError(true);
         if (!validateCode.trim()) {
-            setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
+            setFormError({validateCode: 'validateCodeForm.error.pleaseFillSecurityCode'});
             return;
         }
 
         if (!isValidValidateCode(validateCode)) {
-            setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
+            setFormError({validateCode: 'validateCodeForm.error.incorrectSecurityCode'});
             return;
         }
 
@@ -374,10 +374,10 @@ function BaseValidateCodeForm({
                             hoverDimmingValue={1}
                             pressDimmingValue={0.2}
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                            accessibilityLabel={translate('validateCodeForm.securityCodeNotReceived')}
                             sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                         >
-                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.securityCodeNotReceived')}</Text>
                         </PressableWithFeedback>
                     </View>
                 )}

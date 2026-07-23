@@ -29,6 +29,9 @@ jest.mock('@hooks/useOnboardingMessages');
 const mockTranslate = jest.fn((key: string) => key);
 const mockFormatPhoneNumber = jest.fn((phone: string) => phone);
 
+// Single shared assertion so individual tests can re-mock useOnyx without repeating the unsafe cast
+const mockUseOnyx = useOnyx as jest.Mock;
+
 const MOCK_SESSION = {
     accountID: 12345,
     email: 'test@expensify.com',
@@ -39,7 +42,6 @@ const MOCK_ADMINS_CHAT_REPORT_ID = 'mock-admins-chat-report-id';
 const MOCK_ONBOARDING_MESSAGE = {message: 'Welcome!', video: undefined, tasks: []};
 
 function setupDefaultMocks() {
-    const mockUseOnyx = useOnyx as jest.Mock;
     mockUseOnyx.mockImplementation((key: string) => {
         if (key === 'session') {
             return [MOCK_SESSION];
@@ -273,6 +275,82 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(setOnboardingAdminsChatReportIDSpy).toHaveBeenCalledTimes(1);
         expect(setOnboardingPolicyIDSpy).toHaveBeenCalledTimes(1);
         expect(navigateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to the existing Submit workspace when an already-onboarded caller skips creation', async () => {
+        // Given an already-onboarded user (the Submit plan welcome modal passes shouldCompleteOnboarding = false)
+        // who is an editor/admin of an existing Submit workspace, so no new workspace should be created
+        const existingSubmitPolicy = {
+            id: 'existing-submit-policy-id',
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
+            if (key === 'session') {
+                return [MOCK_SESSION];
+            }
+            if (key === 'betas') {
+                return [[]];
+            }
+            if (key.startsWith('policy_')) {
+                // Run the hook's real selectors against a fake policy collection so both the
+                // hasEditableGroupPolicy and existingSubmitPolicyID subscriptions resolve correctly.
+                // Unrelated policy-collection selectors (e.g. useLastWorkspaceNumber's) expect extra
+                // arguments this mock doesn't provide, so fall back to undefined when they throw.
+                try {
+                    return [options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy})];
+                } catch {
+                    return [undefined];
+                }
+            }
+            return [undefined];
+        });
+
+        // When the user confirms the Submit plan welcome modal again
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('John', 'Doe', false);
+
+        // Then no duplicate workspace is created, onboarding is not re-run, and the user is
+        // navigated to the existing Submit workspace instead of falling back to Home
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+        expect(completeOnboardingSpy).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id, expect.any(Boolean));
+    });
+
+    it('keeps the Home fallback for onboarding callers when creation is skipped', async () => {
+        // Given an onboarding user who already has an editable group workspace, so creation is skipped
+        const existingSubmitPolicy = {
+            id: 'existing-submit-policy-id',
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
+            if (key === 'session') {
+                return [MOCK_SESSION];
+            }
+            if (key === 'betas') {
+                return [[]];
+            }
+            if (key.startsWith('policy_')) {
+                try {
+                    return [options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy})];
+                } catch {
+                    return [undefined];
+                }
+            }
+            return [undefined];
+        });
+
+        // When the onboarding flow runs (shouldCompleteOnboarding defaults to true)
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('Jane', 'Smith');
+
+        // Then the navigation still receives no policy ID, preserving the pre-existing onboarding
+        // behavior (landing on Home) so this fix stays scoped to already-onboarded callers
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(undefined, expect.any(Boolean));
     });
 
     it('uses the localCurrencyCode from personal details for workspace currency', () => {

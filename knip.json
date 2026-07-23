@@ -52,6 +52,7 @@
     },
     "ignoreDependencies": [
         "@expensify/react-native-hybrid-app",
+        "focus-trap",
         "group-ib-fp",
         "react-native-image-size",
         "react-native-picker-select",

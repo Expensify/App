@@ -59,7 +59,7 @@ If you can’t access your authenticator app and don’t have your recovery code
 
 If no Domain Admin is available and you're using a company email, you can follow [this guide](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain) to claim the domain and reset your 2FA settings yourself.
 
-For more help regaining access, see [Troubleshoot login issues](LINK).
+For more help regaining access, see [Troubleshoot login issues](/articles/expensify-classic/settings/Magic-Code-Access-Troubleshooting).
 
 ---
 

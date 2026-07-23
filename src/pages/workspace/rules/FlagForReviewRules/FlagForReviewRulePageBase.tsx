@@ -96,9 +96,14 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
             return;
         }
 
+        if (selectedCategoryName === categoryName) {
+            initializedDraftForRuleKeyRef.current = categoryName;
+            return;
+        }
+
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, getCurrencyDecimals, isEditing, policyCurrency]);
+    }, [category, categoryName, getCurrencyDecimals, isEditing, policyCurrency, selectedCategoryName]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -122,7 +127,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
             return;
         }
 
-        saveFlagForReviewRule(policyID, policyData.categories, form);
+        saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined);
 
         if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.FLAG_FOR_REVIEW);
@@ -196,7 +201,6 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
-                        disabled={isEditing}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
                     />
                     <MenuItemWithTopDescription

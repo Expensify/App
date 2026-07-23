@@ -354,6 +354,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         expect(goToItem).not.toHaveBeenCalled();
@@ -377,6 +378,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -400,6 +402,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);

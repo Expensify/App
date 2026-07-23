@@ -8,6 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 
 import FS from '@libs/Fullstory';
+import {buildPageViewedEvent, trackFullstoryEvent} from '@libs/Fullstory/utils';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
@@ -59,6 +60,21 @@ type NavigationRootProps = {
     onReady: () => void;
 };
 
+let previousFullstoryPath: string | undefined;
+
+function trackFullstoryPageView(state: NavigationState) {
+    const currentPath = getPathFromState(state);
+    const isTransitionRoute = currentPath.startsWith(`/${ROUTES.TRANSITION_BETWEEN_APPS}`);
+    const focusedRouteName = findFocusedRoute(state)?.name;
+    if (!focusedRouteName || isTransitionRoute) {
+        return;
+    }
+
+    new FS.Page(focusedRouteName, {path: currentPath}).start();
+    trackFullstoryEvent('Page_viewed', buildPageViewedEvent(focusedRouteName, currentPath, previousFullstoryPath));
+    previousFullstoryPath = currentPath;
+}
+
 /**
  * Intercept navigation state changes and log it
  */
@@ -103,11 +119,7 @@ function parseAndLogRoute(state: NavigationState) {
         }
     }
 
-    // Fullstory Page navigation tracking
-    const focusedRouteName = focusedRoute?.name;
-    if (focusedRouteName) {
-        new FS.Page(focusedRouteName, {path: currentPath}).start();
-    }
+    trackFullstoryPageView(state);
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
@@ -227,7 +239,13 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // After logout, reset the nav state so a logged-out user can't stay on a protected or
         // consumed route.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
-        if (!hasUserLoggedOut || !navigationRef.isReady()) {
+        if (!hasUserLoggedOut) {
+            return;
+        }
+
+        previousFullstoryPath = undefined;
+
+        if (!navigationRef.isReady()) {
             return;
         }
 
@@ -270,6 +288,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
         onReady();
         navigationIntegration.registerNavigationContainer(navigationRef);
+        trackFullstoryPageView(navigationRef.getRootState());
         setupNavigationFocusReturn();
     }, [onReady]);
 

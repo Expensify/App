@@ -33,7 +33,10 @@ import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency'> & {
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions'
+> & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     personalPolicyOutputCurrency?: string;
@@ -42,7 +45,7 @@ type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransact
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, ...rest});
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, selfDMReportActions: undefined, ...rest});
 }
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {

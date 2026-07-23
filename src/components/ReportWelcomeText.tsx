@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getInvoiceReceiverPolicyID,
     getParticipantsAccountIDsForDisplay,
@@ -91,7 +91,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report, reportAttributes);
+    const reportName = deprecatedGetReportName(report, reportAttributes);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||

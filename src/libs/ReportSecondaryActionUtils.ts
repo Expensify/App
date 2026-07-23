@@ -22,6 +22,7 @@ import {
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -257,8 +258,12 @@ function isSubmitAction({
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const isManager = report.managerID === currentUserAccountID;
-    if (!isReportSubmitter && !isAdmin && !isManager) {
+    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
+    const isWorkflowApprover =
+        !isReportSubmitter && currentUserAccountID !== undefined && !!ownerLogin && !isSubmitAndClose(policy) && currentUserAccountID === getManagerAccountID(policy, ownerLogin);
+
+    if (!isReportSubmitter && !isAdmin && !isWorkflowApprover) {
         return false;
     }
 
@@ -267,7 +272,6 @@ function isSubmitAction({
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
@@ -283,7 +287,7 @@ function isSubmitAction({
         return true;
     }
 
-    if (isAdmin || isManager) {
+    if (isAdmin || isWorkflowApprover) {
         return true;
     }
 

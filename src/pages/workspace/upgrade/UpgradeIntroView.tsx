@@ -121,7 +121,7 @@ function UpgradeIntroView({
                 <Button
                     isLoading={loading}
                     testID="upgrade-button"
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}

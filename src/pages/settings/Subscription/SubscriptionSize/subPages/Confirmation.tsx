@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/utils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
@@ -43,11 +44,12 @@ function Confirmation({onNext}: ConfirmationProps) {
             />
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={onNext}
-                    text={translate('common.save')}
-                />
+                >
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </FixedFooter>
         </View>
     );

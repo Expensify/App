@@ -13,6 +13,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -83,8 +84,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
         'Accounting',
@@ -92,6 +95,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Workflows',
         'InvoiceBlue',
         'Rules',
+        'Flash',
         'Tag',
         'PerDiem',
         'HandCard',
@@ -323,6 +327,33 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
+                            icon={illustrations.Members}
+                            title={translate('workspace.hr.title')}
+                            subtitle={translate('workspace.hr.subtitle')}
+                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
+                            pendingAction={policy?.pendingFields?.isHREnabled}
+                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
+                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                if (isEnabled && !isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                                    );
+                                    return;
+                                }
+                                enablePolicyHR(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
+                            }}
+                        />
+                        <MoreFeatureToggle
                             icon={illustrations.ReceiptPartners}
                             title={translate('workspace.moreFeatures.receiptPartners.title')}
                             subtitle={translate('workspace.moreFeatures.receiptPartners.subtitle')}
@@ -348,33 +379,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
-                            }}
-                        />
-                        <MoreFeatureToggle
-                            icon={illustrations.Members}
-                            title={translate('workspace.hr.title')}
-                            subtitle={translate('workspace.hr.subtitle')}
-                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
-                            pendingAction={policy?.pendingFields?.isHREnabled}
-                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
-                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (isEnabled && !isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                    );
-                                    return;
-                                }
-                                enablePolicyHR(policyID, isEnabled);
-                            }}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
                             }}
                         />
                     </MoreFeaturesSection>
@@ -469,7 +473,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
-                            icon={illustrations.Rules}
+                            icon={isRulesRevampEnabled ? illustrations.Flash : illustrations.Rules}
                             title={translate('workspace.moreFeatures.rules.title')}
                             subtitle={translate('workspace.moreFeatures.rules.subtitle')}
                             isActive={arePolicyRulesEnabled(policy, policyCategories)}

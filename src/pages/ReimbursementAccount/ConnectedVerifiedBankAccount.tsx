@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
+import useChangeBankAccount from '@hooks/useChangeBankAccount';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
@@ -61,7 +62,11 @@ function ConnectedVerifiedBankAccount({
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction;
     const {asset: ThumbsUpStars} = useMemoizedLazyAsset(() => loadIllustration('ThumbsUpStars' as IllustrationName));
-    const icons = useMemoizedLazyExpensifyIcons(['Close']);
+    const icons = useMemoizedLazyExpensifyIcons(['Bank', 'Close']);
+    const policyID = reimbursementAccount?.achData?.policyID;
+    const currency = reimbursementAccount?.achData?.currency;
+    const shouldShowChangeBankAccount = !!policyID && !!currency;
+    const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
     useResetBankAccountModal({
         reimbursementAccount,
@@ -105,6 +110,16 @@ function ConnectedVerifiedBankAccount({
                             wrapperStyle={[styles.ph0, styles.mv3, styles.h13]}
                         />
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
+                        {shouldShowChangeBankAccount && (
+                            <MenuItem
+                                title={translate('workspace.bankAccount.changeBankAccount')}
+                                icon={icons.Bank}
+                                onPress={handleChangeBankAccount}
+                                shouldShowRightIcon
+                                outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                                disabled={!!pendingAction || !isEmptyObject(errors)}
+                            />
+                        )}
                         <MenuItem
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={icons.Close}

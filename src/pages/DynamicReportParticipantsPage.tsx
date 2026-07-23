@@ -30,7 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
     isAnnounceRoom,
@@ -247,7 +247,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                             navigateBackToReportDetails();
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(deprecatedGetReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
                     {isGroupChat && (

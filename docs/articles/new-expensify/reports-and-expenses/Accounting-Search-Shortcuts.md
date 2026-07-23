@@ -17,7 +17,7 @@ Workspace Admins and Auditors can use these shortcuts to validate totals, track 
 
 Workspace Admins and Auditors with:
 - Approvals turned on
-- Either reimbursements enabled or at least one card feed connected
+- Either reimbursements enabled, at least one card feed connected, or Expensify Cards enabled
 
 ---
 
@@ -61,7 +61,7 @@ An aging report is a breakdown of expenses by how long they have been in a given
 Some search shortcuts only appear when the required features are enabled:
 
  - **Cash accruals** requires reimbursements
- - **Card accruals** and **Card statements** require a card feed
+ - **Card accruals** and **Card statements** require a connected card feed or Expensify Cards
  - **Bank reconciliation** requires a validated business bank account. 
 
 If a feature isn’t enabled, its shortcut won’t appear.

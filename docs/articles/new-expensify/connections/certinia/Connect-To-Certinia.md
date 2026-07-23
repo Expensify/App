@@ -24,7 +24,7 @@ Connect your Expensify Workspace to Certinia (formerly FinancialForce) to automa
 Install the package that matches your Certinia module. You only need the bundle for the module you use.
 
 - **FFA:** [FFA Installer](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVj)
-- **PSA/SRP:** [PSA/SRP Installer](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BHD%252Fpackaging%252FinstallPackage.apexp%253Fp0%253D04t2M000002J0BH)
+- **PSA/SRP:** [PSA/SRP Installer](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BM)
 
 Follow the Salesforce prompts to complete the installation.
 

@@ -48,7 +48,7 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             )
             .map((accountItem) => ({
                 value: accountItem.code,
-                text: accountItem.name,
+                text: `${accountItem.code} ${accountItem.name}`,
                 keyForList: accountItem.code,
                 isSelected: creditCardAccountCode === accountItem.code,
             })) ?? [];

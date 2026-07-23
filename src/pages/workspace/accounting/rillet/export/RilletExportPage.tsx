@@ -1,16 +1,24 @@
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearRilletErrorField, updateRilletExportToMultipleAccounts} from '@libs/actions/connections/Rillet';
+import {areCardsCustomExportInErrorFields, findMatchingCards, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -22,6 +30,8 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardLists] = useCardsLists();
     const policyOwner = policy?.owner;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
@@ -31,6 +41,14 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
     const defaultCompanyCardVendor = rilletData?.vendors?.find((vendor) => vendor.id === rilletConfig?.export?.defaultVendorID);
     const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
+    const exportToMultipleAccounts = rilletConfig?.export?.exportToMultipleAccounts ?? false;
+    const cardProgramsUsingCustomAccountsCount = Object.keys(rilletConfig?.export?.cardProgramAccounts ?? {}).length;
+    const cardProgramsOfflineFeedbackKeys = Object.values(cardFeeds ?? {}).map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`);
+    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
+    const hasActiveCards = findMatchingCards(cardFeeds ?? {}, cardLists).length > 0;
+
+    const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
+        useAccordionAnimation(exportToMultipleAccounts);
 
     return (
         <ConnectionLayout
@@ -44,8 +62,8 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             shouldBeBlocked
         >
-            <View style={[styles.mv3, styles.mh5]}>
-                <Text>{translate('workspace.rillet.exportDescription')}</Text>
+            <View>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.exportDescription')}</Text>
             </View>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORTER], rilletConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
@@ -96,7 +114,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
-                    title={companyCardAccount?.name}
+                    title={companyCardAccount ? `${companyCardAccount?.code} ${companyCardAccount?.name}` : undefined}
                     description={translate('workspace.rillet.companyCardAccount.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                     shouldShowRightIcon
@@ -105,6 +123,50 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                     }
                 />
             </OfflineWithFeedback>
+            {hasActiveCards && (
+                <>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.rillet.exportToMultipleAccounts')}
+                        switchAccessibilityLabel={translate('workspace.rillet.exportToMultipleAccounts')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mv3, styles.mh5]}
+                        isActive={exportToMultipleAccounts}
+                        onToggle={() => policyID && updateRilletExportToMultipleAccounts(policyID, !exportToMultipleAccounts, exportToMultipleAccounts)}
+                        pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS], rilletConfig?.pendingFields)}
+                        errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+                        onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+                    />
+                    <Accordion
+                        isExpanded={isExportToMultipleAccountsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateExportToMultipleAccountsAccordionSection}
+                    >
+                        <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, rilletConfig?.pendingFields)}>
+                            <MenuItemWithTopDescription
+                                title={translate('workspace.rillet.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
+                                description={translate('workspace.rillet.cardProgramAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
+                                shouldShowRightIcon
+                                brickRoadIndicator={
+                                    areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                                }
+                            />
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT)}>
+                            <MenuItemWithTopDescription
+                                title={translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
+                                description={translate('workspace.rillet.cardAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
+                                shouldShowRightIcon
+                                brickRoadIndicator={
+                                    areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT)
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
+                            />
+                        </OfflineWithFeedback>
+                    </Accordion>
+                </>
+            )}
         </ConnectionLayout>
     );
 }

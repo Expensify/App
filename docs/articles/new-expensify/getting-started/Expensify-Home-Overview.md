@@ -68,7 +68,9 @@ The **For you** section highlights items that may need your attention like:
 
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
-If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
+If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. Once your first to-do appears, the section remains on Home from then on.
+
+After the section has appeared, if there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
 
 ![]({{site.url}}/assets/images/home2.png){:width="100%"}
 
@@ -163,6 +165,10 @@ Not directly. Home links you to other parts of Expensify where actions are compl
 ## Why does the For you section sometimes appear empty?
 
 If there are no current financial to-dos, the **For you** section may appear empty. This means there’s nothing that requires action at that time.
+
+## Why don’t I see the For you section at all?
+
+If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. After your first to-do appears, the section stays on Home—even when you’re caught up and it’s empty.
 
 ## How does the Recently added section decide what to show?
 

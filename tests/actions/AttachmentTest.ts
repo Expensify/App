@@ -89,7 +89,6 @@ describe('AttachmentStorage', () => {
         const attachments = await new Promise<OnyxCollection<Attachment>>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -130,7 +129,6 @@ describe('AttachmentStorage', () => {
         const attachments = await new Promise<OnyxCollection<Attachment>>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -159,7 +157,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -232,7 +229,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -295,7 +291,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -366,7 +361,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;

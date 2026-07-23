@@ -31,9 +31,10 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail, getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {canMemberAssignRole, canMemberManageMemberWithRole, canMemberWrite, isControlPolicy, isPolicyApprover, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {generateAccountID} from '@libs/UserUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -52,7 +53,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -72,6 +73,23 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
 
 function isNameValuePairsObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * A member who was just invited is listed under an optimistic accountID derived from their login, and that entry is removed from
+ * personal details once the invite request finishes and the backend supplies the real accountID. A member details page opened
+ * while the invite was still in flight therefore holds a stale accountID in its route. Recover the login from the employee list
+ * so the page keeps resolving the member across that swap.
+ */
+function getMemberLoginByOptimisticAccountID(policy: OnyxEntry<Policy>, accountID: number) {
+    const matchesOptimisticAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
+    // A member invited by one of their secondary logins ends up listed under their primary login, so a route ID derived
+    // from the secondary matches no employee — primaryLoginsInvited records that mapping and recovers the member.
+    const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesOptimisticAccountID(secondaryLogin))?.[1];
+    if (primaryLoginOfInvitedSecondary) {
+        return primaryLoginOfInvitedSecondary;
+    }
+    return Object.keys(policy?.employeeList ?? {}).find(matchesOptimisticAccountID) ?? '';
 }
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
@@ -94,11 +112,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
 
-    const accountID = Number(route.params.accountID);
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const routeAccountID = Number(route.params.accountID);
+    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
+    const memberPersonalDetails = personalDetails?.[routeAccountID] ?? getPersonalDetailByEmail(memberLogin);
+    const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
-    const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
+    const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
     const isSelectedMemberOwner = policy?.owner === details.login;
@@ -349,6 +369,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 interactive={!isReimburser && canManageSelectedMemberRole}
                                 description={translate('common.role')}
                                 shouldShowRightIcon={!isReimburser && canManageSelectedMemberRole}
+                                pressableTestID="member-role-menu-item"
                                 onPress={() => {
                                     if (
                                         tryNavigateToSubmitWorkspaceUpgrade(
@@ -374,6 +395,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             shouldShowRightIcon={canWriteMembers}
                                             interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
+                                            pressableTestID="member-customField1-menu-item"
                                         />
                                     </OfflineWithFeedback>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
@@ -383,6 +405,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             shouldShowRightIcon={canWriteMembers}
                                             interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
+                                            pressableTestID="member-customField2-menu-item"
                                         />
                                     </OfflineWithFeedback>
                                 </>
@@ -393,6 +416,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 icon={icons.Info}
                                 onPress={navigateToProfile}
                                 shouldShowRightIcon
+                                pressableTestID="member-profile-menu-item"
                             />
                             {memberCards.length > 0 && (
                                 <>
@@ -410,13 +434,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
                                         return (
                                             <OfflineWithFeedback
-                                                key={`${cardTitle ?? ''}_${memberCard.cardID}`}
+                                                key={memberCard.cardID}
                                                 errorRowStyles={styles.ph5}
                                                 errors={memberCard.errors}
                                                 pendingAction={memberCard.pendingAction}
                                             >
                                                 <MenuItem
                                                     key={memberCard.cardID}
+                                                    pressableTestID={`card-${memberCard.cardID}`}
                                                     title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
                                                     badgeText={

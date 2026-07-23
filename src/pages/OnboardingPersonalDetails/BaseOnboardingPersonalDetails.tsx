@@ -151,7 +151,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             const firstName = values.firstName.trim();
             const lastName = values.lastName.trim();
 
-            setDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+            setDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
@@ -161,7 +161,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     return;
                 }
                 setIsLoading(true);
-                updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+                updateDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
                 autoCreateSubmitWorkspace(firstName, lastName).finally(() => {
                     setIsLoading(false);
                 });
@@ -176,7 +176,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
                 setIsLoading(true);
-                updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+                updateDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
                 autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected).finally(() => {
                     setIsLoading(false);
                 });
@@ -188,8 +188,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         [
             isLoading,
             formatPhoneNumber,
-            session?.accountID,
-            session?.email,
+            currentUserPersonalDetails,
             isPrivateDomainAndHasAccessiblePolicies,
             onboardingPurposeSelected,
             canUseSubmit2026,

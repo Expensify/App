@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -66,10 +67,12 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(targetTransactionThreadParentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionThreadParentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selfDMReport = useSelfDMReport();
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -90,6 +93,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             targetTransactionThreadReport,
             targetTransactionThreadParentReport,
             targetTransactionThreadParentReportNextStep,
+            iouReportOwnerLogin,
             allTransactionViolations,
             policy: targetTransactionPolicy,
             policyTags,
@@ -100,6 +104,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             delegateAccountID,
             isTrackIntentUser,
             selfDMReport,
+            selfDMReportActions,
             reportPolicyTags,
         });
 

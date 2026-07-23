@@ -17,6 +17,7 @@ import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
 import FullstoryInitHandler from './FullstoryInitHandler';
+import FullstoryUserContextHandler from './FullstoryUserContextHandler';
 import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
@@ -288,6 +289,7 @@ function Expensify() {
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
+            <FullstoryUserContextHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
             {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState

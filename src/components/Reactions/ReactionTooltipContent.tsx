@@ -50,13 +50,7 @@ function userNamesStringSelector(accountIDs: number[], currentUserAccountID: num
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const [namesString] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: userNamesStringSelector(accountIDs, currentUserAccountID, translate),
-        },
-        [accountIDs, currentUserAccountID, translate],
-    );
+    const [namesString] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userNamesStringSelector(accountIDs, currentUserAccountID, translate)});
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     return (

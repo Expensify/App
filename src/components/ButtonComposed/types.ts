@@ -1,3 +1,5 @@
+import type {ButtonVariant} from '@styles/utils/types';
+
 import type CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -5,8 +7,6 @@ import type {ForwardedRef} from 'react';
 import type React from 'react';
 import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-
-import type {ButtonVariant} from './context';
 
 type ButtonEventsProps = {
     /** A function that is called when the button is clicked on */

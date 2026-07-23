@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -45,7 +45,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
 
     const options = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [translate, loginList, session?.email]);
 
-    const onNewContactMethodButtonPress = useCallback(() => {
+    const addNewContactMethod = useCallback(() => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
@@ -96,12 +96,13 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
-                        large
-                        success
-                        text={translate('contacts.newContactMethod')}
-                        onPress={onNewContactMethodButtonPress}
-                        pressOnEnter
-                    />
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={addNewContactMethod}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('contacts.newContactMethod')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScrollView>
         </ScreenWrapper>

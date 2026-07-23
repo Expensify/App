@@ -34,7 +34,7 @@ Workspace Admins can [learn how to enable Travel on a Workspace](/articles/trave
 1. Click the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Travel**.
 3. Click **Book travel**.
-4. Search for flights, hotels, rental cars or rail tickets. 
+4. Search for flights, hotels, or rail tickets. 
 5. Select your preferred itinerary.
 6. Continue to checkout.
 7. In the **Payment method** section, select **Expensify Travel Card**.
@@ -53,7 +53,7 @@ Workspace Admins can [learn how to enable Travel on a Workspace](/articles/trave
 - Your booking is confirmed through Expensify Travel.
 - The payment is charged to your company’s Consolidated Travel Billing account.
 - For flights and rail tickets, the expense and receipt are automatically added to your Expensify account.
-- For hotel and car bookings, upload the receipt after checkout or after returning the vehicle.
+- For hotel bookings, upload the receipt after checkout.
 - The charge appears in your company’s Consolidated Travel Billing statement
 
 ---

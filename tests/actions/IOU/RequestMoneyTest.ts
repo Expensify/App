@@ -228,7 +228,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -283,7 +282,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
 
@@ -330,7 +328,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForTransactionThread) => {
                                     Onyx.disconnect(connection);
 
@@ -353,7 +350,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
 
@@ -389,7 +385,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.SNAPSHOT,
-                                waitForCollectionCallback: true,
                                 callback: (snapshotData) => {
                                     Onyx.disconnect(connection);
 
@@ -406,7 +401,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
@@ -423,7 +417,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                waitForCollectionCallback: false,
                                 callback: (transaction) => {
                                     Onyx.disconnect(connection);
                                     expect(transaction?.pendingAction).toBeFalsy();
@@ -496,7 +489,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -525,7 +517,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (allIOUReportActions) => {
                                     Onyx.disconnect(connection);
 
@@ -563,7 +554,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
 
@@ -602,7 +592,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
@@ -732,7 +721,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -757,7 +745,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
 
@@ -794,7 +781,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
 
@@ -824,7 +810,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
@@ -841,7 +826,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
                                     for (const transaction of Object.values(allTransactions ?? {})) {
@@ -902,7 +886,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
-                                    waitForCollectionCallback: true,
                                     callback: (allReports) => {
                                         Onyx.disconnect(connection);
 
@@ -934,7 +917,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForIOUReport) => {
                                         Onyx.disconnect(connection);
 
@@ -981,7 +963,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                    waitForCollectionCallback: true,
                                     callback: (allTransactions) => {
                                         Onyx.disconnect(connection);
 
@@ -1013,7 +994,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForIOUReport) => {
                                         Onyx.disconnect(connection);
                                         expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
@@ -1031,7 +1011,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                    waitForCollectionCallback: true,
                                     callback: (reportActionsForTransactionThread) => {
                                         Onyx.disconnect(connection);
                                         expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(3);
@@ -1049,7 +1028,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -1078,7 +1056,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForReport) => {
                                         Onyx.disconnect(connection);
                                         iouAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
@@ -1097,7 +1074,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForReport) => {
                                         Onyx.disconnect(connection);
                                         iouAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
@@ -1116,7 +1092,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForReport) => {
                                         Onyx.disconnect(connection);
                                         expect(reportActionsForReport).toMatchObject({});
@@ -1132,7 +1107,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connection);
                                         expect(transaction).toBeFalsy();
@@ -1162,7 +1136,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
-                                    waitForCollectionCallback: true,
                                     callback: (allReports) => {
                                         Onyx.disconnect(connection);
                                         for (const report of Object.values(allReports ?? {})) {
@@ -1180,7 +1153,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                    waitForCollectionCallback: false,
                                     callback: (allReportActions) => {
                                         Onyx.disconnect(connection);
                                         for (const reportAction of Object.values(allReportActions ?? {})) {
@@ -1198,7 +1170,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                    waitForCollectionCallback: true,
                                     callback: (allTransactions) => {
                                         Onyx.disconnect(connection);
                                         for (const transaction of Object.values(allTransactions ?? {})) {
@@ -1311,7 +1282,6 @@ describe('actions/IOU', () => {
             let selfDMReportID: string | undefined;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (reports) => {
                     const selfDMReportOnyx = Object.values(reports ?? {}).find((report) => report?.reportID === selfDMReport.reportID);
                     selfDMReportID = selfDMReportOnyx?.reportID;
@@ -1326,7 +1296,6 @@ describe('actions/IOU', () => {
             let linkedTrackedExpenseReportID: string | undefined;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
                     linkedTrackedExpenseReportID = transaction?.reportID;
@@ -1360,6 +1329,8 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: {
                     accountant,
+                    newAccountIDs: [],
+                    newLogins: [],
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -1924,7 +1895,6 @@ describe('actions/IOU', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -1947,7 +1917,6 @@ describe('actions/IOU', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -1967,7 +1936,6 @@ describe('actions/IOU', () => {
             const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         resolve(transactions);
@@ -2024,7 +1992,6 @@ describe('actions/IOU', () => {
             const updatedTransactionThreadReport = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`]);
@@ -2101,7 +2068,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2190,7 +2156,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2270,7 +2235,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2345,7 +2309,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2421,7 +2384,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2492,7 +2454,6 @@ describe('actions/IOU', () => {
                 let iouReport: Report | undefined;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         iouReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                     },
@@ -2762,7 +2723,7 @@ describe('actions/IOU', () => {
                     },
                     linkedTrackedExpenseReportID: '1',
                 },
-                accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
+                accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: []} : undefined,
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,

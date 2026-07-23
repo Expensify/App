@@ -26,6 +26,7 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
             uri={getQuickbooksOnlineSetupLink(policyID)}
             testID="QuickbooksOnlineSetupPage"
             context="QuickbooksOnlineSetupPage"
+            shouldAppendShortLivedAuthToken
         />
     );
 }

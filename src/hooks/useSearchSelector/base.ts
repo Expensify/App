@@ -218,7 +218,6 @@ function useSearchSelectorBase({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
         batchSize: maxResultsPerPage,
-        betas,
     });
     const areOptionsInitialized = !isLoadingOptions;
     const defaultOptions = filteredOptions ?? emptyOptionList;

@@ -6,6 +6,7 @@ import type {SemVer} from 'semver';
 import type {PackageJson} from 'type-fest';
 
 import {execSync, exec as originalExec} from 'child_process';
+import CLI from 'expensify-common/CLI';
 import {promises as fs} from 'fs';
 import path from 'path';
 import getMajorVersion from 'semver/functions/major';
@@ -209,12 +210,31 @@ async function run(semanticVersionLevel: SemverLevel) {
 }
 
 if (require.main === module) {
-    // Get and validate SEMVER_LEVEL input
-    const semanticVersionLevel = process.argv.at(2) ?? 'BUILD';
-    if (!versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
-        throw new Error(`Invalid semver level ${semanticVersionLevel}. Must be one of: ${Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).join(', ')}`);
-    }
-    run(semanticVersionLevel);
+    const semverLevelOptions = Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).join(', ');
+    const cli = new CLI({
+        positionalArgs: [
+            {
+                name: 'semverLevel',
+                description: `Semantic version level to bump (${semverLevelOptions})`,
+                default: versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
+                parse: (val) => {
+                    if (!versionUpdater.isValidSemverLevel(val)) {
+                        throw new Error(`Invalid semver level. Must be one of: ${semverLevelOptions}`);
+                    }
+                    return val;
+                },
+            },
+        ],
+    });
+
+    run(cli.positionalArgs.semverLevel).catch((error: unknown) => {
+        if (error instanceof Error) {
+            console.error(error.message);
+        } else {
+            console.error('An unexpected error occurred.');
+        }
+        process.exit(1);
+    });
 }
 
 export default run;

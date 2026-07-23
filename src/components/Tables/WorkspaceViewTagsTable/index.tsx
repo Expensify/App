@@ -105,6 +105,7 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
             onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('workspace.tags.findTag')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

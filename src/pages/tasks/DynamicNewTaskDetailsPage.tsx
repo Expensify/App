@@ -35,7 +35,7 @@ import {View} from 'react-native';
 function DynamicNewTaskDetailsPage() {
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, undefined, [task?.parentReportID]);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`);
     const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {

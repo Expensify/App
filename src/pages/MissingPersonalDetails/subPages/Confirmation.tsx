@@ -24,6 +24,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
     const summaryItems = useMemo(() => {
         const baseItems = [
             {
+                id: 'legal-name',
                 description: translate('personalInfoStep.legalName'),
                 title: `${values[INPUT_IDS.LEGAL_FIRST_NAME]} ${values[INPUT_IDS.LEGAL_LAST_NAME]}`,
                 shouldShowRightIcon: true,
@@ -32,6 +33,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
                 },
             },
             {
+                id: 'date-of-birth',
                 description: translate('common.dob'),
                 title: values[INPUT_IDS.DATE_OF_BIRTH],
                 shouldShowRightIcon: true,
@@ -40,6 +42,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
                 },
             },
             {
+                id: 'address',
                 description: translate('personalInfoStep.address'),
                 title: `${values[INPUT_IDS.ADDRESS_LINE_1]}, ${values[INPUT_IDS.ADDRESS_LINE_2] ? `${values[INPUT_IDS.ADDRESS_LINE_2]}, ` : ''}${values[INPUT_IDS.CITY]}, ${
                     values[INPUT_IDS.STATE]
@@ -50,6 +53,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
                 },
             },
             {
+                id: 'phone-number',
                 description: translate('common.phoneNumber'),
                 title: values[INPUT_IDS.PHONE_NUMBER],
                 shouldShowRightIcon: true,
@@ -61,6 +65,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
 
         if (shouldCollectPIN) {
             baseItems.push({
+                id: 'pin',
                 description: translate('cardPage.physicalCardPin'),
                 title: '••••',
                 shouldShowRightIcon: true,

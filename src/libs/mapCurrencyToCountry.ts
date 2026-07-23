@@ -1,6 +1,7 @@
+import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 
-function mapCurrencyToCountry(currency: string): string {
+function mapCurrencyToCountry(currency: string): Country | '' {
     switch (currency) {
         case CONST.CURRENCY.USD:
             return CONST.COUNTRY.US;

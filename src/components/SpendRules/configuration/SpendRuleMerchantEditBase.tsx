@@ -13,6 +13,8 @@ import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
@@ -22,7 +24,6 @@ import INPUT_IDS from '@src/types/form/SpendRuleMerchantEditForm';
 
 import type {ValueOf} from 'type-fest';
 
-import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -39,7 +40,6 @@ type MatchTypeItem = ListItem & {
 };
 
 function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes, merchantNames, onMerchantDataChange}: SpendRuleMerchantEditBasePageProps) {
-    const navigation = useNavigation();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -69,7 +69,11 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
     ];
 
     const goBack = () => {
-        navigation.goBack();
+        Navigation.goBack();
+    };
+
+    const saveAndGoBack = () => {
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     const submit = () => {
@@ -81,7 +85,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
                 const updatedMerchantMatchTypes = merchantMatchTypes.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
             }
-            goBack();
+            saveAndGoBack();
             return;
         }
 
@@ -94,7 +98,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
             : merchantMatchTypes.map((type, merchantArrayIndex) => (merchantArrayIndex === index ? matchType : type));
 
         onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
-        goBack();
+        saveAndGoBack();
     };
 
     const onSelectMatchType = (item: MatchTypeItem) => {

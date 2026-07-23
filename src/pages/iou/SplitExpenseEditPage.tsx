@@ -35,7 +35,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
@@ -64,9 +64,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
-    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, undefined, [
-        splitExpenseDraftTransaction?.comment?.originalTransactionID,
-    ]);
+    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`);
 
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
     const allTransactions = useAllTransactions();
@@ -147,7 +145,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const reportAttributes = useReportAttributes();
-    const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
+    const reportName = deprecatedGetReportName(currentReport, reportAttributes) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
     // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original

@@ -128,7 +128,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     return (
         <>
             <MenuItemWithTopDescription
-                key={`${taxRates?.name}${taxRateTitle}`}
+                key={`${taxRates?.name}_rate`}
+                pressableTestID={`${taxRates?.name}_rate`}
                 shouldShowRightIcon={canModifyTaxFields}
                 title={taxRateTitle}
                 description={taxRates?.name}
@@ -167,7 +168,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 </View>
             ) : (
                 <MenuItemWithTopDescription
-                    key={`${taxRates?.name}${formattedTaxAmount}`}
+                    key={`${taxRates?.name}_amount`}
+                    pressableTestID={`${taxRates?.name}_amount`}
                     shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}

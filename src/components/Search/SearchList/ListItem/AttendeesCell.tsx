@@ -46,7 +46,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {localeCompare, formatPhoneNumber} = useLocalize();
+    const {localeCompare, formatPhoneNumber, translate} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
@@ -59,7 +59,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), styles.overflowHidden]);
 
     const icons = sortIconsByName(attendeeIcons, personalDetails, localeCompare);
-    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name));
+    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name));
 
     return (
         <View

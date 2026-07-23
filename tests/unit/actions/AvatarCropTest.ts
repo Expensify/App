@@ -1,8 +1,9 @@
 import {clearAvatarCropDraft, clearAvatarCropResult, setAvatarCropDraft, setAvatarCropResult} from '@libs/actions/AvatarCrop';
-import {serializeAvatarCropImage} from '@libs/AvatarCropUtils';
+import {buildAvatarCropResult, serializeAvatarCropImage} from '@libs/AvatarCropUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AvatarCropResult} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -11,13 +12,16 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/AvatarCropUtils', () => ({
     serializeAvatarCropImage: jest.fn(),
+    buildAvatarCropResult: jest.fn(),
 }));
 
 const mockedSerialize = jest.mocked(serializeAvatarCropImage);
+const mockedBuildResult = jest.mocked(buildAvatarCropResult);
 
 const TOKEN = 'token-123';
 const OPENER_KEY = 'settings/profile/avatar';
 const SERIALIZED_URI = 'data:image/png;base64,AAAA';
+const BUILT_RESULT: AvatarCropResult = {token: TOKEN, uri: SERIALIZED_URI, name: 'cropped.png', type: 'image/png'};
 
 describe('actions/AvatarCrop', () => {
     beforeAll(() => {
@@ -26,6 +30,7 @@ describe('actions/AvatarCrop', () => {
 
     beforeEach(() => {
         mockedSerialize.mockResolvedValue(SERIALIZED_URI);
+        mockedBuildResult.mockResolvedValue(BUILT_RESULT);
     });
 
     afterEach(async () => {
@@ -78,7 +83,7 @@ describe('actions/AvatarCrop', () => {
     });
 
     describe('setAvatarCropResult', () => {
-        it('serializes the image and stores the result including dimensions when present', async () => {
+        it('builds the result from the image/token and stores it', async () => {
             const image: CustomRNImageManipulatorResult = {
                 uri: 'file:///tmp/cropped.png',
                 name: 'cropped.png',
@@ -87,36 +92,13 @@ describe('actions/AvatarCrop', () => {
                 width: 200,
                 height: 200,
             };
+            const built: AvatarCropResult = {token: TOKEN, uri: SERIALIZED_URI, name: 'cropped.png', type: 'image/png', size: 1234, width: 200, height: 200};
+            mockedBuildResult.mockResolvedValue(built);
 
             await setAvatarCropResult({token: TOKEN, image});
 
-            expect(mockedSerialize).toHaveBeenCalledWith(image);
-            await expect(getOnyxValue(ONYXKEYS.AVATAR_CROP_RESULT)).resolves.toEqual({
-                token: TOKEN,
-                uri: SERIALIZED_URI,
-                name: 'cropped.png',
-                type: 'image/png',
-                size: 1234,
-                width: 200,
-                height: 200,
-            });
-        });
-
-        it('omits dimensions when the image is a File without width/height', async () => {
-            const file = new File(['data'], 'cropped.png', {type: 'image/png'});
-
-            await setAvatarCropResult({token: TOKEN, image: file});
-
-            const result = await getOnyxValue(ONYXKEYS.AVATAR_CROP_RESULT);
-            expect(result).toEqual({
-                token: TOKEN,
-                uri: SERIALIZED_URI,
-                name: 'cropped.png',
-                type: 'image/png',
-                size: file.size,
-            });
-            expect(result).not.toHaveProperty('width');
-            expect(result).not.toHaveProperty('height');
+            expect(mockedBuildResult).toHaveBeenCalledWith(image, TOKEN);
+            await expect(getOnyxValue(ONYXKEYS.AVATAR_CROP_RESULT)).resolves.toEqual(built);
         });
     });
 

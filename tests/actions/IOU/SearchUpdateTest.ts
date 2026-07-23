@@ -1,6 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
+import {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -114,7 +114,9 @@ describe('actions/IOU', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                },
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -180,7 +182,12 @@ describe('actions/IOU', () => {
                 recentSearchHash: 1023339253,
                 similarSearchHash: 1855682507,
             } as SearchQueryJSON;
-            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
 
             // When the report is in draft status it should return true
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
@@ -237,7 +244,12 @@ describe('actions/IOU', () => {
                 recentSearchHash: 244251677,
                 similarSearchHash: 1539858783,
             } as SearchQueryJSON;
-            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
 
             // When the report is in draft status it should return false
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
@@ -301,7 +313,12 @@ describe('actions/IOU', () => {
                 similarSearchHash: 1832274510,
             } as SearchQueryJSON;
 
-            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
 
             // When the report is in draft status it should return true
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
@@ -495,6 +512,39 @@ describe('actions/IOU', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+    });
+
+    describe('getSearchOnyxUpdate', () => {
+        it('returns undefined when the participant has no accountID', () => {
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+            expect(result).toBeUndefined();
+        });
+
+        it('returns undefined when there is no current user account', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+            await Onyx.set(ONYXKEYS.SESSION, {});
+            await waitForBatchedUpdates();
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+            expect(result).toBeUndefined();
         });
     });
 });

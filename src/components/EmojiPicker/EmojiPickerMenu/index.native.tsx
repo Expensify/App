@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -32,6 +33,7 @@ import useEmojiPickerMenu from './useEmojiPickerMenu';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -190,9 +192,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
             <View style={[styles.p4, styles.pb3]}>
                 <TextInput
-                    label={translate('common.search')}
+                    placeholder={translate('common.search')}
+                    placeholderTextColor={theme.textSupporting}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
+                    touchableInputWrapperStyle={styles.listSearchInputNarrowWrapper}
+                    textInputContainerStyles={[styles.pb0, styles.ph3]}
+                    inputStyle={[styles.lineHeightUndefined]}
                     onChangeText={(text: string) => {
                         setSearchText(text);
                         filterEmojis(text);

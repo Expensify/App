@@ -65,7 +65,7 @@ import navigationRef from './Navigation/navigationRef';
 import {isRecord} from './ObjectUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
-import {getReportName} from './ReportNameUtils';
+import {deprecatedGetReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -1623,7 +1623,7 @@ function getFilterDisplayValue({
         return getBankAccountSearchLabel(bankAccount);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
+        return deprecatedGetReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         // Added 2 here as this is the maximum number of decimals an amount can have. So, we can run a search with 2 decimals here.

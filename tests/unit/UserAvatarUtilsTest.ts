@@ -13,7 +13,11 @@ describe('UserAvatarUtils', () => {
         it('should return default avatar if the url is for default avatar', () => {
             const avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const defaultAvatar = UserAvatarUtils.getAvatar({avatarSource: avatarURL, accountID: 1, defaultAvatars: avatars.current});
+            const defaultAvatar = UserAvatarUtils.getAvatar({
+                avatarSource: avatarURL,
+                accountID: 1,
+                defaultAvatars: avatars.current,
+            });
 
             expect(typeof defaultAvatar).toBe('function');
             // Both defaultAvatar and defaultAvatarUrl must be `defaultAvatars.Avatar7`
@@ -23,20 +27,32 @@ describe('UserAvatarUtils', () => {
         it('should return the same url if url is not for default avatar', () => {
             const avatarURL = 'https://test.com/images/some_avatar.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const avatar = UserAvatarUtils.getAvatar({avatarSource: avatarURL, accountID: 1, defaultAvatars: avatars.current});
+            const avatar = UserAvatarUtils.getAvatar({
+                avatarSource: avatarURL,
+                accountID: 1,
+                defaultAvatars: avatars.current,
+            });
 
             expect(avatar).toEqual('https://test.com/images/some_avatar.png');
         });
 
         it('should return default avatar for Concierge URLs', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const avatar = UserAvatarUtils.getAvatar({avatarSource: CONST.CONCIERGE_ICON_URL, accountID: CONST.ACCOUNT_ID.CONCIERGE, defaultAvatars: avatars.current});
+            const avatar = UserAvatarUtils.getAvatar({
+                avatarSource: CONST.CONCIERGE_ICON_URL,
+                accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                defaultAvatars: avatars.current,
+            });
             expect(avatar).toBeDefined();
         });
 
         it('should resolve the Notifications icon URL to the local Notifications avatar regardless of accountID', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const avatar = UserAvatarUtils.getAvatar({avatarSource: CONST.NOTIFICATIONS_ICON_URL, accountID: 999, defaultAvatars: avatars.current});
+            const avatar = UserAvatarUtils.getAvatar({
+                avatarSource: CONST.NOTIFICATIONS_ICON_URL,
+                accountID: 999,
+                defaultAvatars: avatars.current,
+            });
             expect(avatar).toBe(avatars.current.NotificationsAvatar);
         });
 
@@ -51,7 +67,11 @@ describe('UserAvatarUtils', () => {
 
         it('should return default avatar SVG for default avatar URL', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const avatar = UserAvatarUtils.getAvatar({avatarSource: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png', accountID: 2, defaultAvatars: avatars.current});
+            const avatar = UserAvatarUtils.getAvatar({
+                avatarSource: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png',
+                accountID: 2,
+                defaultAvatars: avatars.current,
+            });
             expect(typeof avatar).toBe('function');
             expect(avatar).toBe(defaultAvatars.Avatar2);
         });
@@ -59,8 +79,17 @@ describe('UserAvatarUtils', () => {
         it('should return default avatar SVG for default avatar URL regardless of accountEmail or accountId provided', () => {
             const defaultAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/user/default-avatar_5.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const avatarByEmail = UserAvatarUtils.getAvatar({avatarSource: defaultAvatarURL, accountID: 5, accountEmail: 'alice@example.com', defaultAvatars: avatars.current});
-            const avatarById = UserAvatarUtils.getAvatar({avatarSource: defaultAvatarURL, accountID: 5, defaultAvatars: avatars.current});
+            const avatarByEmail = UserAvatarUtils.getAvatar({
+                avatarSource: defaultAvatarURL,
+                accountID: 5,
+                accountEmail: 'alice@example.com',
+                defaultAvatars: avatars.current,
+            });
+            const avatarById = UserAvatarUtils.getAvatar({
+                avatarSource: defaultAvatarURL,
+                accountID: 5,
+                defaultAvatars: avatars.current,
+            });
 
             expect(avatarByEmail).toBe(defaultAvatars.Avatar5);
             expect(avatarById).toBe(defaultAvatars.Avatar5);
@@ -70,21 +99,30 @@ describe('UserAvatarUtils', () => {
     describe('getAvatarUrl', () => {
         it('should return default avatar URL when url is for default avatar', () => {
             const avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
-            const defaultAvatarUrl = UserAvatarUtils.getAvatarURL({avatarSource: avatarURL, accountID: 1});
+            const defaultAvatarUrl = UserAvatarUtils.getAvatarURL({
+                avatarSource: avatarURL,
+                accountID: 1,
+            });
 
             expect(defaultAvatarUrl).toBe('https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png');
         });
 
         it('should return the same url if url is not for default avatar', () => {
             const avatarURL = 'https://test.com/images/some_avatar.png';
-            const avatarUrl = UserAvatarUtils.getAvatarURL({avatarSource: avatarURL, accountID: 1});
+            const avatarUrl = UserAvatarUtils.getAvatarURL({
+                avatarSource: avatarURL,
+                accountID: 1,
+            });
 
             expect(avatarUrl).toEqual('https://test.com/images/some_avatar.png');
         });
 
         it('should return the canonical CDN URL for an agent avatar', () => {
             const avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bot-avatar--blue.png';
-            const avatarUrl = UserAvatarUtils.getAvatarURL({avatarSource: avatarURL, accountID: 1});
+            const avatarUrl = UserAvatarUtils.getAvatarURL({
+                avatarSource: avatarURL,
+                accountID: 1,
+            });
 
             expect(avatarUrl).toBe('https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bot-avatar--blue.png');
         });
@@ -92,13 +130,24 @@ describe('UserAvatarUtils', () => {
 
     describe('getPresetAvatarURL', () => {
         it('should return Concierge icon URL for Concierge account', () => {
-            const url = UserAvatarUtils.getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE});
+            const url = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: CONST.ACCOUNT_ID.CONCIERGE,
+            });
             expect(url).toBe(CONST.CONCIERGE_ICON_URL);
         });
 
         it('should return Notifications icon URL for the Notifications account by accountID or email', () => {
-            expect(UserAvatarUtils.getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.NOTIFICATIONS})).toBe(CONST.NOTIFICATIONS_ICON_URL);
-            expect(UserAvatarUtils.getDefaultAvatarURL({accountID: 999, accountEmail: CONST.EMAIL.NOTIFICATIONS})).toBe(CONST.NOTIFICATIONS_ICON_URL);
+            expect(
+                UserAvatarUtils.getDefaultAvatarURL({
+                    accountID: CONST.ACCOUNT_ID.NOTIFICATIONS,
+                }),
+            ).toBe(CONST.NOTIFICATIONS_ICON_URL);
+            expect(
+                UserAvatarUtils.getDefaultAvatarURL({
+                    accountID: 999,
+                    accountEmail: CONST.EMAIL.NOTIFICATIONS,
+                }),
+            ).toBe(CONST.NOTIFICATIONS_ICON_URL);
         });
 
         it('should return default avatar URL for regular account', () => {
@@ -108,13 +157,21 @@ describe('UserAvatarUtils', () => {
         });
 
         it('should extract avatar number from avatarURL when provided', () => {
-            const url = UserAvatarUtils.getDefaultAvatarURL({accountID: 999, avatarURL: 'https://example.com/default-avatar_5.png'});
+            const url = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: 999,
+                avatarURL: 'https://example.com/default-avatar_5.png',
+            });
             expect(url).toContain('default-avatar_5.png');
         });
 
         it('should prioritize avatarURL parameter over accountID', () => {
-            const urlWithAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: 1, avatarURL: 'https://example.com/avatar_10.png'});
-            const urlWithoutAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: 1});
+            const urlWithAvatar = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: 1,
+                avatarURL: 'https://example.com/avatar_10.png',
+            });
+            const urlWithoutAvatar = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: 1,
+            });
 
             expect(urlWithAvatar).toContain('default-avatar_10.png');
             expect(urlWithoutAvatar).toContain('default-avatar_2.png');
@@ -131,7 +188,10 @@ describe('UserAvatarUtils', () => {
 
         it('should return a letter avatar from the email when an email is provided', () => {
             const urlByID = UserAvatarUtils.getDefaultAvatarURL({accountID: 10});
-            const urlByEmail = UserAvatarUtils.getDefaultAvatarURL({accountID: 10, accountEmail: 'john.doe@example.com'});
+            const urlByEmail = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: 10,
+                accountEmail: 'john.doe@example.com',
+            });
 
             expect(urlByID).toContain('default-avatar_');
             expect(urlByEmail).toContain('generated/letter/');
@@ -139,9 +199,27 @@ describe('UserAvatarUtils', () => {
             expect(urlByID).not.toBe(urlByEmail);
         });
 
+        it('should build initials from the name ahead of the email when the name is known', () => {
+            const url = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: 10,
+                accountEmail: 'john.doe@example.com',
+                firstName: 'Jane',
+                lastName: 'Smith',
+            });
+
+            expect(url).toContain('generated/letter/');
+            expect(url).toContain('/JS.png');
+        });
+
         it('should produce consistent avatar for same email', () => {
-            const url1 = UserAvatarUtils.getDefaultAvatarURL({accountID: 1, accountEmail: 'consistent@example.com'});
-            const url2 = UserAvatarUtils.getDefaultAvatarURL({accountID: 999, accountEmail: 'consistent@example.com'});
+            const url1 = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: 1,
+                accountEmail: 'consistent@example.com',
+            });
+            const url2 = UserAvatarUtils.getDefaultAvatarURL({
+                accountID: 999,
+                accountEmail: 'consistent@example.com',
+            });
 
             expect(url1).toBe(url2);
         });
@@ -246,28 +324,44 @@ describe('UserAvatarUtils', () => {
         it('should add _128 suffix to CloudFront avatars', () => {
             const source = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatar.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
+            const result = UserAvatarUtils.getSmallSizeAvatar({
+                avatarSource: source,
+                accountID: 1,
+                defaultAvatars: avatars.current,
+            });
             expect(result).toBe('https://d2k5nsl2zxldvw.cloudfront.net/images/avatar_128.png');
         });
 
         it('should not add _128 to non-CloudFront URLs', () => {
             const source = 'https://example.com/avatar.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
+            const result = UserAvatarUtils.getSmallSizeAvatar({
+                avatarSource: source,
+                accountID: 1,
+                defaultAvatars: avatars.current,
+            });
             expect(result).toBe(source);
         });
 
         it('should not duplicate _128 suffix', () => {
             const source = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatar_128.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
+            const result = UserAvatarUtils.getSmallSizeAvatar({
+                avatarSource: source,
+                accountID: 1,
+                defaultAvatars: avatars.current,
+            });
             expect(result).toBe(source);
         });
 
         it('should return SVG component as-is for default avatars', () => {
             const defaultAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_5.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: defaultAvatarURL, accountID: 5, defaultAvatars: avatars.current});
+            const result = UserAvatarUtils.getSmallSizeAvatar({
+                avatarSource: defaultAvatarURL,
+                accountID: 5,
+                defaultAvatars: avatars.current,
+            });
             expect(typeof result).toBe('function'); // SVG component
         });
     });
@@ -276,21 +370,33 @@ describe('UserAvatarUtils', () => {
         it('should remove _128 suffix from avatar URLs', () => {
             const source = 'https://example.com/avatar_128.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
+            const result = UserAvatarUtils.getFullSizeAvatar({
+                avatarSource: source,
+                accountID: 1,
+                defaultAvatars: avatars.current,
+            });
             expect(result).toBe('https://example.com/avatar.png');
         });
 
         it('should return avatar as-is if no _128 suffix', () => {
             const source = 'https://example.com/avatar.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
+            const result = UserAvatarUtils.getFullSizeAvatar({
+                avatarSource: source,
+                accountID: 1,
+                defaultAvatars: avatars.current,
+            });
             expect(result).toBe(source);
         });
 
         it('should return SVG component as-is for default avatars', () => {
             const defaultAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_3.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: defaultAvatarURL, accountID: 3, defaultAvatars: avatars.current});
+            const result = UserAvatarUtils.getFullSizeAvatar({
+                avatarSource: defaultAvatarURL,
+                accountID: 3,
+                defaultAvatars: avatars.current,
+            });
             expect(typeof result).toBe('function'); // SVG component
             expect(result).toBe(defaultAvatars.Avatar3);
         });
@@ -333,19 +439,32 @@ describe('UserAvatarUtils', () => {
         });
 
         it('should return avatar name using email hash when provided', () => {
-            const name1 = UserAvatarUtils.getDefaultAvatarName({accountID: 1, accountEmail: 'test@example.com'});
-            const name2 = UserAvatarUtils.getDefaultAvatarName({accountID: 999, accountEmail: 'test@example.com'});
+            const name1 = UserAvatarUtils.getDefaultAvatarName({
+                accountID: 1,
+                accountEmail: 'test@example.com',
+            });
+            const name2 = UserAvatarUtils.getDefaultAvatarName({
+                accountID: 999,
+                accountEmail: 'test@example.com',
+            });
             expect(name1).toBe(name2); // Same email = same avatar
             expect(name1).toContain('default-avatar_');
         });
 
         it('should extract avatar number from existing avatarURL', () => {
-            const name = UserAvatarUtils.getDefaultAvatarName({accountID: 999, avatarURL: 'https://example.com/avatar_12.png'});
+            const name = UserAvatarUtils.getDefaultAvatarName({
+                accountID: 999,
+                avatarURL: 'https://example.com/avatar_12.png',
+            });
             expect(name).toBe('default-avatar_12');
         });
 
         it('should prioritize avatarURL over accountID and email', () => {
-            const name = UserAvatarUtils.getDefaultAvatarName({accountID: 1, accountEmail: 'test@example.com', avatarURL: 'https://example.com/default-avatar_20.png'});
+            const name = UserAvatarUtils.getDefaultAvatarName({
+                accountID: 1,
+                accountEmail: 'test@example.com',
+                avatarURL: 'https://example.com/default-avatar_20.png',
+            });
             expect(name).toBe('default-avatar_20');
         });
     });
@@ -355,15 +474,63 @@ describe('UserAvatarUtils', () => {
         // implementations must produce these exact URLs. Colors come from md5(login) % palette size.
         const BASE = `${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1`;
         const cases = [
-            {accountID: 42, firstName: 'Dave', lastName: 'Lee', login: 'dave@example.com', expected: `${BASE}/blue100/DL.png`},
-            {accountID: 42, firstName: 'Dave', lastName: '', login: 'dave@example.com', expected: `${BASE}/blue100/D.png`},
-            {accountID: 42, firstName: '', lastName: '', login: 'hiiii@example.com', expected: `${BASE}/blue400/H.png`},
-            {accountID: 7, firstName: '', lastName: '', login: '+15551234567@expensify.sms', expected: ''},
-            {accountID: CONST.ACCOUNT_ID.CONCIERGE, firstName: 'Concierge', lastName: '', login: 'concierge@expensify.com', expected: ''},
-            {accountID: CONST.ACCOUNT_ID.NOTIFICATIONS, firstName: 'Notifications', lastName: '', login: 'notifications@expensify.com', expected: ''},
+            {
+                accountID: 42,
+                firstName: 'Dave',
+                lastName: 'Lee',
+                login: 'dave@example.com',
+                expected: `${BASE}/blue100/DL.png`,
+            },
+            {
+                accountID: 42,
+                firstName: 'Dave',
+                lastName: '',
+                login: 'dave@example.com',
+                expected: `${BASE}/blue100/D.png`,
+            },
+            {
+                accountID: 42,
+                firstName: '',
+                lastName: '',
+                login: 'hiiii@example.com',
+                expected: `${BASE}/blue400/H.png`,
+            },
+            {
+                accountID: 7,
+                firstName: '',
+                lastName: '',
+                login: '+15551234567@expensify.sms',
+                expected: '',
+            },
+            {
+                accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                firstName: 'Concierge',
+                lastName: '',
+                login: 'concierge@expensify.com',
+                expected: '',
+            },
+            {
+                accountID: CONST.ACCOUNT_ID.NOTIFICATIONS,
+                firstName: 'Notifications',
+                lastName: '',
+                login: 'notifications@expensify.com',
+                expected: '',
+            },
             // System accounts are recognized by login too, so a non-system accountID (e.g. dev DB IDs) still gets no letter avatar.
-            {accountID: 999, firstName: '', lastName: '', login: 'concierge@expensify.com', expected: ''},
-            {accountID: 999, firstName: '', lastName: '', login: 'notifications@expensify.com', expected: ''},
+            {
+                accountID: 999,
+                firstName: '',
+                lastName: '',
+                login: 'concierge@expensify.com',
+                expected: '',
+            },
+            {
+                accountID: 999,
+                firstName: '',
+                lastName: '',
+                login: 'notifications@expensify.com',
+                expected: '',
+            },
         ];
 
         it.each(cases)('builds the canonical URL for $login ($firstName/$lastName)', ({accountID, firstName, lastName, login, expected}) => {
@@ -402,7 +569,46 @@ describe('UserAvatarUtils', () => {
             const url = UserAvatarUtils.getLetterAvatarURL(42, 'Dave', 'Lee', 'dave@example.com');
             const parsed = UserAvatarUtils.parseLetterAvatarURL(url);
             expect(parsed?.initials).toBe('DL');
-            expect(parsed?.colors).toEqual({backgroundColor: '#B0D9FF', fillColor: '#0164BF'});
+            expect(parsed?.colors).toEqual({
+                backgroundColor: '#B0D9FF',
+                fillColor: '#0164BF',
+            });
+        });
+    });
+
+    describe('getLetterAvatarInitials', () => {
+        it.each([
+            ['both names', 'Dave', 'Lee', 'dave@example.com', 'DL'],
+            ['first name only', 'Dave', '', 'dave@example.com', 'D'],
+            ['last name only', '', 'Lee', 'dave@example.com', 'L'],
+            ['login fallback', '', '', 'hiiii@example.com', 'H'],
+            ['merge-stripped login fallback', '', '', 'MERGED_0@real@example.com', 'R'],
+            ['SMS login and no name', '', '', '+15551234567@expensify.sms', ''],
+            ['no usable characters', '!@#$%', '', '', ''],
+            ['accented first letters', 'Élodie', 'Øyvind', 'elodie@example.com', 'EO'],
+        ])('%s → %s', (_, firstName, lastName, login, expected) => {
+            expect(UserAvatarUtils.getLetterAvatarInitials(firstName, lastName, login)).toBe(expected);
+        });
+    });
+
+    describe('getUpdatedLetterAvatarURL', () => {
+        const BASE = `${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1`;
+
+        it('rewrites the initials and keeps the color key', () => {
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(`${BASE}/blue100/GM.png`, 'Ada', 'Lovelace', 'georgia@example.com')).toBe(`${BASE}/blue100/AL.png`);
+        });
+
+        it('falls back to the login initial when the name is cleared', () => {
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(`${BASE}/pink400/GM.png`, '', '', 'dave@example.com')).toBe(`${BASE}/pink400/D.png`);
+        });
+
+        it('returns undefined when the new name yields no initials', () => {
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(`${BASE}/pink400/GM.png`, '', '', '+15551234567@expensify.sms')).toBeUndefined();
+        });
+
+        it('returns undefined for non-letter-avatar sources', () => {
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(`${CONST.CLOUDFRONT_URL}/images/avatars/user/uploaded_128.png`, 'Ada', 'Lee', 'dave@example.com')).toBeUndefined();
+            expect(UserAvatarUtils.getUpdatedLetterAvatarURL(undefined, 'Ada', 'Lee', 'dave@example.com')).toBeUndefined();
         });
     });
 });

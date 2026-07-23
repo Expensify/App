@@ -18,6 +18,7 @@ type FeatureRow = {
 
 const FEATURE_ROWS = [
     {part: 'overview', labelKey: 'workspace.common.profile'},
+    {part: 'currency', labelKey: 'common.currency'},
     {part: 'members', labelKey: 'workspace.common.members'},
     {part: 'reports', labelKey: 'workspace.common.reports'},
     {part: 'accounting', labelKey: 'workspace.common.accounting'},
@@ -37,6 +38,8 @@ const FEATURE_ROWS = [
 
 type CopyPolicySettingsSourceFeatureContext = {
     policy: Policy | undefined;
+    hasOverviewContent: boolean;
+    shouldShowCurrency: boolean;
     memberCount: number;
     categoriesCount: number;
     totalTags: number;
@@ -197,6 +200,59 @@ function areAllTargetsCompatibleForAccountingPart(source: Policy | undefined, ta
     return targets.every((target) => isTargetCompatibleForAccountingPart(source, target));
 }
 
+const DEFAULT_POLICY_CURRENCY = CONST.CURRENCY.USD;
+
+/**
+ * Whether a policy has a withdrawal (business) bank account attached - the condition that makes
+ * setCurrency reject a currency change and causes the copy deadlock. Mirrors Web-E
+ * Policy::isACHEnabled (a bankAccountID, or both a routing and account number). The backend's
+ * hasWithdrawalAccount also covers the AU reimbursement-country account, which the App's Policy type
+ * doesn't model - the backend stays the source of truth, this client check is the UX gate.
+ */
+function policyHasWithdrawalAccount(policy: Policy | undefined): boolean {
+    const achAccount = policy?.achAccount;
+    if ((achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) > 0) {
+        return true;
+    }
+    return !!achAccount?.routingNumber && !!achAccount?.accountNumber;
+}
+
+function hasDifferentCurrency(source: Policy, target: Policy | undefined): boolean {
+    if (!target) {
+        return false;
+    }
+    const sourceCurrency = source.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
+    const targetCurrency = target.outputCurrency ?? DEFAULT_POLICY_CURRENCY;
+    return sourceCurrency !== targetCurrency;
+}
+
+/**
+ * Returns true when at least one target has a different currency from the source. The Currency menu
+ * item is shown in this case so the user can see whether currency will be copied (or why it can't).
+ */
+function hasCurrencyConflictWithAnyTarget(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
+    return !!source && targets.some((target) => hasDifferentCurrency(source, target));
+}
+
+/**
+ * Returns true when at least one target has a bank account with a different currency than the source
+ * (Case 4 / Expensify#642646). Changing the target's currency while a BA is attached is blocked by
+ * setCurrency, so the Currency menu item must be disabled in this case.
+ */
+function isCurrencyBlockedByTargetBA(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
+    return !!source && targets.some((target) => hasDifferentCurrency(source, target) && policyHasWithdrawalAccount(target));
+}
+
+/**
+ * Returns true when at least one target triggers "Case 6": the source has a bank account, the
+ * target has a different currency and no BA of its own. Copying workflows would attach the source's
+ * BA without updating currency, leaving the target in a deadlock. The Currency item is force-selected
+ * alongside workflows so the "currency" Part runs first and aligns the currencies (App#92397).
+ */
+function needsCurrencyForWorkflows(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
+    return !!source && policyHasWithdrawalAccount(source) && targets.some((target) => hasDifferentCurrency(source, target) && !policyHasWithdrawalAccount(target));
+}
+
 /**
  * Whether a copy-settings part should appear on the Select Features step for the source policy.
  * Matches WorkspaceDuplicateSelectFeaturesForm visibility rules.
@@ -206,7 +262,9 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
 
     switch (part) {
         case 'overview':
-            return true;
+            return context.hasOverviewContent;
+        case 'currency':
+            return context.shouldShowCurrency;
         case 'members':
             return context.memberCount > 1;
         case 'reports':
@@ -313,6 +371,9 @@ export {
     areAllTargetsAccountingCompatible,
     isTargetCompatibleForAccountingPart,
     areAllTargetsCompatibleForAccountingPart,
+    hasCurrencyConflictWithAnyTarget,
+    isCurrencyBlockedByTargetBA,
+    needsCurrencyForWorkflows,
     isCopyPolicySettingsPartEnabledOnSource,
     getTimeTrackingCopySettingsDescription,
     isSourceProvisionedForTravel,

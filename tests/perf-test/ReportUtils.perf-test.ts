@@ -9,7 +9,7 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    getReportPreviewMessage,
+    getReportPreviewReportActionMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
     getWorkspaceChats,
@@ -150,7 +150,7 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewMessage({
+            getReportPreviewReportActionMessage({
                 reportOrID: report,
                 iouReportAction: reportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
@@ -203,7 +203,7 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getWorkspaceIcon(report, policy));
+        await measureFunction(() => getWorkspaceIcon(report, translateLocal, policy));
     });
 
     test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {

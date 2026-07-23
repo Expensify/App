@@ -48,6 +48,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -95,6 +96,8 @@ function IOURequestStepDistance({
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -507,6 +510,7 @@ function IOURequestStepDistance({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     waypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
@@ -521,6 +525,7 @@ function IOURequestStepDistance({
                     parentReportNextStep,
                     delegateAccountID,
                     distanceOriginalPolicy,
+                    reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
@@ -558,6 +563,7 @@ function IOURequestStepDistance({
         distanceUnit,
         policy,
         parentReport,
+        iouReportOwnerLogin,
         recentWaypoints,
         policyTags,
         policyCategories,
@@ -567,6 +573,7 @@ function IOURequestStepDistance({
         parentReportNextStep,
         delegateAccountID,
         distanceOriginalPolicy,
+        reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
     ]);
@@ -622,6 +629,7 @@ function IOURequestStepDistance({
             transaction,
             transactionThreadReport: report,
             parentReport,
+            iouReportOwnerLogin,
             waypoints,
             distance: distanceAsFloat,
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
@@ -636,6 +644,7 @@ function IOURequestStepDistance({
             delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
+            reportPolicyTags,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
         });
@@ -662,6 +671,7 @@ function IOURequestStepDistance({
         transactionBackup,
         report,
         parentReport,
+        iouReportOwnerLogin,
         policyTags,
         policyCategories,
         currentUserAccountIDParam,
@@ -674,6 +684,7 @@ function IOURequestStepDistance({
         hasRouteError,
         delegateAccountID,
         distanceOriginalPolicy,
+        reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
     ]);
