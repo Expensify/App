@@ -36,6 +36,10 @@ jest.mock('@libs/actions/Search', () => ({
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
     getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: false, isFirstTimePayment: false})),
+    // Faithful mock of the real helper: prefer live Onyx, fall back to the search snapshot.
+    getPolicyFromSearchSnapshot: jest.fn((policyID?: string, searchData?: Record<string, unknown>, policies?: Record<string, unknown>) =>
+        policyID ? (policies?.[`policy_${policyID}`] ?? searchData?.[`policy_${policyID}`]) : undefined,
+    ),
     getReportFromSearchSnapshot: jest.fn((reportID?: string, searchData?: Record<string, unknown>, allReports?: Record<string, unknown>) =>
         reportID ? (searchData?.[`report_${reportID}`] ?? allReports?.[`report_${reportID}`]) : undefined,
     ),
