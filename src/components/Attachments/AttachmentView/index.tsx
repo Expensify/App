@@ -1,4 +1,5 @@
 import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {AttachmentIDContextProvider} from '@components/Attachments/AttachmentIDContext';
 import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
@@ -11,7 +12,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
-import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -183,11 +183,10 @@ function AttachmentView({
 
     const [imageError, setImageError] = useState(false);
 
-    const cachedSource = useCachedAttachmentSource(attachmentID, typeof source === 'string' ? source : undefined);
-
-    const [prevCachedSource, setPrevCachedSource] = useState(cachedSource);
-    if (cachedSource !== prevCachedSource) {
-        setPrevCachedSource(cachedSource);
+    const sourceString = typeof source === 'string' ? source : undefined;
+    const [prevSource, setPrevSource] = useState(sourceString);
+    if (sourceString !== prevSource) {
+        setPrevSource(sourceString);
         setImageError(false);
     }
 
@@ -220,7 +219,10 @@ function AttachmentView({
             return (
                 <MultiGestureIcon
                     src={source}
-                    contentSize={{width: variables.defaultAvatarPreviewSize, height: variables.defaultAvatarPreviewSize}}
+                    contentSize={{
+                        width: variables.defaultAvatarPreviewSize,
+                        height: variables.defaultAvatarPreviewSize,
+                    }}
                     fill={iconFillColor}
                     additionalStyles={additionalStyles}
                 />
@@ -360,7 +362,7 @@ function AttachmentView({
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
 
         if (isHighResolution) {
             if (!isUploaded) {
@@ -383,7 +385,7 @@ function AttachmentView({
         }
 
         return (
-            <>
+            <AttachmentIDContextProvider attachmentID={attachmentID}>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
                         // Forces remount of high resolution images when transitioning from blob URL (uploading) to server URL (uploaded).
@@ -411,7 +413,7 @@ function AttachmentView({
                         <HighResolutionInfo isUploaded={isUploaded} />
                     </View>
                 )}
-            </>
+            </AttachmentIDContextProvider>
         );
     }
 

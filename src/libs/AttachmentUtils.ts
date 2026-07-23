@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
  */
 function getImageCacheFileExtension(contentType: string) {
     const imageCacheFileTypes: Record<string, string> = CONST.IMAGE_CACHE_FILE_TYPES;
-    return imageCacheFileTypes[contentType] ?? '';
+    return imageCacheFileTypes[contentType];
 }
 
 // eslint-disable-next-line import/prefer-default-export
