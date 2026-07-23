@@ -56,7 +56,7 @@ import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
+import {getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -72,7 +72,7 @@ import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByE
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
-import {getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
+import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -4719,7 +4719,7 @@ function getCommuterExclusionMessage(translate: LocalizedTranslate, action: Onyx
     const distanceValue = Number(distance ?? 0);
     const unitValue = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const commuterDistance = distanceValue.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
-    const commuterUnit = getDistanceUnitLabel(distanceValue, unitValue, translate);
+    const commuterUnit = translate(getUnitTranslationKey(unitValue));
 
     const workspaceDistanceSettingsLink = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID)}` : '';
 
