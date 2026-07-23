@@ -4,10 +4,6 @@ description: Set up Okta Workflows with Expensify’s API to automatically provi
 keywords: Okta Workflows, Expensify API, user provisioning, deprovisioning, Advanced Employee Updater, automate onboarding, SSO, identity management
 ---
 
-<!-- trigger: setupNode merge (docs workflows) -->
-<!-- trigger: setupNode merge (docs workflows) -->
-
-
 <div id="new-expensify" markdown="1">
 
 # Automate User Provisioning in Expensify with Okta Workflows
