@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 let failureCount = 0;
 let firstFailureTimestamp = 0;
 const sustainedFailureListeners = new Set<(active: boolean) => void>();
+const successListeners = new Set<() => void>();
 
 /**
  * Register a listener for sustained failure state changes.
@@ -14,10 +15,25 @@ function onSustainedFailureChange(listener: (active: boolean) => void): () => vo
 }
 
 /**
+ * Register a listener fired on every successful request, even with zero recorded
+ * failures. Reads and side-effect commands bypass the paused queue and can succeed
+ * while the INTERNET_UNREACHABLE hard stop is set — NetworkState needs that signal
+ * to clear it (the Ping alone may keep failing).
+ */
+function onSuccess(listener: () => void): () => void {
+    successListeners.add(listener);
+    return () => successListeners.delete(listener);
+}
+
+/**
  * Record a successful request outcome.
  * Resets the failure tracker — one success proves connectivity.
  */
 function recordSuccess() {
+    for (const cb of successListeners) {
+        cb();
+    }
+
     if (failureCount === 0) {
         return;
     }
@@ -75,4 +91,4 @@ function getFailureCount(): number {
     return failureCount;
 }
 
-export {recordSuccess, recordFailure, reset, getFailureCount, onSustainedFailureChange};
+export {recordSuccess, recordFailure, reset, getFailureCount, onSustainedFailureChange, onSuccess};
