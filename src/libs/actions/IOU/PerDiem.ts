@@ -476,6 +476,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             transactionID: optimisticTransaction.transactionID,
             currentUserAccountID: currentUserAccountIDParam,
             delegateAccountIDParam: delegateAccountID,
+            // The backend creates the transaction thread itself and syncs it back via Onyx updates, so the client doesn't build it optimistically or pass its reportID to the API.
+            shouldGenerateTransactionThreadReport: false,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -532,6 +534,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     // STEP 5: Build Onyx Data
     const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
+        shouldGenerateTransactionThreadReport: false,
         participant,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,

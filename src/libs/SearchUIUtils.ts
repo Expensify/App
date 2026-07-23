@@ -5614,7 +5614,7 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
     }
 
     if (filterKey === FILTER_KEYS.RECEIPT_TYPE) {
-        return Object.values(CONST.SEARCH.RECEIPT_TYPE).map((receiptType) => {
+        return CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((receiptType) => {
             const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType));
             return {text: receiptTypeName, value: receiptType};
         });
