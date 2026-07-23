@@ -1730,6 +1730,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Escolha um aprovador adicional para estes relatórios antes de seguirmos pelo restante do fluxo de aprovação.',
             },
             bulkSubtitle: 'Escolha uma opção para alterar o aprovador destes relatórios.',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> em vez de para você (o Delegado de Férias deles) porque você não é membro da política deste relatório`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> em vez do seu Delegado de Férias <mention-user>@${delegate}</mention-user> porque ele não é membro da política deste relatório`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> em vez do Delegado de Férias <mention-user>@${delegate}</mention-user> porque ele não é membro da política deste relatório`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
+                `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> para aprovação, já que <mention-user>@${delegate}</mention-user> não pode aprovar os próprios relatórios`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Esse relatório foi enviado para <mention-user>@${originalManager}</mention-user> para aprovação, já que seu substituto de férias, <mention-user>@${delegate}</mention-user>, não pode aprovar os próprios relatórios`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> para aprovação, já que o Substituto de Férias deles, <mention-user>@${delegate}</mention-user>, não pode aprovar os próprios relatórios`,
         },
         chooseWorkspace: 'Escolha um workspace',
         routedDueToDEW: (to: string, reason?: string) => `relatório encaminhado para ${to}${reason ? ` porque ${reason}` : ''}`,
