@@ -1837,5 +1837,4 @@ export type {
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
     OriginalMessageCompanyAddressUpdate,
-    OriginalMessageUpdateACHAccount,
 };
