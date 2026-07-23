@@ -556,7 +556,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     <MenuItem
                                         icon={expensifyIcons.Bolt}
                                         title={rule.summary}
-                                        numberOfLinesTitle={2}
+                                        numberOfLinesTitle={3}
                                         shouldShowBasicTitle
                                         onPress={() => Navigation.navigate(rule.route)}
                                         shouldShowRightIcon
