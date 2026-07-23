@@ -17,6 +17,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -175,7 +176,7 @@ function IOURequestStepDescription({
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            inputRef.current?.focus();
+            focusComposerWithDelay(inputRef.current)(true);
         },
         getHasUnsavedChanges: () => {
             if (isSaved) {
