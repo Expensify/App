@@ -34,6 +34,26 @@ type ReportMetadata = {
 
     /** Transaction IDs that were just submitted/moved to this report and should be highlighted on first load */
     pendingNewTransactionIDs?: Record<string, true | null>;
+
+    /**
+     * Time window in which the current user's read state is unconfirmed after an offline replay.
+     * Set when a queued offline ReadNewestAction's stale lastReadTime is bumped forward to the
+     * server-assigned time of the user's own offline comment: another user's message can have
+     * reached the server inside that window (while this device was offline) without the current
+     * user ever seeing it, so the bumped read time can't be trusted to have covered it. Unread
+     * logic checks actual report actions against this window instead of guessing from clocks.
+     * `from` is the stale read time the queued request originally carried (exclusive), `to` is
+     * the bumped time (inclusive). Cleared on a genuine online read, which reflects the
+     * fully-synced report state. Client-only bookkeeping — never sent to or received from the
+     * server, which is why it lives here rather than on the report itself.
+     */
+    unconfirmedReadWindow?: {
+        /** The stale read time the queued offline read originally carried (exclusive lower bound) */
+        from: string;
+
+        /** The server time of the user's own offline comment the read was bumped to (inclusive upper bound) */
+        to: string;
+    } | null;
 };
 
 export default ReportMetadata;

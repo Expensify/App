@@ -2849,7 +2849,7 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
 
     const lastReadTime = getDBTimeWithSkew();
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2858,6 +2858,19 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
             },
         },
     ];
+
+    // A read performed while online reflects the fully-synced report state, so any earlier uncertainty about
+    // whether an offline read-time bump skipped over another user's message (see unconfirmedReadWindow in
+    // SequentialQueue) no longer applies. While offline we can't make that guarantee, so leave it as-is.
+    if (!isOfflineNetwork()) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                unconfirmedReadWindow: null,
+            },
+        });
+    }
 
     const parameters: ReadNewestActionParams = {
         reportID,

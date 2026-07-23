@@ -9280,6 +9280,36 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: bool
     return !lastVisibleMessage.lastMessageText;
 }
 
+/**
+ * Whether another user's visible action landed inside the report's unconfirmedReadWindow — the range a queued
+ * offline read was bumped over during replay (see SequentialQueue). Such an action reached the server while
+ * this device was offline, so the user never saw it even though the bumped lastReadTime claims to cover it.
+ * A window is ignored once the report's lastReadTime has advanced past its upper bound: a newer read from any
+ * other path (mark-all-as-read, a read synced from another device) supersedes the stale window.
+ * The window is client-only ReportMetadata, read from the module-level cache since getReportMetadata is
+ * declared later in this file.
+ */
+function hasUnseenActionInUnconfirmedReadWindow(reportID: string | undefined, lastReadTime: string): boolean {
+    if (!reportID) {
+        return false;
+    }
+
+    const unconfirmedReadWindow = allReportMetadataKeyValue[reportID]?.unconfirmedReadWindow;
+    if (!unconfirmedReadWindow || lastReadTime > unconfirmedReadWindow.to) {
+        return false;
+    }
+
+    const reportActionsForReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+    return Object.values(reportActionsForReport ?? {}).some(
+        (action) =>
+            !!action &&
+            action.actorAccountID !== deprecatedCurrentUserAccountID &&
+            action.created > unconfirmedReadWindow.from &&
+            action.created <= unconfirmedReadWindow.to &&
+            isReportActionVisible(action, reportID),
+    );
+}
+
 // We need oneTransactionThreadReport to get the correct last visible action created
 function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
     if (!report) {
@@ -9305,6 +9335,19 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
 
     const drivingActorAccountID =
         (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '') ? oneTransactionThreadReport?.lastActorAccountID : report?.lastActorAccountID;
+
+    // When a queued offline read was bumped forward to cover the user's own offline comment (see
+    // SequentialQueue), another user's message can have reached the server inside the bumped window while
+    // this device was offline — a message the user never saw, yet one the bumped lastReadTime now claims to
+    // cover and the own-actor shortcut below would hide (the user's replayed comment is the newest action).
+    // Instead of guessing from clocks, check the actual report actions: if any visible action from another
+    // user landed inside the window, the report is unread regardless of what the timestamps say. This must
+    // run BEFORE both the timestamp comparison and the shortcut — the bump makes isUnreadFromTimestamp false
+    // on its own. The one-transaction thread gets the same treatment since its lastReadTime/actor also drive
+    // this function's result. Cleared by a genuine online read; superseded windows are ignored by the helper.
+    if (hasUnseenActionInUnconfirmedReadWindow(report.reportID, reportLastReadTime) || hasUnseenActionInUnconfirmedReadWindow(oneTransactionThreadReport?.reportID, threadLastReadTime)) {
+        return true;
+    }
 
     if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime)) {
         return false;

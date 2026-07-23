@@ -31,6 +31,8 @@ import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 let shouldFailAllRequests: boolean;
+const reportsWithProcessedOfflineComments = new Map<string, string>();
+const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -134,6 +136,51 @@ function getQueueFlushedData() {
 }
 
 /**
+ * The forward-bump reconciliation below only works when an offline ReadNewestAction is processed
+ * AFTER the offline comment(s) for the same report, because it relies on that comment's server
+ * timestamp having already been recorded in reportsWithProcessedOfflineComments. But readNewestAction
+ * is deduped via writeWithNoDuplicatesConflictAction/resolveDuplicationConflictAction, which replaces
+ * an already-queued read IN PLACE at its original index rather than pushing it to the tail. So if the
+ * user's report was opened (queuing a read) before they sent an offline comment, the read can remain
+ * ahead of the comment in the persisted queue, reach the server first with its stale lastReadTime, and
+ * never get bumped.
+ *
+ * To guard against that ordering, check the request at the head of the queue every time we're about to
+ * process it: if it's an offline ReadNewestAction and a not-yet-processed offline comment for the SAME
+ * report is still queued behind it, move the read to the tail so the comment(s) go first. This only
+ * reorders requests for that one report; everything else keeps its original relative order. Returns
+ * null when no reorder is needed, or a promise that resolves once the reorder is persisted (the caller
+ * should await it, then re-derive what to process next).
+ */
+function deferOfflineReadBehindSameReportComments(persistedRequests: AnyRequest[]): Promise<void> | null {
+    const nextRequest = persistedRequests.at(0);
+    if (!nextRequest || nextRequest.command !== WRITE_COMMANDS.READ_NEWEST_ACTION || !nextRequest.initiatedOffline) {
+        return null;
+    }
+
+    const reportID = nextRequest.data?.reportID;
+    if (typeof reportID !== 'string') {
+        return null;
+    }
+
+    const hasLaterSameReportComment = persistedRequests
+        .slice(1)
+        .some((request) => !!request.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(request.command) && request.data?.reportID === reportID);
+    if (!hasLaterSameReportComment) {
+        return null;
+    }
+
+    Log.info('[SequentialQueue] Deferring offline ReadNewestAction behind a same-report offline comment still in queue', false, {reportID});
+    // Both calls mutate the in-memory queue synchronously before returning, so the reorder is visible to
+    // the very next process() call regardless of how long the disk write takes. We still await the writes
+    // here (rather than firing-and-forgetting) so callers — including tests that clear Onyx right after
+    // the queue reports idle — never race an in-flight write left over from this reorder.
+    const deleted = deletePersistedRequestsByIndices([0]);
+    const saved = savePersistedRequest(nextRequest);
+    return Promise.all([deleted, saved]).then(() => undefined);
+}
+
+/**
  * Process any persisted requests, when online, one at a time until the queue is empty.
  *
  * If a request fails due to some kind of network error, such as a request being throttled or when our backend is down, then we retry it with an exponential back off process until a response
@@ -168,10 +215,59 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
+    // Only reorder when there's no ongoing request — an ongoing request is already in flight and
+    // processNextPersistedRequest() would return it regardless of queue order.
+    const deferPromise = ongoingRequest ? null : deferOfflineReadBehindSameReportComments(persistedRequests);
+    if (deferPromise) {
+        return deferPromise.then(() => process());
+    }
+
     const requestToProcess = processNextPersistedRequest();
     if (!requestToProcess) {
         Log.info('[SequentialQueue] Unable to process. No next request to handle.');
         return Promise.resolve();
+    }
+
+    // Offline ReadNewestAction carries a stale lastReadTime from when the user opened the report
+    // offline. If the user also sent messages offline, those messages get server-assigned timestamps
+    // that are later than the stale lastReadTime, causing the report to appear unread after reconnect.
+    // Only bump when the same report had offline comments processed earlier in this queue flush.
+    if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
+        const reportID = requestToProcess.data?.reportID;
+        if (typeof reportID === 'string' && reportsWithProcessedOfflineComments.has(reportID)) {
+            const recordedTime = reportsWithProcessedOfflineComments.get(reportID);
+            const currentLastReadTime = typeof requestToProcess.data?.lastReadTime === 'string' ? requestToProcess.data.lastReadTime : '';
+            // Only ever move the read forward. A stale/older recorded time must never pull lastReadTime
+            // back behind what the read already covers.
+            if (recordedTime && recordedTime > currentLastReadTime) {
+                requestToProcess.data = {
+                    ...requestToProcess.data,
+                    lastReadTime: recordedTime,
+                };
+                // The read's optimisticData already merged the stale lastReadTime into Onyx when this
+                // request was queued (while offline). That merge only ran once, so it never sees this bump —
+                // mirror it into Onyx now so the origin device's own report also reflects the corrected read
+                // time immediately, instead of only sending the corrected value to the server.
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data -- correcting a request-specific optimistic value already owned by this queue, not general report state
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastReadTime: recordedTime});
+                // The bump moves the read up to our own comment's server time, but another user's message can
+                // have reached the server INSIDE (staleReadTime, recordedTime] while this device was offline —
+                // a message the user never saw that the bumped read now claims to cover. We can't tell from
+                // clocks alone whether that happened, so record the window; unread logic checks the actual
+                // report actions against it once reconnect data arrives, and a genuine online read clears it.
+                // This is client-only bookkeeping, so it lives in ReportMetadata rather than on the report.
+                // Skip recording when the request carried no usable lastReadTime: an empty lower bound would
+                // make the window cover the report's entire history and flag long-read messages as unseen.
+                if (currentLastReadTime) {
+                    // eslint-disable-next-line rulesdir/prefer-actions-set-data -- request-specific bookkeeping owned by this queue, paired with the lastReadTime mirror above
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: {from: currentLastReadTime, to: recordedTime}});
+                }
+            }
+            // Deliberately NOT deleting the map entry here: this code runs BEFORE the request is sent, and a
+            // transient failure rolls the request back for retry with its persisted (pre-bump) payload — the
+            // retried read must be able to re-derive the bump from this map, which is safe because the bump is
+            // forward-only and idempotent. Entries are cleared when the queue fully drains (see flush()).
+        }
     }
 
     Log.info('[SequentialQueue] Starting to process request', false, {
@@ -183,6 +279,49 @@ function process(): Promise<void> {
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
+            // Track offline comments so we can reconcile the following ReadNewestAction.
+            if (requestToProcess.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(requestToProcess.command)) {
+                const reportID = requestToProcess.data?.reportID;
+                const reportActionID = requestToProcess.data?.reportActionID;
+                if (typeof reportID === 'string' && typeof reportActionID === 'string') {
+                    let serverTimestamp = '';
+                    // Read the server-assigned `created` of the specific action we just sent (matched by our
+                    // own reportActionID) rather than the report's aggregate lastVisibleActionCreated. The
+                    // aggregate reflects the newest action on the whole report — if another user's message
+                    // reached the server first, it can be later than our own comment, and using it would
+                    // over-bump lastReadTime past a message we never saw. Scoping to our own action ID
+                    // guarantees we only ever record our own comment's time. We intentionally do NOT fall back
+                    // to a local "now" or to the aggregate report time when this entry is absent: a missing or
+                    // ambiguous signal should mean no bump, not a risky guess.
+                    for (const update of response?.onyxData ?? []) {
+                        if (update.key !== `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`) {
+                            continue;
+                        }
+                        const value: unknown = update.value;
+                        if (!value || typeof value !== 'object') {
+                            continue;
+                        }
+                        // Object.entries/values on a plain object has no type-safe overload for this TS lib
+                        // target (it resolves to `any`), so read the single key we care about directly instead
+                        // of enumerating. The value is re-validated with typeof/`in` immediately below.
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- reading one known key off an object already confirmed non-null; re-validated below
+                        const actionValue: unknown = (value as Record<string, unknown>)[reportActionID];
+                        if (!actionValue || typeof actionValue !== 'object' || !('created' in actionValue)) {
+                            continue;
+                        }
+                        const created = actionValue.created;
+                        if (typeof created === 'string' && created > serverTimestamp) {
+                            serverTimestamp = created;
+                        }
+                    }
+
+                    const currentMax = reportsWithProcessedOfflineComments.get(reportID) ?? '';
+                    if (serverTimestamp && serverTimestamp > currentMax) {
+                        reportsWithProcessedOfflineComments.set(reportID, serverTimestamp);
+                    }
+                }
+            }
+
             Log.info('[SequentialQueue] Request processed successfully', false, {
                 command: requestToProcess.command,
                 shouldPauseQueue: response?.shouldPauseQueue ?? false,
@@ -409,6 +548,13 @@ function flush(shouldResetPromise = true) {
                 });
 
                 isSequentialQueueRunning = false;
+
+                // Offline-comment tracking is only meaningful within a single queue drain. Clear it once the
+                // queue is fully drained so a stale entry can't leak across flushes and bump an unrelated read.
+                if (!hasRemainingRequests) {
+                    reportsWithProcessedOfflineComments.clear();
+                }
+
                 // Use isOfflineNetwork() — not isQueuePaused — to decide whether to resolve isReadyPromise.
                 // isQueuePaused is true for both offline pauses AND shouldPauseQueue (data gap sync).
                 // For shouldPauseQueue, WRITEs are still pending so READs must wait (don't resolve).
