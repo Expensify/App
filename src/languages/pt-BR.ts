@@ -6187,6 +6187,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Impostos',
                 subtitle: 'Documente e recupere os impostos elegíveis.',
             },
+            vendors: {
+                title: 'Fornecedores',
+                subtitle: 'Combine despesas de cartão com fornecedores importados do seu software de contabilidade.',
+            },
             reportFields: {
                 title: 'Campos do relatório',
                 subtitle: 'Configure campos personalizados para gastos.',

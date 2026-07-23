@@ -6175,6 +6175,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Podatki',
                 subtitle: 'Udokumentuj i odzyskaj należne podatki.',
             },
+            vendors: {
+                title: 'Dostawcy',
+                subtitle: 'Dopasuj wydatki kartą do dostawców zaimportowanych z oprogramowania księgowego.',
+            },
             reportFields: {
                 title: 'Pola raportu',
                 subtitle: 'Skonfiguruj niestandardowe pola dla wydatków.',

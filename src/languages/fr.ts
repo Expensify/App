@@ -6248,6 +6248,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Taxes',
                 subtitle: 'Documentez et récupérez les taxes admissibles.',
             },
+            vendors: {
+                title: 'Fournisseurs',
+                subtitle: 'Associez les dépenses par carte aux fournisseurs importés depuis votre logiciel de comptabilité.',
+            },
             reportFields: {
                 title: 'Champs de note de frais',
                 subtitle: 'Configurer des champs personnalisés pour les dépenses.',

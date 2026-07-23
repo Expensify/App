@@ -5993,6 +5993,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '税费',
                 subtitle: '记录并回收符合条件的税款。',
             },
+            vendors: {
+                title: '供应商',
+                subtitle: '将卡消费与从会计软件导入的供应商进行匹配。',
+            },
             reportFields: {
                 title: '报表字段',
                 subtitle: '为支出设置自定义字段。',

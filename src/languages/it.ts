@@ -6208,6 +6208,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Tasse',
                 subtitle: 'Documenta e recupera le imposte idonee.',
             },
+            vendors: {
+                title: 'Fornitori',
+                subtitle: 'Abbina le spese con carta ai fornitori importati dal tuo software di contabilità.',
+            },
             reportFields: {
                 title: 'Campi del report',
                 subtitle: 'Configura campi personalizzati per le spese.',

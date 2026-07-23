@@ -6194,6 +6194,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Belastingen',
                 subtitle: 'Documenteer en vorder in aanmerking komende belastingen terug.',
             },
+            vendors: {
+                title: 'Leveranciers',
+                subtitle: 'Koppel kaartuitgaven aan leveranciers die uit je boekhoudsoftware zijn geïmporteerd.',
+            },
             reportFields: {
                 title: 'Rapportvelden',
                 subtitle: 'Stel aangepaste velden in voor uitgaven.',

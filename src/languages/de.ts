@@ -6225,6 +6225,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Steuern',
                 subtitle: 'Erfasse und mache erstattungsfähige Steuern geltend.',
             },
+            vendors: {
+                title: 'Lieferanten',
+                subtitle: 'Ordne Kartenausgaben den aus deiner Buchhaltungssoftware importierten Lieferanten zu.',
+            },
             reportFields: {
                 title: 'Berichtsfelder',
                 subtitle: 'Richte benutzerdefinierte Felder für Ausgaben ein.',
