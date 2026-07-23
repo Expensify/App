@@ -422,6 +422,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
+        case 'manuallyMarkedUnreadReportActionID':
         case 'lastMentionedTime':
         case 'policyAvatar':
         case 'policyName':
