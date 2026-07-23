@@ -8,19 +8,18 @@ import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {areCardsCustomExportInErrorFields, getCardsCustomExportPendingAction} from '@libs/CardFeedUtils';
-import {getCardDescription, getCustomOrFormattedFeedName, isCard, splitCardFeedWithDomainID} from '@libs/CardUtils';
+import {areCardsCustomExportInErrorFields, findMatchingCards, getCardsCustomExportPendingAction} from '@libs/CardFeedUtils';
+import {getCardDescription, getCustomOrFormattedFeedName, isCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {appendParam} from '@libs/Url';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -40,14 +39,16 @@ function RilletCardAccountCardList({
     const [cardList] = useCardsList(feedWithDomainID);
     const [cardFeeds] = useCardFeeds(policyID);
     const cardFeed = cardFeeds?.[feedWithDomainID];
-    const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName;
+    const feedKey = cardFeed?.feed;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
     const cardProgramAccountCode = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode;
     const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
+    const hasActiveCards = feedKey && findMatchingCards(cardFeeds ?? {}, {[feedWithDomainID]: cardList}, feedKey).length > 0;
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT.getRoute(policyID) : undefined;
 
     return (
         <ConnectionLayout
@@ -59,7 +60,9 @@ function RilletCardAccountCardList({
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             shouldBeBlocked
+            shouldBeForceBlocked={!hasActiveCards}
         >
             <View>
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.cardAccount.descriptionLevel2')}</Text>
@@ -90,7 +93,7 @@ function RilletCardAccountCardList({
                             <MenuItemWithTopDescription
                                 title={cardAccountDisplayName}
                                 description={getCardDescription(card, translate)}
-                                onPress={() => Navigation.navigate(appendParam(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path), 'cardID', cardID.toString()))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(String(cardID))))}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
                                     areCardsCustomExportInErrorFields(
