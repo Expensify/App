@@ -26,6 +26,7 @@ import type {
 import type {
     DecisionName,
     JoinWorkspaceResolution,
+    OriginalMessageCompanyAddressUpdate,
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
@@ -3444,15 +3445,10 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
     return getReportActionText(action);
 }
 
-type CompanyAddressOriginalMessage = {
-    newAddress: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string};
-    oldAddress?: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
-};
-
 /**
  * Format address as "street1, street2 (if exists), city, state zipCode"
  */
-function formatAddressToString(address: CompanyAddressOriginalMessage['newAddress'] | null | undefined): string {
+function formatAddressToString(address: OriginalMessageCompanyAddressUpdate['newAddress'] | null | undefined): string {
     if (!address) {
         return '';
     }
@@ -3488,7 +3484,11 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
 }
 
 function getCompanyAddressUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS>) as CompanyAddressOriginalMessage | undefined;
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS)) {
+        return getReportActionText(action);
+    }
+
+    const originalMessage = getOriginalMessage(action);
 
     if (!originalMessage) {
         return getReportActionText(action);
@@ -3724,16 +3724,13 @@ function getWorkspaceReimbursementUpdateMessage(translate: LocalizedTranslate, a
     return getReportActionText(action);
 }
 
-type UpdateACHAccountOriginalMessage = {
-    bankAccountName?: string;
-    maskedBankAccountNumber?: string;
-    oldBankAccountName?: string;
-    oldMaskedBankAccountNumber?: string;
-};
-
 function getUpdateACHAccountMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {bankAccountName, maskedBankAccountNumber, oldBankAccountName, oldMaskedBankAccountNumber} =
-        (getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT>) as UpdateACHAccountOriginalMessage | undefined) ?? {};
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT)) {
+        return getReportActionText(action);
+    }
+
+    const originalMessage = getOriginalMessage(action);
+    const {bankAccountName, maskedBankAccountNumber, oldBankAccountName, oldMaskedBankAccountNumber} = originalMessage ?? {};
 
     if (!!maskedBankAccountNumber && !oldMaskedBankAccountNumber) {
         return translate('workspaceActions.setDefaultBankAccount', {bankAccountName: bankAccountName ?? '', maskedBankAccountNumber});

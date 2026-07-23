@@ -6,8 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
-import type {OldDotOriginalMessageMap} from './OldDotAction';
-import type {AllConnectionName} from './Policy';
+import type {AllConnectionName, CompanyAddress} from './Policy';
 import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
@@ -820,6 +819,26 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
+};
+
+/** Model of the company address update policy change log message */
+type OriginalMessageCompanyAddressUpdate = {
+    /** The new company address */
+    newAddress: Partial<CompanyAddress>;
+    /** The previous company address */
+    oldAddress?: Partial<CompanyAddress> | null;
+};
+
+/** Model of the ACH account update policy change log message */
+type OriginalMessageUpdateACHAccount = {
+    /** Name of the new bank account */
+    bankAccountName?: string;
+    /** Masked number of the new bank account */
+    maskedBankAccountNumber?: string;
+    /** Name of the previous bank account */
+    oldBankAccountName?: string;
+    /** Masked number of the previous bank account */
+    oldMaskedBankAccountNumber?: string;
 };
 
 /** Amount operators for spend rules */
@@ -1765,9 +1784,16 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
-} & OldDotOriginalMessageMap &
-    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
-    Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
+} & Record<
+    Exclude<
+        ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>,
+        typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT
+    >,
+    OriginalMessagePolicyChangeLog
+> & {
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS]: OriginalMessageCompanyAddressUpdate;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT]: OriginalMessageUpdateACHAccount;
+    } & Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
@@ -1796,4 +1822,5 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
+    OriginalMessageCompanyAddressUpdate,
 };
