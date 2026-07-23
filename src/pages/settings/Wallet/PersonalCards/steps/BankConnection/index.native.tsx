@@ -1,6 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -45,7 +44,7 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const isNewCardError = !isEmptyObject(addNewCard?.errors);
-    const fullscreenReasonAttributes: SkeletonSpanReasonAttributes = {
+    const webViewReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'PersonalCardBankConnection',
     };
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -55,7 +54,13 @@ function BankConnection() {
         isNewCardError,
     };
 
-    const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
+    const renderLoading = () => (
+        <ActivityIndicator
+            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+            style={styles.flex1}
+            reasonAttributes={webViewReasonAttributes}
+        />
+    );
 
     const handleBackButtonPress = () => {
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});
