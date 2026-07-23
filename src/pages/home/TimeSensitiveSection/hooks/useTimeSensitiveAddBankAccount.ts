@@ -19,10 +19,6 @@ import {tierNameSelector} from '@selectors/UserWallet';
 
 type ReimbursementQueuedAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>;
 
-type WaitingReportPaymentData = {
-    reportID: string;
-};
-
 function getLatestReimbursementQueuedAction(reportID: string, allReportActions: OnyxCollection<ReportActions>): ReimbursementQueuedAction | undefined {
     let latestAction: ReimbursementQueuedAction | undefined;
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
@@ -38,13 +34,11 @@ function getLatestReimbursementQueuedAction(reportID: string, allReportActions: 
 
 function useTimeSensitiveAddBankAccount() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const waitingReportsSelector = (allReports: OnyxCollection<Report>): WaitingReportPaymentData[] =>
+    const waitingReportIDsSelector = (allReports: OnyxCollection<Report>): string[] =>
         Object.values(allReports ?? {})
             .filter((report): report is Report => !!report?.reportID && report.isWaitingOnBankAccount === true && report.ownerAccountID === accountID)
-            .map((report) => ({
-                reportID: report.reportID,
-            }));
-    const [waitingReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: waitingReportsSelector});
+            .map((report) => report.reportID);
+    const [waitingReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: waitingReportIDsSelector});
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const canShowAddBankAccount = accountID !== undefined && !isLoadingOnyxValue(bankAccountListMetadata) && !hasCreditBankAccount(bankAccountList);
@@ -54,8 +48,8 @@ function useTimeSensitiveAddBankAccount() {
             return false;
         }
 
-        return (waitingReports ?? []).some((report) => {
-            const queuedAction = getLatestReimbursementQueuedAction(report.reportID, allReportActions);
+        return (waitingReportIDs ?? []).some((reportID) => {
+            const queuedAction = getLatestReimbursementQueuedAction(reportID, allReportActions);
             return !!queuedAction && getMissingPaymentMethodForQueuedPayment(userWalletTierName, queuedAction, bankAccountList) === 'bankAccount';
         });
     };
