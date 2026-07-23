@@ -1,7 +1,7 @@
 import MoveFilesOutOfDocuments from '@libs/migrations/MoveFilesOutOfDocuments/index.ios';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnyRequest} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -18,58 +18,16 @@ jest.mock('@libs/Log', () => ({
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
     exists: jest.fn(() => Promise.resolve(false)),
-    mkdir: jest.fn(() => Promise.resolve()),
-    readDir: jest.fn(() => Promise.resolve([])),
-    copyFile: jest.fn(() => Promise.resolve()),
     unlink: jest.fn(() => Promise.resolve()),
-}));
-
-const NEW_UPLOAD_FOLDER = '/mock/library/Application Support/Receipts-Upload';
-
-jest.mock('@libs/getReceiptsUploadFolderPath', () => ({
-    __esModule: true,
-    default: jest.fn(() => NEW_UPLOAD_FOLDER),
 }));
 
 const mockRNFS: {
     exists: jest.Mock;
-    mkdir: jest.Mock;
-    readDir: jest.Mock;
-    copyFile: jest.Mock;
     unlink: jest.Mock;
 } = jest.requireMock('react-native-fs');
 
-const OLD_RECEIPTS_DIR = '/mock/documents/Receipts-Upload';
 const OLD_ATTACHMENT_DIR = '/mock/documents/attachments';
-
-// The container path persisted before the app update differs from the current one because
-// iOS moves the app container on every update.
-const STALE_CONTAINER_RECEIPTS_DIR = '/mock/old-container/Documents/Receipts-Upload';
-
-const RECEIPT_A = 'receipt_a.jpg';
-const RECEIPT_B = 'receipt_b.jpg';
-const STALE_URI_A = `file://${STALE_CONTAINER_RECEIPTS_DIR}/${RECEIPT_A}`;
-const STALE_URI_B = `file://${STALE_CONTAINER_RECEIPTS_DIR}/${RECEIPT_B}`;
-const NEW_URI_A = `file://${NEW_UPLOAD_FOLDER}/${RECEIPT_A}`;
-const NEW_URI_B = `file://${NEW_UPLOAD_FOLDER}/${RECEIPT_B}`;
-const SERVER_RECEIPT_URL = 'https://www.expensify.com/receipts/w_abc.jpg';
-
-function buildQueuedRequest(fileName: string, uri: string): AnyRequest {
-    return {
-        command: 'RequestMoney',
-        data: {
-            transactionID: '123',
-            receipt: {source: uri, uri, name: fileName, type: 'image/jpeg'},
-        },
-        optimisticData: [
-            {
-                onyxMethod: 'merge',
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}123`,
-                value: {receipt: {source: uri}},
-            },
-        ],
-    };
-}
+const STALE_ONYX_DUMP = `/mock/documents/${CONST.DEFAULT_ONYX_DUMP_FILE_NAME}`;
 
 describe('MoveFilesOutOfDocuments migration (iOS)', () => {
     beforeAll(() => {
@@ -78,26 +36,15 @@ describe('MoveFilesOutOfDocuments migration (iOS)', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockRNFS.exists.mockImplementation((path: string) => Promise.resolve(path === OLD_RECEIPTS_DIR));
-        mockRNFS.mkdir.mockImplementation(() => Promise.resolve());
-        mockRNFS.readDir.mockImplementation(() =>
-            Promise.resolve([
-                {name: RECEIPT_A, path: `${OLD_RECEIPTS_DIR}/${RECEIPT_A}`},
-                {name: RECEIPT_B, path: `${OLD_RECEIPTS_DIR}/${RECEIPT_B}`},
-            ]),
-        );
-        mockRNFS.copyFile.mockImplementation(() => Promise.resolve());
+        mockRNFS.exists.mockImplementation(() => Promise.resolve(false));
         mockRNFS.unlink.mockImplementation(() => Promise.resolve());
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
 
-    it('does nothing when the old directories do not exist', async () => {
-        mockRNFS.exists.mockImplementation(() => Promise.resolve(false));
-
+    it('does nothing when no internal files are left in Documents', async () => {
         await MoveFilesOutOfDocuments();
 
-        expect(mockRNFS.copyFile).not.toHaveBeenCalled();
         expect(mockRNFS.unlink).not.toHaveBeenCalled();
     });
 
@@ -114,99 +61,19 @@ describe('MoveFilesOutOfDocuments migration (iOS)', () => {
         expect(attachment).toBeUndefined();
     });
 
-    it('copies queued receipts and rewrites persisted paths before removing the old directory', async () => {
-        await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildQueuedRequest(RECEIPT_A, STALE_URI_A)]);
-        await Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, buildQueuedRequest(RECEIPT_B, STALE_URI_B));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}123`, {transactionID: '123', receipt: {source: STALE_URI_A}});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}999`, {transactionID: '999', receipt: {source: SERVER_RECEIPT_URL}});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}456`, {transactionID: '456', receipt: {source: STALE_URI_B}});
-        await waitForBatchedUpdates();
+    it('removes a stale Onyx state dump left by older app versions', async () => {
+        mockRNFS.exists.mockImplementation((path: string) => Promise.resolve(path === STALE_ONYX_DUMP));
 
         await MoveFilesOutOfDocuments();
-        await waitForBatchedUpdates();
 
-        expect(mockRNFS.copyFile).toHaveBeenCalledWith(`${OLD_RECEIPTS_DIR}/${RECEIPT_A}`, `${NEW_UPLOAD_FOLDER}/${RECEIPT_A}`);
-        expect(mockRNFS.copyFile).toHaveBeenCalledWith(`${OLD_RECEIPTS_DIR}/${RECEIPT_B}`, `${NEW_UPLOAD_FOLDER}/${RECEIPT_B}`);
-        expect(mockRNFS.unlink).toHaveBeenCalledWith(OLD_RECEIPTS_DIR);
-
-        // The persisted request's receipt source/uri and its optimistic transaction data
-        // are all rewritten to the new upload folder.
-        const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
-        expect(persistedRequests).toEqual([buildQueuedRequest(RECEIPT_A, NEW_URI_A)]);
-
-        const ongoingRequest = await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS);
-        expect(ongoingRequest).toEqual(buildQueuedRequest(RECEIPT_B, NEW_URI_B));
-
-        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}123`);
-        expect(transaction?.receipt?.source).toBe(NEW_URI_A);
-
-        // A receipt that was already uploaded points at the server and is left untouched
-        const uploadedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}999`);
-        expect(uploadedTransaction?.receipt?.source).toBe(SERVER_RECEIPT_URL);
-
-        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}456`);
-        expect(draftTransaction?.receipt?.source).toBe(NEW_URI_B);
+        expect(mockRNFS.unlink).toHaveBeenCalledWith(STALE_ONYX_DUMP);
+        expect(mockRNFS.unlink).not.toHaveBeenCalledWith(OLD_ATTACHMENT_DIR);
     });
 
-    it('rewrites odometer image references on transactions, merge transactions, and the odometer draft', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}123`, {
-            transactionID: '123',
-            comment: {
-                odometerStartImage: {uri: STALE_URI_A, name: RECEIPT_A, type: 'image/jpeg'},
-                odometerEndImage: STALE_URI_B,
-            },
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}456`, {
-            transactionID: '456',
-            comment: {odometerStartImage: {uri: STALE_URI_A, name: RECEIPT_A, type: 'image/jpeg'}},
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}789`, {
-            receipt: {source: STALE_URI_A},
-            odometerEndImage: {uri: STALE_URI_B, name: RECEIPT_B, type: 'image/jpeg'},
-        });
-        await Onyx.set(ONYXKEYS.ODOMETER_DRAFT, {odometerStartImage: STALE_URI_A, odometerEndImage: SERVER_RECEIPT_URL});
-        await waitForBatchedUpdates();
+    it('does not block startup when the cleanup fails', async () => {
+        mockRNFS.exists.mockImplementation(() => Promise.resolve(true));
+        mockRNFS.unlink.mockImplementation(() => Promise.reject(new Error('unlink failed')));
 
-        await MoveFilesOutOfDocuments();
-        await waitForBatchedUpdates();
-
-        // Odometer images on the transaction comment are rewritten whether they are stored
-        // as a file object (only the uri changes) or as a plain URI string.
-        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}123`);
-        expect(transaction?.comment?.odometerStartImage).toEqual({uri: NEW_URI_A, name: RECEIPT_A, type: 'image/jpeg'});
-        expect(transaction?.comment?.odometerEndImage).toBe(NEW_URI_B);
-
-        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}456`);
-        expect(draftTransaction?.comment?.odometerStartImage).toEqual({uri: NEW_URI_A, name: RECEIPT_A, type: 'image/jpeg'});
-
-        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}789`);
-        expect(mergeTransaction?.receipt?.source).toBe(NEW_URI_A);
-        expect(mergeTransaction?.odometerEndImage).toEqual({uri: NEW_URI_B, name: RECEIPT_B, type: 'image/jpeg'});
-
-        // The rewritten draft image points at the new folder; a non-receipt value is untouched
-        const odometerDraft = await getOnyxValue(ONYXKEYS.ODOMETER_DRAFT);
-        expect(odometerDraft?.odometerStartImage).toBe(NEW_URI_A);
-        expect(odometerDraft?.odometerEndImage).toBe(SERVER_RECEIPT_URL);
-    });
-
-    it('keeps the old directory and points persisted paths at it when a copy fails', async () => {
-        mockRNFS.copyFile.mockImplementation((source: string) => (source.endsWith(RECEIPT_B) ? Promise.reject(new Error('copy failed')) : Promise.resolve()));
-        await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildQueuedRequest(RECEIPT_A, STALE_URI_A), buildQueuedRequest(RECEIPT_B, STALE_URI_B)]);
-        await waitForBatchedUpdates();
-
-        await MoveFilesOutOfDocuments();
-        await waitForBatchedUpdates();
-
-        // The directory keeps the only remaining copy of the failed receipt; only the
-        // successfully copied original is removed.
-        expect(mockRNFS.unlink).not.toHaveBeenCalledWith(OLD_RECEIPTS_DIR);
-        expect(mockRNFS.unlink).toHaveBeenCalledWith(`${OLD_RECEIPTS_DIR}/${RECEIPT_A}`);
-        expect(mockRNFS.unlink).not.toHaveBeenCalledWith(`${OLD_RECEIPTS_DIR}/${RECEIPT_B}`);
-
-        // The copied receipt points at the new folder, and the failed one is refreshed to the
-        // old directory under the current container path, since the stale container path no
-        // longer exists.
-        const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
-        expect(persistedRequests).toEqual([buildQueuedRequest(RECEIPT_A, NEW_URI_A), buildQueuedRequest(RECEIPT_B, `file://${OLD_RECEIPTS_DIR}/${RECEIPT_B}`)]);
+        await expect(MoveFilesOutOfDocuments()).resolves.toBeUndefined();
     });
 });
