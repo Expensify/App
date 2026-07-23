@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,7 +59,7 @@ function TagFields({
     const displayedTag = tagDisplay ?? '';
 
     return (
-        <MenuItemWithTopDescription
+        <HighlightableMenuItemWithTopDescription
             highlighted={!displayedTag && !previousShouldShow}
             shouldShowRightIcon={!isReadOnly}
             title={displayedTag}
