@@ -138,7 +138,7 @@ describe('ReportUtils', () => {
         const shouldFallbackToHidden = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, formatPhoneNumber, shouldFallbackToHidden));
+        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, formatPhoneNumber, translateLocal, shouldFallbackToHidden));
     });
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {

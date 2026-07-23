@@ -789,7 +789,7 @@
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	5
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	27
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	9
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	34
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -879,7 +879,7 @@
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
-"../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	2
+"../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
