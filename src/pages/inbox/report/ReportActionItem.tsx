@@ -268,8 +268,11 @@ function ReportActionItem({
         // chat and delete it. We delete the parent chat report — deleteReport cascades from the chat down to the linked
         // IOU report and the transaction thread(s). Deleting the current report here would only remove the IOU report
         // (this error is dismissed from the expense report, so reportID is the IOU report ID) and leave the chat orphaned.
-        if (reportID && report?.errorFields?.createChat) {
-            const chatReportIDToDelete = report.chatReportID ?? reportID;
+        // We key off the parent chat's createChat error — the IOU report also gets `errorFields.createChat` whenever
+        // shouldCreateNewMoneyRequestReport is true (including in existing chats), so gating on the IOU report's error
+        // would wrongly delete an existing server-backed chat when only the new IOU report should be cleaned up.
+        if (reportID && chatReport?.errorFields?.createChat) {
+            const chatReportIDToDelete = report?.chatReportID ?? reportID;
             Navigation.goBack(undefined, {afterTransition: () => deleteReport(chatReportIDToDelete, true)});
             return;
         }
