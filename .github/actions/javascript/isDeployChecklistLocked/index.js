@@ -9227,6 +9227,7 @@ const CONST = {
         ADD_CONTACT_METHOD: 'add_contact_method',
         VALIDATE_ACCOUNT: 'validate_account',
         REVEAL_CARD_DETAILS: 'reveal_card_details',
+        REGISTER_AUTHENTICATION_KEY: 'register_authentication_key',
     },
     EXPENSIFY_CARD: {
         FEED_NAME: 'Expensify Card',
@@ -12784,8 +12785,8 @@ exports["default"] = {
          * @returns {number} The amount of tax
          */
         calculateTaxFromPercentage(total, percentage) {
-            const percentageAsDecimal = str_1.default.percentageStringToNumber(percentage) / 100;
-            const divisor = percentage ? percentageAsDecimal + 1 : 1;
+            const percentageAsDecimal = percentage ? str_1.default.percentageStringToNumber(percentage) / 100 : 0;
+            const divisor = percentageAsDecimal + 1;
             return this.calculateTaxFromDivisor(total, divisor);
         },
         /**

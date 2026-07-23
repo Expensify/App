@@ -323,6 +323,8 @@ function makeSearchResults(reports: Report[]): SearchResults {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             hash: 0,
             offset: 0,
+            sortBy: 'date',
+            sortOrder: 'desc',
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,
