@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {
     getMoneyRequestParticipantOptions,
     setCustomUnitRateID,
@@ -104,6 +106,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -201,6 +204,7 @@ function handleMoneyRequestStepDistanceNavigation({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    formatPhoneNumber,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -407,6 +411,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         },
                         isTrackIntentUser,
                         delegateAccountID,
+                        formatPhoneNumber,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

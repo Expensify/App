@@ -94,7 +94,6 @@ import Onyx from 'react-native-onyx';
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
