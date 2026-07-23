@@ -15,6 +15,7 @@ import Onyx from 'react-native-onyx';
 
 type Part =
     | 'overview'
+    | 'currency'
     | 'members'
     | 'reports'
     | 'accounting'
@@ -32,7 +33,8 @@ type Part =
     | 'receiptPartners';
 
 const PARTS_TO_POLICY_FIELDS = {
-    overview: ['outputCurrency', 'address', 'description'],
+    overview: ['address', 'description'],
+    currency: ['outputCurrency'],
     members: ['employeeList'],
     reports: ['fieldList', 'areReportFieldsEnabled'],
     accounting: ['connections', 'areConnectionsEnabled'],
@@ -104,8 +106,8 @@ function clearCopyPolicySettings(): void {
     Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {});
 }
 
-function requestCopyPolicySettingsNotification(): void {
-    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {});
+function requestCopyPolicySettingsNotification(shouldOnlyNotifyOnFailure = false): void {
+    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {shouldOnlyNotifyOnFailure});
 }
 
 function findCustomUnitByName(policy: Policy | undefined, unitName: string): CustomUnit | undefined {

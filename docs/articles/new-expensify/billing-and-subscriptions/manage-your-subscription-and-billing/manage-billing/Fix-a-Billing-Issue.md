@@ -8,11 +8,11 @@ contentType: task
 platform: new
 ---
 
-# Fix a billing issue
+# Fix a Billing Issue
 
-Billing issues occur when Expensify can't successfully process payment for your Workspace subscription. When this happens, the Workspace owner sees a notification and **Account > Subscription** explains why payment couldn't be processed and what action is required.
+Billing issues occur when Expensify can't successfully process payment for your workspace subscription. When this happens, the Workspace owner sees a notification and **Account > Subscription** explains why payment couldn't be processed and what action is required.
 
-If the billing issue isn't resolved within 7 days, the Workspace loses access to paid features until the outstanding payment is successfully processed.
+If the billing issue isn't resolved within 7 days, the workspace loses access to paid features until the outstanding payment is successfully processed.
 
 ---
 
@@ -63,13 +63,13 @@ To learn how to find your payment receipt, see [Find Your Expensify Billing Rece
 
 ## Why can't I fix the billing issue?
 
-Only the Workspace owner can manage subscription payments. To check who the Workspace owner is, see [What is a Workspace Owner](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions#what-is-a-workspace-owner).
+Only the Workspace owner can manage subscription payments. To check who the Workspace owner is, see [What is a Workspace owner?](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions#what-is-a-workspace-owner).
 
 To become the Workspace owner, see [Transfer Workspace Ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership).
 
 ## What happens if a billing issue isn't fixed?
 
-The billing issue remains visible until it's resolved. If the billing issue isn't resolved within 7 days, the Workspace loses access to paid features. Once payment is successfully processed, access to paid features is restored.
+The billing issue remains visible until it's resolved. If the billing issue isn't resolved within 7 days, the workspace loses access to paid features. Once payment is successfully processed, access to paid features is restored.
 
 ## Why did my payment fail?
 
@@ -82,4 +82,4 @@ Common reasons include:
 - Your payment is past due.
 - A billing dispute is preventing payment.
 
-To see the specific reason for your Workspace, go to **Account > Subscription**.
+To see the specific reason for your workspace, go to **Account > Subscription**.

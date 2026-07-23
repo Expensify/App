@@ -43,6 +43,7 @@ import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
@@ -86,7 +87,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -188,6 +189,10 @@ function IOURequestStepConfirmation({
         reportPolicyID: realPolicyID ?? draftPolicyID,
         action,
         iouType,
+        // Forward the draft policy so a freshly created draft workspace (e.g. "Submit to my employer" with no existing
+        // workspace) resolves here. Without it `policy` is undefined for drafts, `isDraftPolicy` is false, and the submit
+        // is routed to ConvertTrackedExpenseToRequest (which needs a real payer) instead of AddTrackedExpenseToPolicy.
+        policyDraft,
         isPerDiemRequest,
     });
     const policyID = policy?.id;
@@ -271,15 +276,38 @@ function IOURequestStepConfirmation({
                 }
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
-                const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
+                // participantsPolicies only holds persisted policies, so fall back to the transaction policy when it's this
+                // participant's workspace — e.g. a freshly created draft workspace ("Submit to my employer" with no existing one).
+                const participantPolicy = (participant.policyID ? participantsPolicies[participant.policyID] : policy) ?? (participant.policyID === policy?.id ? policy : undefined);
                 // Phone contacts always have an optimistic accountID but no reportID; getReportOption
                 // is designed for report-backed participants and discards participant.text, so route
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
+                    : getReportOption(
+                          participant,
+                          privateIsArchived,
+                          participantPolicy,
+                          personalDetails,
+                          conciergeReportID,
+                          reportAttributesDerived,
+                          participantReportDraft,
+                          currentUserPersonalDetails.accountID,
+                      );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, translate],
+        [
+            transaction?.participants,
+            iouType,
+            personalDetails,
+            reportAttributesDerived,
+            privateIsArchivedMap,
+            participantsPolicies,
+            policy,
+            conciergeReportID,
+            reportDrafts,
+            translate,
+            currentUserPersonalDetails.accountID,
+        ],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
@@ -465,10 +493,12 @@ function IOURequestStepConfirmation({
         backToReport,
     });
 
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
     // PAY, SPLIT, and TRACK navigate to a specific destination report
-    // (not Search) after submission. Pre-inserting the Search route would leave
-    // a stale entry in the navigation stack.
-    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK;
+    // (not Search) after submission. A self-DM CREATE is effectively a TRACK, so it is
+    // excluded too. Pre-inserting the Search route would leave a stale entry in the navigation stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && !isSelfDMDestination;
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
@@ -509,10 +539,11 @@ function IOURequestStepConfirmation({
 
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
-    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK ? findSelfDMReportID() : undefined;
+    const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
-    const destinationReportID =
-        backToReport ?? (isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID ? report?.chatReportID : report?.reportID) ?? selfDMReportID;
+    const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
+    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
+    const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
 
     useEffect(() => {
@@ -536,11 +567,12 @@ function IOURequestStepConfirmation({
         // pre-inserting a report is wrong - the user should stay on Search after submission.
         // Global-create TRACK targets self-DM, PAY and SPLIT target a specific chat report,
         // so they are also eligible for report pre-insert when Search is NOT topmost.
+        // A self-DM CREATE is effectively a TRACK, so it targets the self-DM report too.
         // When on Search/Spend the user should stay there after submission.
         const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
         const canUseReportPreInsert =
             !shouldPreInsertSearch &&
-            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isReportBoundGlobalCreate || !isFromGlobalCreate)));
+            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isSelfDMDestination || isReportBoundGlobalCreate || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -548,8 +580,13 @@ function IOURequestStepConfirmation({
         // Don't pre-insert if the report is already showing - it would push a duplicate route.
         const hasValidDestination = !!destinationReportID && Navigation.getTopmostReportId() !== destinationReportID;
 
-        // The report must be in Onyx so the pre-inserted screen can render immediately.
-        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID;
+        // The report must be in the REPORT collection so the pre-inserted screen can render immediately. A draft-only
+        // report (e.g. the expense chat of a freshly created draft workspace in the zero-workspace "Submit to my
+        // employer" flow) can't render — the report screen only reads COLLECTION.REPORT — so pre-inserting one would
+        // strand the user on an infinite skeleton if they back out before submitting. Passing an empty draft to
+        // getReportOrDraftReport skips its REPORT_DRAFT fallback while keeping the module-cache fallback for
+        // real reports that useOnyx hasn't hydrated yet.
+        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
 
         const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
 
@@ -890,8 +927,8 @@ function IOURequestStepConfirmation({
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                    onNext={showNextTransaction}
-                                    onPrevious={showPreviousTransaction}
+                                    onNext={() => startTransition(showNextTransaction)}
+                                    onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
                             ) : null}
                         </HeaderWithBackButton>
@@ -921,6 +958,7 @@ function IOURequestStepConfirmation({
                         destinationReportID={destinationReportID}
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
+                        isSelfDMDestination={isSelfDMDestination}
                         requestType={requestType}
                         canDismissFromSearch={canDismissFromSearch}
                         gpsRequired={!!gpsRequired}

@@ -189,13 +189,13 @@
                                                         {% endif %}
                                                         {% if subsection.sections %}
                                                             <ul>
-                                                                {% for subsubsection in subsection.sections %}
+                                                                {% for nestedSection in subsection.sections %}
                                                                     <li>
-                                                                        <span class="icon-with-link">{{ subsubsection.title }}</span>
-                                                                        {% if subsubsection.articles %}
+                                                                        <span class="icon-with-link">{{ nestedSection.title }}</span>
+                                                                        {% if nestedSection.articles %}
                                                                             <ul>
-                                                                                {% for article in subsubsection.articles %}
-                                                                                    {% assign article_href = subsubsection.href | append: '/' | append: article.href %}
+                                                                                {% for article in nestedSection.articles %}
+                                                                                    {% assign article_href = nestedSection.href | append: '/' | append: article.href %}
                                                                                     {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
                                                                                 {% endfor %}
                                                                             </ul>
