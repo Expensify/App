@@ -5,7 +5,9 @@ import FullStory, {FSPage} from '@fullstory/react-native';
 
 import type {Fullstory} from './types';
 
-import {getChatFSClass, shouldInitializeFullstory} from './common';
+import {getChatFSClass, normalizeFullstoryPropertiesForNative, shouldInitializeFullstory} from './common';
+
+let isFullstoryTrackingEnabled = false;
 
 // The latest metadata received for the current user. UserMetadata is populated by the backend in stages
 // (for a new account, `accountID` arrives before `email`), so multiple identification chains can be in
@@ -44,6 +46,7 @@ const FS: Fullstory = {
             // We only use FullStory in production environment. We need to check this here
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
+            isFullstoryTrackingEnabled = false;
             getEnvironment().then((envName: string) => {
                 if (!FS.shouldInitialize(userMetadata, envName)) {
                     return;
@@ -54,6 +57,7 @@ const FS: Fullstory = {
                 // Identify with the freshest metadata rather than the value captured when this chain
                 // started, so an email-less chain that resolves late does not clobber the identity.
                 FS.identify(latestUserMetadata, envName);
+                isFullstoryTrackingEnabled = true;
             });
         } catch (e) {
             // error handler
@@ -70,8 +74,12 @@ const FS: Fullstory = {
         return FullStory.getCurrentSessionURL();
     },
 
-    event: (eventName, eventProperties = {}) => {
-        FullStory.event(eventName, eventProperties);
+    event: (eventName, eventProperties) => {
+        if (!isFullstoryTrackingEnabled) {
+            return;
+        }
+
+        FullStory.event(eventName, normalizeFullstoryPropertiesForNative(eventProperties ?? {}));
     },
 
     log: (level, message) => {
@@ -85,7 +93,11 @@ const FS: Fullstory = {
     },
 
     setUserVars: (userVars) => {
-        FullStory.setUserVars(userVars);
+        FullStory.setUserVars(
+            normalizeFullstoryPropertiesForNative(userVars, {
+                preserveKeys: ['displayName', 'email'],
+            }),
+        );
     },
 
     resetIdleTimer: () => {

@@ -115,11 +115,11 @@ const FS: Fullstory = {
         return FullStory('getSessionAsync', {format: 'url'});
     },
 
-    event: (eventName, eventProperties = {}) => {
+    event: (eventName, eventProperties) => {
         if (!isInitialized()) {
             return;
         }
-        FullStory(CONST.FULLSTORY.OPERATION.TRACK_EVENT, {name: eventName, properties: eventProperties});
+        FullStory(CONST.FULLSTORY.OPERATION.TRACK_EVENT, {name: eventName, properties: eventProperties ?? {}});
     },
 
     log: (level, message) => {

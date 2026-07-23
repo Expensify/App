@@ -57,7 +57,7 @@ function useDistanceTransactionBackup({transaction, isCreatingNewRequest, isEdit
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport({reportID: transaction?.reportID, introSelected, betas});
+            openReport({reportID: transaction?.reportID, introSelected, betas, hasReportActions: true});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs
     }, []);

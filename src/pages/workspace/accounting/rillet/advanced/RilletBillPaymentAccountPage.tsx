@@ -46,7 +46,7 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             ?.filter((accountItem) => accountItem.type === CONST.RILLET_ACCOUNT_TYPE.ASSET && accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE)
             .map((accountItem) => ({
                 value: accountItem.code,
-                text: accountItem.name,
+                text: `${accountItem.code} ${accountItem.name}`,
                 keyForList: accountItem.code,
                 isSelected: billPaymentAccountCode === accountItem.code,
             })) ?? [];
