@@ -30,24 +30,39 @@ const isUserCancelled = (err: unknown) => {
 };
 
 /**
- * Downloads the file to Documents section in iOS
+ * Downloads the file to the Documents directory, which the iOS Files app shows to the user
+ * as the app's folder because file sharing is enabled. Only files the user asked to download
+ * belong there; internal files must go to a directory the Files app does not expose.
  */
 function downloadFile(fileUrl: string, fileName: string) {
     const dirs = RNFetchBlob.fs.dirs;
 
-    // The iOS files will download to documents directory
-    const path = dirs.DocumentDir;
-
-    // Fetching the attachment
     return RNFetchBlob.config({
         fileCache: true,
-        path: `${path}/${fileName}`,
-        addAndroidDownloads: {
-            useDownloadManager: true,
-            notification: true,
-            path: `${path}/Expensify/${fileName}`,
-        },
+        path: `${dirs.DocumentDir}/${fileName}`,
     }).fetch('GET', fileUrl);
+}
+
+/**
+ * Downloads the file to the cache directory, for flows that only need a temporary local
+ * copy (e.g. saving to Photos or handing off to the share sheet). Unlike Documents, the
+ * cache directory is never shown to the user in the iOS Files app.
+ */
+function downloadFileToCache(fileUrl: string, fileName: string) {
+    const dirs = RNFetchBlob.fs.dirs;
+
+    return RNFetchBlob.config({
+        fileCache: true,
+        path: `${dirs.CacheDir}/${fileName}`,
+    }).fetch('GET', fileUrl);
+}
+
+/**
+ * Presents the iOS share sheet so the user can save the file to the Files app,
+ * then removes the local copy.
+ */
+function shareFileToFilesApp(localPath: string) {
+    return Share.open({url: localPath, failOnCancel: false, saveToFiles: true}).then(() => RNFS.unlink(localPath));
 }
 
 const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true) => {
@@ -70,12 +85,12 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
         .then((fileData) => {
             const resolvedFileName = fileName ?? 'Expensify';
             const finalFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
-            const expensifyDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
+            // The file only exists to be handed to the share sheet, so it is written to the
+            // cache directory, which the iOS Files app never shows to the user
+            const expensifyDir = `${RNFS.CachesDirectoryPath}/Expensify`;
             const localPath = `${expensifyDir}/${finalFileName}`;
             return RNFS.mkdir(expensifyDir).then(() => {
-                return RNFS.writeFile(localPath, fileData, 'utf8')
-                    .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
-                    .then(() => RNFS.unlink(localPath));
+                return RNFS.writeFile(localPath, fileData, 'utf8').then(() => shareFileToFilesApp(localPath));
             });
         })
         .catch((error) => {
@@ -102,24 +117,24 @@ function downloadImage(fileUrl: string) {
  */
 function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifier> {
     return new Promise((resolve, reject) => {
-        let documentPathUri: string | null = null;
+        let tempPathUri: string | null = null;
         let cameraRollAsset: PhotoIdentifier;
 
-        // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
-        downloadFile(fileUrl, fileName)
+        // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download to the cache, then copy to photo lib and unlink the temporary file.
+        downloadFileToCache(fileUrl, fileName)
             .then((attachment) => {
-                documentPathUri = attachment.data as string | null;
-                if (!documentPathUri) {
+                tempPathUri = attachment.data as string | null;
+                if (!tempPathUri) {
                     throw new Error('Error downloading video');
                 }
-                return CameraRoll.saveAsset(documentPathUri);
+                return CameraRoll.saveAsset(tempPathUri);
             })
             .then((attachment) => {
                 cameraRollAsset = attachment;
-                if (!documentPathUri) {
+                if (!tempPathUri) {
                     throw new Error('Error downloading video');
                 }
-                return RNFetchBlob.fs.unlink(documentPathUri);
+                return RNFetchBlob.fs.unlink(tempPathUri);
             })
             .then(() => {
                 resolve(cameraRollAsset);
