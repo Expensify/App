@@ -268,8 +268,8 @@ function SignInPage({ref}: SignInPageProps) {
         } else {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = shouldUseNarrowLayout
-                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay)}`
-                : translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay);
+                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterSecurityCode', userLoginToDisplay)}`
+                : translate('welcomeText.welcomeEnterSecurityCode', userLoginToDisplay);
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');

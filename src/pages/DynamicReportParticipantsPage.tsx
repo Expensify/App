@@ -270,7 +270,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                             navigateBackToReportDetails();
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
                     {shouldShowInviteButton && (

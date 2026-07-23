@@ -130,7 +130,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         toggleSelection(option);
     };
 
-    const reportName = StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes));
+    const reportName = StringUtils.lineBreaksToSpaces(getReportName(report));
 
     const goBack = () => {
         Navigation.goBack(backPath);
