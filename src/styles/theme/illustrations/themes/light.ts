@@ -5,7 +5,6 @@ import FileImportTable from '@assets/images/companyCards/table-light.svg';
 import ExpensifyApprovedBadge from '@assets/images/exfy_approved_badge.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo--light.svg';
 import EmptyStateBackgroundImage from '@assets/images/themeDependent/empty-state_background-fade-light.svg';
-import ReceiptAddSmall from '@assets/images/themeDependent/empty-state_receipt-add-small--light.svg';
 import ExampleCheckEN from '@assets/images/themeDependent/example-check-image-light-en.png';
 import ExampleCheckES from '@assets/images/themeDependent/example-check-image-light-es.png';
 import WorkspaceProfile from '@assets/images/workspace-profile-light.png';
@@ -14,7 +13,6 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 
 const illustrations = {
     EmptyStateBackgroundImage,
-    ReceiptAddSmall,
     ExampleCheckEN,
     ExampleCheckES,
     WorkspaceProfile,

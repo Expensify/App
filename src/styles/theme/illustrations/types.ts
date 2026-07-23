@@ -6,7 +6,6 @@ import type {SvgProps} from 'react-native-svg';
 
 type IllustrationsType = {
     EmptyStateBackgroundImage: FC<SvgProps>;
-    ReceiptAddSmall: FC<SvgProps>;
     ExampleCheckES: ImageSourcePropType;
     ExampleCheckEN: ImageSourcePropType;
     WorkspaceProfile: ImageSourcePropType;

@@ -2,7 +2,6 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -88,9 +87,8 @@ function ReceiptEmptyState({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const illustrations = useThemeIllustrations();
     const isLoadedRef = useRef(false);
-    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'ReceiptPlus']);
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFile);
 
@@ -132,6 +130,7 @@ function ReceiptEmptyState({
                     }}
                     disabled={disabled}
                     disabledStyle={styles.cursorDefault}
+                    hoverStyle={onPress && isCompact ? styles.hoveredComponentBG : undefined}
                     style={containerStyle}
                 >
                     {PDFValidationComponent}
@@ -139,9 +138,10 @@ function ReceiptEmptyState({
                     {isCompact ? (
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap3]}>
                             <Icon
-                                src={illustrations.ReceiptAddSmall}
-                                width={36}
-                                height={36}
+                                src={icons.ReceiptPlus}
+                                fill={theme.icon}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                             <Text style={styles.textStrong}>{translate('dropzone.addReceipt')}</Text>
                         </View>
