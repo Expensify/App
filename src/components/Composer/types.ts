@@ -5,6 +5,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {Ref} from 'react';
 import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type TextSelection = {
     start: number;
@@ -76,6 +77,9 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
 
         /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
         isGroupPolicyReport?: boolean;
+
+        /** Selected emoji skin tone used when pasted emoji shortcodes are converted before normal composer parsing */
+        preferredSkinTone?: OnyxEntry<number | string>;
 
         /** Ref exposing imperative methods on the underlying text input */
         ref?: Ref<ComposerRef>;
