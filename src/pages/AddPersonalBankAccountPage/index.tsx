@@ -15,7 +15,7 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 
-import {addPersonalBankAccount, clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
+import {addPersonalBankAccount, clearPersonalBankAccount} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
