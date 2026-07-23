@@ -38,7 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, ReportAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
-import type {ApprovalRule} from '@src/types/onyx/Policy';
+import type {ApprovalRule, CodingRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -137,7 +137,8 @@ function createPolicyTag({
 }: CreatePolicyTagParams) {
     const {policy, tags: policyTags} = policyData;
     const policyID = policy?.id;
-    const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
+    const emptyTagList: PolicyTagList = {name: '', orderWeight: 0, required: false, tags: {}};
+    const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? emptyTagList;
     const newTagName = PolicyUtils.escapeTagName(tagName);
     const tagListsOptimisticData = {
         [policyTag.name]: {
@@ -484,13 +485,42 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
         },
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+    const tagsToDeleteSet = new Set(tagsToDelete);
+    const codingRules = policyData.policy?.rules?.codingRules ?? {};
+    const updatedCodingRules: Record<string, {tag: null}> = {};
+    const failureCodingRules: Record<string, Partial<CodingRule>> = {};
+
+    for (const [ruleID, rule] of Object.entries(codingRules)) {
+        if (rule?.tag && tagsToDeleteSet.has(rule.tag)) {
+            updatedCodingRules[ruleID] = {tag: null};
+            failureCodingRules[ruleID] = {tag: rule.tag};
+        }
+    }
+
+    const hasCodingRuleUpdates = Object.keys(updatedCodingRules).length > 0;
+
+    const onyxData: OnyxData<
+        typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: policyTagsOptimisticData,
             },
+            ...(hasCodingRuleUpdates
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                          value: {
+                              rules: {
+                                  codingRules: updatedCodingRules,
+                              },
+                          },
+                      },
+                  ]
+                : []),
         ],
         successData: [
             {
@@ -527,6 +557,19 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
                     },
                 },
             },
+            ...(hasCodingRuleUpdates
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                          value: {
+                              rules: {
+                                  codingRules: failureCodingRules,
+                              },
+                          },
+                      },
+                  ]
+                : []),
         ],
     };
 
