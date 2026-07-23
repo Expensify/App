@@ -270,15 +270,14 @@ describe('PersonalDetailsSelector', () => {
 
     describe('createDisplayDetailsByLoginsSelector', () => {
         const login = 'test@user.com';
-        const fullDetails = {
+        const fullDetails: PersonalDetails = {
             accountID,
             displayName: 'Test User',
             login,
             avatar: 'https://example.com/avatar.png',
             pronouns: 'they/them',
-            timezone: {selected: 'UTC'},
-        } as unknown as PersonalDetails;
-        const listByLogin = {[login]: fullDetails} as unknown as Record<string, PersonalDetails>;
+        };
+        const listByLogin: Record<string, PersonalDetails> = {[login]: fullDetails};
 
         it('should return only the display detail fields keyed by login for present logins', () => {
             const result = createDisplayDetailsByLoginsSelector([login])(listByLogin);
