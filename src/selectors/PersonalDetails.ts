@@ -139,5 +139,3 @@ export {
     createDisplayDetailsByLoginsSelector,
     newAccountIDsAndLoginsSelector,
 };
-
-export type {DisplayDetails};
