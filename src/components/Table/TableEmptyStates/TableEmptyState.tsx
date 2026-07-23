@@ -36,10 +36,10 @@ export default function TableEmptyState({children, ...emptyStateProps}: TableEmp
         </>
     );
 
-    // With a scrolling page header this renders as a row inside the table's FlashList, which
-    // already provides scrolling, so the ScrollView wrapper is skipped to avoid nested scrolling.
+    // TableBody owns the page-header flex layout and centers this content in the remaining space,
+    // so the empty state does not need a nested ScrollView.
     if (tableListMetadata.hasPageHeader) {
-        return <View style={[styles.flexGrow1, styles.flexShrink0]}>{content}</View>;
+        return <View style={styles.flexShrink0}>{content}</View>;
     }
 
     return <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>{content}</ScrollView>;

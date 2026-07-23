@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
@@ -170,6 +170,10 @@ jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flexGrow1: {},
         flex1: {},
+        flexColumn: {flexDirection: 'column'},
+        flexShrink0: {flexShrink: 0},
+        justifyContentCenter: {justifyContent: 'center'},
+        mnh0: {minHeight: 0},
         mt5: {},
         mh5: {},
         mt3: {},
@@ -594,8 +598,8 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable([]));
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(mockFlashListProps).toHaveLength(0);
 
             rerender(renderTable(props.data));
 
@@ -633,16 +637,22 @@ describe('Table', () => {
             activateStickyHeadersAfterListLoad();
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            const flashListRenderCount = mockFlashListProps.length;
 
             fireEvent.changeText(screen.getByTestId('search-input'), 'xyz123nonexistent');
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(3);
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
+            expect(mockFlashListProps).toHaveLength(flashListRenderCount);
 
             fireEvent.changeText(screen.getByTestId('search-input'), '');
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+
+            activateStickyHeadersAfterListLoad();
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
         });
 
         it('should defer sticky table header activation again when the list remounts', () => {
@@ -810,7 +820,7 @@ describe('Table', () => {
             expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 0, animated: false});
         });
 
-        it('should render page-header empty state as a synthetic list row', () => {
+        it('should render page-header empty state in a flex column without mounting FlashList', () => {
             const props = createDefaultProps();
             const EmptyState = <Text testID="empty-state">No items found</Text>;
 
@@ -829,11 +839,11 @@ describe('Table', () => {
 
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getByTestId('empty-state')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
-            expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(mockFlashListProps).toHaveLength(0);
         });
 
-        it('should render ListEmptyComponent as a synthetic row when only the sticky header keeps the list mounted', () => {
+        it('should render ListEmptyComponent without mounting FlashList when only the sticky header keeps the body mounted', () => {
             const props = createDefaultProps();
             const EmptyState = <Text testID="empty-state">No items found</Text>;
 
@@ -851,11 +861,11 @@ describe('Table', () => {
             );
 
             expect(screen.getByTestId('empty-state')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(2);
-            expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(mockFlashListProps).toHaveLength(0);
         });
 
-        it('should render Table.EmptyState inside the list when a page header is present', () => {
+        it('should render Table.EmptyState in the flex empty-state layout when a page header is present', () => {
             const props = createDefaultProps();
 
             render(
@@ -872,15 +882,14 @@ describe('Table', () => {
                 </Table>,
             );
 
-            // The empty state renders exactly once, as a synthetic row inside the list below the page header.
+            // The empty state renders exactly once below the page header without a FlashList cell.
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
-            expect(within(screen.getByTestId('flash-list')).getByTestId('generic-empty-state')).toBeTruthy();
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(3);
-            expect(mockFlashListProps.at(-1)?.ListEmptyComponent).toBeUndefined();
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(mockFlashListProps).toHaveLength(0);
         });
 
-        it('should size a page-header empty state to the remaining list viewport', () => {
+        it('should center a page-header empty state in the remaining flex space', () => {
             const props = createDefaultProps();
 
             render(
@@ -896,14 +905,6 @@ describe('Table', () => {
                 </Table>,
             );
 
-            fireEvent(screen.getByTestId('table-body'), 'layout', {nativeEvent: {layout: {height: 800}}});
-
-            const pageHeaderContainer = screen.getByTestId('table-header-component').parent;
-            if (!pageHeaderContainer) {
-                throw new Error('Expected the page header to have a measurable container');
-            }
-            fireEvent(pageHeaderContainer, 'layout', {nativeEvent: {layout: {height: 120}}});
-
             const emptyStateAncestorStyles: unknown[] = [];
             let emptyStateAncestor = screen.getByTestId('generic-empty-state').parent;
             while (emptyStateAncestor) {
@@ -911,10 +912,11 @@ describe('Table', () => {
                 emptyStateAncestor = emptyStateAncestor.parent;
             }
 
-            expect(emptyStateAncestorStyles).toEqual(expect.arrayContaining([expect.objectContaining({minHeight: 680})]));
+            expect(emptyStateAncestorStyles).toEqual(expect.arrayContaining([expect.objectContaining({flexDirection: 'column'}), expect.objectContaining({justifyContent: 'center'})]));
+            expect(screen.queryByTestId('flash-list')).toBeNull();
         });
 
-        it('should render Table.NoResultsState inside the list when search matches nothing and a page header is present', () => {
+        it('should render Table.NoResultsState in the flex empty-state layout when search matches nothing and a page header is present', () => {
             const props = createDefaultProps();
 
             render(
@@ -935,11 +937,11 @@ describe('Table', () => {
 
             fireEvent.changeText(screen.getByTestId('search-input'), 'no-match-search');
 
-            // The no-results state renders exactly once, as a synthetic row inside the list below the page header.
+            // The no-results state renders exactly once below the page header without a FlashList cell.
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
-            expect(within(screen.getByTestId('flash-list')).getByTestId('generic-empty-state')).toBeTruthy();
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(3);
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(mockFlashListProps).toHaveLength(1);
         });
 
         it('should render Table.EmptyState as a sibling when no page header is present', () => {
