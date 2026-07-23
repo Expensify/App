@@ -5643,7 +5643,7 @@ ${amount} para ${merchant} - ${date}`,
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `¡Ups! Has asignado un solo campo ("${duplicateColumn}") a múltiples columnas. Por favor, revisa y vuelve a intentarlo.`,
-                    cardIdentityColumn: 'Asigna un número de tarjeta o un nombre de tarjeta para que las transacciones puedan asociarse a una tarjeta.',
+                    cardIdentityColumn: 'Asocia un número de tarjeta o un nombre de tarjeta para que las transacciones puedan vincularse a una tarjeta.',
                 },
                 duplicateFeedModal: {title: 'Feed de tarjeta ya conectado', prompt: 'No puedes añadir el mismo flujo de tarjeta al mismo espacio de trabajo dos veces.'},
             },

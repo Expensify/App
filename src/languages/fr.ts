@@ -5830,7 +5830,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Oups ! Vous avez associé un seul champ (« ${duplicateColumn} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
-                    cardIdentityColumn: 'Veuillez associer un numéro de carte ou un nom de carte pour que les transactions puissent être associées à une carte.',
+                    cardIdentityColumn: 'Veuillez associer un numéro de carte ou un nom de carte afin que les transactions puissent être rapprochées d’une carte.',
                 },
                 fileImportDescription: 'Une option manuelle si votre banque ne peut pas envoyer de flux.',
                 duplicateFeedModal: {title: 'Flux de carte déjà connecté', prompt: 'Vous ne pouvez pas ajouter deux fois le même flux de carte au même espace de travail.'},

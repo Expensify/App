@@ -5735,7 +5735,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
                     duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
-                    cardIdentityColumn: '取引をカードに紐付けられるように、カード番号またはカード名を割り当ててください。',
+                    cardIdentityColumn: '取引をカードに照合できるように、カード番号またはカード名を対応付けてください。',
                 },
                 fileImportDescription: '銀行からフィードを送信できない場合の手動オプションです。',
                 duplicateFeedModal: {title: 'カードフィードはすでに接続されています', prompt: '同じカードフィードを同じワークスペースに二重に追加することはできません。'},
