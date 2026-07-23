@@ -26,29 +26,33 @@ runs:
       with:
         node-version-file: '.nvmrc'
 
+    - id: runner-info
+      shell: bash
+      run: echo "use-sticky-disk=${{ runner.os == 'Linux' && contains(runner.name, 'blacksmith') }}" >> "$GITHUB_OUTPUT"
+
     - id: stickydisk-node-modules
-      if: runner.os == 'Linux'
+      if: steps.runner-info.outputs.use-sticky-disk == 'true'
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
         key: ${{ format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
         path: node_modules
 
     - id: stickydisk-old-dot-node-modules
-      if: runner.os == 'Linux' && inputs.IS_HYBRID_BUILD == 'true'
+      if: steps.runner-info.outputs.use-sticky-disk == 'true' && inputs.IS_HYBRID_BUILD == 'true'
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
         key: ${{ format('{0}-{1}-{2}-old-dot-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**')) }}
         path: Mobile-Expensify/node_modules
 
     - id: stickydisk-npm
-      if: runner.os == 'Linux'
+      if: steps.runner-info.outputs.use-sticky-disk == 'true'
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
         key: ${{ format('{0}-{1}-{2}-npm', github.repository, runner.os, runner.arch) }}
         path: ~/.npm
 
     - id: cache-node-modules
-      if: runner.os != 'Linux'
+      if: steps.runner-info.outputs.use-sticky-disk != 'true'
       # v5.0.1
       uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
       with:
@@ -56,7 +60,7 @@ runs:
         key: ${{ format('{0}-node-modules-{1}', runner.os, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('package-lock.json', 'patches/**')) }}
 
     - id: cache-old-dot-node-modules
-      if: runner.os != 'Linux' && inputs.IS_HYBRID_BUILD == 'true'
+      if: steps.runner-info.outputs.use-sticky-disk != 'true' && inputs.IS_HYBRID_BUILD == 'true'
       # v5.0.1
       uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
       with:
@@ -66,9 +70,10 @@ runs:
     - id: check-node-modules
       shell: bash
       env:
+        USE_STICKY_DISK: ${{ steps.runner-info.outputs.use-sticky-disk }}
         ACTIONS_CACHE_HIT: ${{ steps.cache-node-modules.outputs.cache-hit }}
       run: |
-        if [[ "$RUNNER_OS" == 'Linux' ]]; then
+        if [[ "$USE_STICKY_DISK" == 'true' ]]; then
           [[ -f node_modules/.stickydisk-installed ]] && CACHE_HIT='true' || CACHE_HIT='false'
         else
           CACHE_HIT="$ACTIONS_CACHE_HIT"
@@ -79,9 +84,10 @@ runs:
       if: inputs.IS_HYBRID_BUILD == 'true'
       shell: bash
       env:
+        USE_STICKY_DISK: ${{ steps.runner-info.outputs.use-sticky-disk }}
         ACTIONS_CACHE_HIT: ${{ steps.cache-old-dot-node-modules.outputs.cache-hit }}
       run: |
-        if [[ "$RUNNER_OS" == 'Linux' ]]; then
+        if [[ "$USE_STICKY_DISK" == 'true' ]]; then
           [[ -f Mobile-Expensify/node_modules/.stickydisk-installed ]] && CACHE_HIT='true' || CACHE_HIT='false'
         else
           CACHE_HIT="$ACTIONS_CACHE_HIT"
@@ -89,7 +95,7 @@ runs:
         echo "cache-hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
 
     - id: cache-npm
-      if: runner.os != 'Linux' && (steps.check-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.check-old-dot-node-modules.outputs.cache-hit != 'true'))
+      if: steps.runner-info.outputs.use-sticky-disk != 'true' && (steps.check-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.check-old-dot-node-modules.outputs.cache-hit != 'true'))
       # v5.0.1
       uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
       with:
@@ -113,7 +119,7 @@ runs:
         command: npm ci
 
     - name: Mark sticky disks as installed
-      if: runner.os == 'Linux'
+      if: steps.runner-info.outputs.use-sticky-disk == 'true'
       shell: bash
       env:
         IS_HYBRID_BUILD: ${{ inputs.IS_HYBRID_BUILD }}
