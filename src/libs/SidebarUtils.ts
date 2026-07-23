@@ -755,6 +755,8 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
+// TODO: Refactor to use options object parameter to reduce parameter count
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
     chatReport: OnyxEntry<Report>,
@@ -763,6 +765,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     reportErrors: Errors,
     transactions: OnyxCollection<Transaction>,
     isOffline: boolean,
+    currentUserAccountID: number,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
@@ -780,7 +783,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, transactions, isReportArchived, reports);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, transactions, currentUserAccountID, isReportArchived, reports);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 

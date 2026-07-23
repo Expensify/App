@@ -488,6 +488,7 @@ export default createOnyxDerivedValueConfig({
                     reportErrors,
                     transactions,
                     isOffline,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     transactionViolations,
                     !!isReportArchived,
                     reports,
