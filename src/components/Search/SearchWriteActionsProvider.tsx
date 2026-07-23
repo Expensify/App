@@ -209,6 +209,7 @@ function useReconcileSelectionWithData({
                         canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
+                        isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
                     };
                 }
             }
@@ -382,11 +383,19 @@ function SearchWriteActionsProvider({
                         parentReport: itemParentReport,
                     });
 
-                    // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
+                    // Keep the parent group key and clear the group-selection marker when the group becomes partially selected.
                     if (areItemsGrouped && isGroupedItemArray(filteredData)) {
                         const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
-                        if (parentGroup?.keyForList && updatedTransactions[item.keyForList]) {
-                            updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey: parentGroup.keyForList};
+                        const groupKey = selectedTransactions[item.keyForList]?.groupKey ?? parentGroup?.keyForList;
+                        if (groupKey) {
+                            for (const [key, transaction] of Object.entries(updatedTransactions)) {
+                                if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
+                                    updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
+                                }
+                            }
+                        }
+                        if (groupKey && updatedTransactions[item.keyForList]) {
+                            updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
                         }
                     }
 
@@ -451,7 +460,7 @@ function SearchWriteActionsProvider({
                                     allowNegativeAmount: true,
                                     parentReport: itemParentReport,
                                 });
-                                return [key, {...entry, groupKey: item.keyForList}];
+                                return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
                             }),
                     ),
                 };
@@ -496,7 +505,7 @@ function SearchWriteActionsProvider({
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
                             });
-                            entries.push([key, {...entry, groupKey: item.keyForList}]);
+                            entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
                         return entries;
                     });
