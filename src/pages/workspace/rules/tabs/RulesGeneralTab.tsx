@@ -4,13 +4,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Tab from '@libs/actions/Tab';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import Navigation from '@libs/Navigation/Navigation';
 
 import IndividualExpenseRulesSectionRevamp from '@pages/workspace/rules/IndividualExpenseRulesSectionRevamp';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
@@ -37,7 +36,7 @@ function RulesGeneralTab({policyID, canWriteRules, isAgentsRulesBannerDismissed}
                     title={translate('workspace.rules.agentsPromoBanner.title')}
                     subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}
                     ctaText={translate('workspace.rules.agentsPromoBanner.cta')}
-                    onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
+                    onCtaPress={() => Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS)}
                     ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
                     onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
                     dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.DISMISS}

@@ -18,11 +18,12 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
 import Clipboard from '@libs/Clipboard';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -77,6 +78,25 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
     return policy.avatarURL as ImageSourcePropType;
 }
 
+/**
+ * The QR library spreads its `fill` prop onto the SVG logo even when it's undefined, which strips root
+ * attributes like fill="none" that some avatars need (their stroke-only paths would fill black otherwise),
+ * so only forward `fill` when it's actually set.
+ */
+function createAvatarQRLogo(LocalAvatarLogo: React.FC<SvgProps>): React.FC<SvgProps> {
+    function AvatarQRLogo({fill, ...rest}: SvgProps) {
+        return fill == null ? (
+            <LocalAvatarLogo {...rest} />
+        ) : (
+            <LocalAvatarLogo
+                fill={fill}
+                {...rest}
+            />
+        );
+    }
+    return AvatarQRLogo;
+}
+
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
@@ -116,22 +136,29 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
-    const title = isReport ? getReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? deprecatedGetReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${DYNAMIC_ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
-    const logo = isReport
-        ? getLogoForWorkspace(report, policy)
-        : (getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType);
+    // Catalog-backed avatars (agent/default user avatars) have a bundled local SVG. Render the profile QR logo from
+    // that SVG rather than the CDN URL so it still shows offline; only user-uploaded avatars fall back to the URL.
+    const LocalAvatarLogo = isReport ? undefined : findLocalAvatarForURL(currentUserPersonalDetails?.avatar);
+
+    let logo: ImageSourcePropType | undefined;
+    if (isReport) {
+        logo = getLogoForWorkspace(report, policy);
+    } else if (!LocalAvatarLogo) {
+        logo = getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType;
+    }
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
-    let svgLogo: React.FC<SvgProps> | undefined;
+    let svgLogo: React.FC<SvgProps> | undefined = LocalAvatarLogo ? createAvatarQRLogo(LocalAvatarLogo) : undefined;
     let logoBackgroundColor: string | undefined;
     let svgLogoFillColor: string | undefined;
 
-    if (!logo && policy && !policy.avatarURL) {
+    if (!logo && !svgLogo && policy && !policy.avatarURL) {
         svgLogo = getDefaultWorkspaceAvatar(policy.name) || icons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
