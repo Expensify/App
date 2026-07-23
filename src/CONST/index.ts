@@ -965,6 +965,14 @@ const CONST = {
     },
     ENTER_SIGNER_INFO: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+        SUB_PAGE_NAMES: {
+            NAME: 'name',
+            JOB_TITLE: 'job-title',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            UPLOAD_DOCUMENTS: 'upload-documents',
+            CONFIRMATION: 'confirmation',
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
