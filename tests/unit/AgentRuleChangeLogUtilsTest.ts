@@ -119,7 +119,7 @@ describe('AgentRuleChangeLogUtils', () => {
                     ruleTitle: 'Receipts required',
                 },
             } as ReportAction;
-            expect(getDeleteAgentRuleMessage(translateLocal, action)).toBe('deleted the agent rule "Receipts required"');
+            expect(getDeleteAgentRuleMessage(translateLocal, action)).toBe('removed the agent rule "Receipts required"');
         });
 
         it('falls back to a generic message when the title is empty', () => {
@@ -133,7 +133,7 @@ describe('AgentRuleChangeLogUtils', () => {
                     ruleTitle: '',
                 },
             } as ReportAction;
-            expect(getDeleteAgentRuleMessage(translateLocal, action)).toBe('deleted an agent rule');
+            expect(getDeleteAgentRuleMessage(translateLocal, action)).toBe('removed an agent rule');
         });
     });
 });
