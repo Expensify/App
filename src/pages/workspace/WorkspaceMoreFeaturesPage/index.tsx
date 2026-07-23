@@ -340,7 +340,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
                             isActive={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
                             pendingAction={undefined}
-                            disabled={!canWriteMoreFeatures}
+                            // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
+                            // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
+                            // to toggle yet; locking it avoids shipping a switch that silently no-ops. Read-only users still
+                            // get the read-only modal via withReadOnlyFallback(). Row-body navigation stays active when the
+                            // feature is available. This will be unlocked in the follow-up PR that wires up the toggle.
+                            disabled
                             disabledAction={withReadOnlyFallback()}
                             onToggle={() => {}}
                             onPress={() => {
