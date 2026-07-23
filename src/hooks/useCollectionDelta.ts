@@ -2,8 +2,6 @@ import getCollectionDelta from '@libs/getCollectionDelta';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import usePrevious from './usePrevious';
 
 /**
@@ -13,7 +11,7 @@ import usePrevious from './usePrevious';
  */
 function useCollectionDelta<TValue>(value: OnyxCollection<TValue>): OnyxCollection<TValue> | undefined {
     const previous = usePrevious(value);
-    return useMemo(() => getCollectionDelta(value, previous), [value, previous]);
+    return getCollectionDelta(value, previous);
 }
 
 export default useCollectionDelta;
