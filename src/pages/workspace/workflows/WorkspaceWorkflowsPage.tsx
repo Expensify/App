@@ -1,4 +1,6 @@
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -83,7 +85,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
@@ -156,7 +158,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus', 'Table']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -321,6 +323,43 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
+
+    // Reuses the Members spreadsheet importer (it already maps the `submitsTo` / `approvesTo` columns) so approval
+    // workflows can be bulk-imported directly from the Workflows page.
+    const importWorkflowsAction = useCallback(() => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        // Submit 2026 workspaces gate approvals behind the Submit approvals upgrade, so route them there instead of the importer.
+        if (canAccessSubmit2026Features) {
+            navigateToSubmitWorkspaceApprovalsUpgrade();
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(route.params.policyID));
+    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, route.params.policyID, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
+
+    const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(
+        () => [
+            {
+                icon: expensifyIcons.Table,
+                text: translate('spreadsheet.importWorkflows'),
+                onSelected: importWorkflowsAction,
+                value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            },
+        ],
+        [expensifyIcons.Table, translate, importWorkflowsAction],
+    );
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
@@ -945,6 +984,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
+    const headerButtons =
+        !shouldBlockApprovalWorkflowEditing && canWriteApprovals ? (
+            <View style={[styles.flexRow, styles.gap2]}>
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
+                    options={approvalSecondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow0}
+                />
+            </View>
+        ) : undefined;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -955,6 +1009,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 headerText={translate('workspace.common.workflows')}
                 icon={illustrations.Workflows}
                 route={route}
+                headerContent={headerButtons}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isGroupPolicy || !canReadWorkflows}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS}
