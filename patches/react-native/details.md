@@ -263,8 +263,9 @@
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/56680 / https://github.com/facebook/react-native/commit/aadbe965792bd900ca70412d6704b76e339d1aca
 - E/App issue: https://github.com/Expensify/App/issues/92412
 - PR introducing patch: https://github.com/Expensify/App/pull/93878
+- 0.86.0 migration note: upstream RN 0.86.0 ships the same `delegateInvalidated_` guard from PR #56680, but gates it behind `ReactNativeFeatureFlags::enableSchedulerDelegateInvalidation()`, which defaults to `false` and is not overridden anywhere in this app. Re-adding the original members would duplicate upstream's own declarations, so this patch now only strips the feature-flag gating in `Scheduler.cpp` (in the destructor, `setDelegate`, `uiManagerDidFinishTransaction`, and `uiManagerDidDispatchCommand`) so the guard is unconditionally active, matching the original patch's behavior without depending on an experimental flag Meta hasn't promoted to stable.
 
-### [react-native+0.85.3+038+nested-text-border-width.patch](react-native+0.85.3+038+nested-text-border-width.patch)
+### [react-native+0.86.0+038+nested-text-border-width.patch](react-native+0.86.0+038+nested-text-border-width.patch)
 
 - Reason:
 
@@ -285,7 +286,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/57556
 - PR introducing patch: https://github.com/Expensify/App/pull/94332
 
-### [react-native+0.85.3+039+nested-text-padding.patch](react-native+0.85.3+039+nested-text-padding.patch)
+### [react-native+0.86.0+039+nested-text-padding.patch](react-native+0.86.0+039+nested-text-padding.patch)
 
 - Reason:
 
@@ -305,4 +306,3 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/57556
 - PR introducing patch: https://github.com/Expensify/App/pull/94332
-- 0.86.0 migration note: upstream RN 0.86.0 ships the same `delegateInvalidated_` guard from PR #56680, but gates it behind `ReactNativeFeatureFlags::enableSchedulerDelegateInvalidation()`, which defaults to `false` and is not overridden anywhere in this app. Re-adding the original members would duplicate upstream's own declarations, so this patch now only strips the feature-flag gating in `Scheduler.cpp` (in the destructor, `setDelegate`, `uiManagerDidFinishTransaction`, and `uiManagerDidDispatchCommand`) so the guard is unconditionally active, matching the original patch's behavior without depending on an experimental flag Meta hasn't promoted to stable.

@@ -501,7 +501,7 @@ index e3f19473554..dca0ecb40c2 100644
 @@ -8,7 +8,9 @@
  package com.facebook.react.views.text
  
- import android.content.Context
+ import android.content.res.AssetManager
 +import android.graphics.Canvas
  import android.graphics.Color
 +import android.graphics.Paint
