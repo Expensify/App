@@ -506,7 +506,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         textSmall: {
             ...fontFamilyScale.regular,
-            fontSize: fontScale.caption,
+            fontSize: fontScale.micro,
         },
 
         textExtraSmall: {
@@ -515,7 +515,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textMicro: {
-            ...textVariants.caption,
+            ...textVariants.micro,
         },
 
         textMicroBold: {
@@ -533,14 +533,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textMicroSupporting: {
-            ...textVariants.caption,
+            ...textVariants.micro,
             color: theme.textSupporting,
         },
 
         textSupportingNormal: {
             color: theme.textSupporting,
-            fontSize: fontScale.body,
-            lineHeight: lineHeightScale.body,
+            fontSize: fontScale.text,
+            lineHeight: lineHeightScale.text,
         },
 
         textExtraSmallSupporting: {
@@ -559,12 +559,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
         textNormal: {
-            fontSize: fontScale.body,
+            fontSize: fontScale.text,
         },
 
         textNormalThemeText: {
             color: theme.text,
-            fontSize: fontScale.body,
+            fontSize: fontScale.text,
         },
 
         textLarge: {
@@ -589,7 +589,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textHero: {
-            ...textVariants.display,
+            ...textVariants.hero,
         },
 
         textStrong: {
@@ -601,29 +601,24 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textHeadline: {
-            ...textVariants.headline,
+            ...textVariants.h1,
             color: theme.heading,
             lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH2: {
-            ...textVariants.headline,
+            ...textVariants.h2,
             color: theme.heading,
-            fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeH2,
         },
 
         textHeadlineH1: {
-            ...textVariants.headline,
+            ...textVariants.h1,
             color: theme.heading,
         },
 
         exportDownloadTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            ...whiteSpace.preWrap,
+            ...textVariants.pageHeader,
             color: theme.heading,
-            fontSize: variables.fontSizeLarge,
-            lineHeight: variables.lineHeightXLarge,
         },
 
         textWhite: {
@@ -3991,7 +3986,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...textVariants.bodyStrong,
+            ...textVariants.textStrong,
             color: theme.text,
         },
 
@@ -6324,7 +6319,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: variables.sectionMargin,
         },
         chartTitle: {
-            ...textVariants.bodyStrong,
+            ...textVariants.textStrong,
             color: theme.text,
         },
         chartTooltipWrapper: {

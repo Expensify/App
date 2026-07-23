@@ -10,19 +10,23 @@ import variables from './variables';
  * and variables.ts (enforced by the `rulesdir/no-raw-typography` lint rule).
  */
 const fontScale = {
-    caption: variables.fontSizeSmall,
+    micro: variables.fontSizeSmall,
     label: variables.fontSizeLabel,
-    body: variables.fontSizeNormal,
-    headline: variables.fontSizeXLarge,
-    display: variables.fontSizeHero,
+    text: variables.fontSizeNormal,
+    pageHeader: variables.fontSizeLarge,
+    h2: variables.fontSizeH2,
+    h1: variables.fontSizeXLarge,
+    hero: variables.fontSizeHero,
 } as const;
 
 const lineHeightScale = {
-    caption: variables.lineHeightSmall,
+    micro: variables.lineHeightSmall,
     label: variables.lineHeightLarge,
-    body: variables.fontSizeNormalHeight,
-    headline: variables.lineHeightSizeH1,
-    display: variables.lineHeightHero,
+    text: variables.fontSizeNormalHeight,
+    pageHeader: variables.lineHeightXLarge,
+    h2: variables.lineHeightSizeH2,
+    h1: variables.lineHeightSizeH1,
+    hero: variables.lineHeightHero,
 } as const;
 
 const fontFamilyScale = {
@@ -32,40 +36,53 @@ const fontFamilyScale = {
 } as const;
 
 /**
- * Semantic text styles, named to match the Figma typography library. Type only — color is attached
- * where a variant is used (theme-aware styles or the `color` prop), never here.
+ * Semantic text styles, named 1:1 after the `Product/*` text styles in the Figma library
+ * (`hero` is code-only; it has no Figma counterpart yet). Type only — color is attached where a
+ * variant is used (theme-aware styles or the `color` prop), never here.
  */
 const textVariants = {
-    caption: {
+    micro: {
         ...fontFamilyScale.regular,
-        fontSize: fontScale.caption,
-        lineHeight: lineHeightScale.caption,
+        fontSize: fontScale.micro,
+        lineHeight: lineHeightScale.micro,
     },
     label: {
         ...fontFamilyScale.regular,
         fontSize: fontScale.label,
         lineHeight: lineHeightScale.label,
     },
-    body: {
+    text: {
         ...fontFamilyScale.regular,
-        fontSize: fontScale.body,
-        lineHeight: lineHeightScale.body,
+        fontSize: fontScale.text,
+        lineHeight: lineHeightScale.text,
     },
-    bodyStrong: {
+    textStrong: {
         ...fontFamilyScale.strong,
-        fontSize: fontScale.body,
-        lineHeight: lineHeightScale.body,
+        fontSize: fontScale.text,
+        lineHeight: lineHeightScale.text,
     },
-    headline: {
+    pageHeader: {
+        ...fontFamilyScale.strong,
+        ...whiteSpace.preWrap,
+        fontSize: fontScale.pageHeader,
+        lineHeight: lineHeightScale.pageHeader,
+    },
+    h2: {
         ...fontFamilyScale.heading,
         ...whiteSpace.preWrap,
-        fontSize: fontScale.headline,
-        lineHeight: lineHeightScale.headline,
+        fontSize: fontScale.h2,
+        lineHeight: lineHeightScale.h2,
     },
-    display: {
+    h1: {
         ...fontFamilyScale.heading,
-        fontSize: fontScale.display,
-        lineHeight: lineHeightScale.display,
+        ...whiteSpace.preWrap,
+        fontSize: fontScale.h1,
+        lineHeight: lineHeightScale.h1,
+    },
+    hero: {
+        ...fontFamilyScale.heading,
+        fontSize: fontScale.hero,
+        lineHeight: lineHeightScale.hero,
     },
 } as const satisfies Record<string, TextStyle>;
 

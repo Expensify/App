@@ -9,12 +9,12 @@ import React from 'react';
 
 describe('Text variant prop', () => {
     it('applies the semantic variant style', () => {
-        render(<Text variant="headline">probe</Text>);
+        render(<Text variant="h1">probe</Text>);
 
         expect(screen.getByText('probe')).toHaveStyle({
-            fontFamily: textVariants.headline.fontFamily,
-            fontSize: textVariants.headline.fontSize,
-            lineHeight: textVariants.headline.lineHeight,
+            fontFamily: textVariants.h1.fontFamily,
+            fontSize: textVariants.h1.fontSize,
+            lineHeight: textVariants.h1.lineHeight,
         });
     });
 
@@ -30,7 +30,7 @@ describe('Text variant prop', () => {
     it('lets the style prop override the variant', () => {
         render(
             <Text
-                variant="body"
+                variant="text"
                 style={{lineHeight: variables.lineHeightXLarge}}
             >
                 probe
@@ -38,7 +38,7 @@ describe('Text variant prop', () => {
         );
 
         expect(screen.getByText('probe')).toHaveStyle({
-            fontSize: textVariants.body.fontSize,
+            fontSize: textVariants.text.fontSize,
             lineHeight: variables.lineHeightXLarge,
         });
     });

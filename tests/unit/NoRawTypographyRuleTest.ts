@@ -40,8 +40,8 @@ describe('no-raw-typography', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
         valid: [
             'const style = {fontSize: variables.fontSizeNormal};',
-            'const style = {fontSize: fontScale.body, lineHeight: lineHeightScale.body};',
-            'const style = {...textVariants.headline, color: theme.heading};',
+            'const style = {fontSize: fontScale.text, lineHeight: lineHeightScale.text};',
+            'const style = {...textVariants.h1, color: theme.heading};',
             'const style = {lineHeight: undefined};',
             'const style = {lineHeight: getLineHeight(size)};',
             'const style = {[fontSize]: 17};',
