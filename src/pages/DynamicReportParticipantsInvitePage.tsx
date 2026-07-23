@@ -34,8 +34,7 @@ import {newAccountIDsAndLoginsSelector, personalDetailsLoginsSelector} from '@sr
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import reportByIDsSelector from '@selectors/ReportAttributes';
-import React, {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
@@ -54,8 +53,6 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         selector: personalDetailsLoginsSelector(getParticipantsAccountIDsForDisplay(report, false, true)),
     });
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const reportID = report.reportID;
-    const reportAttributesSelector = useMemo(() => reportByIDsSelector([reportID]), [reportID]);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserAccountID = Number(session?.accountID);
