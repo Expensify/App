@@ -11,7 +11,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 
@@ -88,6 +88,7 @@ function ReceiptEmptyState({
     const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
+    const [isHovered, setIsHovered] = useState(false);
     const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'ReceiptPlus']);
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFile);
@@ -131,15 +132,17 @@ function ReceiptEmptyState({
                     disabled={disabled}
                     disabledStyle={styles.cursorDefault}
                     hoverStyle={onPress && isCompact ? styles.hoveredComponentBG : undefined}
+                    onHoverIn={onPress && isCompact ? () => setIsHovered(true) : undefined}
+                    onHoverOut={onPress && isCompact ? () => setIsHovered(false) : undefined}
                     style={containerStyle}
                 >
                     {PDFValidationComponent}
                     {ErrorModal}
                     {isCompact ? (
-                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap3]}>
+                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
                             <Icon
                                 src={icons.ReceiptPlus}
-                                fill={theme.icon}
+                                fill={isHovered ? theme.success : theme.icon}
                                 width={variables.iconSizeNormal}
                                 height={variables.iconSizeNormal}
                             />
