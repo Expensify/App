@@ -7924,6 +7924,7 @@ const CONST = {
         MERCHANT: 'merchant',
         TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
         CARD_NUMBER: 'cardNumber',
+        CARD_NAME: 'cardName',
         POSTED_DATE: 'postedDate',
         TAG: 'tag',
         COMMENT: 'comment',

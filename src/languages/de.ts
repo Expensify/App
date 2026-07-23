@@ -5802,6 +5802,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 },
                 csvColumns: {
                     cardNumber: 'Kartennummer',
+                    cardName: 'Kartenname',
                     postedDate: 'Datum',
                     merchant: 'Händler',
                     amount: 'Betrag',
@@ -5818,6 +5819,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     requiredColumns: (missingColumns: string) => `Bitte weisen Sie jeder der folgenden Eigenschaften eine Spalte zu: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) =>
                         `Ups! Du hast ein einzelnes Feld („${duplicateColumn}“) mehreren Spalten zugeordnet. Bitte überprüfe die Zuordnung und versuche es erneut.`,
+                    cardIdentityColumn: 'Bitte ordnen Sie eine Kartennummer oder einen Kartennamen zu, damit Transaktionen einer Karte zugeordnet werden können.',
                 },
                 fileImportDescription: 'Eine manuelle Option, falls Ihre Bank keinen Feed senden kann.',
                 duplicateFeedModal: {title: 'Karten-Feed bereits verbunden', prompt: 'Sie können denselben Kartenfeed nicht zweimal zu demselben Workspace hinzufügen.'},

@@ -5761,6 +5761,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 },
                 csvColumns: {
                     cardNumber: 'Número do cartão',
+                    cardName: 'Nome do cartão',
                     postedDate: 'Data',
                     merchant: 'Estabelecimento',
                     amount: 'Valor',
@@ -5776,6 +5777,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Atribua uma coluna a cada um dos atributos: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Ops! Você mapeou um único campo ("${duplicateColumn}") para várias colunas. Revise e tente novamente.`,
+                    cardIdentityColumn: 'Associe um número de cartão ou um nome de cartão para que as transações possam ser vinculadas a um cartão.',
                 },
                 fileImportDescription: 'Uma opção manual caso seu banco não possa enviar um feed.',
                 duplicateFeedModal: {title: 'Feed do cartão já conectado', prompt: 'Você não pode adicionar o mesmo feed de cartão ao mesmo workspace duas vezes.'},

@@ -5753,6 +5753,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
                 csvColumns: {
                     cardNumber: 'Numer karty',
+                    cardName: 'Nazwa karty',
                     postedDate: 'Data',
                     merchant: 'Sprzedawca',
                     amount: 'Kwota',
@@ -5768,6 +5769,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Przypisz kolumnę do każdego z atrybutów: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Ups! Przypisałeś jedno pole („${duplicateColumn}”) do wielu kolumn. Sprawdź i spróbuj ponownie.`,
+                    cardIdentityColumn: 'Przypisz numer karty lub nazwę karty, żeby transakcje mogły być dopasowane do karty.',
                 },
                 fileImportDescription: 'Ręczna opcja, jeśli Twój bank nie może wysyłać kanału danych.',
                 duplicateFeedModal: {title: 'Kanał karty jest już połączony', prompt: 'Nie możesz dodać tego samego źródła danych karty do tego samego obszaru roboczego dwa razy.'},

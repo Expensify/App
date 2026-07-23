@@ -5778,6 +5778,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 },
                 csvColumns: {
                     cardNumber: 'Numero di carta',
+                    cardName: 'Nome carta',
                     postedDate: 'Data',
                     merchant: 'Esercente',
                     amount: 'Importo',
@@ -5793,6 +5794,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Assegna una colonna a ciascuno degli attributi: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Ops! Hai associato un singolo campo ("${duplicateColumn}") a più colonne. Controlla e riprova.`,
+                    cardIdentityColumn: 'Abbina un numero di carta o un nome della carta così le transazioni potranno essere associate a una carta.',
                 },
                 fileImportDescription: "Un'opzione manuale se la tua banca non può inviare un feed.",
                 duplicateFeedModal: {title: 'Feed carta già collegato', prompt: 'Non puoi aggiungere due volte lo stesso feed della carta allo stesso spazio di lavoro.'},
