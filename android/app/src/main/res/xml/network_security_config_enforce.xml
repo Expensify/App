@@ -18,25 +18,30 @@
     pin-set silently disables pinning; rotation is managed through app updates instead.
 -->
 <network-security-config>
-    <!-- Group A: leaf CN=expensify.com + Let's Encrypt YE1 intermediate -->
+    <!-- Group A: leaf CN=expensify.com + Google Trust Services WE1 intermediate (CA migrated from
+         Let's Encrypt on 2026-07-07); stale LE leaf + YE1 intermediate kept until fully retired -->
     <domain-config>
         <domain includeSubdomains="false">www.expensify.com</domain>
         <domain includeSubdomains="false">secure.expensify.com</domain>
         <domain includeSubdomains="false">staging.expensify.com</domain>
         <domain includeSubdomains="false">staging-secure.expensify.com</domain>
         <pin-set>
+            <pin digest="SHA-256">XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=</pin>
+            <pin digest="SHA-256">kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=</pin>
             <pin digest="SHA-256">cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=</pin>
             <pin digest="SHA-256">brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=</pin>
         </pin-set>
     </domain-config>
 
-    <!-- Group B: leaf CN=expensify.com + Google Trust Services WE1 intermediate -->
+    <!-- Group B: leaf CN=expensify.com + Google Trust Services WE1 intermediate; previous leaf kept
+         until it expires 2026-08-18 -->
     <domain-config>
         <domain includeSubdomains="false">new.expensify.com</domain>
         <domain includeSubdomains="false">staging.new.expensify.com</domain>
         <pin-set>
-            <pin digest="SHA-256">G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4=</pin>
+            <pin digest="SHA-256">XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=</pin>
             <pin digest="SHA-256">kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=</pin>
+            <pin digest="SHA-256">G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4=</pin>
         </pin-set>
     </domain-config>
 
