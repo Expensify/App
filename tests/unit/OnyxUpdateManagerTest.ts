@@ -1,5 +1,5 @@
-import Onyx from 'react-native-onyx';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
 import * as AppImport from '@userActions/App';
@@ -9,8 +9,12 @@ import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/ut
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
 import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

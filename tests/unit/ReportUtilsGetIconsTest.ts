@@ -1,5 +1,3 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {
     getIcons,
@@ -25,9 +23,15 @@ import {
     isWorkspaceTaskReport,
     isWorkspaceThread,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';

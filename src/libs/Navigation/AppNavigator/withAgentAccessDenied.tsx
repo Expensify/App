@@ -1,11 +1,15 @@
-import React, {useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {isAgentEmail} from '@libs/SessionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Session} from '@src/types/onyx';
+
+import React, {useEffect} from 'react';
 
 const sessionEmailSelector = (session: Session | undefined) => session?.email;
 

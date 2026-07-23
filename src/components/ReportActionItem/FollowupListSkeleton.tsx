@@ -1,11 +1,14 @@
+import SkeletonRect from '@components/SkeletonRect';
+import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
-import SkeletonRect from '@components/SkeletonRect';
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
 const BAR_HEIGHT = 40;
 const BAR_PADDING = 16;

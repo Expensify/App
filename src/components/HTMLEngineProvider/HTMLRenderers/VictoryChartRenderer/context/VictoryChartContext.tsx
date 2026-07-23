@@ -1,7 +1,9 @@
-import React, {createContext, useContext} from 'react';
-import type {TNode} from 'react-native-render-html';
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+
+import type {TNode} from 'react-native-render-html';
+
+import React, {createContext, useContext} from 'react';
 
 type VictoryChartContextValue = {
     tnode: TNode;

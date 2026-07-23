@@ -285,6 +285,7 @@ key "key"
       / receiptType
       / withdrawalType
       / withdrawalStatus
+      / paidStatus
       / withdrawalID
       / submitted
       / approved

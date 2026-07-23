@@ -1,7 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {getReportActionText} from './ReportActionsUtils';
 
 type GetReportActionTextArg = Parameters<typeof getReportActionText>[0];

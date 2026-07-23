@@ -1,8 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
 import getOnboardingRouteFromScreen from './Navigation/helpers/getOnboardingRouteFromScreen';
 
 type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;

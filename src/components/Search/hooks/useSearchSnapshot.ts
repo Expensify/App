@@ -1,7 +1,7 @@
-import {useMemo} from 'react';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
+
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -11,15 +11,20 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
+
 import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import {useMemo} from 'react';
+
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
@@ -114,6 +119,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
@@ -300,6 +306,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
         return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
             policyCategories,
+            policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
         }).map((item) => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- chat variant rows are report actions
@@ -338,6 +345,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         sortOrder,
         validGroupBy,
         policyCategories,
+        policyTags,
         policyForMovingExpensesID,
         isChat,
         newSearchResultKeys,
@@ -362,7 +370,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             type: searchDataType,
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            policyCategories,
             fallbackPolicyID: policyForMovingExpensesID,
         });
     })();

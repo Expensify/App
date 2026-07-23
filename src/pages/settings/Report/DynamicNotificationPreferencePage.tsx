@@ -1,21 +1,28 @@
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportNotificationPreference, isArchivedNonExpenseReport, isHiddenForCurrentUser, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+
 import {updateNotificationPreference} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback} from 'react';
 
 type DynamicNotificationPreferencePageProps = WithReportOrNotFoundProps;
 

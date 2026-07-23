@@ -1,13 +1,17 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import {updateMergeHRFinalApprover} from '@libs/actions/connections/MergeHR';
 import {getConnectedHRProvider, isMergeHRConnected} from '@libs/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
 import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type MergeHRFinalApproverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_MERGE_FINAL_APPROVER>;
 

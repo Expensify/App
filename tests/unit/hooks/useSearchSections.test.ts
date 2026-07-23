@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useSearchSections from '@hooks/useSearchSections';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 

@@ -1,19 +1,38 @@
-import type {NavigationAction} from '@react-navigation/native';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
+
+import type {NavigationAction} from '@react-navigation/native';
+
+import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
+
 import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
+import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
+
+function useDiscardChangesConfirmation({
+    getHasUnsavedChanges,
+    onCancel,
+    onVisibilityChange,
+    onConfirm,
+    onTabSwitchDiscard,
+}: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
+    const route = useRoute();
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
+
+    // Also guard tab switches when this screen is an OnyxTabNavigator tab.
+    // Self-disables outside a tab navigator or without an onTabSwitchDiscard handler
+    useRegisterTabSwitchGuard(route.name, getHasUnsavedChanges, onTabSwitchDiscard, onCancel);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
     const isDiscardModalOpen = useRef(false);
@@ -42,11 +61,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
         isDiscardModalOpen.current = true;
         onVisibilityChange?.(true);
         showConfirmModal({
-            title: translate('discardChangesConfirmation.title'),
-            prompt: translate('discardChangesConfirmation.body'),
-            danger: true,
-            confirmText: translate('discardChangesConfirmation.confirmText'),
-            cancelText: translate('common.cancel'),
+            ...getDiscardChangesModalConfig(translate),
             shouldIgnoreBackHandlerDuringTransition: true,
             shouldHandleNavigationBack: false,
         }).then((result) => {

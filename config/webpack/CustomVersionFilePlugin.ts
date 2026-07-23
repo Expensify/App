@@ -1,6 +1,8 @@
+import type {Compiler} from 'webpack';
+
 import fs from 'fs';
 import path from 'path';
-import type {Compiler} from 'webpack';
+
 import packageJson from '../../package.json' with {type: 'json'};
 
 const APP_VERSION = packageJson.version;

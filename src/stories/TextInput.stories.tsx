@@ -1,8 +1,11 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React, {useState} from 'react';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+
 import variables from '@styles/variables';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React, {useState} from 'react';
 
 type TextInputStory = StoryFn<typeof TextInput>;
 

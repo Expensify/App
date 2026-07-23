@@ -1,9 +1,14 @@
-import React from 'react';
 import Button from '@components/Button';
+
 import useLocalize from '@hooks/useLocalize';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
+
+import React from 'react';
+
 import type {SimpleActionProps} from './types';
+
 import useTransactionThreadData from './useTransactionThreadData';
 
 function MarkAsCashPrimaryAction({reportID, chatReportID}: SimpleActionProps) {

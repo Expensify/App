@@ -1,18 +1,19 @@
 #!/usr/bin/env ts-node
+import * as versionUpdater from '@github/libs/versionUpdater';
+import type {SemverLevel} from '@github/libs/versionUpdater';
+
+import type {SemVer} from 'semver';
+import type {PackageJson} from 'type-fest';
+
 import {execSync, exec as originalExec} from 'child_process';
 import {promises as fs} from 'fs';
 import path from 'path';
-import type {SemVer} from 'semver';
 import getMajorVersion from 'semver/functions/major';
 import getMinorVersion from 'semver/functions/minor';
 import getPatchVersion from 'semver/functions/patch';
-import getBuildVersion from 'semver/functions/prerelease';
-import type {PackageJson} from 'type-fest';
-import {promisify} from 'util';
 // Disabling lint on the next two imports due to a bug in @dword-design/import-alias/prefer-alias
-
-import * as versionUpdater from '@github/libs/versionUpdater';
-import type {SemverLevel} from '@github/libs/versionUpdater';
+import getBuildVersion from 'semver/functions/prerelease';
+import {promisify} from 'util';
 
 const exec = promisify(originalExec);
 

@@ -1,7 +1,10 @@
-import React, {useId, useState} from 'react';
 import type {ReactNode} from 'react';
-import {RootActionsContext, RootMetaContext, RootVisibilityContext} from './RootContext';
+
+import React, {useId, useState} from 'react';
+
 import type {ActiveAnchor, RootActions, RootMeta, RootVisibility} from './RootContext';
+
+import {RootActionsContext, RootMetaContext, RootVisibilityContext} from './RootContext';
 
 type RootProps = {
     children: ReactNode;

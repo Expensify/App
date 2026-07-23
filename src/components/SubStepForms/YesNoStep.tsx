@@ -1,12 +1,16 @@
-import React, {useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo, useState} from 'react';
 
 type YesNoStepProps = {
     /** The title of the question */

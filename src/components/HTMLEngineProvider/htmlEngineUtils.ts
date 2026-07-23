@@ -1,5 +1,6 @@
-import type {TNode} from 'react-native-render-html';
 import variables from '@styles/variables';
+
+import type {TNode} from 'react-native-render-html';
 
 type Predicate = (node: TNode) => boolean;
 

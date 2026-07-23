@@ -1,6 +1,7 @@
 import {getApiRoot} from '@libs/ApiUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 
 type CompanyCardBankConnection = {

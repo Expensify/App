@@ -749,7 +749,22 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ failure() }}
-    needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy, victoryChartRendererBuild]
+    needs:
+      [
+        androidBuild,
+        androidUploadGooglePlay,
+        androidUploadBrowserStack,
+        androidUploadApplause,
+        androidSubmit,
+        iosBuild,
+        iosUploadTestflight,
+        iosUploadBrowserStack,
+        iosUploadApplause,
+        iosSubmit,
+        webBuild,
+        webDeploy,
+        victoryChartRendererBuild,
+      ]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -900,7 +915,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name:  🚀 Create release 🚀
+      - name: 🚀 Create release 🚀
         run: |
           # Check if the release already exists
           if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then

@@ -1,5 +1,7 @@
-import React, {memo} from 'react';
 import PDFView from '@components/PDFView';
+
+import React, {memo} from 'react';
+
 import type AttachmentViewPdfProps from './types';
 
 function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onToggleKeyboard, onLoadComplete, style, isUsedAsChatAttachment, onLoadError, rotation}: AttachmentViewPdfProps) {

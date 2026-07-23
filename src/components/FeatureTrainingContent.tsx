@@ -1,11 +1,3 @@
-import type {ImageContentFit} from 'expo-image';
-import type {SourceLoadEventPayload} from 'expo-video';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- type-only import from react-native
-import type {LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import type {MergeExclusive} from 'type-fest';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,20 +7,35 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import Accessibility from '@libs/Accessibility';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import {getIsOffline} from '@libs/NetworkState';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageContentFit} from 'expo-image';
+import type {SourceLoadEventPayload} from 'expo-video';
+// eslint-disable-next-line no-restricted-imports -- type-only import from react-native
+import type {LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {MergeExclusive} from 'type-fest';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+
+import type ImageSVGProps from './ImageSVG/types';
+import type DotLottieAnimation from './LottieAnimations/types';
+
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import ImageSVG from './ImageSVG';
-import type ImageSVGProps from './ImageSVG/types';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
-import type DotLottieAnimation from './LottieAnimations/types';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';

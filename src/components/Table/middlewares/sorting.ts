@@ -1,5 +1,7 @@
-import {useMemo, useState} from 'react';
 import type {SetStateAction} from 'react';
+
+import {useMemo, useState} from 'react';
+
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**

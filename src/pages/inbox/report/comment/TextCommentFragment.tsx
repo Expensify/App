@@ -1,14 +1,12 @@
-import {Str} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {useEnvironmentActions} from '@components/EnvironmentContextProvider';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
@@ -16,10 +14,19 @@ import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import isEmpty from 'lodash/isEmpty';
+import React, {useEffect} from 'react';
+
 import RenderCommentHTML from './RenderCommentHTML';
 import shouldRenderAsText from './shouldRenderAsText';
 import TextWithEmojiFragment from './TextWithEmojiFragment';

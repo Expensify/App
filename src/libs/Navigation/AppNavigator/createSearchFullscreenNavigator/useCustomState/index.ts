@@ -1,4 +1,5 @@
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import SCREENS from '@src/SCREENS';
 
 /**

@@ -1,13 +1,19 @@
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
+import CONST from '@src/CONST';
+
 import type {ReactElement} from 'react';
+
 import React, {useCallback, useEffect, useRef} from 'react';
 import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {hasHoverSupport} from '@libs/DeviceCapabilities';
-import CONST from '@src/CONST';
+
 import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
 import type {RenderSuggestionMenuItemProps} from './types';
 

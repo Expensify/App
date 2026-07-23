@@ -1,14 +1,17 @@
+import type {Configuration} from 'webpack';
+import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import path from 'path';
 import portfinder from 'portfinder';
 import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
-import type {Configuration} from 'webpack';
 import {DefinePlugin} from 'webpack';
-import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
-import ForceGarbageCollectionPlugin from './ForceGarbageCollectionPlugin';
+
 import type Environment from './types';
+
+import ForceGarbageCollectionPlugin from './ForceGarbageCollectionPlugin';
 import getCommonConfiguration from './webpack.common';
 
 const BASE_PORT = 8082;

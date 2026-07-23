@@ -1,13 +1,17 @@
-import {isModalActiveSelector} from '@selectors/Modal';
-import React, {useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import useProactiveAppReview from '@hooks/useProactiveAppReview';
+
 import requestStoreReview from '@libs/actions/StoreReview';
 import {respondToProactiveAppReview} from '@libs/actions/User';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppReviewResponse} from '@src/types/onyx/AppReview';
+
+import {isModalActiveSelector} from '@selectors/Modal';
+import React, {useState} from 'react';
+
 import ProactiveAppReviewModal from './ProactiveAppReviewModal';
 
 const CONCIERGE_POSITIVE_MESSAGE = "Hi there! I'm glad to hear you're enjoying Expensify. What's your favorite thing about the app? Thanks!";

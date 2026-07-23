@@ -1,13 +1,19 @@
-import React from 'react';
 import ExpensifyCardIcon from '@assets/images/expensify-card-icon.svg';
+
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PossibleFraudData} from '@src/types/onyx/Card';
+
+import React from 'react';
 
 const DEFAULT_CURRENCY = CONST.CURRENCY.USD;
 

@@ -1,15 +1,21 @@
-import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchFilterCommonProps} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
 type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {

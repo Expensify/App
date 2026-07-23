@@ -1,7 +1,11 @@
-import React from 'react';
 import type {SearchFilterCommonProps} from '@components/Search/types';
+
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import React from 'react';
+
 import type {FilterComponentsProps} from '..';
+
 import FilterComponents from '..';
 
 type CommonFilterContentProps = SearchFilterCommonProps<FilterComponentsProps['value']> & {

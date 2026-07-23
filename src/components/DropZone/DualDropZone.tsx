@@ -1,16 +1,20 @@
-import React from 'react';
-// We use Animated for all functionality related to wide RHP to make it easier
-// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
-// eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ViewStyle} from 'react-native';
+
+import React from 'react';
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
+
 import DropZoneUI from './DropZoneUI';
 import DropZoneWrapper from './DropZoneWrapper';
 

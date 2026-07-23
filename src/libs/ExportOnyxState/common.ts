@@ -1,7 +1,10 @@
-import {Str} from 'expensify-common';
-import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
+
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
 import type {MaskOnyxState} from './types';
 
 const MASKING_PATTERN = '***';

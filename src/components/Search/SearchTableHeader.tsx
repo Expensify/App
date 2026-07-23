@@ -1,14 +1,19 @@
-import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SortableTableHeader from './SortableTableHeader';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo} from 'react';
+
 import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
+
+import SortableTableHeader from './SortableTableHeader';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
@@ -107,6 +112,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+        translationKey: 'common.tagGLCode',
+        sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
         translationKey: 'common.reimbursable',
     },
@@ -136,7 +146,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-        translationKey: 'common.originalAmount',
+        translationKey: 'common.purchaseAmount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
@@ -247,6 +257,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
         translationKey: 'search.filters.approved',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER,
+        translationKey: 'search.filters.firstApprover',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
+        translationKey: 'search.filters.firstApproved',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,

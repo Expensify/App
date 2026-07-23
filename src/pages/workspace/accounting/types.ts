@@ -1,10 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
 

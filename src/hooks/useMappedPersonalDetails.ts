@@ -1,6 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 /**

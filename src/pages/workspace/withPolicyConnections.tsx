@@ -1,16 +1,23 @@
-import isBoolean from 'lodash/isBoolean';
-import React, {useEffect} from 'react';
-import type {ComponentType} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import withPolicy from './withPolicy';
+
+import type {ComponentType} from 'react';
+
+import isBoolean from 'lodash/isBoolean';
+import React, {useEffect} from 'react';
+
 import type {WithPolicyProps} from './withPolicy';
+
+import withPolicy from './withPolicy';
 
 type WithPolicyConnectionsProps = WithPolicyProps & {
     isConnectionDataFetchNeeded: boolean;

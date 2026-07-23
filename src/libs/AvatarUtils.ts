@@ -1,10 +1,12 @@
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {AvatarSource} from './UserUtils';
+
 import {splitExtensionFromFileName, validateImageForCorruption} from './fileDownload/FileUtils';
 import getImageResolution from './fileDownload/getImageResolution';
 import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
-import type {AvatarSource} from './UserUtils';
 
 /**
  * Validation result containing error information if validation fails

@@ -1,8 +1,10 @@
-import {SPAN_STATUS_OK} from '@sentry/core';
+import CONST from '@src/CONST';
+
 import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
+
+import {SPAN_STATUS_OK} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
-import CONST from '@src/CONST';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;

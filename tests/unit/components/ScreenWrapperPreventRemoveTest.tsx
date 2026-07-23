@@ -1,11 +1,15 @@
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type ReactTestRendererType from 'react-test-renderer';
+
 // These rules are disabled because `require()` is used inside jest.mock factories for module resolution,
 // and react-test-renderer is needed because @testing-library/react-native fails to render ScreenWrapper with these mocks.
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-deprecated */
 import React, {act} from 'react';
 import Onyx from 'react-native-onyx';
-import type ReactTestRendererType from 'react-test-renderer';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // eslint-disable-next-line

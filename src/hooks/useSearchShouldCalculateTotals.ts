@@ -1,7 +1,10 @@
-import {useMemo} from 'react';
 import type {SearchKey} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useMemo} from 'react';
+
 import useOnyx from './useOnyx';
 
 function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean) {

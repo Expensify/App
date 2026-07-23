@@ -1,9 +1,12 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import ReportFieldFilterContent from '@components/Search/FilterComponents/AdvancedFilters/ReportFieldFilterContent';
 import type {ReportFieldFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PolicyReportField} from '@src/types/onyx';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function ReportFieldFilterContentPopupWrapper({values, onChange}: ReportFieldFilterContentWrapperProps) {
     const styles = useThemeStyles();

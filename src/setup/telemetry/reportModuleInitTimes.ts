@@ -1,5 +1,6 @@
-import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
+
+import * as Sentry from '@sentry/react-native';
 
 /**
  * Builds the top-N slowest modules from raw init time data, logs them, and

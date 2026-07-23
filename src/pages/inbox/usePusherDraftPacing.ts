@@ -1,5 +1,3 @@
-import {useEffect, useRef, useState} from 'react';
-import type {Dispatch, SetStateAction} from 'react';
 import {getReportChannelName} from '@libs/actions/Report';
 import {easeOut, getRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
@@ -8,7 +6,13 @@ import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
+
+import type {Dispatch, SetStateAction} from 'react';
+
+import {useEffect, useRef, useState} from 'react';
+
 import type {ConciergeDraft} from './conciergeDraftState';
+
 import {applyConciergeDraftEvent, CONCIERGE_DRAFT_STATUS, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft} from './conciergeDraftState';
 
 type MutableRef<T> = {
@@ -32,6 +36,7 @@ type PusherDraftPaceRefs = {
 
 type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
     currentDraftRef: MutableRef<ConciergeDraft | null>;
+    isGroupPolicyReport: boolean;
     reportID: string;
     setDraft: Dispatch<SetStateAction<ConciergeDraft | null>>;
     visibleSequenceRef: MutableRef<number>;
@@ -182,7 +187,7 @@ function publishVisibleEvent(
     status?: ConciergeDraftEvent['status'],
     finalRenderedHTML?: string,
 ) {
-    const {reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
 
     if (visibleMarkdown) {
         visibleBodyMarkdownRef.current = visibleMarkdown.bodyMarkdown;
@@ -200,7 +205,7 @@ function publishVisibleEvent(
         status: visibleStatus,
     };
     setDraft((currentDraft) => {
-        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID);
+        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport);
         return cacheDraftWithPusherPaceState(runtime, next);
     });
 }
@@ -766,7 +771,7 @@ function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
     tickPacing(runtime);
 }
 
-function usePusherDraftPacing(reportID: string) {
+function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     // Lazy-init from the module-level cache so a remount (ReportScreen
     // unmount/remount on chat-switch) restores the in-progress draft on the
     // first paint instead of flashing the synthetic bubble away.
@@ -794,6 +799,7 @@ function usePusherDraftPacing(reportID: string) {
             finalRenderedHTMLRevealLastStageRef,
             finalRenderedHTMLRevealStartedAtRef,
             finalRenderedHTMLRevealTokensRef,
+            isGroupPolicyReport,
             lastPaceTickTimeRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
@@ -823,7 +829,7 @@ function usePusherDraftPacing(reportID: string) {
             visibleSourceOffsetRef,
         });
         setDraft((currentDraft) => {
-            const next = applyConciergeDraftEvent(currentDraft, event, reportID);
+            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport);
             currentDraftRef.current = next;
             setCachedDraft(reportID, next);
             return next;
@@ -838,6 +844,7 @@ function usePusherDraftPacing(reportID: string) {
             finalRenderedHTMLRevealLastStageRef,
             finalRenderedHTMLRevealStartedAtRef,
             finalRenderedHTMLRevealTokensRef,
+            isGroupPolicyReport,
             lastPaceTickTimeRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
@@ -920,7 +927,7 @@ function usePusherDraftPacing(reportID: string) {
                 subscription.unsubscribe();
             }
         };
-    }, [reportID]);
+    }, [reportID, isGroupPolicyReport]);
 
     return {clearDraft, dispatchLocalDraftEvent, draft};
 }

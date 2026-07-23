@@ -1,6 +1,3 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx';
-import type {SetRequired} from 'type-fest';
 import {readUpdateIDFrom, resolveDuplicationConflictAction, resolveEnableFeatureConflicts, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
@@ -12,12 +9,21 @@ import {getIsOffline} from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
+
 import {getAll, getOngoingRequest, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+import type {SetRequired} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+
 import {READ_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).

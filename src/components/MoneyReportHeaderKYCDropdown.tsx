@@ -1,20 +1,26 @@
-import React, {memo} from 'react';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSecondaryActionAPaymentOption, isSecondaryActionAWorkspacePolicyOption} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {memo} from 'react';
+
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
-import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import KYCWall from './KYCWall';
 
 type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enablePaymentsRoute'> & {
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
@@ -102,7 +108,8 @@ function MoneyReportHeaderKYCDropdown({
                     customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && !isInLandscapeMode && styles.flex1, !!customText && styles.w100]}
+                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && !isInLandscapeMode && styles.w100, !!customText && styles.w100]}
+                    style={shouldDisplayNarrowVersion && !primaryAction && !customText && !isInLandscapeMode ? styles.w100 : undefined}
                     shouldUseModalPaddingStyle
                     onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}

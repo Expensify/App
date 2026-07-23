@@ -1,19 +1,26 @@
-import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useMemo, useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {PixelRatio, StyleSheet, View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
 import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import ImageSVG from '@components/ImageSVG';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {ImageContentFit} from 'expo-image';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {PixelRatio, StyleSheet, View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
 import IconWrapperStyles from './IconWrapperStyles';
 
 type IconCarouselPagerProps = {

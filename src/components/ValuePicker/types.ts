@@ -1,7 +1,9 @@
+import type {ListItem} from '@components/SelectionList/types';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
-import type {ListItem} from '@components/SelectionList/types';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 type ValuePickerListItem = ListItem & {
     value?: string;

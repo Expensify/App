@@ -1,4 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
 import {sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 
 function makeItem(value: string): DropdownOption<string> {

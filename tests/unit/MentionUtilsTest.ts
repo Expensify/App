@@ -1,7 +1,9 @@
-import type {TText} from 'react-native-render-html';
 import {getReportMentionDetails} from '@libs/MentionUtils';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import type {TText} from 'react-native-render-html';
 
 describe('MentionUtils', () => {
     describe('getReportMentionDetails', () => {

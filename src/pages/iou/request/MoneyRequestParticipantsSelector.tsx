@@ -1,10 +1,15 @@
-import React, {useImperativeHandle, useRef, useState} from 'react';
-import type {Ref} from 'react';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
 import getPlatform from '@libs/getPlatform';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {Ref} from 'react';
+
+import React, {useImperativeHandle, useRef, useState} from 'react';
+
 import ParticipantSearchResults from './ParticipantSearchResults';
 
 type MoneyRequestParticipantsSelectorProps = {
@@ -34,6 +39,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport?: boolean;
+
+    /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
+    shouldExcludeP2P?: boolean;
 
     /** Report ID of a pre-selected participant whose selection state can't be derived from the participants array (e.g. self DM with accountID 0) */
     initiallySelectedReportID?: string;
@@ -66,6 +74,7 @@ function MoneyRequestParticipantsSelector({
     isTimeRequest = false,
     isWorkspacesOnly = false,
     isTransactionFromCreditCardImport = false,
+    shouldExcludeP2P = false,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
@@ -96,6 +105,7 @@ function MoneyRequestParticipantsSelector({
             isTimeRequest={isTimeRequest}
             isNative={isNative}
             isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
+            shouldExcludeP2P={shouldExcludeP2P}
             selectionListRef={selectionListRef}
             textInputAutoFocus={textInputAutoFocus}
             setTextInputAutoFocus={setTextInputAutoFocus}

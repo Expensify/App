@@ -1,14 +1,19 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+
+import type BaseModalProps from './Modal/types';
+
 import ConfirmContent from './ConfirmContent';
 import Modal from './Modal';
-import type BaseModalProps from './Modal/types';
 
 type ConfirmModalProps = {
     /** Title of the modal */

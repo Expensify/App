@@ -1,11 +1,14 @@
-import type {Meta} from '@storybook/react-webpack5';
-import React, {useState} from 'react';
-import {Image, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import Text from '@components/Text';
+
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
+
+import type {Meta} from '@storybook/react-webpack5';
+
+import React, {useState} from 'react';
+import {Image, View} from 'react-native';
 
 const defaultStyles = styles(defaultTheme);
 

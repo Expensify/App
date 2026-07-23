@@ -1,24 +1,23 @@
-import {deepEqual} from 'fast-equals';
-import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getIsRestoringKeyboardFocus} from '@components/TextInput';
+
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+
 import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
@@ -26,11 +25,20 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {deepEqual} from 'fast-equals';
+import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+
 import type {RegisterInput} from './FormContext';
+import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
+
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 import isNumericKeyboard from './isNumericKeyboard';
-import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.

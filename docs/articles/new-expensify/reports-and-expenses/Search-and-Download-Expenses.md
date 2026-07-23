@@ -67,14 +67,22 @@ In the exported file:
 
 # Export as PDF
 
-1. Open the individual report you want to export.
-2. Click **More** in the top-right corner.
+You can download a single report or multiple reports as PDFs. Each PDF includes all expenses, attached receipts, and report notes.
+
+## Download a single report
+
+1. Open the report you want to download.
+2. Select the three dots **(⋮)**.
 3. Select **Download as PDF**.
 
-The PDF will include:
-- All expenses
-- Attached receipts
-- Report notes
+## Download multiple reports
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), then select **Spend** > **Reports**.
+2. Check the box next to each report you want to download, or use the top checkbox to select all.
+3. Click **Selected**.
+4. Select **Download as PDF**.
+
+A status window appears while your files are prepared. When they're ready, the download starts automatically. If it doesn't, click **Download file**. You can also click **Send me the file when it's ready** to have **Concierge** send the files to you in a chat message instead.
 
 # FAQ
 
@@ -110,7 +118,11 @@ A status window appears while your file is prepared, and the file downloads auto
 ## Can I export expenses or reports in bulk?
 
 - **CSV export**: Yes, select multiple or all items.
-- **PDF export**: Must be downloaded one at a time.
+- **PDF export**: Yes, select multiple reports and choose **Download as PDF**. Each report is downloaded as a separate PDF.
+
+## What happens if some reports fail to download as PDFs?
+
+When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports couldn't be generated, open your **Concierge** chat in the **Inbox** to see which reports failed.
 
 ## Why do I see a 404 error when clicking a receipt URL?
 

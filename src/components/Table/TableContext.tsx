@@ -1,5 +1,7 @@
 import type {FlashListRef} from '@shopify/flash-list';
+
 import React, {createContext, useContext} from 'react';
+
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
@@ -23,6 +25,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Whether or not selection is enabled for the table */
     selectionEnabled?: boolean;
+
+    /** Whether the selection UX should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
+    shouldEnableSelectionInNarrowPaneModal?: boolean;
 
     /** The data array after filtering, searching, and sorting have been applied. */
     processedData: Array<TableRow<DataType>>;

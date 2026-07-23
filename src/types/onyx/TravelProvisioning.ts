@@ -1,4 +1,5 @@
 import type {Route} from '@src/ROUTES';
+
 import type {Errors} from './OnyxCommon';
 
 /** Model of travel provisioning process information */

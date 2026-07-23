@@ -1,9 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Footer from '@components/SelectionList/components/Footer';
 import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
 import TextInput from '@components/SelectionList/components/TextInput';
@@ -18,13 +12,24 @@ import useSelectionListTextInput from '@components/SelectionList/hooks/useSelect
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
+
+import {useIsFocused} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import React, {useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
 function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {

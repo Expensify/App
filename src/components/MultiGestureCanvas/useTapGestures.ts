@@ -1,10 +1,13 @@
-import {useCallback, useMemo} from 'react';
 import type {TapGesture} from 'react-native-gesture-handler';
+
+import {useCallback, useMemo} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import {withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
+
 import type {MultiGestureCanvasVariables} from './types';
+
+import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
 import * as MultiGestureCanvasUtils from './utils';
 
 type UseTapGesturesProps = Pick<

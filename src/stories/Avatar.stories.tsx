@@ -1,11 +1,15 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
-import {View} from 'react-native';
 import type {AvatarProps} from '@components/Avatar';
 import Avatar from '@components/Avatar';
 import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
+
 import CONST from '@src/CONST';
+
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const AVATAR_URL = USER_AVATARS.entries['car-blue100'].url;
 

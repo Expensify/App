@@ -1,9 +1,12 @@
+import Icon from '@components/Icon';
+
+import useTheme from '@hooks/useTheme';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, StyleSheet, View} from 'react-native';
-import Icon from '@components/Icon';
-import useTheme from '@hooks/useTheme';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type TabIconProps = {
     /** Icon to display on tab */

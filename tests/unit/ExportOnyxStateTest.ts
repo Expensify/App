@@ -1,4 +1,5 @@
 import {emailRegex, maskOnyxState} from '@libs/ExportOnyxState/common';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 

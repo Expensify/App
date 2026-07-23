@@ -1,10 +1,8 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -20,11 +18,19 @@ import {
     isMerchantMissing,
     shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
+import type {TransactionItemRowProps} from './types';
+
 import TransactionItemRowNarrow from './TransactionItemRowNarrow';
 import TransactionItemRowWide from './TransactionItemRowWide';
-import type {TransactionItemRowProps} from './types';
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
 
@@ -33,6 +39,7 @@ function TransactionItemRow({
     report,
     policy,
     policyCategories,
+    policyTagLists,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -59,6 +66,7 @@ function TransactionItemRow({
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
+    shouldDisableActionPointerEvents = false,
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
@@ -176,6 +184,7 @@ function TransactionItemRow({
         report,
         policy,
         policyCategories,
+        policyTagLists,
         isSelected,
         shouldShowTooltip,
         dateColumnSize,
@@ -199,6 +208,7 @@ function TransactionItemRow({
         shouldShowErrors,
         shouldHighlightItemWhenSelected,
         isDisabled,
+        shouldDisableActionPointerEvents,
         violations,
         shouldShowBottomBorder,
         onArrowRightPress,

@@ -1,5 +1,3 @@
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import {
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
@@ -14,10 +12,15 @@ import {
     newGetPersonalDetailsByIDs,
     temporaryGetDisplayNameOrDefault,
 } from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -163,7 +166,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '2': {
                                 accountID: 2,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_18.png',
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/generated/letter/v1/ice700/T.png',
                                 displayName: 'test2@test.com',
                                 isOptimisticPersonalDetail: true,
                                 login: 'test2@test.com',

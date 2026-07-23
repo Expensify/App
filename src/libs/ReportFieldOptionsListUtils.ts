@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {OptionData} from './ReportUtils';
+
 import tokenizedSearch from './tokenizedSearch';
 
 /**

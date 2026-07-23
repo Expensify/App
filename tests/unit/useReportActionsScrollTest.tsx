@@ -1,13 +1,20 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
+
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -536,6 +543,39 @@ describe('useReportActionsScroll', () => {
             mockScrollToBottom.mockClear();
 
             rerender(buildParams({sortedVisibleReportActions: [erroredAction]}));
+            flushTransitions();
+
+            expect(mockScrollToBottom).toHaveBeenCalled();
+        });
+
+        it('does not scroll to bottom when an IOU error clears (retry succeeds)', async () => {
+            // Error appears → scrolls (covered above), then the retry succeeds and the error clears.
+            const erroredAction = makeAction('1', {errors: {error1: 'Something went wrong'}});
+            const {rerender} = await renderScroll({sortedVisibleReportActions: [makeAction('2')]});
+            rerender(buildParams({sortedVisibleReportActions: [erroredAction]}));
+            flushTransitions();
+
+            mockTransitionCallbacks.length = 0;
+            mockScrollToBottom.mockClear();
+
+            // Same action, error resolved → no current error → must not yank the list to the bottom.
+            rerender(buildParams({sortedVisibleReportActions: [makeAction('1')]}));
+            flushTransitions();
+
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
+        });
+
+        it('scrolls to bottom when a new error appears alongside an existing unresolved error', async () => {
+            const existing = makeAction('1', {errors: {error1: 'Something went wrong'}});
+            const {rerender} = await renderScroll({sortedVisibleReportActions: [existing]});
+            flushTransitions();
+
+            mockTransitionCallbacks.length = 0;
+            mockScrollToBottom.mockClear();
+
+            // A second, newer action fails while '1' is still errored → genuinely new error → scroll.
+            const newer = makeAction('2', {errors: {error1: 'Something went wrong'}});
+            rerender(buildParams({sortedVisibleReportActions: [newer, existing]}));
             flushTransitions();
 
             expect(mockScrollToBottom).toHaveBeenCalled();

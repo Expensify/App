@@ -1,19 +1,25 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserPills from '@components/UserPills';
+
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {enrichAndSortAttendees} from '@libs/AttendeeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendeesListDisplayString} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import {attendeeSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 

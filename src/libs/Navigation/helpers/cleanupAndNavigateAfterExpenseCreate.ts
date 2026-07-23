@@ -1,8 +1,11 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
 import navigateAfterExpenseCreate from './navigateAfterExpenseCreate';
 

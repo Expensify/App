@@ -1,7 +1,10 @@
-import React from 'react';
 import CountryFullStep from '@components/SubStepForms/CountryFullStep';
+
 import {goToWithdrawalAccountSetupStep} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type CountryProps = {
     /** Handles back button press */

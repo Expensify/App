@@ -1,20 +1,31 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, Domain, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {isAdminSelector} from '@selectors/Domain';
+
+import type {CompanyCardFeedIcons} from './CardUtils';
+import type {OptionData} from './ReportUtils';
+
 import {
     feedHasCards,
     getBankName,
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCustomOrFormattedFeedName,
+    getDomainByFundID,
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
@@ -26,9 +37,7 @@ import {
     isDirectFeed,
     isPersonalCard,
 } from './CardUtils';
-import type {CompanyCardFeedIcons} from './CardUtils';
-import {getDescriptionForPolicyDomainCard} from './PolicyUtils';
-import type {OptionData} from './ReportUtils';
+import {getDescriptionForPolicyDomainCard, isPolicyAdmin} from './PolicyUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
 type DomainFeedData = {bank: CardFeedWithNumber; domainName: string; correspondingCardIDs: string[]; fundID?: string; feedCountry?: string};
@@ -620,6 +629,95 @@ function getCardFeedsForDisplayPerPolicy(
 }
 
 /**
+ * Narrows a raw company-feed object key (widened to `string` by `Object.entries`) to `CardFeedWithNumber`.
+ * This is not a full type guard that validates the key against the union — it only asserts that a non-empty
+ * key belongs to `CardFeedWithNumber` (the map is keyed by that union at runtime), and rejects empty keys.
+ * Used to avoid an unsafe `as` assertion when iterating the feed map.
+ */
+function isCardFeedWithNumber(feedKey: string): feedKey is CardFeedWithNumber {
+    return !!feedKey;
+}
+
+/**
+ * Returns the company card feeds that should be visible to the current user in the feed selector,
+ * enumerated exactly once per feed (keyed by `${fundID}_${feed}`).
+ *
+ * A feed is gathered from one of two sources:
+ *  1. A domain the user is an admin of (the domain's account ID matches the feed's fundID).
+ *  2. A policy the user is an admin of whose `policyAccountID` matches the feed's fundID.
+ *
+ * Whether a feed shows as an available feed or under "From other workspaces" is decided by the
+ * caller using `linkedPolicyIDs` (active policy in `linkedPolicyIDs` → available, otherwise other).
+ * There is intentionally no decision based on `preferredPolicy`.
+ *
+ * Note: "Expensify Card" feeds are not included (handled by the Expensify card selector).
+ */
+function getVisibleCompanyCardFeedsForSelector(
+    allCardFeeds: OnyxCollection<CardFeeds>,
+    translate: LocalizedTranslate,
+    feedKeysWithCards: FeedKeysWithAssignedCards | undefined,
+    policies: OnyxCollection<Policy>,
+    domains: OnyxCollection<Domain>,
+    currentUserAccountID: number,
+): CardFeedForDisplay[] {
+    const visibleFeeds: CardFeedForDisplay[] = [];
+    const seenFeedIDs = new Set<string>();
+
+    // Precompute the fundIDs (policyAccountIDs) backed by non-deleted policies the user can administer.
+    // This avoids re-scanning every policy for each domain entry (was O(domains × policies)).
+    const adminPolicyFundIDs = new Set<number>();
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.policyAccountID === undefined || !isPolicyAdmin(policy) || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        adminPolicyFundIDs.add(policy.policyAccountID);
+    }
+
+    for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
+        // sharedNVP_private_domain_member_123456 -> 123456
+        const fundID = domainKey.split('_').at(-1);
+        if (!fundID) {
+            continue;
+        }
+        const numericFundID = Number(fundID);
+
+        // Visibility: the user must be an admin of the feed's domain or of a policy backed by this fund.
+        const domain = getDomainByFundID(domains, numericFundID);
+        const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
+        const isWorkspaceAdmin = adminPolicyFundIDs.has(numericFundID);
+        if (!isDomainAdmin && !isWorkspaceAdmin) {
+            continue;
+        }
+
+        for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, numericFundID))) {
+            // `getOriginalCompanyFeeds` is keyed by `CardFeedWithNumber`, but `Object.entries` widens the key to
+            // `string`. Narrow it back with a type guard instead of an unsafe `as` assertion.
+            if (!isCardFeedWithNumber(key)) {
+                continue;
+            }
+            const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
+            const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
+            const feed = key;
+            const id = `${fundID}_${feed}`;
+            if (seenFeedIDs.has(id)) {
+                continue;
+            }
+            seenFeedIDs.add(id);
+            visibleFeeds.push({
+                id,
+                feed,
+                country,
+                fundID,
+                linkedPolicyIDs,
+                name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+            });
+        }
+    }
+
+    return visibleFeeds;
+}
+
+/**
  * Finds a feed by id in the card feeds grouped by policy.
  *
  * @param feedId - The feed id (e.g. `${fundID}_${feed}`) to look up
@@ -727,6 +825,7 @@ export {
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
+    getVisibleCompanyCardFeedsForSelector,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
 };

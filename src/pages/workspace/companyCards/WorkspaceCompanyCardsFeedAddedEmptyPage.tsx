@@ -1,10 +1,12 @@
-import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
     /** Whether to disable GB disclaimer */

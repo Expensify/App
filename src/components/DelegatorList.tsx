@@ -1,9 +1,13 @@
-import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import MenuItem from './MenuItem';
 import Text from './Text';
 

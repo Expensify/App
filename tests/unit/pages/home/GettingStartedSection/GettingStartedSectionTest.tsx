@@ -1,8 +1,7 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +9,12 @@ import GettingStartedSection from '@src/pages/home/GettingStartedSection';
 import useGettingStartedItems from '@src/pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 import ROUTES from '@src/ROUTES';
 import type {PolicyCategories} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const TEST_POLICY_ID = 'ABC123';
@@ -297,13 +302,13 @@ describe('GettingStartedSection', () => {
             expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCards')).toBeTruthy();
         });
 
-        it('always shows "Link company cards" row even when company cards feature is disabled', async () => {
+        it('does not show "Link company cards" row when company cards feature is disabled', async () => {
             await setManageTeamUserState({areCompanyCardsEnabled: false});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCards')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.linkCompanyCards')).toBeNull();
         });
 
         it('shows "Set up spend rules" row when rules feature is enabled', async () => {

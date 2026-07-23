@@ -1,4 +1,5 @@
-import CLI from '@scripts/utils/CLI';
+import CLI from 'expensify-common/CLI';
+
 import loadChartFontsForCli from './loadChartFontsForCli';
 import parseChartXml from './parseChartXml';
 import renderChartToPng from './renderChartToPng';

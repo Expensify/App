@@ -1,8 +1,11 @@
-import React from 'react';
 import TextInput from '@components/TextInput';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx';
+
+import React from 'react';
 
 type ReportFieldTextProps = {
     field: PolicyReportField;

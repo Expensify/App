@@ -1,7 +1,10 @@
+import {navigationRef} from '@libs/Navigation/Navigation';
+
+import NAVIGATORS from '@src/NAVIGATORS';
+
 import {useRoute} from '@react-navigation/native';
 import {useCallback, useEffect} from 'react';
-import {navigationRef} from '@libs/Navigation/Navigation';
-import NAVIGATORS from '@src/NAVIGATORS';
+
 import {expandedRHPProgress, useWideRHPActions} from '..';
 
 /**

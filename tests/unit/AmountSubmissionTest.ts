@@ -1,9 +1,13 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getIsP2PForAmount, getReportOrReportDraftForAmount, submitAmount} from '@pages/iou/request/step/AmountSubmission';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -210,6 +214,7 @@ describe('AmountSubmission', () => {
                 transaction: undefined,
                 splitDraftTransaction: undefined,
                 policy: undefined,
+                isDraftChatReport: undefined,
                 selectedCurrency: CONST.CURRENCY.USD,
                 decimals: 2,
                 iouType: CONST.IOU.TYPE.SUBMIT,

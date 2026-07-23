@@ -1,11 +1,14 @@
-import React from 'react';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type ExpandCollapseArrowButtonProps = {
     isExpanded?: boolean;

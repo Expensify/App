@@ -1,13 +1,18 @@
-import {FlashList} from '@shopify/flash-list';
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+
+import {FlashList} from '@shopify/flash-list';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {TableData} from '.';
+
 import {useTableContext} from './TableContext';
 
 /**

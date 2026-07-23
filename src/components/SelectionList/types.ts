@@ -1,10 +1,13 @@
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type CONST from '@src/CONST';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import type CONST from '@src/CONST';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {ListItem, ValidListItem} from './ListItem/types';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
 
@@ -296,6 +299,12 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
 
     /** Whether the button is disabled */
     isDisabled?: boolean;
+
+    /**
+     * Visual size of the footer confirm button (SelectionList Footer only).
+     * Defaults to large for backwards compatibility.
+     */
+    confirmButtonSize?: 'large' | 'medium' | 'small';
 };
 
 type SelectionListHandle<TItem extends ListItem> = {

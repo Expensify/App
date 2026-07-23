@@ -1,9 +1,12 @@
-import React, {useEffect, useRef, useState} from 'react';
 import type {SyntheticEvent} from 'react';
+
+import React, {useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
+
+import type {ReactionListAnchor, ReactionListContextType, ReactionListEvent} from './ReportScreenContext';
+
 import PopoverReactionList from './report/ReactionList/PopoverReactionList';
 import {ReactionListContext} from './ReportScreenContext';
-import type {ReactionListAnchor, ReactionListContextType, ReactionListEvent} from './ReportScreenContext';
 
 type AnchorPosition = {horizontal: number; vertical: number};
 

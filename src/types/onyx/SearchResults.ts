@@ -1,12 +1,12 @@
-import type {ValueOf} from 'type-fest';
-import type ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
-import type TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
-import type TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchStatus} from '@components/Search/types';
+
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {ValueOf} from 'type-fest';
+
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
@@ -20,13 +20,6 @@ import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
-
-/** Model of search result list item */
-type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
-    ? typeof ChatListItem
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-      ? typeof TransactionListItem
-      : typeof TransactionGroupListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
@@ -328,7 +321,6 @@ type SearchResults = {
 export default SearchResults;
 
 export type {
-    ListItemType,
     ListItemDataType,
     SearchTask,
     SearchTransactionAction,

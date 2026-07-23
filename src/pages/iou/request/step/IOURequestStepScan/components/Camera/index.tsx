@@ -1,10 +1,14 @@
-import React, {useEffect} from 'react';
 import {isMobile} from '@libs/Browser';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect} from 'react';
+
+import type {CameraProps} from './types';
+
 import CameraCapture from './CameraCapture';
 import FileUpload from './FileUpload';
-import type {CameraProps} from './types';
 
 /**
  * Camera — web entry point.

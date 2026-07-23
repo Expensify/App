@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const isActionLoadingSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isActionLoading ?? false;
 

@@ -1,14 +1,19 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -123,9 +128,12 @@ describe('OnyxDerived', () => {
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
+            reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                {},
+            );
             const reportAttributesComputedValue = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
                 {
                     sourceValues: {
                         [ONYXKEYS.COLLECTION.REPORT]: {

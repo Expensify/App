@@ -1,18 +1,25 @@
-import React from 'react';
 import Button from '@components/Button';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
+
 import {createTransactionThreadReport} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import type {SimpleActionProps} from './types';
+
 import useTransactionThreadData from './useTransactionThreadData';
 
 function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionProps) {

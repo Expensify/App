@@ -1,6 +1,8 @@
-import type {LottieViewProps} from 'lottie-react-native';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
+import type {LottieViewProps} from 'lottie-react-native';
+
 import type DotLottieAnimation from './types';
 
 const DotLottieAnimations = {

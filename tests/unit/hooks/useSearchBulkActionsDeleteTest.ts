@@ -1,12 +1,18 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
+
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 // ---------------------------------------------------------------------------
@@ -173,6 +179,21 @@ jest.mock('react-native', () => ({
             callback();
             return {cancel: jest.fn()};
         },
+    },
+}));
+
+// Make TransitionTracker execute callbacks immediately too (it can't wait for a real
+// modal/popover transition in a unit test, and waitForUpcomingTransition would otherwise
+// stall until MAX_TRANSITION_START_WAIT_MS).
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        runAfterTransitions: ({callback}: {callback: () => void | Promise<void>}) => {
+            callback();
+            return {cancel: jest.fn()};
+        },
+        startTransition: jest.fn(),
+        endTransition: jest.fn(),
     },
 }));
 

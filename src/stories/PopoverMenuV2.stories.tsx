@@ -1,14 +1,19 @@
-import type {Meta} from '@storybook/react-webpack5';
-import React from 'react';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {Meta} from '@storybook/react-webpack5';
+
+import React from 'react';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 
+import colors from '@styles/theme/colors';
+
 /**
  * Seatbelt baseline dashboard — parses eslint.seatbelt.tsv and emits an HTML report
  * with aggregated tables and optional git history charts (Chart.js pinned beside the HTML).
@@ -10,11 +12,11 @@
  * When the history chart is included, Chart.js is downloaded next to the HTML so file:// opens work;
  * tables work offline without Chart.js.
  */
+import CLI from 'expensify-common/CLI';
 import {execSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import colors from '@styles/theme/colors';
-import CLI from './utils/CLI';
+
 import Git from './utils/Git';
 
 const SEATBELT_REL = 'config/eslint/eslint.seatbelt.tsv';
@@ -596,7 +598,10 @@ const openHtmlReport = (absPath: string): void => {
         spawnSync('open', [absolute], {stdio: 'ignore'});
     } else if (process.platform === 'win32') {
         // `start "" <path>` uses the empty window title so paths with spaces work.
-        spawnSync('cmd', ['/c', 'start', '', absolute], {stdio: 'ignore', windowsHide: true});
+        spawnSync('cmd', ['/c', 'start', '', absolute], {
+            stdio: 'ignore',
+            windowsHide: true,
+        });
     } else {
         spawnSync('xdg-open', [absolute], {stdio: 'ignore'});
     }

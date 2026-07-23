@@ -1,8 +1,11 @@
 import {afterEach, beforeAll, beforeEach, describe, expect, it, jest} from '@jest/globals';
-import Onyx from 'react-native-onyx';
+
 import CONST from '@src/CONST';
 import * as Report from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/ActiveClientManager', () => ({

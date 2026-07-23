@@ -1,8 +1,12 @@
-import {groupsSelector} from '@selectors/Domain';
-import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {DomainSecurityGroupWithID} from '@selectors/Domain';
+
+import {groupsSelector} from '@selectors/Domain';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 

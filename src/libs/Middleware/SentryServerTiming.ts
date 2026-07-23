@@ -1,7 +1,10 @@
-import type {SpanAttributes} from '@sentry/core';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {cancelSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import type {SpanAttributes} from '@sentry/core';
+
 import type Middleware from './types';
 
 /**

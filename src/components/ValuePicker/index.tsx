@@ -1,9 +1,14 @@
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+
 import type {ValuePickerItem, ValuePickerProps} from './types';
+
 import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 

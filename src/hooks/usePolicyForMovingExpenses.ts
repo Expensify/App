@@ -1,11 +1,16 @@
-import {activePolicySelector} from '@selectors/Policy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
+
 import {canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {activePolicySelector} from '@selectors/Policy';
+
 import useOnyx from './useOnyx';
 
 // TODO: temporary util - if we don't have employeeList object we don't check for the pending delete

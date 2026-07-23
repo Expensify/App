@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useInboxTabSpanLifecycle from '@hooks/useInboxTabSpanLifecycle';
+
 import CONST from '@src/CONST';
 
 type FocusCallback = () => (() => void) | void;

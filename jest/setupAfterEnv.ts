@@ -1,8 +1,10 @@
 import '@testing-library/react-native';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {KeyboardEventName} from 'react-native';
+
 import {Keyboard} from 'react-native';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.useRealTimers();
 

@@ -1,5 +1,3 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
@@ -8,16 +6,22 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
+
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFieldRequiredErrors, isValidRegistrationNumber} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 type RegistrationNumberStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
     /** The ID of the form */

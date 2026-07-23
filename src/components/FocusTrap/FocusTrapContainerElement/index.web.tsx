@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import {View} from 'react-native';
+
 import type FocusTrapContainerElementProps from './FocusTrapContainerElementProps';
 
 function FocusTrapContainerElement({onContainerElementChanged, ref, ...props}: FocusTrapContainerElementProps) {
