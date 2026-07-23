@@ -4,6 +4,7 @@ import type {GuardContext} from '@libs/Navigation/guards/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
@@ -11,6 +12,21 @@ import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
+
+let mockSkipOnboarding = false;
+
+jest.mock('@src/CONFIG', () => {
+    const actualConfig = jest.requireActual<{default: Record<string, unknown>}>('@src/CONFIG').default;
+    return {
+        __esModule: true,
+        default: {
+            ...actualConfig,
+            get SKIP_ONBOARDING() {
+                return mockSkipOnboarding;
+            },
+        },
+    };
+});
 
 describe('OnboardingGuard', () => {
     const mockState: NavigationState = {
@@ -38,6 +54,7 @@ describe('OnboardingGuard', () => {
     });
 
     beforeEach(async () => {
+        mockSkipOnboarding = false;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -325,6 +342,56 @@ describe('OnboardingGuard', () => {
             const result = OnboardingGuard.evaluate(mockState, replaceAction, authenticatedContext);
 
             // Then navigation should be allowed because isNavigatingToOnboardingFlow only handles NAVIGATE and PUSH action types, not REPLACE
+            expect(result.type).toBe('ALLOW');
+        });
+    });
+
+    describe('SKIP_ONBOARDING test builds', () => {
+        it('should redirect NAVIGATE into onboarding to home when SKIP_ONBOARDING is set', () => {
+            // Given a test build with SKIP_ONBOARDING enabled and a user who has NOT completed onboarding
+            mockSkipOnboarding = true;
+
+            // When a NAVIGATE action targets the OnboardingModalNavigator
+            const navigateAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+                payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, navigateAction, authenticatedContext);
+
+            // Then the user should be redirected to home because test builds never show the onboarding UI
+            expect(result).toEqual({type: 'REDIRECT', route: ROUTES.HOME});
+        });
+
+        it('should redirect REPLACE into onboarding to home when SKIP_ONBOARDING is set', () => {
+            // Given a test build with SKIP_ONBOARDING enabled and a user who has NOT completed onboarding
+            mockSkipOnboarding = true;
+
+            // When a REPLACE action targets the OnboardingModalNavigator (e.g. forceReplace navigation)
+            const replaceAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+                payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, replaceAction, authenticatedContext);
+
+            // Then the user should be redirected to home; with SKIP_ONBOARDING there is no legitimate
+            // way to be mid-onboarding, so the usual REPLACE allowance does not apply
+            expect(result).toEqual({type: 'REDIRECT', route: ROUTES.HOME});
+        });
+
+        it('should NOT redirect an incomplete user REPLACE into onboarding when SKIP_ONBOARDING is off', () => {
+            // Given a regular build (flag off) and a user who has NOT completed onboarding
+
+            // When a REPLACE action targets the OnboardingModalNavigator (advancing between onboarding steps)
+            const replaceAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+                payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, replaceAction, authenticatedContext);
+
+            // Then navigation should be allowed so real users can move through onboarding steps
             expect(result.type).toBe('ALLOW');
         });
     });
