@@ -131,6 +131,32 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
+        it('shows category filter while categories for an enabled workspace have not loaded', async () => {
+            const policy = buildPolicy(1, {areCategoriesEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            await Onyx.merge(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED, false);
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+            });
+        });
+
+        it('hides category filter when loaded category data is empty', async () => {
+            const policy = buildPolicy(1, {areCategoriesEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            await Onyx.merge(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED, true);
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+            });
+        });
+
         it('hides category filter when categories exist only for personal policies', async () => {
             const personalPolicy = buildPolicy(1, {
                 areCategoriesEnabled: true,
