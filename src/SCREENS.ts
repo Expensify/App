@@ -346,8 +346,8 @@ const SCREENS = {
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         STEP_VENDOR: 'Money_Request_Step_Vendor',
         RECEIPT_VIEW: 'Money_Request_Receipt_View',
-        STEP_SEND_FROM: 'Money_Request_Step_Send_From',
-        STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
+        DYNAMIC_STEP_SEND_FROM: 'Dynamic_Money_Request_Step_Send_From',
+        DYNAMIC_STEP_COMPANY_INFO: 'Dynamic_Money_Request_Step_Company_Info',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -458,7 +458,7 @@ const SCREENS = {
         DYNAMIC_TASK_TITLE: 'Dynamic_NewTask_Title',
         DYNAMIC_TASK_DESCRIPTION: 'Dynamic_NewTask_Description',
         DYNAMIC_TASK_DETAILS: 'Dynamic_NewTask_Details',
-        TASK_SHARE_DESTINATION_SELECTOR: 'NewTask_TaskShareDestinationSelector',
+        DYNAMIC_TASK_SHARE_DESTINATION_SELECTOR: 'Dynamic_NewTask_TaskShareDestinationSelector',
     },
 
     TASK: {
