@@ -1125,6 +1125,20 @@ const DYNAMIC_ROUTES = {
         path: 'initial-list-value',
         entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
     },
+    MERGE_TRANSACTION_CONFIRMATION: {
+        path: 'merge/:transactionID/confirmation',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.MERGE_TRANSACTION.LIST_PAGE,
+            SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE,
+            SCREENS.MERGE_TRANSACTION.DETAILS_PAGE,
+        ],
+        getRoute: (transactionID: string) => `merge/${transactionID}/confirmation` as const,
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -3603,14 +3617,6 @@ const ROUTES = {
 
         getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             const url = getUrlWithBackToParam(`merge/${transactionID}/details` as const, backTo);
-            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
-        },
-    },
-    MERGE_TRANSACTION_CONFIRMATION_PAGE: {
-        route: 'merge/:transactionID/confirmation',
-
-        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
-            const url = getUrlWithBackToParam(`merge/${transactionID}/confirmation` as const, backTo);
             return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
         },
     },
