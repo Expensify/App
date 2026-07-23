@@ -17,13 +17,9 @@ function getDistanceUnitLabel(distance: number, unit: Unit, translate: LocaleCon
 /**
  * Formats a distance that is already expressed in display units (mi/km) into a localized string (e.g. "12.34 miles").
  */
-function getFormattedDistanceInUnits(distanceInUnits: number, unit: Unit, translate: LocaleContextProps['translate'], useShortFormUnit?: boolean, isCommuterDistance?: boolean): string {
+function getFormattedDistanceInUnits(distanceInUnits: number, unit: Unit, translate: LocaleContextProps['translate'], useShortFormUnit?: boolean): string {
     const roundedDistance = distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
     const unitLabel = useShortFormUnit ? unit : getDistanceUnitLabel(distanceInUnits, unit, translate);
-    if (isCommuterDistance) {
-        return `${roundedDistance} ${translate('common.commuter')} ${unitLabel}`;
-    }
-
     return `${roundedDistance} ${unitLabel}`;
 }
 

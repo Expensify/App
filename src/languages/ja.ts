@@ -9278,10 +9278,10 @@ ${reportName}`,
             snapPhotoEnd: '<muted-text-label>走行の<strong>終了時</strong>に、オドメーターの写真を撮影してください。</muted-text-label>',
         },
         commuterExclusion: {
-            original: ({formattedDistance}: {formattedDistance: string}) => `元の値: ${formattedDistance}`,
-            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `${formattedDistance} を削除しました`,
-            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
-                `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>に基づき、${formattedDistance} を削除しました。`,
+            original: ({formattedDistance}: {formattedDistance: string}) => `元の値：${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `通勤分の距離 ${distance} ${unit} を削除しました`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `<a href="${workspaceDistanceSettingsLink}">ワークスペースの通勤距離設定</a>に基づき、通勤分としての${unit}を${distance}削除しました。`,
         },
     },
     gps: {

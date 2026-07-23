@@ -56,7 +56,7 @@ import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {getFormattedDistanceInUnits} from './DistanceDisplayUtils';
+import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -4233,7 +4233,7 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
         const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
         const formattedDistance = getFormattedDistanceInUnits(Number(newValue ?? 0), distanceUnit, translate);
 
-        if (!oldValue) {
+        if (oldValue == null) {
             return translate('workspaceActions.commuterExclusions.setFixedDistance', {formattedDistance});
         }
 
@@ -4718,12 +4718,14 @@ function getCommuterExclusionMessage(translate: LocalizedTranslate, action: Onyx
     const {distance, unit} = getOriginalMessage(action) ?? {distance: '0', unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
     const distanceValue = Number(distance ?? 0);
     const unitValue = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const formattedDistance = getFormattedDistanceInUnits(distanceValue, unitValue, translate, false, true);
+    const commuterDistance = distanceValue.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
+    const commuterUnit = getDistanceUnitLabel(distanceValue, unitValue, translate);
 
     const workspaceDistanceSettingsLink = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID)}` : '';
 
     return translate('distance.commuterExclusion.systemMessage', {
-        formattedDistance,
+        distance: commuterDistance,
+        unit: commuterUnit,
         workspaceDistanceSettingsLink,
     });
 }

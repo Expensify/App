@@ -9456,9 +9456,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original : ${formattedDistance}`,
-            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Supprimé ${formattedDistance}`,
-            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
-                `${formattedDistance} supprimé en fonction des <a href="${workspaceDistanceSettingsLink}">paramètres de distance de l'espace de travail</a>.`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} de trajet domicile-travail supprimés`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `${distance} ${unit} de trajet domicile-travail supprimés d’après les <a href="${workspaceDistanceSettingsLink}">paramètres de distance de l’espace de travail</a>.`,
         },
     },
     gps: {

@@ -9360,9 +9360,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Removeu ${formattedDistance}`,
-            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
-                `Removido ${formattedDistance} com base nas <a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>.`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} de deslocamento removidos`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `${distance} ${unit} de deslocamento removidos com base nas <a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>.`,
         },
     },
     gps: {

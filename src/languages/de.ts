@@ -9420,9 +9420,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `${formattedDistance} entfernt`,
-            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
-                `${formattedDistance} basierend auf den <a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Arbeitsbereichs</a> entfernt.`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} für den Arbeitsweg entfernt`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `${distance} ${unit} für den Arbeitsweg basierend auf den <a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Workspaces</a> entfernt.`,
         },
     },
     gps: {

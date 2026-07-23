@@ -9351,9 +9351,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Oryginał: ${formattedDistance}`,
-            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Usunięto ${formattedDistance}`,
-            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
-                `Usunięto ${formattedDistance} na podstawie <a href="${workspaceDistanceSettingsLink}">ustawień odległości w przestrzeni roboczej</a>.`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Usunięto ${distance} ${unit} dojazdu`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Usunięto ${distance} ${unit} dojazdu na podstawie <a href="${workspaceDistanceSettingsLink}">ustawień odległości w przestrzeni roboczej</a>.`,
         },
     },
     gps: {

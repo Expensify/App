@@ -9372,9 +9372,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Origineel: ${formattedDistance}`,
-            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `${formattedDistance} verwijderd`,
-            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
-                `${formattedDistance} verwijderd op basis van <a href="${workspaceDistanceSettingsLink}">werkruimte-instellingen voor afstand</a>.`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} woon-werkafstand verwijderd`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `${distance} ${unit} woon-werkafstand verwijderd op basis van de <a href="${workspaceDistanceSettingsLink}">afstandsinstellingen van de workspace</a>.`,
         },
     },
     gps: {
