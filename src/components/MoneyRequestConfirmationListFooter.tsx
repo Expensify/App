@@ -1,8 +1,9 @@
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
-import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -149,6 +150,8 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const showMoreFields = compactControls?.showMoreFields ?? false;
     const setShowMoreFields = compactControls?.setShowMoreFields ?? noopSetShowMoreFields;
@@ -165,6 +168,7 @@ function MoneyRequestConfirmationListFooter({
             isReadOnly={isReadOnly}
             didConfirm={didConfirm}
             isEditingSplitBill={isEditingSplitBill}
+            isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             isPolicyExpenseChat={isPolicyExpenseChat}
             isDistanceRequest={expenseMode.isDistance}
             isPerDiemRequest={expenseMode.isPerDiem}
