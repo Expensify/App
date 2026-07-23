@@ -452,6 +452,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'lastVisibleActionLastModified':
         case 'lastMessageHtml':
         case 'currency':
+        case 'creditedCurrency':
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
@@ -487,6 +488,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'reimbursableTotal':
         case 'unheldReimbursableTotal':
         case 'transactionCount':
+        case 'creditedAmount':
+        case 'debitedAmount':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -596,6 +599,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,

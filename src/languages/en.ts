@@ -1538,6 +1538,8 @@ const translations = {
         paidThisBill: 'paid this bill',
         reimbursedOnBehalfOf: (actor: string) => `on behalf of ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `from the bank account ending in ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `paid ${amount} from account ${debitBankAccount} to account ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} added a bank account, taking report off hold. Reimbursement is initiated`,
         reimbursedWithFastACH: ({
             isCurrentUser,

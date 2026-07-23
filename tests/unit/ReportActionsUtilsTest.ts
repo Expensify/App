@@ -4829,6 +4829,22 @@ describe('ReportActionsUtils', () => {
                 })}`,
             );
         });
+
+        it('shows the credited amount and both accounts for a cross-border FX reimbursement', () => {
+            // Given a reimbursed action carrying the credited amount and currency of a cross-border payment
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+                creditedCurrency: 'USD',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            // Then the message reports the credited amount instead of the report total and names both accounts
+            expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
+        });
     });
 
     describe('getAutoReimbursementMessage', () => {
