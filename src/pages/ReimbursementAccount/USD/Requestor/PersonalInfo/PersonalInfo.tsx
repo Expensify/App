@@ -22,9 +22,9 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
 
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
