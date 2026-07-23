@@ -6033,6 +6033,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 defaultHourlyRate: '默认时薪',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
+            vendors: {title: '供应商', subtitle: '将卡片支出与从您的会计软件导入的供应商进行匹配。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',

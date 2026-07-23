@@ -6289,6 +6289,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
+            vendors: {title: 'Fournisseurs', subtitle: 'Faites correspondre les dépenses par carte aux fournisseurs importés depuis votre logiciel de comptabilité.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',

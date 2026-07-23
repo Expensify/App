@@ -6266,6 +6266,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 defaultHourlyRate: 'Standardstundensatz',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Um HR zu deaktivieren, trennen Sie bitte zuerst ${integration} von diesem Workspace.`},
+            vendors: {title: 'Lieferanten', subtitle: 'Ordnen Sie Kartenausgaben den aus Ihrer Buchhaltungssoftware importierten Lieferanten zu.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',

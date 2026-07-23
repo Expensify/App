@@ -6235,6 +6235,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 defaultHourlyRate: 'Standaard uurtarief',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
+            vendors: {title: 'Leveranciers', subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',

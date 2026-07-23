@@ -6249,6 +6249,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 defaultHourlyRate: 'Tariffa oraria predefinita',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Per disattivare HR, scollega prima ${integration} da questo workspace.`},
+            vendors: {title: 'Fornitori', subtitle: 'Abbina le spese della carta ai fornitori importati dal tuo software di contabilità.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',

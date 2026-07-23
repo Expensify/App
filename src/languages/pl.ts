@@ -6216,6 +6216,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Aby wyłączyć HR, najpierw odłącz ${integration} od tego workspace’a.`},
+            vendors: {title: 'Dostawcy', subtitle: 'Dopasuj wydatki z karty do dostawców zaimportowanych z twojego oprogramowania księgowego.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',

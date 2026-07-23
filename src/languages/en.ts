@@ -6302,6 +6302,10 @@ const translations = {
                 title: 'Taxes',
                 subtitle: 'Document and reclaim eligible taxes.',
             },
+            vendors: {
+                title: 'Vendors',
+                subtitle: 'Match card expenses to vendors imported from your accounting software.',
+            },
             reportFields: {
                 title: 'Report fields',
                 subtitle: 'Set up custom fields for spend.',

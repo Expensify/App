@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -34,6 +35,7 @@ import {
     getPerDiemCustomUnit,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
+    hasVendorFeature,
     isControlPolicy,
     isPerDiemEnabled,
     isTimeTrackingEnabled,
@@ -88,6 +90,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
         'Accounting',
@@ -144,6 +147,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const paymentBankAccountID = settings?.paymentBankAccountID;
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+
+    // The Vendors toggle's active state reads policy.connections (via hasVendorFeature), which is
+    // empty on a non-active workspace until a connections-aware read runs. OpenPolicyMoreFeaturesPage
+    // doesn't hydrate the detailed connection config, so prefetch it here (gated on the beta) to keep
+    // the toggle from showing off/non-navigable when the workspace actually supports vendors.
+    usePolicyConnectionsPrefetch(policy, isVendorMatchingEnabled);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -326,6 +335,28 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                             }}
                         />
+                        {isVendorMatchingEnabled && (
+                            <MoreFeatureToggle
+                                icon={illustrations.Luggage}
+                                title={translate('workspace.moreFeatures.vendors.title')}
+                                subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
+                                isActive={hasVendorFeature(policy, isVendorMatchingEnabled)}
+                                // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
+                                // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
+                                // to toggle yet; locking it avoids shipping a switch that silently no-ops. Read-only users still
+                                // get the read-only modal via withReadOnlyFallback(). Row-body navigation stays active when the
+                                // feature is available. This will be unlocked in the follow-up PR that wires up the toggle.
+                                disabled
+                                disabledAction={withReadOnlyFallback()}
+                                onToggle={() => {}}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_VENDORS.getRoute(policyID));
+                                }}
+                            />
+                        )}
                         <MoreFeatureToggle
                             icon={illustrations.Members}
                             title={translate('workspace.hr.title')}
