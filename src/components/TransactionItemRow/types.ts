@@ -118,6 +118,15 @@ type TransactionItemRowProps = {
     canEditCategory?: boolean;
     canEditAmount?: boolean;
     canEditTag?: boolean;
+
+    /** When true, RBR content renders immediately instead of via useDeferredValue. Use in FlashList contexts. */
+    shouldSkipDeferRBR?: boolean;
+};
+
+/** Derived from shouldSkipDeferRBR; passed to layout variants for DeferredTransactionItemRowRBR. */
+type TransactionItemRowRBRDeferControlProps = {
+    /** When false, RBR content renders immediately instead of via useDeferredValue. */
+    shouldDeferRBR?: boolean;
 };
 
 /** Window position of the hovered cell used to anchor the receipt preview beside the row. */
@@ -151,4 +160,11 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     isMarkAsDone: boolean;
 };
 
-export type {AnchorPosition, TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};
+export type {
+    AnchorPosition,
+    TransactionWithOptionalSearchFields,
+    TransactionItemRowProps,
+    TransactionItemRowRBRDeferControlProps,
+    TransactionItemRowNarrowComputedData,
+    TransactionItemRowWideComputedData,
+};
