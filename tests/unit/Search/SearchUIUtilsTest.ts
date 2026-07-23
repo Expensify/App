@@ -326,10 +326,12 @@ const approverAvatarIcon = {
     fallbackIcon: undefined,
 };
 
-const policyWorkspaceIcon = {
-    source: defaultWorkspaceAvatars.WorkspaceU,
+// getReportSections passes the snapshot's policy to getPolicyName, so the workspace avatar resolves the
+// policy's real name instead of falling back to "Unavailable workspace".
+const resolvedPolicyWorkspaceIcon = {
+    source: defaultWorkspaceAvatars.WorkspaceP,
     type: CONST.ICON_TYPE_WORKSPACE,
-    name: 'Unavailable workspace',
+    name: policy.name,
     id: policyID,
 };
 
@@ -1185,7 +1187,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         isAllScanning: false,
         isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
-        secondaryAvatar: policyWorkspaceIcon,
+        secondaryAvatar: resolvedPolicyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
@@ -1315,7 +1317,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         isAllScanning: false,
         isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
-        secondaryAvatar: policyWorkspaceIcon,
+        secondaryAvatar: resolvedPolicyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
@@ -1653,7 +1655,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         isAllScanning: false,
         isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
-        secondaryAvatar: policyWorkspaceIcon,
+        secondaryAvatar: resolvedPolicyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 0,
         transactions: [],
