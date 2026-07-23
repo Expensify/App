@@ -1,4 +1,4 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
@@ -21,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
+import {View} from 'react-native';
 
 import React, {useCallback, useMemo} from 'react';
 
@@ -59,6 +60,7 @@ const pages = [
 
 function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -117,7 +119,12 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoPr
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {isRedirecting ? (
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'PersonalInfo', isRedirecting}} />
+                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'PersonalInfo', isRedirecting}}
+                    />
+                </View>
             ) : (
                 <CurrentPage
                     isEditing={isEditing}
