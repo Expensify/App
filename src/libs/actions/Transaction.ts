@@ -890,6 +890,7 @@ function getChangeTransactionsReportOnyxData({
     for (const id of transactionIDs) {
         currentTransactionViolations[id] = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
     }
+    const movingTransactionIDs = new Set(transactionIDs);
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1171,17 +1172,57 @@ function getChangeTransactionsReportOnyxData({
             },
         });
 
-        // Optimistically clear all violations for the transaction when moving to self DM report
+        // Clear all violations for the transaction when moving to self DM report.
+        // Also keep duplicate-partner violations cleaned on success so stale queued
+        // responses cannot re-introduce one-sided duplicate warnings after reconnect.
         if (isUnreported) {
             const duplicateTransactionIDs = currentTransactionViolations[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data
                 ?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
+                    if (movingTransactionIDs.has(id)) {
+                        continue;
+                    }
+
                     const siblingViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+                    const siblingDuplicateViolation = siblingViolations.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+                    if (!siblingDuplicateViolation?.data?.duplicates?.some((duplicateTransactionID) => movingTransactionIDs.has(duplicateTransactionID))) {
+                        continue;
+                    }
+
+                    const remainingDuplicateTransactionIDs = siblingDuplicateViolation.data.duplicates.filter((duplicateTransactionID) => !movingTransactionIDs.has(duplicateTransactionID));
+                    const updatedSiblingViolations = siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+                    if (remainingDuplicateTransactionIDs.length > 0) {
+                        updatedSiblingViolations.push({
+                            ...siblingDuplicateViolation,
+                            data: {
+                                ...siblingDuplicateViolation.data,
+                                duplicates: remainingDuplicateTransactionIDs,
+                            },
+                        });
+                    }
+
+                    const updatedSiblingViolationsValue = updatedSiblingViolations.length > 0 ? updatedSiblingViolations : null;
+                    const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}` as const;
+
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        key: siblingViolationsKey,
+                        value: updatedSiblingViolationsValue,
+                    });
+
+                    successData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: siblingViolationsKey,
+                        value: updatedSiblingViolationsValue,
+                    });
+
+                    failureData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: siblingViolationsKey,
+                        value: siblingViolations,
                     });
                 }
             }
