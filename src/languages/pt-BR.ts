@@ -7588,6 +7588,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 defaultTaxRate: 'Taxa de imposto padrão',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Vá para [Mais recursos](${moreFeaturesLink}) e ative os fluxos de trabalho, depois adicione aprovações para desbloquear este recurso.`,
+                createNewRule: 'Criar nova regra',
+                contextualFlagForReview: (amount: string) => `Se o valor for acima de ${amount}, marcar para revisão`,
+                contextualFlagForReviewDaily: (amount: string) => `Se o total diário da categoria estiver acima de ${amount}, sinalizar para revisão`,
             },
             customRules: {
                 title: 'Política de despesas',
