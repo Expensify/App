@@ -122,10 +122,10 @@ function AddAgentPage({route}: AddAgentPageProps) {
         }
 
         // On wide layouts, open the DM in the RHP (same mechanism used for the admins room from the home
-        // page) instead of the fullscreen report split, so the agent settings stay visible underneath.
-        Navigation.dismissModal({
-            afterTransition: () => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: optimisticReportID, backTo: ROUTES.SETTINGS_AGENTS})),
-        });
+        // page) instead of the fullscreen report split. No explicit dismiss needed: navigating to another
+        // side-modal route while one is open replaces it in a single transition (see
+        // isNavigatingToModalFromModal in RootStackRouter.ts).
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: optimisticReportID, backTo: ROUTES.SETTINGS_AGENTS}));
     };
 
     return (
