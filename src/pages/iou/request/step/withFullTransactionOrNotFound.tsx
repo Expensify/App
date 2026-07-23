@@ -1,7 +1,9 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -21,6 +23,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 
 type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
@@ -71,6 +74,9 @@ type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName>
 type WithFullTransactionOrNotFoundImplProps<TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>> = {
     WrappedComponent: ComponentType<TProps>;
     shouldShowLoadingIndicator: boolean;
+
+    /** When the wrapped step is embedded in a page that already renders navigation chrome (e.g. IOURequestStartPage), the parent's header stays visible, so the loading indicator must not trap the user. */
+    shouldHideHeader?: boolean;
 } & Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>;
 
 function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>({
@@ -78,7 +84,10 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
     shouldShowLoadingIndicator,
     ...props
 }: WithFullTransactionOrNotFoundImplProps<TProps>) {
+    const styles = useThemeStyles();
     const {route} = props;
+    // Read (but don't consume) shouldHideHeader so it is still forwarded to the wrapped component below.
+    const shouldHideHeader = (props as {shouldHideHeader?: boolean}).shouldHideHeader;
     const transactionID = route.params.transactionID;
     const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
@@ -106,7 +115,18 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
             context: 'withFullTransactionOrNotFound',
             isLoadingTransaction,
         };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        // When embedded (shouldHideHeader), the parent page's header stays visible, so per UI-1 use ActivityIndicator
+        // (the user can still go back). Standalone RHP routes render this before their own header, so keep the fullscreen loader.
+        return shouldHideHeader ? (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={reasonAttributes}
+                />
+            </View>
+        ) : (
+            <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
+        );
     }
     return (
         <WrappedComponent
@@ -120,8 +140,8 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
 export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>(
     WrappedComponent: ComponentType<TProps>,
     shouldShowLoadingIndicator = false,
-): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
-    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
+): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & {shouldHideHeader?: boolean}> {
+    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & {shouldHideHeader?: boolean}) {
         return (
             <WithFullTransactionOrNotFoundImpl
                 WrappedComponent={WrappedComponent}
