@@ -2550,48 +2550,46 @@ type PrivateNotesNavigatorParamList = {
 };
 
 type TransactionDuplicateNavigatorParamList = {
-    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
-        threadReportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW]: {
+        reportID: string;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT]: {
-        threadReportID: string;
+        reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY]: {
-        threadReportID: string;
+        reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG]: {
-        threadReportID: string;
+        reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION]: {
-        threadReportID: string;
+        reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE]: {
-        threadReportID: string;
+        reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE]: {
-        threadReportID: string;
+        reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE]: {
-        threadReportID: string;
+        reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION]: {
-        threadReportID: string;
+        reportID: string;
     };
 };
 

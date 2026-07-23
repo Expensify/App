@@ -30,7 +30,7 @@ function DynamicReviewBillablePage() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE>>();
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE.path);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -48,7 +48,7 @@ function DynamicReviewBillablePage() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'billable', route.params.threadReportID, route.params.backTo);
+    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'billable', route.params.reportID, route.params.backTo);
     const options = useMemo(
         () =>
             compareResult.change.billable?.map((billable) => ({
@@ -69,7 +69,7 @@ function DynamicReviewBillablePage() {
         <ScreenWrapper testID="DynamicReviewBillablePage">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
-                onBackButtonPress={() => Navigation.goBack(backPath)}
+                onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
             />
             <ReviewFields<'billable'>
                 stepNames={stepNames}

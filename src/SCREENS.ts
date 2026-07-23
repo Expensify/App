@@ -381,7 +381,7 @@ const SCREENS = {
     },
 
     TRANSACTION_DUPLICATE: {
-        REVIEW: 'Transaction_Duplicate_Review',
+        DYNAMIC_REVIEW: 'Dynamic_Transaction_Duplicate_Review',
         DYNAMIC_MERCHANT: 'Dynamic_Transaction_Duplicate_Merchant',
         DYNAMIC_CATEGORY: 'Dynamic_Transaction_Duplicate_Category',
         DYNAMIC_TAG: 'Dynamic_Transaction_Duplicate_Tag',

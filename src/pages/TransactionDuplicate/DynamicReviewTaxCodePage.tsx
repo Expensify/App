@@ -38,7 +38,7 @@ function DynamicReviewTaxCodePage() {
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
     const policy = usePolicy(report?.policyID);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const transactionID = getTransactionID(transactionThreadReport);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
@@ -53,7 +53,7 @@ function DynamicReviewTaxCodePage() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.threadReportID, route.params.backTo);
+    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.reportID, route.params.backTo);
 
     const options = useMemo(
         () =>
@@ -90,7 +90,7 @@ function DynamicReviewTaxCodePage() {
         <ScreenWrapper testID="DynamicReviewTaxCodePage">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
-                onBackButtonPress={() => Navigation.goBack(backPath)}
+                onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
             />
             <ReviewFields<'taxCode'>
                 stepNames={stepNames}

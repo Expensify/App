@@ -55,7 +55,7 @@ function DynamicConfirmationPage() {
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`);
     const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
-    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const transactionID = TransactionUtils.getTransactionID(report);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
@@ -184,7 +184,7 @@ function DynamicConfirmationPage() {
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.reviewDuplicates')}
-                        onBackButtonPress={() => Navigation.goBack(backPath)}
+                        onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                     />
                     <ScrollView>
                         <View style={[styles.ph5, styles.pb8]}>
