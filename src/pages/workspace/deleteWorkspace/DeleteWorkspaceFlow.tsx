@@ -140,8 +140,11 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
                     <RenderHTML
-                        // When a real Expensify Card and Consolidated Travel Billing are both present, prioritize the Expensify Cards copy.
-                        html={translate(hasRealExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError')}
+                        // Show the Travel Invoicing copy only when Travel Invoicing is the actual blocker (no real Expensify Card but Travel Invoicing enabled).
+                        // A real Expensify Card takes priority, and any other case (e.g. the offline guard firing on retained cardList metadata) keeps the Expensify Cards copy.
+                        html={translate(
+                            !hasRealExpensifyCards && hasTravelInvoicingEnabledOnWorkspace ? 'workspace.common.deleteTravelInvoicingError' : 'workspace.common.deleteOpenExpensifyCardsError',
+                        )}
                         onConciergeLinkPress={() => {
                             closeModal();
                             dismissDeleteWorkspaceFlow();
@@ -156,7 +159,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         }).then(() => {
             dismissDeleteWorkspaceFlow();
         });
-    }, [closeModal, dismissDeleteWorkspaceFlow, hasRealExpensifyCards, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
+    }, [closeModal, dismissDeleteWorkspaceFlow, hasRealExpensifyCards, hasTravelInvoicingEnabledOnWorkspace, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
 
     const showGenericDeleteWorkspaceErrorModal = useCallback(
         (errorMessage: string) => {
