@@ -78,6 +78,7 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
+const DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT = CONST.MAX_TRANSITION_DURATION_MS;
 
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
 // This provider is placed in the OnyxTabNavigator component and the consumer is in the TabScreenWithFocusTrapWrapper component.
@@ -99,6 +100,26 @@ const getTabNames = (children: React.ReactNode): string[] => {
     });
 
     return result;
+};
+
+const dismissKeyboardBeforeTabSwitch = async (): Promise<void> => {
+    let fallbackTimeoutID: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+        await Promise.race([
+            KeyboardUtils.dismiss().catch((error: unknown) => {
+                Log.warn('[OnyxTabNavigator] Failed to dismiss keyboard before tab switch', {error});
+            }),
+            new Promise<void>((resolve) => {
+                fallbackTimeoutID = setTimeout(() => {
+                    Log.warn('[OnyxTabNavigator] Timed out waiting for keyboard dismiss before tab switch');
+                    resolve();
+                }, DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT);
+            }),
+        ]);
+    } finally {
+        clearTimeout(fallbackTimeoutID);
+    }
 };
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
@@ -179,10 +200,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         }
 
         isTabSwitchPendingRef.current = true;
-        KeyboardUtils.dismiss()
-            .catch((error: unknown) => {
-                Log.warn('[OnyxTabNavigator] Failed to dismiss keyboard before tab switch', {error});
-            })
+        dismissKeyboardBeforeTabSwitch()
             .then(callback)
             .catch((error: unknown) => {
                 Log.warn('[OnyxTabNavigator] Failed to run tab switch after keyboard dismiss', {error});
