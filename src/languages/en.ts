@@ -4486,10 +4486,10 @@ const translations = {
             recommended: 'Recommended',
         },
         workspaceAddress: {
-            headline: 'Enter business address',
+            headline: "What's your business address?",
         },
         taxID: {
-            headline: 'Enter tax ID',
+            headline: "What's your business tax ID?",
             title: 'Tax ID',
             subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
             inputLabel: 'Legal entity tax ID',
