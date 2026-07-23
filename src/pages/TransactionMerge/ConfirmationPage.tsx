@@ -114,6 +114,19 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
+            // When the expense stays in the same report, only the merge modal needs to be dismissed so the
+            // wide/super wide RHP underneath stays open.
+            if (targetTransaction.reportID === mergeTransaction.reportID) {
+                Navigation.dismissToPreviousRHP();
+                const isTargetThreadStillOpen = !!targetTransactionThreadReportID && Navigation.getTopmostSearchReportID() === targetTransactionThreadReportID;
+                if (!isTargetThreadStillOpen) {
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
+                    });
+                }
+                return;
+            }
+
             Navigation.dismissModal();
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
