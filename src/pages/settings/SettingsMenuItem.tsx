@@ -1,4 +1,8 @@
-import MenuItem from '@components/MenuItem';
+import MenuItem from '@components/MenuItem/compound';
+import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
+import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
+
+import useLocalize from '@hooks/useLocalize';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -21,6 +25,7 @@ type SettingsMenuItemProps = {
 };
 
 function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle}: SettingsMenuItemProps) {
+    const {translate} = useLocalize();
     const popoverAnchor = useRef(null);
 
     const onSecondaryInteraction = item.link
@@ -49,35 +54,48 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
           }
         : undefined;
 
+    const combinedAccessibilityLabel = [keyTitle, item.brickRoadIndicator ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join('. ');
+    const contextMenuHint = item.link ? getContextMenuAccessibilityHint({translate}) : undefined;
+    const {accessibilityLabel, accessibilityHint} = getContextMenuAccessibilityProps({accessibilityLabel: combinedAccessibilityLabel, contextMenuHint});
+
+    const hasTrailing = !!item.badgeText || !!item.brickRoadIndicator || !!item.iconRight;
+
     return (
         <MenuItem
-            wrapperStyle={wrapperStyle}
-            title={keyTitle}
-            icon={item.icon}
-            iconType={item.iconType}
-            disabled={isExecuting}
-            onPress={onPress}
-            iconStyles={item.iconStyles}
-            badgeText={item.badgeText}
-            badgeStyle={item.badgeStyle}
-            isBadgeSuccess={item.isBadgeSuccess}
-            isBadgeStrong={item.isBadgeStrong}
-            isBadgeCondensed={item.isBadgeCondensed}
-            fallbackIcon={item.fallbackIcon}
-            brickRoadIndicator={item.brickRoadIndicator}
-            shouldStackHorizontally={item.shouldStackHorizontally}
             ref={popoverAnchor}
-            shouldBlockSelection={!!item.link}
+            style={wrapperStyle}
+            onPress={onPress}
             onSecondaryInteraction={onSecondaryInteraction}
-            shouldShowContextMenuHint={!!item.link}
+            disabled={isExecuting}
             focused={isFocused}
             role={CONST.ROLE.TAB}
-            isPaneMenu
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
             sentryLabel={item.sentryLabel}
-            iconRight={item.iconRight}
-            shouldShowRightIcon={item.shouldShowRightIcon}
-            shouldIconUseAutoWidthStyle
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Icon
+                    src={item.icon}
+                    variant={CONST.MENU_ITEM.ICON_VARIANT.COMPACT}
+                />
+                <MenuItem.Content>
+                    <MenuItem.Title>{keyTitle}</MenuItem.Title>
+                </MenuItem.Content>
+                {hasTrailing && (
+                    <MenuItem.Trailing>
+                        {!!item.badgeText && (
+                            <MenuItem.Badge
+                                text={item.badgeText}
+                                success={item.isBadgeSuccess}
+                                isCondensed={item.isBadgeCondensed}
+                            />
+                        )}
+                        {!!item.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={item.brickRoadIndicator} />}
+                        {!!item.iconRight && <MenuItem.Chevron src={item.iconRight} />}
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+        </MenuItem>
     );
 }
 

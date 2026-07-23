@@ -1,3 +1,27 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+import Avatar from '@components/Avatar';
+import Badge from '@components/Badge';
+import {useIsCompactMenu} from '@components/CompactMenuContext';
+import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import DisplayNames from '@components/DisplayNames';
+import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Hoverable from '@components/Hoverable';
+import type HoverableProps from '@components/Hoverable/types';
+import Icon from '@components/Icon';
+import InlineIcon from '@components/Icon/InlineIcon';
+import {useMenuItemGroupActions, useMenuItemGroupState} from '@components/MenuItemGroup';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import RadioButton from '@components/RadioButton';
+import RenderHTML from '@components/RenderHTML';
+import ReportActionAvatars from '@components/ReportActionAvatars';
+import Text from '@components/Text';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
+import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,31 +61,6 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-
-import type {DisplayNameWithTooltip} from './DisplayNames/types';
-import type HoverableProps from './Hoverable/types';
-import type {PressableRef} from './Pressable/GenericPressable/types';
-
-import ActivityIndicator from './ActivityIndicator';
-import Avatar from './Avatar';
-import Badge from './Badge';
-import {useIsCompactMenu} from './CompactMenuContext';
-import CopyTextToClipboard from './CopyTextToClipboard';
-import DisplayNames from './DisplayNames';
-import FormHelpMessage from './FormHelpMessage';
-import Hoverable from './Hoverable';
-import Icon from './Icon';
-import InlineIcon from './Icon/InlineIcon';
-import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
-import PlaidCardFeedIcon from './PlaidCardFeedIcon';
-import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
-import RadioButton from './RadioButton';
-import RenderHTML from './RenderHTML';
-import ReportActionAvatars from './ReportActionAvatars';
-import Text from './Text';
-import EducationalTooltip from './Tooltip/EducationalTooltip';
-import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
-import getContextMenuAccessibilityProps from './utils/getContextMenuAccessibilityProps';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
