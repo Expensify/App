@@ -4,6 +4,7 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -41,6 +42,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
@@ -49,7 +51,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID, currentUserLogin ?? '', betas);
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID, currentUserLogin ?? '', betas, delegateAccountID);
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {

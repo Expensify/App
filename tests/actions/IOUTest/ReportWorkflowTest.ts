@@ -2375,6 +2375,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: DELEGATE_EMAIL,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -2417,6 +2418,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3070,6 +3072,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
             delegateEmail: undefined,
+            delegateAccountID: undefined,
             ownerLogin: undefined,
         });
 
@@ -3257,6 +3260,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3310,6 +3314,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3359,6 +3364,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3484,6 +3490,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3516,6 +3523,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3546,6 +3554,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3606,6 +3615,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3657,6 +3667,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         amountOwed: 0,
                         ownerBillingGracePeriodEnd: undefined,
                         delegateEmail: undefined,
+                        delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         ownerLogin: undefined,
                     });
@@ -3789,6 +3800,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 full: false,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
