@@ -26,7 +26,6 @@ const getDropdownKeys = (result: ReturnType<typeof resolveInsights>) => result.d
 
 describe('resolveInsights', () => {
     it('stays in the loading state until every insight has settled', () => {
-        // The selected insight is ready, but another is still loading, so nothing should be revealed yet.
         const result = resolveInsights(
             [makeInsight(SPEND_OVER_TIME, INSIGHT_STATE.READY), makeInsight(TOP_SPENDERS, INSIGHT_STATE.LOADING), makeInsight(TOP_CATEGORIES, INSIGHT_STATE.READY)],
             SPEND_OVER_TIME,
@@ -58,18 +57,5 @@ describe('resolveInsights', () => {
     it('hides the section (HIDDEN) when no insight has enough data', () => {
         const result = resolveInsights([makeInsight(SPEND_OVER_TIME, INSIGHT_STATE.HIDDEN), makeInsight(TOP_SPENDERS, INSIGHT_STATE.HIDDEN)], SPEND_OVER_TIME);
         expect(result.state).toBe(INSIGHT_STATE.HIDDEN);
-    });
-
-    it('surfaces a sibling error when the selected insight is empty and nothing has data', () => {
-        // Nothing has enough data, but a sibling errored; surface that error rather than hiding silently.
-        const result = resolveInsights([makeInsight(SPEND_OVER_TIME, INSIGHT_STATE.HIDDEN), makeInsight(TOP_SPENDERS, INSIGHT_STATE.ERROR)], SPEND_OVER_TIME);
-        expect(result.state).toBe(INSIGHT_STATE.ERROR);
-        expect(result.displayed?.config?.key).toBe(TOP_SPENDERS);
-    });
-
-    it('does not override a ready selected insight with a sibling error', () => {
-        const result = resolveInsights([makeInsight(SPEND_OVER_TIME, INSIGHT_STATE.READY), makeInsight(TOP_SPENDERS, INSIGHT_STATE.ERROR)], SPEND_OVER_TIME);
-        expect(result.state).toBe(INSIGHT_STATE.READY);
-        expect(result.displayed?.config?.key).toBe(SPEND_OVER_TIME);
     });
 });

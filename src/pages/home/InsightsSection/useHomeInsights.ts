@@ -14,31 +14,41 @@ import useInsightData, {INSIGHT_STATE} from './useInsightData';
 const {SPEND_OVER_TIME, TOP_SPENDERS, TOP_CATEGORIES, TOP_MERCHANTS} = CONST.SEARCH.SEARCH_KEYS;
 
 /**
- * Decides which insight to display, the widget's state, and the switchable options. Waits for every
- * insight to finish loading before revealing options. Once settled, it prefers insights with enough
- * data, then surfaces a fetch problem (error/offline), and only hides when there is nothing to show.
+ * Decides which insight to display, the widget's state, and the switchable options, in precedence
+ * order: while anything loads keep the selected insight in view, then prefer insights with enough
+ * data, then surface a fetch problem (error/offline), otherwise hide.
  */
 function resolveInsights<T extends {config: SearchTypeMenuItem | undefined; state: ValueOf<typeof INSIGHT_STATE>}>(candidates: T[], selectedKey: SearchKey) {
-    const isAnyLoading = candidates.some((insight) => insight.state === INSIGHT_STATE.LOADING);
-    const ready = candidates.filter((insight) => insight.state === INSIGHT_STATE.READY);
-    const problems = candidates.filter((insight) => insight.state === INSIGHT_STATE.ERROR || insight.state === INSIGHT_STATE.OFFLINE);
-
-    // Once settled, prefer the first non-empty group in priority order; fall back to all candidates.
-    const settled = [ready, problems, candidates].find((group) => group.length > 0) ?? [];
-
     const pickSelected = (insights: T[]) => insights.find((insight) => insight.config?.key === selectedKey) ?? insights.at(0);
-    // While loading, keep the selected insight in view; once settled, pick from the preferred group.
-    const displayed = isAnyLoading ? pickSelected(candidates) : pickSelected(settled);
+    const getInsightConfigs = (insights: Array<T | undefined>) => insights.map((insight) => insight?.config).filter((config): config is SearchTypeMenuItem => !!config);
 
-    const state = isAnyLoading ? INSIGHT_STATE.LOADING : (displayed?.state ?? INSIGHT_STATE.HIDDEN);
-    const dropdownConfigs = (!isAnyLoading && ready.length > 0 ? ready : [displayed]).map((insight) => insight?.config).filter((config): config is SearchTypeMenuItem => !!config);
+    // While anything loads, keep the selected insight in view and wait before revealing options.
+    if (candidates.some((insight) => insight.state === INSIGHT_STATE.LOADING)) {
+        const displayed = pickSelected(candidates);
+        return {displayed, state: INSIGHT_STATE.LOADING, dropdownConfigs: getInsightConfigs([displayed])};
+    }
 
-    return {displayed, state, dropdownConfigs};
+    // Show insights with enough data only, if there are any.
+    const ready = candidates.filter((insight) => insight.state === INSIGHT_STATE.READY);
+    if (ready.length > 0) {
+        const displayed = pickSelected(ready);
+        return {displayed, state: displayed?.state ?? INSIGHT_STATE.HIDDEN, dropdownConfigs: getInsightConfigs(ready)};
+    }
+
+    // No data anywhere: surface a fetch problem if one exists.
+    const problems = candidates.filter((insight) => insight.state === INSIGHT_STATE.ERROR || insight.state === INSIGHT_STATE.OFFLINE);
+    if (problems.length > 0) {
+        const displayed = pickSelected(problems);
+        return {displayed, state: displayed?.state ?? INSIGHT_STATE.HIDDEN, dropdownConfigs: getInsightConfigs([displayed])};
+    }
+
+    // Nothing to show.
+    return {displayed: undefined, state: INSIGHT_STATE.HIDDEN, dropdownConfigs: []};
 }
 
 /**
  * Drives the Home insights widget: fetches every visible insight up front, then resolves which one
- * to display, the widget state, and the switchable options.
+ * to display, the widget state and the switchable options.
  */
 function useHomeInsights() {
     const insightConfigs = useHomeInsightConfigs();

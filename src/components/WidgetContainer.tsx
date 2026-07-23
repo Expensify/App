@@ -14,7 +14,7 @@ type WidgetContainerProps = {
     /** The text to display in the title of the widget */
     title?: string;
 
-    /** A custom node rendered in place of the title text (e.g. a dropdown trigger). Takes precedence over `title`. */
+    /** A custom node rendered in place of the title text. Takes precedence over the `title` prop */
     titleContent?: ReactNode;
 
     /** The content to display inside the widget container */

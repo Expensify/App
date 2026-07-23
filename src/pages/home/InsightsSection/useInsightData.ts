@@ -28,12 +28,16 @@ const INSIGHT_STATE = {
     READY: 'ready',
 } as const;
 
-// Minimum number of data points to show an insight.
+const CHART_VIEWS = new Set<ValueOf<typeof CONST.SEARCH.VIEW>>([CONST.SEARCH.VIEW.BAR, CONST.SEARCH.VIEW.LINE, CONST.SEARCH.VIEW.PIE]);
+
 const MIN_INSIGHT_DATA_POINTS = 2;
 
-type InsightState = ValueOf<typeof INSIGHT_STATE>;
-
-function getInsightState(isOffline: boolean, searchResults: OnyxEntry<SearchResults>, queryJSON: SearchQueryJSON | undefined, sortedData: GroupedItem[] | undefined): InsightState {
+function getInsightState(
+    isOffline: boolean,
+    searchResults: OnyxEntry<SearchResults>,
+    queryJSON: SearchQueryJSON | undefined,
+    sortedData: GroupedItem[] | undefined,
+): ValueOf<typeof INSIGHT_STATE> {
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
 
     if (isOffline && !isDataLoaded) {
@@ -51,14 +55,11 @@ function getInsightState(isOffline: boolean, searchResults: OnyxEntry<SearchResu
     return INSIGHT_STATE.READY;
 }
 
-const CHART_VIEWS = new Set<ValueOf<typeof CONST.SEARCH.VIEW>>([CONST.SEARCH.VIEW.BAR, CONST.SEARCH.VIEW.LINE, CONST.SEARCH.VIEW.PIE]);
-
 function useInsightData(config: SearchTypeMenuItem | undefined) {
     const queryJSON = config?.searchQueryJSON;
     const query = config?.searchQuery;
     const searchKey = config?.key;
     const {groupBy} = queryJSON ?? {};
-    // Top spenders doesn't declare a chart view; fall back to a bar chart so the card can render one.
     const view = queryJSON?.view && CHART_VIEWS.has(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();

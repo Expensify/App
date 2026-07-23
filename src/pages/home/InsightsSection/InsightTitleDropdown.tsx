@@ -42,8 +42,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'CalendarSolid', 'User', 'Folder', 'Basket']);
-    const iconByName: Partial<Record<ExpensifyIconName, IconAsset>> = icons;
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'CalendarSolid', 'User', 'Folder', 'Basket']) as Partial<Record<ExpensifyIconName, IconAsset>>;
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const triggerRef = useRef<View>(null);
@@ -66,7 +65,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
 
     const menuItems: PopoverMenuItem[] = configs.map((config) => ({
         text: translate(config.translationPath),
-        icon: iconByName[config.icon],
+        icon: icons[config.icon],
         isSelected: config.key === selectedKey,
         onSelected: () => onSelect(config.key),
     }));

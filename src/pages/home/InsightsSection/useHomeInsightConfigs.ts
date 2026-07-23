@@ -34,15 +34,9 @@ function useHomeInsightConfigs(): SearchTypeMenuItem[] {
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = !!isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
-    return HOME_INSIGHT_KEYS.filter((key) => {
-        if (!visibility[key]) {
-            return false;
-        }
-        if (key === CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS && isTrackIntentWithWorkflowsDisabled) {
-            return false;
-        }
-        return true;
-    }).map((key) => suggestedSearches[key]);
+    return HOME_INSIGHT_KEYS.filter((key) => !(!visibility[key] || (key === CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS && isTrackIntentWithWorkflowsDisabled))).map(
+        (key) => suggestedSearches[key],
+    );
 }
 
 export default useHomeInsightConfigs;

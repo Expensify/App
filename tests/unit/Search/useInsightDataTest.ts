@@ -73,18 +73,14 @@ describe('getInsightState', () => {
         expect(getInsightState(false, undefined, queryJSON, undefined)).toBe(INSIGHT_STATE.LOADING);
     });
 
-    it('returns HIDDEN when loaded but there are no data points', () => {
+    it('returns HIDDEN when loaded but fewer than 2 data points', () => {
         const results = makeSearchResults();
         expect(getInsightState(false, results, queryJSON, [])).toBe(INSIGHT_STATE.HIDDEN);
         expect(getInsightState(false, results, queryJSON, undefined)).toBe(INSIGHT_STATE.HIDDEN);
-    });
-
-    it('returns HIDDEN when loaded with a single data point', () => {
-        const results = makeSearchResults();
         expect(getInsightState(false, results, queryJSON, makeData(1))).toBe(INSIGHT_STATE.HIDDEN);
     });
 
-    it('returns READY when loaded with with 2+ data points', () => {
+    it('returns READY when loaded with 2+ data points', () => {
         const results = makeSearchResults();
         expect(getInsightState(false, results, queryJSON, makeData(2))).toBe(INSIGHT_STATE.READY);
         expect(getInsightState(false, results, queryJSON, makeData(10))).toBe(INSIGHT_STATE.READY);
