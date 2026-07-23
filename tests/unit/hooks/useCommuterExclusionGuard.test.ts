@@ -37,6 +37,7 @@ describe('useCommuterExclusionGuard', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_forced`, {
             id: 'policy_forced',
             name: 'Forced workspace',
+            areDistanceRatesEnabled: true,
             commuterExclusions: {
                 method: 'fixedDistance',
                 fixedDistance: 1,
@@ -72,10 +73,34 @@ describe('useCommuterExclusionGuard', () => {
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
+    it('does not block selecting a workspace with commuter exclusions when distance rates are disabled', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_disabled_rates`, {
+            id: 'policy_disabled_rates',
+            name: 'Disabled rates workspace',
+            areDistanceRatesEnabled: false,
+            commuterExclusions: {
+                method: 'fixedDistance',
+                fixedDistance: 1,
+                fixedDistanceUnit: 'mi',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useCommuterExclusionGuard({
+                isManualDistanceRequest: true,
+            }),
+        );
+
+        expect(result.current('policy_disabled_rates')).toBe(false);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
     it('does not block non-manual and non-odometer flows', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_forced`, {
             id: 'policy_forced',
             name: 'Forced workspace',
+            areDistanceRatesEnabled: true,
             commuterExclusions: {
                 method: 'fixedDistance',
                 fixedDistance: 1,

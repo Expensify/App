@@ -14,6 +14,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -63,7 +64,7 @@ function DistanceRequestStartPage({
     const [shouldHideManualAndOdometerTabs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (allPolicies) => {
             const activeGroupPolicies = getActivePolicies(allPolicies ?? null, login).filter(isGroupPolicy);
-            return activeGroupPolicies.length > 0 && activeGroupPolicies.every((activePolicy) => !!activePolicy.commuterExclusions);
+            return activeGroupPolicies.length > 0 && activeGroupPolicies.every(isCommuterExclusionEnabled);
         },
     });
 

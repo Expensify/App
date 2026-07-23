@@ -1,3 +1,5 @@
+import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 
@@ -26,7 +28,7 @@ type PoliciesWithCommuterExclusions = Record<string, boolean>;
 
 const policiesWithCommuterExclusionsSelector = (policies: OnyxCollection<Policy>): PoliciesWithCommuterExclusions =>
     Object.values(policies ?? {}).reduce<PoliciesWithCommuterExclusions>((acc, policy) => {
-        if (policy?.id && policy.commuterExclusions) {
+        if (policy?.id && isCommuterExclusionEnabled(policy)) {
             acc[policy.id] = true;
         }
         return acc;

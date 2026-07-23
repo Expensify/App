@@ -85,6 +85,7 @@ import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
@@ -7820,7 +7821,7 @@ function buildOptimisticChangePolicyData({
 }
 
 function shouldBlockChangeReportPolicyForCommuterExclusion(reportID: string | undefined, policy: Policy): boolean {
-    const hasTargetPolicyCommuterExclusions = !!policy.commuterExclusions;
+    const hasTargetPolicyCommuterExclusions = isCommuterExclusionEnabled(policy);
     return getReportTransactions(reportID).some(
         (transaction) => hasAppliedCommuterExclusion(transaction) || (hasTargetPolicyCommuterExclusions && (isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction))),
     );
