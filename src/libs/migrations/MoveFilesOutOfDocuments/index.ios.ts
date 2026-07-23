@@ -340,14 +340,31 @@ function migrateQueuedReceipts(): Promise<void> {
 }
 
 /**
+ * Onyx state dumps were previously written to Documents and never deleted after sharing,
+ * so a stale dump may still sit there. It is an internal debug file, so it is removed.
+ */
+function removeStaleOnyxDump(): Promise<void> {
+    const dumpPath = `${RNFS.DocumentDirectoryPath}/${CONST.DEFAULT_ONYX_DUMP_FILE_NAME}`;
+    return RNFS.exists(dumpPath).then((exists) => {
+        if (!exists) {
+            return;
+        }
+        return RNFS.unlink(dumpPath).then(() => {
+            Log.info('[Migrate Onyx] MoveFilesOutOfDocuments removed a stale Onyx state dump');
+        });
+    });
+}
+
+/**
  * Internal app files used to live in the Documents directory, which iOS exposes to the
- * user (and other apps) through the Files app when file sharing is enabled. This moves
- * them into locations that are never user-visible.
+ * user (and other apps) through the Files app because file sharing is enabled. This moves
+ * them into locations that are not user-visible, leaving Documents to hold only the files
+ * the user downloaded on purpose.
  */
 export default function (): Promise<void> {
     return (
         Promise.resolve()
-            .then(() => Promise.all([migrateAttachmentCache(), migrateQueuedReceipts()]))
+            .then(() => Promise.all([migrateAttachmentCache(), migrateQueuedReceipts(), removeStaleOnyxDump()]))
             .then(() => undefined)
             // A failed cleanup must never block app startup; new files already go to the new locations
             .catch((error) => {

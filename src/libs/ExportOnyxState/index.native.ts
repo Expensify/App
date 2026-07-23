@@ -40,7 +40,10 @@ const shareAsFile: ShareAsFile = (fileContent) => {
     try {
         // Define new filename and path for the app info file
         const infoFileName = CONST.DEFAULT_ONYX_DUMP_FILE_NAME;
-        const infoFilePath = `${RNFS.DocumentDirectoryPath}/${infoFileName}`;
+        // The dump only needs to live long enough to be shared, so it goes in Caches, which
+        // is never exposed to the user (unlike Documents, which the iOS Files app shows when
+        // file sharing is enabled) and which the OS can reclaim afterwards
+        const infoFilePath = `${RNFS.CachesDirectoryPath}/${infoFileName}`;
         const actualInfoFile = `file://${infoFilePath}`;
 
         RNFS.writeFile(infoFilePath, fileContent, 'utf8').then(() => {
