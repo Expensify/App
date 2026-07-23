@@ -12,6 +12,15 @@ import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachm
 
 const attachmentLocalSources = new Map<string, string>();
 
+/**
+ * The Cache API stores a string key as a Request, resolving relative URLs against document.baseURI.
+ * That base changes with the active route, so anchoring the key to the origin keeps put/get/remove
+ * consistent regardless of the route in use.
+ */
+function getAttachmentCacheKey(attachmentID: string): string {
+    return new URL(`/__cache__/${encodeURIComponent(attachmentID)}`, window.location.origin).toString();
+}
+
 function getAttachmentLocalSource(attachmentID: string | undefined): string | undefined {
     if (!attachmentID) {
         return undefined;
@@ -65,7 +74,7 @@ async function cacheAttachment({uri, attachmentID, authToken}: CacheAttachmentPr
         return;
     }
 
-    const cacheKey = !isAuthRemoteAttachment && attachmentID ? attachmentID : uri;
+    const cacheKey = !isAuthRemoteAttachment && attachmentID ? getAttachmentCacheKey(attachmentID) : uri;
 
     if (attachmentID) {
         const existingSource = attachmentLocalSources.get(attachmentID);
@@ -105,10 +114,12 @@ async function cacheAttachment({uri, attachmentID, authToken}: CacheAttachmentPr
             }
 
             await CacheAPI.put(isAuthRemoteAttachment ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.ATTACHMENTS, cacheKey, response.clone());
-            await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                attachmentID,
-                remoteSource: isMarkdownAttachment ? uri : undefined,
-            });
+            if (attachmentID) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                    attachmentID,
+                    remoteSource: isMarkdownAttachment ? uri : undefined,
+                });
+            }
 
             const cachedSource = URL.createObjectURL(await response.blob());
 
@@ -140,6 +151,14 @@ async function getCachedAttachment({uri, attachmentID, remoteSource, authToken}:
     const isAuthRemoteAttachment = authToken && !attachmentID;
     const isMarkdownAttachment = !authToken && !isLocalFile(uri);
 
+    // For markdown attachments, re-cache first if the source changed, so the in-memory entry below never serves a stale blob
+    if (attachmentID && isMarkdownAttachment && remoteSource && remoteSource !== uri) {
+        // Drop the stale in-memory entry so cacheAttachment actually re-fetches the new source
+        attachmentLocalSources.delete(attachmentID);
+        const cachedUri = await cacheAttachment({uri, attachmentID});
+        return cachedUri;
+    }
+
     if (attachmentID) {
         const localUri = attachmentLocalSources.get(attachmentID);
         if (localUri) {
@@ -147,15 +166,7 @@ async function getCachedAttachment({uri, attachmentID, remoteSource, authToken}:
         }
     }
 
-    // For markdown attachments, check if the cached source is stale and re-cache if needed
-    if (isMarkdownAttachment && remoteSource) {
-        if (remoteSource !== uri) {
-            const cachedUri = await cacheAttachment({uri, attachmentID});
-            return cachedUri;
-        }
-    }
-
-    const cacheKey = !isAuthRemoteAttachment && attachmentID ? attachmentID : uri;
+    const cacheKey = !isAuthRemoteAttachment && attachmentID ? getAttachmentCacheKey(attachmentID) : uri;
     const cacheName = isAuthRemoteAttachment ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.ATTACHMENTS;
     if (!cacheKey) {
         return;
@@ -183,7 +194,7 @@ async function getCachedAttachment({uri, attachmentID, remoteSource, authToken}:
 
 async function removeCachedAttachment({attachmentID}: RemoveCachedAttachmentProps) {
     try {
-        await CacheAPI.remove(CONST.CACHE_NAME.ATTACHMENTS, attachmentID);
+        await CacheAPI.remove(CONST.CACHE_NAME.ATTACHMENTS, getAttachmentCacheKey(attachmentID));
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
         attachmentLocalSources.delete(attachmentID);
     } catch (error) {

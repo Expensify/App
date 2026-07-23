@@ -1,3 +1,4 @@
+import {AttachmentIDContext} from '@components/Attachments/AttachmentIDContext';
 import type {AttachmentSource} from '@components/Attachments/types';
 
 import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
@@ -16,9 +17,10 @@ import type {BaseImageProps} from './types';
 function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
     const isLoadedRef = useRef(false);
     const attachmentContext = useContext(AttachmentStateContext);
+    const {attachmentID} = useContext(AttachmentIDContext);
     const cachedSource = useCachedAttachmentSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
     const resolvedSource = cachedSource !== undefined ? cachedSource : source;
-    const resolvedRecyclingKey = resolvedSource ? resolvedSource : source;
+    const resolvedRecyclingKey = attachmentID ?? getImageRecyclingKey(source);
     const {setAttachmentLoaded, isAttachmentLoaded} = attachmentContext || {};
 
     useEffect(() => {
@@ -57,7 +59,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
             // Only subscribe to onLoad when a handler is provided to avoid unnecessary event registrations, optimizing performance.
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
             source={resolvedSource}
-            recyclingKey={getImageRecyclingKey(resolvedRecyclingKey)}
+            recyclingKey={resolvedRecyclingKey}
             style={style as ExpoImageProps['style']}
             {...props}
         />

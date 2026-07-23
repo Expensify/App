@@ -33,15 +33,9 @@ async function cacheAttachment({uri, attachmentID, authToken, fileType}: CacheAt
         return;
     }
 
-    // Save local URI immediately for uploads so it can be rendered while caching is in progress
-    if (uri.startsWith('file:')) {
-        attachmentLocalSources.set(attachmentID, uri);
-    }
-
-    // Create attachment directory if it's not yet exists
-    const isAttachmentDirExists = await RNFS.exists(ATTACHMENT_DIR);
-    if (!isAttachmentDirExists) {
-        await RNFS.mkdir(ATTACHMENT_DIR);
+    // Ensure the attachment directory exists; ignore errors if a concurrent call already created it
+    if (!(await RNFS.exists(ATTACHMENT_DIR))) {
+        await RNFS.mkdir(ATTACHMENT_DIR).catch(() => {});
     }
 
     const mimeType = getMimeTypeFromUri(uri) ?? fileType;
@@ -53,11 +47,11 @@ async function cacheAttachment({uri, attachmentID, authToken, fileType}: CacheAt
         const destPath = `${ATTACHMENT_DIR}/${fileName}`;
 
         try {
-            // For safety, to prevent any failures
-            if (await RNFS.exists(destPath)) {
-                await RNFS.unlink(destPath);
-            }
+            // Save local URI so it can be rendered while caching is in progress
+            attachmentLocalSources.set(attachmentID, uri);
+
             await RNFS.copyFile(uri, destPath);
+
             await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                 attachmentID,
                 source: destPath,
@@ -120,7 +114,9 @@ async function getCachedAttachment({uri, attachmentID, localSource}: GetCachedAt
 
     const localUri = attachmentLocalSources.get(attachmentID);
     if (localUri) {
-        const exists = await RNFS.exists(localUri);
+        // RNFS.exists expects a raw filesystem path, not a file:// URI
+        const filePath = localUri.startsWith('file://') ? localUri.slice('file://'.length) : localUri;
+        const exists = await RNFS.exists(filePath);
         if (exists) {
             return localUri.startsWith('file://') ? localUri : `file://${localUri}`;
         }
