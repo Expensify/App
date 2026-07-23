@@ -41,7 +41,7 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
 
     const onSubmit = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM>) => {
         onMaxAmountChange(form.maxAmount.trim());
-        goBack();
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     return (

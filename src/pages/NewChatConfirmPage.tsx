@@ -56,7 +56,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, translate, newGroupDraft?.participants);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 
@@ -131,7 +131,7 @@ function NewChatConfirmPage() {
     const participants = newGroupDraft?.participants ?? [];
 
     const selectedOptions: Participant[] = participants.map((participant) =>
-        getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
+        getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails, translate),
     );
 
     const selectedParticipants: ListItem[] = selectedOptions

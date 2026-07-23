@@ -239,16 +239,16 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
-    it('hides contact methods, pronouns, timezone and private section for agent account', async () => {
+    it('shows contact methods and private section but hides pronouns and timezone for agent account', async () => {
         await setupUser('agent_123@expensify.ai');
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByTestId('contact-method-menu-item')).toBeNull();
+        expect(screen.getByTestId('contact-method-menu-item')).toBeDefined();
         expect(screen.queryByTestId('pronouns-menu-item')).toBeNull();
         expect(screen.queryByTestId('timezone-menu-item')).toBeNull();
-        expect(screen.queryByText('Private')).toBeNull();
+        expect(screen.getByText('Private')).toBeDefined();
     });
 
     it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {
