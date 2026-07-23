@@ -1,6 +1,7 @@
-import {applyCompanyCardSavedColumnMappings, applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
+import {applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
 import importTransactionsFromCSV, {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
 import * as API from '@libs/API';
+import {getCompanyCardColumnMappings} from '@libs/importSpreadsheetUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -776,7 +777,7 @@ describe('ImportTransactions', () => {
         });
     });
 
-    describe('applyCompanyCardSavedColumnMappings', () => {
+    describe('getCompanyCardColumnMappings', () => {
         const availableRoles = [
             CONST.CSV_IMPORT_COLUMNS.IGNORE,
             CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
@@ -786,85 +787,131 @@ describe('ImportTransactions', () => {
             CONST.CSV_IMPORT_COLUMNS.CURRENCY,
         ];
 
-        // Column-major spreadsheet data (each entry is a column)
-        const spreadsheetData = [
-            ['Card', '4111', '4111'],
-            ['Posted', '2024-01-01', '2024-01-02'],
-            ['Merchant', 'Store A', 'Store B'],
-            ['Amount', '10.00', '20.00'],
-            ['Currency', 'USD', 'USD'],
-        ];
+        it('should map columns from their headers regardless of column order', () => {
+            // Column-major spreadsheet data (each entry is a column, index 0 is the header)
+            const spreadsheetData = [
+                ['Merchant', 'Store A', 'Store B'],
+                ['Amount', '10.00', '20.00'],
+                ['Card Number', '4111', '4111'],
+                ['Currency', 'USD', 'USD'],
+                ['Posted Date', '2024-01-01', '2024-01-02'],
+            ];
 
-        it('should apply saved company card column mappings by index', () => {
-            const savedColumnMappings = {
-                cardNumber: '0',
-                postedDate: '1',
-                merchant: '2',
-                amount: '3',
-                currency: '4',
-            };
+            const columns = getCompanyCardColumnMappings(spreadsheetData, undefined, availableRoles);
 
-            applyCompanyCardSavedColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
-
-            expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
-                columns: {
-                    0: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
-                    1: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE,
-                    2: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
-                    3: CONST.CSV_IMPORT_COLUMNS.AMOUNT,
-                    4: CONST.CSV_IMPORT_COLUMNS.CURRENCY,
-                },
+            expect(columns).toEqual({
+                0: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+                1: CONST.CSV_IMPORT_COLUMNS.AMOUNT,
+                2: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
+                3: CONST.CSV_IMPORT_COLUMNS.CURRENCY,
+                4: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE,
             });
         });
 
-        it('should skip roles that are not selectable in the current context', () => {
-            const savedColumnMappings = {
-                cardNumber: '0',
-                merchant: '2',
-                amount: '3',
-                // Advanced field not available when advanced fields are disabled
-                originalAmount: '1',
-                // Auto-generated column that is never a selectable role
-                externalID: '4',
-            };
+        it('should never assign the same property to more than one column when several headers match it', () => {
+            // Both "Card" and "Number" auto-detect to CARD_NUMBER - only the first column may claim it.
+            const spreadsheetData = [
+                ['Card', '4111'],
+                ['Number', '5222'],
+                ['Amount', '10.00'],
+                ['Currency', 'USD'],
+            ];
 
-            applyCompanyCardSavedColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
+            const columns = getCompanyCardColumnMappings(spreadsheetData, undefined, availableRoles);
 
-            expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
-                columns: {
-                    0: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
-                    2: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
-                    3: CONST.CSV_IMPORT_COLUMNS.AMOUNT,
-                },
+            expect(columns).toEqual({
+                0: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
+                1: CONST.CSV_IMPORT_COLUMNS.IGNORE,
+                2: CONST.CSV_IMPORT_COLUMNS.AMOUNT,
+                3: CONST.CSV_IMPORT_COLUMNS.CURRENCY,
             });
         });
 
-        it('should skip the ignore role and out-of-range indexes', () => {
+        it('should remap a "Date" header to POSTED_DATE when DATE is not a selectable role', () => {
+            const spreadsheetData = [
+                ['Date', '2024-01-01'],
+                ['Merchant', 'Store A'],
+            ];
+
+            const columns = getCompanyCardColumnMappings(spreadsheetData, undefined, availableRoles);
+
+            expect(columns).toEqual({
+                0: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE,
+                1: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+            });
+        });
+
+        it('should use the saved layout only as a fallback for roles the headers did not resolve, without overriding or duplicating', () => {
+            // A re-imported file with a DIFFERENT structure: only Merchant/Amount have recognizable headers.
+            const spreadsheetData = [
+                ['Txn', 'x'],
+                ['Merchant', 'Store A'],
+                ['Amount', '10.00'],
+                ['Custom1', 'y'],
+                ['Custom2', 'z'],
+            ];
+            // Saved mapping comes from the first (differently-structured) file, keyed by role with an index value.
             const savedColumnMappings = {
-                ignore: '0',
-                merchant: '2',
+                // Header at index 0 is unrecognized, so the fallback fills cardNumber there.
+                cardNumber: '0',
+                // Merchant/amount are already resolved from headers, so these saved entries are ignored (no duplicate).
+                merchant: '3',
+                amount: '4',
+                // Currency was not resolved from a header, and index 3 is still unmapped, so it is filled here.
+                currency: '3',
+            };
+
+            const columns = getCompanyCardColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
+
+            expect(columns).toEqual({
+                0: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
+                1: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+                2: CONST.CSV_IMPORT_COLUMNS.AMOUNT,
+                3: CONST.CSV_IMPORT_COLUMNS.CURRENCY,
+                4: CONST.CSV_IMPORT_COLUMNS.IGNORE,
+            });
+        });
+
+        it('should skip ignore/unavailable roles, out-of-range indexes, and already-claimed columns in the fallback', () => {
+            const spreadsheetData = [
+                ['Card', '4111'],
+                ['Foo', 'x'],
+                ['Bar', 'y'],
+            ];
+            const savedColumnMappings = {
+                // The ignore role is never applied.
+                ignore: '1',
+                // Advanced field not available when advanced fields are disabled.
+                originalAmount: '2',
+                // cardNumber is already resolved from the header at index 0, so this is skipped (no duplicate).
+                cardNumber: '2',
+                // Out-of-range index is skipped.
                 amount: '99',
-                currency: '-1',
+                // Merchant is unresolved and index 1 is free, so it is filled here.
+                merchant: '1',
             };
 
-            applyCompanyCardSavedColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
+            const columns = getCompanyCardColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
 
-            expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
-                columns: {
-                    2: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
-                },
+            expect(columns).toEqual({
+                0: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
+                1: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+                2: CONST.CSV_IMPORT_COLUMNS.IGNORE,
             });
         });
 
-        it('should not call Onyx.merge when no columns can be mapped', () => {
-            const savedColumnMappings = {
-                originalAmount: '1',
-                originalCurrency: '4',
-            };
+        it('should leave every column as ignore when nothing matches and there is no saved layout', () => {
+            const spreadsheetData = [
+                ['Foo', 'x'],
+                ['Bar', 'y'],
+            ];
 
-            applyCompanyCardSavedColumnMappings(spreadsheetData, savedColumnMappings, availableRoles);
+            const columns = getCompanyCardColumnMappings(spreadsheetData, undefined, availableRoles);
 
-            expect(Onyx.merge).not.toHaveBeenCalled();
+            expect(columns).toEqual({
+                0: CONST.CSV_IMPORT_COLUMNS.IGNORE,
+                1: CONST.CSV_IMPORT_COLUMNS.IGNORE,
+            });
         });
     });
 
