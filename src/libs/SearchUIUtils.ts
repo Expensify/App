@@ -1194,7 +1194,7 @@ function getTransactionItemCommonFormattedProperties(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
     translate: LocalizedTranslate,
-): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: from, translate});
@@ -1213,8 +1213,6 @@ function getTransactionItemCommonFormattedProperties(
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
-    const submitted = report?.submitted;
-    const approved = report?.approved;
 
     const posted = getFormattedPostedDate(transactionItem?.posted);
 
@@ -1222,8 +1220,6 @@ function getTransactionItemCommonFormattedProperties(
         formattedFrom,
         formattedTo,
         date,
-        submitted,
-        approved,
         posted,
         formattedTotal,
         formattedMerchant,
@@ -2147,7 +2143,7 @@ function getTransactionsSections({
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -2159,6 +2155,10 @@ function getTransactionsSections({
             const actions =
                 reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ??
                 Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
+            // Submitted/approved come from the parent report's live actions (not just the snapshot) so offline
+            // submit/approve reflects immediately here too — see getSubmittedDate/getApprovedDate.
+            const submitted = report ? getSubmittedDate(report, actions) : undefined;
+            const approved = report ? getApprovedDate(report, actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
@@ -2786,6 +2786,72 @@ function getReportActionsSections(
 }
 
 /**
+ * Scans `actions` for the earliest/latest action of the given types, seeded with an optional starting candidate.
+ * Live actions can hold an action the snapshot lacks: snapshot merges only keep fields already present in the
+ * snapshot shape, so a new optimistic action (e.g. approving a report offline) never reaches it.
+ */
+function findActionByCreated(
+    actions: OnyxTypes.ReportAction[],
+    actionNames: Array<OnyxTypes.ReportAction['actionName']>,
+    extreme: 'earliest' | 'latest',
+    seed?: OnyxTypes.ReportAction,
+): OnyxTypes.ReportAction | undefined {
+    let result = seed;
+    for (const action of actions) {
+        if (!actionNames.includes(action.actionName)) {
+            continue;
+        }
+        const comparison = result ? new Date(action.created).getTime() - new Date(result.created).getTime() : 0;
+        if (!result || (extreme === 'earliest' ? comparison < 0 : comparison > 0)) {
+            result = action;
+        }
+    }
+    return result;
+}
+
+/**
+ * Returns the earliest APPROVED/FORWARDED action between the snapshot-derived one and the given report actions.
+ */
+function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction | undefined {
+    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.FORWARDED], 'earliest', snapshotApprovedAction);
+}
+
+/**
+ * Returns the report's approved date, falling back to the latest live APPROVED action's created time when the
+ * report is optimistically fully approved (statusNum) but the snapshot's `approved` field hasn't caught up yet —
+ * same snapshot-merge gap as `getFirstApprovedAction`. Gated on statusNum so an offline intermediate approval step
+ * in a multi-level workflow (report still Processing) doesn't get a premature approved date.
+ */
+function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.approved) {
+        return reportItem.approved;
+    }
+    if (reportItem.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+        return '';
+    }
+    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED], 'latest')?.created ?? '';
+}
+
+/**
+ * Returns the report's submitted date, falling back to the latest live SUBMITTED action's created time when the
+ * report has been submitted (statusNum) but the snapshot's `submitted` field hasn't caught up yet — same
+ * snapshot-merge gap as `getApprovedDate`/`getFirstApprovedAction`.
+ *
+ * statusNum is checked BEFORE trusting `reportItem.submitted`: the backend can populate `submitted` with a date
+ * even for reports that have never been submitted, so OPEN (the only status a report can't have been submitted
+ * from) is the source of truth here, not the date field.
+ */
+function getSubmittedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        return '';
+    }
+    if (reportItem.submitted) {
+        return reportItem.submitted;
+    }
+    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.SUBMITTED], 'latest')?.created ?? '';
+}
+
+/**
  * @private
  * Organizes data into List Sections grouped by report for display, for the TransactionGroupListItemType of Search Results.
  *
@@ -2866,7 +2932,7 @@ function getReportSections({
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
-                const firstApprovedAction = firstApprovedActionByReportID.get(reportItem.reportID);
+                const firstApprovedAction = getFirstApprovedAction(firstApprovedActionByReportID.get(reportItem.reportID), actions);
                 const firstApproverAccountID = firstApprovedAction?.actorAccountID;
                 const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
                 const firstApproved = firstApprovedAction?.created ?? '';
@@ -2914,6 +2980,8 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    submitted: getSubmittedDate(reportItem, actions),
+                    approved: getApprovedDate(reportItem, actions),
                     firstApproved,
                     firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
