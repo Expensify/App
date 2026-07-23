@@ -184,7 +184,9 @@ describe('actions/IOU/TrackExpense', () => {
 
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -307,7 +309,9 @@ describe('actions/IOU/TrackExpense', () => {
             // When the user submits the transaction to the selfDM report
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: participant.login,
@@ -409,7 +413,9 @@ describe('actions/IOU/TrackExpense', () => {
             // When the user confirms the category for the tracked expense
             trackExpense({
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
                 participantParams: {
                     payeeEmail: participant.login,
@@ -510,7 +516,9 @@ describe('actions/IOU/TrackExpense', () => {
             // Create a tracked expense
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -556,7 +564,9 @@ describe('actions/IOU/TrackExpense', () => {
             // Share the tracked expense with an accountant
             trackExpense({
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -649,7 +659,9 @@ describe('actions/IOU/TrackExpense', () => {
             // Create a tracked expense
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -695,7 +707,9 @@ describe('actions/IOU/TrackExpense', () => {
             // Share the tracked expense with an accountant
             trackExpense({
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -791,7 +805,9 @@ describe('actions/IOU/TrackExpense', () => {
 
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -836,7 +852,9 @@ describe('actions/IOU/TrackExpense', () => {
 
             trackExpense({
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -932,7 +950,9 @@ describe('actions/IOU/TrackExpense', () => {
 
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -978,7 +998,9 @@ describe('actions/IOU/TrackExpense', () => {
 
             trackExpense({
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1094,7 +1116,9 @@ describe('actions/IOU/TrackExpense', () => {
             // Create the tracked expense first
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1140,7 +1164,9 @@ describe('actions/IOU/TrackExpense', () => {
             // When sharing the tracked expense with the accountant, passing the explicit reportActionsList
             trackExpense({
                 report: ownPolicyExpenseChat,
+                parentChatReport: ownPolicyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1214,7 +1240,9 @@ describe('actions/IOU/TrackExpense', () => {
         ): Parameters<typeof trackExpense>[0] {
             return {
                 report,
+                parentChatReport: report,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1269,6 +1297,8 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(draftExpenseChat),
                 isDraftPolicy: true,
+                // The expense chat is a draft, so getTrackExpenseInformation builds the workspace and posts onboarding tasks.
+                isDraftChatReport: true,
                 policyParams: {policy: draftPolicy},
                 // introSelected with no choice yet — the only state in which buildPolicyData adds onboarding tasks
                 introSelected: {},
@@ -1470,7 +1500,9 @@ describe('actions/IOU/TrackExpense', () => {
             // When the expense is categorized and submitted to workspace
             trackExpense({
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1564,7 +1596,9 @@ describe('actions/IOU/TrackExpense', () => {
             // When trackExpense is called on policy expense chat
             trackExpense({
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2272,7 +2306,9 @@ describe('actions/IOU/TrackExpense', () => {
             // Create a tracked expense
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -2576,7 +2612,9 @@ describe('actions/IOU/TrackExpense', () => {
 
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,

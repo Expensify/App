@@ -18,6 +18,7 @@ type TrackExpenseAccountantParams = {
 
 type CreateTrackExpenseParams = {
     report: OnyxEntry<OnyxTypes.Report>;
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
     isDraftPolicy: boolean;
     action?: IOUAction;
     participantParams: RequestMoneyParticipantParams;
@@ -46,8 +47,7 @@ type CreateTrackExpenseParams = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
-    isDraftChatReport?: boolean;
+    isDraftChatReport: boolean;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

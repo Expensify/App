@@ -279,6 +279,7 @@ function SubmitDetailsPage({
         if (isSelfDM(report)) {
             trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
+                parentChatReport: report ?? {reportID: reportOrAccountID},
                 isDraftPolicy: false,
                 isDraftChatReport: !!reportDraft,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},

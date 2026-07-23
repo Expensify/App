@@ -1247,7 +1247,9 @@ describe('actions/IOU', () => {
             // First create a tracked expense in self DM
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1306,7 +1308,9 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             trackExpense({
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1863,7 +1867,9 @@ describe('actions/IOU', () => {
             // Create a tracked expense
             trackExpense({
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -2702,7 +2708,9 @@ describe('actions/IOU', () => {
             // When a track expense is created
             trackExpense({
                 report: {reportID: '123', policyID: 'A'},
+                parentChatReport: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,

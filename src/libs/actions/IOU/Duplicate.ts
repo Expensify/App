@@ -755,6 +755,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    isDraftChatReport?: boolean;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
@@ -784,6 +785,7 @@ function duplicateExpenseTransaction({
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
     currentUserLocalCurrency,
+    isDraftChatReport,
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
@@ -868,7 +870,9 @@ function duplicateExpenseTransaction({
                 validWaypoints: waypoints,
             },
             report: undefined,
+            parentChatReport: targetReport,
             isDraftPolicy: false,
+            isDraftChatReport: !!isDraftChatReport,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
             quickAction,
