@@ -7741,6 +7741,15 @@ const CONST = {
                 icon: 'Rules',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
+            publicReceiptVisibility: {
+                id: 'publicReceiptVisibility' as const,
+                alias: 'public-receipt-visibility',
+                name: 'Public receipt visibility',
+                title: 'workspace.upgrade.publicReceiptVisibility.title' as const,
+                description: 'workspace.upgrade.publicReceiptVisibility.description' as const,
+                icon: 'ReportReceipt',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             perDiem: {
                 id: 'perDiem' as const,
                 alias: 'per-diem',

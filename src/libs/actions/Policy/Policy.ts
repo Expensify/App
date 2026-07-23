@@ -6924,7 +6924,7 @@ function setPolicyReceiptVisibilityPublic(policyID: string, isReceiptVisibilityP
         enabled: isReceiptVisibilityPublic,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_RECEIPT_VISIBILITY_PUBLIC, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_PUBLIC_RECEIPT_VISIBILITY_ENABLED, parameters, onyxData);
 }
 
 /**

@@ -94,7 +94,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
     const isReceiptVisibilityPublicEnabled = !!policy?.isReceiptVisibilityPublic;
-    const shouldShowPublicReceiptVisibility = isControlPolicy(policy);
+    const isPublicReceiptVisibilityUnavailable = !isControlPolicy(policy);
 
     const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), policy?.requiresTag && translate('common.tag')].filter(Boolean).join(', ');
 
@@ -242,26 +242,36 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                     rowIcon={icons.Users}
                 />
-                {shouldShowPublicReceiptVisibility && (
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
-                        subtitle={translate(
-                            isReceiptVisibilityPublicEnabled
-                                ? 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintEnabled'
-                                : 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintDisabled',
-                        )}
-                        switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
-                        wrapperStyle={[styles.mt3]}
-                        shouldPlaceSubtitleBelowSwitch
-                        shouldUseCompactSubtitleSpacing
-                        isActive={isReceiptVisibilityPublicEnabled}
-                        disabled={!canWriteRules}
-                        showLockIcon={!canWriteRules}
-                        onToggle={() => (canWriteRules ? handlePublicReceiptVisibilityToggle(!isReceiptVisibilityPublicEnabled) : undefined)}
-                        pendingAction={policy?.pendingFields?.isReceiptVisibilityPublic}
-                        rowIcon={icons.Eye}
-                    />
-                )}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
+                    subtitle={translate(
+                        isReceiptVisibilityPublicEnabled
+                            ? 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintEnabled'
+                            : 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintDisabled',
+                    )}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
+                    wrapperStyle={[styles.mt3]}
+                    shouldPlaceSubtitleBelowSwitch
+                    shouldUseCompactSubtitleSpacing
+                    isActive={isReceiptVisibilityPublicEnabled}
+                    disabled={!canWriteRules || isPublicReceiptVisibilityUnavailable}
+                    disabledAction={
+                        canWriteRules && isPublicReceiptVisibilityUnavailable
+                            ? () =>
+                                  Navigation.navigate(
+                                      ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                          policyID,
+                                          CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.alias,
+                                          ROUTES.WORKSPACE_RULES.getRoute(policyID),
+                                      ),
+                                  )
+                            : undefined
+                    }
+                    showLockIcon={!canWriteRules || isPublicReceiptVisibilityUnavailable}
+                    onToggle={() => (canWriteRules ? handlePublicReceiptVisibilityToggle(!isReceiptVisibilityPublicEnabled) : undefined)}
+                    pendingAction={policy?.pendingFields?.isReceiptVisibilityPublic}
+                    rowIcon={icons.Eye}
+                />
             </View>
         </Section>
     );
