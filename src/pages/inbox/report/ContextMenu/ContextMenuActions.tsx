@@ -760,40 +760,45 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
+        onPress: (
+            closePopover,
+            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, childReportActions},
+        ) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(
-                        reportAction?.childReportID,
+                    toggleSubscribeToChildReport({
+                        childReportID: reportAction?.childReportID,
                         currentUserAccountID,
-                        reportAction,
-                        originalReport,
+                        parentReportAction: reportAction,
+                        parentReport: originalReport,
                         introSelected,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         betas,
-                        childReportNotificationPreference,
+                        prevNotificationPreference: childReportNotificationPreference,
                         personalDetails,
-                    );
+                        hasReportActions: !!childReportActions,
+                    });
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(
-                reportAction?.childReportID,
+            toggleSubscribeToChildReport({
+                childReportID: reportAction?.childReportID,
                 currentUserAccountID,
-                reportAction,
-                originalReport,
+                parentReportAction: reportAction,
+                parentReport: originalReport,
                 introSelected,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 betas,
-                childReportNotificationPreference,
+                prevNotificationPreference: childReportNotificationPreference,
                 personalDetails,
-            );
+                hasReportActions: !!childReportActions,
+            });
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
@@ -821,40 +826,45 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
+        onPress: (
+            closePopover,
+            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, childReportActions},
+        ) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(
-                        reportAction?.childReportID,
+                    toggleSubscribeToChildReport({
+                        childReportID: reportAction?.childReportID,
                         currentUserAccountID,
-                        reportAction,
-                        originalReport,
+                        parentReportAction: reportAction,
+                        parentReport: originalReport,
                         introSelected,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         betas,
-                        childReportNotificationPreference,
+                        prevNotificationPreference: childReportNotificationPreference,
                         personalDetails,
-                    );
+                        hasReportActions: !!childReportActions,
+                    });
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(
-                reportAction?.childReportID,
+            toggleSubscribeToChildReport({
+                childReportID: reportAction?.childReportID,
                 currentUserAccountID,
-                reportAction,
-                originalReport,
+                parentReportAction: reportAction,
+                parentReport: originalReport,
                 introSelected,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 betas,
-                childReportNotificationPreference,
+                prevNotificationPreference: childReportNotificationPreference,
                 personalDetails,
-            );
+                hasReportActions: !!childReportActions,
+            });
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
