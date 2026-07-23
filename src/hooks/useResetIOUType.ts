@@ -107,7 +107,9 @@ function useResetIOUType({
 
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (transaction?.iouRequestType === newIOUType) {
-            // The draft won't be rebuilt, so stamp the native-shortcut marker onto it directly.
+            // Both native-shortcut paths copy the marker onto the draft then clear the flow; they differ only in
+            // how the draft is written — Onyx.merge here (draft not rebuilt) vs. the initMoneyRequest param in the
+            // rebuild path below.
             if (isNativeShortcutFlowActive() && !transaction.isFromNativeShortcut) {
                 setNativeShortcutFlag(transaction.transactionID);
                 endNativeShortcutFlow();

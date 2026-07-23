@@ -51,9 +51,11 @@ function navigateAfterExpenseCreate({
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
-    // Dismiss to the report chat unless the flow must land on Spend > Expenses
-    // (global create outside the inbox tab, or any native shortcut).
-    if (!isFromGlobalCreate || (isUserOnInbox && !isFromNativeShortcut) || !transactionID) {
+    // Land on Spend > Expenses only for global create outside the inbox tab, or for any native shortcut;
+    // every other case dismisses to the report chat.
+    const shouldLandOnSpendExpenses = isFromGlobalCreate && !!transactionID && (!isUserOnInbox || isFromNativeShortcut);
+
+    if (!shouldLandOnSpendExpenses) {
         if (shouldNavigate) {
             dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
         }

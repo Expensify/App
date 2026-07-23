@@ -31,7 +31,7 @@ import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/Rep
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
-import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getIsFromNativeShortcut, getTaxValue} from '@libs/TransactionUtils';
 
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -251,7 +251,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                     });
                 },
                 destinationReportID: reportID,
-                isFromNativeShortcut: isFromNativeShortcut && !!isFromGlobalCreate,
+                shouldForceSpendExpensesLanding: getIsFromNativeShortcut(transaction),
                 telemetryContext: {
                     scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SPLIT_RECEIPT,
                     iouType: CONST.IOU.TYPE.SPLIT,
@@ -349,7 +349,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 runCleanup();
             },
             destinationReportID: scanDestinationReportID,
-            isFromNativeShortcut: isFromNativeShortcut && !!isFromGlobalCreate,
+            shouldForceSpendExpensesLanding: getIsFromNativeShortcut(transaction),
             telemetryContext: {
                 scenario: iouType === CONST.IOU.TYPE.TRACK ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_SCAN,
                 iouType,

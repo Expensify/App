@@ -12,6 +12,7 @@ import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
 import Log from './libs/Log';
+import getInitialURLWithTimeout from './libs/Navigation/helpers/getInitialURLWithTimeout';
 import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
@@ -64,17 +65,11 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         // fire with stale conciergeReportID/introSelected values, causing a duplicate
         // openReportFromDeepLink() call.
         let cancelled = false;
-        let timeoutId: ReturnType<typeof setTimeout>;
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report.
         // We race against a timeout to prevent permanently blocking NavigationRoot if getInitialURL() never resolves
         // (e.g. in HybridApp when OldDot fails to send the URL via native bridge).
-        Promise.race([
-            Linking.getInitialURL(),
-            new Promise<null>((resolve) => {
-                timeoutId = setTimeout(() => resolve(null), CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
-            }),
-        ])
+        getInitialURLWithTimeout(CONST.TIMING.GET_INITIAL_URL_TIMEOUT, null)
             .then((url) => {
                 if (cancelled) {
                     return;
@@ -137,7 +132,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
         return () => {
             cancelled = true;
-            clearTimeout(timeoutId);
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update

@@ -22,7 +22,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getIsFromNativeShortcut, getValidWaypoints} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -350,7 +350,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         });
                     },
                     destinationReportID: report?.reportID ?? selfDMReport?.reportID,
-                    isFromNativeShortcut: transactionIsFromNativeShortcut && !!transactionIsFromGlobalCreate,
+                    shouldForceSpendExpensesLanding: getIsFromNativeShortcut(transaction),
                     telemetryContext: {
                         scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
                         iouType,
@@ -430,7 +430,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     });
                 },
                 destinationReportID: distanceDestinationReportID,
-                isFromNativeShortcut: transactionIsFromNativeShortcut && !!transactionIsFromGlobalCreate,
+                shouldForceSpendExpensesLanding: getIsFromNativeShortcut(transaction),
                 telemetryContext: {
                     scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.DISTANCE,
                     iouType,

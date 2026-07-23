@@ -340,7 +340,7 @@ function SubmitExpenseOrchestrator({
             });
         };
 
-        if (!isSameType && !isNarrow && shouldNavigateToSearch) {
+        if (shouldNavigateToSearch && !isNarrow) {
             dismissWideToNewSearchType(searchDataType, runAfterDismiss);
             return;
         }

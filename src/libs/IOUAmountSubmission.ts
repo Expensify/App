@@ -48,7 +48,17 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getCurrency,
+    getDefaultTaxCode,
+    getIsFromGlobalCreate,
+    getIsFromNativeShortcut,
+    getTaxValue,
+    hasReceipt,
+    isExpenseUnreported,
+} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -413,7 +423,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     submitWithDismissFirst({
         executeWrite: executeExpenseWrite,
         destinationReportID: isTrackExpenseSubmit ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID,
-        isFromNativeShortcut: !!transaction?.isFromNativeShortcut && !!getIsFromGlobalCreate(transaction),
+        shouldForceSpendExpensesLanding: getIsFromNativeShortcut(transaction),
         telemetryContext: {
             scenario: isTrackExpenseSubmit ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
             iouType,
