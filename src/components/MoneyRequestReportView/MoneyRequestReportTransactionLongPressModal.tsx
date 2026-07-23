@@ -13,12 +13,18 @@ import type {Ref} from 'react';
 import React, {useImperativeHandle, useState} from 'react';
 
 type MoneyRequestReportTransactionLongPressModalHandle = {
+    /** Opens the modal for the given transaction */
     show: (transactionID: string) => void;
 };
 
 type MoneyRequestReportTransactionLongPressModalProps = {
+    /** Whether the mobile selection mode is currently enabled */
     isMobileSelectionModeEnabled: boolean;
+
+    /** Callback to toggle the selection state of a transaction */
     toggleTransaction: (transactionID: string) => void;
+
+    /** Imperative handle used to open the modal */
     ref: Ref<MoneyRequestReportTransactionLongPressModalHandle>;
 };
 

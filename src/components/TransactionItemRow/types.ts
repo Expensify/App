@@ -125,6 +125,7 @@ type TransactionItemRowProps = {
 
 /** Derived from shouldSkipDeferRBR; passed to layout variants for DeferredTransactionItemRowRBR. */
 type TransactionItemRowRBRDeferControlProps = {
+    /** When false, RBR content renders immediately instead of via useDeferredValue. */
     shouldDeferRBR?: boolean;
 };
 

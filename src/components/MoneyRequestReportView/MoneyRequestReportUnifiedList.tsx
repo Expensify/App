@@ -67,26 +67,66 @@ function MoneyRequestReportFlashList(props: MoneyRequestReportFlashListProps) {
 }
 
 type MoneyRequestReportUnifiedListProps = {
+    /** Controller that owns the transaction rows and their selection/long-press state. */
     controller: MoneyRequestReportTransactionListController;
+
+    /** The report whose transactions and actions are rendered. */
     report: OnyxTypes.Report;
+
+    /** Policy the report belongs to. */
     policy?: OnyxTypes.Policy;
+
+    /** Report actions to render below the transactions. */
     visibleReportActions: OnyxTypes.ReportAction[];
+
+    /** Renders a single report action. */
     renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
+
+    /** ID of the report action deep-linked to, if any. */
     linkedReportActionID: string | undefined;
+
+    /** ID of a newly added transaction to highlight, if any. */
     newTransactionID?: string;
+
+    /** Ref to the underlying list, shared via the ActionList context. */
     listRef: FlatListRefType;
+
+    /** Accessibility label for the list. */
     accessibilityLabel: string;
+
+    /** Called when the list lays out. */
     onLayout: () => void;
+
+    /** Called on scroll. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Called when the user starts dragging the list. */
     onScrollBeginDrag: () => void;
+
+    /** Called when the list content size changes. */
     onContentSizeChange: () => void;
+
+    /** Called when the set of viewable items changes. */
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+
+    /** Called when the end of the list is reached (older actions). */
     onEndReached: () => void;
+
+    /** Called when the start of the list is reached (newer actions). */
     onStartReached: () => void;
+
+    /** Style applied to the list's content container. */
     contentContainerStyle: StyleProp<ViewStyle>;
+
+    /** Whether the app is offline. */
     isOffline: boolean;
+
+    /** Whether the initial batch of report actions is still loading. */
     isLoadingInitialActions: boolean;
+
+    /** Attributes describing why the skeleton is shown, for telemetry. */
     skeletonReasonAttributes: SkeletonSpanReasonAttributes;
+
     /** Reports the index of the last list item so callers can jump to the bottom via scrollToIndex (which renders the
      * landing region, unlike scrollToEnd's estimated-offset jump that leaves the bottom blank on large lists). */
     onLastItemIndexChange?: (index: number) => void;
