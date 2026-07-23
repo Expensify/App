@@ -185,6 +185,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
+    getQueryHashes,
     isFilterNegatable,
     isFilterSupported,
     isSearchDatePreset,
@@ -4816,9 +4817,16 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const isDataLoaded = (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && searchResults.search.hash === queryJSON?.hash;
-
-    return isDataLoaded;
+    return (
+        (searchResults?.data != null || searchResults?.errors != null) &&
+        searchResults.search.type === queryJSON?.type &&
+        searchResults.search.hash ===
+            getQueryHashes({
+                ...queryJSON,
+                sortBy: searchResults.search.sortBy,
+                sortOrder: searchResults.search.sortOrder,
+            }).primaryHash
+    );
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {

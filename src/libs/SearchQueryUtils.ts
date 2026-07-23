@@ -2488,6 +2488,7 @@ export {
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
     getQueryFilterWithoutKeywordHash,
+    getQueryHashes,
     isSearchDatePreset,
     getDateRangeForPreset,
     isFilterSupported,
