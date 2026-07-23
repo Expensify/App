@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -805,7 +806,19 @@ function IOURequestStepConfirmation({
             context: 'IOURequestStepConfirmation',
             isLoadingTransaction,
         };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        // When embedded on IOURequestStartPage (shouldHideHeader), the parent header and tab bar stay visible,
+        // so per UI-1 use ActivityIndicator (the user can still go back). In the standalone RHP route there is
+        // no chrome behind this early return, so keep the fullscreen loader.
+        return shouldHideHeader ? (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={reasonAttributes}
+                />
+            </View>
+        ) : (
+            <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
+        );
     }
 
     const showNextTransaction = () => {
