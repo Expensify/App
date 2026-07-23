@@ -9,7 +9,7 @@ internalScope: Audience is all members. Covers how to close an Expensify account
   
 Closing your Expensify account permanently deletes your personal account and any unsubmitted expenses associated with it. Before you close your account, make sure you no longer need access to your personal data or any outstanding expenses.
 
-If your goal is to stop paying for Expensify while keeping access to your historical expense data, you may want to delete your workspace instead of closing your account. [Learn how to delete a workspace](/articles/new-expensify/workspaces/delete-a-workspace). 
+If your goal is to stop paying for Expensify while keeping access to your historical expense data, you may want to delete your workspace instead of closing your account. [Learn how to delete a workspace](/articles/new-expensify/workspaces/Delete-a-Workspace). 
 
 ---
 
