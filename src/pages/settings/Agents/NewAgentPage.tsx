@@ -1,12 +1,16 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useSuggestedAgents from '@hooks/useSuggestedAgents';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
@@ -15,41 +19,28 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {clearNewAgentTemplate, setNewAgentTemplate} from '@userActions/Agent';
+import {clearNewAgentTemplate, setNewAgentTemplate, getAgenTemplates} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type SuggestedAgent from '@src/types/onyx/SuggestedAgent';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-type AgentTemplate = {
-    /** Stable identifier, matches the translation key under `newAgentPage.templates` */
-    id: string;
+type AgentTemplateCardProps = {
+    /** The backend-served template to render */
+    template: SuggestedAgent;
 
-    /** Preset avatar shown on the template card and copied onto the created agent */
+    /** Preset avatar shown on the card and copied onto the agent (backend templates don't carry one) */
     avatarID: AgentAvatarID;
 
-    /** Localized display name of the agent */
-    name: string;
-
-    /** Short description of what the agent does, shown on the card */
-    description: string;
-
-    /** Instructions used to seed the agent when the template is added */
-    prompt: string;
-};
-
-type AgentTemplateCardProps = {
-    /** The template to render */
-    template: AgentTemplate;
-
-    /** Called when the user taps "Add" to create an agent from this template */
+    /** Called when the user taps "Add" to open the builder pre-filled from this template */
     onAdd: () => void;
 };
 
-function AgentTemplateCard({template, onAdd}: AgentTemplateCardProps) {
+function AgentTemplateCard({template, avatarID, onAdd}: AgentTemplateCardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -57,7 +48,7 @@ function AgentTemplateCard({template, onAdd}: AgentTemplateCardProps) {
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.p5, styles.mb3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 <Avatar
-                    source={AGENT_AVATARS.getLocal(template.avatarID)}
+                    source={AGENT_AVATARS.getLocal(avatarID)}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
                     name={template.name}
@@ -84,38 +75,21 @@ function NewAgentPage({route}: NewAgentPageProps) {
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Bot']);
+    const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
+    const {data: templates, isLoading} = useSuggestedAgents();
 
-    const templates: AgentTemplate[] = [
-        {
-            id: 'cheapskateCharlie',
-            avatarID: 'bot-avatar--blue',
-            name: translate('newAgentPage.templates.cheapskateCharlie.name'),
-            description: translate('newAgentPage.templates.cheapskateCharlie.description'),
-            prompt: translate('newAgentPage.templates.cheapskateCharlie.prompt'),
-        },
-        {
-            id: 'enforcerEliza',
-            avatarID: 'bot-avatar--ice',
-            name: translate('newAgentPage.templates.enforcerEliza.name'),
-            description: translate('newAgentPage.templates.enforcerEliza.description'),
-            prompt: translate('newAgentPage.templates.enforcerEliza.prompt'),
-        },
-        {
-            id: 'reductionRob',
-            avatarID: 'bot-avatar--tangerine',
-            name: translate('newAgentPage.templates.reductionRob.name'),
-            description: translate('newAgentPage.templates.reductionRob.description'),
-            prompt: translate('newAgentPage.templates.reductionRob.prompt'),
-        },
-        {
-            id: 'funTimeFiona',
-            avatarID: 'bot-avatar--green',
-            name: translate('newAgentPage.templates.funTimeFiona.name'),
-            description: translate('newAgentPage.templates.funTimeFiona.description'),
-            prompt: translate('newAgentPage.templates.funTimeFiona.prompt'),
-        },
-    ];
+    const hasNoTemplates = templates.length === 0;
+    const shouldShowLoadingIndicator = isLoading && hasNoTemplates && !isOffline;
+    const shouldShowEmptyState = hasNoTemplates && (!isLoading || isOffline);
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+        getAgenTemplates();
+    }, [isOffline]);
 
     const handleBuildCustomAgent = () => {
         // Start from scratch — drop any previously stashed template, and wait for the clear to land before
@@ -125,13 +99,82 @@ function NewAgentPage({route}: NewAgentPageProps) {
         });
     };
 
-    const handleAddTemplate = (template: AgentTemplate) => {
+    const handleAddTemplate = (template: SuggestedAgent, avatarID: AgentAvatarID) => {
         // Stash the template in Onyx (persists across refresh), then wait for the write to land before opening
         // the builder so it reads the seed on its first render instead of racing the async Onyx write.
-        setNewAgentTemplate({name: template.name, prompt: template.prompt, avatarID: template.avatarID}).then(() => {
+        setNewAgentTemplate({name: template.name, prompt: template.prompt, avatarID}).then(() => {
             Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute(policyID ? {policyID} : undefined));
         });
     };
+
+    const buildCustomAgentButton = (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
+            onPress={handleBuildCustomAgent}
+            style={styles.w100}
+        >
+            <Button.Icon src={icons.Bot} />
+            <Button.Text>{translate('newAgentPage.buildCustomAgent')}</Button.Text>
+        </Button>
+    );
+
+    const templateSectionLabel = <Text style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}>{translate('newAgentPage.orStartWithTemplate')}</Text>;
+
+    // Backend templates don't carry an avatar, so give each card a stable preset by cycling the catalog.
+    const orderedAvatarIDs = AGENT_AVATARS.ordered;
+
+    let body: React.ReactNode;
+    if (shouldShowLoadingIndicator) {
+        body = (
+            <View style={[styles.flex1, styles.ph5, styles.pb5]}>
+                {buildCustomAgentButton}
+                {templateSectionLabel}
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'NewAgentPage'}}
+                    />
+                </View>
+            </View>
+        );
+    } else if (shouldShowEmptyState) {
+        body = (
+            <View style={[styles.flex1, styles.ph5, styles.pb5]}>
+                {buildCustomAgentButton}
+                {templateSectionLabel}
+                <View style={styles.flex1}>
+                    <BlockingView
+                        icon={illustrations.Lightbulb}
+                        title={translate('newAgentPage.emptyTemplatesTitle')}
+                        subtitle={isOffline ? translate('common.youAppearToBeOffline') : translate('newAgentPage.emptyTemplatesSubtitle')}
+                        subtitleStyle={[styles.textSupporting, styles.textNormal]}
+                    />
+                </View>
+            </View>
+        );
+    } else {
+        body = (
+            <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
+                {buildCustomAgentButton}
+                {templateSectionLabel}
+                {templates.map((template, index) => {
+                    const avatarID = orderedAvatarIDs.at(index % orderedAvatarIDs.length)?.id;
+                    if (!avatarID) {
+                        return null;
+                    }
+                    return (
+                        <AgentTemplateCard
+                            key={template.id}
+                            template={template}
+                            avatarID={avatarID}
+                            onAdd={() => handleAddTemplate(template, avatarID)}
+                        />
+                    );
+                })}
+            </ScrollView>
+        );
+    }
 
     return (
         <ScreenWrapper
@@ -144,25 +187,7 @@ function NewAgentPage({route}: NewAgentPageProps) {
                 title={translate('newAgentPage.title')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={handleBuildCustomAgent}
-                    style={styles.w100}
-                >
-                    <Button.Icon src={icons.Bot} />
-                    <Button.Text>{translate('newAgentPage.buildCustomAgent')}</Button.Text>
-                </Button>
-                <Text style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}>{translate('newAgentPage.orStartWithTemplate')}</Text>
-                {templates.map((template) => (
-                    <AgentTemplateCard
-                        key={template.id}
-                        template={template}
-                        onAdd={() => handleAddTemplate(template)}
-                    />
-                ))}
-            </ScrollView>
+            {body}
         </ScreenWrapper>
     );
 }

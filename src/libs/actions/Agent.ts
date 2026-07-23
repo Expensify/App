@@ -368,6 +368,35 @@ function clearNewAgentAvatarDraft() {
     return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, null);
 }
 
+/**
+ * Fetches ready-made agent templates.
+ */
+function getAgenTemplates() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.GET_AGENT_TEMPLATES, null, {optimisticData, successData, failureData});
+}
+
 export {
     openAgentsPage,
     openProfilePage,
@@ -387,4 +416,5 @@ export {
     setNewAgentUploadedAvatar,
     setNewAgentAvatarPreset,
     clearNewAgentAvatarDraft,
+    getAgenTemplates,
 };
