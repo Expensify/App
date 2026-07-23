@@ -2769,6 +2769,7 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
+                manuallyMarkedUnreadReportActionID: null,
             },
         },
     ];
@@ -2845,6 +2846,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
 
     const reportValue = {
         lastReadTime,
+        manuallyMarkedUnreadReportActionID: reportAction?.reportActionID ?? null,
         ...(lastActorAccountID && {lastActorAccountID}),
     };
 
@@ -2871,6 +2873,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             value: {
                 lastReadTime: report?.lastReadTime ?? null,
                 lastActorAccountID: report?.lastActorAccountID ?? null,
+                manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID ?? null,
             },
         },
     ];

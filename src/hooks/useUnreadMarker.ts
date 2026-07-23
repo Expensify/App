@@ -41,6 +41,7 @@ type UseUnreadMarkerResult = {
 };
 
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
+const manuallyMarkedUnreadReportActionIDSelector = (report: OnyxTypes.Report | undefined) => report?.manuallyMarkedUnreadReportActionID ?? null;
 
 function useUnreadMarker({
     reportID,
@@ -59,6 +60,10 @@ function useUnreadMarker({
         selector: lastReadTimeSelector,
     });
     const reportLastReadTime = reportLastReadTimeValue ?? '';
+
+    const [manuallyMarkedUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        selector: manuallyMarkedUnreadReportActionIDSelector,
+    });
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
 
@@ -121,6 +126,7 @@ function useUnreadMarker({
         isReversed: false,
         isAnonymousUser,
         prevUnreadMarkerReportActionID,
+        manuallyMarkedUnreadReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
