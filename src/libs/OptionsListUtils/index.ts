@@ -1572,9 +1572,9 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *
  * Performance optimization approach:
  * 1. Pre-filters reports using shouldReportBeInOptionList with correct parameters (betas, etc.)
- * 2. Default (`options.isSearching` false): sorts by lastVisibleActionCreated (most recent first), limits to
- *    the top N reports (`maxRecentReports`), then processes only those reports. This avoids processing
- *    thousands of reports while ensuring correct filtering.
+ * 2. Default (`options.isSearching` false): pre-computes each report's sort key once, then uses a heap to
+ *    select the top N reports (`maxRecentReports`) by self-DM status, archived status, and recency. Only
+ *    those reports are processed in step 4, avoiding work on thousands of reports while ensuring correct filtering.
  * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
  *    no `maxRecentReports` cap, so search can include all eligible reports.
  *
@@ -1722,7 +1722,7 @@ function createFilteredOptionList(
         return !!report;
     });
 
-    // Step 2: Sort by lastVisibleActionCreated (most recent first) and limit to top N
+    // Step 2: Select the top N reports by priority (self-DM, then non-archived, then most recent).
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
     const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
 
@@ -1915,7 +1915,6 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
     filter?: (option: T) => boolean | undefined,
     reversed = false,
 ): {options: T[]; hasMore: boolean} {
-    const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
     let hasMore = false;
 
     // If a limit is 0 or negative, return an empty array
@@ -1923,25 +1922,33 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
         return {options: [], hasMore};
     }
 
+    // Decorate each option with its comparator key once.
+    // The heap then compares precomputed primitives instead of re-running `comparator`
+    // on every O(log n) heap comparison, so `comparator` is evaluated exactly once per option.
+    type Decorated = {key: number | string; option: T};
+    const getKey = (decorated: Decorated) => decorated.key;
+    const heap = reversed ? new MaxHeap<Decorated>(getKey) : new MinHeap<Decorated>(getKey);
+
     for (const option of options) {
         if (filter && !filter(option)) {
             continue;
         }
+        const decorated: Decorated = {key: comparator(option), option};
         if (limit !== undefined && heap.size() >= limit) {
             hasMore = true;
             const peekedValue = heap.peek();
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
             }
-            if (reversed ? comparator(option) < comparator(peekedValue) : comparator(option) > comparator(peekedValue)) {
+            if (reversed ? decorated.key < peekedValue.key : decorated.key > peekedValue.key) {
                 heap.pop();
-                heap.push(option);
+                heap.push(decorated);
             }
         } else {
-            heap.push(option);
+            heap.push(decorated);
         }
     }
-    return {options: [...heap].reverse(), hasMore};
+    return {options: [...heap].reverse().map((decorated) => decorated.option), hasMore};
 }
 
 /**

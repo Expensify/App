@@ -8442,6 +8442,66 @@ describe('OptionsListUtils', () => {
     });
 
     describe('createFilteredOptionList', () => {
+        const createChatReport = (reportID: string, lastVisibleActionCreated: string, chatType?: Report['chatType']): Report => ({
+            reportID,
+            reportName: `Report ${reportID}`,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType,
+            lastVisibleActionCreated,
+            participants: {
+                [CURRENT_USER_ACCOUNT_ID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+                1: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+        });
+
+        const reportsToCollection = (reports: Report[]): OnyxCollection<Report> => Object.fromEntries(reports.map((report) => [report.reportID, report]));
+
+        it('returns the most recent reports when maxRecentReports is less than the input size', () => {
+            const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00'), createChatReport('103', '2023-01-01 00:00:00')];
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {maxRecentReports: 2, includeP2P: false});
+
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102', '103']);
+        });
+
+        it('prioritizes self-DM over newer non-self-DM reports', () => {
+            const reports = [createChatReport('101', '2024-01-01 00:00:00'), createChatReport('102', '2020-01-01 00:00:00', CONST.REPORT.CHAT_TYPE.SELF_DM)];
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {maxRecentReports: 1, includeP2P: false});
+
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102']);
+        });
+
+        it('prioritizes non-archived reports over newer archived reports', () => {
+            const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00')];
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}102`]: true,
+            };
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, privateIsArchivedMap, undefined, {maxRecentReports: 1, includeP2P: false});
+
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['101']);
+        });
+
+        it('returns all reports when isSearching is true', () => {
+            const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00'), createChatReport('103', '2023-01-01 00:00:00')];
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {maxRecentReports: 1, isSearching: true, includeP2P: false});
+
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['101', '102', '103']);
+        });
+
+        it('returns an empty array when maxRecentReports is zero', () => {
+            const reports = [createChatReport('101', '2024-01-01 00:00:00')];
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {maxRecentReports: 0, includeP2P: false});
+
+            expect(result.reports).toEqual([]);
+        });
         it('should return report options limited by maxRecentReports', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {maxRecentReports: 5});
 
@@ -8450,8 +8510,8 @@ describe('OptionsListUtils', () => {
         });
 
         it('should sort reports by lastVisibleActionCreated (most recent first)', () => {
-            const reportsWithDates: OnyxCollection<Report> = {
-                '101': {
+            const reportsWithDates = [
+                {
                     reportID: '101',
                     reportName: 'Oldest Report',
                     type: CONST.REPORT.TYPE.CHAT,
@@ -8465,7 +8525,7 @@ describe('OptionsListUtils', () => {
                         },
                     },
                 },
-                '102': {
+                {
                     reportID: '102',
                     reportName: 'Newest Report',
                     type: CONST.REPORT.TYPE.CHAT,
@@ -8479,7 +8539,7 @@ describe('OptionsListUtils', () => {
                         },
                     },
                 },
-                '103': {
+                {
                     reportID: '103',
                     reportName: 'Middle Report',
                     type: CONST.REPORT.TYPE.CHAT,
@@ -8493,11 +8553,14 @@ describe('OptionsListUtils', () => {
                         },
                     },
                 },
-            };
+            ] satisfies Report[];
 
-            const result = createFilteredOptionList(PERSONAL_DETAILS, reportsWithDates, undefined, {}, undefined, {maxRecentReports: 3});
+            const result = createFilteredOptionList({}, Object.fromEntries(reportsWithDates.map((report) => [report.reportID, report])), undefined, {}, undefined, {
+                maxRecentReports: 3,
+                includeP2P: false,
+            });
 
-            expect(result.reports.length).toBeGreaterThan(0);
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102', '103', '101']);
         });
 
         it('should include personal details when includeP2P is true', () => {
