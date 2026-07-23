@@ -1,4 +1,5 @@
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -7,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -33,7 +35,6 @@ type ApproverSelectionListPageProps = {
     policy?: Policy;
     isLoadingReportData?: boolean;
     onBackButtonPress: () => void;
-    initiallyFocusedOptionKey?: string;
     shouldShowNotFoundView?: boolean;
     shouldShowNotFoundViewLink?: boolean;
     listEmptyContentSubtitle?: string;
@@ -49,10 +50,11 @@ type ApproverSelectionListPageProps = {
     onSearchChange?: (searchTerm: string) => void;
     shouldUpdateFocusedIndex?: boolean;
     shouldRequirePolicyAdmin?: boolean;
+    shouldCaptureInitialSelection?: boolean;
 };
 
 type SelectionListApprover = ListItem & {
-    value?: number;
+    value?: number | string;
 };
 
 function ApproverSelectionList({
@@ -62,7 +64,6 @@ function ApproverSelectionList({
     isLoadingReportData,
     policy,
     onBackButtonPress,
-    initiallyFocusedOptionKey,
     shouldShowTextInput: shouldShowTextInputProp,
     shouldShowNotFoundView: shouldShowNotFoundViewProp = false,
     shouldShowNotFoundViewLink = true,
@@ -77,6 +78,7 @@ function ApproverSelectionList({
     onSearchChange,
     shouldUpdateFocusedIndex = true,
     shouldRequirePolicyAdmin = true,
+    shouldCaptureInitialSelection = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -96,18 +98,20 @@ function ApproverSelectionList({
     );
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
+    const selectedApproverKeys = useMemo(() => selectedMembers.map((approver) => approver.value?.toString() ?? '').filter(Boolean), [selectedMembers]);
+    const initialSelectedApproverKeys = useInitialSelection(selectedApproverKeys, {isVisible: shouldCaptureInitialSelection && allApprovers.length > 0, resetOnFocus: true});
+    const initiallyFocusedApproverKey = allApprovers.find((approver) => initialSelectedApproverKeys.includes(String(approver.value)))?.keyForList;
+    const selectionListKey = initialSelectedApproverKeys.join(',');
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
     const data = useMemo(() => {
-        const filteredApprovers =
-            debouncedSearchTerm !== ''
-                ? tokenizedSearch(allApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
-                : allApprovers;
+        const sortedApprovers = sortAlphabetically(allApprovers, 'text', localeCompare);
+        const orderedApprovers = moveInitialSelectionToTop(sortedApprovers, initialSelectedApproverKeys);
 
-        return sortAlphabetically(filteredApprovers, 'text', localeCompare);
-    }, [allApprovers, debouncedSearchTerm, countryCode, localeCompare]);
+        return tokenizedSearch(orderedApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? '']);
+    }, [allApprovers, debouncedSearchTerm, countryCode, localeCompare, initialSelectedApproverKeys]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !data.length && shouldShowListEmptyContentProp;
 
@@ -172,6 +176,7 @@ function ApproverSelectionList({
                 />
                 {subtitle}
                 <SelectionList
+                    key={selectionListKey}
                     data={data}
                     onSelectRow={toggleApprover}
                     ListItem={InviteMemberListItem}
@@ -180,12 +185,13 @@ function ApproverSelectionList({
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listEmptyContent={listEmptyContent}
                     shouldShowListEmptyContent={shouldShowListEmptyContent}
-                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={initiallyFocusedApproverKey}
                     shouldShowTextInput={shouldShowTextInput}
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     footerContent={footerContent}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                    disableMaintainingScrollPosition
                     showScrollIndicator
                     isRowMultilineSupported
                 />

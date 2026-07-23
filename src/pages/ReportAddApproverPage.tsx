@@ -146,7 +146,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.addApprover.subtitle')}</Text>}
             isLoadingReportData={isLoadingReportData}
             policy={policy}
-            initiallyFocusedOptionKey={selectedApproverEmail}
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={shouldShowNotFoundView}
             allApprovers={allApprovers}
