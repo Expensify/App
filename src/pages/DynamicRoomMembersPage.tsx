@@ -36,7 +36,7 @@ import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
     getReportPersonalDetailsParticipants,
@@ -112,9 +112,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
     const firstSelectedMember = selectedMembers?.at(0);
-    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(firstSelectedMember),
-    });
+    const firstSelectedMemberSelector = useMemo(() => personalDetailsSelector(firstSelectedMember), [firstSelectedMember]);
+    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: firstSelectedMemberSelector});
 
     const clearTableSelection = useCallback(() => {
         setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
@@ -357,7 +356,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     subtitle={StringUtils.lineBreaksToSpaces(
-                        shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle, reportAttributes)) : getReportName(reportForSubtitle, reportAttributes),
+                        shouldParserToHTML ? Parser.htmlToText(deprecatedGetReportName(reportForSubtitle, reportAttributes)) : deprecatedGetReportName(reportForSubtitle, reportAttributes),
                     )}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {

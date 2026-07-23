@@ -31,6 +31,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -57,6 +58,7 @@ import type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     UpdateRoleParams,
+    ViolationsInactiveVendorParams,
     ViolationsIncreasedDistanceParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
@@ -118,7 +120,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rotate: 'Drehen',
         zoom: 'Zoom',
         password: 'Passwort',
-        magicCode: 'Magischer Code',
+        securityCode: 'Sicherheitscode',
         digits: 'Ziffern',
         twoFactorCode: 'Zwei-Faktor-Code',
         workspaces: 'Workspaces',
@@ -323,6 +325,7 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Ändern',
         category: 'Kategorie',
         vendor: 'Anbieter',
+        supplier: 'Lieferant',
         report: 'Bericht',
         billable: 'Abrechenbar',
         nonBillable: 'Nicht abrechenbar',
@@ -434,6 +437,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
+        submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
         help: 'Hilfe',
         collapsed: 'Eingeklappt',
@@ -516,7 +520,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -699,14 +702,14 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Gesicht/Fingerabdruck & Zugangsschlüssel',
             explanation:
-                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Beim Entziehen des Zugriffs ist für die nächste Verifizierung auf diesem Gerät ein magischer Code erforderlich.',
-            confirmationPrompt: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesem Gerät.',
+                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Entziehen des Zugriffs erfordert für die nächste Verifizierung auf diesem Gerät einen Sicherheitscode.',
+            confirmationPrompt: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf diesem Gerät.',
             cta: 'Zugriff entziehen',
             noDevices: 'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie deren Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
             revoke: 'Widerrufen',
-            confirmationPromptAll: 'Sind Sie sicher? Sie benötigen einen Magic Code für die nächste Verifizierung auf jedem Gerät.',
+            confirmationPromptAll: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf jedem Gerät.',
             ctaAll: 'Alle widerrufen',
             thisDevice: 'Dieses Gerät',
             otherDevices: (otherDeviceCount?: number) => {
@@ -714,8 +717,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} weitere ${otherDeviceCount === 1 ? 'Gerät' : 'Geräte'}`;
             },
-            confirmationPromptThisDevice: 'Sind Sie sicher? Sie benötigen einen Magic-Code für die nächste Verifizierung auf diesem Gerät.',
-            confirmationPromptMultiple: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesen Geräten.',
+            confirmationPromptThisDevice: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf diesem Gerät.',
+            confirmationPromptMultiple: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf diesen Geräten.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nicht unterstütztes Gerät',
@@ -734,7 +737,7 @@ const translations: TranslationDeepObject<typeof en> = {
             du bist angemeldet!
         `),
         successfulSignInDescription: 'Wechsle zurück zu deinem ursprünglichen Tab, um fortzufahren.',
-        title: 'Hier ist dein magischer Code',
+        title: 'Hier ist Ihr Sicherheitscode',
         description: Str.dedent(`
             Bitte gib den Code von dem Gerät ein,
             auf dem er ursprünglich angefordert wurde
@@ -745,7 +748,7 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         or: 'oder',
         signInHere: 'melde dich einfach hier an',
-        expiredCodeTitle: 'Magic Code abgelaufen',
+        expiredCodeTitle: 'Sicherheitscode abgelaufen',
         expiredCodeDescription: 'Gehe zurück zum ursprünglichen Gerät und fordere einen neuen Code an',
         successfulNewCodeRequest: 'Code angefordert. Bitte überprüfe dein Gerät.',
         tfaRequiredTitle: Str.dedent(`
@@ -788,7 +791,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Deine Zahlungen kommen so schnell bei dir an, wie du deinen Standpunkt klarmachen kannst.',
         enterPassword: 'Bitte geben Sie Ihr Passwort ein',
         welcomeNewFace: (login: string) => `${login}, es ist immer schön, ein neues Gesicht hier zu sehen!`,
-        welcomeEnterMagicCode: (login: string) => `Bitte gib den magischen Code ein, der an ${login} gesendet wurde. Er sollte innerhalb einer oder zwei Minuten ankommen.`,
+        welcomeEnterSecurityCode: (login: string) => `Bitte geben Sie den an ${login} gesendeten Sicherheitscode ein. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
     },
     login: {
         hero: {
@@ -798,9 +801,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Mit Single Sign-On weiter anmelden:',
-        orContinueWithMagicCode: 'Sie können sich auch mit einem magischen Code anmelden',
+        orContinueWithSecurityCode: 'Sie können sich auch mit einem Sicherheitscode anmelden',
         useSingleSignOn: 'Einmalanmeldung verwenden',
-        useMagicCode: 'Magischen Code verwenden',
+        useSecurityCode: 'Sicherheitscode verwenden',
         launching: 'Wird gestartet ...',
         oneMoment: 'Einen Moment, wir leiten dich zum Single-Sign-On-Portal deines Unternehmens weiter.',
     },
@@ -1066,6 +1069,12 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCardsSubtitle: 'Kontrollen anpassen und Ausgaben optimieren',
             setupRules: 'Ausgabelimits einrichten',
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
+            customizeSpendCategories: 'Ausgabenkategorien anpassen',
+            customizeSpendCategoriesSubText: 'Ausgaben organisieren und klassifizieren',
+            createExpense: 'Ausgabe erstellen',
+            createExpenseSubText: 'Scannen Sie eine Ausgabe, ziehen Sie sie per Drag &amp; Drop herein oder geben Sie sie manuell über die + Schaltfläche ein',
+            linkPersonalCard: 'Persönliche Karte verknüpfen',
+            linkPersonalCardSubText: 'Spesen automatisch importieren',
             configureApprovals: 'Genehmigungsworkflow konfigurieren',
             begin: 'Beginnen',
             done: 'Fertig',
@@ -1189,6 +1198,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
         }),
         importCompanyCardTransactionsPendingMessage: 'Neue Karten und Transaktionen können etwas Zeit benötigen, bis sie erscheinen. Bitte haben Sie etwas Geduld.',
+        importMembersRolePermissionWarning: 'Sie haben keine Berechtigung, einige Mitgliederrollen zuzuweisen. Alle betroffenen neuen Mitglieder wurden als Mitglieder eingeladen.',
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -2109,7 +2119,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Füge weitere Möglichkeiten hinzu, dich anzumelden und Belege an Expensify zu senden.<br/><br/>Füge eine E‑Mail-Adresse hinzu, um Belege an <a href="mailto:${email}">${email}</a> weiterzuleiten, oder füge eine Telefonnummer hinzu, um Belege per SMS an 47777 zu senden (nur US-Nummern).`,
         pleaseVerify: 'Bitte bestätige diese Kontaktmethode.',
         getInTouch: 'Wir verwenden diese Methode, um Sie zu kontaktieren.',
-        enterMagicCode: (contactMethod: string) => `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde. Er sollte innerhalb einer oder zwei Minuten ankommen.`,
+        enterSecurityCode: (contactMethod: string) => `Bitte geben Sie den Sicherheitscode ein, der an ${contactMethod} gesendet wurde. Er sollte innerhalb ein bis zwei Minuten ankommen.`,
         setAsDefault: 'Als Standard festlegen',
         yourDefaultContactMethod:
             'Dies ist Ihre aktuelle Standard-Kontaktmethode. Bevor Sie sie löschen können, müssen Sie eine andere Kontaktmethode auswählen und auf „Als Standard festlegen“ klicken.',
@@ -2117,8 +2127,8 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: 'Sind Sie sicher, dass Sie diese Kontaktmethode entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
         failedNewContact: 'Das Hinzufügen dieser Kontaktmethode ist fehlgeschlagen.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Senden eines neuen Magic-Codes fehlgeschlagen. Bitte warten Sie einen Moment und versuchen Sie es erneut.',
-            validateSecondaryLogin: 'Falscher oder ungültiger Magic-Code. Bitte versuche es erneut oder fordere einen neuen Code an.',
+            requestContactMethodValidateCode: 'Neuer Sicherheitscode konnte nicht gesendet werden. Bitte warten Sie einen Moment und versuchen Sie es erneut.',
+            validateSecondaryLogin: 'Falscher oder ungültiger Sicherheitscode. Bitte versuchen Sie es erneut oder fordern Sie einen neuen Code an.',
             deleteContactMethod: 'Kontaktmethode konnte nicht gelöscht werden. Bitte wende dich für Hilfe an Concierge.',
             setDefaultContactMethod: 'Fehler beim Festlegen einer neuen Standardkontaktmethode. Bitte wende dich für Hilfe an Concierge.',
             addContactMethod: 'Diese Kontaktmethode konnte nicht hinzugefügt werden. Bitte wende dich für Hilfe an Concierge.',
@@ -2282,9 +2292,9 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: 'Sind Sie sicher, dass Sie Konten zusammenführen möchten?',
             lossOfUnsubmittedData: (login: string) => `Das Zusammenführen Ihrer Konten ist endgültig und führt zum Verlust aller nicht eingereichten Ausgaben für <strong>${login}</strong>.`,
-            enterMagicCode: (login: string) => `Um fortzufahren, gib bitte den magischen Code ein, der an <strong>${login}</strong> gesendet wurde.`,
+            enterSecurityCode: (login: string) => `Um fortzufahren, geben Sie bitte den Sicherheitscode ein, der an <strong>${login}</strong> gesendet wurde.`,
             errors: {
-                incorrectMagicCode: 'Falscher oder ungültiger Magic-Code. Bitte versuche es erneut oder fordere einen neuen Code an.',
+                incorrectSecurityCode: 'Falscher oder ungültiger Sicherheitscode. Bitte versuchen Sie es erneut oder fordern Sie einen neuen Code an.',
                 fallback: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es später noch einmal.',
             },
         },
@@ -2640,8 +2650,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Zu ${platform} Wallet hinzugefügt`,
         cardDetailsLoadingFailure: 'Beim Laden der Kartendetails ist ein Fehler aufgetreten. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
         validateCardTitle: 'Stellen wir sicher, dass du es bist',
-        enterMagicCode: (contactMethod: string) =>
-            `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde, um deine Kartendetails anzusehen. Er sollte innerhalb ein bis zwei Minuten ankommen.`,
+        enterSecurityCode: (contactMethod: string) =>
+            `Bitte geben Sie den Sicherheitscode ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte innerhalb einer oder zwei Minuten ankommen.`,
         unexpectedError: 'Beim Abrufen deiner Expensify-Kartendaten ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, das tue ich',
@@ -3074,7 +3084,7 @@ ${amount} für ${merchant} – ${date}`,
         license: `Die Geldübermittlung wird von ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS-ID:2017010) gemäß seinen <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">Lizenzen</a> bereitgestellt.`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: 'Keinen magischen Code erhalten?',
+        securityCodeNotReceived: 'Keinen Sicherheitscode erhalten?',
         avoidScamsMessage:
             '<strong>Vermeiden Sie Betrug. Geben Sie Ihren Code nicht an andere weiter.</strong> Unser Team wird Sie niemals anrufen, per SMS kontaktieren oder Ihnen eine E-Mail senden, um diesen Code zu erfragen.',
         enterAuthenticatorCode: 'Bitte gib deinen Authentifizierungscode ein',
@@ -3085,8 +3095,8 @@ ${amount} für ${merchant} – ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `Verbleibende Zeit: ${timeRemaining} ${timeRemaining === 1 ? 'Sekunde' : 'Sekunden'}`,
         timeExpiredAnnouncement: 'Die Zeit ist abgelaufen',
         error: {
-            pleaseFillMagicCode: 'Bitte gib deinen Magic Code ein',
-            incorrectMagicCode: 'Falscher oder ungültiger Magic-Code. Bitte versuche es erneut oder fordere einen neuen Code an.',
+            pleaseFillSecurityCode: 'Bitte geben Sie Ihren Sicherheitscode ein',
+            incorrectSecurityCode: 'Falscher oder ungültiger Sicherheitscode. Bitte versuchen Sie es erneut oder fordern Sie einen neuen Code an.',
             pleaseFillTwoFactorAuth: 'Bitte gib deinen Zwei-Faktor-Authentifizierungscode ein',
         },
     },
@@ -3188,7 +3198,7 @@ ${amount} für ${merchant} – ${date}`,
         },
         workEmailValidation: {
             title: 'Bestätige deine Arbeits-E-Mail-Adresse',
-            magicCodeSent: (workEmail: string | undefined) => `Bitte gib den magischen Code ein, der an ${workEmail} gesendet wurde. Er sollte in ein bis zwei Minuten ankommen.`,
+            securityCodeSent: (workEmail: string | undefined) => `Bitte geben Sie den Sicherheitscode ein, der an ${workEmail} gesendet wurde. Er sollte in ein bis zwei Minuten ankommen.`,
         },
         workEmailValidationError: {
             publicEmail: 'Bitte gib eine gültige geschäftliche E-Mail-Adresse von einer privaten Domain ein, z. B. mitch@company.com',
@@ -3516,12 +3526,13 @@ ${amount} für ${merchant} – ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link wurde erneut gesendet',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `Ich habe einen magischen Anmeldelink an ${login} gesendet. Bitte überprüfe dein ${loginType}, um dich anzumelden.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) =>
+            `Ich habe einen sicheren Anmeldelink an ${login} gesendet. Bitte überprüfen Sie Ihr ${loginType}, um sich anzumelden.`,
         resendLink: 'Link erneut senden',
     },
     unlinkLoginForm: {
         toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
-            `Um ${secondaryLogin} zu bestätigen, sende den magischen Code bitte erneut aus den Kontoeinstellungen von ${primaryLogin}.`,
+            `Um ${secondaryLogin} zu bestätigen, senden Sie bitte den Sicherheitscode aus den Kontoeinstellungen von ${primaryLogin} erneut.`,
         noLongerHaveAccess: (primaryLogin: string) => `Wenn du keinen Zugriff mehr auf ${primaryLogin} hast, trenne bitte die Verknüpfung deiner Konten.`,
         unlink: 'Verknüpfung aufheben',
         linkSent: 'Link gesendet!',
@@ -3543,7 +3554,7 @@ ${amount} für ${merchant} – ${date}`,
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) =>
             `Wir konnten SMS-Nachrichten nicht an ${login} zustellen und haben es daher vorübergehend deaktiviert. Bitte versuche, deine Nummer zu bestätigen:`,
-        validationSuccess: 'Deine Nummer wurde bestätigt! Klicke unten, um einen neuen magischen Anmeldecode zu senden.',
+        validationSuccess: 'Ihre Nummer wurde bestätigt! Klicken Sie unten, um einen neuen Sicherheits-Anmeldecode zu senden.',
         validationFailed: ({
             timeData,
         }: {
@@ -4444,6 +4455,24 @@ ${amount} für ${merchant} – ${date}`,
             inputLabel: 'Steuer-ID der juristischen Person',
             error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
         },
+        nudge: {
+            airfareManual:
+                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                'Hallo! Wussten Sie, dass Sie Hotelübernachtungen direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Wussten Sie schon, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                'Wussten Sie schon, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     workspace: {
         common: {
@@ -4462,6 +4491,7 @@ ${amount} für ${merchant} – ${date}`,
             delete: 'Arbeitsbereich löschen',
             settings: 'Einstellungen',
             categories: 'Kategorien',
+            vendors: 'Anbietende',
             tags: 'Tags',
             customField1: 'Benutzerdefiniertes Feld 1',
             customField2: 'Benutzerdefiniertes Feld 2',
@@ -4981,6 +5011,10 @@ ${amount} für ${merchant} – ${date}`,
             },
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in Xero hinzu und synchronisieren Sie die Verbindung erneut',
+            defaultSupplier: 'Standardlieferant',
+            defaultSupplierDescription: 'Legen Sie einen Standardsupplier fest, der beim Export auf alle Kreditkartentransaktionen angewendet wird.',
+            noSuppliersFound: 'Keine Lieferanten gefunden',
+            noSuppliersFoundDescription: 'Bitte fügen Sie den Lieferanten in Xero hinzu und synchronisieren Sie die Verbindung erneut.',
             accountingMethods: {
                 label: 'Wann exportieren',
                 description: 'Wähle aus, wann die Ausgaben exportiert werden sollen:',
@@ -6293,6 +6327,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reportFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
+        vendors: {
+            emptyTitle: 'Noch keine Lieferanten',
+            emptySubtitle: 'Anbieter werden hier angezeigt, nachdem Ihre Buchhaltungssynchronisierung abgeschlossen ist.',
+            findVendor: 'Lieferanten finden',
+            managedInAccountingSoftware: 'Lieferanten werden verwaltet in Ihrem',
+        },
         tags: {
             tagName: 'Tag-Name',
             requiresTag: 'Mitglieder müssen alle Ausgaben taggen',
@@ -6455,6 +6495,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
                 travelAddressMismatch: 'Sie können Reisen nur kopieren, wenn jeder ausgewählte Arbeitsbereich eine Unternehmensadresse hat.',
+                currencyBlockedByBankAccount:
+                    'Sie können die Währung nur kopieren, wenn jeder ausgewählte Workspace mit einem verbundenen Bankkonto die Währung des Quell-Workspace verwendet.',
             },
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',
@@ -7086,8 +7128,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             updateToUSD: 'Auf USD aktualisieren',
             updateWorkspaceCurrency: 'Arbeitsbereichswährung aktualisieren',
             workspaceCurrencyNotSupported: 'Workspace-Währung wird nicht unterstützt',
+            notAllowedToAddBankAccount:
+                'Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Wende dich an einen Arbeitsbereichsadministrator, der berechtigt ist, sie zu ändern.',
             yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
+            changeBankAccount: 'Bankkonto ändern',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Besitz übertragen',
@@ -7748,21 +7793,33 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 addRule: 'Agentenregel hinzufügen',
                 findRule: 'Agentenregel finden',
                 addRuleTitle: 'Regel hinzufügen',
+                newRuleTitle: 'Neue Regel',
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
                 describeRuleTitle: 'Beschreiben Sie die Regel, der Ihre KI-Agentin/Ihr KI-Agent folgen soll',
+                describeRuleHeadline: 'Beschreibe deine Regel',
                 disclaimer: 'KI-Agenten können Fehler machen.',
                 agentCreatedTitle: 'RuleBot wurde zu Ihrem Arbeitsbereich hinzugefügt!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
+                suggestionsTab: 'Vorschläge',
+                writeTab: 'Bearbeiten',
+                findSuggestion: 'Regel finden',
+                emptySuggestionsTitle: 'Keine Vorschläge verfügbar',
+                emptySuggestionsSubtitle: 'Versuchen Sie, Ihre eigene Regel zu schreiben.',
+                revampSubtitle: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
+                describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
+                gotIt: 'Verstanden',
+                createRule: 'Regel erstellen',
             },
             tabs: {
                 general: 'Allgemein',
                 cardRestrictions: 'Karteneinschränkungen',
                 expenseDefaults: 'Standardausgaben',
-                requireFields: 'Felder erforderlich',
+                requireFields: 'Feldanforderungen',
                 flagForReview: 'Zur Überprüfung markieren',
+                agents: 'Agents',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7822,8 +7879,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 flagForReview: 'Zur Überprüfung markieren',
                 flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
-                requireFields: 'Felder erforderlich',
-                requireFieldsDescription: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden',
+                requireFields: 'Feldanforderungen',
+                requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
+                createAgentRule: 'Agentenregel',
+                createAgentRuleDescription: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -7841,28 +7900,33 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 tableColumnCondition: 'Bedingung',
                 tableColumnRule: 'Regel',
                 findRule: 'Regel finden',
-                typeLabel: 'Felder erforderlich',
                 conditionCategoryIs: (category: string) => `Kategorie ist „${category}"`,
                 requireDescription: 'Beschreibung erforderlich',
                 requireAttendees: 'Teilnehmende verpflichten',
                 requireItemizedReceipt: 'Positionierte Quittung erforderlich',
                 requireItemizedReceiptOver: (amount: string) => `Artikelisierte Quittung über ${amount} erforderlich`,
-                alwaysRequireReceipt: 'Beleg immer erforderlich',
                 requireReceiptOver: (amount: string) => `Beleg ab einem Betrag von ${amount} erforderlich`,
+                requireReceipt: 'Beleg erforderlich',
+                doNotRequireReceipt: 'Beleg nicht erforderlich',
+                doNotRequireItemizedReceipt: 'Keine detaillierte Quittung erforderlich',
             },
             requireFieldsEmptyState: {
                 title: 'Fehlende Details frühzeitig erfassen',
-                subtitle: 'Stellen Sie sicher, dass die wichtigsten Felder ausgefüllt sind, bevor Ausgaben eingereicht werden.',
-                cta: 'Erforderlich-Regel erstellen',
+                subtitle: 'Spesenfelder für bestimmte Kategorien vorschreiben oder darauf verzichten.',
+                cta: 'Feldanforderungsregel erstellen',
             },
             requireFieldsRule: {
-                title: 'Felder erforderlich',
-                subtitle: 'Belege, Kategorien usw. beim Einreichen erforderlich machen.',
-                thenWarnMember: 'Dann Mitglied warnen, wenn Felder fehlen:',
+                title: 'Feldanforderungen',
+                subtitle: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
                 itemizedReceipt: 'Aufgeschlüsselte Quittung',
                 saveRule: 'Regel speichern',
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
-                confirmErrorField: 'Bitte wählen Sie mindestens ein erforderliches Feld aus.',
+                requireDirection: 'Erforderlich',
+                doNotRequireDirection: 'Nicht erforderlich',
+                doTheFollowing: 'Führen Sie Folgendes aus:',
+                confirmErrorDoNotRequireField: 'Bitte wählen Sie mindestens ein Feld aus.',
+                receiptDisabledWhenItemizedRequired: 'Belege sind immer erforderlich, wenn auch Einzelbelege erforderlich sind.',
+                itemizedDisabledWhenReceiptWaived: 'Detaillierte Belege sind nicht erforderlich, wenn überhaupt kein Beleg erforderlich ist.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Typ',
@@ -7886,6 +7950,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
                 confirmErrorAmount: 'Bitte geben Sie einen Betrag ein.',
                 thenFlagForReview: 'Dann zur Überprüfung kennzeichnen, wenn:',
+            },
+            agentRulesEmptyState: {
+                title: 'Keine Agentenregeln hinzugefügt',
+                subtitle: 'Erstellen Sie eine Regel, um Ihre Arbeitsbereichsrichtlinien zu automatisieren.',
+                cta: 'KI-Regel hinzufügen',
             },
         },
         planTypePage: {
@@ -8611,6 +8680,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateDateRangeAllDates: () => `für alle Daten`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `Übersicht von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `Währung von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `Mitglieder von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `1 Berichtsfeld von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
@@ -8766,6 +8836,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: 'Keine Ausgaben zum Anzeigen',
                 subtitle: 'Keine Ergebnisse. Bitte passe deine Filter an.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Verstöße werden erst ab dem ${formattedDate} erfasst. Bitte passen Sie Ihre Datumsfilter an.`,
+            },
             emptyUnapprovedResults: {
                 title: 'Keine Ausgaben zum Genehmigen',
                 subtitle: 'Null Ausgaben. Maximale Entspannung. Gut gemacht!',
@@ -8881,6 +8954,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Konsolidierte Reiseabrechnung',
             },
             is: 'Ist',
+            has: {submittedViolation: 'Eingereichter Verstoß'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Senden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',
@@ -8932,6 +9006,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         serverResults: 'Suchergebnisse',
         searchIn: 'Suchen in',
         askConcierge: (message: string) => `Frage Concierge „${message}“`,
+        goTo: ({destination}: {destination: string}) => `Gehe zu ${destination}`,
         searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (
@@ -9486,7 +9561,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         duplicatedTransaction: 'Möglicherweise dupliziert',
         fieldRequired: 'Berichtsfelder sind erforderlich',
         futureDate: 'Zukünftiges Datum nicht erlaubt',
-        inactiveVendor: 'Anbieter nicht mehr gültig',
+        inactiveVendor: ({isSupplier = false}: ViolationsInactiveVendorParams = {}) => (isSupplier ? 'Lieferant nicht mehr gültig' : 'Anbieter nicht mehr gültig'),
         invoiceMarkup: (invoiceMarkup: number) => `Um ${invoiceMarkup}% erhöht`,
         maxAge: (maxAge: number) => `Datum ist älter als ${maxAge} Tage`,
         missingCategory: 'Fehlende Kategorie',
@@ -9995,9 +10070,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         removeCopilotConfirmation: 'Sind Sie sicher, dass Sie diesen Copilot entfernen möchten?',
         changeAccessLevel: 'Zugriffsebene ändern',
         makeSureItIsYou: 'Stellen wir sicher, dass du es bist',
-        enterMagicCode: (contactMethod: string) =>
-            `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde, um eine:n Copilot:in hinzuzufügen. Er sollte innerhalb ein bis zwei Minuten ankommen.`,
-        enterMagicCodeUpdate: (contactMethod: string) => `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde, um deinen Copilot zu aktualisieren.`,
+        enterSecurityCode: (contactMethod: string) =>
+            `Bitte geben Sie den Sicherheitscode ein, der an ${contactMethod} gesendet wurde, um eine:n Copilot:in hinzuzufügen. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Bitte geben Sie den an ${contactMethod} gesendeten Sicherheitscode ein, um Ihre Copilot-Einstellungen zu aktualisieren.`,
         notAllowed: 'Nicht so schnell ...',
         noAccessMessage: Str.dedent(`
             Als Copilot hast du keinen Zugriff auf diese Seite. Entschuldigung!

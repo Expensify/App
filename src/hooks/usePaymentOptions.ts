@@ -93,13 +93,9 @@ function usePaymentOptions({
         },
         [policyIDKey],
     );
-    const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(
-        ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-        {
-            selector: lastPaymentMethodSelector,
-        },
-        [lastPaymentMethodSelector],
-    );
+    const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+        selector: lastPaymentMethodSelector,
+    });
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);

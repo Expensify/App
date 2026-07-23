@@ -991,6 +991,23 @@ function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: Select
 }
 
 /**
+ * Formats the violation snapshot start date for display in the user's timezone.
+ */
+function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string, timeZone: SelectedTimezone | undefined): string {
+    if (!violationSnapshotStartedAt || !timeZone) {
+        return '';
+    }
+
+    try {
+        const date = violationSnapshotStartedAt.includes(' ') ? toDate(violationSnapshotStartedAt, {timeZone: 'UTC'}) : parse(violationSnapshotStartedAt, 'yyyy-MM-dd', new Date());
+        return formatInTimeZoneWithFallback(date, timeZone, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT);
+    } catch (error) {
+        Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});
+        return '';
+    }
+}
+
+/**
  * Backend expects datetime format without milliseconds in some cases (yyyy-MM-dd HH:mm:ss)
  */
 function formatDBTimeWithoutMilliseconds(timestamp: number): string {
@@ -1166,6 +1183,7 @@ const DateUtils = {
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
     formatUTCDateTimeToDateInTimezone,
+    formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,
     normalizeDateToEndOfDay,
     getMonthDateRange,
