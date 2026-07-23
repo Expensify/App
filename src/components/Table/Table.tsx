@@ -254,6 +254,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
+    const searchBarMountCountRef = useRef(0);
 
     // Keeps the table search input visible above the keyboard when it is focused inside the
     // scrolling list (native only; the web variant of the hook is a no-op).
@@ -314,6 +315,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         emptyStateElement,
         noResultsStateElement,
         listRef,
+        searchBarMountCountRef,
         listContainerRef,
         trackScrollOffset,
         scrollInputIntoView,

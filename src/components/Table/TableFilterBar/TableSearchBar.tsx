@@ -28,6 +28,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
 
     const {
         activeSearchString,
+        searchBarMountCountRef,
         shouldUseNarrowTableLayout,
         scrollInputIntoView,
         onSearchStringChange,
@@ -45,10 +46,21 @@ function TableSearchBar({label}: TableSearchBarProps) {
     }, [hasActiveSearchString]);
 
     useEffect(() => {
-        return () => updateSearchString('');
-        // We only want the cleanup to run on unmount to reset the search state
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        searchBarMountCountRef.current += 1;
+
+        return () => {
+            searchBarMountCountRef.current -= 1;
+            // The page header relocates between FlashList and the flex empty layout. Let its
+            // replacement mount before deciding that the search bar was actually removed.
+            queueMicrotask(() => {
+                if (searchBarMountCountRef.current !== 0) {
+                    return;
+                }
+
+                updateSearchString('');
+            });
+        };
+    }, [searchBarMountCountRef, updateSearchString]);
 
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);

@@ -973,13 +973,14 @@ describe('Table', () => {
                 </Table>,
             );
 
+            const flashListRenderCount = mockFlashListProps.length;
             fireEvent.changeText(screen.getByTestId('search-input'), 'no-match-search');
 
             // The no-results state renders exactly once below the page header without a FlashList cell.
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListProps).toHaveLength(1);
+            expect(mockFlashListProps).toHaveLength(flashListRenderCount);
         });
 
         it('should preserve a styled list footer without letting it displace the no-results content', () => {

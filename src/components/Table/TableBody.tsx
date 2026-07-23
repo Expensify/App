@@ -103,18 +103,13 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
     const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
-    const [previousShouldRenderStickyHeader, setPreviousShouldRenderStickyHeader] = useState(shouldRenderStickyHeader);
-    if (previousShouldRenderStickyHeader !== shouldRenderStickyHeader) {
-        setPreviousShouldRenderStickyHeader(shouldRenderStickyHeader);
+    const hasRows = filteredAndSortedData.length > 0;
+    const [previousListState, setPreviousListState] = useState({hasRows, shouldRenderStickyHeader});
+    if (previousListState.hasRows !== hasRows || previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader) {
+        setPreviousListState({hasRows, shouldRenderStickyHeader});
+        setIsListLoaded(false);
         setHasActivatedStickyHeader(false);
     }
-
-    useEffect(() => {
-        if (!filteredAndSortedData.length) {
-            setIsListLoaded(false);
-            setHasActivatedStickyHeader(false);
-        }
-    }, [filteredAndSortedData.length]);
 
     useEffect(() => {
         if (!tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
@@ -176,7 +171,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             },
     ];
 
-    if (!filteredAndSortedData.length) {
+    if (!hasRows) {
         return (
             <View
                 ref={listContainerRef}
