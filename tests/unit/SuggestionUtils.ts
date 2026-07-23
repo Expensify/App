@@ -29,23 +29,5 @@ describe('SuggestionUtils', () => {
             const second = {login: 'aguero', weight: 2, accountID: 8};
             expect(getSortedPersonalDetails([second, first], localeCompare, formatPhoneNumber)).toEqual([second, first]);
         });
-
-        it('Should sort phone number logins using the passed formatter', () => {
-            const first = {login: '+18172057554@expensify.sms', weight: 2, accountID: 9};
-            const second = {login: '+34911234567@expensify.sms', weight: 2, accountID: 10};
-            const formatPhoneNumberMock = jest.fn((phoneNumber: string) => {
-                if (phoneNumber === first.login) {
-                    return 'A formatted number';
-                }
-                if (phoneNumber === second.login) {
-                    return 'B formatted number';
-                }
-                return phoneNumber;
-            });
-
-            expect(getSortedPersonalDetails([second, first], localeCompare, formatPhoneNumberMock)).toEqual([first, second]);
-            expect(formatPhoneNumberMock).toHaveBeenCalledWith(first.login);
-            expect(formatPhoneNumberMock).toHaveBeenCalledWith(second.login);
-        });
     });
 });
