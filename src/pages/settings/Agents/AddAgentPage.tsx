@@ -13,6 +13,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -43,6 +44,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
@@ -110,9 +112,18 @@ function AddAgentPage({route}: AddAgentPageProps) {
 
         clearNewAgentAvatarDraft();
 
-        // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
-        // instead of dismissing to the agents list first and navigating to the DM afterward.
-        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID));
+        if (shouldUseNarrowLayout) {
+            // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
+            // instead of dismissing to the agents list first and navigating to the DM afterward.
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID));
+            return;
+        }
+
+        // On wide layouts, open the DM in the RHP (same mechanism used for the admins room from the home
+        // page) instead of the fullscreen report split, so the agent settings stay visible underneath.
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: optimisticReportID, backTo: ROUTES.SETTINGS_AGENTS})),
+        });
     };
 
     return (

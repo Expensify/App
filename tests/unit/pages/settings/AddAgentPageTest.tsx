@@ -30,6 +30,7 @@ const mockSetNewAgentAvatarPreset = jest.fn<void, unknown[]>();
 const mockClearNewAgentAvatarDraft = jest.fn<void, unknown[]>();
 let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: string; name: string; type: string}} | undefined;
 let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
+let mockShouldUseNarrowLayout = true;
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: (...args: unknown[]) => mockCreateAgent(...args),
@@ -73,10 +74,13 @@ jest.mock('@hooks/useOnyx', () => {
     };
 });
 
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout})));
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
     revealRouteBeforeDismissingModal: jest.fn(),
+    dismissModal: jest.fn(({afterTransition}: {afterTransition?: () => void} = {}) => afterTransition?.()),
 }));
 
 const mockAddListener = jest.fn<() => void, [string, (...args: unknown[]) => void]>(() => jest.fn());
@@ -149,6 +153,7 @@ jest.mock('@components/AvatarButtonWithIcon', () => {
 
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockRevealRouteBeforeDismissingModal = jest.mocked(Navigation.revealRouteBeforeDismissingModal);
+const mockDismissModal = jest.mocked(Navigation.dismissModal);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockUseOnyx = jest.mocked(useOnyx);
 
@@ -172,6 +177,7 @@ describe('AddAgentPage', () => {
         jest.clearAllMocks();
         mockAvatarDraft = undefined;
         mockAvatarDraftStatus = 'loaded';
+        mockShouldUseNarrowLayout = true;
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN});
         mockAvatarOnPress = undefined;
     });
@@ -296,6 +302,17 @@ describe('AddAgentPage', () => {
 
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, 'POL_42');
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
+        });
+
+        it('opens the DM in the RHP on wide layouts instead of the fullscreen report', () => {
+            mockShouldUseNarrowLayout = false;
+            renderAddAgentPage({});
+
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+
+            expect(mockDismissModal).toHaveBeenCalledTimes(1);
+            expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: OPTIMISTIC_REPORT_ID, backTo: ROUTES.SETTINGS_AGENTS}));
         });
 
         it('creates the agent with the persisted preset when no photo was uploaded', () => {
