@@ -24,7 +24,15 @@ function ReportPreviewActionButton() {
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {openReportFromPreview} = useReportPreviewActions();
 
-    const renderButton = () => {
+    const viewButton = (
+        <Button
+            text={translate('common.view')}
+            onPress={openReportFromPreview}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
+        />
+    );
+
+    const renderPrimaryButton = () => {
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT) {
             return <SubmitActionButton />;
         }
@@ -45,16 +53,23 @@ function ReportPreviewActionButton() {
             return <AddExpenseActionButton />;
         }
 
-        return (
-            <Button
-                text={translate('common.view')}
-                onPress={openReportFromPreview}
-                sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
-            />
-        );
+        return null;
     };
 
-    return <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{renderButton()}</View>;
+    const primaryButton = renderPrimaryButton();
+
+    if (!primaryButton) {
+        return <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{viewButton}</View>;
+    }
+
+    return (
+        // The primary (green) button fills the available space while the View button hugs its content, so a long
+        // primary label (e.g. "Mark as paid") isn't truncated by a 50/50 split.
+        <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, {height: variables.h40}]}>
+            <View style={[styles.flex1]}>{primaryButton}</View>
+            {viewButton}
+        </View>
+    );
 }
 
 export default ReportPreviewActionButton;
