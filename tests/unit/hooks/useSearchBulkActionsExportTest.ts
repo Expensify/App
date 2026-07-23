@@ -482,6 +482,13 @@ describe('useSearchBulkActions - report export options resolve from the search s
         // ...along with one "Mark as exported" option per integration.
         expect(subMenuItems.filter((item) => item.text === 'workspace.common.markAsExported')).toHaveLength(2);
 
+        // Each integration's actions are grouped together: its "Export to <integration>" option is
+        // immediately followed by its own "Mark as exported" option, before the next integration.
+        const integrationOptionTexts = subMenuItems
+            .map((item) => item.text)
+            .filter((text) => text === NETSUITE_FRIENDLY_NAME || text === QBO_FRIENDLY_NAME || text === 'workspace.common.markAsExported');
+        expect(integrationOptionTexts).toEqual([NETSUITE_FRIENDLY_NAME, 'workspace.common.markAsExported', QBO_FRIENDLY_NAME, 'workspace.common.markAsExported']);
+
         // Each export action is scoped to only the reports for its integration.
         subMenuItems.find((item) => item.text === QBO_FRIENDLY_NAME)?.onSelected?.();
         expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.QBO, undefined);

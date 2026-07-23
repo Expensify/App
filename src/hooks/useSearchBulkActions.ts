@@ -1569,44 +1569,40 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                 };
 
-            // Add every "Export to <integration>" option first, then every "Mark as exported" option,
-            // so a multi-integration selection lists all export actions before the mark-as-exported ones.
+            // Group each integration's actions together, listing its "Export to <integration>" option
+            // immediately followed by its "Mark as exported" option, before moving on to the next integration.
             for (const [integration, reportsForIntegration] of reportsByIntegration) {
                 const integrationReportIDs = reportsForIntegration.map((report) => report.reportID).filter((reportID): reportID is string => reportID !== undefined);
-                const canExportGroupToIntegration =
-                    integrationReportIDs.length > 0 && reportsForIntegration.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION));
-                if (!canExportGroupToIntegration) {
+                if (integrationReportIDs.length === 0) {
                     continue;
                 }
                 const handleExportAction = buildIntegrationHandleExportAction(integrationReportIDs, integration);
-                exportOptions.push({
-                    text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
-                    icon: getIntegrationIcon(integration, expensifyIcons),
-                    onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, integrationReportIDs, integration, currentSearchKey)),
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                    displayInDefaultIconColor: true,
-                    additionalIconStyles: styles.integrationIcon,
-                });
-            }
 
-            for (const [integration, reportsForIntegration] of reportsByIntegration) {
-                const integrationReportIDs = reportsForIntegration.map((report) => report.reportID).filter((reportID): reportID is string => reportID !== undefined);
-                const canMarkGroupAsExported =
-                    integrationReportIDs.length > 0 && reportsForIntegration.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED));
-                if (!canMarkGroupAsExported) {
-                    continue;
+                const canExportGroupToIntegration = reportsForIntegration.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION));
+                if (canExportGroupToIntegration) {
+                    exportOptions.push({
+                        text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
+                        icon: getIntegrationIcon(integration, expensifyIcons),
+                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, integrationReportIDs, integration, currentSearchKey)),
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                        displayInDefaultIconColor: true,
+                        additionalIconStyles: styles.integrationIcon,
+                    });
                 }
-                const handleExportAction = buildIntegrationHandleExportAction(integrationReportIDs, integration);
-                exportOptions.push({
-                    text: translate('workspace.common.markAsExported'),
-                    icon: getIntegrationIcon(integration, expensifyIcons),
-                    onSelected: () => handleExportAction(() => markAsManuallyExported(integrationReportIDs, integration)),
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                    displayInDefaultIconColor: true,
-                    additionalIconStyles: styles.integrationIcon,
-                });
+
+                const canMarkGroupAsExported = reportsForIntegration.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED));
+                if (canMarkGroupAsExported) {
+                    exportOptions.push({
+                        text: translate('workspace.common.markAsExported'),
+                        icon: getIntegrationIcon(integration, expensifyIcons),
+                        onSelected: () => handleExportAction(() => markAsManuallyExported(integrationReportIDs, integration)),
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                        displayInDefaultIconColor: true,
+                        additionalIconStyles: styles.integrationIcon,
+                    });
+                }
             }
 
             const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
