@@ -55,7 +55,7 @@ Domain Admins control company-wide permissions, so this step is required before 
 If you’re the new Workspace Admin taking over billing and payment responsibilities, follow these guides to transfer workspace ownership and payment details. 
 
  - [How to transfer workspace ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership#how-to-transfer-workspace-ownership)
- - [How to add or update a payment card](articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Add-or-Update-a-Payment-Card#how-to-add-a-payment-card)
+ - [How to add or update a payment card](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Add-or-Update-a-Payment-Card#how-to-add-a-payment-card)
 
  **Note:** The new Workspace Admin must transfer ownership of **all** company workspaces to consolidate billing under a single Billing Owner. If the former admin remains Billing Owner on any workspace, billing may split across multiple subscriptions.
 
