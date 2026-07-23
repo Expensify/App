@@ -1670,7 +1670,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the payer cancels the pending payment
-            cancelPayment(iouReport, chatReport, undefined, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
+            cancelPayment(iouReport, chatReport, undefined, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
             await waitForBatchedUpdates();
 
             // Then the IOU report is optimistically marked cancelled and no longer waiting on the bank account
