@@ -5787,9 +5787,7 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-
-    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type ?? reportPolicy?.type)) {
+    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type)) {
         return translate('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
 
@@ -5845,7 +5843,7 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            return translate(translatePhraseKey, '', originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
+            return translate(translatePhraseKey, '', originalMessage?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '');
         }
         if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify') {
             return translate(translatePhraseKey, payerDisplayName ?? '');
@@ -10940,6 +10938,7 @@ function getIOUReportActionDisplayMessage(
     transaction?: OnyxEntry<Transaction>,
     report?: Report,
     bankAccountList?: OnyxEntry<BankAccountList>,
+    policy?: OnyxEntry<Policy>,
 ): string {
     if (!isMoneyRequestAction(reportAction)) {
         return '';
@@ -10952,8 +10951,7 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy);
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy);
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
