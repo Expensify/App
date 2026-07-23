@@ -6,7 +6,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
@@ -106,6 +106,9 @@ type UseConfirmationValidationParams = {
     /** Whether the transaction is a per-diem request */
     isPerDiemRequest: boolean;
 
+    /** Whether a tracked expense is being moved into a workspace (submit/categorize/share from the self-DM) */
+    isMovingTransactionFromTrackExpense: boolean;
+
     /** Whether the transaction is a time-tracking request */
     isTimeRequest: boolean;
 
@@ -161,6 +164,7 @@ function useConfirmationValidation({
     isDistanceRequest,
     isDistanceRequestWithPendingRoute,
     isPerDiemRequest,
+    isMovingTransactionFromTrackExpense,
     isTimeRequest,
     routeError,
     isNewManualExpenseFlowEnabled,
@@ -279,6 +283,13 @@ function useConfirmationValidation({
 
         if (isPerDiemRequest && (transaction?.comment?.customUnit?.subRates ?? []).length === 0) {
             return {errorKey: 'iou.error.invalidSubrateLength'};
+        }
+
+        // Per diem is a Control-plan feature, so block moving a tracked per diem expense into a workspace that can't
+        // process it (e.g. a Submit workspace created via "Submit to my employer"). Without this guard the submission
+        // falls through to a request the backend can't resolve, leaving the destination report stuck loading.
+        if (isPerDiemRequest && isMovingTransactionFromTrackExpense && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+            return {errorKey: 'iou.moveExpensesError'};
         }
 
         if (iouType !== CONST.IOU.TYPE.PAY) {
