@@ -68,56 +68,83 @@ import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 import {useMenuItemState} from './MenuItemContext';
 
-const MenuItem = Object.assign(LegacyMenuItem, {
+type MenuItemType = {
+    /**
+     * The legacy monolithic MenuItem.
+     *
+     * @deprecated Use the compound API instead — `MenuItem.Root` with the `MenuItem.*` sub-components.
+     */
+    (...props: Parameters<typeof LegacyMenuItem>): ReturnType<typeof LegacyMenuItem>;
+
     /** The compound root — a pressable row sharing interaction state with the sub-components below */
-    Root: MenuItemRoot,
+    Root: typeof MenuItemRoot;
 
     /** The main horizontal line holding the leading, content and trailing cells */
-    Row: MenuItemRow,
+    Row: typeof MenuItemRow;
 
     /** The flexible middle cell — stacks Title/Description (in any order) vertically */
-    Content: MenuItemContent,
+    Content: typeof MenuItemContent;
 
     /** The right-side cluster for indicators and actions */
-    Trailing: MenuItemTrailing,
+    Trailing: typeof MenuItemTrailing;
 
     /** Leading icon whose fill follows the row's interaction state */
-    Icon: MenuItemIcon,
+    Icon: typeof MenuItemIcon;
 
     /** Leading user/workspace avatar */
-    Avatar: MenuItemAvatar,
+    Avatar: typeof MenuItemAvatar;
 
     /** Small supporting label rendered above the main line */
-    Label: MenuItemLabel,
+    Label: typeof MenuItemLabel;
 
     /** The (bold) title text */
-    Title: MenuItemTitle,
+    Title: typeof MenuItemTitle;
 
     /** The supporting description text — above or below the title depending on declaration order */
-    Description: MenuItemDescription,
+    Description: typeof MenuItemDescription;
 
     /** Badge that follows the row's focused state */
-    Badge: MenuItemBadge,
+    Badge: typeof MenuItemBadge;
 
     /** Right arrow (or custom) navigation indicator, dimmed until hovered */
-    Chevron: MenuItemChevron,
+    Chevron: typeof MenuItemChevron;
 
     /** Right-aligned supporting text (covers legacy `rightLabel` and `subtitle`) */
-    RightLabel: MenuItemRightLabel,
+    RightLabel: typeof MenuItemRightLabel;
 
     /** Red/green dot signalling the row needs attention */
-    BrickRoadIndicator: MenuItemBrickRoadIndicator,
+    BrickRoadIndicator: typeof MenuItemBrickRoadIndicator;
 
     /** Hover-revealed copy-to-clipboard button (devices with hover support) */
-    CopyButton: MenuItemCopyButton,
+    CopyButton: typeof MenuItemCopyButton;
 
     /** Error message rendered under the main line (inside the pressable) */
-    Error: MenuItemError,
+    Error: typeof MenuItemError;
 
     /** Hint message rendered under the main line (inside the pressable) */
-    Hint: MenuItemHint,
+    Hint: typeof MenuItemHint;
 
     /** Non-interactive helper text — place it AFTER the root, outside the pressable */
+    HelperText: typeof MenuItemHelperText;
+};
+
+const MenuItem: MenuItemType = Object.assign(LegacyMenuItem, {
+    Root: MenuItemRoot,
+    Row: MenuItemRow,
+    Content: MenuItemContent,
+    Trailing: MenuItemTrailing,
+    Icon: MenuItemIcon,
+    Avatar: MenuItemAvatar,
+    Label: MenuItemLabel,
+    Title: MenuItemTitle,
+    Description: MenuItemDescription,
+    Badge: MenuItemBadge,
+    Chevron: MenuItemChevron,
+    RightLabel: MenuItemRightLabel,
+    BrickRoadIndicator: MenuItemBrickRoadIndicator,
+    CopyButton: MenuItemCopyButton,
+    Error: MenuItemError,
+    Hint: MenuItemHint,
     HelperText: MenuItemHelperText,
 });
 
