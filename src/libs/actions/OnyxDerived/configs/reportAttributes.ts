@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import hashCode from '@libs/hashCode';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -34,7 +35,6 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 // The name-related fields we saw for each account last time, so we can spot which accounts changed.
 let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
-let previousPolicies: OnyxCollection<Policy>;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -51,21 +51,84 @@ const prepareReportKeys = (keys: string[]) => {
     ];
 };
 
-const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Policy | null | undefined): boolean => {
-    if (!prev && !next) {
-        return false;
+// Keys that change without affecting the computed attributes: write-bookkeeping keys and loading flags
+// flip on every optimistic write / API call, and `connections` is large, volatile, and never read here.
+const POLICY_SIGNATURE_EXCLUDED_KEYS = new Set([
+    'pendingAction',
+    'pendingFields',
+    'errors',
+    'errorFields',
+    'connections',
+    'isLoading',
+    'isLoadingWorkspaceReimbursement',
+    'isLoadingReceiptPartners',
+    'isChangeOwnerSuccessful',
+    'isChangeOwnerFailed',
+    'lastModified',
+]);
+
+// Bump when the signature format or exclusion set changes; old stored signatures then mismatch and cause a one-time scoped recompute.
+const POLICY_SIGNATURE_VERSION = '2';
+
+// Deterministic stringify: keys are sorted at every level, so equal content yields equal strings regardless of key insertion order.
+const stableStringify = (value: unknown): string => {
+    if (value === null || typeof value !== 'object') {
+        return JSON.stringify(value) ?? 'undefined';
     }
-    if (!prev || !next) {
-        return true;
+    if (Array.isArray(value)) {
+        return `[${value.map(stableStringify).join(',')}]`;
     }
-    return (
-        prev.type !== next.type ||
-        prev.approvalMode !== next.approvalMode ||
-        prev.reimbursementChoice !== next.reimbursementChoice ||
-        prev.autoReimbursementLimit !== next.autoReimbursementLimit ||
-        prev.role !== next.role ||
-        prev.autoReimbursement?.limit !== next.autoReimbursement?.limit
-    );
+    const entries = Object.entries(value)
+        .filter(([key]) => !POLICY_SIGNATURE_EXCLUDED_KEYS.has(key))
+        .sort(([a], [b]) => (a < b ? -1 : 1));
+    return `{${entries.map(([key, entryValue]) => `${JSON.stringify(key)}:${stableStringify(entryValue)}`).join(',')}}`;
+};
+
+// Signature of a policy's attribute-relevant content, stored in the derived value (like `locale`) so the
+// change-detection baseline survives app restarts. The serialized length is appended so a 32-bit hash
+// collision alone cannot mask a change.
+const policyRelevantSignature = (policy: Policy | null | undefined): string | null => {
+    if (!policy) {
+        return null;
+    }
+    const serialized = stableStringify(policy);
+    return `${POLICY_SIGNATURE_VERSION}|${hashCode(serialized)}.${serialized.length}`;
+};
+
+const buildPolicySignatures = (policies: OnyxCollection<Policy>): Record<string, string> => {
+    const signatures: Record<string, string> = {};
+    for (const [key, policy] of Object.entries(policies ?? {})) {
+        const signature = policyRelevantSignature(policy);
+        if (signature !== null) {
+            signatures[key] = signature;
+        }
+    }
+    return signatures;
+};
+
+// Report keys whose attributes depend on one of the given policies.
+const collectReportKeysForPolicies = (reports: OnyxCollection<Report>, changedPolicyIDs: Set<string>): string[] => {
+    const reportKeys: string[] = [];
+    for (const [reportKey, report] of Object.entries(reports ?? {})) {
+        if (!report) {
+            continue;
+        }
+        // The report's own policy — the sender workspace for an invoice.
+        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
+            reportKeys.push(reportKey);
+            continue;
+        }
+        // An invoice follows its receiver workspace. The invoice room carries the receiver
+        // on itself; a child invoice report doesn't, so we read it from its parent room
+        // (chatReportID) — the same place computeReportName looks for the invoice name.
+        const ownReceiverPolicyID = report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
+        const room = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
+        const roomReceiverPolicyID = room?.invoiceReceiver && 'policyID' in room.invoiceReceiver ? room.invoiceReceiver.policyID : undefined;
+        if ((ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID))) {
+            reportKeys.push(reportKey);
+        }
+    }
+    return reportKeys;
 };
 
 // A short string built from the fields a report name can come from: displayName and firstName.
@@ -252,57 +315,113 @@ export default createOnyxDerivedValueConfig({
             seedDisplayNamesBaseline(personalDetails);
         }
 
+        const nextIsTrackIntentUser = isTrackIntentUserSelector(introSelected);
+        // conciergeReportID and introSelected are re-delivered on every OpenApp/reconnect merge, so a full
+        // recompute fires only when the value differs from the stored baseline; a missing baseline (value
+        // written by an older app version) is seeded instead. '' (not null) marks "no concierge report" —
+        // Onyx.set strips nested nulls on persist, so a null baseline would read back as missing after a restart.
+        // eslint-disable-next-line rulesdir/no-default-id-values -- '' is a persistable baseline sentinel, never used as a lookup ID
+        const nextConciergeReportID = conciergeReportID ?? '';
+        // eslint-disable-next-line rulesdir/no-default-id-values -- same sentinel for values persisted before this field existed
+        const storedConciergeReportID = currentValue && 'conciergeReportID' in currentValue ? (currentValue.conciergeReportID ?? '') : undefined;
+        const storedIsTrackIntentUser = currentValue && 'isTrackIntentUser' in currentValue ? currentValue.isTrackIntentUser : undefined;
+        const hasConciergeReportIDChanged =
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) && storedConciergeReportID !== undefined && storedConciergeReportID !== nextConciergeReportID;
+        const hasIsTrackIntentUserChanged =
+            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues) && storedIsTrackIntentUser !== undefined && storedIsTrackIntentUser !== nextIsTrackIntentUser;
+
         // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
         const needsFullRecompute =
             (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
             displayNameChanges === RECOMPUTE_ALL ||
-            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) ||
-            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
+            hasConciergeReportIDChanged ||
+            hasIsTrackIntentUserChanged;
 
-        const policyChangedReportKeys: string[] = [];
+        // Policy changes are detected by diffing against signatures stored in the derived value, so the
+        // baseline survives app restarts. Signatures advance only together with the recompute they imply.
+        const storedPolicySignatures = currentValue?.policySignatures;
+        const hasComputedReports = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0;
+        let nextPolicySignatures = storedPolicySignatures;
+        // True when signatures may persist through an early return: a pure baseline seed, or changed policies with no reports referencing them.
+        let canPersistSignaturesWithoutRecompute = false;
+        let policyChangedReportKeys: string[] = [];
+
+        // Cached — a single pass can snapshot the full baseline more than once.
+        let allPolicySignaturesCache: Record<string, string> | undefined;
+        const buildAllPolicySignatures = () => {
+            allPolicySignaturesCache ??= buildPolicySignatures(policies);
+            return allPolicySignaturesCache;
+        };
+
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
-            if (!needsFullRecompute) {
+            if (needsFullRecompute) {
+                // Every report recomputes with the current policies anyway — snapshot the full baseline.
+                nextPolicySignatures = buildAllPolicySignatures();
+            } else if (storedPolicySignatures) {
                 const changedPolicyIDs = new Set<string>();
+                const updatedSignatures = {...storedPolicySignatures};
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
-                    if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
-                        changedPolicyIDs.add(key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                    const signature = policyRelevantSignature(policies?.[key]);
+                    if ((storedPolicySignatures[key] ?? null) === signature) {
+                        continue;
+                    }
+                    changedPolicyIDs.add(key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                    if (signature === null) {
+                        delete updatedSignatures[key];
+                    } else {
+                        updatedSignatures[key] = signature;
                     }
                 }
                 if (changedPolicyIDs.size > 0) {
-                    for (const reportKey of Object.keys(reports ?? {})) {
-                        const report = reports?.[reportKey];
-                        if (!report) {
-                            continue;
-                        }
-                        // The report's own policy — the sender workspace for an invoice.
-                        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
-                            policyChangedReportKeys.push(reportKey);
-                            continue;
-                        }
-                        // An invoice follows its receiver workspace. The invoice room carries the receiver
-                        // on itself; a child invoice report doesn't, so we read it from its parent room
-                        // (chatReportID) — the same place computeReportName looks for the invoice name.
-                        const ownReceiverPolicyID = report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
-                        const room = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
-                        const roomReceiverPolicyID = room?.invoiceReceiver && 'policyID' in room.invoiceReceiver ? room.invoiceReceiver.policyID : undefined;
-                        if ((ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID))) {
-                            policyChangedReportKeys.push(reportKey);
-                        }
-                    }
+                    nextPolicySignatures = updatedSignatures;
+                    policyChangedReportKeys = collectReportKeysForPolicies(reports, changedPolicyIDs);
+                    // With the reports collection missing, the recompute is skipped rather than unnecessary, so the baseline must not advance.
+                    canPersistSignaturesWithoutRecompute = !!reports && policyChangedReportKeys.length === 0;
                 }
+            } else if (hasComputedReports) {
+                // Attributes exist but carry no signature baseline (value written by an older app version, or
+                // computed before policies loaded) — recompute the delivered policies' reports and snapshot the full baseline.
+                const deliveredPolicyIDs = new Set(Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, '')));
+                policyChangedReportKeys = collectReportKeysForPolicies(reports, deliveredPolicyIDs);
+                canPersistSignaturesWithoutRecompute = !!reports && policyChangedReportKeys.length === 0;
+                if (reports) {
+                    nextPolicySignatures = buildAllPolicySignatures();
+                }
+            } else {
+                // No attributes computed yet — the pass below runs a full scan, so seeding is safe.
+                nextPolicySignatures = buildAllPolicySignatures();
             }
-            previousPolicies = policies;
+        } else if (!storedPolicySignatures && policies && hasComputedReports) {
+            // No baseline yet on a pass that did not deliver policies: the attributes and the policies both
+            // come from the same disk-hydrated state, so seeding without a recompute is consistent.
+            nextPolicySignatures = buildAllPolicySignatures();
+            canPersistSignaturesWithoutRecompute = true;
         }
+
+        // Baseline writes that ride early returns. An existing conciergeReportID/isTrackIntentUser baseline
+        // advances only in the final return of a full recompute — advancing it here would absorb a change and
+        // suppress the recompute its next delivery should trigger. A missing baseline can always be seeded.
+        const metaPatch: Partial<ReportAttributesDerivedValue> = {};
+        if (canPersistSignaturesWithoutRecompute && nextPolicySignatures !== storedPolicySignatures) {
+            metaPatch.policySignatures = nextPolicySignatures;
+        }
+        if (storedConciergeReportID === undefined) {
+            metaPatch.conciergeReportID = nextConciergeReportID;
+        }
+        if (storedIsTrackIntentUser === undefined) {
+            metaPatch.isTrackIntentUser = nextIsTrackIntentUser;
+        }
+        const withMetaPatch = (value: ReportAttributesDerivedValue): ReportAttributesDerivedValue => (Object.keys(metaPatch).length > 0 ? {...value, ...metaPatch} : value);
 
         // Use incremental updates when currentValue is already populated and no full recompute is required.
         // If currentValue has no reports (fresh install or cleared storage), fall back to a full scan.
-        const useIncrementalUpdates = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0 && !needsFullRecompute;
+        const useIncrementalUpdates = hasComputedReports && !needsFullRecompute;
 
         // if we already computed the report attributes and there is no new reports data, return the current value
         if ((useIncrementalUpdates && !sourceValues) || !reports) {
-            return currentValue ?? {reports: {}, locale: null};
+            return withMetaPatch(currentValue ?? {reports: {}, locale: null});
         }
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT] ?? {};
@@ -432,7 +551,7 @@ export default createOnyxDerivedValueConfig({
                 }
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
-                return currentValue ?? {reports: {}, locale: null};
+                return withMetaPatch(currentValue ?? {reports: {}, locale: null});
             }
         }
 
@@ -537,7 +656,7 @@ export default createOnyxDerivedValueConfig({
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
-                              isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              isTrackIntentUser: nextIsTrackIntentUser,
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
@@ -555,82 +674,106 @@ export default createOnyxDerivedValueConfig({
             currentValue?.reports ? {...currentValue.reports} : {},
         );
 
-        // Propagate errors from IOU reports to their parent chat reports.
-        const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        const currentUserEmail = session?.email ?? '';
-        const erroredChildReportIDsByChat = new Map<string, string[]>();
-        const childReportIDsByChat = new Map<string, string[]>();
-        for (const report of Object.values(reports)) {
-            if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
-                continue;
+        // Propagate errors from IOU reports to their parent chat reports. Rebuilding the parent/child maps
+        // scans every report, so an incremental pass pays that cost only when a recomputed report changed
+        // one of the two fields the propagation depends on: needsParentChatErrorPropagation or brickRoadStatus.
+        const errorRelevantAttributesChanged =
+            !useIncrementalUpdates ||
+            dataToIterate.some((key) => {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                const previous = currentValue?.reports?.[reportID];
+                const next = reportAttributes[reportID];
+                return (previous?.needsParentChatErrorPropagation ?? false) !== (next?.needsParentChatErrorPropagation ?? false) || previous?.brickRoadStatus !== next?.brickRoadStatus;
+            });
+
+        if (errorRelevantAttributesChanged) {
+            const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+            const currentUserEmail = session?.email ?? '';
+            const erroredChildReportIDsByChat = new Map<string, string[]>();
+            const childReportIDsByChat = new Map<string, string[]>();
+            for (const report of Object.values(reports)) {
+                if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
+                    continue;
+                }
+
+                const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
+                childReportIDs.push(report.reportID);
+                childReportIDsByChat.set(report.chatReportID, childReportIDs);
+
+                // When the child IOU's parent action in the chat is deleted (e.g. another user deleted the request
+                // while an optimistic pay was queued offline), the chat has no actionable surface for the error.
+                // Skip propagation so the parent DM row doesn't show a stale "Fix" for a request that no longer exists.
+                const parentReportAction = report.parentReportActionID
+                    ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
+                    : undefined;
+                if (isDeletedAction(parentReportAction)) {
+                    continue;
+                }
+
+                // If this is an IOU report and its calculated attributes have an error,
+                // then we need to mark its parent chat report.
+                // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
+                // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
+                // we still need to propagate the error up so the parent shows the indicator.
+                const attributes = reportAttributes[report.reportID];
+                if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                    const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
+                    erroredChildReportIDs.push(report.reportID);
+                    erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
+                }
             }
 
-            const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
-            childReportIDs.push(report.reportID);
-            childReportIDsByChat.set(report.chatReportID, childReportIDs);
+            // Apply the error status to the parent chat reports.
+            for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
+                if (!reportAttributes[chatReportID]) {
+                    continue;
+                }
 
-            // When the child IOU's parent action in the chat is deleted (e.g. another user deleted the request
-            // while an optimistic pay was queued offline), the chat has no actionable surface for the error.
-            // Skip propagation so the parent DM row doesn't show a stale "Fix" for a request that no longer exists.
-            const parentReportAction = report.parentReportActionID
-                ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
-                : undefined;
-            if (isDeletedAction(parentReportAction)) {
-                continue;
-            }
+                const chatAttributes = reportAttributes[chatReportID];
+                let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
 
-            // If this is an IOU report and its calculated attributes have an error,
-            // then we need to mark its parent chat report.
-            // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
-            // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
-            // we still need to propagate the error up so the parent shows the indicator.
-            const attributes = reportAttributes[report.reportID];
-            if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
-                erroredChildReportIDs.push(report.reportID);
-                erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
+                actionTargetReportActionID =
+                    getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
+                    getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
+                        needsViolationFix(
+                            childReport,
+                            getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
+                            policies,
+                            transactionViolations,
+                            currentUserAccountID,
+                            currentUserEmail,
+                        ),
+                    ) ??
+                    getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
+                    actionTargetReportActionID;
+
+                // Clone the entry before mutating — it may be a reference carried over from
+                // currentValue.reports that wasn't recomputed in this incremental run.
+                reportAttributes[chatReportID] = {
+                    ...chatAttributes,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
+                    actionTargetReportActionID,
+                };
             }
         }
 
-        // Apply the error status to the parent chat reports.
-        for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
-            if (!reportAttributes[chatReportID]) {
-                continue;
-            }
-
-            const chatAttributes = reportAttributes[chatReportID];
-            let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
-
-            actionTargetReportActionID =
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
-                    needsViolationFix(
-                        childReport,
-                        getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
-                        policies,
-                        transactionViolations,
-                        currentUserAccountID,
-                        currentUserEmail,
-                    ),
-                ) ??
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
-                actionTargetReportActionID;
-
-            // Clone the entry before mutating — it may be a reference carried over from
-            // currentValue.reports that wasn't recomputed in this incremental run.
-            reportAttributes[chatReportID] = {
-                ...chatAttributes,
-                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
-                actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
-                actionTargetReportActionID,
-            };
+        // A full scan recomputed every report with the current policies, so the baseline can be snapshotted
+        // even when no policy trigger fired this pass.
+        if (!useIncrementalUpdates && policies) {
+            nextPolicySignatures = buildAllPolicySignatures();
         }
 
+        // The stored conciergeReportID/isTrackIntentUser always reflect the values the full attribute set
+        // was computed with, so they advance only on a full recompute (or the very first write).
         return {
             reports: reportAttributes,
             locale: preferredLocale ?? null,
+            policySignatures: nextPolicySignatures,
+            conciergeReportID: storedConciergeReportID === undefined || needsFullRecompute ? nextConciergeReportID : storedConciergeReportID,
+            isTrackIntentUser: storedIsTrackIntentUser === undefined || needsFullRecompute ? nextIsTrackIntentUser : storedIsTrackIntentUser,
         };
     },
 });
 
-export {hasPolicyRelevantFieldChanged};
+export {policyRelevantSignature};
