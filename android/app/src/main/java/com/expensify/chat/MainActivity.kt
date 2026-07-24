@@ -7,10 +7,8 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.Choreographer
 import android.view.KeyEvent
 import android.view.View
-import android.view.ViewTreeObserver
 import android.view.WindowInsets
 import android.view.WindowManager
 import com.expensify.chat.bootsplash.BootSplash
@@ -135,7 +133,7 @@ class MainActivity : ReactActivity() {
         super.onStart()
     }
 
-    // it lets us tell "leaving the app" from "internal window"
+    // It lets us tell "leaving the app" from "internal window"
     private var isTopResumed = true
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -153,22 +151,6 @@ class MainActivity : ReactActivity() {
         if (isTopResumedActivity) {
             hidePrivacyDialog()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            isTopResumed = true
-        }
-    }
-
-    override fun onPause() {
-        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            isTopResumed = false
-        }
-        super.onPause()
     }
 
     override fun onApplyThemeResource(theme: Resources.Theme, resid: Int, first: Boolean) {
@@ -190,7 +172,7 @@ class MainActivity : ReactActivity() {
     private var privacyDialog: BootSplashDialog? = null
 
     private fun showPrivacyDialog() {
-        if (privacyDialog != null || isFinishing || isDestroyed) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || privacyDialog != null || isFinishing || isDestroyed) {
             return
         }
         val dialog = BootSplashDialog(this, R.style.BootTheme)
@@ -203,19 +185,6 @@ class MainActivity : ReactActivity() {
         dialog.window?.setWindowAnimations(0)
         dialog.show()
         privacyDialog = dialog
-
-        val decorView = dialog.window?.decorView ?: return
-        decorView.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
-            override fun onPreDraw(): Boolean {
-                decorView.viewTreeObserver.removeOnPreDrawListener(this)
-                Choreographer.getInstance().postFrameCallback {
-                    if (privacyDialog === dialog) {
-                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                    }
-                }
-                return true
-            }
-        })
     }
 
     private fun hidePrivacyDialog() {

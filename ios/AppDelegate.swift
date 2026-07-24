@@ -116,18 +116,15 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
 		return true
 	}
 
-	// Cover the UI before the OS captures the app-switcher snapshot, so sensitive data
-	// never ends up in snapshot files stored on disk. This must happen in
-	// willResignActive (not didEnterBackground): the app switcher already shows the
-	// live UI while the app is merely inactive.
+	// Cover the UI before the OS captures the app-switcher snapshot, so sensitive data never ends up on disk.
 	override func applicationWillResignActive(_ application: UIApplication) {
 		super.applicationWillResignActive(application)
 		showPrivacyOverlay()
 	}
 
 	override func applicationDidBecomeActive(_ application: UIApplication) {
-		super.applicationDidBecomeActive(application)
 		hidePrivacyOverlay()
+		super.applicationDidBecomeActive(application)
 	}
 
 	private func showPrivacyOverlay() {
