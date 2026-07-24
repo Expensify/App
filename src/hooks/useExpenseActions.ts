@@ -171,6 +171,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activePolicyExpenseChat?.reportID}`);
+    const [chatReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`);
 
     // Duplicate detection
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
@@ -276,6 +278,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                chatReportActions: activePolicyExpenseChatReportActions,
                 isTrackIntentUser,
                 delegateAccountID,
                 policyTagList,
@@ -438,6 +441,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     recentWaypoints: recentWaypoints ?? [],
                     currentUserAccountID: currentUserPersonalDetails?.accountID,
                     currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                    chatReportActions: isSourcePolicyValid ? chatReportReportActions : activePolicyExpenseChatReportActions,
                     isTrackIntentUser,
                     delegateAccountID,
                     formatPhoneNumber,

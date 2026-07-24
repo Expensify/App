@@ -638,6 +638,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                // submitPerDiemExpense resolves the chat from report.chatReportID when the report is an expense report, so key the slice the same way
+                chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isExpenseReport ? report?.chatReportID : chatReportID}`],
                 isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;

@@ -67,6 +67,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     }
 
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activePolicyExpenseChat?.reportID}`);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
 
     const handleDuplicate = () => {
@@ -89,6 +90,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+            chatReportActions: activePolicyExpenseChatReportActions,
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
