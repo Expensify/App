@@ -236,6 +236,31 @@ describe('BaseModal', () => {
                 {null}
             </BaseModal>,
         );
+        const closeStartProps = modalProps.at(-1);
+        closeStartProps?.onModalWillHide?.();
+        rerender(
+            <BaseModal
+                isVisible
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+
+        // Android invokes the callback retained when the close began (the reanimated exit snapshot), whose
+        // closure predates the reopen. Current visibility must be read through the ref, not the closure.
+        setModalCovering.mockClear();
+        closeStartProps?.onModalHide?.();
+        expect(setModalCovering).not.toHaveBeenCalledWith(coveringModalID, false);
+
+        rerender(
+            <BaseModal
+                isVisible={false}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
         modalProps.at(-1)?.onModalWillHide?.();
         modalProps.at(-1)?.onModalHide?.();
         expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);

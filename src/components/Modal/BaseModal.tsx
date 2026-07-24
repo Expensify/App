@@ -112,6 +112,10 @@ function BaseModal({
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
     const bottomDockedDismissButtonRef = useRef<View>(null);
     const fallbackModalIdRef = useRef<number | undefined>(undefined);
+    // On Android the hide callback fires from the reanimated exit-animation snapshot taken when the close began,
+    // so it closes over that render's isVisible. Read the current value through a ref instead, or a reopen during
+    // the exit would be misread as still closed and its covering entry cleared.
+    const isVisibleRef = useRef(isVisible);
     const [coveringModalID] = useState(generateCoveringModalID);
     if (fallbackModalIdRef.current === undefined) {
         fallbackModalIdRef.current = ComposerFocusManager.getId();
@@ -180,6 +184,10 @@ function BaseModal({
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
     }, [hideModal]);
+
+    useEffect(() => {
+        isVisibleRef.current = isVisible;
+    }, [isVisible]);
 
     // The covering entry must not outlive the component, whatever path unmounts it.
     useEffect(() => () => setModalCovering(coveringModalID, false), [coveringModalID]);
@@ -338,7 +346,7 @@ function BaseModal({
                             // A hide callback can fire after this modal was already asked to re-show (the interrupted
                             // close completes first); only a hide for a modal that is staying closed clears its
                             // covering entry, so the marketing window cannot appear over a reopened modal.
-                            if (!isVisible) {
+                            if (!isVisibleRef.current) {
                                 setModalCovering(coveringModalID, false);
                             }
                             hideModal();
