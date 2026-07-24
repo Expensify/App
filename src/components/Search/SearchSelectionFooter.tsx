@@ -36,6 +36,7 @@ type FooterCurrencyState = {
 
 const EMPTY_REPORT_IDS: string[] = [];
 const EMPTY_REPORT_SOURCES: Record<string, number> = {};
+const EMPTY_GROUP_SOURCES: Record<string, number> = {};
 
 function getGroupCount(group: unknown): number {
     if (group && typeof group === 'object' && 'count' in group && typeof group.count === 'number') {
@@ -114,6 +115,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // selection (grouped views) and by transaction otherwise — so a grouped selection can mix whole groups and
     // individual transactions from other groups.
     const isReportsSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const isGroupedSearch = !isReportsSearch && !!currentSearchQueryJSON?.groupBy;
 
     const metadata = searchResults?.search;
     const metadataCount = metadata?.count;
@@ -169,6 +171,28 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         }
         return sources;
     }, [selectedGroupKeys, selectedTransactions]);
+
+    // Source figures for every loaded group, not just the selected ones. The grouped response caches every group's
+    // converted value, so stamping them all lets a later selection of another group reuse the cache instead of
+    // re-running the grouped query. Uses the same expense-signed figure as getEntrySource so a stamp always matches
+    // the live source the freshness checks compare against.
+    const loadedGroupSourceByKey = useMemo(() => {
+        const data = currentSearchResults?.data;
+        if (!isGroupedSearch || !data) {
+            return EMPTY_GROUP_SOURCES;
+        }
+        const sources: Record<string, number> = {};
+        for (const key of Object.keys(data)) {
+            if (!isGroupEntry(key)) {
+                continue;
+            }
+            const group: unknown = data[key];
+            if (group && typeof group === 'object' && 'total' in group && typeof group.total === 'number') {
+                sources[key] = -Math.abs(group.total);
+            }
+        }
+        return sources;
+    }, [currentSearchResults?.data, isGroupedSearch]);
     const reportSourceByID = useMemo(() => {
         if (!isReportsSearch) {
             return EMPTY_REPORT_SOURCES;
@@ -288,13 +312,16 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             }
 
             // Selected whole groups: one grouped request (derived from the query's groupBy) returns every group's
-            // converted total, so no ID list is sent.
+            // converted total, so no ID list is sent. Stamp every loaded group (selected ones from their entries, so
+            // the request always settles its own fire condition) — later selections of other groups then reuse the
+            // cached response instead of re-running the grouped query.
             if (selectedGroupKeys.some((key) => !wasGroupRequested(key, selectedCurrency))) {
+                const groupSources = {...loadedGroupSourceByKey, ...groupSourceByKey};
                 getFooterConvertedAmounts({
                     queryJSON: currentSearchQueryJSON,
                     searchKey: currentSearchKey,
                     targetCurrency: selectedCurrency,
-                    sources: {groups: Object.fromEntries(selectedGroupKeys.map((key) => [key, {[selectedCurrency]: groupSourceByKey[key]}]))},
+                    sources: {groups: Object.fromEntries(Object.entries(groupSources).map(([key, source]) => [key, {[selectedCurrency]: source}]))},
                 });
             }
 
@@ -333,6 +360,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         currentSearchQueryJSON,
         groupSourceByKey,
         hasCustomFooterCurrency,
+        loadedGroupSourceByKey,
         wasGroupRequested,
         isOffline,
         wasReportRequested,
