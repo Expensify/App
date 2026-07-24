@@ -52,6 +52,7 @@
     },
     "ignoreDependencies": [
         "@expensify/react-native-hybrid-app",
+        "focus-trap",
         "group-ib-fp",
         "react-native-image-size",
         "react-native-picker-select",
@@ -62,6 +63,7 @@
         "babel-plugin-module-resolver",
         "babel-plugin-react-compiler",
         "babel-plugin-transform-remove-console",
+        "html-entities",
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
         "eslint-config-airbnb-typescript",
