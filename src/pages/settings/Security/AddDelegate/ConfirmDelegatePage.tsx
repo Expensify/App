@@ -37,7 +37,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const personalDetails = getPersonalDetailByEmail(login);
     const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
-    const displayName = personalDetails?.displayName ?? formattedLogin;
+    const displayName = personalDetails?.displayName ? formatPhoneNumber(personalDetails.displayName) : formattedLogin;
 
     const submitButton = (
         <Button
