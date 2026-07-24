@@ -150,6 +150,9 @@ class MainActivity : ReactActivity() {
         isTopResumed = isTopResumedActivity
         if (isTopResumedActivity) {
             hidePrivacyDialog()
+        } else if (!hasWindowFocus()) {
+            // Backgrounding with an in-app dialog open: this callback is the only "leaving the app" signal.
+            showPrivacyDialog()
         }
     }
 
