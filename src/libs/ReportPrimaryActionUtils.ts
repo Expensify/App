@@ -82,6 +82,8 @@ type GetReportPrimaryActionParams = {
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
     ownerLogin: string | undefined;
+    /** Whether the client is currently offline. Will become required once #66407 lands. */
+    isOffline?: boolean;
 };
 
 type IsPrimaryPayActionParams = {
@@ -318,7 +320,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     return false;
 }
 
-function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[]) {
+function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], isOffline?: boolean) {
     const isClosedReport = isClosedReportUtils(report);
     if (isClosedReport) {
         return false;
@@ -331,7 +333,7 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     }
 
     const reportActions = getAllReportActions(report.reportID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, isOffline);
 
     if (!transactionThreadReportID) {
         return false;
@@ -483,6 +485,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         chatReport,
         invoiceReceiverPolicy,
         ownerLogin,
+        isOffline,
     } = params;
 
     // The expense report of personal policy shouldn't have any action
@@ -522,7 +525,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions) || (isPayActionWithAllExpensesHeld && expensesToHold.length)) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions, isOffline) || (isPayActionWithAllExpensesHeld && expensesToHold.length)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
