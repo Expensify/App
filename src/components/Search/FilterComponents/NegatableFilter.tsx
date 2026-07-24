@@ -35,7 +35,7 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
     const negative = translate(baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ? 'search.filters.filterType.has.negative' : 'search.filters.filterType.is.negative');
 
     return (
-        <View style={[styles.flex1, styles.gap3, style]}>
+        <View style={[styles.flexGrow1, styles.gap3, style]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
                 <Text style={[styles.textLabelSupporting]}>{translate('search.filters.filterType.label')}</Text>
                 <View style={[styles.border, styles.negatableFilterButtons]}>
