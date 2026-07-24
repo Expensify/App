@@ -17,12 +17,11 @@ The rooms you see depend on your permissions and the room's visibility settings.
 
 ## How to find rooms in the Rooms directory
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [Workspace name]**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [Workspace name]**.
 2. Click **Rooms**.
-3. Select a room to open its details page.
-4. Click **Go to room** to open the conversation.
+3. Select a room from the list.
 
-The Rooms directory displays the rooms you can access in that workspace.
+The Rooms directory displays the rooms you can access in that workspace. What happens when you select a room depends on your role, as described below.
 
 <!-- SCREENSHOT:
 Suggestion: The Rooms directory showing multiple rooms with icon, room name, creator, and member count columns.
@@ -32,7 +31,10 @@ Purpose: Help members identify the Rooms directory and understand the informatio
 
 ## What happens after you open a room from the Rooms directory
 
-Selecting a room opens its details page. Workspace members can click **Go to room** to open the conversation. Workspace admins can view the room details page and manage room settings and membership.
+What happens when you select a room depends on your role:
+
+- **Workspace admins** open the room details page, where they can click **Go to room** to open the conversation, or manage room settings and membership.
+- **Workspace members** open the room conversation directly.
 
 Opening a room from the Rooms directory does not automatically join you to the room.
 
