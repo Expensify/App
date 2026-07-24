@@ -187,6 +187,7 @@ function BaseVacationDelegateSelectionComponent({
             ...option,
             text: getDelegateText(option.login, option.text),
             // Show the subtitle as the localized international phone form (e.g. `+977 980-6050938`), falling back to the raw alternateText/login for emails.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string from formatPhoneNumber should fall back to alternateText
             alternateText: formatPhoneNumber(Str.removeSMSDomain(option.login ?? '')) || option.alternateText || undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
