@@ -5594,6 +5594,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
                 csvColumns: {
                     cardNumber: '卡号',
+                    cardName: '卡名',
                     postedDate: '日期',
                     merchant: '商家',
                     amount: '金额',
@@ -5609,6 +5610,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `请为以下每个属性分配一列：${missingColumns}`,
                     duplicateColumns: (duplicateColumn: string) => `哎呀！你已将单个字段（“${duplicateColumn}”）映射到了多个列。请检查后重试。`,
+                    cardIdentityColumn: '请映射卡号或卡名称，以便将交易匹配到相应的卡片。',
                 },
                 fileImportDescription: '如果您的银行无法发送数据馈送时的手动选项。',
                 duplicateFeedModal: {title: '卡片流水已连接', prompt: '您不能将同一张卡片流水两次添加到同一个工作区。'},
