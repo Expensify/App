@@ -129,6 +129,7 @@ describe('Search Router navigation query helpers', () => {
         ['go       to      inbox', 'inbox'],
         ['Go To Inbox', 'Inbox'],
         ['  go to inbox  ', 'inbox'],
+        ['ready      to       pay', 'ready to pay'],
         ['inbox', 'inbox'],
     ])('normalizes navigation intent in "%s"', (query, expectedQuery) => {
         expect(stripNavigationIntentPrefix(query)).toBe(expectedQuery);
@@ -195,6 +196,12 @@ describe('Search Router navigation query helpers', () => {
         ];
 
         expect(buildNavigationSuggestions(query, source, localeCompare).map((item) => item.keyForList)).toEqual(['inbox']);
+    });
+
+    it.each(['ready to pay', 'ready      to       pay', 'go to ready      to       pay'])('matches a multi-word destination for "%s"', (query) => {
+        const source = [[{text: 'Go to Ready to pay', keyForList: 'readyToPay', matchTerms: ['Ready to pay']}]];
+
+        expect(buildNavigationSuggestions(query, source, localeCompare).map((item) => item.keyForList)).toEqual(['readyToPay']);
     });
 
     it('shows navigation rows for bare go intents and caps the result', () => {
