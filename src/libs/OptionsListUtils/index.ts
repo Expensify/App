@@ -3583,6 +3583,7 @@ export {
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
     isPersonalDetailsReady,
+    optionsOrderAndGroupBy,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,

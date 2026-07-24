@@ -37,6 +37,7 @@ import {
     getSearchValueForPhoneOrEmail,
     getUserToInviteOption,
     getValidOptions,
+    optionsOrderAndGroupBy,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,
@@ -4148,6 +4149,164 @@ describe('OptionsListUtils', () => {
             expect(result.at(0)!.reportID).toBe('3');
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(1)!.reportID).toBe('1');
+        });
+    });
+
+    describe('optionsOrderBy()', () => {
+        const createRecentOptions = (count: number): OptionData[] =>
+            Array.from({length: count}, (_, index) => ({
+                reportID: String(index + 1),
+                lastVisibleActionCreated: `2022-01-01T${String(10 + index).padStart(2, '0')}:00:00Z`,
+                keyForList: String(index + 1),
+            }));
+
+        it('calls comparator exactly once per option that passes the filter', () => {
+            const options = createRecentOptions(8);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderBy(options, comparator, 3);
+
+            expect(comparator).toHaveBeenCalledTimes(8);
+            for (const option of options) {
+                expect(comparator).toHaveBeenCalledWith(option);
+            }
+        });
+
+        it('does not call comparator for options rejected by the filter', () => {
+            const passingOptions: OptionData[] = [
+                {
+                    reportID: '1',
+                    lastVisibleActionCreated: '2022-01-01T10:00:00Z',
+                    isPinned: true,
+                    keyForList: '1',
+                },
+                {
+                    reportID: '3',
+                    lastVisibleActionCreated: '2022-01-01T12:00:00Z',
+                    isPinned: true,
+                    keyForList: '3',
+                },
+            ];
+            const filteredOutOptions: OptionData[] = [
+                {
+                    reportID: '2',
+                    lastVisibleActionCreated: '2022-01-01T11:00:00Z',
+                    isPinned: false,
+                    keyForList: '2',
+                },
+            ];
+            const options = [...passingOptions, ...filteredOutOptions];
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderBy(options, comparator, 2, (option) => option.isPinned);
+
+            expect(comparator).toHaveBeenCalledTimes(passingOptions.length);
+            for (const option of passingOptions) {
+                expect(comparator).toHaveBeenCalledWith(option);
+            }
+            for (const option of filteredOutOptions) {
+                expect(comparator).not.toHaveBeenCalledWith(option);
+            }
+        });
+
+        it('calls comparator exactly once per passing option when heap evictions occur', () => {
+            const options = createRecentOptions(12);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderBy(options, comparator, 3);
+
+            expect(comparator).toHaveBeenCalledTimes(12);
+        });
+
+        it('does not call comparator when limit is 0', () => {
+            const options = createRecentOptions(5);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderBy(options, comparator, 0);
+
+            expect(comparator).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('optionsOrderAndGroupBy()', () => {
+        const createGroupedOptions = (count: number): OptionData[] =>
+            Array.from({length: count}, (_, index) => {
+                const groupType = index % 3;
+                return {
+                    reportID: String(index + 1),
+                    lastVisibleActionCreated: `2022-01-01T${String(10 + index).padStart(2, '0')}:00:00Z`,
+                    keyForList: String(index + 1),
+                    isSelfDM: groupType === 0,
+                    isPolicyExpenseChat: groupType === 1,
+                };
+            });
+
+        const separators = [(option: OptionData) => option.isSelfDM, (option: OptionData) => option.isPolicyExpenseChat];
+
+        it('calls comparator exactly once per option that passes the filter', () => {
+            const options = createGroupedOptions(9);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderAndGroupBy(separators, options, comparator, 2);
+
+            expect(comparator).toHaveBeenCalledTimes(9);
+            for (const option of options) {
+                expect(comparator).toHaveBeenCalledWith(option);
+            }
+        });
+
+        it('does not call comparator for options rejected by the filter', () => {
+            const passingOptions: OptionData[] = [
+                {
+                    reportID: '1',
+                    lastVisibleActionCreated: '2022-01-01T10:00:00Z',
+                    isSelfDM: true,
+                    keyForList: '1',
+                },
+                {
+                    reportID: '2',
+                    lastVisibleActionCreated: '2022-01-01T11:00:00Z',
+                    isPolicyExpenseChat: true,
+                    keyForList: '2',
+                },
+            ];
+            const filteredOutOptions: OptionData[] = [
+                {
+                    reportID: '3',
+                    lastVisibleActionCreated: '2022-01-01T12:00:00Z',
+                    keyForList: '3',
+                },
+            ];
+            const options = [...passingOptions, ...filteredOutOptions];
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderAndGroupBy(separators, options, comparator, 2, (option) => option.isSelfDM === true || option.isPolicyExpenseChat === true);
+
+            expect(comparator).toHaveBeenCalledTimes(passingOptions.length);
+            for (const option of passingOptions) {
+                expect(comparator).toHaveBeenCalledWith(option);
+            }
+            for (const option of filteredOutOptions) {
+                expect(comparator).not.toHaveBeenCalledWith(option);
+            }
+        });
+
+        it('calls comparator exactly once per passing option when heap evictions occur across groups', () => {
+            const options = createGroupedOptions(15);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderAndGroupBy(separators, options, comparator, 2);
+
+            expect(comparator).toHaveBeenCalledTimes(15);
+        });
+
+        it('does not call comparator when limit is 0', () => {
+            const options = createGroupedOptions(5);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderAndGroupBy(separators, options, comparator, 0);
+
+            expect(comparator).not.toHaveBeenCalled();
         });
     });
 
