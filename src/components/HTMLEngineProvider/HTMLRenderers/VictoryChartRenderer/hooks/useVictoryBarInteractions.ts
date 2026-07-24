@@ -269,6 +269,7 @@ function useVictoryBarInteractions() {
     return {
         customGestures,
         syncBarPositions,
+        hasInteractiveBars: interactiveBars.length > 0,
         activeTooltipData,
         hasTooltipLabels: interactiveBars.some((bar) => !!bar.label),
         isTooltipActive,
