@@ -6075,7 +6075,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         title: (amount: string) => `Enviar fatura de ${amount}?`,
                         body: 'Vamos criar uma fatura para seus gastos atuais de viagem. Seu limite de viagem será liberado assim que a fatura for paga.',
                     },
-                    depositOnly: 'Apenas depósito',
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
             },

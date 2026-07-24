@@ -27,7 +27,7 @@ import {
     retryTravelCardsProvisioning,
 } from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardSettings, getEligibleBankAccountsForTravelInvoicing} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -169,7 +169,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     // Bank account eligibility for toggle handler
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
-    const eligibleBankAccounts = getEligibleBankAccountsForTravelInvoicing(bankAccountList, isPayByInvoice);
+    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
 
     // Determine if Travel Invoicing is enabled based on isEnabled field
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);

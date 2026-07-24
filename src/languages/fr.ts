@@ -6133,7 +6133,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         title: (amount: string) => `Envoyer la facture de ${amount} ?`,
                         body: 'Nous créerons une facture pour vos dépenses de voyage actuelles. Votre plafond de voyage est à nouveau disponible une fois la facture payée.',
                     },
-                    depositOnly: 'Dépôt uniquement',
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',
             },

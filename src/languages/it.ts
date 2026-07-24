@@ -6095,7 +6095,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         title: (amount: string) => `Inviare la fattura per ${amount}?`,
                         body: 'Creeremo una fattura per le tue spese di viaggio attuali. Il tuo limite di viaggio si libera una volta che la fattura è stata pagata.',
                     },
-                    depositOnly: 'Solo deposito',
                 },
                 personalDetailsDescription: 'Per prenotare il viaggio, inserisci il tuo nome legale così come appare sul tuo documento d’identità rilasciato dal governo.',
             },
