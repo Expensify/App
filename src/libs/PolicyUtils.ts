@@ -1476,7 +1476,11 @@ function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
-/** Returns true when the user is both a submitter (role "user") in at least one policy and an approver on at least one paid policy with a non-optional approval flow. */
+/**
+ * Returns true when the user is both a submitter and an approver, mirroring the Submit/Approve suggested-search eligibility in
+ * `getSuggestedSearchesVisibility` (SearchUIUtils): a submitter is a member of any group workspace, and an approver is a member of a
+ * group workspace with a non-optional approval flow whom `isPolicyApprover` recognizes (named approver or someone reports submit/forward to).
+ */
 function isSubmitterAndApprover(policies: OnyxCollection<Policy> | null | undefined, currentUserEmail: string | undefined): boolean {
     if (!policies || !currentUserEmail) {
         return false;
@@ -1487,11 +1491,10 @@ function isSubmitterAndApprover(policies: OnyxCollection<Policy> | null | undefi
         if (!policy) {
             continue;
         }
-        isSubmitter = isSubmitter || isPolicyUser(policy, currentUserEmail);
+        isSubmitter = isSubmitter || isGroupPolicy(policy);
         if (!isApprover) {
-            const hasApprovalFlow = isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail);
-            isApprover = hasApprovalFlow && (isPolicyApprover(policy, currentUserEmail) || isSubmittedTo);
+            const hasApprovalFlow = isGroupPolicy(policy) && !!policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            isApprover = hasApprovalFlow && isPolicyApprover(policy, currentUserEmail);
         }
         if (isSubmitter && isApprover) {
             return true;

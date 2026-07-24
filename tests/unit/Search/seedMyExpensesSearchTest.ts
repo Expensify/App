@@ -97,16 +97,38 @@ describe('isSubmitterAndApprover', () => {
         expect(isSubmitterAndApprover({submitOnly: policy}, USER_EMAIL)).toBe(false);
     });
 
-    it('returns false for an approve-only user (admin role, not role=user anywhere)', () => {
+    it('returns true for an admin who approves on a group policy (any member is a submitter, not just role=user)', () => {
         const policy = makePaidPolicy({
-            id: 'approveOnly',
+            id: 'adminApprover',
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
                 [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ''},
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isSubmitterAndApprover({approveOnly: policy}, USER_EMAIL)).toBe(false);
+        expect(isSubmitterAndApprover({adminApprover: policy}, USER_EMAIL)).toBe(true);
+    });
+
+    it('returns true for an approver on a free (Submit-type) group policy, not only paid group policies', () => {
+        const policy = makeFreePolicy({
+            id: 'freeApprover',
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            employeeList: {
+                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
+            },
+        });
+        expect(isSubmitterAndApprover({freeApprover: policy}, USER_EMAIL)).toBe(true);
+    });
+
+    it('treats an over-limit forwards-to target as an approver', () => {
+        const policy = makePaidPolicy({
+            id: 'overLimitApprover',
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            employeeList: {
+                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL, overLimitForwardsTo: USER_EMAIL},
+            },
+        });
+        expect(isSubmitterAndApprover({overLimitApprover: policy}, USER_EMAIL)).toBe(true);
     });
 
     it('returns false when the approver policy has OPTIONAL approval mode (no approval flow)', () => {
