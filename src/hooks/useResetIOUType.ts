@@ -1,7 +1,8 @@
 import {resolveEarlyReportID} from '@libs/IOUUtils';
+import {endNativeShortcutFlow, isNativeShortcutFlowActive} from '@libs/NativeShortcutFlow';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 
-import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {initMoneyRequest, setNativeShortcutFlag} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -106,6 +107,13 @@ function useResetIOUType({
 
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (transaction?.iouRequestType === newIOUType) {
+            // Both native-shortcut paths copy the marker onto the draft then clear the flow; they differ only in
+            // how the draft is written — Onyx.merge here (draft not rebuilt) vs. the initMoneyRequest param in the
+            // rebuild path below.
+            if (isNativeShortcutFlowActive() && !transaction.isFromNativeShortcut) {
+                setNativeShortcutFlag(transaction.transactionID);
+                endNativeShortcutFlow();
+            }
             return;
         }
 
@@ -122,6 +130,8 @@ function useResetIOUType({
         // Skip seeding self-DM participants here. The confirmation's auto-assign
         // useEffect is the only place that can both set the reportID and switch
         // iouType to TRACK; seeding them early would short-circuit that effect.
+        const shouldMarkNativeShortcut = transaction?.isFromNativeShortcut ?? isNativeShortcutFlowActive();
+
         initMoneyRequest({
             reportID,
             policy,
@@ -129,6 +139,8 @@ function useResetIOUType({
             isFromGlobalCreate,
             isTrackDistanceExpense,
             isFromFloatingActionButton: getIsFromGlobalCreate(transaction) ?? isFromGlobalCreate,
+            // Preserve the native-shortcut marker across draft re-initialization (Onyx.set would wipe it).
+            isFromNativeShortcut: shouldMarkNativeShortcut,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
             report,
@@ -140,6 +152,11 @@ function useResetIOUType({
             draftTransactionIDs,
             defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,
         });
+
+        // Clear the marker right after copying it to the draft so it cannot leak into later flows.
+        if (shouldMarkNativeShortcut) {
+            endNativeShortcutFlow();
+        }
 
         // Set the transaction reportID early for global-create flows with resolved default
         // participants. This ensures destinationReportID is defined from the confirmation's

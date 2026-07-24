@@ -6,6 +6,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {formatCurrentUserToAttendee, getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import {endNativeShortcutFlow} from '@libs/NativeShortcutFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
@@ -265,6 +266,8 @@ type InitMoneyRequestParams = {
     personalPolicy: Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
     isFromGlobalCreate?: boolean;
     isFromFloatingActionButton?: boolean;
+    /** Preserved across re-inits so Onyx.set draft rebuilds don't wipe the native-shortcut marker. */
+    isFromNativeShortcut?: boolean;
     currentIouRequestType?: IOURequestType | undefined;
     newIouRequestType: IOURequestType | undefined;
     report: OnyxEntry<Report>;
@@ -296,6 +299,7 @@ function initMoneyRequest({
     isFromGlobalCreate,
     isTrackDistanceExpense = false,
     isFromFloatingActionButton,
+    isFromNativeShortcut,
     currentIouRequestType,
     newIouRequestType,
     report,
@@ -324,6 +328,7 @@ function initMoneyRequest({
             reportID,
             isFromGlobalCreate,
             isFromFloatingActionButton,
+            ...(isFromNativeShortcut ? {isFromNativeShortcut} : {}),
             created,
             currency,
             transactionID: newTransactionID,
@@ -406,6 +411,7 @@ function initMoneyRequest({
         transactionID: newTransactionID,
         isFromGlobalCreate,
         isFromFloatingActionButton,
+        ...(isFromNativeShortcut ? {isFromNativeShortcut} : {}),
         merchant: defaultMerchant,
         // Seed participants when provided (new manual flow) so the embedded confirmation's auto-assign useEffect
         // short-circuits and doesn't re-fire on subsequent renders/cleanups.
@@ -430,6 +436,12 @@ function createDraftTransaction(transaction: Transaction) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
+function setNativeShortcutFlag(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        isFromNativeShortcut: true,
+    });
+}
+
 function clearMoneyRequest(transactionID: string, draftTransactionIDs: string[] | undefined, skipConfirmation = false) {
     const onyxData: Record<string, null | boolean> = {
         ...getRemoveDraftTransactionsByIDsData(draftTransactionIDs),
@@ -447,6 +459,8 @@ function startMoneyRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
+    // In-app entry point — the previous native-shortcut flow (if any) is over.
+    endNativeShortcutFlow();
     const sourceRoute = Navigation.getActiveRoute();
     // Only the split flow exposes a Distance tab from here, so prefetch the default P2P mileage rate solely for splits to avoid an unnecessary read on other flows.
     if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -493,6 +507,8 @@ function startDistanceRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
+    // In-app entry point — the previous native-shortcut flow (if any) is over.
+    endNativeShortcutFlow();
     getDefaultP2PMileageRate();
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
@@ -1030,4 +1046,5 @@ export {
     setMoneyRequestReimbursable,
     setMoneyRequestReportID,
     setLastSelectedDistanceRate,
+    setNativeShortcutFlag,
 };

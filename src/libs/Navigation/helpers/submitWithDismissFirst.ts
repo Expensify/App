@@ -24,6 +24,8 @@ type SubmitWithDismissFirstParams = {
     destinationReportID: string | undefined;
     /** Telemetry metadata for the submit-expense performance span. */
     telemetryContext: SubmitExpenseContext;
+    /** Whether the flow must land on Spend > Expenses (true only for native shortcuts from global create); skips the report fast paths. */
+    shouldForceSpendExpensesLanding?: boolean;
 };
 
 function startDismissFirstTracking(
@@ -54,7 +56,19 @@ function startDismissFirstTracking(
  *
  * Must not be called from `src/libs/actions/` — view-layer only.
  */
-function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: SubmitWithDismissFirstParams): void {
+function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext, shouldForceSpendExpensesLanding = false}: SubmitWithDismissFirstParams): void {
+    // Native shortcuts always land on Spend > Expenses, so skip the report fast paths and
+    // let the write's cleanup run `navigateAfterExpenseCreate`.
+    if (shouldForceSpendExpensesLanding) {
+        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            Navigation.clearFullscreenPreInsertedFlag();
+        }
+        startTracking(telemetryContext, {skipSubmitExpenseSpan: true});
+        setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+        executeWrite({shouldHandleNavigation: true});
+        return;
+    }
+
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 
     if (shouldStayOnSearch) {

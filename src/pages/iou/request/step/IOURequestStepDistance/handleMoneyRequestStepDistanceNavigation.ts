@@ -22,7 +22,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getIsFromNativeShortcut, getValidWaypoints} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -222,6 +222,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
     const distance = manualDistance ?? gpsDistance ?? odometerDistance;
     const transactionIsFromGlobalCreate = getIsFromGlobalCreate(transaction);
+    const transactionIsFromNativeShortcut = !!transaction?.isFromNativeShortcut;
     const transactionLinkedTrackedExpenseReportAction = transaction?.linkedTrackedExpenseReportAction;
 
     // If a reportID exists in the report object, it's because either:
@@ -342,12 +343,14 @@ function handleMoneyRequestStepDistanceNavigation({
                             draftTransactionIDs,
                             transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? optimisticTransactionID,
                             isFromGlobalCreate: transactionIsFromGlobalCreate,
+                            isFromNativeShortcut: transactionIsFromNativeShortcut,
                             backToReport,
                             optimisticChatReportID,
                             linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                         });
                     },
                     destinationReportID: report?.reportID ?? selfDMReport?.reportID,
+                    shouldForceSpendExpensesLanding: getIsFromNativeShortcut(transaction),
                     telemetryContext: {
                         scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
                         iouType,
@@ -420,12 +423,14 @@ function handleMoneyRequestStepDistanceNavigation({
                         draftTransactionIDs,
                         transactionID: writtenDistanceTransactionID,
                         isFromGlobalCreate: transactionIsFromGlobalCreate,
+                        isFromNativeShortcut: transactionIsFromNativeShortcut,
                         backToReport,
                         optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                     });
                 },
                 destinationReportID: distanceDestinationReportID,
+                shouldForceSpendExpensesLanding: getIsFromNativeShortcut(transaction),
                 telemetryContext: {
                     scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.DISTANCE,
                     iouType,

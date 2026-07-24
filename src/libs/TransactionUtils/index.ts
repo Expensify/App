@@ -3139,11 +3139,21 @@ function getIsFromGlobalCreate(transaction: OnyxEntry<Transaction> | Partial<Tra
     return transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
 }
 
+/**
+ * Whether the transaction originated from a native home-screen shortcut. Shortcuts always open the
+ * global-create flow, so the global-create check guards against a stale marker leaking onto a draft
+ * that was later re-used outside that flow.
+ */
+function getIsFromNativeShortcut(transaction: OnyxEntry<Transaction> | Partial<Transaction> | undefined): boolean {
+    return !!transaction?.isFromNativeShortcut && !!getIsFromGlobalCreate(transaction);
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
     getWorkspaceTaxesSettingsName,
     getDefaultTaxCode,
+    getIsFromNativeShortcut,
     transformedTaxRates,
     getTaxValue,
     getCalculatedTaxAmount,

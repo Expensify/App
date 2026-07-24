@@ -7,6 +7,7 @@ const mockGetReportOrDraftReport = jest.fn();
 const mockDismissModal = jest.fn();
 const mockRevealRouteBeforeDismissingModal = jest.fn();
 const mockGetIsFullscreenPreInsertedUnderRHP = jest.fn<boolean, []>();
+const mockClearFullscreenPreInsertedFlag = jest.fn();
 const mockReserveDeferredWriteChannel = jest.fn();
 const mockStartTracking = jest.fn();
 const mockSetFastPath = jest.fn();
@@ -17,7 +18,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: (...args: unknown[]) => mockDismissModal(...args) as unknown,
     revealRouteBeforeDismissingModal: (...args: unknown[]) => mockRevealRouteBeforeDismissingModal(...args) as unknown,
     getIsFullscreenPreInsertedUnderRHP: () => mockGetIsFullscreenPreInsertedUnderRHP() as unknown,
-    clearFullscreenPreInsertedFlag: jest.fn(),
+    clearFullscreenPreInsertedFlag: (...args: unknown[]) => mockClearFullscreenPreInsertedFlag(...args) as unknown,
 }));
 jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id) as unknown,
@@ -154,6 +155,72 @@ describe('submitWithDismissFirst', () => {
 
             expect(mockStartTracking).toHaveBeenCalledWith(TELEMETRY_CONTEXT, {skipSubmitExpenseSpan: true});
             expect(mockSetPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, 'report123');
+        });
+    });
+
+    describe('Native shortcut branch', () => {
+        it('skips report fast paths and calls executeWrite with shouldHandleNavigation=true', () => {
+            // Search-topmost and a loaded destination report are both present, proving the native-shortcut
+            // branch short-circuits before either fast path can run.
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'report123'});
+            const executeWrite = jest.fn();
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'report123',
+                telemetryContext: TELEMETRY_CONTEXT,
+                shouldForceSpendExpensesLanding: true,
+            });
+
+            expect(mockSetFastPath).toHaveBeenCalledWith(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: true});
+            expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
+            expect(mockDismissModal).not.toHaveBeenCalled();
+            expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+        });
+
+        it('clears the fullscreen pre-inserted flag when it is set', () => {
+            mockGetIsFullscreenPreInsertedUnderRHP.mockReturnValue(true);
+            const executeWrite = jest.fn();
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'report123',
+                telemetryContext: TELEMETRY_CONTEXT,
+                shouldForceSpendExpensesLanding: true,
+            });
+
+            expect(mockClearFullscreenPreInsertedFlag).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not clear the fullscreen pre-inserted flag when it is not set', () => {
+            mockGetIsFullscreenPreInsertedUnderRHP.mockReturnValue(false);
+            const executeWrite = jest.fn();
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'report123',
+                telemetryContext: TELEMETRY_CONTEXT,
+                shouldForceSpendExpensesLanding: true,
+            });
+
+            expect(mockClearFullscreenPreInsertedFlag).not.toHaveBeenCalled();
+        });
+
+        it('regression: with shouldForceSpendExpensesLanding=false still runs the destination-report branch', () => {
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'report123'});
+            const executeWrite = jest.fn();
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'report123',
+                telemetryContext: TELEMETRY_CONTEXT,
+                shouldForceSpendExpensesLanding: false,
+            });
+
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledTimes(1);
+            expect(executeWrite).not.toHaveBeenCalled();
         });
     });
 

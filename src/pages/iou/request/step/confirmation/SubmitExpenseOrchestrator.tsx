@@ -31,6 +31,7 @@ import React, {useEffect, useRef, useState} from 'react';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
 
+import {getSearchPreInsertNavigation, SEARCH_PRE_INSERT_NAVIGATION} from './getSearchPreInsertNavigation';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
@@ -98,6 +99,9 @@ type SubmitExpenseOrchestratorProps = {
     /** Persisted flag on the transaction: flow originated from the floating action button. */
     isFromFloatingActionButtonOnTransaction: boolean;
 
+    /** Persisted flag on the transaction: flow originated from a native home-screen shortcut. */
+    isFromNativeShortcutOnTransaction: boolean;
+
     /** Render prop receiving onConfirm and isConfirming. */
     children: (props: SubmitExpenseOrchestratorRenderProps) => React.ReactNode;
 };
@@ -150,6 +154,7 @@ function SubmitExpenseOrchestrator({
     receiptFiles,
     isFromGlobalCreateOnTransaction,
     isFromFloatingActionButtonOnTransaction,
+    isFromNativeShortcutOnTransaction,
     children,
 }: SubmitExpenseOrchestratorProps) {
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
@@ -175,6 +180,7 @@ function SubmitExpenseOrchestrator({
     // for correct handler selection (e.g. SEARCH_DISMISS) and telemetry.
     const isFromGlobalCreateFromTransaction = !!(isFromGlobalCreateOnTransaction || isFromFloatingActionButtonOnTransaction);
     const isFromGlobalCreateForNavigation = !!(isFromGlobalCreate || isFromGlobalCreateFromTransaction);
+    const searchDataType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const startSubmitSpans = () => {
         const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
@@ -215,6 +221,7 @@ function SubmitExpenseOrchestrator({
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
             isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
+            isFromNativeShortcut: isFromNativeShortcutOnTransaction,
         };
     };
 
@@ -226,15 +233,19 @@ function SubmitExpenseOrchestrator({
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
         Navigation.clearFullscreenPreInsertedFlag();
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        Navigation.dismissModal({
-            afterTransition: () => {
-                // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
-                // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
-                // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-                createTransaction(locationPermissionGranted);
-                setIsConfirming(false);
-            },
-        });
+
+        const afterTransition = () => {
+            createTransaction(locationPermissionGranted, false);
+            setIsConfirming(false);
+        };
+
+        if (getSearchPreInsertNavigation(isFromNativeShortcutOnTransaction) === SEARCH_PRE_INSERT_NAVIGATION.REVEAL_SEARCH) {
+            // Native shortcuts may have a report pre-inserted, so replace it with the search route.
+            const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchDataType})});
+            Navigation.revealRouteBeforeDismissingModal(searchRoute, {afterTransition});
+        } else {
+            Navigation.dismissModal({afterTransition});
+        }
     };
 
     const dismissAfterEnsuringDestinationReportIsPreInserted = (reportID: string | undefined, afterTransition: () => void) => {
@@ -299,8 +310,7 @@ function SubmitExpenseOrchestrator({
     // elapsed - SEARCH_PRE_INSERT is the primary narrow handler.
     const handleSearchDismiss = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
+        const isSameType = getCurrentSearchQueryJSON()?.type === searchDataType;
         const isNarrow = getIsNarrowLayout();
         // When the query type matches AND Search is already visible, a simple dismiss suffices.
         // When Search is not visible (e.g. submitting from Home/Settings), we must navigate there.
@@ -332,7 +342,7 @@ function SubmitExpenseOrchestrator({
         };
 
         if (shouldNavigateToSearch && !isNarrow) {
-            dismissWideToNewSearchType(searchType, runAfterDismiss);
+            dismissWideToNewSearchType(searchDataType, runAfterDismiss);
             return;
         }
 
@@ -343,7 +353,7 @@ function SubmitExpenseOrchestrator({
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: true});
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchDataType})}), {forceReplace: true});
                 });
             },
         });

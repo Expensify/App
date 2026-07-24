@@ -14,6 +14,7 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     draftTransactionIDs: string[] | undefined;
     transactionID: string | undefined;
     isFromGlobalCreate: boolean | undefined;
+    isFromNativeShortcut?: boolean;
     backToReport?: string;
     optimisticChatReportID?: string;
     isInvoice?: boolean;
@@ -26,6 +27,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     draftTransactionIDs,
     transactionID,
     isFromGlobalCreate,
+    isFromNativeShortcut,
     backToReport,
     optimisticChatReportID,
     isInvoice,
@@ -47,6 +49,7 @@ function cleanupAndNavigateAfterExpenseCreate({
         activeReportID: finalActiveReportID,
         transactionID,
         isFromGlobalCreate,
+        isFromNativeShortcut,
         isInvoice,
         hasMultipleTransactions,
         shouldAddPendingNewTransactionIDs,

@@ -158,4 +158,35 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Navigation.dismissModal).toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
+
+    it('should navigate to search (not dismiss to report) when native shortcut from Inbox', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            isFromNativeShortcut: true,
+            hasMultipleTransactions: false,
+        });
+
+        expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
+    });
+
+    it('should dismiss to report when on Inbox without native shortcut (FAB behavior preserved)', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            isFromNativeShortcut: false,
+            hasMultipleTransactions: false,
+        });
+
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
 });

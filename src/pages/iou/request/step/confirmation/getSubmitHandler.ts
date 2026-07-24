@@ -31,6 +31,8 @@ type SubmitNavigationSnapshot = {
     isSearchTopmostFullScreen: boolean;
     /** Whether the destination report is already loaded in Onyx. */
     isDestinationReportLoaded: boolean;
+    /** Whether the expense was created from a native home-screen shortcut (force touch). */
+    isFromNativeShortcut: boolean;
 };
 
 function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean {
@@ -63,6 +65,7 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  *
  * Decision tree (evaluated top to bottom):
  *   isPreInserted && !isReportPreInserted                                       -> SEARCH_PRE_INSERT
+ *   isFromNativeShortcut && isFromGlobalCreate                                  -> SEARCH_PRE_INSERT
  *   isReportPreInserted                                                         -> REPORT_PRE_INSERT
  *   canUseDismissModalFastPath()                                                -> DISMISS_MODAL
  *   isFromGlobalCreate && canDismissFromSearch && isSearchTopmostFullScreen      -> SEARCH_DISMISS
@@ -74,6 +77,10 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  */
 function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     if (snapshot.isPreInserted && !snapshot.isReportPreInserted) {
+        return SUBMIT_HANDLER.SEARCH_PRE_INSERT;
+    }
+    // Native shortcut flows always land on Spend > Expenses, regardless of pre-insert state.
+    if (snapshot.isFromNativeShortcut && snapshot.isFromGlobalCreate) {
         return SUBMIT_HANDLER.SEARCH_PRE_INSERT;
     }
     if (snapshot.isReportPreInserted) {

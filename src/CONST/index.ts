@@ -2104,6 +2104,8 @@ const CONST = {
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
         GET_INITIAL_URL_TIMEOUT: 10000,
+        // React Navigation's default getInitialURL timeout (https://github.com/facebook/react-native/issues/25675)
+        REACT_NAVIGATION_GET_INITIAL_URL_TIMEOUT: 150,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
     DEFERRED_LAYOUT_WRITE_KEYS: {

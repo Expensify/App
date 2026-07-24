@@ -9,6 +9,7 @@ import {
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestTag,
+    setNativeShortcutFlag,
 } from '@libs/actions/IOU/MoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import Log from '@libs/Log';
@@ -734,6 +735,75 @@ describe('actions/IOU', () => {
                     // The optimistic transaction should be created
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
                 });
+        });
+
+        it('persists isFromNativeShortcut on the draft when passed (truthy spread)', async () => {
+            await waitForBatchedUpdates()
+                .then(() => {
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        personalPolicy: fakePersonalPolicy,
+                        isFromGlobalCreate: true,
+                        isFromNativeShortcut: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
+                        currentDate,
+                        currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
+                        draftTransactionIDs: [],
+                    });
+                })
+                .then(async () => {
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
+                        ...transactionResult,
+                        isFromNativeShortcut: true,
+                    });
+                });
+        });
+
+        it('omits isFromNativeShortcut from the draft when not passed (false branch)', async () => {
+            await waitForBatchedUpdates()
+                .then(() => {
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        personalPolicy: fakePersonalPolicy,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
+                        currentDate,
+                        currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
+                        draftTransactionIDs: [],
+                    });
+                })
+                .then(async () => {
+                    const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+                    expect(draft).toStrictEqual(transactionResult);
+                    expect(draft?.isFromNativeShortcut).toBeUndefined();
+                });
+        });
+    });
+
+    describe('setNativeShortcutFlag', () => {
+        it('merges isFromNativeShortcut:true onto the draft', async () => {
+            const draftTransactionID = 'draft-native-shortcut';
+            const existingDraft: Transaction = {
+                ...createRandomTransaction(6),
+                transactionID: draftTransactionID,
+                isFromNativeShortcut: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID}`, existingDraft);
+            await waitForBatchedUpdates();
+
+            setNativeShortcutFlag(draftTransactionID);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID}`);
+            expect(draft?.isFromNativeShortcut).toBe(true);
         });
     });
 

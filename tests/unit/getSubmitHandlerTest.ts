@@ -12,6 +12,7 @@ const BASE_SNAPSHOT: SubmitNavigationSnapshot = {
     isReportTopmostSplit: false,
     isSearchTopmostFullScreen: false,
     isDestinationReportLoaded: false,
+    isFromNativeShortcut: false,
 };
 
 function snap(overrides: Partial<SubmitNavigationSnapshot>): SubmitNavigationSnapshot {
@@ -348,6 +349,70 @@ describe('getSubmitHandler', () => {
                 }),
             ),
         ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
+    });
+
+    it('native shortcut + global create forces SEARCH_PRE_INSERT over REPORT_PRE_INSERT', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromNativeShortcut: true,
+                    isFromGlobalCreate: true,
+                    isReportPreInserted: true,
+                    isPreInserted: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_PRE_INSERT);
+    });
+
+    it('native shortcut + global create forces SEARCH_PRE_INSERT over DISMISS_MODAL fast path', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromNativeShortcut: true,
+                    isFromGlobalCreate: true,
+                    isReportTopmostSplit: true,
+                    destinationReportID: '123',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_PRE_INSERT);
+    });
+
+    it('native shortcut + global create forces SEARCH_PRE_INSERT over SEARCH_DISMISS', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromNativeShortcut: true,
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    isSearchTopmostFullScreen: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_PRE_INSERT);
+    });
+
+    it('native shortcut + global create forces SEARCH_PRE_INSERT even when no pre-insert has fired', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromNativeShortcut: true,
+                    isFromGlobalCreate: true,
+                    isPreInserted: false,
+                    isReportPreInserted: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_PRE_INSERT);
+    });
+
+    it('native shortcut without global create does not force SEARCH_PRE_INSERT', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromNativeShortcut: true,
+                    isFromGlobalCreate: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DEFAULT);
     });
 });
 
