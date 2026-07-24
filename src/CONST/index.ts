@@ -4507,7 +4507,7 @@ const CONST = {
         XX_SMALL: 'xx-small',
         X_SMALL: 'x-small',
         SMALL: 'small',
-        // Alias of MEDIUM, used as the default avatar size
+        // The default avatar size, mapping to the medium avatar dimensions (variables.avatarSizeMedium)
         DEFAULT: 'medium',
         LARGE: 'large',
         X_LARGE: 'x-large',

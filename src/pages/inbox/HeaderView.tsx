@@ -313,7 +313,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const multipleAvatars = (
         <ReportActionAvatars
             reportID={report?.reportID}
-            size={shouldShowSubscript ? CONST.AVATAR_SIZE.DEFAULT : undefined}
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
         />
     );

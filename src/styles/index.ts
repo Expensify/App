@@ -2522,8 +2522,8 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -18,
             bottom: -18,
-            borderWidth: 2,
-            borderRadius: 14,
+            borderWidth: variables.avatarBorderWidthSmall,
+            borderRadius: (variables.avatarSizeXSmall + 2 * variables.avatarBorderWidthSmall) / 2,
             borderColor: 'transparent',
         },
 
@@ -2531,8 +2531,8 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -14,
             bottom: -14,
-            borderWidth: 2,
-            borderRadius: 10,
+            borderWidth: variables.avatarBorderWidthSmall,
+            borderRadius: (variables.avatarSizeXxxSmall + 2 * variables.avatarBorderWidthSmall) / 2,
             borderColor: 'transparent',
         },
 
@@ -2540,8 +2540,8 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -36,
             bottom: -36,
-            borderWidth: 3,
-            borderRadius: 52,
+            borderWidth: variables.avatarBorderWidthDefault,
+            borderRadius: variables.avatarSizeXLarge,
             borderColor: 'transparent',
         },
 
@@ -2549,7 +2549,7 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -42,
             bottom: -42,
-            borderWidth: 3,
+            borderWidth: variables.avatarBorderWidthDefault,
             borderRadius: variables.avatarSizeXxLarge,
             borderColor: 'transparent',
         },
@@ -2937,9 +2937,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         roomHeaderAvatar: {
             backgroundColor: theme.appBG,
-            borderRadius: 100,
+            borderRadius: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
             borderColor: theme.componentBG,
-            borderWidth: 4,
+            borderWidth: variables.avatarBorderWidthLarge,
         },
 
         roomHeaderAvatarOverlay: {
@@ -4844,17 +4844,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarStatusAvatarContainer: {
-            height: 40,
-            width: 40,
+            height: variables.avatarSizeMedium,
+            width: variables.avatarSizeMedium,
             backgroundColor: theme.componentBG,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 20,
+            borderRadius: variables.avatarSizeMedium / 2,
         },
 
         sidebarStatusAvatarWithEmojiContainer: {
-            height: 28,
-            width: 28,
+            height: variables.avatarSizeSmall,
+            width: variables.avatarSizeSmall,
             top: -2,
         },
 
@@ -4862,14 +4862,14 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: theme.border,
-            height: 20,
-            width: 20,
-            borderRadius: 10,
+            height: variables.avatarSizeXxSmall,
+            width: variables.avatarSizeXxSmall,
+            borderRadius: variables.avatarSizeXxSmall / 2,
             position: 'absolute',
             right: -6,
             bottom: -6,
             borderColor: theme.appBG,
-            borderWidth: 2,
+            borderWidth: variables.avatarBorderWidthSmall,
             overflow: 'hidden',
         },
 

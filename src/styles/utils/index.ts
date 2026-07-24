@@ -122,7 +122,7 @@ const eReceiptColors: EReceiptColorName[] = [
     CONST.ERECEIPT_COLORS.PINK,
 ];
 
-const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
+const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.XXX_SMALL]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.componentBorderRadiusMedium,
@@ -134,7 +134,7 @@ const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.XX_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.componentBorderRadiusLarge,
-};
+} satisfies Record<AvatarSizeName, number>;
 
 const avatarSizes = {
     [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.avatarSizeXxxxSmall,
@@ -152,7 +152,7 @@ const avatarSizes = {
 
 type AvatarSizeValue = ValueOf<typeof avatarSizes>;
 
-const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
+const avatarFontSizes = {
     [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.XXX_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.fontSizeExtraSmall,
@@ -164,9 +164,9 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.XX_LARGE]: variables.fontSizeXLarge,
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.fontSizeXLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.fontSizeXLarge,
-};
+} satisfies Record<AvatarSizeName, number>;
 
-const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
+const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.XXX_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarBorderWidthSmall,
@@ -178,7 +178,7 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.XX_LARGE]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarBorderWidthLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarBorderWidthLarge,
-};
+} satisfies Record<AvatarSizeName, number>;
 
 /**
  * Converts a color in hexadecimal notation into RGB notation.
@@ -266,7 +266,7 @@ function getAvatarSize(size: AvatarSizeName): AvatarSizeValue {
  */
 function getAvatarSizeWithBorder(size: AvatarSizeName): number {
     const avatarSize = getAvatarSize(size);
-    const borderWidth = avatarBorderWidths[size] ?? avatarBorderWidths[CONST.AVATAR_SIZE.DEFAULT] ?? 0;
+    const borderWidth = avatarBorderWidths[size];
     return avatarSize + 2 * borderWidth;
 }
 
@@ -285,8 +285,7 @@ function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
  */
 function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
     return {
-        // Fall back to the default (MEDIUM) avatar overlay font.
-        fontSize: avatarFontSizes[size] ?? avatarFontSizes[CONST.AVATAR_SIZE.DEFAULT],
+        fontSize: avatarFontSizes[size],
     };
 }
 
@@ -295,8 +294,7 @@ function getAvatarExtraFontSizeStyle(size: AvatarSizeName): TextStyle {
  */
 function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
     return {
-        // Fall back to the default (MEDIUM) avatar border width.
-        borderWidth: avatarBorderWidths[size] ?? avatarBorderWidths[CONST.AVATAR_SIZE.DEFAULT],
+        borderWidth: avatarBorderWidths[size],
     };
 }
 
@@ -305,8 +303,7 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
  */
 function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
-        // Fall back to the default (MEDIUM) avatar border radius.
-        return {borderRadius: avatarBorderSizes[size] ?? avatarBorderSizes[CONST.AVATAR_SIZE.DEFAULT]};
+        return {borderRadius: avatarBorderSizes[size]};
     }
 
     // Default to rounded border
@@ -953,7 +950,7 @@ function getHorizontalStackedAvatarStyle(index: number, overlapSize: number, fir
  */
 function getHorizontalStackedOverlayAvatarStyle(size: AvatarSizeName): ViewStyle {
     const avatarSize = getAvatarSize(size);
-    const borderWidth = avatarBorderWidths[size] ?? avatarBorderWidths[CONST.AVATAR_SIZE.DEFAULT] ?? 0;
+    const borderWidth = avatarBorderWidths[size];
 
     return {
         borderWidth,

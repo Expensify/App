@@ -55,7 +55,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3 + 2 * oneAvatarBorderWidth;
-    const height = oneAvatarSize.height;
+    const height = StyleUtils.getAvatarSizeWithBorder(size);
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), styles.overflowHidden]);
 
     const icons = sortIconsByName(attendeeIcons, personalDetails, localeCompare);
