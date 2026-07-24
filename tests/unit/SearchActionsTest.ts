@@ -1,9 +1,6 @@
-import {deleteSavedSearch, queueExportSearchItemsToCSV, queueExportSearchWithTemplate, saveSearch, search} from '@libs/actions/Search';
-import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {deleteSavedSearch, getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate, saveSearch, search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, write} from '@libs/API';
-import {write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
