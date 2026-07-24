@@ -12,7 +12,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
@@ -49,8 +48,6 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
@@ -243,40 +240,36 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             interactive={canWriteDistanceRates}
                         />
                     </OfflineWithFeedback>
-                    {isDateBoundMileageRateEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate ?? {}, 'startDate')}
-                            pendingAction={rate?.pendingFields?.startDate}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('startDate')}
-                        >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
-                                description={translate('workspace.distanceRates.startDate')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={editStartDate}
-                                interactive={canWriteDistanceRates}
-                            />
-                        </OfflineWithFeedback>
-                    )}
-                    {isDateBoundMileageRateEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate ?? {}, 'endDate')}
-                            pendingAction={rate?.pendingFields?.endDate}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('endDate')}
-                        >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
-                                description={translate('workspace.distanceRates.endDate')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={editEndDate}
-                                interactive={canWriteDistanceRates}
-                            />
-                        </OfflineWithFeedback>
-                    )}
+                    <OfflineWithFeedback
+                        errors={getLatestErrorField(rate ?? {}, 'startDate')}
+                        pendingAction={rate?.pendingFields?.startDate}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('startDate')}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canWriteDistanceRates}
+                            title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
+                            description={translate('workspace.distanceRates.startDate')}
+                            descriptionTextStyle={styles.textNormal}
+                            onPress={editStartDate}
+                            interactive={canWriteDistanceRates}
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={getLatestErrorField(rate ?? {}, 'endDate')}
+                        pendingAction={rate?.pendingFields?.endDate}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('endDate')}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canWriteDistanceRates}
+                            title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
+                            description={translate('workspace.distanceRates.endDate')}
+                            descriptionTextStyle={styles.textNormal}
+                            onPress={editEndDate}
+                            interactive={canWriteDistanceRates}
+                        />
+                    </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(rate, 'taxRateExternalID')}

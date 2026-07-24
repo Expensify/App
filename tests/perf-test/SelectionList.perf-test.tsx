@@ -65,6 +65,7 @@ jest.mock('@react-navigation/stack', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useFocusEffect: () => {},
     useIsFocused: () => true,
     createNavigationContainerRef: jest.fn(),

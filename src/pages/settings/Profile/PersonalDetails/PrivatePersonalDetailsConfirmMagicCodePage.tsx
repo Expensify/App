@@ -66,7 +66,7 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
     return (
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
-            descriptionPrimary={translate('contacts.enterMagicCode', primaryLogin ?? '')}
+            descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}

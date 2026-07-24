@@ -15,6 +15,7 @@ import {View} from 'react-native';
 import Avatar from './Avatar';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
+import UserInitialsAvatar from './UserInitialsAvatar';
 
 type AvatarSelectorProps = {
     /** Currently selected avatar ID */
@@ -22,9 +23,6 @@ type AvatarSelectorProps = {
 
     /** Called when an avatar is selected */
     onSelect: (id: string) => void;
-
-    /** Used to generate letter avatars */
-    name?: string;
 
     /** Optional: size of avatars in grid */
     size?: AvatarSizeName;
@@ -38,17 +36,17 @@ const SPACER_SIZE = 10;
 /**
  * AvatarSelector — renders a grid of selectable avatars.
  */
-function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_SIZE.MEDIUM}: AvatarSelectorProps) {
+function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.MEDIUM}: AvatarSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {avatarList} = useLetterAvatars(name, size);
+    const {initials, options: letterAvatarOptions} = useLetterAvatars();
 
     const iconSize = StyleUtils.getAvatarSize(size);
 
     return (
         <>
-            {!!label && avatarList?.length > 0 && (
+            {!!label && letterAvatarOptions.length > 0 && (
                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre, styles.ph2])}>{label}</Text>
             )}
             <View style={styles.avatarSelectorListContainer}>
@@ -74,7 +72,7 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                         </PressableWithFeedback>
                     );
                 })}
-                {avatarList.map(({id, StyledLetterAvatar}) => {
+                {letterAvatarOptions.map(({id, colors}) => {
                     const isSelected = selectedID === id;
 
                     return (
@@ -86,13 +84,16 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                             onPress={() => onSelect(id)}
                             style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
                         >
-                            <Avatar
-                                type={CONST.ICON_TYPE_AVATAR}
-                                source={StyledLetterAvatar}
-                                size={size}
-                                containerStyles={styles.avatarSelectorContainer}
+                            <View
+                                style={styles.avatarSelectorContainer}
                                 testID={`AvatarSelector_${id}`}
-                            />
+                            >
+                                <UserInitialsAvatar
+                                    text={initials}
+                                    colors={colors}
+                                    size={iconSize}
+                                />
+                            </View>
                         </PressableWithFeedback>
                     );
                 })}

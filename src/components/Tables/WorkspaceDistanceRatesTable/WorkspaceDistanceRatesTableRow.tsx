@@ -62,7 +62,10 @@ function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>,
             return theme.reportStatusBadge.outstanding;
         case CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE:
         default:
-            return {backgroundColor: isSelected ? theme.buttonHoveredBG : theme.badgeDefaultBG, textColor: theme.text};
+            return {
+                backgroundColor: isSelected ? theme.buttonHoveredBG : theme.badgeDefaultBG,
+                textColor: theme.text,
+            };
     }
 }
 
@@ -102,6 +105,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={rate.name ?? ''}
                                 style={[styles.optionDisplayName, styles.pre]}
                             />
@@ -112,6 +116,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     textColor={statusColors.textColor}
                                 />
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={[formattedRate, dateLabelText].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `)}
                                     numberOfLines={1}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
@@ -133,6 +138,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={rate.name ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -143,6 +149,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={formattedRate}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -153,6 +160,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {!shouldUseNarrowTableLayout && shouldShowDateColumns && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={formatDate(rate.startDate)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -163,6 +171,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {!shouldUseNarrowTableLayout && shouldShowDateColumns && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={formatDate(rate.endDate)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}

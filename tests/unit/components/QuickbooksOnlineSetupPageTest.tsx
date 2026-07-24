@@ -5,6 +5,7 @@ import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/Quickbooks
 // This test exercises the native (in-app WebView) variant; jest resolves the `.native` entry point by default.
 import QuickbooksOnlineSetupPage from '@pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage/index.native';
 
+import {getShortLivedAuthTokenURL} from '@userActions/Link';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 
 import React from 'react';
@@ -36,6 +37,10 @@ jest.mock('@libs/actions/connections/QuickbooksOnline', () => ({
 jest.mock('@userActions/Policy/Policy', () => ({
     enablePolicyTaxes: jest.fn(),
 }));
+jest.mock('@userActions/Link', () => ({
+    getShortLivedAuthTokenURL: jest.fn((setupLink: string) => Promise.resolve(`${setupLink}?authToken=short-lived-auth-token`)),
+}));
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
@@ -69,6 +74,7 @@ const mockRoute = {
 
 const mockedGetQuickbooksOnlineSetupLink = jest.mocked(getQuickbooksOnlineSetupLink);
 const mockedEnablePolicyTaxes = jest.mocked(enablePolicyTaxes);
+const mockedGetShortLivedAuthTokenURL = jest.mocked(getShortLivedAuthTokenURL);
 
 const renderQuickbooksOnlineSetupPage = () =>
     render(
@@ -94,6 +100,8 @@ describe('QuickbooksOnlineSetupPage', () => {
         renderQuickbooksOnlineSetupPage();
 
         expect(mockedGetQuickbooksOnlineSetupLink).toHaveBeenCalledWith(POLICY_ID);
+        // QBO does not opt into the short-lived auth token, so the WebView must mount immediately with the raw setup link.
+        expect(mockedGetShortLivedAuthTokenURL).not.toHaveBeenCalled();
         expect(screen.getByTestId('qbo-webview')).toBeOnTheScreen();
         expect(mockWebViewProps.current?.source?.uri).toBe(`https://qbo-setup.example/${POLICY_ID}`);
     });

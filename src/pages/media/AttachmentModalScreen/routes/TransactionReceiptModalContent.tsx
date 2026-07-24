@@ -266,9 +266,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyTagList, transactionViolations, policyCategories);
+        detachReceipt(transaction, policy, policyTagList, transactionViolations, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList, transactionViolations]);
+    }, [transaction, policy, policyTagList, transactionViolations, policyCategories, navigation]);
 
     /**
      * Remove odometer image and close the modal.
@@ -306,7 +306,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
                 } else {
                     replaceReceipt({
-                        transactionID: transaction.transactionID,
+                        transaction,
                         file: durableFile,
                         source: durableUri,
                         transactionPolicyCategories: policyCategories,

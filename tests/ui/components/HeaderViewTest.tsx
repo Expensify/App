@@ -24,7 +24,8 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import {createRandomReport} from '../../utils/collections/reports';
+import {createRandomReport, createRegularChat} from '../../utils/collections/reports';
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -53,8 +54,9 @@ describe('HeaderView', () => {
         });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         jest.clearAllMocks();
+        await Onyx.clear();
     });
 
     beforeAll(() => {
@@ -195,5 +197,94 @@ describe('HeaderView', () => {
 
         // Then the header should display a title containing the message about held expenses
         expect(screen.getByTestId('DisplayNames')).toHaveTextContent(/created this report for any held expenses from/);
+    });
+
+    const accountManagerAccountID = 777;
+    const otherAccountID = 888;
+    const accountManagerCalendarLink = 'https://calendly.com/account-manager/expensify';
+
+    const personalDetailsList = {
+        [currentUserAccountID]: {accountID: currentUserAccountID, login: 'me@example.com', displayName: 'My Account'},
+        [accountManagerAccountID]: {accountID: accountManagerAccountID, login: 'am@example.com', displayName: 'Account Manager'},
+        [otherAccountID]: {accountID: otherAccountID, login: 'other@example.com', displayName: 'Someone Else'},
+    };
+
+    function renderHeader(reportID: string) {
+        return render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <HeaderView
+                    onNavigationMenuButtonClicked={() => {}}
+                    reportID={reportID}
+                />
+            </ComposeProviders>,
+        );
+    }
+
+    it('should display the Book a call button in the 1:1 DM with the account manager', async () => {
+        // Given a 1:1 DM with the assigned account manager who has a calendar link
+        const report = createRegularChat(500, [currentUserAccountID, accountManagerAccountID]);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+        });
+
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Book a call button is shown
+        expect(screen.getByText(translateLocal('videoChatButtonAndMenu.tooltip'))).toBeOnTheScreen();
+    });
+
+    it('should display the Book a call button in the Concierge chat when an account manager is assigned', async () => {
+        // Given the Concierge chat and an assigned account manager with a calendar link
+        const report = createRegularChat(501, [currentUserAccountID]);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+        });
+
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Book a call button is shown
+        expect(screen.getByText(translateLocal('videoChatButtonAndMenu.tooltip'))).toBeOnTheScreen();
+    });
+
+    it('should not display the Book a call button in the account manager DM when there is no calendar link', async () => {
+        // Given a 1:1 DM with the account manager but no calendar link
+        const report = createRegularChat(500, [currentUserAccountID, accountManagerAccountID]);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID)});
+        });
+
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Book a call button is not shown
+        expect(screen.queryByText(translateLocal('videoChatButtonAndMenu.tooltip'))).not.toBeOnTheScreen();
+    });
+
+    it('should not display the Book a call button in a 1:1 DM with someone who is not the account manager', async () => {
+        // Given a 1:1 DM whose participant is not the assigned account manager
+        const report = createRegularChat(500, [currentUserAccountID, otherAccountID]);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+        });
+
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Book a call button is not shown
+        expect(screen.queryByText(translateLocal('videoChatButtonAndMenu.tooltip'))).not.toBeOnTheScreen();
     });
 });

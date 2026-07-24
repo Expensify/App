@@ -11,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -65,6 +66,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     const [selectedCustomDate, setSelectedCustomDate] = useState<number | undefined>(defaultStatementPeriodEndDay);
     const [isChoosingCustomDate, setIsChoosingCustomDate] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const title = useMemo(
         () => (isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')),
@@ -100,18 +102,20 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
             return;
         }
 
-        if (selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH) {
-            if (!selectedCustomDate) {
-                setError(translate('workspace.moreFeatures.companyCards.error.statementCloseDateRequired'));
-                return;
-            }
-
-            onSubmit(undefined, selectedCustomDate);
+        if (selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && !selectedCustomDate) {
+            setError(translate('workspace.moreFeatures.companyCards.error.statementCloseDateRequired'));
             return;
         }
 
-        onSubmit(selectedDate, undefined);
-    }, [selectedDate, selectedCustomDate, onSubmit, translate]);
+        startWithLoading(() => {
+            if (selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH) {
+                onSubmit(undefined, selectedCustomDate);
+                return;
+            }
+
+            onSubmit(selectedDate, undefined);
+        });
+    }, [selectedDate, selectedCustomDate, onSubmit, translate, startWithLoading]);
 
     return (
         <ScreenWrapper
@@ -183,6 +187,8 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                             buttonText={confirmText}
                             onSubmit={submit}
                             enabledWhenOffline={enabledWhenOffline}
+                            shouldShowLoadingImmediatelyOnPress={false}
+                            isLoading={isLoading}
                         />
                     </FixedFooter>
                 </>

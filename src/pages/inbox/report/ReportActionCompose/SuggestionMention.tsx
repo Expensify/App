@@ -13,7 +13,6 @@ import usePolicy from '@hooks/usePolicy';
 
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
@@ -24,6 +23,7 @@ import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -100,7 +100,7 @@ function SuggestionMention({
     );
 
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [mentionableReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: mentionableReportsSelector}, [policyID]);
+    const [mentionableReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: mentionableReportsSelector});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -342,20 +342,26 @@ function SuggestionMention({
 
     const getUserMentionOptions = useCallback(
         (searchValue = ''): Mention[] => {
-            const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
-            const shouldWeightDetails = isGroupChat(currentReport) || doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID, conciergeReportID);
+            const shouldWeightDetails = isGroupChat(currentReport) || doesReportBelongToWorkspace(currentReport, policyID, conciergeReportID);
 
             let personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined;
 
             if (!shouldWeightDetails) {
                 personalDetailsParam = personalDetails;
             } else {
+                const isPolicyEmployee = (detail: PersonalDetails): boolean => {
+                    if (!detail.login || detail.accountID === currentUserPersonalDetails.accountID) {
+                        return false;
+                    }
+                    const policyEmployee = policy?.employeeList?.[detail.login];
+                    return !!policyEmployee && isEmptyObject(policyEmployee.errors);
+                };
                 // Smaller weight means higher order in suggestion list
                 const getPersonalDetailsWeight = (detail: PersonalDetails): number => {
                     if (isReportParticipant(detail.accountID, currentReport)) {
                         return 0;
                     }
-                    if (policyEmployeeAccountIDs.includes(detail.accountID)) {
+                    if (isPolicyEmployee(detail)) {
                         return 1;
                     }
                     return 2;

@@ -1,17 +1,44 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import fileURIToPath from '@libs/fileURIToPath';
+
 import CONST from '@src/CONST';
 
 import type {FetchBlobResponse} from 'react-native-blob-util';
 
+import {PermissionsAndroid, Platform} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 
 import type {FileDownload} from './types';
 
 import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
-import hasGalleryWritePermission from './hasGalleryWritePermission';
-import saveLocalFileToGallery from './saveLocalFileToGallery';
+
+/**
+ * Android permission check to store images
+ */
+function hasAndroidPermission(): Promise<boolean> {
+    // On Android API Level 33 and above, these permissions do nothing and always return 'never_ask_again'
+    // More info here: https://stackoverflow.com/a/74296799
+    if (Number(Platform.Version) >= 33) {
+        return Promise.resolve(true);
+    }
+
+    // Read and write permission
+    const writePromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+    const readPromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
+
+    return Promise.all([writePromise, readPromise]).then(([hasWritePermission, hasReadPermission]) => {
+        if (hasWritePermission && hasReadPermission) {
+            return true; // Return true if permission is already given
+        }
+
+        // Ask for permission if not given
+        return PermissionsAndroid.requestMultiple([PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE]).then(
+            (status) => status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted' && status['android.permission.WRITE_EXTERNAL_STORAGE'] === 'granted',
+        );
+    });
+}
 
 /**
  * Handling the download
@@ -28,7 +55,8 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
 
         const isLocalFile = url.startsWith('file://');
 
-        let attachmentPath = isLocalFile ? decodeURI(url) : undefined;
+        // copyToMediaStore and fs.unlink take a bare POSIX path, not a file:// URI.
+        let attachmentPath = isLocalFile ? fileURIToPath(url) : undefined;
         let fetchedAttachment: Promise<void | FetchBlobResponse> = Promise.resolve();
 
         if (!isLocalFile) {
@@ -55,7 +83,15 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
                     attachmentPath = (attachment as FetchBlobResponse).path();
                 }
 
-                return saveLocalFileToGallery(isLocalFile ? url : (attachmentPath ?? ''), attachmentName);
+                return RNFetchBlob.MediaCollection.copyToMediaStore(
+                    {
+                        name: attachmentName,
+                        parentFolder: 'Expensify',
+                        mimeType: null,
+                    },
+                    'Download',
+                    attachmentPath ?? '',
+                );
             })
             .then(() => {
                 if (attachmentPath && shouldUnlink) {
@@ -93,7 +129,17 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`;
             return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
         })
-        .then((downloadPath) => saveLocalFileToGallery(downloadPath, getFileName(downloadPath)).then(() => downloadPath))
+        .then((downloadPath) =>
+            RNFetchBlob.MediaCollection.copyToMediaStore(
+                {
+                    name: getFileName(downloadPath),
+                    parentFolder: 'Expensify',
+                    mimeType: null,
+                },
+                'Download',
+                downloadPath,
+            ).then(() => downloadPath),
+        )
         .then((downloadPath) => {
             RNFetchBlob.fs.unlink(downloadPath);
             showSuccessAlert(translate);
@@ -111,7 +157,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
  */
 const fileDownload: FileDownload = (translate, url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink, appendTimestamp = true) =>
     new Promise((resolve) => {
-        hasGalleryWritePermission()
+        hasAndroidPermission()
             .then((hasPermission) => {
                 if (hasPermission) {
                     if (requestType === CONST.NETWORK.METHOD.POST) {
