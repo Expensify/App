@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, isExpensifyCard as isExpensifyCardUtil} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -66,6 +66,11 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     const [cardFeeds] = useCardFeeds(policyID);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, cardFeeds?.[feed]);
 
+    // This page is a dynamic page and is used by both Expensify Cards and Company Cards
+    const isExpensifyCard = isExpensifyCardUtil(card);
+    const featureName = isExpensifyCard ? CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED;
+    const policyFeature = isExpensifyCard ? CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD : CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS;
+
     const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.text ?? option.value]);
 
     const listEmptyContent = (
@@ -93,8 +98,8 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            featureName={featureName}
+            policyFeature={policyFeature}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <SelectionScreen
@@ -118,7 +123,7 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
                         )}
                     </View>
                 }
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+                featureName={featureName}
                 displayName="DynamicWorkspaceCompanyCardAccountSelectCardPage"
                 data={searchedListOptions ?? []}
                 textInputOptions={{
