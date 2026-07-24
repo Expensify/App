@@ -618,6 +618,52 @@ describe('PersonalDetailsUtils', () => {
             const result = getAccountIDsByLogins([]);
             expect(result).toEqual([]);
         });
+
+        it('should prefer the live account when a closed merged-away account shares the same login', async () => {
+            // A closed merged-away account is served with the MERGED_ prefix stripped from its login,
+            // so it collides with the live account's login. The closed entry has the higher accountID,
+            // which would win the collision without the isClosed check.
+            const personalDetails: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    validated: true,
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                    validated: false,
+                    isClosed: true,
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID1]);
+        });
+
+        it('should prefer the validated account on a login collision when isClosed is unavailable', async () => {
+            // Personal details cached before the backend started sending isClosed have no flag at all,
+            // so the validated entry is the best available signal for the live account.
+            const personalDetails: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    validated: true,
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                    validated: false,
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID1]);
+        });
     });
 
     describe('getPersonalDetailByEmail', () => {
