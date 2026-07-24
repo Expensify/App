@@ -16,18 +16,18 @@ jest.mock('@libs/actions/Search', () => ({seedMyExpensesSearch: jest.fn()}));
 
 const ACCOUNT_ID = 12345;
 
-function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
-    return [value, {status: 'loaded'}];
+function createOnyxResult<T>(value: NonNullable<T> | undefined, status: 'loading' | 'loaded' = 'loaded'): UseOnyxResult<T> {
+    return [value, {status}];
 }
 
-function setupMocks({isDualRole = false, hasSeeded = false, accountID = ACCOUNT_ID} = {}) {
+function setupMocks({isDualRole = false, hasSeeded = false, accountID = ACCOUNT_ID, savedSearchesStatus = 'loaded' as 'loading' | 'loaded'} = {}) {
     const mockUseOnyx = jest.mocked(useOnyx);
     mockUseOnyx.mockImplementation((key: OnyxKey) => {
         if (key === ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH) {
             return createOnyxResult(hasSeeded);
         }
         if (key === ONYXKEYS.SAVED_SEARCHES) {
-            return createOnyxResult(undefined);
+            return createOnyxResult(undefined, savedSearchesStatus);
         }
         if (key === ONYXKEYS.SESSION) {
             return createOnyxResult(accountID === ACCOUNT_ID ? accountID : CONST.DEFAULT_NUMBER_ID);
@@ -83,6 +83,41 @@ describe('useSeedMyExpensesSearch', () => {
     it('does not seed twice on re-render', () => {
         setupMocks({isDualRole: true});
         const {rerender} = renderHook(() => useSeedMyExpensesSearch());
+        rerender({});
+        expect(Search.seedMyExpensesSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not seed while saved searches are still loading', () => {
+        // Guards against the load race: seeding before `nvp_savedSearches` has hydrated would bypass the
+        // duplicate-hash check in seedMyExpensesSearch and overwrite a pre-existing search of the same query.
+        setupMocks({isDualRole: true, savedSearchesStatus: 'loading'});
+        renderHook(() => useSeedMyExpensesSearch());
+        expect(Search.seedMyExpensesSearch).not.toHaveBeenCalled();
+    });
+
+    it('seeds once saved searches finish loading', () => {
+        const mockUseOnyx = jest.mocked(useOnyx);
+        let savedSearchesStatus: 'loading' | 'loaded' = 'loading';
+        mockUseOnyx.mockImplementation((key: OnyxKey) => {
+            if (key === ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH) {
+                return createOnyxResult(false);
+            }
+            if (key === ONYXKEYS.SAVED_SEARCHES) {
+                return createOnyxResult(undefined, savedSearchesStatus);
+            }
+            if (key === ONYXKEYS.SESSION) {
+                return createOnyxResult(ACCOUNT_ID);
+            }
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return createOnyxResult(true);
+            }
+            return createOnyxResult(undefined);
+        });
+
+        const {rerender} = renderHook(() => useSeedMyExpensesSearch());
+        expect(Search.seedMyExpensesSearch).not.toHaveBeenCalled();
+
+        savedSearchesStatus = 'loaded';
         rerender({});
         expect(Search.seedMyExpensesSearch).toHaveBeenCalledTimes(1);
     });

@@ -17,7 +17,7 @@ const createIsSubmitterAndApproverSelector = (currentUserEmail: string | undefin
 function useSeedMyExpensesSearch() {
     const {translate} = useLocalize();
     const [hasSeededMyExpensesSearch] = useOnyx(ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH);
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [savedSearches, savedSearchesMetadata] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isSubmitterAndApproverSelector = useMemo(() => createIsSubmitterAndApproverSelector(currentUserEmail), [currentUserEmail]);
@@ -25,7 +25,16 @@ function useSeedMyExpensesSearch() {
     const hasSeededRef = useRef(false);
 
     useEffect(() => {
-        if (hasSeededRef.current || hasSeededMyExpensesSearch || !currentUserAccountID || !currentUserEmail || isSubmitterAndApproverUser === undefined) {
+        // Wait for the saved searches to finish loading before seeding. Their value is `undefined` both while loading and when empty,
+        // so gating on the load status (instead of the value) prevents seeding over a pre-existing search that has not synced yet.
+        if (
+            hasSeededRef.current ||
+            hasSeededMyExpensesSearch ||
+            !currentUserAccountID ||
+            !currentUserEmail ||
+            isSubmitterAndApproverUser === undefined ||
+            savedSearchesMetadata.status !== 'loaded'
+        ) {
             return;
         }
 
@@ -33,7 +42,7 @@ function useSeedMyExpensesSearch() {
             hasSeededRef.current = true;
             seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'), savedSearches);
         }
-    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, isSubmitterAndApproverUser, translate, savedSearches]);
+    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, isSubmitterAndApproverUser, translate, savedSearches, savedSearchesMetadata.status]);
 }
 
 export default useSeedMyExpensesSearch;
