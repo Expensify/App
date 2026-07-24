@@ -474,7 +474,7 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
         return true;
     }
 
-    if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+    if (arePaymentsEnabledUtils(policy) && policy?.role === CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
 
