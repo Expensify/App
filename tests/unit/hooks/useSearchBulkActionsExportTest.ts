@@ -44,7 +44,7 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     exportToIntegrationOnSearch: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
@@ -69,16 +69,16 @@ jest.mock('@libs/actions/Search', () => ({
 }));
 
 // Control which export actions a report supports without depending on the full
-// integration/permission chain in getSecondaryExportReportActions. The key behavior under
+// integration/permission chain in getReportAccountingExportActions. The key behavior under
 // test is that the snapshot-resolved report (truthy) reaches this function; without the fix
 // the report is undefined and canReportBeExported bails before ever calling it.
-const mockGetSecondaryExportReportActions = jest.fn((...args: Parameters<typeof ReportSecondaryActionUtilsModule.getSecondaryExportReportActions>) => {
+const mockGetSecondaryExportReportActions = jest.fn((...args: Parameters<typeof ReportSecondaryActionUtilsModule.getReportAccountingExportActions>) => {
     const report = args[2];
     return report ? [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED] : [];
 });
 jest.mock('@libs/ReportSecondaryActionUtils', () => ({
     ...jest.requireActual<typeof ReportSecondaryActionUtilsModule>('@libs/ReportSecondaryActionUtils'),
-    getSecondaryExportReportActions: (...args: Parameters<typeof ReportSecondaryActionUtilsModule.getSecondaryExportReportActions>) => mockGetSecondaryExportReportActions(...args),
+    getReportAccountingExportActions: (...args: Parameters<typeof ReportSecondaryActionUtilsModule.getReportAccountingExportActions>) => mockGetSecondaryExportReportActions(...args),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({

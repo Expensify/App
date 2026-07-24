@@ -23,6 +23,7 @@ import {
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getFilterFromQuery,
+    getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
@@ -33,6 +34,7 @@ import {
     getValidLastQuery,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
+    isSearchBeforeViolationsSnapshotStarted,
     isSearchRootParams,
     serializeQueryJSONForBackend,
     shouldHighlight,
@@ -3982,6 +3984,91 @@ describe('SearchQueryUtils', () => {
 
         it('returns false when the query is undefined but the default query has filter keys', () => {
             expect(doesQueryMatchDefaultFilterKeysAndType(undefined, defaultQueryJSON)).toBe(false);
+        });
+    });
+
+    describe('getDateFilterRange', () => {
+        test('returns start and end for an on-date filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:2025-03-15');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-15',
+                end: '2025-03-15',
+            });
+        });
+
+        test('returns start and end for an inclusive date range', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2025-03-01 date<=2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-01',
+                end: '2025-03-10',
+            });
+        });
+
+        test('excludes exact boundary days for exclusive greater than and less than filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>2025-03-01 date<2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-02',
+                end: '2025-03-09',
+            });
+        });
+    });
+
+    describe('isSearchBeforeViolationsSnapshotStarted', () => {
+        const violationSnapshotStartedAt = '2026-06-20';
+
+        test('returns false when violationSnapshotStartedAt is undefined', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:2025-03-15');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, undefined)).toBe(false);
+        });
+
+        test('returns true when the start date is before the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2025-03-01 date<=2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(true);
+        });
+
+        test('returns true when the end date is before the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-01-01 date<=2026-06-01');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(true);
+        });
+
+        test('returns false when both start and end are on or after the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-06-20 date<=2026-07-01');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(false);
         });
     });
 });
