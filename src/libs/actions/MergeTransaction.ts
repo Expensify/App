@@ -28,12 +28,13 @@ import {
 } from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getReportOwnerAccountIDAsAttendee, getReportOwnerAsAttendee, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
     CardList,
     MergeTransaction,
+    PersonalDetailsList,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -43,6 +44,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
@@ -54,6 +56,20 @@ import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU/Upd
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
+
+/**
+ * Resolve a transaction's report owner as a default attendee, mirroring the `useReportOwnerAsAttendee` hook so the
+ * non-React merge entry point can apply the same empty-attendee fallback the details/receipt pages use. The Onyx data
+ * is passed in by the caller rather than read from a module subscription.
+ */
+function getReportOwnerAsAttendeeForTransaction(
+    transaction: OnyxEntry<Transaction>,
+    currentUserAccountID: number | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): Attendee | undefined {
+    const ownerAccountID = getReportOwnerAccountIDAsAttendee(transaction, currentUserAccountID);
+    return getReportOwnerAsAttendee(ownerAccountID ? (personalDetails?.[ownerAccountID] ?? undefined) : undefined);
+}
 
 /**
  * Setup merge transaction data for merging flow
@@ -78,6 +94,8 @@ function setupMergeTransactionDataAndNavigate(
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
     policies?: Array<OnyxEntry<Policy>>,
+    currentUserAccountID?: number,
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;
@@ -126,6 +144,8 @@ function setupMergeTransactionDataAndNavigate(
             searchReports,
             targetTransactionPolicy,
             sourceTransactionPolicy,
+            getReportOwnerAsAttendeeForTransaction(targetTransaction, currentUserAccountID, personalDetails),
+            getReportOwnerAsAttendeeForTransaction(sourceTransaction, currentUserAccountID, personalDetails),
         );
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page

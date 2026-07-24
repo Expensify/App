@@ -48,6 +48,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const {isOffline} = useNetwork();
@@ -163,10 +164,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-        ]);
+        setupMergeTransactionDataAndNavigate(
+            transactionID,
+            [targetTransaction, sourceTransaction],
+            localeCompare,
+            getCurrencyDecimals,
+            reports,
+            true,
+            undefined,
+            [targetTransactionPolicy, sourceTransactionPolicy],
+            session?.accountID,
+            personalDetails,
+        );
     };
 
     const confirmButtonOptions = {

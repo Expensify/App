@@ -20,18 +20,15 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, Policy, Report} from '@src/types/onyx';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format} from 'date-fns';
-import {SafeString} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
-import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -127,14 +124,6 @@ const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
-    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
-        ...createPersonalDetails(RORY_ACCOUNT_ID),
-        login: RORY_EMAIL,
-        email: RORY_EMAIL,
-        displayName: RORY_EMAIL,
-        avatar: 'https://example.com/avatar.jpg',
-    };
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -523,15 +512,7 @@ describe('actions/IOU', () => {
         };
         const transactionResult: Transaction = {
             amount: 0,
-            comment: {
-                attendees: [
-                    {
-                        email: currentUserPersonalDetails.email ?? '',
-                        avatarUrl: SafeString(currentUserPersonalDetails.avatar) ?? '',
-                        displayName: currentUserPersonalDetails.displayName ?? '',
-                    },
-                ],
-            },
+            comment: {},
             created: '2025-04-01',
             currency: 'USD',
             iouRequestType: 'manual',
@@ -562,7 +543,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -585,7 +565,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -609,7 +588,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -643,7 +621,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [otherDraftTransactionID],
                     });
@@ -682,7 +659,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [otherDraftTransactionID, CONST.IOU.OPTIMISTIC_TRANSACTION_ID],
                     });
@@ -722,7 +698,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [draftTransactionID1, draftTransactionID2],
                     });
