@@ -21,9 +21,9 @@ type MenuItemCopyButtonProps = {
  */
 function MenuItemCopyButton({value}: MenuItemCopyButtonProps) {
     const styles = useThemeStyles();
-    const {isHovered} = useMenuItemState();
+    const {isHovered, isInteractive} = useMenuItemState();
 
-    if (!isHovered || !hasHoverSupport()) {
+    if (!isInteractive || !isHovered || !hasHoverSupport()) {
         return null;
     }
 
