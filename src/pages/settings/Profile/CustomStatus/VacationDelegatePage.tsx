@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,6 +24,7 @@ function VacationDelegatePage() {
     const {showConfirmModal} = useConfirmModal();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const vacationDelegateRef = useRef(vacationDelegate);
     useEffect(() => {
         vacationDelegateRef.current = vacationDelegate;
@@ -41,10 +42,11 @@ function VacationDelegatePage() {
     };
 
     const showWarningModal = useCallback(
-        async (delegateLogin: string) => {
+        async (delegateLogin: string, delegateAccountID: number | undefined) => {
+            const personalDetails = getPersonalDetailsByID(delegateAccountID, personalDetailsList);
             const result = await showConfirmModal({
                 title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin),
+                prompt: translate('statusPage.vacationDelegateWarning', personalDetails?.displayName ?? delegateLogin),
                 confirmText: translate('common.confirm'),
                 cancelText: translate('common.cancel'),
                 shouldShowCancelButton: true,
@@ -58,7 +60,7 @@ function VacationDelegatePage() {
 
             clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
         },
-        [showConfirmModal, translate, currentUserLogin],
+        [showConfirmModal, translate, currentUserLogin, personalDetailsList],
     );
 
     const onSelectRow = useCallback(
@@ -81,7 +83,7 @@ function VacationDelegatePage() {
                 }
 
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    showWarningModal(option?.login ?? '');
+                    showWarningModal(option?.login ?? '', option?.accountID);
                     return;
                 }
 

@@ -20,13 +20,13 @@ import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
+import {personalDetailsByLoginSelector} from '@src/selectors/PersonalDetails';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -44,7 +44,7 @@ function HelpPage() {
     const isApprovedAccountant = !!account?.isApprovedAccountant;
     const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
     const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
-    const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
+    const [guideDetails] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN, {selector: personalDetailsByLoginSelector(account?.guideDetails?.email)});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);

@@ -9,6 +9,7 @@ import loginToAccountIDMapConfig from './configs/loginToAccountIDMap';
 import nonPersonalAndWorkspaceCardListConfig from './configs/nonPersonalAndWorkspaceCardList';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
 import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
+import personalDetailsListByLoginConfig from './configs/personalDetailsListByLogin';
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
 import sortedReportActionsConfig from './configs/sortedReportActions';
@@ -28,6 +29,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: loginToAccountIDMapConfig,
+    [ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN]: personalDetailsListByLoginConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;

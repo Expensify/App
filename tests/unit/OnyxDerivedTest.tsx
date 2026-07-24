@@ -630,4 +630,44 @@ describe('OnyxDerived', () => {
             });
         });
     });
+
+    describe('personalDetailsListByLogin', () => {
+        const alice = {accountID: 1, displayName: 'Alice', login: 'alice@test.com'};
+        const bob = {accountID: 2, displayName: 'Bob', login: 'bob@test.com'};
+
+        it('returns an empty object when the personal details list is empty', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+            await waitForBatchedUpdates();
+
+            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN);
+            expect(derived).toEqual({});
+        });
+
+        it('keys each personal detail by its login', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'1': alice, '2': bob});
+            await waitForBatchedUpdates();
+
+            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN);
+            expect(derived).toEqual({[alice.login]: alice, [bob.login]: bob});
+        });
+
+        it('skips personal details without a login', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'1': alice, '2': {accountID: 2, displayName: 'No Login'}});
+            await waitForBatchedUpdates();
+
+            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN);
+            expect(derived).toEqual({[alice.login]: alice});
+        });
+
+        it('updates when the personal details list changes', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'1': alice});
+            await waitForBatchedUpdates();
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {'2': bob});
+            await waitForBatchedUpdates();
+
+            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN);
+            expect(derived).toEqual({[alice.login]: alice, [bob.login]: bob});
+        });
+    });
 });

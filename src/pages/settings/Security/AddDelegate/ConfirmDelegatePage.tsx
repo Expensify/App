@@ -8,16 +8,18 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsByLoginSelector} from '@src/selectors/PersonalDetails';
 
 import type {ValueOf} from 'type-fest';
 
@@ -34,7 +36,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
 
-    const personalDetails = getPersonalDetailByEmail(login);
+    const [personalDetails] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_DETAILS_LIST_BY_LOGIN, {selector: personalDetailsByLoginSelector(login)});
     const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
