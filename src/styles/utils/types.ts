@@ -25,7 +25,6 @@ type ButtonVariantStyles = {
     normal: Record<ButtonVariant, StyleProp<ViewStyle>>;
     disabled: Record<ButtonVariant, StyleProp<ViewStyle>>;
 };
-type AvatarSize = {width: number};
 
 type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 type EreceiptColorStyle = {
@@ -46,7 +45,6 @@ export type {
     ButtonStateName,
     ButtonVariant,
     ButtonVariantStyles,
-    AvatarSize,
     SVGAvatarColorStyle,
     EreceiptColorStyle,
     TextColorStyle,
