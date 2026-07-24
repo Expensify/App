@@ -216,7 +216,7 @@ function SearchTransactionsChangeReport() {
                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                     action: CONST.IOU.ACTION.CREATE,
                     iouType: CONST.IOU.TYPE.CREATE,
-                    transactionID: generateReportID(),
+                    transactionID: selectedTransactionsKeys.at(0) ?? generateReportID(),
                     reportID: generateReportID(),
                     upgradePath: CONST.UPGRADE_PATHS.REPORTS,
                 }),
