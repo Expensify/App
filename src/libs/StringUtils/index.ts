@@ -212,6 +212,22 @@ function escapeRegExp(str: string): string {
     return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/**
+ * Truncates a string in the middle with an ellipsis if it exceeds maxLength.
+ * @param str - The input string to truncate.
+ * @param maxLength - Maximum allowed length of the resulting string.
+ * @returns The truncated string.
+ */
+function truncateMiddle(str: string, maxLength: number): string {
+    if (str.length <= maxLength || maxLength <= 3) {
+        return str;
+    }
+    const charsToShow = maxLength - 3;
+    const frontChars = Math.ceil(charsToShow / 2);
+    const backChars = Math.floor(charsToShow / 2);
+    return `${str.slice(0, frontChars)}...${str.slice(str.length - backChars)}`;
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -234,4 +250,5 @@ export default {
     camelToKebabCase,
     toLowerCase,
     escapeRegExp,
+    truncateMiddle,
 };
