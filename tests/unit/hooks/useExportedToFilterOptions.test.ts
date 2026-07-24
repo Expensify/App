@@ -35,7 +35,7 @@ describe('useExportedToFilterOptions', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
-        mockGetExportTemplates.mockReturnValue([]);
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
     });
 
     it('returns empty options and templates when no policies and no export templates', () => {
@@ -65,7 +65,10 @@ describe('useExportedToFilterOptions', () => {
 
     it('includes integration custom template name from options when getExportTemplates returns integration template', () => {
         const customName = 'Export Layout';
-        mockGetExportTemplates.mockReturnValue([{templateName: customName, name: customName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [{templateName: customName, name: customName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS} as ExportTemplate],
+            defaultTemplates: [],
+        });
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -74,7 +77,7 @@ describe('useExportedToFilterOptions', () => {
 
     it('excludes in-app custom templates from options', () => {
         const templateName = 'Custom Export Format from OD';
-        mockGetExportTemplates.mockReturnValue([{templateName, name: templateName, type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue({customTemplates: [{templateName, name: templateName, type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP} as ExportTemplate], defaultTemplates: []});
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -84,7 +87,10 @@ describe('useExportedToFilterOptions', () => {
     it('excludes templates whose templateName matches integration connection key', () => {
         const templateName = CONST.POLICY.CONNECTIONS.NAME.QBO;
         const templateDisplayName = 'QBO Custom Template';
-        mockGetExportTemplates.mockReturnValue([{templateName, name: templateDisplayName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [{templateName, name: templateDisplayName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS} as ExportTemplate],
+            defaultTemplates: [],
+        });
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -92,7 +98,10 @@ describe('useExportedToFilterOptions', () => {
     });
 
     it('includes standard export label in options when getExportTemplates returns standard template', () => {
-        mockGetExportTemplates.mockReturnValue([{templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, name: expenseLevelLabel} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [],
+            defaultTemplates: [{templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, name: expenseLevelLabel} as ExportTemplate],
+        });
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -103,7 +112,7 @@ describe('useExportedToFilterOptions', () => {
         const sameName = 'SharedTemplate';
         const template = {templateName: sameName, name: sameName} as ExportTemplate;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {});
-        mockGetExportTemplates.mockReturnValueOnce([template]).mockReturnValueOnce([template]);
+        mockGetExportTemplates.mockReturnValueOnce({customTemplates: [template], defaultTemplates: []}).mockReturnValueOnce({customTemplates: [template], defaultTemplates: []});
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 

@@ -3000,6 +3000,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        conciergeAnimatedAvatar: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
+        },
+
         accountSettingsSectionContainer: {
             borderBottomWidth: 1,
             borderBottomColor: theme.border,
@@ -4612,7 +4617,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
         },
 
-        inboxTabBadge: {
+        tabSelectorBadge: {
             minWidth: 18,
             height: 16,
             marginLeft: 8,
@@ -5220,6 +5225,11 @@ const staticStyles = (theme: ThemeColors) =>
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
         searchPageInputNarrowTouchableWrapper: {height: 46},
 
+        // Compact search inputs that appear above lists/popovers. Matches the smaller
+        // "above the table" search input heights (34 on web/desktop, 46 on mobile).
+        listSearchInputWideWrapper: {height: 34},
+        listSearchInputNarrowWrapper: {height: 46},
+
         walletStaticIllustration: {
             width: 262,
             height: 152,
@@ -5617,6 +5627,20 @@ const staticStyles = (theme: ThemeColors) =>
         sortingMachineRulesEmptyStateIllustration: {
             width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
+        agentsRulesEmptyStateIllustration: {
+            width: variables.agentsRulesEmptyStateIllustrationWidth,
+            height: variables.agentsRulesEmptyStateIllustrationHeight,
+        },
+
+        agentRulesErrorRow: {
+            ...spacing.pt2,
+            ...spacing.pb3,
+        },
+
+        agentRulePromptInput: {
+            maxHeight: variables.agentRulePromptInputHeight,
         },
 
         emptyStateSamlIllustration: {
