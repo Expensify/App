@@ -8,11 +8,11 @@ import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
@@ -48,6 +48,7 @@ import type {AmountSubmitData} from './AmountSubmitDataSync';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 import AmountSubmitDataSync from './AmountSubmitDataSync';
+import getSkipConfirmationPreMountDestinationRoute from './confirmation/getSkipConfirmationPreMountDestinationRoute';
 import IOURequestStepCurrencyModal from './IOURequestStepCurrencyModal';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -157,7 +158,8 @@ function IOURequestStepAmount({
         return !(isReportArchived || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
 
-    useSkipConfirmationPreInsert(shouldSkipConfirmation, report?.reportID);
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(shouldSkipConfirmation, report?.reportID);
+    usePreMountDestination(skipConfirmationPreMountRoute);
 
     useFocusEffect(
         useCallback(() => {
