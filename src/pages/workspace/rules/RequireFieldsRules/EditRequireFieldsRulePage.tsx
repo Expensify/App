@@ -10,12 +10,13 @@ import RequireFieldsRulePageBase from './RequireFieldsRulePageBase';
 type EditRequireFieldsRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_EDIT>;
 
 function EditRequireFieldsRulePage({route}: EditRequireFieldsRulePageProps) {
-    const {policyID, categoryName} = route.params;
+    const {policyID, categoryName, isCategoryLocked} = route.params;
 
     return (
         <RequireFieldsRulePageBase
             policyID={policyID}
             categoryName={categoryName}
+            isCategoryLocked={isCategoryLocked === 'true'}
             testID="EditRequireFieldsRulePage"
         />
     );

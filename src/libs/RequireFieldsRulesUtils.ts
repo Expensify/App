@@ -753,7 +753,9 @@ function getRequireFieldsRuleBackToRoute({policyID, isEditing, categoryName}: Re
         return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName);
     }
 
-    return ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
+    // Preserve ?categoryName= on create so goBack(compareParams) matches the stack entry
+    // instead of REPLACE-remounting and wiping the draft.
+    return ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, categoryName);
 }
 
 function getRequireFieldsFieldSettingUpdate(
@@ -939,6 +941,7 @@ function getRequireFieldsFieldCouplingTooltipKey(
 export {
     categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
+    formatRequireFieldsRuleDescriptions,
     getActiveFieldRequirementsDirection,
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsDisplayedSetting,
@@ -946,7 +949,9 @@ export {
     getRequireFieldsFieldCouplingTooltipKey,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
+    getRequireFieldsPendingActionForCategory,
     getRequireFieldsRuleBackToRoute,
+    getRequireFieldsRuleDescriptionsForCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
     getRequireFieldsTableData,

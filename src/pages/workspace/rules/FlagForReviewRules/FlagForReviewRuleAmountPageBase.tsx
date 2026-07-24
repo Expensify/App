@@ -35,9 +35,11 @@ import {View} from 'react-native';
 type FlagForReviewRuleAmountPageBaseProps = {
     policyID: string;
     categoryName?: string;
+    /** When true, return to the edit screen with the category field still locked. */
+    isCategoryLocked?: boolean;
 };
 
-function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReviewRuleAmountPageBaseProps) {
+function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLocked}: FlagForReviewRuleAmountPageBaseProps) {
     const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
@@ -54,7 +56,9 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
     const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(draftExpenseLimitType);
     const selectedExpenseLimitType = expenseLimitType ?? draftExpenseLimitType;
 
-    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
+    const backToRoute = isEditing
+        ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName, isCategoryLocked)
+        : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.CATEGORY]);
 
     const expenseLimitTypes = useMemo(
         () =>

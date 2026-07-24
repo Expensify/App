@@ -10,11 +10,12 @@ import FlagForReviewRulePageBase from './FlagForReviewRulePageBase';
 type AddFlagForReviewRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW>;
 
 function AddFlagForReviewRulePage({route}: AddFlagForReviewRulePageProps) {
-    const {policyID} = route.params;
+    const {policyID, categoryName} = route.params;
 
     return (
         <FlagForReviewRulePageBase
             policyID={policyID}
+            initialCategoryName={categoryName}
             testID="AddFlagForReviewRulePage"
         />
     );

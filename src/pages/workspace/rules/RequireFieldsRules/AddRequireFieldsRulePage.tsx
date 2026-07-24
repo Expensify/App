@@ -10,11 +10,12 @@ import RequireFieldsRulePageBase from './RequireFieldsRulePageBase';
 type AddRequireFieldsRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_NEW>;
 
 function AddRequireFieldsRulePage({route}: AddRequireFieldsRulePageProps) {
-    const {policyID} = route.params;
+    const {policyID, categoryName} = route.params;
 
     return (
         <RequireFieldsRulePageBase
             policyID={policyID}
+            initialCategoryName={categoryName}
             testID="AddRequireFieldsRulePage"
         />
     );

@@ -10,12 +10,13 @@ import FlagForReviewRulePageBase from './FlagForReviewRulePageBase';
 type EditFlagForReviewRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT>;
 
 function EditFlagForReviewRulePage({route}: EditFlagForReviewRulePageProps) {
-    const {policyID, categoryName} = route.params;
+    const {policyID, categoryName, isCategoryLocked} = route.params;
 
     return (
         <FlagForReviewRulePageBase
             policyID={policyID}
             categoryName={categoryName}
+            isCategoryLocked={isCategoryLocked === 'true'}
             testID="EditFlagForReviewRulePage"
         />
     );
