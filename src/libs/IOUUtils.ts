@@ -333,6 +333,17 @@ function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy
     );
 }
 
+// From global create or a track expense, per diem enablement on any active policy is enough to show the tab -
+// rates load lazily and may be absent right after a cache clear, so visibility must not gate on them.
+function shouldShowPerDiemTabOption(iouType: IOUType, isFromGlobalCreate: boolean, hasCurrentPolicyPerDiemEnabled: boolean, doesPerDiemPolicyExist: boolean): boolean {
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        return false;
+    }
+    const hasCurrentPolicyPerDiem = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled;
+    const hasAnyPolicyPerDiem = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
+    return hasCurrentPolicyPerDiem || hasAnyPolicyPerDiem;
+}
+
 function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType) {
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
@@ -597,6 +608,7 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    shouldShowPerDiemTabOption,
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,

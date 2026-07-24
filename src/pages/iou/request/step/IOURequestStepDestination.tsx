@@ -234,18 +234,26 @@ function IOURequestStepDestination({
                         <WorkspaceEmptyStateSection
                             shouldStyleAsCard={false}
                             icon={illustrations.EmptyStateExpenses}
-                            title={translate('workspace.perDiem.emptyList.title')}
-                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                            title={translate('workspace.perDiem.requestEmptyList.title')}
+                            subtitle={translate(isPolicyAdmin(policy) ? 'workspace.perDiem.requestEmptyList.adminSubtitle' : 'workspace.perDiem.requestEmptyList.subtitle')}
                             containerStyle={[styles.flex1, styles.justifyContentCenter]}
                         />
-                        {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
+                        {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                                 <Button
                                     large
                                     success
                                     style={[styles.w100]}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
+                                        if (!policy?.id) {
+                                            return;
+                                        }
+                                        const backToRoute = openedFromStartPage
+                                            ? ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(action, iouType, transactionID, reportID, backToReport)
+                                            : ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID, backToReport);
+                                        requestAnimationFrame(() => {
+                                            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, backToRoute));
+                                        });
                                     }}
                                     text={translate('workspace.perDiem.editPerDiemRates')}
                                     pressOnEnter

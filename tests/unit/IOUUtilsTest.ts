@@ -1162,3 +1162,33 @@ describe('isParticipantP2P', () => {
         expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
     });
 });
+
+describe('shouldShowPerDiemTabOption', () => {
+    it('never shows for a split, even when a per diem policy exists', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.SPLIT, true, true, true)).toBe(false);
+    });
+
+    it('shows from an existing chat when the current policy has per diem enabled', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.SUBMIT, false, true, false)).toBe(true);
+    });
+
+    it('hides from an existing chat when the current policy does not have per diem enabled', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.SUBMIT, false, false, false)).toBe(false);
+    });
+
+    it('shows from global create when any per diem policy exists, even if the current policy is not enabled and rates are not loaded yet', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.CREATE, true, false, true)).toBe(true);
+    });
+
+    it('hides from global create when no per diem policy exists', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.CREATE, true, false, false)).toBe(false);
+    });
+
+    it('shows for a track expense from an existing chat when any per diem policy exists', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.TRACK, false, false, true)).toBe(true);
+    });
+
+    it('hides for a track expense when no per diem policy exists', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.TRACK, false, false, false)).toBe(false);
+    });
+});

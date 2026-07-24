@@ -120,13 +120,6 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollect
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => isPerDiemEnabled(policy) && isControlPolicy(policy));
 }
 
-function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
-        const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-        return isPerDiemEnabled(policy) && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
-    });
-}
-
 function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
 }
@@ -3067,7 +3060,6 @@ export {
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     isNonUSDPolicy,
-    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
