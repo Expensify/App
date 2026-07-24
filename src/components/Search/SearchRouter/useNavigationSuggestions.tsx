@@ -38,7 +38,7 @@ import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
-type RightSideContextProps = {
+type RightSideLabelProps = {
     /** Text label shown to the right of the suggestion row */
     label: string;
 
@@ -46,7 +46,7 @@ type RightSideContextProps = {
     icon: IconAsset;
 };
 
-function RightSideContext({label, icon}: RightSideContextProps) {
+function RightSideLabel({label, icon}: RightSideLabelProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -187,7 +187,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         sections: typeMenuSections,
         icons,
         rightElement: (
-            <RightSideContext
+            <RightSideLabel
                 label={translate('common.spend')}
                 icon={icons.ReceiptMultiple}
             />
