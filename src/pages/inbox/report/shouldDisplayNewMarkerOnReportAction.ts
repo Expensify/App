@@ -50,6 +50,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     prevSortedVisibleReportActionsObjects,
     isScrolledOverThreshold,
     isOffline,
+    prevUnreadMarkerReportActionID,
     manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
@@ -99,10 +100,16 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
 
     if (isFromCurrentUser) {
-        // Only suppress the "New" marker for a self-authored message that was just sent (newly added or still
-        // transitioning from an optimistic action). An existing self-authored action that the user explicitly
-        // marked as unread should anchor the marker even when no marker exists yet (e.g. on first open/re-entry).
-        return !shouldIgnoreUnreadForCurrentUserMessage;
+        // For a self-authored action, only move/keep the "New" marker when one already exists in this session
+        // (`prevUnreadMarkerReportActionID` is set). The explicit mark-as-unread case is handled earlier by the
+        // stable `manuallyMarkedUnreadReportActionID` check, which anchors the marker on first open/re-entry
+        // regardless of this guard. Without this guard, a persisted self-authored action (e.g. a reimbursable
+        // toggle) whose timestamps have drifted past `lastReadTime` would wrongly show the marker on a cold
+        // open/re-entry — the regression from Expensify/App#91940.
+        if (prevUnreadMarkerReportActionID) {
+            return !shouldIgnoreUnreadForCurrentUserMessage;
+        }
+        return false;
     }
 
     return !isNewMessage || isScrolledOverThreshold || !hasWindowFocus;
