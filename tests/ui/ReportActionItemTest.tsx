@@ -1626,6 +1626,17 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/Chase Visa/)).toBeOnTheScreen();
         });
 
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: 'Chase Visa',
+                policyID: 'pol123',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
+        });
+
         it('PLAID_BALANCE_FAILURE action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE, {
                 maskedAccountNumber: '***1234',
@@ -2601,6 +2612,12 @@ describe('ReportActionItem', () => {
                 assertion: /My Card/,
             },
             {
+                testTitle: 'isCardBrokenConnectionAction 30 days',
+                actionName: CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS,
+                originalMessage: {cardID: 100, cardName: 'My Card'},
+                assertion: /My Card connection has been broken for 30 days/,
+            },
+            {
                 testTitle: 'INDIVIDUAL_BUDGET_NOTIFICATION',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION,
                 originalMessage: {
@@ -2674,6 +2691,30 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN, {cardID: 100, cardName: 'Broken Card'});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
+
+            const bankLoginLink = screen.getByText('Log into your bank');
+            fireEvent.press(bankLoginLink);
+
+            expect(openLink).toHaveBeenCalledTimes(1);
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+        });
+
+        it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
+            const CARD_ID_KEY = '100';
+
+            (openLink as jest.Mock).mockClear();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                    [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS, {cardID: 100, cardName: 'Broken Card'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Broken Card connection has been broken for 30 days/)).toBeOnTheScreen();
 
             const bankLoginLink = screen.getByText('Log into your bank');
             fireEvent.press(bankLoginLink);
