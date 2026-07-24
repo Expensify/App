@@ -1934,7 +1934,7 @@
 "../../tests/unit/CardsSectionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CategoryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ChatGPTTranslatorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
-"../../tests/unit/CompanyCardExportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/unit/CompanyCardExportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/CompanyCardsRBRTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ConciergeThinkingMessageAvatarTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/ContactMethodDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
