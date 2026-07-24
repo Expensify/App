@@ -79,6 +79,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
 
     const reportActionID = reportAction.reportActionID;
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
 
     // Prime the locale emoji table when this action has reactions.
     // Skip the default locale since getLocalizedEmojiName never reads localeEmojis for it.
@@ -97,7 +98,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
             });
             return;
         }
-        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, ignoreSkinToneOnCompare);
+        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, reportActions, ignoreSkinToneOnCompare);
     };
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone

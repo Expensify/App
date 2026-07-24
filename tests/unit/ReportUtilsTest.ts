@@ -18806,6 +18806,21 @@ describe('ReportUtils', () => {
             const result = getOriginalReportID(reportID, reportAction, {});
             expect(result).toBe(reportID);
         });
+
+        it('should return the parent report ID for a thread parent action that is missing from the passed reportActions', async () => {
+            const reportID = 'getOriginalReportID-thread';
+            const parentReportID = 'getOriginalReportID-parent';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, parentReportID});
+            await waitForBatchedUpdates();
+
+            // The action is the thread's parent message: its childReportID points back to the thread and it is not present in the thread's own actions,
+            // so getOriginalReportID must resolve to the parent report using only the passed reportActions (no module-level Onyx.connect fallback).
+            const reportAction = {...createRandomReportAction(1), childReportID: reportID};
+            expect(getOriginalReportID(reportID, reportAction, {})).toBe(parentReportID);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('hasVisibleReportFieldViolations', () => {
