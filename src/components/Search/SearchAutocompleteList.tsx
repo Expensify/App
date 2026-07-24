@@ -734,11 +734,17 @@ function SearchAutocompleteList({
             return;
         }
 
-        // Don't override focus if the user has already navigated away (e.g. via arrow keys) from the row we
-        // last set programmatically. Otherwise this settle-triggered auto-highlight would silently steal focus
-        // back from a manual selection made during the debounce window.
+        // Only suppress the auto-highlight when the user has manually moved focus to some *other* real row
+        // (e.g. arrow-keyed to Ask Concierge). Advancing is still allowed when focus is on the row we last set
+        // programmatically OR on the search-query row (index 0): after a fast clear + retype the query-change
+        // effect parks focus on the query row, and we must still be able to move it onto the first matching
+        // result once the debounced options settle. Without this, focus is stranded on the query row and the
+        // first recent-chat row is left unselected on a fast clear & search.
         const currentFocusedKey = innerListRef.current?.getFocusedOption?.()?.keyForList;
-        if (lastProgrammaticFocusKeyRef.current !== undefined && currentFocusedKey !== lastProgrammaticFocusKeyRef.current) {
+        const searchQueryRowKey = searchQueryItems?.at(0)?.keyForList;
+        const isOnProgrammaticTarget = lastProgrammaticFocusKeyRef.current === undefined || currentFocusedKey === lastProgrammaticFocusKeyRef.current;
+        const isOnSearchQueryRow = currentFocusedKey !== undefined && currentFocusedKey === searchQueryRowKey;
+        if (!isOnProgrammaticTarget && !isOnSearchQueryRow) {
             return;
         }
 
@@ -746,7 +752,7 @@ function SearchAutocompleteList({
         // lands on the "Recent chats" section header row after the two-section switcher was introduced.
         lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
-    }, [autocompleteQueryValue, firstRecentReportFlatIndex, firstRecentReportKey, normalizedReferenceText, shouldHighlightFirstItem]);
+    }, [autocompleteQueryValue, firstRecentReportFlatIndex, firstRecentReportKey, normalizedReferenceText, searchQueryItems, shouldHighlightFirstItem]);
 
     if (isLoading) {
         return (
