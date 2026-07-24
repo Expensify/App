@@ -2676,8 +2676,8 @@ describe('SearchUIUtils', () => {
 
         it('should not crash when a task has no description or reportName (type TASK)', () => {
             const taskReportID = '987654321';
-            const taskData = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: {
+            const taskData = createMock<OnyxTypes.SearchResults['data']>({
+                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: createMock<SearchTask>({
                     type: CONST.REPORT.TYPE.TASK,
                     accountID: adminAccountID,
                     managerID: adminAccountID,
@@ -2688,8 +2688,8 @@ describe('SearchUIUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                     // description and reportName intentionally omitted: a task created without a description
                     // has `description === undefined`, which used to crash htmlToText.
-                } as unknown as SearchTask,
-            } as unknown as OnyxTypes.SearchResults['data'];
+                }),
+            });
 
             const getTaskSectionsResult = () =>
                 getSectionsByType(
