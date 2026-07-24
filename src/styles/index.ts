@@ -3773,7 +3773,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.height,
             width: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width,
             left: -(CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width / 2),
-            top: -16,
+            top: -CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.xAxisLineHeight,
             ...cursor.cursorPointer,
         },
 

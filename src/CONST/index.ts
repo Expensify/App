@@ -5360,7 +5360,7 @@ const CONST = {
     MAP_MARKER_SIZES: {
         CURRENT_LOCATION: {width: 48, height: 48},
         START_WAYPOINT: {width: 48, height: 48},
-        STOP_WAYPOINT: {width: 48, height: 53},
+        STOP_WAYPOINT: {width: 48, height: 53, xAxisLineHeight: 16},
         WAYPOINT: {width: 40, height: 40},
     },
 
