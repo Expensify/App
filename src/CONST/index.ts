@@ -2274,6 +2274,7 @@ const CONST = {
             REPORT_ACTIONS_APP_LOAD: 'report_actions_app_load',
             SKELETON_GUARD_LOADING: 'skeleton_guard_loading',
             SKELETON_GUARD_DERIVED_TIMING: 'skeleton_guard_derived_timing',
+            INBOX_TAB_DEFER: 'inbox_tab_defer',
         },
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
