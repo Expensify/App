@@ -17,26 +17,6 @@ function requireRecord(value: unknown, label = 'value'): UnknownRecord {
     return value;
 }
 
-function readProperty(value: unknown, key: string): unknown {
-    return requireRecord(value, `container for ${key}`)[key];
-}
-
-function requireStringProperty(value: unknown, key: string): string {
-    const property = readProperty(value, key);
-    if (typeof property !== 'string') {
-        throw new Error(`Expected ${key} to be a string`);
-    }
-    return property;
-}
-
-function getOptionalNumberProperty(value: unknown, key: string): number | undefined {
-    const property = readProperty(value, key);
-    if (property !== undefined && typeof property !== 'number') {
-        throw new Error(`Expected ${key} to be a number when present`);
-    }
-    return property;
-}
-
 function parseJSONValue(value: unknown, label: string): unknown {
     if (typeof value !== 'string') {
         throw new Error(`Expected ${label} to be a string`);
@@ -49,20 +29,4 @@ function parseJSONRecord(value: unknown, label = 'JSON payload'): UnknownRecord 
     return requireRecord(parseJSONValue(value, label), label);
 }
 
-function parseJSONArray(value: unknown, label = 'JSON payload'): unknown[] {
-    const parsed = parseJSONValue(value, label);
-    if (!Array.isArray(parsed)) {
-        throw new Error(`Expected ${label} to be an array`);
-    }
-    return parsed;
-}
-
-function requireRecordArrayProperty(value: unknown, key: string): UnknownRecord[] {
-    const property = readProperty(value, key);
-    if (!Array.isArray(property) || !property.every(isRecord)) {
-        throw new Error(`Expected ${key} to be an array of objects`);
-    }
-    return property;
-}
-
-export {getOptionalNumberProperty, hasDefinedProperty, isObject, parseJSONArray, parseJSONRecord, readProperty, requireRecord, requireRecordArrayProperty, requireStringProperty};
+export {hasDefinedProperty, isObject, parseJSONRecord};
