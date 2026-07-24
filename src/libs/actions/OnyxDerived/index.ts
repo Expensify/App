@@ -1,3 +1,4 @@
+import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -5,6 +6,8 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 /**
  * This file contains logic for derived Onyx keys. The idea behind derived keys is that if there is a common computation
@@ -107,10 +110,18 @@ function init() {
                 const dependencyOnyxKey = dependencies[dependencyIndex];
 
                 if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
+                    // Tracks the previous snapshot for this dependency so we can reconstruct the changed-member
+                    // delta by diffing against it on each subsequent fire.
+                    let previousCollectionValue: OnyxCollection<unknown>;
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
-                        callback: (value, collectionKey, sourceValue) => {
+                        callback: (value, collectionKey) => {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
+                            // Diff the new snapshot against the previous one. Structural sharing keeps unchanged
+                            // members reference-equal, so this is a cheap scan. On the connection's initial fire we
+                            // pass `undefined` to force a full recompute.
+                            const sourceValue = connectionInitializedFlags.at(dependencyIndex) ? getCollectionDelta<unknown>(value, previousCollectionValue) : undefined;
+                            previousCollectionValue = value;
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
                             recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
                         },
