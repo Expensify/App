@@ -10,19 +10,52 @@ module PatchedIOSArtifacts
     NEW_DOT_ROOT = File.expand_path('../../..', __dir__)
     GITHUB_PACKAGES_BASE = 'https://maven.pkg.github.com/Expensify/App'
 
+    # Whether this install consumes a prebuilt RNCore. Defaults to false so that if
+    # setup never ran, prebuilt-only pod tweaks are a no-op rather than misapplied.
+    @using_prebuilt = false
+
     def self.setup
         is_hybrid = ENV['IS_HYBRID_APP'] == 'true'
         package_name = is_hybrid ? 'react-hybrid' : 'react-standalone'
 
-        forced_source = ENV['RCT_USE_PREBUILT_RNCORE'] == '0'
-        resolution = forced_source ? {'buildFromSource' => true, 'version' => nil} : resolve(package_name, is_hybrid)
+        # Manual escape hatch: force a full from-source build (e.g. to unblock a prebuild issue).
+        build_from_source = ENV['BUILD_RN_FROM_SOURCE'] == '1'
+        resolution = build_from_source ? {'buildFromSource' => true, 'version' => nil} : resolve(package_name, is_hybrid)
+
+        # A single decision drives both prebuilt flags, so we never land in a mixed
+        # prebuilt-deps / source-core state (which desyncs the CocoaPods sandbox).
+        @using_prebuilt = !resolution['buildFromSource']
+        flag = @using_prebuilt ? '1' : '0'
+        ENV['RCT_USE_RN_DEP'] = flag
+        ENV['RCT_USE_PREBUILT_RNCORE'] = flag
 
         ReactNativeCoreUtils.class_variable_set(:@@patched_version, resolution['version'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_package_name, package_name)
         ReactNativeCoreUtils.class_variable_set(:@@patched_github_token, resolution['githubToken'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_build_from_source, resolution['buildFromSource'])
+    end
 
-        ENV['RCT_USE_PREBUILT_RNCORE'] = resolution['buildFromSource'] ? '0' : '1'
+    # True only when a matching prebuilt artifact resolved and prebuilds are enabled.
+    def self.using_prebuilt_rncore?
+        @using_prebuilt
+    end
+
+    # Applies pod tweaks that are only correct when consuming a prebuilt RNCore.
+    # No-op on a source build (manual override or patch-hash miss), so a fallback
+    # never inherits prebuilt-only configuration.
+    def self.configure_prebuilt_pods(installer)
+        return unless @using_prebuilt
+
+        installer.pod_targets.each do |pod|
+            # RNFB and RNSentry #import non-modular <React/...> headers, which under
+            # use_frameworks! with a prebuilt React Core trips Clang's modular-import
+            # rules. As static libraries they have no module map, so those rules no
+            # longer apply.
+            next unless pod.name.start_with?('RNFB', 'RNSentry')
+            def pod.build_type
+                Pod::BuildType.static_library
+            end
+        end
     end
 
     def self.resolve(package_name, is_hybrid)
