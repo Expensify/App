@@ -808,12 +808,12 @@ const DYNAMIC_ROUTES = {
         getRoute: (feed: CompanyCardFeedWithDomainID, cardID: string) => `company-card-details/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
-        path: 'edit/export/:cardID?',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS, SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST],
+        path: 'edit/export/:feed?/:cardID?',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS, SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST],
 
-        // The cardID param is optional because some entry screens e.g. `SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS`
+        // The feed and cardID params are optional because some entry screens e.g. `SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS`
         // already has the cardID in their path and we don't want to double pass the cardID.
-        getRoute: (cardID?: string) => `edit/export${cardID ? `/${encodeURIComponent(cardID)}` : ''}` as const,
+        getRoute: (feed?: CardFeedWithDomainID, cardID?: string) => `edit/export${feed ? `/${encodeURIComponent(feed)}` : ''}${cardID ? `/${encodeURIComponent(cardID)}` : ''}` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         path: 'assign-card/:feed/:cardID/assignee',
