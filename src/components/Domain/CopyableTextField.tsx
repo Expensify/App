@@ -63,9 +63,10 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
                         <CopyTextToClipboard
                             urlToCopy={value ?? ''}
                             styles={styles.copyableTextFieldButton}
-                            iconStyles={styles.t0}
+                            iconStyles={styles.mr0}
                             shouldHaveActiveBackground
                             shouldUseButtonBackground
+                            inline={false}
                         />
                     </View>
                     {shouldDisplayShowMoreButton && (
