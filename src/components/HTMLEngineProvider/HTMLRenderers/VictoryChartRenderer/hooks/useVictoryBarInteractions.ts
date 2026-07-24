@@ -242,21 +242,14 @@ function useVictoryBarInteractions() {
         const searchQueryFlags: number[] = [];
 
         for (const bar of interactiveBars) {
-            const point = points[bar.yKey]?.find((candidate) => candidate.xValue === bar.xValue);
-            if (!point) {
-                continue;
-            }
+            const seriesPoints = points[bar.yKey];
+            const point = seriesPoints?.find((candidate) => candidate.xValue === bar.xValue);
+            const geometry = point ? getVictoryBarInteractionGeometry(point, chartBounds, seriesPoints.length, barSeriesConfig[bar.yKey]) : undefined;
 
-            const seriesPointCount = points[bar.yKey]?.length ?? 0;
-            const geometry = getVictoryBarInteractionGeometry(point, chartBounds, seriesPointCount, barSeriesConfig[bar.yKey]);
-            if (!geometry) {
-                continue;
-            }
-
-            xs.push(geometry.x);
-            ys.push(geometry.y);
-            widths.push(geometry.width);
-            searchQueryFlags.push(bar.searchQuery ? 1 : 0);
+            xs.push(geometry?.x ?? 0);
+            ys.push(geometry?.y ?? 0);
+            widths.push(geometry?.width ?? 0);
+            searchQueryFlags.push(geometry && bar.searchQuery ? 1 : 0);
         }
 
         setPointPositions(xs, ys);
