@@ -4390,15 +4390,8 @@ ${amount} für ${merchant} – ${date}`,
         errorMessage: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es später noch einmal.',
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Bitte <a href="${phoneErrorMethodsRoute}">fügen Sie eine geschäftliche E-Mail als primäre Anmeldung hinzu</a>, um Reisen zu buchen.</rbr>`,
-        domainSelector: {
-            headline: 'Domain auswählen',
-            title: 'Domain',
-            subtitle: 'Wählen Sie eine Domain für die Expensify Travel-Einrichtung.',
-            recommended: 'Empfohlen',
-        },
-        workspaceAddress: {
-            headline: 'Geschäftsadresse eingeben',
-        },
+        domainSelector: {headline: 'Domain wählen', title: 'Domain', subtitle: 'Wählen Sie eine Domain für die Expensify Travel-Einrichtung.', recommended: 'Empfohlen'},
+        workspaceAddress: {headline: 'Wie lautet Ihre Geschäftsadresse?'},
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
@@ -4454,7 +4447,7 @@ ${amount} für ${merchant} – ${date}`,
         nightIn: 'Nacht in',
         nightsIn: 'Nächte in',
         taxID: {
-            headline: 'Steuernummer eingeben',
+            headline: 'Wie lautet Ihre Unternehmenssteuer-ID?',
             title: 'Steuer-ID',
             subtitle: 'Geben Sie die Steuer-ID Ihrer juristischen Person ein, damit wir die Reisekostenabrechnung in Ihrer Landeswährung einrichten können.',
             inputLabel: 'Steuer-ID der juristischen Person',

@@ -4245,15 +4245,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         departs: '出发时间',
         errorMessage: '出现问题。请稍后再试。',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>请<a href="${phoneErrorMethodsRoute}">添加一个工作邮箱作为您的主要登录方式</a>以预订差旅。</rbr>`,
-        domainSelector: {
-            headline: '选择域名',
-            title: '域名',
-            subtitle: '为 Expensify Travel 设置选择一个域名。',
-            recommended: '推荐',
-        },
-        workspaceAddress: {
-            headline: '输入公司地址',
-        },
+        domainSelector: {headline: '选择域', title: '域名', subtitle: '为 Expensify Travel 设置选择一个域名。', recommended: '推荐'},
+        workspaceAddress: {headline: '您的公司地址是什么？'},
         domainPermissionInfo: {
             title: '域名',
             restriction: (domain: string) => `您没有权限为域名 <strong>${domain}</strong> 启用 Expensify Travel。您需要请该域名中的其他人来启用旅行功能。`,
@@ -4304,7 +4297,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         carRental: '租车',
         nightIn: '夜宿',
         nightsIn: '入住晚数',
-        taxID: {headline: '输入税号', title: '税号', subtitle: '请输入您法人的税号，以便我们以本地货币为您设置差旅结算。', inputLabel: '法人税号', error: {required: '请输入您的法人税号。'}},
+        taxID: {
+            headline: '您的企业税号是多少？',
+            title: '税号',
+            subtitle: '请输入您法人的税号，以便我们以本地货币为您设置差旅结算。',
+            inputLabel: '法人税号',
+            error: {required: '请输入您的法人税号。'},
+        },
         nudge: {
             airfareManual: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理机票。下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
             airfareCard:
