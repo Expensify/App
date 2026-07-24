@@ -24,7 +24,5 @@ function MenuItemRow({children, style}: MenuItemRowProps) {
     return <View style={[styles.flexRow, styles.pointerEventsAuto, styles.gap3, isDisabled && styles.cursorDisabled, isCompact && styles.alignItemsCenter, style]}>{children}</View>;
 }
 
-MenuItemRow.displayName = 'MenuItemRow';
-
 export type {MenuItemRowProps};
 export default MenuItemRow;

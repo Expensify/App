@@ -92,7 +92,5 @@ function MenuItemIcon({
     );
 }
 
-MenuItemIcon.displayName = 'MenuItemIcon';
-
 export type {MenuItemIconProps};
 export default MenuItemIcon;

@@ -27,7 +27,5 @@ function MenuItemLabel({children, style}: MenuItemLabelProps) {
     );
 }
 
-MenuItemLabel.displayName = 'MenuItemLabel';
-
 export type {MenuItemLabelProps};
 export default MenuItemLabel;

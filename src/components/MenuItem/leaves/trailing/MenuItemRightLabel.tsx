@@ -34,7 +34,5 @@ function MenuItemRightLabel({children, variant = CONST.MENU_ITEM.RIGHT_LABEL_VAR
     return <Text style={[styles.rightLabelMenuItem, variant === CONST.MENU_ITEM.RIGHT_LABEL_VARIANT.SUBTITLE && styles.textLabelSupporting, style]}>{children}</Text>;
 }
 
-MenuItemRightLabel.displayName = 'MenuItemRightLabel';
-
 export type {MenuItemRightLabelProps, MenuItemRightLabelVariant};
 export default MenuItemRightLabel;

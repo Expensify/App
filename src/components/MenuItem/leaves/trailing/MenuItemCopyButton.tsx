@@ -41,7 +41,5 @@ function MenuItemCopyButton({value}: MenuItemCopyButtonProps) {
     );
 }
 
-MenuItemCopyButton.displayName = 'MenuItemCopyButton';
-
 export type {MenuItemCopyButtonProps};
 export default MenuItemCopyButton;

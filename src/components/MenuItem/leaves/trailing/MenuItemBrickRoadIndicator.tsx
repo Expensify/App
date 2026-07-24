@@ -34,7 +34,5 @@ function MenuItemBrickRoadIndicator({status}: MenuItemBrickRoadIndicatorProps) {
     );
 }
 
-MenuItemBrickRoadIndicator.displayName = 'MenuItemBrickRoadIndicator';
-
 export type {MenuItemBrickRoadIndicatorProps};
 export default MenuItemBrickRoadIndicator;

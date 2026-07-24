@@ -59,7 +59,5 @@ function MenuItemChevron({src, style}: MenuItemChevronProps) {
     );
 }
 
-MenuItemChevron.displayName = 'MenuItemChevron';
-
 export type {MenuItemChevronProps};
 export default MenuItemChevron;

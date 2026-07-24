@@ -216,7 +216,5 @@ function MenuItemRoot({
     );
 }
 
-MenuItemRoot.displayName = 'MenuItemRoot';
-
 export type {MenuItemRootProps, MenuItemVariant};
 export default MenuItemRoot;

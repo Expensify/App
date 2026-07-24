@@ -62,7 +62,5 @@ function MenuItemAvatar({source, type = CONST.ICON_TYPE_AVATAR, avatarID, fallba
     );
 }
 
-MenuItemAvatar.displayName = 'MenuItemAvatar';
-
 export type {MenuItemAvatarProps};
 export default MenuItemAvatar;

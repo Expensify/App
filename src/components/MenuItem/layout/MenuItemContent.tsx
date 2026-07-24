@@ -26,7 +26,5 @@ function MenuItemContent({children, style}: MenuItemContentProps) {
     return <View style={[styles.justifyContentCenter, styles.flex1, styles.gap1, StyleUtils.getMenuItemTextContainerStyle(isCompact), style]}>{children}</View>;
 }
 
-MenuItemContent.displayName = 'MenuItemContent';
-
 export type {MenuItemContentProps};
 export default MenuItemContent;

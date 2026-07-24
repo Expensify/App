@@ -24,6 +24,4 @@ function MenuItemBadge({badgeStyles, pressable, ...rest}: BadgeProps) {
     );
 }
 
-MenuItemBadge.displayName = 'MenuItemBadge';
-
 export default MenuItemBadge;
