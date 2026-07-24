@@ -15,8 +15,10 @@ type Params<TItem> = {
 type Api<TItem> = {
     applyShiftClick: (item: TItem, shiftKey?: boolean) => boolean;
     notifyAnchor: (item: TItem) => void;
+    // No caller in this PR — the Search provider's group toggles consume it in the follow-up.
     seedRangeFromSelection: (selectedKeys: ReadonlySet<string> | readonly string[]) => void;
     seedFullRange: () => void;
+    // No caller in this PR — the Search provider's clear-all consumes it in the follow-up.
     clearAnchor: () => void;
 };
 

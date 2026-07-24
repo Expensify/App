@@ -1000,6 +1000,19 @@ describe('Table', () => {
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
         });
 
+        it('should range-select when the press event carries shiftKey only on nativeEvent', () => {
+            render(<ControlledSelectableTable />);
+
+            pressRow(0);
+            const checkbox = screen.getAllByLabelText('common.select').at(3);
+            if (!checkbox) {
+                throw new Error('No selectable row at index 3');
+            }
+            fireEvent.press(checkbox, {nativeEvent: {shiftKey: true}});
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3,4$/);
+        });
+
         it('should select from the first selectable row when shift+click is the first action', () => {
             render(<ControlledSelectableTable />);
 
