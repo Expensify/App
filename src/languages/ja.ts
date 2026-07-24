@@ -5982,6 +5982,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         subsections: {
                             currentTravelSpendLabel: '現在の出張費支出',
                             currentTravelSpendPaymentQueued: (amount: string) => `${amount} の支払いはキューに登録されており、まもなく処理されます。`,
+                            currentTravelSpendInvoiceQueued: '出張費用の新しい請求書が作成され、まもなくお客様に送信されます。',
                             currentTravelSpendInvoicePending: (amount: string) => `${amount} の請求書が送信され、支払い待ちです。`,
                             currentTravelSpendCta: '残高を支払う',
                             currentTravelLimitLabel: '現在の出張上限',
@@ -6014,10 +6015,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     enabled: '一括出張請求が有効になりました！',
                     enabledDescription: 'このワークスペースでの出張費用は、今後すべて月次の請求書に集約されます。',
                     sendInvoiceModal: {
-                        title: (amount: string) => `${amount} の請求書を送信しますか？`,
+                        title: (amount: string) => `${amount}の請求書を送信しますか？`,
                         body: '現在の出張費用について請求書を作成します。請求書が支払われると、出張の利用可能枠が再び使えるようになります。',
                     },
-                    depositOnly: '入金のみ',
+                    depositOnly: '入金専用',
                 },
                 personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
             },

@@ -6021,6 +6021,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         subsections: {
                             currentTravelSpendLabel: 'Aktualne wydatki na podróże',
                             currentTravelSpendPaymentQueued: (amount: string) => `Płatność w wysokości ${amount} jest w kolejce i wkrótce zostanie przetworzona.`,
+                            currentTravelSpendInvoiceQueued: 'Nowa faktura za twoje wydatki związane z podróżą zostanie wkrótce utworzona i wysłana do ciebie.',
                             currentTravelSpendInvoicePending: (amount: string) => `Faktura na kwotę ${amount} została wysłana i oczekuje na płatność.`,
                             currentTravelSpendCta: 'Spłać saldo',
                             currentTravelLimitLabel: 'Aktualny limit podróży',
@@ -6058,8 +6059,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     enabled: 'Włączono zbiorcze rozliczanie podróży!',
                     enabledDescription: 'Wszystkie wydatki podróżne w tym obszarze roboczym będą teraz scentralizowane na miesięcznym rachunku.',
                     sendInvoiceModal: {
-                        title: (amount: string) => `Wysłać fakturę na kwotę ${amount}?`,
-                        body: 'Utworzymy fakturę za twoje bieżące wydatki na podróż. Twój limit podróży zwolni się, gdy faktura zostanie opłacona.',
+                        title: (amount: string) => `Wysłać fakturę na ${amount}?`,
+                        body: 'Utworzymy fakturę za twoje bieżące wydatki na podróż. Twój limit podróży zostanie zwolniony, gdy faktura zostanie opłacona.',
                     },
                     depositOnly: 'Tylko wpłata',
                 },

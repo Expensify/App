@@ -5854,6 +5854,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         subsections: {
                             currentTravelSpendLabel: '当前差旅支出',
                             currentTravelSpendPaymentQueued: (amount: string) => `金额为 ${amount} 的付款已排队，稍后将被处理。`,
+                            currentTravelSpendInvoiceQueued: '您的差旅费用新发票将很快创建并发送给您。',
                             currentTravelSpendInvoicePending: (amount: string) => `金额为 ${amount} 的发票已发送，正在等待付款。`,
                             currentTravelSpendCta: '支付余额',
                             currentTravelLimitLabel: '当前出行限额',
@@ -5877,8 +5878,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     invalidDateRangeError: '开始日期必须早于结束日期',
                     enabled: '已启用合并差旅账单！',
                     enabledDescription: '此工作区的所有差旅支出现在将统一汇总到一份月度账单中。',
-                    sendInvoiceModal: {title: (amount: string) => `发送金额为 ${amount} 的发票？`, body: '我们会根据你当前的差旅支出创建一张发票。发票支付后，你的差旅额度将被释放。'},
-                    depositOnly: '仅限存款',
+                    sendInvoiceModal: {title: (amount: string) => `要发送金额为 ${amount} 的发票吗？`, body: '我们会为您当前的差旅支出创建一张发票。发票付清后，您的差旅额度将被释放。'},
+                    depositOnly: '仅存款',
                 },
                 personalDetailsDescription: '为预订行程，请输入您在政府签发的身份证件上显示的法定姓名。',
             },

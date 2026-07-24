@@ -6071,7 +6071,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         subsections: {
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Die Zahlung über ${amount} ist in der Warteschlange und wird in Kürze bearbeitet.`,
-                            currentTravelSpendInvoicePending: (amount: string) => `Eine Rechnung über ${amount} wurde gesendet und wartet auf Zahlung.`,
+                            currentTravelSpendInvoiceQueued: 'Eine neue Rechnung für Ihre Reisekosten wird erstellt und Ihnen in Kürze zugesandt.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Eine Rechnung über ${amount} wurde gesendet und wartet auf Bezahlung.`,
                             currentTravelSpendCta: 'Saldo bezahlen',
                             currentTravelLimitLabel: 'Aktuelles Reisekontingent',
                             settlementAccountLabel: 'Verrechnungskonto',
@@ -6109,9 +6110,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     enabledDescription: 'Alle Reisekosten in diesem Workspace werden nun in einer monatlichen Rechnung zentralisiert.',
                     sendInvoiceModal: {
                         title: (amount: string) => `Rechnung über ${amount} senden?`,
-                        body: 'Wir erstellen eine Rechnung für Ihre aktuellen Reisekosten. Ihr Reisebudget wird wieder freigegeben, sobald die Rechnung bezahlt ist.',
+                        body: 'Wir erstellen eine Rechnung für Ihre aktuellen Reisekosten. Ihr Reiselimit wird wieder frei, sobald die Rechnung bezahlt ist.',
                     },
-                    depositOnly: 'Nur Einzahlung',
+                    depositOnly: 'Nur Einzahlungen',
                 },
                 personalDetailsDescription: 'Um eine Reise zu buchen, gib bitte deinen amtlichen Namen genau so ein, wie er auf deinem amtlichen Ausweis steht.',
             },
