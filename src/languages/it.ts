@@ -1505,7 +1505,13 @@ const translations: TranslationDeepObject<typeof en> = {
         removedTheRequest: (valueName: string, oldValueToDisplay: string) => `il/la ${valueName} (precedentemente ${oldValueToDisplay})`,
         updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `${valueName} a ${newValueToDisplay} (in precedenza ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
-            `ha modificato ${translatedChangedField} in ${newMerchant} (precedentemente ${oldMerchant}), aggiornando l'importo a ${newAmountToDisplay} (precedentemente ${oldAmountToDisplay})`,
+            `ha modificato ${translatedChangedField} in ${newMerchant} (precedentemente ${oldMerchant}), aggiornando l’importo a ${newAmountToDisplay} (precedentemente ${oldAmountToDisplay})`,
+        setTheCategoryTax: (newCategory: string, newTaxRate: string) =>
+            `ha impostato la categoria su "${newCategory}", aggiornando l’aliquota fiscale a ${newTaxRate} secondo le regole dello spazio di lavoro`,
+        updatedTheCategoryTax: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string) =>
+            `ha modificato la categoria in "${newCategory}" (precedentemente "${oldCategory}"), aggiornando l’aliquota fiscale a ${newTaxRate} (precedentemente ${oldTaxRate}) secondo le regole dello spazio di lavoro`,
+        updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
+            `ha modificato la categoria in "${newCategory}" (precedentemente "${oldCategory}"), aggiornando l’aliquota fiscale a ${newTaxRate} (precedentemente ${oldTaxRate}) e l’importo della tassa a ${newTaxAmount} (precedentemente ${oldTaxAmount}) secondo le regole dello spazio di lavoro`,
         basedOnAI: 'in base all’attività precedente',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `in base alle <a href="${rulesLink}">regole dello spazio di lavoro</a>` : 'in base alle regole della workspace'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `per ${comment}` : 'spesa'}`,

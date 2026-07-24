@@ -1504,6 +1504,12 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `de ${valueName} in ${newValueToDisplay} (voorheen ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `heeft ${translatedChangedField} gewijzigd in ${newMerchant} (voorheen ${oldMerchant}), waardoor het bedrag is bijgewerkt naar ${newAmountToDisplay} (voorheen ${oldAmountToDisplay})`,
+        setTheCategoryTax: (newCategory: string, newTaxRate: string) =>
+            `heeft de categorie ingesteld op "${newCategory}", waardoor het belastingtarief is ingesteld op ${newTaxRate} volgens werkruimteregels`,
+        updatedTheCategoryTax: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string) =>
+            `heeft de categorie gewijzigd naar "${newCategory}" (voorheen "${oldCategory}"), waardoor het belastingtarief is bijgewerkt naar ${newTaxRate} (voorheen ${oldTaxRate}) volgens werkruimteregels`,
+        updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
+            `heeft de categorie gewijzigd naar "${newCategory}" (voorheen "${oldCategory}"), waardoor het belastingtarief is bijgewerkt naar ${newTaxRate} (voorheen ${oldTaxRate}) en het belastingbedrag naar ${newTaxAmount} (voorheen ${oldTaxAmount}) volgens werkruimteregels`,
         basedOnAI: 'op basis van eerdere activiteit',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `op basis van <a href="${rulesLink}">werkruimteregels</a>` : 'op basis van werkruimteregel'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `voor ${comment}` : 'uitgave'}`,

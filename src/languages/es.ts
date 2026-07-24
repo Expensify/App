@@ -1477,6 +1477,12 @@ const translations: TranslationDeepObject<typeof en> = {
             `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: (translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay) =>
             `cambió la ${translatedChangedField} a ${newMerchant} (previamente ${oldMerchant}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
+        setTheCategoryTax: (newCategory, newTaxRate) =>
+            `estableció la categoría a "${newCategory}", lo que estableció la tasa de impuesto a ${newTaxRate} según las reglas del espacio de trabajo`,
+        updatedTheCategoryTax: (newCategory, oldCategory, newTaxRate, oldTaxRate) =>
+            `cambió la categoría a "${newCategory}" (previamente "${oldCategory}"), lo que cambió la tasa de impuesto a ${newTaxRate} (previamente ${oldTaxRate}) según las reglas del espacio de trabajo`,
+        updatedTheCategoryTaxWithAmount: (newCategory, oldCategory, newTaxRate, oldTaxRate, newTaxAmount, oldTaxAmount) =>
+            `cambió la categoría a "${newCategory}" (previamente "${oldCategory}"), lo que cambió la tasa de impuesto a ${newTaxRate} (previamente ${oldTaxRate}) y el importe del impuesto a ${newTaxAmount} (previamente ${oldTaxAmount}) según las reglas del espacio de trabajo`,
         basedOnAI: 'basado en actividad pasada',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `basado en <a href="${rulesLink}">reglas del espacio de trabajo</a>` : 'basado en regla del espacio de trabajo'),
         threadExpenseReportName: (formattedAmount, comment) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,

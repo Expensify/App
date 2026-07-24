@@ -1451,6 +1451,11 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `将${valueName}更改为${newValueToDisplay}（原为${oldValueToDisplay}）`,
         updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `将 ${translatedChangedField} 更改为 ${newMerchant}（之前为 ${oldMerchant}），从而将金额更新为 ${newAmountToDisplay}（之前为 ${oldAmountToDisplay}）`,
+        setTheCategoryTax: (newCategory: string, newTaxRate: string) => `将类别设置为"${newCategory}"，根据工作区规则将税率设置为 ${newTaxRate}`,
+        updatedTheCategoryTax: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string) =>
+            `将类别更改为"${newCategory}"（之前为"${oldCategory}"），根据工作区规则将税率更新为 ${newTaxRate}（之前为 ${oldTaxRate}）`,
+        updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
+            `将类别更改为"${newCategory}"（之前为"${oldCategory}"），根据工作区规则将税率更新为 ${newTaxRate}（之前为 ${oldTaxRate}），税额更新为 ${newTaxAmount}（之前为 ${oldTaxAmount}）`,
         basedOnAI: '基于过去的活动',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `基于<a href="${rulesLink}">工作区规则</a>` : '基于工作区规则'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `用于 ${comment}` : '报销'}`,

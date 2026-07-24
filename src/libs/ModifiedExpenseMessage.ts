@@ -153,6 +153,24 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     return translate('iou.updatedTheDistanceMerchant', translatedChangedField, newMerchant, oldMerchant, newAmount, oldAmount);
 }
 
+function getForCategoryTaxUpdate(
+    translate: LocalizedTranslate,
+    newCategory: string,
+    oldCategory: string,
+    newTaxRate: string,
+    oldTaxRate: string,
+    newTaxAmount?: string,
+    oldTaxAmount?: string,
+): string {
+    if (!oldCategory) {
+        return translate('iou.setTheCategoryTax', newCategory, newTaxRate);
+    }
+    if (newTaxAmount && oldTaxAmount) {
+        return translate('iou.updatedTheCategoryTaxWithAmount', newCategory, oldCategory, newTaxRate, oldTaxRate, newTaxAmount, oldTaxAmount);
+    }
+    return translate('iou.updatedTheCategoryTax', newCategory, oldCategory, newTaxRate, oldTaxRate);
+}
+
 function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string, policy: OnyxEntry<Policy>) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
@@ -385,6 +403,26 @@ function getForReportAction({
     }
 
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
+    const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
+
+    // When a category change triggers a tax rate update via workspace rules, show a combined message
+    // (similar to how distance changes show a combined message with amount)
+    if (hasModifiedCategory && hasModifiedTaxRate) {
+        const newCategory = getDecodedCategoryName(reportActionOriginalMessage?.category ?? '');
+        const oldCategory = getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? '');
+        const newTaxRate = reportActionOriginalMessage?.taxRate ?? '';
+        const oldTaxRate = reportActionOriginalMessage?.oldTaxRate ?? '';
+
+        const hasModifiedTaxAmount = isReportActionOriginalMessageAnObject && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
+        if (hasModifiedTaxAmount) {
+            const currency = reportActionOriginalMessage?.currency;
+            const newTaxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
+            const oldTaxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0), currency);
+            return getForCategoryTaxUpdate(translate, newCategory, oldCategory, newTaxRate, oldTaxRate, newTaxAmount, oldTaxAmount);
+        }
+        return getForCategoryTaxUpdate(translate, newCategory, oldCategory, newTaxRate, oldTaxRate);
+    }
+
     if (hasModifiedCategory) {
         let categoryLabel = translate('common.category').toLowerCase();
 
@@ -459,7 +497,6 @@ function getForReportAction({
         buildMessageFragmentForValue(translate, taxAmount, oldTaxAmount, translate('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
-    const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
     if (hasModifiedTaxRate) {
         buildMessageFragmentForValue(
             translate,

@@ -1500,6 +1500,12 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `${valueName} na ${newValueToDisplay} (wcześniej ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `zmienił(a) ${translatedChangedField} na ${newMerchant} (wcześniej ${oldMerchant}), co zaktualizowało kwotę na ${newAmountToDisplay} (wcześniej ${oldAmountToDisplay})`,
+        setTheCategoryTax: (newCategory: string, newTaxRate: string) =>
+            `ustawiono kategorię na "${newCategory}", co ustawiło stawkę podatkową na ${newTaxRate} zgodnie z regułami przestrzeni roboczej`,
+        updatedTheCategoryTax: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string) =>
+            `zmienił(a) kategorię na "${newCategory}" (wcześniej "${oldCategory}"), co zaktualizowało stawkę podatkową na ${newTaxRate} (wcześniej ${oldTaxRate}) zgodnie z regułami przestrzeni roboczej`,
+        updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
+            `zmienił(a) kategorię na "${newCategory}" (wcześniej "${oldCategory}"), co zaktualizowało stawkę podatkową na ${newTaxRate} (wcześniej ${oldTaxRate}) i kwotę podatku na ${newTaxAmount} (wcześniej ${oldTaxAmount}) zgodnie z regułami przestrzeni roboczej`,
         basedOnAI: 'na podstawie dotychczasowej aktywności',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `na podstawie <a href="${rulesLink}">zasad przestrzeni roboczej</a>` : 'na podstawie reguły przestrzeni roboczej'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `dla ${comment}` : 'wydatek'}`,

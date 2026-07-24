@@ -1508,6 +1508,12 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `die/den/das ${valueName} auf ${newValueToDisplay} (zuvor ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `hat ${translatedChangedField} in ${newMerchant} geändert (vorher ${oldMerchant}), wodurch der Betrag auf ${newAmountToDisplay} aktualisiert wurde (vorher ${oldAmountToDisplay})`,
+        setTheCategoryTax: (newCategory: string, newTaxRate: string) =>
+            `hat die Kategorie auf "${newCategory}" gesetzt, wodurch der Steuersatz auf ${newTaxRate} gemäß Arbeitsbereichsregeln gesetzt wurde`,
+        updatedTheCategoryTax: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string) =>
+            `hat die Kategorie auf "${newCategory}" geändert (vorher "${oldCategory}"), wodurch der Steuersatz auf ${newTaxRate} aktualisiert wurde (vorher ${oldTaxRate}) gemäß Arbeitsbereichsregeln`,
+        updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
+            `hat die Kategorie auf "${newCategory}" geändert (vorher "${oldCategory}"), wodurch der Steuersatz auf ${newTaxRate} (vorher ${oldTaxRate}) und der Steuerbetrag auf ${newTaxAmount} (vorher ${oldTaxAmount}) gemäß Arbeitsbereichsregeln aktualisiert wurde`,
         basedOnAI: 'basierend auf bisherigen Aktivitäten',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `basierend auf den <a href="${rulesLink}">Workspace-Regeln</a>` : 'basierend auf dem Workspace-Regelwerk'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `für ${comment}` : 'Ausgabe'}`,

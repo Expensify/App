@@ -6183,14 +6183,18 @@ function getModifiedExpenseOriginalMessage(
     // We only want to display a tax rate update system message when tax rate is updated by user.
     // Tax rate can change as a result of currency update. In such cases, we want to skip displaying a system message, as discussed.
     const didTaxCodeChange = 'taxCode' in transactionChanges;
+    const didCategoryChange = 'category' in transactionChanges;
     if (didTaxCodeChange && !didAmountOrCurrencyChange) {
         originalMessage.oldTaxRate = policy?.taxRates?.taxes[getTaxCode(oldTransaction)]?.value;
         originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode]?.value;
     }
 
-    // We only want to display a tax amount update system message when tax amount is updated by user.
-    // Tax amount can change as a result of amount, currency or tax rate update. In such cases, we want to skip displaying a system message, as discussed.
-    if ('taxAmount' in transactionChanges && !(didAmountOrCurrencyChange || didTaxCodeChange)) {
+    // We only want to display a tax amount update system message when tax amount is updated by user or when
+    // a category change triggers a tax rate update via workspace rules.
+    // Tax amount can change as a result of amount, currency or tax rate update. In the amount/currency cases,
+    // we want to skip displaying a system message. When category triggers the tax change, we include the tax
+    // amount so the combined category+tax message can display it.
+    if ('taxAmount' in transactionChanges && !(didAmountOrCurrencyChange || (didTaxCodeChange && !didCategoryChange))) {
         originalMessage.oldTaxAmount = getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
         originalMessage.currency = getCurrency(oldTransaction);

@@ -1582,6 +1582,11 @@ const translations = {
         updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
+        setTheCategoryTax: (newCategory: string, newTaxRate: string) => `set the category to "${newCategory}", which set the tax rate to ${newTaxRate} via workspace rules`,
+        updatedTheCategoryTax: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string) =>
+            `changed the category to "${newCategory}" (previously "${oldCategory}"), which updated the tax rate to ${newTaxRate} (previously ${oldTaxRate}) via workspace rules`,
+        updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
+            `changed the category to "${newCategory}" (previously "${oldCategory}"), which updated the tax rate to ${newTaxRate} (previously ${oldTaxRate}) and the tax amount to ${newTaxAmount} (previously ${oldTaxAmount}) via workspace rules`,
         basedOnAI: 'based on past activity',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `based on <a href="${rulesLink}">workspace rules</a>` : 'based on workspace rule'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
