@@ -48,7 +48,17 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getCurrency,
+    getDefaultTaxCode,
+    getIsFromGlobalCreate,
+    getTaxValue,
+    hasReceipt,
+    isExpenseUnreported,
+    isFailedScanAmountPlaceholder,
+} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -583,7 +593,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     // If the value hasn't changed, don't request to save changes on the server and just close the modal
     const transactionCurrency = getCurrency(currentTransaction);
-    if (newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(currentTransaction);
+    if (!hasFailedScanAmountPlaceholder && newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
         navigateBack();
         return;
     }

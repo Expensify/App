@@ -532,7 +532,20 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
+function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>) {
+    return (
+        isScanRequest(transaction) &&
+        transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
+        (transaction?.amount === 0 || transaction?.amount === undefined) &&
+        !hasValidModifiedAmount(transaction)
+    );
+}
+
 function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
+    if (isFailedScanAmountPlaceholder(transaction)) {
+        return true;
+    }
+
     if (isFromExpenseReport) {
         return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
     }
@@ -571,7 +584,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || isAmountMissing(transaction, isFromExpenseReport);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -3298,6 +3311,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isFailedScanAmountPlaceholder,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,

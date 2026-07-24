@@ -354,6 +354,8 @@ function getTransactionPreviewTextAndTranslationPaths({
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
+    } else if (hasFieldErrors && isAmountMissing(transaction, isExpenseReport(iouReport))) {
+        displayAmountText = {text: ''};
     }
 
     const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? (getOriginalMessage(action) ?? undefined) : undefined;
