@@ -1,9 +1,13 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
+
+import type * as TaskActions from '@libs/actions/Task';
+import {createTaskAndNavigate} from '@libs/actions/Task';
 
 import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
@@ -24,6 +28,11 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/ComponentUtils', () => ({
     forceClearInput: jest.fn(),
+}));
+
+jest.mock('@libs/actions/Task', () => ({
+    ...jest.requireActual<typeof TaskActions>('@libs/actions/Task'),
+    createTaskAndNavigate: jest.fn(),
 }));
 
 jest.mock('@hooks/useLocalize', () =>
@@ -70,7 +79,13 @@ function ReportActionEditMessageContextProviderForReport({children}: PropsWithCh
 }
 
 function ReportScreenProviders({children}: PropsWithChildren) {
-    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
+    return (
+        <ComposeProviders
+            components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}
+        >
+            {children}
+        </ComposeProviders>
+    );
 }
 
 const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
@@ -435,6 +450,42 @@ describe('ReportActionCompose Integration Tests', () => {
             );
 
             unmount();
+        });
+    });
+
+    describe('Task creation with a short mention', () => {
+        it('assigns the task to the user resolved from a same-private-domain short mention', async () => {
+            // Given a current user on a private domain and a coworker on the same domain
+            const coworkerAccountID = 2;
+            await TestHelper.signInWithTestUser(1, 'user@domain.com');
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [coworkerAccountID]: TestHelper.buildPersonalDetails('mat@domain.com', coworkerAccountID, 'Mat'),
+                });
+            });
+
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            // When a task with a short mention of the coworker is typed and submitted
+            // (the composer submits by clearing the input, which hands the draft to validateAndSubmitDraft)
+            const composer = screen.getByTestId('composer');
+            fireEvent.changeText(composer, '[] @mat Buy milk');
+            fireEvent(composer, 'clear', {nativeEvent: {text: '[] @mat Buy milk'}});
+
+            // Then the task is created with the mention resolved to the coworker's full login
+            await waitFor(() => {
+                expect(createTaskAndNavigate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        title: 'Buy milk',
+                        assigneeEmail: 'mat@domain.com',
+                        assigneeAccountID: coworkerAccountID,
+                    }),
+                );
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 });

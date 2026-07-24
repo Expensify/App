@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 
 type ExpensifyCardVerifyAccountPageProps =
@@ -67,8 +68,8 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
-            sendValidateCode={() => requestValidateCodeAction()}
+            descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin)}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: Number.parseInt(cardID, 10)})}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}
             validateError={validateError}

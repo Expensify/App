@@ -72,7 +72,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -97,7 +97,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(PAYMENT_ICONS);
 
-    const {beginExportWithTemplate, showOfflineModal, showDownloadErrorModal, exportDownloadStatusModal} = useExportActions({
+    const {beginExportWithTemplate, showOfflineModal, showDownloadErrorModal} = useExportActions({
         reportID,
         policy,
     });
@@ -329,7 +329,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         return (
             <>
                 {bulkDuplicateHandler}
-                {exportDownloadStatusModal}
                 <MoneyReportHeaderKYCDropdown
                     chatReportID={chatReport?.reportID}
                     iouReport={moneyRequestReport}
@@ -354,7 +353,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     return (
         <>
             {bulkDuplicateHandler}
-            {exportDownloadStatusModal}
             <ButtonWithDropdownMenu
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}

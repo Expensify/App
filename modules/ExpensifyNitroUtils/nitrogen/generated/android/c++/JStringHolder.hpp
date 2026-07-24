@@ -21,7 +21,7 @@ namespace margelo::nitro::utils {
    */
   struct JStringHolder final: public jni::JavaClass<JStringHolder> {
   public:
-    static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/StringHolder;";
+    static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/StringHolder;";
 
   public:
     /**

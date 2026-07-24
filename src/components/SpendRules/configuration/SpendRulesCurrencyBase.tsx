@@ -133,7 +133,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             onCurrenciesChange([...selectedCurrencies, settlementCurrency]);
         }
 
-        goBack();
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     const ListHeaderContent = (
