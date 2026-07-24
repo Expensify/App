@@ -23,6 +23,9 @@ type RunAfterTransitionsOptions = {
 };
 
 const activeTransitions = new Map<TransitionHandle, {timeout: ReturnType<typeof setTimeout>; kind: TransitionKind}>();
+
+const transitionStartListeners = new Set<() => void>();
+
 let activeNavigationCount = 0;
 
 let pendingCallbacks: Array<() => void | Promise<void>> = [];
@@ -37,16 +40,16 @@ let promiseForNextNavigationTransitionStart = new Promise<void>((resolve) => {
     nextNavigationTransitionStartResolve = resolve;
 });
 
-function runCallback(callback: () => void | Promise<void>): void {
+function invokeSafely(fn: () => void | Promise<void>): void {
     try {
-        const result = callback();
+        const result = fn();
         if (result instanceof Promise) {
             result.catch((error) => {
-                Log.warn('[TransitionTracker] A pending async callback threw an error', {error});
+                Log.warn(`[TransitionTracker] An async callback/listener threw an error`, {error});
             });
         }
     } catch (error) {
-        Log.warn('[TransitionTracker] A pending callback threw an error', {error});
+        Log.warn(`[TransitionTracker] A callback/listener threw an error`, {error});
     }
 }
 
@@ -58,7 +61,7 @@ function flushCallbacks(): void {
     const callbacks = pendingCallbacks;
     pendingCallbacks = [];
     for (const callback of callbacks) {
-        runCallback(callback);
+        invokeSafely(callback);
     }
 }
 
@@ -115,6 +118,10 @@ function startTransition(kind: TransitionKind = 'other'): TransitionHandle {
 
     activeTransitions.set(handle, {timeout, kind});
 
+    for (const listener of transitionStartListeners) {
+        invokeSafely(listener);
+    }
+
     return handle;
 }
 
@@ -156,7 +163,7 @@ function runAfterTransitions({
     maxWaitForUpcomingTransitionMs = CONST.MAX_TRANSITION_START_WAIT_MS,
 }: RunAfterTransitionsOptions): CancelHandle {
     if (runImmediately) {
-        runCallback(callback);
+        invokeSafely(callback);
         return {cancel: () => {}};
     }
     const waitForNavigationOnly = waitForUpcomingTransition === 'navigation';
@@ -198,7 +205,7 @@ function runAfterTransitions({
     }
 
     if (activeTransitions.size === 0) {
-        runCallback(callback);
+        invokeSafely(callback);
         return {cancel: () => {}};
     }
 
@@ -214,10 +221,22 @@ function runAfterTransitions({
     };
 }
 
+/**
+ * Subscribes to be notified synchronously whenever a new transition starts (via {@link startTransition}).
+ * Returns an unsubscribe function.
+ */
+function onTransitionStart(listener: () => void): () => void {
+    transitionStartListeners.add(listener);
+    return () => {
+        transitionStartListeners.delete(listener);
+    };
+}
+
 const TransitionTracker = {
     startTransition,
     endTransition,
     runAfterTransitions,
+    onTransitionStart,
 };
 
 export default TransitionTracker;

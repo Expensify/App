@@ -47,7 +47,7 @@ describe('TransitionTracker', () => {
                 });
             }).not.toThrow();
 
-            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending callback threw an error', {error});
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A callback/listener threw an error', {error});
             drainTransitions();
         });
 
@@ -60,7 +60,7 @@ describe('TransitionTracker', () => {
 
             await Promise.resolve();
 
-            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending async callback threw an error', {error});
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] An async callback/listener threw an error', {error});
             drainTransitions();
         });
 
@@ -91,7 +91,7 @@ describe('TransitionTracker', () => {
                 });
             }).not.toThrow();
 
-            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending callback threw an error', {error});
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A callback/listener threw an error', {error});
         });
 
         it('isolates rejected promises on the runImmediately path', async () => {
@@ -104,7 +104,7 @@ describe('TransitionTracker', () => {
 
             await Promise.resolve();
 
-            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A pending async callback threw an error', {error});
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] An async callback/listener threw an error', {error});
         });
 
         it('queues callback when transition is active and runs it after endTransition', () => {
@@ -338,6 +338,54 @@ describe('TransitionTracker', () => {
             expect(callbackA).toHaveBeenCalledTimes(1);
             expect(callbackB).toHaveBeenCalledTimes(1);
             expect(mockLogWarn).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+    });
+
+    describe('onTransitionStart', () => {
+        it('notifies subscribers synchronously when a new transition starts', () => {
+            const listener = jest.fn();
+            const unsubscribe = TransitionTracker.onTransitionStart(listener);
+
+            const handle = TransitionTracker.startTransition();
+
+            expect(listener).toHaveBeenCalledTimes(1);
+
+            unsubscribe();
+            TransitionTracker.endTransition(handle);
+            drainTransitions();
+        });
+
+        it('stops notifying a listener after it unsubscribes', () => {
+            const listener = jest.fn();
+            const unsubscribe = TransitionTracker.onTransitionStart(listener);
+            unsubscribe();
+
+            const handle = TransitionTracker.startTransition();
+
+            expect(listener).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(handle);
+            drainTransitions();
+        });
+
+        it('isolates a throwing listener from other subscribers', () => {
+            const error = new Error('listener boom');
+            const throwingListener = jest.fn(() => {
+                throw error;
+            });
+            const otherListener = jest.fn();
+            const unsubscribeThrowing = TransitionTracker.onTransitionStart(throwingListener);
+            const unsubscribeOther = TransitionTracker.onTransitionStart(otherListener);
+
+            const handle = TransitionTracker.startTransition();
+
+            expect(throwingListener).toHaveBeenCalledTimes(1);
+            expect(otherListener).toHaveBeenCalledTimes(1);
+            expect(mockLogWarn).toHaveBeenCalledWith('[TransitionTracker] A callback/listener threw an error', {error});
+
+            unsubscribeThrowing();
+            unsubscribeOther();
+            TransitionTracker.endTransition(handle);
             drainTransitions();
         });
     });
