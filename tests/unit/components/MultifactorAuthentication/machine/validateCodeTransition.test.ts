@@ -102,6 +102,21 @@ describe('MFA magic code and registration decision', () => {
         actor.stop();
     });
 
+    it('clears the inline error when the rejected code is submitted again without editing', () => {
+        const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
+
+        actor.start();
+        actor.send({type: 'VALIDATE_CODE_REJECTED', error: INVALID_CODE_ERROR});
+        actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
+
+        const result = actor.getSnapshot();
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
+        expect(result.context.validateCode).toBe(MFA_TEST_VALIDATE_CODE);
+        expect(result.context.continuableError).toBeUndefined();
+
+        actor.stop();
+    });
+
     it('ends the flow with the failure outcome when the code rejection is not continuable', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
 

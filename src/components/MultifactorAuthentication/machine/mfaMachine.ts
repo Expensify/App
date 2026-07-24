@@ -222,7 +222,7 @@ const MFAMachine = setup({
                 [MFA_STATE.REQUESTING_VALIDATE_CODE]: {
                     id: MFA_STATE.REQUESTING_VALIDATE_CODE,
                     on: {
-                        VALIDATE_CODE_ENTERED: {target: SOFT_PROMPT_CHECK_TARGET, actions: 'submitValidateCode'},
+                        VALIDATE_CODE_ENTERED: {target: SOFT_PROMPT_CHECK_TARGET, actions: ['clearContinuableError', 'submitValidateCode']},
                         VALIDATE_CODE_REJECTED: [
                             {
                                 guard: ({event}) => event.error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
