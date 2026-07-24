@@ -34,11 +34,13 @@ import {generateAccountID} from '@src/libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -51,7 +53,7 @@ import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, getOnyxData, localeCompare} from '../../utils/TestHelper';
+import {createGlobalFetchMock, getOnyxData, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall, localeCompare} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -107,59 +109,15 @@ const RORY_ACCOUNT_ID = 3;
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
 
-type OnyxDataRecord = Record<PropertyKey, unknown>;
-type OnyxDataType = 'optimisticData' | 'successData' | 'failureData';
-type OnyxMethod = ValueOf<typeof Onyx.METHOD>;
-type ReportWorkflowOnyxUpdate = {onyxMethod: OnyxMethod; key: string; value: unknown};
-type ReportWorkflowObjectOnyxUpdate = {onyxMethod: OnyxMethod; key: string; value: OnyxDataRecord};
-
-function getRequiredWriteCall(calls: unknown, callIndex = -1): [unknown, OnyxDataRecord, OnyxDataRecord] {
-    if (!Array.isArray(calls)) {
-        throw new Error('Expected API.write mock calls.');
+function getRequiredReportAction(update: unknown): Record<string, unknown> {
+    if (!isObject(update) || !isObject(update.value)) {
+        throw new Error('Expected an Onyx update with an object value.');
     }
 
-    const call: unknown = calls.at(callIndex);
-    if (!Array.isArray(call)) {
-        throw new Error(`Expected API.write call ${callIndex}.`);
-    }
-
-    const parameters: unknown = call.at(1);
-    const onyxData: unknown = call.at(2);
-    if (!isObject(parameters) || !isObject(onyxData)) {
-        throw new Error(`Expected API.write call ${callIndex} to include parameters and Onyx data.`);
-    }
-
-    return [call.at(0), parameters, onyxData];
-}
-
-function getRequiredOnyxUpdates(onyxData: OnyxDataRecord, dataType: OnyxDataType): unknown[] {
-    const updates = onyxData[dataType];
-    if (!Array.isArray(updates)) {
-        throw new Error(`Expected API.write Onyx data to include ${dataType}.`);
-    }
-    return updates;
-}
-
-function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue: true): ReportWorkflowObjectOnyxUpdate;
-function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue?: false): ReportWorkflowOnyxUpdate;
-function getRequiredOnyxUpdate(onyxData: OnyxDataRecord, dataType: OnyxDataType, key: string, onyxMethod: OnyxMethod, requireObjectValue = false): ReportWorkflowOnyxUpdate {
-    const update = getRequiredOnyxUpdates(onyxData, dataType).find((candidate) => isObject(candidate) && candidate.key === key && candidate.onyxMethod === onyxMethod);
-    if (!isObject(update)) {
-        throw new Error(`Expected API.write ${dataType} to include a ${onyxMethod} update for ${key}.`);
-    }
-
-    const value = update.value;
-    if (requireObjectValue && !isObject(value)) {
-        throw new Error(`Expected API.write ${dataType} update for ${key} to include an object value.`);
-    }
-
-    return {onyxMethod, key, value};
-}
-
-function getRequiredReportAction(update: ReportWorkflowObjectOnyxUpdate): OnyxDataRecord {
     const reportAction: unknown = Object.values(update.value).at(0);
     if (!isObject(reportAction)) {
-        throw new Error(`Expected an optimistic report action in ${update.key}.`);
+        const updateKey = typeof update.key === 'string' ? update.key : 'an unknown Onyx key';
+        throw new Error(`Expected an optimistic report action in ${updateKey}.`);
     }
     return reportAction;
 }
@@ -3753,17 +3711,26 @@ describe('actions/IOU/ReportWorkflow', () => {
                 ...createRandomTransaction(1),
                 reportID: normalReport.reportID,
             };
+            const policyCollectionDataSet: CollectionDataSet<typeof ONYXKEYS.COLLECTION.POLICY> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${activeDEWPolicy.id}`]: activeDEWPolicy,
+            };
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`]: normalReport,
+            };
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
 
-            return Promise.all([
-                Onyx.set(ONYXKEYS.SESSION, {
+            return Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
                     email: managerEmail,
                     accountID: managerAccountID,
-                }),
-                Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activeDEWPolicy.id),
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${activeDEWPolicy.id}`, activeDEWPolicy),
-                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`, normalReport),
-                Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
-            ])
+                },
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activeDEWPolicy.id,
+                ...policyCollectionDataSet,
+                ...reportCollectionDataSet,
+                ...transactionCollectionDataSet,
+            })
                 .then(() => {
                     approveMoneyRequest({
                         expenseReport: normalReport,
@@ -3943,15 +3910,18 @@ describe('actions/IOU/ReportWorkflow', () => {
                 ...createRandomReportAction(3),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             };
-
-            await Promise.all([
-                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report),
-                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            };
+            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
                     [reportAction1.reportActionID]: reportAction1,
                     [reportAction2.reportActionID]: reportAction2,
                     [reportAction3.reportActionID]: reportAction3,
-                }),
-            ]);
+                },
+            };
+
+            await Onyx.multiSet({...reportCollectionDataSet, ...reportActionsCollectionDataSet});
             await waitForBatchedUpdates();
 
             const result = getReportOriginalCreationTimestamp(report);
@@ -3968,13 +3938,16 @@ describe('actions/IOU/ReportWorkflow', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             };
-
-            await Promise.all([
-                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report),
-                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            };
+            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
                     [reportAction1.reportActionID]: reportAction1,
-                }),
-            ]);
+                },
+            };
+
+            await Onyx.multiSet({...reportCollectionDataSet, ...reportActionsCollectionDataSet});
             await waitForBatchedUpdates();
 
             const result = getReportOriginalCreationTimestamp(report);
