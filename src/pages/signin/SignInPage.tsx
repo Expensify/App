@@ -6,6 +6,7 @@ import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -165,6 +166,11 @@ function getRenderOptions({
 
 function SignInPage({ref}: SignInPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
+
+    // Reset the browser tab title on the signed-out root screen so it falls back to the site title ("New Expensify").
+    // Authenticated pages set a page-specific title via useDocumentTitle, but nothing clears it on logout, so the tab
+    // would otherwise stay stuck on the last visited page's title. This is a no-op on native.
+    useDocumentTitle('');
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
