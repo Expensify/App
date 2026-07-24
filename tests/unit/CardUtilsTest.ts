@@ -4305,7 +4305,7 @@ describe('CardUtils', () => {
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
         });
 
-        it('returns false when lastScrape is not a parseable date in any supported format', () => {
+        it('returns false when lastScrape is not a valid date in any supported format', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: 'not-a-date'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
         });
