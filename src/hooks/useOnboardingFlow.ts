@@ -30,6 +30,8 @@ function useOnboardingFlowRouter() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
+    // A user arriving via a Submit-via-PDF secure access link should land directly on the shared report, not onboarding.
+    const isVisitingSecureLink = !!currentUrl?.includes('secureKey=');
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
@@ -56,6 +58,11 @@ function useOnboardingFlowRouter() {
             callback: () => {
                 // Prevent showing onboarding if we are logging in as a new user with short lived token
                 if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
+                    return;
+                }
+
+                // Skip onboarding when arriving via a Submit-via-PDF secure access link so the user lands directly on the shared report.
+                if (isVisitingSecureLink) {
                     return;
                 }
 
@@ -137,10 +144,12 @@ function useOnboardingFlowRouter() {
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
         isOnboardingCompleted,
+        isVisitingSecureLink,
     ]);
 
     return {
-        isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues),
+        // Treat the flow as completed for secure-link visitors so the onboarding modal is not mounted over the report.
+        isOnboardingCompleted: isVisitingSecureLink ? true : hasCompletedGuidedSetupFlowSelector(onboardingValues),
         isHybridAppOnboardingCompleted,
         isOnboardingLoading: !!onboardingValues?.isLoading,
     };

@@ -17,12 +17,11 @@ import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 
-import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
+import {clearErrorFields, clearErrors, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -125,6 +124,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Callback fired synchronously when the user presses submit, before validation runs */
     onBeforeSubmit?: () => void;
 
+    /** Whether the confirm button should show a spinner immediately on press */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -146,6 +148,7 @@ function FormProvider({
     shouldHideFixErrorsAlert = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
+    shouldShowLoadingImmediatelyOnPress = true,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -167,7 +170,8 @@ function FormProvider({
 
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
-    const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const hasServerError = !!formState && !isEmptyObject(formState?.errors);
+    const hasServerErrorFields = !!formState && !isEmptyObject(formState?.errorFields);
     const {setIsBlurred} = useInputBlurActions();
     const blurTransitionHandle = useRef<CancelHandle | null>(null);
 
@@ -194,10 +198,12 @@ function FormProvider({
         (values: FormOnyxValues, shouldClearServerError = true) => {
             const trimmedStringValues = shouldTrimValues ? prepareValues(values) : values;
 
-            if (shouldClearServerError) {
+            if (shouldClearServerError && hasServerError) {
                 clearErrors(formID);
             }
-            clearErrorFields(formID);
+            if (hasServerErrorFields) {
+                clearErrorFields(formID);
+            }
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
@@ -245,13 +251,16 @@ function FormProvider({
 
             const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs.current[inputID]));
 
-            if (!deepEqual(errors, touchedInputErrors)) {
-                setErrors(touchedInputErrors);
-            }
+            // Compare against the latest committed errors via a functional update rather than the `errors` captured in this
+            // closure. When a value is selected (e.g. an address suggestion) right after a blur, the delayed blur validation
+            // sets the error before this validation runs; reading `errors` from the closure would still see the pre-error
+            // (empty) snapshot, short-circuit the update, and leave the stale error showing (see
+            // https://github.com/Expensify/App/issues/94519).
+            setErrors((prevErrors) => (deepEqual(prevErrors, touchedInputErrors) ? prevErrors : touchedInputErrors));
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation],
+        [shouldTrimValues, formID, validate, translate, allowHTML, shouldUseStrictHtmlTagValidation, hasServerError, hasServerErrorFields],
     );
 
     // When locales change from another session of the same account,
@@ -281,7 +290,9 @@ function FormProvider({
         [touchedInputs],
     );
 
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!formState?.isLoading || isOnyxLoading});
+    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
+    const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
 
     const submit = useDebounceNonReactive(
         useCallback(() => {
@@ -315,7 +326,7 @@ function FormProvider({
                 return;
             }
 
-            startWithLoading(() => {
+            const runSubmit = () => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
                     KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
@@ -323,8 +334,28 @@ function FormProvider({
                 } else {
                     onSubmit(trimmedStringValues);
                 }
-            });
-        }, [enabledWhenOffline, isLoading, inputValues, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit, startWithLoading]),
+            };
+
+            if (!shouldShowLoadingImmediatelyOnPress) {
+                runSubmit();
+                return;
+            }
+
+            startWithLoading(runSubmit);
+        }, [
+            enabledWhenOffline,
+            isLoading,
+            inputValues,
+            isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+            shouldShowLoadingImmediatelyOnPress,
+            startWithLoading,
+        ]),
         1000,
         {leading: true, trailing: false},
     );
@@ -360,10 +391,9 @@ function FormProvider({
         (inputID: keyof Form) => {
             const newErrors = {...errors};
             delete newErrors[inputID];
-            setFormErrors(formID, newErrors as Errors);
             setErrors(newErrors);
         },
-        [errors, formID],
+        [errors],
     );
 
     const scrollToEnd = useCallback(() => {
@@ -477,7 +507,14 @@ function FormProvider({
                             setTouchedInput(inputID);
                             // Skip validation if the screen is not focused or keyboard focus is being restored (Android mWeb)
                             if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
-                                onValidate(inputValues, !hasServerError);
+                                // Validate against the latest committed values rather than the `inputValues` captured in this
+                                // closure when the input blurred. Selecting a value (e.g. an address suggestion) updates the
+                                // field after this blur validation is scheduled, so validating the stale value would re-apply an
+                                // error that the selection just cleared (see https://github.com/Expensify/App/issues/94519).
+                                setInputValues((latestValues) => {
+                                    onValidate(latestValues, !hasServerError);
+                                    return latestValues;
+                                });
                             }
                         }, VALIDATE_DELAY);
                     }
@@ -549,9 +586,11 @@ function FormProvider({
                 onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
-                isLoading={isLoading}
+                isAlertVisible={isGeneralAlertVisible}
+                serverErrorFields={formState?.errorFields}
+                serverErrorMessage={errorMessage}
+                isLoading={!!formState?.isLoading || isLoading}
                 enabledWhenOffline={enabledWhenOffline}
-                shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
                 ref={formWrapperRef}

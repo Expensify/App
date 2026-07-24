@@ -1,5 +1,3 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
@@ -19,14 +17,15 @@ import SidebarSpacerWrapper from './SidebarSpacerWrapper';
 import SplitRouter from './SplitRouter';
 import usePreserveNavigatorState from './usePreserveNavigatorState';
 
-function useCustomEffects(props: CustomEffectsHookProps) {
+function SplitNavigatorEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
     usePreserveNavigatorState(props.state, props.parentRoute);
+    // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
 }
 
-function useCustomSplitNavigatorState({state}: CustomStateHookProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
+function getCustomSplitNavigatorState({state, shouldUseNarrowLayout}: CustomStateHookProps) {
     const sidebarScreenRoute = state.routes.at(0);
 
     if (!sidebarScreenRoute) {
@@ -41,9 +40,9 @@ function useCustomSplitNavigatorState({state}: CustomStateHookProps) {
 
 const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavigator', {
     createRouter: SplitRouter,
-    useCustomEffects,
+    Effects: SplitNavigatorEffects,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
-    useCustomState: useCustomSplitNavigatorState,
+    getCustomState: getCustomSplitNavigatorState,
     NavigationContentWrapper: SidebarSpacerWrapper,
     freezeNonTopScreens: true,
 });

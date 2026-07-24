@@ -933,16 +933,12 @@ function rejectMoneyRequest(
     return urlToNavigateBack;
 }
 
-function markRejectViolationAsResolved(transactionID: string, isOffline: boolean, reportID?: string) {
+function markRejectViolationAsResolved(transactionID: string, isOffline: boolean, transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>, reportID?: string) {
     if (!reportID) {
         return;
     }
 
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
-
-    const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const currentViolations = transactionViolations;
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
 
@@ -1012,6 +1008,7 @@ function rejectExpenseReport(
     currentUserAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
+    isTrackIntentUser: boolean | undefined,
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
@@ -1034,11 +1031,13 @@ function rejectExpenseReport(
               report,
               predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
               isRejectedReport: true,
+              isTrackIntentUser,
           })
         : buildOptimisticNextStep({
               report,
               predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
               bypassNextApproverID: targetAccountID,
+              isTrackIntentUser,
           });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
@@ -1081,12 +1080,14 @@ function rejectExpenseReport(
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
                   isRejectedReport: true,
+                  isTrackIntentUser,
               })
             : // buildOptimisticNextStep is used in parallel
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   bypassNextApproverID: targetAccountID,
+                  isTrackIntentUser,
               }),
     });
 

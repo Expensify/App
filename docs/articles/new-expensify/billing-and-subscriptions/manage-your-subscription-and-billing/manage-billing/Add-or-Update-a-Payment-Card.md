@@ -42,6 +42,8 @@ To replace an existing card:
 
 The new payment card replaces the previous one and will be used for future Expensify subscription charges.
 
+![The Payment section of Account > Subscription with the three-dots (⋮) menu opened next to the card on file, showing the "Change payment card" option.]({{site.url}}/assets/images/ExpensiHelp-Add-or-Update-a-Payment-Card.png){:width="100%"}
+
 ---
 
 ## Related articles

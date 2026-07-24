@@ -13,6 +13,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
@@ -97,7 +98,7 @@ type UseExpenseActionsReturn = {
 
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -155,6 +156,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // Billing keys
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -274,8 +276,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                isTrackIntentUser,
                 delegateAccountID,
                 policyTagList,
+                formatPhoneNumber,
             });
         }
     };
@@ -434,7 +438,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     recentWaypoints: recentWaypoints ?? [],
                     currentUserAccountID: currentUserPersonalDetails?.accountID,
                     currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                    isTrackIntentUser,
                     delegateAccountID,
+                    formatPhoneNumber,
                 });
             },
         },

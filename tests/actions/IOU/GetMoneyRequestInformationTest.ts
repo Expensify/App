@@ -69,6 +69,7 @@ const baseParams = {
     policyRecentlyUsedCurrencies: [] as string[],
     personalDetails: {},
     delegateAccountID: undefined,
+    isTrackIntentUser: false,
 } as const;
 
 describe('getMoneyRequestInformation', () => {

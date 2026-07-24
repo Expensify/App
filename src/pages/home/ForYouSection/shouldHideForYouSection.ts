@@ -19,13 +19,17 @@ type ShouldHideForYouSectionParams = {
 
     /** Whether the onboarding NVP has loaded. Until then `isOnboardingCompleted` defaults to "completed" and is unreliable. */
     isOnboardingStatusKnown: boolean;
+
+    /** Whether the account went through NewDot onboarding (non-empty onboarding NVP). `false` means an old/migrated account. */
+    isNewDotOnboardedUser: boolean;
 };
 
 /**
  * Decides whether the empty "For You" section should be hidden.
  *
- * New users (still onboarding, or free-trial start on/after the cutoff) stay hidden until they have an actionable
- * to-do; old users always keep the section. Once a to-do has ever appeared (`hasSeenTodo`), it stays visible.
+ * New users (still onboarding, free-trial start on/after the cutoff, or NewDot-onboarded with no free trial yet) stay
+ * hidden until they have an actionable to-do; old/migrated users always keep the section. Once a to-do has ever appeared
+ * (`hasSeenTodo`), it stays visible.
  */
 function shouldHideForYouSection({
     isInitialLoad,
@@ -35,6 +39,7 @@ function shouldHideForYouSection({
     cutoffDate,
     isOnboardingCompleted,
     isOnboardingStatusKnown,
+    isNewDotOnboardedUser,
 }: ShouldHideForYouSectionParams): boolean {
     // Keep the section visible (even during initial load) once a to-do exists or ever has.
     if (hasAnyTodos || hasSeenTodo) {
@@ -51,8 +56,10 @@ function shouldHideForYouSection({
         return !isOnboardingStatusKnown;
     }
 
+    // No free-trial date means no workspace yet, so the cutoff can't classify the user. Fall back to the onboarding
+    // origin: NewDot-onboarded accounts are new (hide), old/migrated accounts keep the section.
     if (!firstDayFreeTrial) {
-        return false;
+        return isNewDotOnboardedUser;
     }
 
     const trialStartMs = new Date(firstDayFreeTrial).getTime();
