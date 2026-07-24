@@ -6,6 +6,7 @@ import {useChartInteractions} from '@components/Charts/hooks';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {useVictoryChartLayoutScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
 import type {CartesianChartData, PolarChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getChartPointMetadataKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartPointMetadataKey';
 import {getVictoryBarInteractionGeometry, isCursorInVerticalBar} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryBarInteractionGeometry';
@@ -147,6 +148,7 @@ function getActiveTooltipData(
 function useVictoryBarInteractions() {
     const {tnode, data, yKeys, pointMetadata, isHorizontal} = useVictoryChartContext();
     const {numberFormat} = useLocalize();
+    const coordinateScale = useVictoryChartLayoutScale();
     const rows = Object.values(data).filter(isCartesianChartData);
     const barSeriesConfig = isHorizontal ? {} : collectVerticalBarSeries(tnode.children);
     const interactiveBars = buildInteractiveBars(rows, yKeys, barSeriesConfig, pointMetadata);
@@ -218,6 +220,7 @@ function useVictoryBarInteractions() {
         resolveTargetIndex: resolveBarTargetIndex,
         chartBottom,
         yZero,
+        coordinateScale,
     });
 
     const [activeBarIndex, setActiveBarIndex] = useState(-1);

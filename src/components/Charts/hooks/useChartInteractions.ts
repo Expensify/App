@@ -97,7 +97,16 @@ type UseChartInteractionsProps = {
 
     /** Optional shared value containing the y-axis zero position */
     yZero?: SharedValue<number>;
+
+    /** Scale applied to the rendered chart container */
+    coordinateScale?: number;
 };
+
+function normalizeChartCoordinate(coordinate: number, coordinateScale: number): number {
+    'worklet';
+
+    return Number.isFinite(coordinateScale) && coordinateScale > 0 ? coordinate / coordinateScale : coordinate;
+}
 
 /**
  * Binary search over canvas x positions to find the index of the closest data point.
@@ -147,7 +156,17 @@ function findClosestPoint(xValues: number[], targetX: number): number {
  * Uses react native gesture handler gestures directly — no dependency on Victory's actionsRef/handleTouch.
  * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
-function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resolveTargetIndex, isCursorOverLabel, resolveLabelTouchX, chartBottom, yZero}: UseChartInteractionsProps) {
+function useChartInteractions({
+    handlePress,
+    checkIsOver,
+    checkIsClickable,
+    resolveTargetIndex,
+    isCursorOverLabel,
+    resolveLabelTouchX,
+    chartBottom,
+    yZero,
+    coordinateScale = 1,
+}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState} = useChartInteractionState();
 
@@ -291,30 +310,34 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
             .onBegin((e) => {
                 'worklet';
 
+                const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
+                const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
                 chartInteractionState.isActive.set(true);
-                chartInteractionState.cursor.x.set(e.x);
-                chartInteractionState.cursor.y.set(e.y);
-                const bottom = chartBottom?.get() ?? e.y;
-                const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
-                const targetIndex = getResolvedTargetIndex(e.x, e.y, touchX);
+                chartInteractionState.cursor.x.set(cursorX);
+                chartInteractionState.cursor.y.set(cursorY);
+                const bottom = chartBottom?.get() ?? cursorY;
+                const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+                const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
                 applyTargetIndex(targetIndex);
-                updateInteractionFlags(targetIndex, e.x, e.y, bottom);
+                updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
             })
             .onUpdate((e) => {
                 'worklet';
 
-                chartInteractionState.cursor.x.set(e.x);
-                chartInteractionState.cursor.y.set(e.y);
-                const bottom = chartBottom?.get() ?? e.y;
+                const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
+                const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
+                chartInteractionState.cursor.x.set(cursorX);
+                chartInteractionState.cursor.y.set(cursorY);
+                const bottom = chartBottom?.get() ?? cursorY;
                 const isOverCurrentTarget = updateCurrentInteractionFlags();
                 // Only update the matched index when the cursor is not over the current target.
                 // This keeps the active index locked while hovering over a bar/point/label,
                 // preventing it from jumping to a different point during continuous movement.
                 if (!isOverCurrentTarget) {
-                    const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
-                    const targetIndex = getResolvedTargetIndex(e.x, e.y, touchX);
+                    const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+                    const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
                     applyTargetIndex(targetIndex);
-                    updateInteractionFlags(targetIndex, e.x, e.y, bottom);
+                    updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
                 }
             })
             .onEnd(() => {
@@ -334,11 +357,13 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
         Gesture.Tap().onEnd((e) => {
             'worklet';
 
-            chartInteractionState.cursor.x.set(e.x);
-            chartInteractionState.cursor.y.set(e.y);
+            const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
+            const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
+            chartInteractionState.cursor.x.set(cursorX);
+            chartInteractionState.cursor.y.set(cursorY);
             const ox = pointOX.get();
             const oy = pointOY.get();
-            const idx = getResolvedTargetIndex(e.x, e.y, e.x);
+            const idx = getResolvedTargetIndex(cursorX, cursorY, cursorX);
             applyTargetIndex(idx);
             if (idx < 0) {
                 return;
@@ -346,9 +371,9 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
             const targetX = ox.at(idx) ?? 0;
             const targetY = oy.at(idx) ?? 0;
             const currentChartBottom = chartBottom?.get() ?? 0;
-            const hitTestArgs = getHitTestArgs(idx, e.x, e.y, targetX, targetY, currentChartBottom);
+            const hitTestArgs = getHitTestArgs(idx, cursorX, cursorY, targetX, targetY, currentChartBottom);
             const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
-            updateInteractionFlags(idx, e.x, e.y, currentChartBottom);
+            updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
             if (isClickable) {
                 scheduleOnRN(handlePress, idx);
             }
@@ -392,5 +417,5 @@ function useChartInteractions({handlePress, checkIsOver, checkIsClickable, resol
     };
 }
 
-export {useChartInteractions, findClosestPoint, TOOLTIP_BAR_GAP};
+export {useChartInteractions, findClosestPoint, normalizeChartCoordinate, TOOLTIP_BAR_GAP};
 export type {HitTestArgs, ResolveTargetIndexArgs};

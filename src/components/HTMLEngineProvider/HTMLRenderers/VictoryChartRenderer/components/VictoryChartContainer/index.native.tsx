@@ -1,5 +1,6 @@
 import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {VictoryChartLayoutScaleProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
 import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 
@@ -45,7 +46,9 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
 
     return (
         <View style={containerStyle}>
-            <View style={contentStyle}>{children}</View>
+            <VictoryChartLayoutScaleProvider scale={scale}>
+                <View style={contentStyle}>{children}</View>
+            </VictoryChartLayoutScaleProvider>
         </View>
     );
 }
