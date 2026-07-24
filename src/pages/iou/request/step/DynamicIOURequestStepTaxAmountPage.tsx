@@ -2,13 +2,14 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 
-import {setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestCurrency, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxAmount} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
@@ -22,7 +23,7 @@ import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Transaction} from '@src/types/onyx';
@@ -40,7 +41,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT> & {
+type DynamicIOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT> & {
     transaction: OnyxEntry<Transaction>;
 };
 
@@ -59,14 +60,15 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Pol
     return convertToBackendAmount(calculateTaxAmount(taxPercentage, transactionTaxAmount, decimals));
 }
 
-function IOURequestStepTaxAmountPage({
+function DynamicIOURequestStepTaxAmountPage({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID},
     },
     transaction,
     report,
-}: IOURequestStepTaxAmountPageProps) {
+}: DynamicIOURequestStepTaxAmountPageProps) {
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -108,11 +110,11 @@ function IOURequestStepTaxAmountPage({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const saveAndNavigateBack = () => {
-        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
@@ -155,39 +157,22 @@ function IOURequestStepTaxAmountPage({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
-        if (backTo) {
-            saveAndNavigateBack();
-            return;
-        }
-
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-        // to the confirm step.
-        if (report?.reportID) {
-            // TODO: Is this really needed at all?
-            setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-            return;
-        }
-
-        // If there was no reportID, then that means the user started this flow from the global + menu
-        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        navigateBack();
     };
 
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
-            testID="IOURequestStepTaxAmountPage"
-            shouldShowWrapper={!!(backTo || isEditing)}
+            testID="DynamicIOURequestStepTaxAmountPage"
+            shouldShowWrapper
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={!!(backTo || isEditing)}
+                isEditing
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
-                taxAmount={getTaxAmount(currentTransaction, policy, currency, decimals, !!(backTo || isEditing))}
+                taxAmount={getTaxAmount(currentTransaction, policy, currency, decimals, true)}
                 ref={(e) => {
                     textInput.current = e;
                 }}
@@ -201,8 +186,8 @@ function IOURequestStepTaxAmountPage({
     );
 }
 
-const IOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);
+const DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepTaxAmountPage);
 
-const IOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxAmountPageWithWritableReportOrNotFound);
+const DynamicIOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound);
 
-export default IOURequestStepTaxAmountPageWithFullTransactionOrNotFound;
+export default DynamicIOURequestStepTaxAmountPageWithFullTransactionOrNotFound;
