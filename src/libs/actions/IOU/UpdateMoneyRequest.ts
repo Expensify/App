@@ -56,7 +56,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from '
 import lodashUnionBy from 'lodash/unionBy';
 import Onyx from 'react-native-onyx';
 
-import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
+import {getAllReports, getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
@@ -68,6 +68,7 @@ type UpdateMoneyRequestDateParams = {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     value: string;
@@ -82,7 +83,10 @@ type UpdateMoneyRequestDateParams = {
     hash?: number;
     delegateAccountID: number | undefined;
     policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency: string | undefined;
 };
 
 type SearchSnapshotOnyxData = {
@@ -213,6 +217,7 @@ function updateMoneyRequestDate({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     transactions,
     transactionViolations,
     value,
@@ -227,7 +232,10 @@ function updateMoneyRequestDate({
     hash,
     delegateAccountID,
     policyForTrackExpense,
+    reportPolicyTags,
     distanceOriginalPolicy,
+    isTrackIntentUser,
+    personalPolicyOutputCurrency,
 }: UpdateMoneyRequestDateParams) {
     const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
@@ -251,6 +259,7 @@ function updateMoneyRequestDate({
             transaction,
             transactionThreadReport,
             parentReport,
+            iouReportOwnerLogin,
             rateID: newRateID,
             created: value,
             policy: effectivePolicy,
@@ -270,6 +279,9 @@ function updateMoneyRequestDate({
             updatedTaxValue: distanceRateTaxUpdates?.taxValue,
             distanceOriginalPolicy,
             currentTransactionViolations,
+            reportPolicyTags,
+            isTrackIntentUser,
+            personalPolicyOutputCurrency,
         });
         return;
     }
@@ -296,11 +308,11 @@ function updateMoneyRequestDate({
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportOwnerLogin,
             transactionChanges,
             policy: effectivePolicy,
             policyTagList: policyTags,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -311,6 +323,7 @@ function updateMoneyRequestDate({
             delegateAccountID,
             distanceOriginalPolicy,
             violations: currentTransactionViolations,
+            isTrackIntentUser,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -323,6 +336,7 @@ function updateMoneyRequestBillable({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     value,
     policy,
     policyTagList,
@@ -333,10 +347,13 @@ function updateMoneyRequestBillable({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     value: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -347,6 +364,8 @@ function updateMoneyRequestBillable({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -358,11 +377,11 @@ function updateMoneyRequestBillable({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportOwnerLogin,
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -370,6 +389,7 @@ function updateMoneyRequestBillable({
         iouReportNextStep: parentReportNextStep,
         isOffline,
         delegateAccountID,
+        isTrackIntentUser,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
@@ -378,6 +398,7 @@ function updateMoneyRequestReimbursable({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     value,
     policy,
     policyTagList,
@@ -388,10 +409,13 @@ function updateMoneyRequestReimbursable({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     value: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -402,6 +426,8 @@ function updateMoneyRequestReimbursable({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -413,11 +439,11 @@ function updateMoneyRequestReimbursable({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportOwnerLogin,
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -425,6 +451,7 @@ function updateMoneyRequestReimbursable({
         iouReportNextStep: parentReportNextStep,
         isOffline,
         delegateAccountID,
+        isTrackIntentUser,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
 }
@@ -434,6 +461,7 @@ function updateMoneyRequestMerchant({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     value,
     policy,
     policyTagList,
@@ -445,10 +473,13 @@ function updateMoneyRequestMerchant({
     isOffline,
     hash,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     value: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -460,6 +491,8 @@ function updateMoneyRequestMerchant({
     isOffline: boolean;
     hash?: number;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -473,11 +506,11 @@ function updateMoneyRequestMerchant({
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportOwnerLogin,
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -486,6 +519,7 @@ function updateMoneyRequestMerchant({
             isOffline,
             hash,
             delegateAccountID,
+            isTrackIntentUser,
         });
     }
     const {params, onyxData} = data;
@@ -497,6 +531,7 @@ function updateMoneyRequestAttendees({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     attendees,
     policy,
     policyTagList,
@@ -508,10 +543,13 @@ function updateMoneyRequestAttendees({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     attendees: Attendee[];
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -523,6 +561,8 @@ function updateMoneyRequestAttendees({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -531,11 +571,11 @@ function updateMoneyRequestAttendees({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportOwnerLogin,
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         violations,
         currentUserAccountIDParam,
@@ -544,6 +584,7 @@ function updateMoneyRequestAttendees({
         iouReportNextStep: parentReportNextStep,
         isOffline,
         delegateAccountID,
+        isTrackIntentUser,
     });
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
@@ -727,6 +768,7 @@ type UpdateMoneyRequestTagParams = {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     tag: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -739,6 +781,8 @@ type UpdateMoneyRequestTagParams = {
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 /** Updates the tag of an expense */
@@ -746,6 +790,7 @@ function updateMoneyRequestTag({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     tag,
     policy,
     policyTagList,
@@ -758,6 +803,8 @@ function updateMoneyRequestTag({
     parentReportNextStep,
     isOffline,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: UpdateMoneyRequestTagParams) {
     const transactionChanges: TransactionChanges = {
         tag,
@@ -766,11 +813,11 @@ function updateMoneyRequestTag({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportOwnerLogin,
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyRecentlyUsedTags,
         policyCategories,
         hash,
@@ -780,6 +827,7 @@ function updateMoneyRequestTag({
         iouReportNextStep: parentReportNextStep,
         isOffline,
         delegateAccountID,
+        isTrackIntentUser,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
@@ -789,6 +837,7 @@ function updateMoneyRequestTaxAmount({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     taxAmount,
     policy,
     policyTagList,
@@ -798,10 +847,13 @@ function updateMoneyRequestTaxAmount({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -811,6 +863,8 @@ function updateMoneyRequestTaxAmount({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const transactionChanges = {
         taxAmount,
@@ -819,17 +873,18 @@ function updateMoneyRequestTaxAmount({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportOwnerLogin,
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
         delegateAccountID,
+        isTrackIntentUser,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
 }
@@ -838,6 +893,7 @@ type UpdateMoneyRequestTaxRateParams = {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     taxCode: string;
     taxAmount: number;
     taxValue: string;
@@ -849,6 +905,8 @@ type UpdateMoneyRequestTaxRateParams = {
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 /** Updates the created tax rate of an expense */
@@ -856,6 +914,7 @@ function updateMoneyRequestTaxRate({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     taxCode,
     taxAmount,
     taxValue,
@@ -867,6 +926,8 @@ function updateMoneyRequestTaxRate({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
@@ -877,17 +938,18 @@ function updateMoneyRequestTaxRate({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportOwnerLogin,
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
         delegateAccountID,
+        isTrackIntentUser,
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
@@ -897,6 +959,7 @@ type UpdateMoneyRequestDistanceParams = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     waypoints?: WaypointCollection;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     distance?: number;
@@ -913,6 +976,9 @@ type UpdateMoneyRequestDistanceParams = {
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency: string | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -920,6 +986,7 @@ function updateMoneyRequestDistance({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     waypoints,
     recentWaypoints = [],
     distance,
@@ -936,6 +1003,9 @@ function updateMoneyRequestDistance({
     parentReportNextStep,
     distanceOriginalPolicy,
     delegateAccountID,
+    isTrackIntentUser,
+    personalPolicyOutputCurrency,
+    reportPolicyTags,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -961,23 +1031,27 @@ function updateMoneyRequestDistance({
             undefined,
             undefined,
             distanceOriginalPolicy,
+            undefined,
+            personalPolicyOutputCurrency,
         );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportOwnerLogin,
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
             delegateAccountID,
+            isTrackIntentUser,
+            personalPolicyOutputCurrency,
         });
     }
     const {params, onyxData} = data;
@@ -1037,6 +1111,7 @@ function updateMoneyRequestCategory({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     category,
     policy,
     policyTagList,
@@ -1048,10 +1123,13 @@ function updateMoneyRequestCategory({
     hash,
     parentReportNextStep,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     category: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -1063,6 +1141,8 @@ function updateMoneyRequestCategory({
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         category,
@@ -1072,11 +1152,11 @@ function updateMoneyRequestCategory({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportOwnerLogin,
         transactionChanges,
         policy,
         policyTagList,
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+        reportPolicyTags,
         policyCategories,
         policyRecentlyUsedCategories,
         currentUserAccountIDParam,
@@ -1085,6 +1165,7 @@ function updateMoneyRequestCategory({
         hash,
         iouReportNextStep: parentReportNextStep,
         delegateAccountID,
+        isTrackIntentUser,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
@@ -1094,6 +1175,7 @@ function updateMoneyRequestDescription({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     comment,
     policy,
     policyTagList,
@@ -1104,10 +1186,13 @@ function updateMoneyRequestDescription({
     parentReportNextStep,
     hash,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     comment: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -1118,6 +1203,8 @@ function updateMoneyRequestDescription({
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -1132,11 +1219,11 @@ function updateMoneyRequestDescription({
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportOwnerLogin,
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -1144,6 +1231,7 @@ function updateMoneyRequestDescription({
             iouReportNextStep: parentReportNextStep,
             hash,
             delegateAccountID,
+            isTrackIntentUser,
         });
     }
     const {params, onyxData} = data;
@@ -1156,6 +1244,7 @@ function updateMoneyRequestDistanceRate({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     rateID,
     created,
     policy,
@@ -1176,10 +1265,14 @@ function updateMoneyRequestDistanceRate({
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy,
     currentTransactionViolations: currentTransactionViolationsParam,
+    isTrackIntentUser,
+    personalPolicyOutputCurrency,
+    reportPolicyTags,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     rateID: string;
     created?: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -1200,6 +1293,9 @@ function updateMoneyRequestDistanceRate({
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency: string | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1238,17 +1334,18 @@ function updateMoneyRequestDistanceRate({
             shouldBuildOptimisticModifiedExpenseReportAction,
             distanceOriginalPolicy,
             currentTransactionViolations,
+            personalPolicyOutputCurrency,
         );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportOwnerLogin,
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -1260,6 +1357,8 @@ function updateMoneyRequestDistanceRate({
             shouldBuildOptimisticModifiedExpenseReportAction,
             distanceOriginalPolicy,
             violations: currentTransactionViolations,
+            isTrackIntentUser,
+            personalPolicyOutputCurrency,
         });
         if (created && transaction?.transactionID && transactions && transactionViolations) {
             removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);
@@ -1276,6 +1375,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     currency: string;
     amount: number;
     taxAmount: number;
@@ -1294,6 +1394,8 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
     delegateAccountID: number | undefined;
+    reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -1301,6 +1403,7 @@ function updateMoneyRequestAmountAndCurrency({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportOwnerLogin,
     currency,
     amount,
     taxAmount,
@@ -1319,6 +1422,8 @@ function updateMoneyRequestAmountAndCurrency({
     parentReportNextStep,
     hash,
     delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -1337,11 +1442,11 @@ function updateMoneyRequestAmountAndCurrency({
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportOwnerLogin,
             transactionChanges,
             policy,
             policyTagList,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories: policyCategories ?? null,
             allowNegative,
             currentUserAccountIDParam,
@@ -1351,6 +1456,7 @@ function updateMoneyRequestAmountAndCurrency({
             iouReportNextStep: parentReportNextStep,
             hash,
             delegateAccountID,
+            isTrackIntentUser,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -1373,6 +1479,7 @@ type GetUpdateMoneyRequestParamsType = {
     allowNegative?: boolean;
     newTransactionReportID?: string | undefined;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -1385,6 +1492,8 @@ type GetUpdateMoneyRequestParamsType = {
     isOffline?: boolean;
     delegateAccountID: number | undefined;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency?: string;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1416,6 +1525,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         allowNegative,
         newTransactionReportID,
         iouReport,
+        iouReportOwnerLogin,
         shouldBuildOptimisticModifiedExpenseReportAction = true,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -1427,6 +1537,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         isOffline,
         delegateAccountID,
         distanceOriginalPolicy,
+        isTrackIntentUser,
+        personalPolicyOutputCurrency,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -1513,6 +1625,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
               isFromExpenseReport,
               isSplitTransaction,
               policy,
+              personalPolicyOutputCurrency,
           })
         : undefined;
 
@@ -1706,7 +1819,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-        value: {pendingAction: null, ...(isTotalIndeterminate && {pendingFields: {total: null}})},
+        value: {pendingAction: null, ...(isTotalIndeterminate && {pendingFields: {total: iouReport?.pendingFields?.total ?? null}})},
     });
 
     // Optimistically modify the transaction and the transaction thread
@@ -1863,7 +1976,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {...iouReport, ...(isTotalIndeterminate && {pendingFields: {total: null}})},
+            value: {...iouReport, ...(isTotalIndeterminate && {pendingFields: {total: iouReport.pendingFields?.total ?? null}})},
         });
     }
 
@@ -1937,6 +2050,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             isInvoiceTransaction: isInvoice,
             isSelfDM: isSelfDM(iouReport),
             iouReport,
+            ownerLogin: iouReportOwnerLogin,
             isFromExpenseReport,
             distanceOriginalPolicy,
         });
@@ -1995,6 +2109,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 policy,
+                isTrackIntentUser,
             });
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -2009,6 +2124,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     policy,
+                    isTrackIntentUser,
                 }),
             });
             optimisticData.push({
@@ -2081,6 +2197,7 @@ function getUpdateTrackExpenseParams(
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
     currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>,
+    personalPolicyOutputCurrency?: string,
 ): UpdateMoneyRequestData<
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
@@ -2127,6 +2244,7 @@ function getUpdateTrackExpenseParams(
               transactionChanges,
               isFromExpenseReport: false,
               policy: policyForTransaction,
+              personalPolicyOutputCurrency,
           })
         : null;
     const transactionDetails = getTransactionDetails(updatedTransaction);

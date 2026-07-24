@@ -7,6 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -20,6 +21,8 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -105,9 +108,12 @@ function useReportSelectionActions({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
     const targetTransactions = transaction ? [transaction] : [];
@@ -210,6 +216,9 @@ function useReportSelectionActions({
                         transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
                         allReports,
+                        isTrackIntentUser,
+                        personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
+                        selfDMReportActions,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -234,6 +243,9 @@ function useReportSelectionActions({
                     transactions: targetTransactions,
                     allTransactionViolation: transactionViolations,
                     allReports,
+                    isTrackIntentUser,
+                    personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
+                    selfDMReportActions,
                 });
                 removeTransaction(transaction.transactionID);
             },

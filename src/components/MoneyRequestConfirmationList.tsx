@@ -71,7 +71,7 @@ import SelectionListWithSections from './SelectionList/SelectionListWithSections
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants?: Participant[]) => void;
+    onConfirm?: () => void;
 
     /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
     onOpenParticipantPicker?: () => void;
@@ -481,6 +481,7 @@ function MoneyRequestConfirmationList({
         isDistanceRequest,
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
+        isMovingTransactionFromTrackExpense,
         isTimeRequest,
         routeError,
         isNewManualExpenseFlowEnabled,
@@ -495,7 +496,6 @@ function MoneyRequestConfirmationList({
         reportID,
         routeError,
         formError,
-        selectedParticipants,
         isDelegateAccessRestricted,
         validate,
         setFormError,

@@ -27,7 +27,7 @@ jest.mock('@libs/actions/IOU/Duplicate', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
@@ -193,7 +193,6 @@ const baseQueryJSON: SearchQueryJSON = {
     similarSearchHash: 12345,
     flatFilters: [],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
@@ -224,7 +223,6 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     ...baseQueryJSON,
     inputQuery: 'type:expense-report status:all',
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-    status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
 };
 

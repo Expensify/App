@@ -11,7 +11,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerStyle as LineLayerStyleProps} from '@rnmapbox/maps';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
@@ -261,6 +261,7 @@ const webViewStyles = (theme: ThemeColors) =>
             flex: 1,
             lineHeight: variables.fontSizeNormalHeight,
             ...writingDirection.ltr,
+            overflow: 'visible',
         },
     }) satisfies WebViewStyle;
 
@@ -2999,6 +3000,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        conciergeAnimatedAvatar: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
+        },
+
         accountSettingsSectionContainer: {
             borderBottomWidth: 1,
             borderBottomColor: theme.border,
@@ -3955,6 +3961,23 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: 68,
         },
 
+        gettingStartedRowIconContainer: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        gettingStartedRowTextContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            gap: 2,
+        },
+
+        gettingStartedFooterLink: {
+            paddingVertical: 12,
+        },
+
         widgetHeaderMenuButton: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -4594,7 +4617,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
         },
 
-        inboxTabBadge: {
+        tabSelectorBadge: {
             minWidth: 18,
             height: 16,
             marginLeft: 8,
@@ -4920,6 +4943,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        pdfErrorPlaceholderFullWidth: {
+            width: '100%',
+            maxWidth: '100%',
+        },
+
         moneyRequestAttachReceipt: {
             backgroundColor: theme.highlightBG,
             borderColor: theme.border,
@@ -5196,6 +5224,11 @@ const staticStyles = (theme: ThemeColors) =>
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
         searchPageInputNarrowTouchableWrapper: {height: 46},
+
+        // Compact search inputs that appear above lists/popovers. Matches the smaller
+        // "above the table" search input heights (34 on web/desktop, 46 on mobile).
+        listSearchInputWideWrapper: {height: 34},
+        listSearchInputNarrowWrapper: {height: 46},
 
         walletStaticIllustration: {
             width: 262,
@@ -5596,6 +5629,20 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
+        agentsRulesEmptyStateIllustration: {
+            width: variables.agentsRulesEmptyStateIllustrationWidth,
+            height: variables.agentsRulesEmptyStateIllustrationHeight,
+        },
+
+        agentRulesErrorRow: {
+            ...spacing.pt2,
+            ...spacing.pb3,
+        },
+
+        agentRulePromptInput: {
+            maxHeight: variables.agentRulePromptInputHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,
@@ -5979,6 +6026,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             width: '100%',
             border: 'none',
+        },
+
+        featureTrainingModalNavButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: variables.spacing2,
         },
 
         twoColumnLayoutCol: {
@@ -6896,13 +6949,13 @@ const plainStyles = (theme: ThemeColors) =>
             lineColor: colors.green400,
             lineWidth: 6,
             lineCap: 'round',
-        },
+        } satisfies MapDirectionStyle,
 
         mapDirectionBorder: {
             lineColor: colors.green600,
             lineWidth: 8,
             lineCap: 'round',
-        },
+        } satisfies MapDirectionStyle,
 
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},

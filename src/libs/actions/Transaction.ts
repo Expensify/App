@@ -41,6 +41,8 @@ import {
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
+    isOpenReport,
+    isReportTotalPending,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {
@@ -70,6 +72,7 @@ import type {
     RecentWaypoint,
     Report,
     ReportAction,
+    ReportActions,
     ReportNextStepDeprecated,
     ReviewDuplicates,
     Transaction,
@@ -91,7 +94,6 @@ import Onyx from 'react-native-onyx';
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -481,6 +483,7 @@ type DismissDuplicateTransactionViolationProps = {
         transactionID: string;
         violations: TransactionViolations;
     }>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 /**
@@ -495,6 +498,7 @@ function dismissDuplicateTransactionViolation({
     isASAPSubmitBetaEnabled,
     allTransactions,
     currentTransactionViolations = [],
+    isTrackIntentUser,
 }: DismissDuplicateTransactionViolationProps) {
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
@@ -536,6 +540,7 @@ function dismissDuplicateTransactionViolation({
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: expenseReport,
@@ -546,6 +551,7 @@ function dismissDuplicateTransactionViolation({
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -839,9 +845,14 @@ type ChangeTransactionsReportProps = {
     transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     allReports: OnyxCollection<Report>;
+    /** Report IDs that should be skipped when generating Onyx updates (e.g. because they are being deleted) */
+    skippedReportIDs?: string[];
+    isTrackIntentUser: boolean | undefined;
+    personalPolicyOutputCurrency: string | undefined;
+    selfDMReportActions: OnyxEntry<ReportActions>;
 };
 
-function changeTransactionsReport({
+function getChangeTransactionsReportOnyxData({
     transactionIDs,
     isASAPSubmitBetaEnabled,
     accountID,
@@ -854,6 +865,10 @@ function changeTransactionsReport({
     transactions,
     allTransactionViolation = {},
     allReports: allReportsParam,
+    skippedReportIDs,
+    isTrackIntentUser,
+    personalPolicyOutputCurrency,
+    selfDMReportActions,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -906,6 +921,8 @@ function changeTransactionsReport({
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     > = [];
+
+    const skippedReportIDsSet = new Set(skippedReportIDs ?? []);
 
     const existingSelfDMReportID = findSelfDMReportID();
     let selfDMReport: Report | undefined;
@@ -1231,7 +1248,7 @@ function changeTransactionsReport({
                     };
 
                     if (!isFetchingWaypointsFromServer(transaction)) {
-                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
                         const {unit, rate} = updatedMileageRate;
                         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
                         const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
@@ -1300,6 +1317,7 @@ function changeTransactionsReport({
                 hasDependentTags: policyHasDependentTags,
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
+                ownerLogin: undefined,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1353,7 +1371,7 @@ function changeTransactionsReport({
                 updatedReportUnheldNonReimbursableTotals[oldReportID] = 0;
                 updatedReportStateNums[oldReportID] = CONST.REPORT.STATE_NUM.OPEN;
                 updatedReportStatusNums[oldReportID] = CONST.REPORT.STATUS_NUM.OPEN;
-            } else if (staleReportIDs.has(oldReportID) || oldReport.pendingFields?.total) {
+            } else if (staleReportIDs.has(oldReportID) || isReportTotalPending(oldReport)) {
                 markReportTotalAsStale(oldReportID);
             } else if (oldReport.currency === sourceTransactionCurrency) {
                 const currentTotal = updatedReportTotals[oldReportID] ?? oldReportTotal;
@@ -1382,7 +1400,7 @@ function changeTransactionsReport({
             const targetReportTransactionCount = updatedReportTransactionCounts[targetReportID] ?? targetReport?.transactionCount ?? 0;
             updatedReportTransactionCounts[targetReportID] = targetReportTransactionCount + 1;
 
-            if (staleReportIDs.has(targetReportID) || targetReport?.pendingFields?.total || new Set([...targetReportCurrencies, resolvedTargetTransactionCurrency]).size > 1) {
+            if (staleReportIDs.has(targetReportID) || isReportTotalPending(targetReport) || new Set([...targetReportCurrencies, resolvedTargetTransactionCurrency]).size > 1) {
                 markReportTotalAsStale(targetReportID);
             } else if (targetTransactionCurrency === targetReport?.currency) {
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
@@ -1425,7 +1443,7 @@ function changeTransactionsReport({
         }
 
         // 4. Optimistically update the IOU action reportID
-        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
+        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID, selfDMReportActions) : undefined;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1435,7 +1453,7 @@ function changeTransactionsReport({
             },
         });
 
-        if (oldIOUAction) {
+        if (oldIOUAction && !skippedReportIDsSet.has(isUnreportedExpense ? (selfDMReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID) : oldReportID)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
@@ -1475,7 +1493,7 @@ function changeTransactionsReport({
                 [newIOUAction.reportActionID]: null,
             },
         });
-        if (oldIOUAction) {
+        if (oldIOUAction && !skippedReportIDsSet.has(isUnreportedExpense ? (selfDMReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID) : oldReportID)) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
@@ -1576,32 +1594,36 @@ function changeTransactionsReport({
         }
 
         // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
-        const movedAction =
-            reportID === CONST.REPORT.UNREPORTED_REPORT_ID
-                ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID)
-                : buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
+        let movedAction;
+        if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
+        } else if (!isOpenReport(oldReport)) {
+            movedAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
+        }
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[movedAction?.reportActionID]: movedAction},
-        });
+        if (movedAction) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[movedAction.reportActionID]: movedAction},
+            });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[movedAction?.reportActionID]: {pendingAction: null}},
-        });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[movedAction.reportActionID]: {pendingAction: null}},
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[movedAction?.reportActionID]: null},
-        });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[movedAction.reportActionID]: null},
+            });
+        }
 
         // Create base transaction data object
         const baseTransactionData = {
-            movedReportActionID: movedAction.reportActionID,
+            movedReportActionID: movedAction?.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
             ...(transactionThreadCreatedReportActionID
                 ? {
@@ -1656,6 +1678,9 @@ function changeTransactionsReport({
 
     // 8. Update the report totals
     for (const [reportIDToUpdate, total] of Object.entries(updatedReportTotals)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1669,6 +1694,9 @@ function changeTransactionsReport({
         });
     }
     for (const [reportIDToUpdate, transactionCount] of Object.entries(updatedReportTransactionCounts)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1682,6 +1710,9 @@ function changeTransactionsReport({
     }
 
     for (const [reportIDToUpdate, total] of Object.entries(updatedReportNonReimbursableTotals)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1696,6 +1727,9 @@ function changeTransactionsReport({
     }
 
     for (const [reportIDToUpdate, total] of Object.entries(updatedReportUnheldNonReimbursableTotals)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1712,6 +1746,9 @@ function changeTransactionsReport({
     }
 
     for (const reportIDToUpdate of Object.keys(updatedReportStateNums)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1732,6 +1769,9 @@ function changeTransactionsReport({
     }
 
     for (const [reportIDToUpdate, total] of Object.entries(updatedReportReimbursableTotals)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1746,6 +1786,9 @@ function changeTransactionsReport({
     }
 
     for (const [reportIDToUpdate, total] of Object.entries(updatedReportUnheldReimbursableTotals)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1774,6 +1817,7 @@ function changeTransactionsReport({
             policyCategories: policyCategories ?? {},
             hasDependentTags: policyHasDependentTags,
             isInvoiceTransaction: false,
+            ownerLogin: undefined,
         });
         if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
@@ -1799,6 +1843,9 @@ function changeTransactionsReport({
     }
 
     for (const affectedReportID of affectedReportIDs) {
+        if (skippedReportIDsSet.has(affectedReportID)) {
+            continue;
+        }
         const affectedReport =
             reports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`] ??
             (affectedReportID === newReport?.reportID ? newReport : undefined) ??
@@ -1836,6 +1883,7 @@ function changeTransactionsReport({
             isASAPSubmitBetaEnabled,
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
+            isTrackIntentUser,
         });
         const optimisticNextStepForReport = buildOptimisticNextStep({
             report: updatedReport,
@@ -1846,6 +1894,7 @@ function changeTransactionsReport({
             isASAPSubmitBetaEnabled,
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -1900,8 +1949,32 @@ function changeTransactionsReport({
         });
     }
 
+    return {
+        optimisticData,
+        successData,
+        failureData,
+        transactionIDToReportActionAndThreadData,
+        transactionIDToUpdatedCustomUnitRateID,
+        updatedReportTotals,
+        updatedReportTransactionCounts,
+        updatedReportNonReimbursableTotals,
+        updatedReportUnheldNonReimbursableTotals,
+        updatedReportReimbursableTotals,
+        updatedReportUnheldReimbursableTotals,
+    };
+}
+
+function changeTransactionsReport(props: ChangeTransactionsReportProps) {
+    const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData(props);
+    if (!changeTransactionsReportOnyxData) {
+        return;
+    }
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, transactionIDToUpdatedCustomUnitRateID} = changeTransactionsReportOnyxData;
+
+    const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
+
     const parameters: ChangeTransactionsReportParams = {
-        transactionList: transactionIDs.join(','),
+        transactionList: props.transactionIDs.join(','),
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
         ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
@@ -1954,6 +2027,7 @@ export {
     getLastModifiedExpense,
     revert,
     changeTransactionsReport,
+    getChangeTransactionsReportOnyxData,
     setTransactionReport,
     getDefaultP2PMileageRate,
     mergeTransactionIdsHighlightOnSearchRoute,
