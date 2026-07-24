@@ -235,21 +235,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** For expense reports, this is the currency of the expense */
         currency?: string;
 
-        /** Cents credited to the employee on the latest cross-border FX reimbursement, in the employee's deposit currency */
-        creditedAmount?: number;
-
-        /** Cents debited from the company on the latest cross-border FX reimbursement, in the report (settlement) currency */
-        debitedAmount?: number;
-
-        /** Currency the creditedAmount is denominated in (the employee's deposit currency, which can differ from the report currency) */
-        creditedCurrency?: string;
-
-        /** Last 4 of the employee deposit account credited by the latest cross-border FX reimbursement */
-        creditBankAccountLast4?: string;
-
-        /** Last 4 of the company withdrawal (VBA) account debited by the latest cross-border FX reimbursement */
-        debitBankAccountLast4?: string;
-
         /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
 
