@@ -4825,8 +4825,10 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
+    // A failed search can leave a snapshot holding only `errors`, so `search` is not guaranteed to exist
     return (
         (searchResults?.data != null || searchResults?.errors != null) &&
+        searchResults.search != null &&
         searchResults.search.type === queryJSON?.type &&
         searchResults.search.hash ===
             getQueryHashes({
