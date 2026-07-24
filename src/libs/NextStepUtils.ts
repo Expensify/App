@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -16,6 +16,7 @@ import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {deprecatedGetLoginsByAccountIDs, deprecatedGetPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -461,6 +462,20 @@ function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?
     return optimisticNextStep;
 }
 
+/**
+ * Whether to show the DEW approve-error next step.
+ * Only manual approve failures (`automaticAction` false/absent) for the current approver should show it.
+ * Auto-approval blocks keep the normal workflow next step.
+ */
+function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean, isCurrentUserTheApprover: boolean): boolean {
+    if (!hasDEWApproveFailed || !isCurrentUserTheApprover || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+        return false;
+    }
+
+    const {automaticAction} = getOriginalMessage(reportAction) ?? {};
+    return !automaticAction;
+}
+
 function buildOptimisticNextStepForDEWOffline() {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'neutral',
@@ -875,6 +890,7 @@ export {
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildNextStepNew,
