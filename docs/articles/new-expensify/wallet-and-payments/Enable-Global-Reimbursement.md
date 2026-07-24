@@ -35,6 +35,8 @@ Global reimbursement allows companies to send payments to employees in different
 
 **Note:** Each country has specific identity verification, compliance, and onboarding requirements. Use the guides above to ensure you're submitting the correct documentation.
 
+**Note:** Without Global Reimbursement, a Workspace that reimburses directly from a USD business bank account can only pay out to USD deposit accounts. Enable Global Reimbursement to pay employees cross-border into deposit accounts in supported currencies.
+
 ---
 
 # Requirements
@@ -59,6 +61,9 @@ The verification process can take anywhere from a few business days to several w
 
 ## Why is my employee not receiving the full deposit?
 Some employees may receive a slightly smaller reimbursement than expected when paid into a bank account with a different currency. This happens due to foreign exchange (FX) fees when transmitting payments across borders, or fees charged by the receiving bank. The employee absorbs these fees, while the company sees the full report amount on their statement.
+
+## Why is my employee not being reimbursed at all?
+If the Workspace isn't set up for Global Reimbursement and reimburses directly from a USD business bank account, an employee whose only deposit account is in another currency (for example CAD) won't be reimbursed — the report stays unpaid with a "Waiting to add a bank account" message. Either the employee adds a USD deposit account, or you enable Global Reimbursement using the guides above so the Workspace can pay out cross-border in supported currencies.
 
 ## Why is the reimbursement amount different from the expense amount?
 If your workspace and employees use different currencies, the reimbursement amount received by the employee will differ from the original expense amount. Exchange rates set by different providers on different days can cause the final amount to differ slightly from the original expense. Transaction fees may also contribute to this difference.
