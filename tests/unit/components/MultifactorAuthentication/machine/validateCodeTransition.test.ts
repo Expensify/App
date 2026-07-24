@@ -62,18 +62,6 @@ describe('MFA magic code and registration decision', () => {
         actor.stop();
     });
 
-    it('skips the magic code when the flow already carries a code', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}}, {validateCode: MFA_TEST_VALIDATE_CODE});
-
-        actor.start();
-        sendCheckLocalCredentialsDone(actor, false);
-
-        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
-        expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
-
-        actor.stop();
-    });
-
     it('stores the submitted code and continues the flow', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
 

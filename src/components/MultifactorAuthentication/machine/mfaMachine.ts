@@ -183,11 +183,9 @@ const MFAMachine = setup({
                                     }
                                     return {accountID: context.accountID};
                                 },
-                                // A returning user's credentials are already registered, and a re-entered
-                                // flow already carries a code, so only a fresh registration asks for one.
+                                // A returning user's credentials are already registered, so only a fresh registration asks for a code.
                                 onDone: [
                                     {guard: ({event}) => event.output, target: SOFT_PROMPT_CHECK_TARGET},
-                                    {guard: ({context}) => context.validateCode !== undefined, target: SOFT_PROMPT_CHECK_TARGET},
                                     {target: MAGIC_CODE_TARGET, actions: ['requestValidateCode', 'navigateToMagicCode']},
                                 ],
                                 onError: {
