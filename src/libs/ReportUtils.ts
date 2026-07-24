@@ -5846,8 +5846,6 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            // Cross-border FX reimbursements report the amount credited to the employee (in their deposit currency)
-            // plus both account last-4s, since the company and employee move different currencies.
             if (originalMessage?.creditedAmount) {
                 return getCrossBorderReimbursedMessage(translate, originalMessage, originalMessage?.accountNumber?.slice(-4));
             }
@@ -6065,8 +6063,8 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
             const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
-            // Cross-border FX reimbursements report the amount credited to the employee (in their deposit currency)
-            // plus both account last-4s, since the company and employee move different currencies.
+
+            // This variant returns raw English to match the surrounding non-localized preview strings.
             if (originalMessage?.creditedAmount) {
                 const creditedAmountDisplay = convertToDisplayString(originalMessage.creditedAmount, originalMessage.creditedCurrency);
                 return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
@@ -10976,8 +10974,6 @@ function getIOUReportActionDisplayMessage(
                 if (isInvoice) {
                     return translate(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', '', last4Digits);
                 }
-                // Cross-border FX reimbursements report the amount credited to the employee (in their deposit
-                // currency) plus both account last-4s, since the company and employee move different currencies.
                 if (originalMessage.creditedAmount) {
                     return getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
                 }

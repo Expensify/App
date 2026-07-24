@@ -468,12 +468,12 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
 }
 
 /**
- * Builds the payment message for a cross-border FX reimbursement: the amount credited to the employee (in their
- * deposit currency) plus both account last-4s, since the company and employee move different currencies.
+ * Builds the payment message for a cross-border FX reimbursement, which reports the amount credited to the employee
+ * in their deposit currency plus both account last-4s, since the company and employee move different currencies.
  */
 function getCrossBorderReimbursedMessage(
     translate: LocalizedTranslate,
-    originalMessage: Pick<OriginalMessageIOU, 'creditedAmount' | 'creditedCurrency' | 'debitBankAccountLast4' | 'creditBankAccountLast4'>,
+    originalMessage: Pick<OriginalMessageIOU | OriginalMessageReimbursed, 'creditedAmount' | 'creditedCurrency' | 'debitBankAccountLast4' | 'creditBankAccountLast4'>,
     fallbackDebitBankAccountLast4?: string,
 ): string {
     return translate('iou.reimbursedCrossBorder', {
@@ -534,8 +534,6 @@ function getReimbursedMessage(
 
     const isAutomation = !!reportAction?.delegateAccountID;
 
-    // Cross-border FX reimbursements report the credited amount (in the employee's deposit currency) instead of the
-    // report total, since the company and employee move different currencies.
     if (originalMessage.creditedAmount) {
         let crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
         if (isAutomation) {

@@ -40,9 +40,6 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         const last4Digits = getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy);
-
-        // Cross-border FX reimbursements report the amount credited to the employee (in their deposit currency)
-        // plus both account last-4s, since the company and employee move different currencies.
         if (originalMessage.creditedAmount) {
             return <ReportActionItemBasicMessage message={getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits)} />;
         }
