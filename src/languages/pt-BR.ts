@@ -6034,6 +6034,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
+                            currentTravelSpendInvoiceQueued: 'Uma nova fatura dos seus gastos de viagem será criada e enviada para você em breve.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Uma fatura de ${amount} foi enviada e está aguardando pagamento.`,
                             currentTravelSpendCta: 'Pagar saldo',
                             currentTravelLimitLabel: 'Limite de viagem atual',
                             settlementAccountLabel: 'Conta de liquidação',
@@ -6046,6 +6048,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
                             provisioningError:
                                 'Não foi possível provisionar alguns membros do seu workspace para o Faturamento Consolidado de Viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
+                            sendInvoiceNowCta: 'Enviar fatura agora',
                         },
                     },
                     disableModal: {
@@ -6068,6 +6071,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     invalidDateRangeError: 'A data de início deve ser anterior à data de término',
                     enabled: 'Faturamento de viagem consolidado ativado!',
                     enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Enviar fatura de ${amount}?`,
+                        body: 'Vamos criar uma fatura para seus gastos atuais de viagem. Seu limite de viagem será liberado assim que a fatura for paga.',
+                    },
+                    depositOnly: 'Apenas depósito',
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
             },

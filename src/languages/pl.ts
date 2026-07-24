@@ -6021,6 +6021,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         subsections: {
                             currentTravelSpendLabel: 'Aktualne wydatki na podróże',
                             currentTravelSpendPaymentQueued: (amount: string) => `Płatność w wysokości ${amount} jest w kolejce i wkrótce zostanie przetworzona.`,
+                            currentTravelSpendInvoiceQueued: 'Nowa faktura za twoje wydatki związane z podróżą zostanie wkrótce utworzona i wysłana do ciebie.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Faktura na kwotę ${amount} została wysłana i oczekuje na płatność.`,
                             currentTravelSpendCta: 'Spłać saldo',
                             currentTravelLimitLabel: 'Aktualny limit podróży',
                             settlementAccountLabel: 'Konto rozliczeniowe',
@@ -6033,6 +6035,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                                 'Jeśli zmniejszysz limit, członkowie, którzy już wydali więcej niż ta kwota, nie będą mogli dokonywać nowych rezerwacji podróży do następnego miesiąca.',
                             provisioningError:
                                 'Nie udało nam się skonfigurować części członków twojego miejsca pracy do skonsolidowanego rozliczania podróży. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
+                            sendInvoiceNowCta: 'Wyślij fakturę teraz',
                         },
                     },
                     disableModal: {
@@ -6055,6 +6058,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     invalidDateRangeError: 'Data początkowa musi być wcześniejsza niż data końcowa',
                     enabled: 'Włączono zbiorcze rozliczanie podróży!',
                     enabledDescription: 'Wszystkie wydatki podróżne w tym obszarze roboczym będą teraz scentralizowane na miesięcznym rachunku.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Wysłać fakturę na ${amount}?`,
+                        body: 'Utworzymy fakturę za twoje bieżące wydatki na podróż. Twój limit podróży zostanie zwolniony, gdy faktura zostanie opłacona.',
+                    },
+                    depositOnly: 'Tylko wpłata',
                 },
                 personalDetailsDescription: 'Aby zarezerwować podróż, wpisz swoje imię i nazwisko dokładnie tak, jak widnieje w Twoim dokumencie tożsamości wydanym przez organ państwowy.',
             },
