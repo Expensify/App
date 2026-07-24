@@ -1516,9 +1516,6 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        const reportAttributes = {
-                            [MOCK_REPORT.reportID]: {reportName: 'Report (archived)'},
-                        } as ReportAttributesDerivedValue['reports'];
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1527,7 +1524,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                            reportAttributes,
+                            derivedReportName: 'Report (archived)',
                             isReportArchived: isReportArchived.current,
                         });
                     })
@@ -1714,10 +1711,6 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const reportAttributes = {
-                [archivedInvoiceRoom.reportID]: {reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`},
-            } as ReportAttributesDerivedValue['reports'];
-
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
                 policy: senderPolicy,
@@ -1726,7 +1719,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                reportAttributes,
+                derivedReportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
             });
