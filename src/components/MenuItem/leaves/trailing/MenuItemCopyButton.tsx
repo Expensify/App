@@ -23,7 +23,7 @@ function MenuItemCopyButton({value}: MenuItemCopyButtonProps) {
     const styles = useThemeStyles();
     const {isHovered, isInteractive} = useMenuItemState();
 
-    if (!isInteractive || !isHovered || !hasHoverSupport()) {
+    if (isInteractive || !isHovered || !hasHoverSupport()) {
         return null;
     }
 
