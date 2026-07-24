@@ -1178,13 +1178,25 @@ const staticStyles = (theme: ThemeColors) =>
             }),
         },
 
-        // The product marketing window intentionally contrasts with the app by using the opposite palette.
-        productMarketingWindowContainer: {
+        // Positions the marketing window and centers the card when its narrow max width clamps below the viewport.
+        productMarketingWindowAnchor: {
             ...positioning.pAbsolute,
-            borderRadius: variables.componentBorderRadiusLarge,
-            boxShadow: theme.shadow,
+            alignItems: 'center',
             // Keep the persistent window above route-backed side panels. Covering modals suppress it through ProductMarketingWindowManager.
             zIndex: variables.modalBaseZIndex,
+        },
+        productMarketingWindowAnchorNarrow: {
+            left: variables.productMarketingWindowOffsetNarrow,
+            right: variables.productMarketingWindowOffsetNarrow,
+        },
+        productMarketingWindowAnchorWide: {
+            bottom: variables.productMarketingWindowOffset,
+            right: variables.productMarketingWindowOffset,
+        },
+        // The product marketing window intentionally contrasts with the app by using the opposite palette.
+        productMarketingWindowContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            boxShadow: theme.shadow,
         },
         productMarketingWindowContainerDark: {
             backgroundColor: colors.green800,
@@ -1193,13 +1205,12 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: colors.productLight100,
         },
         productMarketingWindowContainerWide: {
-            bottom: variables.productMarketingWindowOffset,
-            right: variables.productMarketingWindowOffset,
             width: variables.productMarketingWindowWidth,
         },
+        // Full width on phones; capped and centered on mid-width narrow layouts (tablet portrait, resized windows).
         productMarketingWindowContainerNarrow: {
-            left: variables.productMarketingWindowOffsetNarrow,
-            right: variables.productMarketingWindowOffsetNarrow,
+            width: '100%',
+            maxWidth: variables.productMarketingWindowMaxWidthNarrow,
         },
         productMarketingWindowIllustrationContainer: {
             alignItems: 'center',

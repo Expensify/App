@@ -288,6 +288,7 @@ export default {
     onboardingModalWidth: 640,
     aiFeaturesPromoModalWidth: 440,
     productMarketingWindowWidth: 320,
+    productMarketingWindowMaxWidthNarrow: 450,
     productMarketingWindowVisualAspectRatio: 7 / 4,
     productMarketingWindowIllustrationSize: 128,
     productMarketingWindowOffset: 20,

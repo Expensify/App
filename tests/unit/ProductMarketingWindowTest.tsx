@@ -565,13 +565,14 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        const window = screen.getByTestId('ProductMarketingWindow');
-        expect(window).toHaveStyle({
-            width: variables.productMarketingWindowWidth,
+        expect(screen.getByTestId('ProductMarketingWindowAnchor')).toHaveStyle({
             bottom: variables.productMarketingWindowOffset,
             right: variables.productMarketingWindowOffset,
-            padding: 20,
             zIndex: variables.modalBaseZIndex,
+        });
+        expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({
+            width: variables.productMarketingWindowWidth,
+            padding: 20,
         });
         expect(screen.getByTestId('ProductMarketingWindowVisual')).toHaveStyle({
             aspectRatio: variables.productMarketingWindowVisualAspectRatio,
@@ -617,11 +618,16 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        const window = screen.getByTestId('ProductMarketingWindow');
-        expect(window).toHaveStyle({
+        expect(screen.getByTestId('ProductMarketingWindowAnchor')).toHaveStyle({
             left: variables.productMarketingWindowOffsetNarrow,
             right: variables.productMarketingWindowOffsetNarrow,
             bottom: variables.productMarketingWindowOffsetNarrow,
+            alignItems: 'center',
+        });
+        // Full width up to the cap, so phones keep the edge-to-edge card while tablet-width viewports get a centered, clamped card.
+        expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({
+            width: '100%',
+            maxWidth: variables.productMarketingWindowMaxWidthNarrow,
         });
         expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeNormal});
         expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeNormal});
