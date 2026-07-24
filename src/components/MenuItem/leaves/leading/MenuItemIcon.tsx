@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
+import type {MenuItemState} from '@components/MenuItem/MenuItemContext';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +24,7 @@ type MenuItemIconProps = {
 
     /** The fill color to pass into the icon. When omitted, the fill follows the row's interaction state
      * (hovered/pressed/focused/disabled), matching the classic MenuItem behavior. */
-    fill?: string | ((isHovered: boolean) => string);
+    fill?: string | ((state: MenuItemState) => string);
 
     /** Icon width */
     width?: number;
@@ -65,12 +66,13 @@ function MenuItemIcon({
 }: MenuItemIconProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isHovered, isPressed, isFocused, isDisabled, isInteractive, isSuccess, isCompact} = useMenuItemState();
+    const menuItemState = useMenuItemState();
+    const {isHovered, isPressed, isFocused, isDisabled, isInteractive, isSuccess, isCompact} = menuItemState;
 
     let iconFill: string | undefined;
     if (!displayInDefaultIconColor) {
         if (typeof fill === 'function') {
-            iconFill = fill(isHovered);
+            iconFill = fill(menuItemState);
         } else {
             iconFill = fill ?? StyleUtils.getIconFillColor(getButtonState(isFocused || isHovered, isPressed, isSuccess, isDisabled, isInteractive), true, true);
         }
