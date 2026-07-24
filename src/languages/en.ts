@@ -1031,6 +1031,10 @@ const translations = {
                 subtitle: 'Account > Subscription',
                 cta: 'Add',
             },
+            addBankAccount: {
+                // @context Home reminder shown to a payment recipient when a reimbursement is waiting for them to add a personal deposit account.
+                title: 'Add a bank account to get reimbursed',
+            },
             activateCard: {
                 title: 'Activate your Expensify Card',
                 subtitle: 'Validate your card and start spending.',
