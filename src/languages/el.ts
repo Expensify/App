@@ -125,7 +125,6 @@ const translations: TranslationDeepObject<typeof en> = {
         rotate: 'Περιστροφή',
         zoom: 'Ζουμ',
         password: 'Κωδικός πρόσβασης',
-        magicCode: 'Μαγικός κωδικός',
         digits: 'ψηφία',
         twoFactorCode: 'Κωδικός δύο παραγόντων',
         workspaces: 'Χώροι εργασίας',
@@ -809,8 +808,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Οι πληρωμές σας φτάνουν σε εσάς τόσο γρήγορα όσο μπορείτε να περάσετε το μήνυμά σας.',
         enterPassword: 'Παρακαλούμε εισαγάγετε τον κωδικό πρόσβασής σας',
         welcomeNewFace: (login: string) => `${login}, είναι πάντα ωραίο να βλέπουμε ένα καινούργιο πρόσωπο εδώ γύρω!`,
-        welcomeEnterMagicCode: (login: string) => `Παρακαλώ εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο ${login}. Θα πρέπει να φτάσει μέσα σε ένα ή δύο λεπτά.`,
-        welcomeEnterSecurityCode: (login: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που εστάλη στο ${login}. Θα πρέπει να φτάσει μέσα σε ένα με δύο λεπτά.`,
+        welcomeEnterSecurityCode: (login: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${login}. Θα πρέπει να φτάσει μέσα σε ένα ή δύο λεπτά.`,
     },
     login: {
         hero: {
@@ -820,9 +818,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Συνεχίστε τη σύνδεση με ενιαία σύνδεση (SSO):',
-        orContinueWithMagicCode: 'Μπορείτε επίσης να συνδεθείτε με έναν μαγικό κωδικό',
         useSingleSignOn: 'Χρησιμοποιήστε ενιαία σύνδεση',
-        useMagicCode: 'Χρησιμοποιήστε μαγικό κωδικό',
         launching: 'Εκκίνηση...',
         oneMoment: 'Μισό λεπτό, σας ανακατευθύνουμε στην πύλη μονού σημείου εισόδου της εταιρείας σας.',
         orContinueWithSecurityCode: 'Μπορείτε επίσης να συνδεθείτε με έναν κωδικό ασφαλείας',
@@ -2174,7 +2170,6 @@ const translations: TranslationDeepObject<typeof en> = {
             `Προσθέστε περισσότερους τρόπους για να συνδέεστε και να στέλνετε αποδείξεις στο Expensify.<br/><br/>Προσθέστε μια διεύθυνση email για να προωθείτε αποδείξεις στο <a href="mailto:${email}">${email}</a> ή προσθέστε έναν αριθμό τηλεφώνου για να στέλνετε αποδείξεις με μήνυμα στο 47777 (μόνο για αριθμούς ΗΠΑ).`,
         pleaseVerify: 'Παρακαλούμε επαληθεύστε αυτήν τη μέθοδο επικοινωνίας.',
         getInTouch: 'Θα χρησιμοποιήσουμε αυτήν τη μέθοδο για να επικοινωνήσουμε μαζί σας.',
-        enterMagicCode: (contactMethod: string) => `Παρακαλούμε εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο ${contactMethod}. Θα πρέπει να φτάσει μέσα σε ένα ή δύο λεπτά.`,
         setAsDefault: 'Ορισμός ως προεπιλογή',
         yourDefaultContactMethod:
             'Αυτή είναι η τρέχουσα προεπιλεγμένη μέθοδος επικοινωνίας σας. Πριν μπορέσετε να τη διαγράψετε, θα πρέπει να επιλέξετε μια άλλη μέθοδο επικοινωνίας και να κάνετε κλικ στην επιλογή «Ορισμός ως προεπιλογής».',
@@ -2350,9 +2345,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmMerge: 'Είστε βέβαιοι ότι θέλετε να συγχωνεύσετε λογαριασμούς;',
             lossOfUnsubmittedData: (login: string) =>
                 `Η συγχώνευση των λογαριασμών σας είναι μη αναστρέψιμη και θα έχει ως αποτέλεσμα την απώλεια τυχόν μη υποβληθέντων εξόδων για τον/την <strong>${login}</strong>.`,
-            enterMagicCode: (login: string) => `Για να συνεχίσετε, εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο <strong>${login}</strong>.`,
             errors: {
-                incorrectMagicCode: 'Λανθασμένος ή μη έγκυρος μαγικός κωδικός. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
                 fallback: 'Κάτι πήγε στραβά. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
                 incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
             },
@@ -2714,8 +2707,6 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Προστέθηκε στο πορτοφόλι ${platform}`,
         cardDetailsLoadingFailure: 'Παρουσιάστηκε σφάλμα κατά τη φόρτωση των στοιχείων της κάρτας. Παρακαλούμε ελέγξτε τη σύνδεσή σας στο διαδίκτυο και δοκιμάστε ξανά.',
         validateCardTitle: 'Ας βεβαιωθούμε ότι είστε εσείς',
-        enterMagicCode: (contactMethod: string) =>
-            `Παρακαλούμε εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο ${contactMethod} για να δείτε τα στοιχεία της κάρτας σας. Θα πρέπει να φτάσει μέσα σε ένα ή δύο λεπτά.`,
         unexpectedError: 'Παρουσιάστηκε σφάλμα κατά την προσπάθεια ανάκτησης των στοιχείων της κάρτας σας Expensify. Παρακαλούμε δοκιμάστε ξανά.',
         cardFraudAlert: {
             confirmButtonText: 'Ναι, το κάνω',
@@ -3164,7 +3155,6 @@ ${amount} για ${merchant} - ${date}`,
         license: `Η μεταφορά χρημάτων παρέχεται από την ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) σύμφωνα με τις <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">άδειές της</a>.`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: 'Δεν λάβατε μαγικό κωδικό;',
         avoidScamsMessage: '<strong>Αποφύγετε απάτες. Μην κοινοποιείτε τον κωδικό σας σε κανέναν.</strong> Η ομάδα μας δεν θα σας καλέσει, στείλει μήνυμα ή email για αυτόν τον κωδικό.',
         enterAuthenticatorCode: 'Παρακαλούμε εισαγάγετε τον κωδικό ελέγχου ταυτότητας',
         enterRecoveryCode: 'Παρακαλώ εισαγάγετε τον κωδικό ανάκτησής σας',
@@ -3174,8 +3164,6 @@ ${amount} για ${merchant} - ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}: {timeRemaining: number}) => `Χρόνος που απομένει: ${timeRemaining} ${timeRemaining === 1 ? 'δευτερόλεπτο' : 'δευτερόλεπτα'}`,
         timeExpiredAnnouncement: 'Ο χρόνος έχει λήξει',
         error: {
-            pleaseFillMagicCode: 'Παρακαλούμε εισαγάγετε τον μαγικό κωδικό σας',
-            incorrectMagicCode: 'Λανθασμένος ή μη έγκυρος μαγικός κωδικός. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
             pleaseFillTwoFactorAuth: 'Εισαγάγετε τον κωδικό ελέγχου ταυτότητας δύο παραγόντων σας',
             pleaseFillSecurityCode: 'Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας σας',
             incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
@@ -3280,7 +3268,6 @@ ${amount} για ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Επαληθεύστε το επαγγελματικό σας email',
-            magicCodeSent: (workEmail: string | undefined) => `Παρακαλούμε εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο ${workEmail}. Θα πρέπει να φτάσει σε ένα με δύο λεπτά.`,
             securityCodeSent: (workEmail: string | undefined) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${workEmail}. Θα πρέπει να φτάσει σε ένα ή δύο λεπτά.`,
         },
         workEmailValidationError: {
@@ -3604,7 +3591,6 @@ ${amount} για ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Ο σύνδεσμος στάλθηκε ξανά',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `Έστειλα έναν μαγικό σύνδεσμο σύνδεσης στο ${login}. Παρακαλούμε ελέγξτε το ${loginType} σας για να συνδεθείτε.`,
         resendLink: 'Επαναποστολή συνδέσμου',
         weSentYouSecuritySignInLink: (login: string, loginType: string) =>
             `Έχω στείλει έναν σύνδεσμο ασφαλούς σύνδεσης στο ${login}. Παρακαλώ ελέγξτε το ${loginType} σας για να συνδεθείτε.`,
@@ -7964,11 +7950,9 @@ ${reportName}`,
             requireFieldsRule: {
                 title: 'Απαιτήσεις πεδίου',
                 subtitle: 'Απαιτήστε συγκεκριμένα πεδία εξόδων ή παραλείψτε την απαίτησή τους.',
-                thenWarnMember: 'Στη συνέχεια προειδοποιήστε το μέλος αν λείπουν πεδία:',
                 itemizedReceipt: 'Αναλυτική απόδειξη',
                 saveRule: 'Αποθήκευση κανόνα',
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία.',
-                confirmErrorField: 'Παρακαλούμε επιλέξτε τουλάχιστον ένα πεδίο ως υποχρεωτικό.',
                 requireDirection: 'Απαιτείται',
                 doNotRequireDirection: 'Να μην απαιτείται',
                 doTheFollowing: 'Κάντε τα εξής:',
@@ -10294,9 +10278,9 @@ ${reportName}`,
         removeCopilotAccessConfirm: 'Αφαίρεση πρόσβασης',
         changeAccessLevel: 'Αλλαγή επιπέδου πρόσβασης',
         makeSureItIsYou: 'Ας βεβαιωθούμε ότι είστε εσείς',
-        enterMagicCode: (contactMethod: string) =>
-            `Παρακαλούμε εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο ${contactMethod} για να προσθέσετε έναν συγκυβερνήτη. Θα πρέπει να φτάσει μέσα σε ένα-δυο λεπτά.`,
-        enterMagicCodeUpdate: (contactMethod: string) => `Παρακαλούμε εισαγάγετε τον μαγικό κωδικό που στάλθηκε στο ${contactMethod} για να ενημερώσετε τον συνεργάτη σας.`,
+        enterSecurityCode: (contactMethod: string) =>
+            `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να προσθέσετε έναν συγκυβερνήτη. Θα πρέπει να φτάσει μέσα σε ένα-δυο λεπτά.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να ενημερώσετε τον συνεργάτη σας.`,
         notAllowed: 'Όχι και τόσο γρήγορα...',
         noAccessMessage: Str.dedent(`
             Ως συνοδηγός, δεν έχετε πρόσβαση σε αυτήν τη σελίδα. Συγγνώμη!
@@ -10304,9 +10288,6 @@ ${reportName}`,
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Ως <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">συνοδοιπόρος</a> για τον/την ${accountOwnerEmail}, δεν έχετε δικαίωμα να εκτελέσετε αυτήν την ενέργεια. Συγγνώμη!`,
         copilotAccess: 'Πρόσβαση στο Copilot',
-        enterSecurityCode: (contactMethod: string) =>
-            `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να προσθέσετε έναν συνοδηγό. Θα πρέπει να φτάσει μέσα σε ένα-δύο λεπτά.`,
-        enterSecurityCodeUpdate: (contactMethod: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να ενημερώσετε τον συνεργάτη σας.`,
     },
     debug: {
         debug: 'Εντοπισμός σφαλμάτων',
