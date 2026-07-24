@@ -472,6 +472,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/CountrySelectionVerifyAccountPage').default,
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
+    [SCREENS.SETTINGS.AGENTS.NEW]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/NewAgentPage').default),
     [SCREENS.SETTINGS.AGENTS.ADD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/AddAgentPage').default),
     [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/AddAgentAvatarPage').default),
     [SCREENS.SETTINGS.AGENTS.EDIT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/EditAgentPage').default),

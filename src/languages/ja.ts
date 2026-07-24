@@ -2901,8 +2901,16 @@ ${date} の ${merchant} への ${amount}`,
             updateAvatar: 'このエージェントのアバターを更新する際に問題が発生しました',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: '新しいエージェント',
+        buildCustomAgent: 'カスタムエージェントを作成',
+        orStartWithTemplate: 'または、テンプレートから始める：',
+        role: 'エージェント',
+        emptyTemplatesTitle: 'テンプレートはまだありません',
+        emptyTemplatesSubtitle: 'カスタムエージェントを作成して始めましょう。',
+    },
+    addAgentPage: {
+        title: 'カスタムエージェントを作成',
         agentName: 'エージェント名',
         instructions: 'カスタム指示を作成',
         createAgent: 'エージェントを作成',

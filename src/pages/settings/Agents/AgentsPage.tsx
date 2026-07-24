@@ -178,7 +178,7 @@ function AgentsPage() {
     const newAgentButton = (
         <Button
             variant="success"
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute())}
+            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_NEW.getRoute())}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>

@@ -2928,8 +2928,16 @@ ${amount} per ${merchant} - ${date}`,
             updateAvatar: "Si è verificato un problema durante l'aggiornamento dell'avatar di questo agente",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nuovo agente',
+        buildCustomAgent: 'Crea un agente personalizzato',
+        orStartWithTemplate: 'Oppure inizia con un modello:',
+        role: 'Agente',
+        emptyTemplatesTitle: 'Ancora nessun modello',
+        emptyTemplatesSubtitle: 'Crea un agente personalizzato per iniziare.',
+    },
+    addAgentPage: {
+        title: 'Crea un agente personalizzato',
         agentName: 'Nome agente',
         instructions: 'Scrivi istruzioni personalizzate',
         createAgent: 'Crea agente',

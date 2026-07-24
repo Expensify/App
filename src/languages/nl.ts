@@ -2930,8 +2930,16 @@ ${amount} voor ${merchant} - ${date}`,
             updateAvatar: 'Er is een probleem opgetreden bij het bijwerken van de avatar van deze agent',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nieuwe agent',
+        buildCustomAgent: 'Eigen agent bouwen',
+        orStartWithTemplate: 'Of begin met een sjabloon:',
+        role: 'Agent',
+        emptyTemplatesTitle: 'Nog geen sjablonen',
+        emptyTemplatesSubtitle: 'Maak een aangepaste agent om te beginnen.',
+    },
+    addAgentPage: {
+        title: 'Eigen agent bouwen',
         agentName: 'Naam medewerker',
         instructions: 'Schrijf aangepaste instructies',
         createAgent: 'Agent aanmaken',

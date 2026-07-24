@@ -3012,8 +3012,16 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'New agent',
+        buildCustomAgent: 'Build custom agent',
+        orStartWithTemplate: 'Or start with a template:',
+        role: 'Agent',
+        emptyTemplatesTitle: 'No templates yet',
+        emptyTemplatesSubtitle: 'Build a custom agent to get started.',
+    },
+    addAgentPage: {
+        title: 'Build custom agent',
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         createAgent: 'Create agent',

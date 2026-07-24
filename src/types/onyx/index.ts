@@ -108,6 +108,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewAgentTemplate from './NewAgentTemplate';
 import type NewGroupChatDraft from './NewGroupChatDraft';
 import type OdometerDraft from './OdometerDraft';
 import type Onboarding from './Onboarding';
@@ -177,6 +178,7 @@ import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
@@ -365,6 +367,7 @@ export type {
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
+    NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
     SearchResults,
@@ -434,4 +437,5 @@ export type {
     AgentNewAvatarDraft,
     AgentPrompt,
     SuggestedAgentRule,
+    SuggestedAgent,
 };

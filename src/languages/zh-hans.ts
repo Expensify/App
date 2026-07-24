@@ -2829,8 +2829,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             updateAvatar: '更新此代理的头像时出现问题',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: '新代理',
+        buildCustomAgent: '构建自定义代理',
+        orStartWithTemplate: '或使用模板开始：',
+        role: '代理',
+        emptyTemplatesTitle: '暂无模板',
+        emptyTemplatesSubtitle: '创建自定义代理以开始。',
+    },
+    addAgentPage: {
+        title: '构建自定义代理',
         agentName: '代理名称',
         instructions: '编写自定义说明',
         createAgent: '创建代理',

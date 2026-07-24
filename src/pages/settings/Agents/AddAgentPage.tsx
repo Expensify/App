@@ -2,6 +2,7 @@ import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -24,13 +25,14 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import {clearNewAgentAvatarDraft, createAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
+import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
+import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -39,15 +41,23 @@ import {View} from 'react-native';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
-function AddAgentPage({route}: AddAgentPageProps) {
+type AddAgentPageContentProps = {
+    /** Route params (policyID) forwarded from the screen */
+    route: AddAgentPageProps['route'];
+
+    /** Template picked in the "New agent" screen used to pre-fill the fields, or undefined for a blank agent */
+    template: NewAgentTemplate | undefined;
+};
+
+function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {displayName} = useCurrentUserPersonalDetails();
-    const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
-    const defaultPrompt = translate('addAgentPage.defaultPrompt');
+    const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
+    const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
@@ -57,19 +67,20 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const uploadedAvatar = avatarDraft?.uploadedAvatar;
     const selectedPresetID = avatarDraft?.customExpensifyAvatarID && AGENT_AVATARS.isAvatarID(avatarDraft.customExpensifyAvatarID) ? avatarDraft.customExpensifyAvatarID : undefined;
 
-    // Seed a random fallback avatar once and persist it, so the same avatar is shown on every screen and
-    // survives a page refresh anywhere in the add flow (including a refresh on the crop screen and back).
+    // Seed the avatar once and persist it, so the same avatar is shown on every screen and survives a page
+    // refresh anywhere in the add flow (including a refresh on the crop screen and back). When the builder was
+    // opened from a template, seed the template's avatar; otherwise fall back to a random preset.
     const hasSeededRef = useRef(false);
     useEffect(() => {
         if (hasSeededRef.current || isDraftLoading || avatarDraft) {
             return;
         }
         hasSeededRef.current = true;
-        const randomID = AGENT_AVATARS.getRandomID();
-        if (randomID) {
-            setNewAgentAvatarPreset(randomID);
+        const seedID = template && AGENT_AVATARS.isAvatarID(template.avatarID) ? template.avatarID : AGENT_AVATARS.getRandomID();
+        if (seedID) {
+            setNewAgentAvatarPreset(seedID);
         }
-    }, [isDraftLoading, avatarDraft]);
+    }, [isDraftLoading, avatarDraft, template]);
 
     let avatarSource: AvatarSource = '';
     if (uploadedAvatar?.uri) {
@@ -107,8 +118,13 @@ function AddAgentPage({route}: AddAgentPageProps) {
         } else {
             createAgent(firstName, prompt, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
         }
+
+        // Done with the creation flow — drop the stashed template and the avatar draft so a later blank flow starts fresh.
+        clearNewAgentTemplate();
         clearNewAgentAvatarDraft();
-        Navigation.goBack();
+
+        // Created the agent — close the whole creation flow (this page + the template picker) and reveal the agents list.
+        Navigation.dismissModal();
     };
 
     return (
@@ -120,7 +136,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('addAgentPage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
@@ -177,6 +193,29 @@ function AddAgentPage({route}: AddAgentPageProps) {
                 </View>
             </FormProvider>
         </ScreenWrapper>
+    );
+}
+
+function AddAgentPage({route}: AddAgentPageProps) {
+    const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
+
+    // Wait for the stashed template to resolve before mounting the form: the inputs' `defaultValue` and the
+    // avatar's initial state are captured once at mount, so they must see a template that persisted across a refresh.
+    // Same-session navigation hits the Onyx cache and skips this, so there's no flash in the common path.
+    if (isLoadingOnyxValue(templateMetadata)) {
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton
+                reasonAttributes={{context: 'AddAgentPage'}}
+            />
+        );
+    }
+
+    return (
+        <AddAgentPageContent
+            route={route}
+            template={template}
+        />
     );
 }
 

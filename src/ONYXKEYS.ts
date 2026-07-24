@@ -105,6 +105,9 @@ const ONYXKEYS = {
     /** Cropped image the avatar crop screen writes back for its opener */
     AVATAR_CROP_RESULT: 'avatarCropResult',
 
+    /** Template picked in the "New agent" screen, consumed by the custom-agent builder to pre-fill its fields */
+    NEW_AGENT_TEMPLATE: 'newAgentTemplate',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -159,6 +162,9 @@ const ONYXKEYS = {
 
     /** Agent rule suggestions for the add-rule Suggestions tab */
     AGENT_RULE_SUGGESTIONS: 'agentRuleSuggestions',
+
+    /** Agent templates for the add-agent Suggestions */
+    AGENT_TEMPLATES: 'agentTemplates',
 
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
@@ -444,6 +450,9 @@ const ONYXKEYS = {
 
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
     IS_LOADING_AGENT_RULE_SUGGESTIONS: 'isLoadingAgentRuleSuggestions',
+
+    /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
+    IS_LOADING_AGENT_TEMPLATES: 'isLoadingAgentTemplates',
 
     /** Set when we are loading fresh subscription/billing data from the server */
     IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
@@ -1516,6 +1525,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ODOMETER_DRAFT]: OnyxTypes.OdometerDraft;
     [ONYXKEYS.AVATAR_CROP_DRAFT]: OnyxTypes.AvatarCropDraft;
     [ONYXKEYS.AVATAR_CROP_RESULT]: OnyxTypes.AvatarCropResult;
+    [ONYXKEYS.NEW_AGENT_TEMPLATE]: OnyxTypes.NewAgentTemplate;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
@@ -1543,6 +1553,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.AGENT_RULE_SUGGESTIONS]: OnyxTypes.SuggestedAgentRule[];
+    [ONYXKEYS.AGENT_TEMPLATES]: OnyxTypes.SuggestedAgent[];
     [ONYXKEYS.BETA_CONFIGURATION]: OnyxTypes.BetaConfiguration;
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -1615,6 +1626,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
+    [ONYXKEYS.IS_LOADING_AGENT_TEMPLATES]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
