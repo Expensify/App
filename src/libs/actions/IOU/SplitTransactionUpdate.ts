@@ -73,6 +73,7 @@ import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
+import {signalExpenseAddedGrowl} from './NavigationHelpers';
 import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
@@ -1929,18 +1930,24 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
+    // The new (not pre-existing) split transactions created by this save, in split order. Reverse splits
+    // create none.
+    const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+    const newSplitTransactionIDs = isReverseSplitOperation
+        ? []
+        : splitExpenses
+              .map((splitExpense) => splitExpense.transactionID)
+              .filter((transactionID): transactionID is string => !!transactionID && !existingChildTransactionIDs.has(transactionID));
+
     // Register newly created split transaction IDs so they briefly highlight in the expense list.
-    // We skip existing transactions (already in allChildTransactions), reverse splits (no new transactions are created),
-    // and the last-transaction case (the report navigates away before the highlight renders).
+    // We skip the last-transaction case (the report navigates away before the highlight renders).
     if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
-        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
-        for (const splitExpense of splitExpenses) {
-            if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
-                continue;
-            }
-            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
+        for (const transactionID of newSplitTransactionIDs) {
+            addPendingNewTransactionIDs(targetReportID, transactionID);
         }
     }
+
+    signalExpenseAddedGrowl(newSplitTransactionIDs.at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         if (!isSelfDMSplit) {

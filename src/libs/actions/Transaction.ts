@@ -1993,8 +1993,8 @@ function getDefaultP2PMileageRate() {
     API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
 }
 
-function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
-    return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
+function mergeExpenseAddedGrowlTransactionIDs(data: Record<string, SearchDataTypes | null>) {
+    return Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, data);
 }
 
 function getDuplicateTransactionDetails(transactionID?: string) {
@@ -2030,6 +2030,6 @@ export {
     getChangeTransactionsReportOnyxData,
     setTransactionReport,
     getDefaultP2PMileageRate,
-    mergeTransactionIdsHighlightOnSearchRoute,
+    mergeExpenseAddedGrowlTransactionIDs,
     getDuplicateTransactionDetails,
 };

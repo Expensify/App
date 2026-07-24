@@ -1,8 +1,6 @@
 import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 
-import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
+import {mergeExpenseAddedGrowlTransactionIDs} from '@userActions/Transaction';
 
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -20,40 +18,13 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
 }
 
 /**
- * Marks a transaction for highlight on the Search page when the expense was created
- * from the global create button and the user is not on the Inbox tab.
+ * Signals the "Expense added" growl for a newly-created transaction.
  */
-function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes) {
-    if (!isFromGlobalCreate || isReportTopmostSplitNavigator() || !transactionID) {
+function signalExpenseAddedGrowl(transactionID: string | undefined, dataType: SearchDataTypes) {
+    if (!transactionID) {
         return;
     }
-    mergeTransactionIdsHighlightOnSearchRoute(dataType, {[transactionID]: true});
+    mergeExpenseAddedGrowlTransactionIDs({[transactionID]: dataType});
 }
 
-/**
- * Helper to navigate after an expense is created in order to standardize the post‑creation experience
- * when creating an expense from the global create button.
- * If the expense is created from the global create button then:
- * - If it is created on the inbox tab, it will open the chat report containing that expense.
- * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
- */
-function handleNavigateAfterExpenseCreate({
-    activeReportID,
-    transactionID,
-    isFromGlobalCreate,
-    isInvoice,
-    shouldAddPendingNewTransactionIDs = false,
-    shouldNavigate = true,
-}: {
-    activeReportID?: string;
-    transactionID?: string;
-    isFromGlobalCreate?: boolean;
-    isInvoice?: boolean;
-    shouldAddPendingNewTransactionIDs?: boolean;
-    shouldNavigate?: boolean;
-}) {
-    const hasMultipleTransactions = Object.values(getAllTransactions()).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
-    navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions, shouldAddPendingNewTransactionIDs, shouldNavigate});
-}
-
-export {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded};
+export {dismissModalAndOpenReportInInboxTab, signalExpenseAddedGrowl};

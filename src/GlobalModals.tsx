@@ -2,6 +2,7 @@ import React, {startTransition, useEffect, useState} from 'react';
 
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
+import ExpenseAddedGrowl from './components/ExpenseAddedGrowl';
 import GrowlNotification from './components/GrowlNotification';
 import LazyModalSlot from './components/LazyModalSlot';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -49,6 +50,7 @@ function GlobalModals() {
     return (
         <>
             <GrowlNotification ref={growlRef} />
+            <ExpenseAddedGrowl />
             <DelegateNoAccessModalProvider>
                 {shouldRenderContextMenu && (
                     <LazyModalSlot>

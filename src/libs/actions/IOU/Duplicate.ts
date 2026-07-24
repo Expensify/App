@@ -62,6 +62,7 @@ import type {CreateTrackExpenseParams} from './TrackExpense';
 import {buildParticipantsPolicyTags, getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
+import {signalExpenseAddedGrowl} from './NavigationHelpers';
 import {submitPerDiemExpense} from './PerDiem';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
@@ -1171,6 +1172,7 @@ function bulkDuplicateExpenses({
         isSubmitAndClose(targetPolicy) &&
         (allNonReimbursable || targetPolicy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
 
+    let lastDuplicateTransactionID: string | undefined;
     for (let i = 0; i < transactionsToDuplicate.length; i++) {
         const item = transactionsToDuplicate.at(i);
         if (!item) {
@@ -1237,6 +1239,9 @@ function bulkDuplicateExpenses({
         if (result?.iouReport) {
             optimisticIOUReport = result.iouReport;
         }
+        if (result?.transactionID) {
+            lastDuplicateTransactionID = result.transactionID;
+        }
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
@@ -1244,6 +1249,7 @@ function bulkDuplicateExpenses({
     }
 
     playSound(SOUNDS.DONE);
+    signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 }
 
 type BulkDuplicateReportsParams = {

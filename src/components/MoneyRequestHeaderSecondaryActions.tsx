@@ -27,6 +27,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
+import {signalExpenseAddedGrowl} from '@libs/actions/IOU/NavigationHelpers';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -243,11 +244,12 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         const optimisticIOUReportID = generateReportID();
         const activePolicyCategoriesMap = defaultPolicyCategories ?? {};
 
+        let lastDuplicateTransactionID: string | undefined;
         for (const item of transactions) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-            duplicateTransactionAction({
+            const result = duplicateTransactionAction({
                 transaction: item,
                 optimisticChatReportID,
                 optimisticIOUReportID,
@@ -272,7 +274,11 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 policyTagList,
                 formatPhoneNumber,
             });
+            if (result?.transactionID) {
+                lastDuplicateTransactionID = result.transactionID;
+            }
         }
+        signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     };
 
     const dismissModalAndUpdateUseHold = () => {
