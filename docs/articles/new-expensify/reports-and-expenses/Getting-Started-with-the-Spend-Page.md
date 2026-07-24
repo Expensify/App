@@ -79,7 +79,7 @@ Each row represents an expense and includes:
    - Create report
    - An existing draft report
    - Remove from report 
-5. The expense is moved. A system message records the move when the expense leaves a submitted report or is removed from a report. Moving expenses between draft reports does not add a system message.
+4. The expense is moved. A system message records the move when the expense leaves a submitted report or is removed from a report. Moving expenses between draft reports does not add a system message.
 
 ## How to add a new expense to the table
 - The expense appears in the table.  
