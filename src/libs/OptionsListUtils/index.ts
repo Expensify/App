@@ -1904,6 +1904,53 @@ const recentReportComparator = (option: SearchOptionData) => {
     return `${option.isSelfDM ? 1 : 0}_${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
 };
 
+type DecoratedOption<T> = {
+    key: number | string;
+    option: T;
+};
+
+type DecoratedOptionHeap<T> = MinHeap<DecoratedOption<T>> | MaxHeap<DecoratedOption<T>>;
+
+function getDecoratedOptionKey<T>(decoratedOption: DecoratedOption<T>) {
+    return decoratedOption.key;
+}
+
+/**
+ * Creates a heap that compares precomputed keys instead of re-running `comparator`
+ * on every O(log n) heap comparison.
+ */
+function createDecoratedOptionHeap<T>(reversed: boolean): DecoratedOptionHeap<T> {
+    return reversed ? new MaxHeap<DecoratedOption<T>>(getDecoratedOptionKey) : new MinHeap<DecoratedOption<T>>(getDecoratedOptionKey);
+}
+
+function decorateOption<T>(option: T, comparator: (option: T) => number | string): DecoratedOption<T> {
+    return {key: comparator(option), option};
+}
+
+/**
+ * Pushes a decorated option into a bounded heap. Returns true when the limit was already reached.
+ */
+function pushDecoratedOptionToLimitedHeap<T>(heap: DecoratedOptionHeap<T>, decoratedOption: DecoratedOption<T>, limit: number | undefined, reversed: boolean): boolean {
+    if (limit !== undefined && heap.size() >= limit) {
+        const peekedValue = heap.peek();
+        if (!peekedValue) {
+            throw new Error('Heap is empty, cannot peek value');
+        }
+        if (reversed ? decoratedOption.key < peekedValue.key : decoratedOption.key > peekedValue.key) {
+            heap.pop();
+            heap.push(decoratedOption);
+        }
+        return true;
+    }
+
+    heap.push(decoratedOption);
+    return false;
+}
+
+function getOptionsFromDecoratedHeap<T>(heap: DecoratedOptionHeap<T>) {
+    return [...heap].reverse().map((decoratedOption) => decoratedOption.option);
+}
+
 /**
  * Sort options by a given comparator and return first sorted options.
  * Function uses a min heap to efficiently get the first sorted options.
@@ -1922,33 +1969,18 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
         return {options: [], hasMore};
     }
 
-    // Decorate each option with its comparator key once.
-    // The heap then compares precomputed primitives instead of re-running `comparator`
-    // on every O(log n) heap comparison, so `comparator` is evaluated exactly once per option.
-    type Decorated = {key: number | string; option: T};
-    const getKey = (decorated: Decorated) => decorated.key;
-    const heap = reversed ? new MaxHeap<Decorated>(getKey) : new MinHeap<Decorated>(getKey);
+    const heap = createDecoratedOptionHeap<T>(reversed);
 
     for (const option of options) {
         if (filter && !filter(option)) {
             continue;
         }
-        const decorated: Decorated = {key: comparator(option), option};
-        if (limit !== undefined && heap.size() >= limit) {
+        const decoratedOption = decorateOption(option, comparator);
+        if (pushDecoratedOptionToLimitedHeap(heap, decoratedOption, limit, reversed)) {
             hasMore = true;
-            const peekedValue = heap.peek();
-            if (!peekedValue) {
-                throw new Error('Heap is empty, cannot peek value');
-            }
-            if (reversed ? decorated.key < peekedValue.key : decorated.key > peekedValue.key) {
-                heap.pop();
-                heap.push(decorated);
-            }
-        } else {
-            heap.push(decorated);
         }
     }
-    return {options: [...heap].reverse().map((decorated) => decorated.option), hasMore};
+    return {options: getOptionsFromDecoratedHeap(heap), hasMore};
 }
 
 /**
@@ -1967,12 +1999,12 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
     reversed = false,
 ): {options: T[][]; hasMore: boolean} {
     // Create a heap for each separator + one default heap (N+1 total)
-    const heaps: Array<MinHeap<T> | MaxHeap<T>> = [];
+    const heaps: Array<DecoratedOptionHeap<T>> = [];
     let hasMore = false;
     for (let i = 0; i < separators.length; i++) {
-        heaps.push(reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator));
+        heaps.push(createDecoratedOptionHeap<T>(reversed));
     }
-    const defaultHeap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
+    const defaultHeap = createDecoratedOptionHeap<T>(reversed);
 
     // If limit is 0 or negative, return N+1 empty arrays
     if (limit !== undefined && limit <= 0) {
@@ -1986,8 +2018,10 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
             continue;
         }
 
+        const decoratedOption = decorateOption(option, comparator);
+
         // Find which group this option belongs to (first-match-wins)
-        let targetHeap: MinHeap<T> | MaxHeap<T> | null = null;
+        let targetHeap: DecoratedOptionHeap<T> | null = null;
 
         for (let i = 0; i < separators.length; i++) {
             if (separators[i](option)) {
@@ -2003,18 +2037,8 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
         }
 
         // Add to heap with limit logic (each heap has its own limit)
-        if (limit !== undefined && targetHeap.size() >= limit) {
+        if (pushDecoratedOptionToLimitedHeap(targetHeap, decoratedOption, limit, reversed)) {
             hasMore = true;
-            const peekedValue = targetHeap.peek();
-            if (!peekedValue) {
-                throw new Error('Heap is empty, cannot peek value');
-            }
-            if (comparator(option) > comparator(peekedValue)) {
-                targetHeap.pop();
-                targetHeap.push(option);
-            }
-        } else {
-            targetHeap.push(option);
         }
     }
 
@@ -2022,9 +2046,9 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
     // Always return N+1 arrays (some may be empty)
     const results: T[][] = [];
     for (const heap of heaps) {
-        results.push([...heap].reverse());
+        results.push(getOptionsFromDecoratedHeap(heap));
     }
-    results.push([...defaultHeap].reverse());
+    results.push(getOptionsFromDecoratedHeap(defaultHeap));
 
     return {options: results, hasMore};
 }
