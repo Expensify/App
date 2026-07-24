@@ -91,15 +91,31 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                   },
               ];
 
+        const internationalBankAccountDetails =
+            bankAccountPersonalDetails?.iban && bankAccountPersonalDetails?.swiftCode
+                ? [
+                      {
+                          id: 'international-bank-account-details',
+                          description: `${translate('bankAccount.iban')} / ${translate('bankAccount.swiftBicCode')}`,
+                          title: `${bankAccountPersonalDetails?.iban} / ${bankAccountPersonalDetails?.swiftCode}`,
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              moveToEditStep(1);
+                          },
+                      },
+                  ]
+                : [];
+
         return [
             ...bankConnection,
+            ...internationalBankAccountDetails,
             {
                 id: 'legal-name',
                 description: translate('personalInfoStep.legalName'),
                 title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(1);
+                    moveToEditStep(2);
                 },
             },
             {
@@ -108,7 +124,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                 title: `${personalDetails?.addressStreet}, ${personalDetails?.addressCity}, ${personalDetails?.addressState} ${personalDetails?.addressZip}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(2);
+                    moveToEditStep(3);
                 },
             },
             {
@@ -117,7 +133,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                 title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(3);
+                    moveToEditStep(4);
                 },
             },
         ];

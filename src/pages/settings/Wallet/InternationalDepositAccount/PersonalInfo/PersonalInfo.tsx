@@ -2,6 +2,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 
@@ -15,12 +16,8 @@ import {addPersonalBankAccount} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createShouldCollectInternationalDepositDetailsSelector} from '@src/selectors/Policy';
-import type {Policy} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
@@ -51,11 +48,7 @@ function PersonalInfoPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
-    const shouldCollectInternationalDepositDetailsSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => createShouldCollectInternationalDepositDetailsSelector(CONST.COUNTRY.US)(policies),
-        [],
-    );
-    const [shouldCollectInternationalDepositDetails] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldCollectInternationalDepositDetailsSelector});
+    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(CONST.COUNTRY.US);
 
     const submitBankAccountForm = () => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -96,8 +89,7 @@ function PersonalInfoPage() {
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
-    const isAccountNumberIBAN = CONST.BANK_ACCOUNT.REGEX.IBAN.test((personalBankAccount?.accountNumber ?? '').trim());
-    const shouldSkipInternationalBankAccountDetails = !shouldCollectInternationalDepositDetails || (isAccountNumberIBAN && !!personalBankAccount?.swiftCode);
+    const shouldSkipInternationalBankAccountDetails = !shouldCollectInternationalDepositDetails || (!!personalBankAccount?.iban && !!personalBankAccount?.swiftCode);
 
     const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldSkipInternationalBankAccountDetails);
 

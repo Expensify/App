@@ -125,6 +125,18 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         });
     }
 
+    if (formValues.iban && formValues.swiftCode) {
+        summaryItems.push({
+            id: 'international-bank-account-details',
+            description: `${translate('bankAccount.iban')} / ${translate('bankAccount.swiftBicCode')}`,
+            title: `${formValues.iban} / ${formValues.swiftCode}`,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+            },
+        });
+    }
+
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE] ?? {})) {
         summaryItems.push({
             id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE}-${fieldName}`,

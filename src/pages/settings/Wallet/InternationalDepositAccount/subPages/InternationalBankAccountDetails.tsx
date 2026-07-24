@@ -32,6 +32,11 @@ function InternationalBankAccountDetails({isEditing, onNext, formValues}: Custom
         shouldSaveDraft: true,
     });
 
+    // For IBAN countries the account number entered in the account details step is the IBAN, so pre-fill the IBAN
+    // field with it until the user edits this step directly.
+    const accountNumber = formValues.accountNumber;
+    const ibanDefaultValue = formValues[IBAN] || (accountNumber && CONST.BANK_ACCOUNT.REGEX.IBAN.test(String(accountNumber).trim()) ? accountNumber : '');
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
             const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
@@ -65,7 +70,7 @@ function InternationalBankAccountDetails({isEditing, onNext, formValues}: Custom
                     label={translate('bankAccount.iban')}
                     aria-label={translate('bankAccount.iban')}
                     role={CONST.ROLE.PRESENTATION}
-                    defaultValue={formValues[IBAN]}
+                    defaultValue={ibanDefaultValue}
                     containerStyles={[styles.pv2]}
                     shouldSaveDraft={!isEditing}
                 />

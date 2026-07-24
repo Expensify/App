@@ -4,8 +4,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useSubPage from '@hooks/useSubPage';
 
 import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
@@ -23,15 +23,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {createShouldCollectInternationalDepositDetailsSelector} from '@src/selectors/Policy';
 import type {InternationalBankAccountForm} from '@src/types/form';
-import type {BankAccountList, CorpayFields, Policy, PrivatePersonalDetails} from '@src/types/onyx';
+import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import type CustomSubPageProps from './types';
 
@@ -95,11 +94,7 @@ function InternationalDepositAccountContent({
 
     const values = getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap);
     const bankCountry = values.bankCountry;
-    const shouldCollectInternationalDepositDetailsSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => createShouldCollectInternationalDepositDetailsSelector(bankCountry)(policies),
-        [bankCountry],
-    );
-    const [shouldCollectInternationalDepositDetails] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldCollectInternationalDepositDetailsSelector});
+    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(bankCountry);
 
     const initialAccountHolderDetailsValues = getInitialPersonalDetailsValues(privatePersonalDetails);
 
