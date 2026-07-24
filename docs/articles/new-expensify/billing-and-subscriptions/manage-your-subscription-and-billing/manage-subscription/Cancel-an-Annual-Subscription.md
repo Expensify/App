@@ -33,6 +33,8 @@ If your workspace is already on Pay-per-use, there's no subscription to cancel. 
 3. Choose the main reason you're canceling and add the requested details.
 4. Review the acknowledgment that submitting the form requests cancellation and that approval is not guaranteed, then **Submit**.
 
+![Account > Subscription page with the "Cancel subscription" button visible]({{site.url}}/assets/images/ExpensiHelp-Cancel-an-Annual-Subscription.png){:width="100%"}
+
 ---
 
 ## When Expensify approves an Annual subscription cancellation request
