@@ -6449,6 +6449,10 @@ const CONST = {
 
     VIDEO_PLAYER: {
         PLAYBACK_SPEEDS: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+        // Tolerance (in seconds) used when deciding whether a paused video is "at its end". `timeUpdate`
+        // samples every ~0.1s and stops firing once the video pauses at the end, so `currentTime` can
+        // freeze up to ~0.1s short of `duration`; comparing against `duration - this` absorbs that gap.
+        REPLAY_END_THRESHOLD_SECONDS: 0.15,
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
