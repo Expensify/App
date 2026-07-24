@@ -523,6 +523,16 @@ describe('buildOnyxDataForMoneyRequest', () => {
             expect((iouMetadataEntry?.value as {isOptimisticReport?: boolean})?.isOptimisticReport).toBe(false);
         });
 
+        it('marks the new chat loading state as finished so the skeleton stops (the chat never loads via OpenReport)', () => {
+            const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
+
+            const chatLoadingStateEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${CHAT_REPORT_ID}`);
+
+            expect(chatLoadingStateEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect((chatLoadingStateEntry?.value as {isLoadingInitialReportActions?: boolean})?.isLoadingInitialReportActions).toBe(false);
+            expect((chatLoadingStateEntry?.value as {hasOnceLoadedReportActions?: boolean})?.hasOnceLoadedReportActions).toBe(true);
+        });
+
         it('does not SET any of the new-chat entities to null on failure (rollback happens on dismiss, not on failure)', () => {
             const {failureData} = buildOnyxDataForMoneyRequest(buildNewChatParams());
 
@@ -550,9 +560,11 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             const chatMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${CHAT_REPORT_ID}`);
             const iouMetadataEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.REPORT_METADATA}${IOU_REPORT_ID}`);
+            const chatLoadingStateEntry = findFailureEntry(failureData, `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${CHAT_REPORT_ID}`);
 
             expect(chatMetadataEntry).toBeUndefined();
             expect(iouMetadataEntry).toBeUndefined();
+            expect(chatLoadingStateEntry).toBeUndefined();
         });
 
         it('keeps the standard error-merge behavior when the expense is added to an existing chat and IOU report (retryable)', () => {

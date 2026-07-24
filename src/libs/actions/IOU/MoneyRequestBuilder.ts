@@ -1056,13 +1056,27 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         // calls `openReport` and the chat is stuck on an infinite loading skeleton. The failed expense's red-brick-road
         // error stays visible; dismissing it then fully removes the orphaned chat and IOU report shells. See #93542.
         if (isNewChatReport) {
-            onyxData.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
-                value: {
-                    isOptimisticReport: false,
+            onyxData.failureData?.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                    value: {
+                        isOptimisticReport: false,
+                    },
                 },
-            });
+                // The chat's server creation failed, so it will never load via OpenReport. Flipping isOptimisticReport
+                // alone does not re-run `fetchReport` (no fetchReport effect depends on it), so the loading skeleton would
+                // spin forever. Mark the loading state finished so the skeleton stops and the cached optimistic content
+                // (the CREATED row + the failed expense with its red-brick-road error) renders instead.
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chat.report?.reportID}`,
+                    value: {
+                        isLoadingInitialReportActions: false,
+                        hasOnceLoadedReportActions: true,
+                    },
+                },
+            );
         }
         if (shouldCreateNewMoneyRequestReport) {
             onyxData.failureData?.push({
