@@ -2590,8 +2590,8 @@ function getTaskSections(
             const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
             const parentReport = getReportOrDraftReport(taskItem.parentReportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${taskItem.parentReportID}`];
 
-            const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
-            const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
+            const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName ?? ''));
+            const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description ?? ''));
 
             const result: TaskListItemType = {
                 ...taskItem,
