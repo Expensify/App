@@ -440,6 +440,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Drukuj',
         help: 'Pomoc',
         collapsed: 'Zwinięte',
+        expand: 'Rozwiń',
         expanded: 'Rozwinięte',
         expenseReport: 'Raport wydatków',
         rateOutOfPolicy: 'Stawka poza zasadami',
