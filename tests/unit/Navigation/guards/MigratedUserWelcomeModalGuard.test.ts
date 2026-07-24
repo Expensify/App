@@ -43,6 +43,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
         isAuthenticated: true,
         isLoading: false,
         currentUrl: '',
+        isSupportalSession: false,
     };
 
     beforeEach(async () => {
@@ -114,6 +115,19 @@ describe('MigratedUserWelcomeModalGuard', () => {
         if (result.type === 'REDIRECT') {
             expect(result.route).toBe(migratedUserWelcomeRoute);
         }
+    });
+
+    it('should allow during a supportal session even when eligible for the migrated user welcome modal', async () => {
+        await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            nudgeMigration: {
+                timestamp: new Date(),
+                cohort: 'test',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, {...defaultContext, isSupportalSession: true});
+        expect(result.type).toBe('ALLOW');
     });
 
     it('should allow when modal has been dismissed', async () => {

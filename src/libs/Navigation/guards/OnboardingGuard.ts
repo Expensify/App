@@ -17,6 +17,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute} from '@react-navigation/native';
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
@@ -198,7 +199,10 @@ const OnboardingGuard: NavigationGuard = {
             isInvitedOrGroupMember ||
             isSingleEntry ||
             isFirstTimeHybridAppTransition ||
-            isNavigatingWithReplace;
+            isNavigatingWithReplace ||
+            context.isSupportalSession ||
+            // Copilots should not be pushed through onboarding on behalf of the account they are accessing
+            isActingAsDelegateSelector(account);
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};

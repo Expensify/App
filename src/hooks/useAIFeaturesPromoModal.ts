@@ -20,6 +20,7 @@ import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selec
 import {useEffect, useRef} from 'react';
 
 import useOnyx from './useOnyx';
+import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 
 let hasRedirectedToAIFeaturesPromoModal = false;
 let observedActiveMigrationModalThisSession = false;
@@ -27,13 +28,15 @@ let observedActiveOnboardingThisSession = false;
 
 /**
  * Hook that navigates to the AI features promo modal if:
- * - The user is not acting as a delegate; and
+ * - The user is not in a supportal or copilot session; and
  * - The user has not dismissed the AI features promo modal; and
  * - The user has seen neither the migrated user welcome modal nor the onboarding modal in this session
  */
 function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isActingAsDelegate, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    // Only used for its load metadata: the promo must wait for ACCOUNT to load so a copilot/delegate session is detected before eligibility is decided
+    const [, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
     const [onboarding, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -73,7 +76,7 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
         isAllOnyxLoaded &&
         !!session?.authToken &&
         !isLoadingApp &&
-        !isActingAsDelegate &&
+        !shouldSuppressPromotionalUI &&
         !hasRedirectedToAIFeaturesPromoModal &&
         !isAIPromoModalDismissed &&
         !isMigrationModalPending &&

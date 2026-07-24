@@ -6,6 +6,7 @@ import type {Session} from '@src/types/onyx';
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
@@ -66,6 +67,7 @@ function createGuardContext(overrides?: Partial<GuardContext>): GuardContext {
         isAuthenticated,
         isLoading,
         currentUrl,
+        isSupportalSession: isSupportalSessionSelector(session),
         ...overrides,
     };
 }

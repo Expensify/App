@@ -17,6 +17,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
@@ -74,6 +75,10 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+
+    // Supportal agents and copilots should not see the change-policy educational modal on behalf of another account
+    const shouldSkipChangePolicyTrainingModal = isChangePolicyTrainingModalDismissed || shouldSuppressPromotionalUI;
     const isAppLoadPending = useIsAppLoadPending();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
@@ -138,7 +143,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 submitterLogin,
                 managerLogin,
                 hasViolationsParam: hasViolations,
-                isChangePolicyTrainingModalDismissed,
+                isChangePolicyTrainingModalDismissed: shouldSkipChangePolicyTrainingModal,
                 isASAPSubmitBetaEnabled,
                 employeeList,
                 isReportLastVisibleArchived,
@@ -159,7 +164,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             ownerLogin: submitterLogin,
             managerLogin,
             hasViolationsParam: hasViolations,
-            isChangePolicyTrainingModalDismissed,
+            isChangePolicyTrainingModalDismissed: shouldSkipChangePolicyTrainingModal,
             isASAPSubmitBetaEnabled,
             reportNextStep,
             isReportLastVisibleArchived,

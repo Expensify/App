@@ -73,6 +73,34 @@ beforeEach(() => {
 });
 
 describe('Session', () => {
+    describe('isSupportalSession', () => {
+        test('returns true when the session uses a support auth token', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(true);
+        });
+
+        test('returns true mid-transition when isSupportAuthTokenUsed is set', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {isSupportAuthTokenUsed: true});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(true);
+        });
+
+        test('returns false for a non-supportal session', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@example.com'});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(false);
+        });
+
+        test('returns false when there is no session', () => {
+            // beforeEach clears Onyx, so the module-level session is empty here
+            expect(SessionUtil.isSupportalSession()).toBe(false);
+        });
+    });
+
     test('reauthenticate redirects to sign in with "No credentials available" when credentials are missing', async () => {
         // Given no signed-in user — beforeEach calls Onyx.clear(), so NetworkStore's credentials are null
 
