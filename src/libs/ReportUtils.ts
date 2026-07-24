@@ -4715,6 +4715,14 @@ function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, reportFiel
 }
 
 /**
+ * Invoice receivers only get a reduced copy of the sender's policy, which does not include the invoice fields feature flag.
+ * Invoice field visibility therefore depends on fields attached to the report, while expense fields still depend on the workspace setting.
+ */
+function shouldDisplayReportFields(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    return isInvoiceReport(report) || (isGroupPolicyExpenseReport(report, policy?.type) && !!policy?.areReportFieldsEnabled);
+}
+
+/**
  * Check if Report has any held expenses
  */
 function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | undefined): boolean {
@@ -14035,6 +14043,7 @@ export {
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isReportFieldTargetMatchingReport,
+    shouldDisplayReportFields,
     isReportManager,
     isReportOwner,
     isReportParticipant,

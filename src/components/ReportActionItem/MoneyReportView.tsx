@@ -30,11 +30,10 @@ import {
     getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
-    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
-    isInvoiceReport as isInvoiceReportUtils,
     isReportFieldDisabledForUser,
     isReportFieldTargetMatchingReport,
     isSettled as isSettledReportUtils,
+    shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -154,11 +153,8 @@ function MoneyReportView({
 
     const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
-    const areFieldsEnabledForReport = isInvoiceReport ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
-    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && (isGroupPolicyExpenseReport || isInvoiceReport) && !!areFieldsEnabledForReport && !isOnlyTitleFieldEnabled;
+    const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
+    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
@@ -185,8 +181,7 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {(isGroupPolicyExpenseReport || isInvoiceReport) &&
-                            areFieldsEnabledForReport &&
+                        {shouldDisplayReportFields &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {

@@ -13,10 +13,9 @@ import {
     getFieldViolationTranslation,
     getReportFieldKey,
     getReportFieldMaps,
-    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
-    isInvoiceReport as isInvoiceReportUtils,
     isReportFieldDisabledForUser,
     isReportFieldTargetMatchingReport,
+    shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 
@@ -117,13 +116,9 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
             });
     }, [policy, report, currentUserAccountID]);
 
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
-    const isInvoiceReport = isInvoiceReportUtils(report);
-    const areFieldsEnabledForReport = isInvoiceReport ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
-
     // `sortedPolicyReportFields` already excludes fields hidden by `shouldHideSingleReportField`, including the title field.
     // If no displayable custom fields remain, the early return below hides the section.
-    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!areFieldsEnabledForReport;
+    const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
 
     if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
         return null;

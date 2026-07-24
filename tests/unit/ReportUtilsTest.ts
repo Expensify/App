@@ -178,6 +178,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
+    shouldDisplayReportFields,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldHideSingleReportField,
@@ -16771,6 +16772,36 @@ describe('ReportUtils', () => {
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
+
+    describe('shouldDisplayReportFields', () => {
+        it('returns true for an invoice when the receiver policy does not include the invoice fields feature flag', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.INVOICE});
+            const receiverPolicy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM});
+
+            expect(shouldDisplayReportFields(report, receiverPolicy)).toBe(true);
+        });
+
+        it('returns true for a workspace expense report when report fields are enabled', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+            const policy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.TEAM,
+                areReportFieldsEnabled: true,
+            });
+
+            expect(shouldDisplayReportFields(report, policy)).toBe(true);
+        });
+
+        it('returns false for a workspace expense report when report fields are disabled', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+            const policy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.TEAM,
+                areReportFieldsEnabled: false,
+            });
+
+            expect(shouldDisplayReportFields(report, policy)).toBe(false);
+        });
+    });
+
     describe('P2P Wallet Activation - GBR and Wallet Indicator', () => {
         const friendAccountID = 42;
 
