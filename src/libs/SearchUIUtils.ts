@@ -5770,6 +5770,7 @@ function getColumnsToShow({
     shouldUseStrictDefaultExpenseColumns = false,
     isPolicyTaxEnabled = false,
     fallbackPolicyID,
+    shouldIncludeEmptyColumns = false,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -5786,6 +5787,7 @@ function getColumnsToShow({
     shouldUseStrictDefaultExpenseColumns?: boolean;
     isPolicyTaxEnabled?: boolean;
     fallbackPolicyID?: string;
+    shouldIncludeEmptyColumns?: boolean;
 }): SearchColumnType[] {
     const reportCustomColumns = new Set<SearchColumnType>([
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
@@ -5830,7 +5832,7 @@ function getColumnsToShow({
             result.push(col);
         }
 
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) || shouldIncludeEmptyColumns) {
             return result;
         }
 
@@ -6180,7 +6182,16 @@ function getColumnsToShow({
         return customResult;
     }
 
-    return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
+    const shown = (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
+    if (shouldIncludeEmptyColumns) {
+        // For CSV export, include configured view columns even when no record has data for them.
+        // Custom selections already kept via customResult above; this covers the default-column path.
+        const configuredColumns: SearchColumnType[] = filteredVisibleColumns.length > 0 ? filteredVisibleColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+        const seen = new Set(shown);
+        return [...shown, ...configuredColumns.filter((col) => !seen.has(col))];
+    }
+
+    return shown;
 }
 
 /**
